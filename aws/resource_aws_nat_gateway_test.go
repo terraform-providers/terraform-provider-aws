@@ -230,7 +230,6 @@ resource "aws_eip" "test" {
 `
 
 const testAccNatGatewayConfig = testAccNatGatewayConfigBase + `
-// Actual SUT
 resource "aws_nat_gateway" "test" {
   allocation_id = aws_eip.test.id
   subnet_id     = aws_subnet.public.id

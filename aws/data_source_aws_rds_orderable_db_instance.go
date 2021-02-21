@@ -25,18 +25,18 @@ func dataSourceAwsRdsOrderableDbInstance() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"instance_class": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"engine": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
 			"engine_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"instance_class": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -88,13 +88,13 @@ func dataSourceAwsRdsOrderableDbInstance() *schema.Resource {
 				Computed: true,
 			},
 
-			"preferred_engine_versions": {
+			"preferred_instance_classes": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"preferred_instance_classes": {
+			"preferred_engine_versions": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},

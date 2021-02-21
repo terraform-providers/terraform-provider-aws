@@ -40,6 +40,26 @@ resource "aws_cognito_user_pool" "example" {
 }
 ```
 
+### Using Account Recovery Setting
+
+```hcl
+resource "aws_cognito_user_pool" "test" {
+  name = "mypool"
+
+  account_recovery_setting {
+    recovery_mechanism {
+      name     = "verified_email"
+      priority = 1
+    }
+
+    recovery_mechanism {
+      name     = "verified_phone_number"
+      priority = 2
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -60,7 +80,7 @@ The following arguments are supported:
 * `password_policy` (Optional) - A container for information about the [user pool password policy](#password-policy).
 * `schema` (Optional) - A container with the [schema attributes](#schema-attributes) of a user pool. Schema attributes from the [standard attribute set](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html#cognito-user-pools-standard-attributes) only need to be specified if they are different from the default configuration. Maximum of 50 attributes.
 * `sms_authentication_message` - (Optional) A string representing the SMS authentication message. The message must contain the `{####}` placeholder, which will be replaced with the code.
-* `sms_configuration` (Optional) - Configuration block for Short Message Service (SMS) settings. Detailed below. These settings apply to SMS user verification and SMS Multi-Factor Authentication (MFA). Due to Cognito API restrictions, the SMS configuration cannot be removed without recreating the Cognito User Pool. For user data safety, this resource will ignore the removal of this configuration by disabling drift detection. To force resource recreation after this configuration has been applied, see the [`taint` command](/docs/commands/taint.html).
+* `sms_configuration` (Optional) - Configuration block for Short Message Service (SMS) settings. Detailed below. These settings apply to SMS user verification and SMS Multi-Factor Authentication (MFA). Due to Cognito API restrictions, the SMS configuration cannot be removed without recreating the Cognito User Pool. For user data safety, this resource will ignore the removal of this configuration by disabling drift detection. To force resource recreation after this configuration has been applied, see the [`taint` command](https://www.terraform.io/docs/commands/taint.html).
 * `sms_verification_message` - (Optional) A string representing the SMS verification message. Conflicts with `verification_message_template` configuration block `sms_message` argument.
 * `software_token_mfa_configuration` - (Optional) Configuration block for software token Mult-Factor Authentication (MFA) settings. Detailed below.
 * `tags` - (Optional) A map of tags to assign to the User Pool.
@@ -68,6 +88,7 @@ The following arguments are supported:
 * `username_configuration` - (Optional) The [Username Configuration](#username-configuration).
 * `user_pool_add_ons` - (Optional) Configuration block for [user pool add-ons](#user-pool-add-ons) to enable user pool advanced security mode features.
 * `verification_message_template` (Optional) - The [verification message templates](#verification-message-template) configuration.
+* `account_recovery_setting` (Optional) - The [account_recovery_setting](#account-recovery-setting) configuration.
 
 #### Admin Create User Config
 
@@ -185,8 +206,14 @@ The following arguments are required in the `software_token_mfa_configuration` c
 * `email_subject` (Optional) - The subject line for the email message template. Conflicts with `email_verification_subject` argument.
 * `email_subject_by_link` (Optional) - The subject line for the email message template for sending a confirmation link to the user.
 * `sms_message` (Optional) - The SMS message template. Must contain the `{####}` placeholder. Conflicts with `sms_verification_message` argument.
+  
+### Account Recovery Setting
 
-## Attribute Reference
+* `recovery_mechanism` (Required) - The list of Account Recovery Options of the following structure:
+    * `name` (Required) - Specifies the recovery method for a user. Can be of the following: `verified_email`, `verified_phone_number`, and `admin_only`.
+    * `priority` (Required) - A positive integer specifying priority of a method with 1 being the highest priority.
+
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

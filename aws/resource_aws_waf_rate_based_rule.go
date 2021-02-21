@@ -99,7 +99,7 @@ func resourceAwsWafRateBasedRuleCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	resp := out.(*waf.CreateRateBasedRuleOutput)
-	d.SetId(*resp.Rule.RuleId)
+	d.SetId(aws.StringValue(resp.Rule.RuleId))
 
 	newPredicates := d.Get("predicates").(*schema.Set).List()
 	if len(newPredicates) > 0 {

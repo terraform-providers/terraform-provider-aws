@@ -20,6 +20,7 @@ resource "aws_autoscaling_group" "test" {
 
   tag {
     key                 = "AmazonECSManaged"
+    value               = ""
     propagate_at_launch = true
   }
 }
@@ -61,6 +62,7 @@ The `auto_scaling_group_provider` block supports the following:
 
 The `managed_scaling` block supports the following:
 
+* `instance_warmup_period` - (Optional) The period of time, in seconds, after a newly launched Amazon EC2 instance can contribute to CloudWatch metrics for Auto Scaling group. If this parameter is omitted, the default value of 300 seconds is used.
 * `maximum_scaling_step_size` - (Optional) The maximum step adjustment size. A number between 1 and 10,000.
 * `minimum_scaling_step_size` - (Optional) The minimum step adjustment size. A number between 1 and 10,000.
 * `status` - (Optional) Whether auto scaling is managed by ECS. Valid values are `ENABLED` and `DISABLED`.

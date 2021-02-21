@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/batch"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -26,41 +29,126 @@ func init() {
 
 func testSweepBatchComputeEnvironments(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
+
 	conn := client.(*AWSClient).batchconn
+	iamconn := client.(*AWSClient).iamconn
 
-	out, err := conn.DescribeComputeEnvironments(&batch.DescribeComputeEnvironmentsInput{})
-	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping Batch Compute Environment sweep for %s: %s", region, err)
-			return nil
+	var sweeperErrs *multierror.Error
+
+	input := &batch.DescribeComputeEnvironmentsInput{}
+	r := resourceAwsBatchComputeEnvironment()
+
+	err = conn.DescribeComputeEnvironmentsPages(input, func(page *batch.DescribeComputeEnvironmentsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
-		return fmt.Errorf("Error retrieving Batch Compute Environments: %s", err)
-	}
-	for _, computeEnvironment := range out.ComputeEnvironments {
-		name := aws.StringValue(computeEnvironment.ComputeEnvironmentName)
 
-		if aws.StringValue(computeEnvironment.State) == batch.CEStateEnabled {
-			log.Printf("[INFO] Disabling Batch Compute Environment: %s", name)
-			err := disableBatchComputeEnvironment(name, 20*time.Minute, conn)
+		for _, computeEnvironment := range page.ComputeEnvironments {
+			name := aws.StringValue(computeEnvironment.ComputeEnvironmentName)
+
+			d := r.Data(nil)
+			d.SetId(name)
+			d.Set("compute_environment_name", name)
+
+			// Reference: https://aws.amazon.com/premiumsupport/knowledge-center/batch-invalid-compute-environment/
+			//
+			// When a Compute Environment becomes INVALID, it is typically because the associated
+			// IAM Role has disappeared. There is no automatic resolution via the API, except to
+			// associate a new IAM Role that is valid, then delete the Compute Environment.
+			//
+			// We avoid doing this in the resource because it would be very unexpected behavior
+			// for the resource and this issue should be fixed in the API (e.g. Service Linked Role).
+			//
+			// To save writing much more logic around IAM Role deletion, we allow the
+			// aws_iam_role sweeper to handle cleaning these up.
+			if aws.StringValue(computeEnvironment.Status) == batch.CEStatusInvalid {
+				// Reusing the IAM Role name to prevent collisions and inventing a naming scheme
+				serviceRoleARN, err := arn.Parse(aws.StringValue(computeEnvironment.ServiceRole))
+
+				if err != nil {
+					sweeperErr := fmt.Errorf("error parsing Batch Compute Environment (%s) Service Role ARN (%s): %w", name, aws.StringValue(computeEnvironment.ServiceRole), err)
+					log.Printf("[ERROR] %s", sweeperErr)
+					sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+					continue
+				}
+
+				servicePrincipal := fmt.Sprintf("%s.%s", batch.EndpointsID, testAccGetPartitionDNSSuffix())
+				serviceRoleName := strings.TrimPrefix(serviceRoleARN.Resource, "role/")
+				serviceRolePolicyARN := arn.ARN{
+					AccountID: "aws",
+					Partition: testAccGetPartition(),
+					Resource:  "policy/service-role/AWSBatchServiceRole",
+					Service:   iam.ServiceName,
+				}.String()
+
+				iamCreateRoleInput := &iam.CreateRoleInput{
+					AssumeRolePolicyDocument: aws.String(fmt.Sprintf("{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\": \"%s\"},\"Action\":\"sts:AssumeRole\"}]}", servicePrincipal)),
+					RoleName:                 aws.String(serviceRoleName),
+				}
+
+				_, err = iamconn.CreateRole(iamCreateRoleInput)
+
+				if err != nil {
+					sweeperErr := fmt.Errorf("error creating IAM Role (%s) for INVALID Batch Compute Environment (%s): %w", serviceRoleName, name, err)
+					log.Printf("[ERROR] %s", sweeperErr)
+					sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+					continue
+				}
+
+				iamGetRoleInput := &iam.GetRoleInput{
+					RoleName: aws.String(serviceRoleName),
+				}
+
+				err = iamconn.WaitUntilRoleExists(iamGetRoleInput)
+
+				if err != nil {
+					sweeperErr := fmt.Errorf("error waiting for IAM Role (%s) creation for INVALID Batch Compute Environment (%s): %w", serviceRoleName, name, err)
+					log.Printf("[ERROR] %s", sweeperErr)
+					sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+					continue
+				}
+
+				iamAttachRolePolicyInput := &iam.AttachRolePolicyInput{
+					PolicyArn: aws.String(serviceRolePolicyARN),
+					RoleName:  aws.String(serviceRoleName),
+				}
+
+				_, err = iamconn.AttachRolePolicy(iamAttachRolePolicyInput)
+
+				if err != nil {
+					sweeperErr := fmt.Errorf("error attaching Batch IAM Policy (%s) to IAM Role (%s) for INVALID Batch Compute Environment (%s): %w", serviceRolePolicyARN, serviceRoleName, name, err)
+					log.Printf("[ERROR] %s", sweeperErr)
+					sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+					continue
+				}
+			}
+
+			err := r.Delete(d, client)
 
 			if err != nil {
-				log.Printf("[ERROR] Failed to disable Batch Compute Environment %s: %s", name, err)
+				sweeperErr := fmt.Errorf("error deleting Batch Compute Environment (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
 				continue
 			}
 		}
 
-		log.Printf("[INFO] Deleting Batch Compute Environment: %s", name)
-		err := deleteBatchComputeEnvironment(name, 20*time.Minute, conn)
+		return !lastPage
+	})
 
-		if err != nil {
-			log.Printf("[ERROR] Failed to delete Batch Compute Environment %s: %s", name, err)
-		}
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Batch Compute Environment sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing Batch Compute Environments: %w", err))
 	}
 
-	return nil
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSBatchComputeEnvironment_disappears(t *testing.T) {
@@ -86,6 +174,7 @@ func TestAccAWSBatchComputeEnvironment_disappears(t *testing.T) {
 
 func TestAccAWSBatchComputeEnvironment_createEc2(t *testing.T) {
 	rInt := acctest.RandInt()
+	resourceName := "aws_batch_compute_environment.ec2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
@@ -96,6 +185,7 @@ func TestAccAWSBatchComputeEnvironment_createEc2(t *testing.T) {
 				Config: testAccAWSBatchComputeEnvironmentConfigEC2(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsBatchComputeEnvironmentExists(),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -523,6 +613,49 @@ func TestAccAWSBatchComputeEnvironment_updateState(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSBatchComputeEnvironment_Tags(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "aws_batch_compute_environment.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBatchComputeEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSBatchComputeEnvironmentConfigTags1(rInt, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBatchComputeEnvironmentExists(),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSBatchComputeEnvironmentConfigTags2(rInt, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBatchComputeEnvironmentExists(),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSBatchComputeEnvironmentConfigTags1(rInt, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBatchComputeEnvironmentExists(),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -1127,4 +1260,37 @@ resource "aws_batch_compute_environment" "ec2" {
   depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
 }
 `, rInt, rInt, version)
+}
+
+func testAccAWSBatchComputeEnvironmentConfigTags1(rInt int, tagKey1, tagValue1 string) string {
+	return testAccAWSBatchComputeEnvironmentConfigBase(rInt) + fmt.Sprintf(`
+resource "aws_batch_compute_environment" "test" {
+  depends_on = [aws_iam_role_policy_attachment.aws_batch_service_role]
+
+  compute_environment_name = "tf_acc_test_%[1]d"
+  service_role             = aws_iam_role.aws_batch_service_role.arn
+  type                     = "UNMANAGED"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rInt, tagKey1, tagValue1)
+}
+
+func testAccAWSBatchComputeEnvironmentConfigTags2(rInt int, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSBatchComputeEnvironmentConfigBase(rInt) + fmt.Sprintf(`
+resource "aws_batch_compute_environment" "test" {
+  depends_on = [aws_iam_role_policy_attachment.aws_batch_service_role]
+
+  compute_environment_name = "tf_acc_test_%[1]d"
+  service_role             = aws_iam_role.aws_batch_service_role.arn
+  type                     = "UNMANAGED"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rInt, tagKey1, tagValue1, tagKey2, tagValue2)
 }

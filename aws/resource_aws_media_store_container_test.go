@@ -155,7 +155,8 @@ resource "aws_media_store_container" "test" {
   name = "tf_mediastore_%[1]s"
 
   tags = {
-    Name  = "tf_mediastore_%[1]s"
+    Name = "tf_mediastore_%[1]s"
+
     %[2]s = %[3]q
     %[4]s = %[5]q
   }

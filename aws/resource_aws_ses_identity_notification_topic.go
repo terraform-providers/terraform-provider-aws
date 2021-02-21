@@ -65,7 +65,7 @@ func resourceAwsSesNotificationTopicSet(d *schema.ResourceData, meta interface{}
 		NotificationType: aws.String(notification),
 	}
 
-	if v, ok := d.GetOk("topic_arn"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("topic_arn"); ok {
 		setOpts.SnsTopic = aws.String(v.(string))
 	}
 

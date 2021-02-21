@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -21,6 +22,10 @@ func resourceAwsEc2TrafficMirrorFilterRule() *schema.Resource {
 			State: resourceAwsEc2TrafficMirrorFilterRuleImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -42,12 +47,14 @@ func resourceAwsEc2TrafficMirrorFilterRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from_port": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 						"to_port": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 					},
 				},
@@ -80,12 +87,14 @@ func resourceAwsEc2TrafficMirrorFilterRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from_port": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 						"to_port": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 					},
 				},
@@ -137,7 +146,7 @@ func resourceAwsEc2TrafficMirrorFilterRuleCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("error creating EC2 Traffic Mirror Filter Rule (%s): %w", filterId, err)
 	}
 
-	d.SetId(*out.TrafficMirrorFilterRule.TrafficMirrorFilterRuleId)
+	d.SetId(aws.StringValue(out.TrafficMirrorFilterRule.TrafficMirrorFilterRuleId))
 	return resourceAwsEc2TrafficMirrorFilterRuleRead(d, meta)
 }
 
@@ -162,12 +171,12 @@ func resourceAwsEc2TrafficMirrorFilterRuleRead(d *schema.ResourceData, meta inte
 	}
 
 	if nil == rule {
-		log.Printf("[WARN] EC2 Traffic Mirror Filter (%s) not found, removing from state", d.Id())
+		log.Printf("[WARN] EC2 Traffic Mirror Filter Rule (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	d.SetId(*rule.TrafficMirrorFilterRuleId)
+	d.SetId(aws.StringValue(rule.TrafficMirrorFilterRuleId))
 	d.Set("traffic_mirror_filter_id", rule.TrafficMirrorFilterId)
 	d.Set("destination_cidr_block", rule.DestinationCidrBlock)
 	d.Set("source_cidr_block", rule.SourceCidrBlock)
@@ -185,21 +194,32 @@ func resourceAwsEc2TrafficMirrorFilterRuleRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error setting source_port_range: %s", err)
 	}
 
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   ec2.ServiceName,
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("traffic-mirror-filter-rule/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
+
 	return nil
 }
 
 func findEc2TrafficMirrorFilterRule(ruleId string, filters []*ec2.TrafficMirrorFilter) (rule *ec2.TrafficMirrorFilterRule) {
 	log.Printf("[DEBUG] searching %s in %d filters", ruleId, len(filters))
 	for _, v := range filters {
-		log.Printf("[DEBUG]: searching filter %s, ingress rule count = %d, egress rule count = %d", *v.TrafficMirrorFilterId, len(v.IngressFilterRules), len(v.EgressFilterRules))
+		log.Printf("[DEBUG]: searching filter %s, ingress rule count = %d, egress rule count = %d",
+			aws.StringValue(v.TrafficMirrorFilterId), len(v.IngressFilterRules), len(v.EgressFilterRules))
 		for _, r := range v.IngressFilterRules {
-			if *r.TrafficMirrorFilterRuleId == ruleId {
+			if aws.StringValue(r.TrafficMirrorFilterRuleId) == ruleId {
 				rule = r
 				break
 			}
 		}
 		for _, r := range v.EgressFilterRules {
-			if *r.TrafficMirrorFilterRuleId == ruleId {
+			if aws.StringValue(r.TrafficMirrorFilterRuleId) == ruleId {
 				rule = r
 				break
 			}
@@ -207,7 +227,7 @@ func findEc2TrafficMirrorFilterRule(ruleId string, filters []*ec2.TrafficMirrorF
 	}
 
 	if nil != rule {
-		log.Printf("[DEBUG]: Found %s in %s", ruleId, *rule.TrafficDirection)
+		log.Printf("[DEBUG]: Found %s in %s", ruleId, aws.StringValue(rule.TrafficDirection))
 	}
 
 	return rule

@@ -100,6 +100,13 @@ WorkMail actions support the following:
 * `topic_arn` - (Optional) The ARN of an SNS topic to notify
 * `position` - (Required) The position of the action in the receipt rule
 
+## Attributes Reference
+
+In addition to the arguments, which are exported, the following attributes are exported:
+
+* `id` - The SES receipt rule name.
+* `arn` - The SES receipt rule ARN.
+
 ## Import
 
 SES receipt rules can be imported using the ruleset name and rule name separated by `:`.

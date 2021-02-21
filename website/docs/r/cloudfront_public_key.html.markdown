@@ -36,3 +36,11 @@ In addition to all arguments above, the following attributes are exported:
 * `caller_reference` - Internal value used by CloudFront to allow future updates to the public key configuration.
 * `etag` - The current version of the public key. For example: `E2QWRUHAPOMQZL`.
 * `id` - The identifier for the public key. For example: `K3D5EWEUDCCXON`.
+
+## Import
+
+CloudFront Public Key can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_cloudfront_public_key.example K3D5EWEUDCCXON
+```

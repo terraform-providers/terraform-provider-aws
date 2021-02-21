@@ -19,15 +19,10 @@ func dataSourceAwsDocdbOrderableDbInstance() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"instance_class": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"engine": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Default:  "docdb",
 			},
 
 			"engine_version": {
@@ -36,16 +31,24 @@ func dataSourceAwsDocdbOrderableDbInstance() *schema.Resource {
 				Computed: true,
 			},
 
+			"instance_class": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"preferred_instance_classes"},
+			},
+
 			"license_model": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "na",
 			},
 
 			"preferred_instance_classes": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:          schema.TypeList,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"instance_class"},
 			},
 
 			"vpc": {
@@ -82,7 +85,7 @@ func dataSourceAwsDocdbOrderableDbInstanceRead(d *schema.ResourceData, meta inte
 		input.Vpc = aws.Bool(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Reading DocDB Orderable DB Instance Options: %v", input)
+	log.Printf("[DEBUG] Reading DocDB Orderable DB Instance Classes: %v", input)
 	var instanceClassResults []*docdb.OrderableDBInstanceOption
 
 	err := conn.DescribeOrderableDBInstanceOptionsPages(input, func(resp *docdb.DescribeOrderableDBInstanceOptionsOutput, lastPage bool) bool {

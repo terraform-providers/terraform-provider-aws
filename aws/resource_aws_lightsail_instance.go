@@ -92,8 +92,14 @@ func resourceAwsLightsailInstance() *schema.Resource {
 				Computed: true,
 			},
 			"ipv6_address": {
-				Type:     schema.TypeString,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "use `ipv6_addresses` attribute instead",
+			},
+			"ipv6_addresses": {
+				Type:     schema.TypeList,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"is_static_ip": {
 				Type:     schema.TypeBool,
@@ -209,7 +215,13 @@ func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("created_at", i.CreatedAt.Format(time.RFC3339))
 	d.Set("cpu_count", i.Hardware.CpuCount)
 	d.Set("ram_size", i.Hardware.RamSizeInGb)
-	d.Set("ipv6_address", i.Ipv6Address)
+
+	// Deprecated: AWS Go SDK v1.36.25 removed Ipv6Address field
+	if len(i.Ipv6Addresses) > 0 {
+		d.Set("ipv6_address", aws.StringValue(i.Ipv6Addresses[0]))
+	}
+
+	d.Set("ipv6_addresses", aws.StringValueSlice(i.Ipv6Addresses))
 	d.Set("is_static_ip", i.IsStaticIp)
 	d.Set("private_ip_address", i.PrivateIpAddress)
 	d.Set("public_ip_address", i.PublicIpAddress)

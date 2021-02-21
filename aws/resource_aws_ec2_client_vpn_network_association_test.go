@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -255,7 +254,7 @@ func testAccCheckAwsEc2ClientVpnNetworkAssociationExists(name string, assoc *ec2
 
 func testAccCheckAwsEc2ClientVpnNetworkAssociationSecurityGroupID(name, key string, group *ec2.SecurityGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		return tfawsresource.TestCheckTypeSetElemAttr(name, key, aws.StringValue(group.GroupId))(s)
+		return resource.TestCheckTypeSetElemAttr(name, key, aws.StringValue(group.GroupId))(s)
 	}
 }
 
@@ -378,18 +377,7 @@ resource "aws_security_group" "test2" {
 }
 
 func testAccEc2ClientVpnNetworkAssociationVpcBase(rName string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  # InvalidParameterValue: AZ us-west-2d is not currently supported. Please choose another az in this region
-  exclude_zone_ids = ["usw2-az4"]
-  state            = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -412,7 +400,7 @@ resource "aws_subnet" "test" {
     Name = "tf-acc-subnet-%[1]s"
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccEc2ClientVpnNetworkAssociationAcmCertificateBase() string {

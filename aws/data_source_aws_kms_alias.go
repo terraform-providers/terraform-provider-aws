@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -53,14 +52,14 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error fetch KMS alias list: %s", err)
+		return fmt.Errorf("Error fetch KMS alias list: %w", err)
 	}
 
 	if alias == nil {
 		return fmt.Errorf("No alias with name %q found in this region.", target)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(aws.StringValue(alias.AliasArn))
 	d.Set("arn", alias.AliasArn)
 
 	// ListAliases can return an alias for an AWS service key (e.g.
@@ -79,7 +78,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resp, err := conn.DescribeKey(req)
 	if err != nil {
-		return fmt.Errorf("Error calling KMS DescribeKey: %s", err)
+		return fmt.Errorf("Error calling KMS DescribeKey: %w", err)
 	}
 
 	d.Set("target_key_arn", resp.KeyMetadata.Arn)

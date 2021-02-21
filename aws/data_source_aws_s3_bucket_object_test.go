@@ -359,6 +359,26 @@ func TestAccDataSourceAWSS3BucketObject_MultipleSlashes(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSS3BucketObject_SingleSlashAsKey(t *testing.T) {
+	var dsObj s3.GetObjectOutput
+	dataSourceName := "data.aws_s3_bucket_object.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                  func() { testAccPreCheck(t) },
+		Providers:                 testAccProviders,
+		PreventPostDestroyRefresh: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDataSourceS3ObjectConfigSingleSlashAsKey(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsS3ObjectDataSourceExists(dataSourceName, &dsObj),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsS3ObjectDataSourceExists(n string, obj *s3.GetObjectOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -650,4 +670,17 @@ data "aws_s3_bucket_object" "obj3" {
 `, resources)
 
 	return resources, both
+}
+
+func testAccAWSDataSourceS3ObjectConfigSingleSlashAsKey(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
+}
+
+data "aws_s3_bucket_object" "test" {
+  bucket = aws_s3_bucket.test.bucket
+  key    = "/"
+}
+`, rName)
 }

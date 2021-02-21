@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_rule_id"
@@ -17,8 +17,9 @@ func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
 	ds3ResourceName := "data.aws_route53_resolver_rule.by_name_and_rule_type"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_basic(rName),
@@ -61,14 +62,15 @@ func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_ResolverEndpointIdWithTags(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_resolverEndpointIdWithTags(rName),
@@ -92,7 +94,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testi
 	})
 }
 
-func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_SharedByMe(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
@@ -104,7 +106,8 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSRoute53Resolver(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheckSkipRoute53(t),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_sharedByMe(rName),
@@ -129,7 +132,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsRoute53ResolverRule_SharedWithMe(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_SharedWithMe(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
@@ -141,7 +144,8 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedWithMe(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSRoute53Resolver(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheckSkipRoute53(t),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_sharedWithMe(rName),

@@ -47,8 +47,13 @@ func resourceAwsMainRouteTableAssociationCreate(d *schema.ResourceData, meta int
 	log.Printf("[INFO] Creating main route table association: %s => %s", vpcId, routeTableId)
 
 	mainAssociation, err := findMainRouteTableAssociation(conn, vpcId)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error finding EC2 VPC (%s) main route table association for replacement: %w", vpcId, err)
+	}
+
+	if mainAssociation == nil {
+		return fmt.Errorf("error finding EC2 VPC (%s) main route table association for replacement: association not found", vpcId)
 	}
 
 	resp, err := conn.ReplaceRouteTableAssociation(&ec2.ReplaceRouteTableAssociationInput{
@@ -60,7 +65,7 @@ func resourceAwsMainRouteTableAssociationCreate(d *schema.ResourceData, meta int
 	}
 
 	d.Set("original_route_table_id", mainAssociation.RouteTableId)
-	d.SetId(*resp.NewAssociationId)
+	d.SetId(aws.StringValue(resp.NewAssociationId))
 	log.Printf("[INFO] New main route table association ID: %s", d.Id())
 
 	return nil
@@ -102,7 +107,7 @@ func resourceAwsMainRouteTableAssociationUpdate(d *schema.ResourceData, meta int
 		return err
 	}
 
-	d.SetId(*resp.NewAssociationId)
+	d.SetId(aws.StringValue(resp.NewAssociationId))
 	log.Printf("[INFO] New main route table association ID: %s", d.Id())
 
 	return nil

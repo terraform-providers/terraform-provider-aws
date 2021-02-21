@@ -50,5 +50,6 @@ resource "aws_autoscaling_notification" "slack_notifications" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `names` - A list of the Autoscaling Groups in the current region.
 * `arns` - A list of the Autoscaling Groups Arns in the current region.
+* `id` - AWS Region.
+* `names` - A list of the Autoscaling Groups in the current region.

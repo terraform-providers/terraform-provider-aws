@@ -13,8 +13,8 @@ import (
 
 func TestAccAWSSESEventDestination_basic(t *testing.T) {
 	rName1 := acctest.RandomWithPrefix("tf-acc-test")
-	rName2 := acctest.RandomWithPrefix("tf-acc-test")
-	rName3 := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test-kinesis")
+	rName3 := acctest.RandomWithPrefix("tf-acc-test-sns")
 	cloudwatchDestinationResourceName := "aws_ses_event_destination.cloudwatch"
 	kinesisDestinationResourceName := "aws_ses_event_destination.kinesis"
 	snsDestinationResourceName := "aws_ses_event_destination.sns"
@@ -34,6 +34,9 @@ func TestAccAWSSESEventDestination_basic(t *testing.T) {
 					testAccCheckAwsSESEventDestinationExists(cloudwatchDestinationResourceName, &v1),
 					testAccCheckAwsSESEventDestinationExists(kinesisDestinationResourceName, &v2),
 					testAccCheckAwsSESEventDestinationExists(snsDestinationResourceName, &v3),
+					testAccCheckResourceAttrRegionalARN(cloudwatchDestinationResourceName, "arn", "ses", fmt.Sprintf("configuration-set/%s:event-destination/%s", rName1, rName1)),
+					testAccCheckResourceAttrRegionalARN(kinesisDestinationResourceName, "arn", "ses", fmt.Sprintf("configuration-set/%s:event-destination/%s", rName1, rName2)),
+					testAccCheckResourceAttrRegionalARN(snsDestinationResourceName, "arn", "ses", fmt.Sprintf("configuration-set/%s:event-destination/%s", rName1, rName3)),
 					resource.TestCheckResourceAttr(cloudwatchDestinationResourceName, "name", rName1),
 					resource.TestCheckResourceAttr(kinesisDestinationResourceName, "name", rName2),
 					resource.TestCheckResourceAttr(snsDestinationResourceName, "name", rName3),
@@ -63,8 +66,8 @@ func TestAccAWSSESEventDestination_basic(t *testing.T) {
 
 func TestAccAWSSESEventDestination_disappears(t *testing.T) {
 	rName1 := acctest.RandomWithPrefix("tf-acc-test")
-	rName2 := acctest.RandomWithPrefix("tf-acc-test")
-	rName3 := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test-kinesis")
+	rName3 := acctest.RandomWithPrefix("tf-acc-test-sns")
 	cloudwatchDestinationResourceName := "aws_ses_event_destination.cloudwatch"
 	kinesisDestinationResourceName := "aws_ses_event_destination.kinesis"
 	snsDestinationResourceName := "aws_ses_event_destination.sns"
@@ -109,7 +112,7 @@ func testAccCheckSESEventDestinationDestroy(s *terraform.State) error {
 
 		found := false
 		for _, element := range response.ConfigurationSets {
-			if *element.Name == rs.Primary.ID {
+			if aws.StringValue(element.Name) == rs.Primary.ID {
 				found = true
 			}
 		}

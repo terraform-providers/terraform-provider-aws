@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -42,9 +43,6 @@ func testSweepIamGroups(region string) error {
 		}
 
 		for _, group := range page.Groups {
-			input := &iam.DeleteGroupInput{
-				GroupName: group.GroupName,
-			}
 			name := aws.StringValue(group.GroupName)
 
 			if name == "Admin" || name == "TerraformAccTests" {
@@ -52,6 +50,53 @@ func testSweepIamGroups(region string) error {
 			}
 
 			log.Printf("[INFO] Deleting IAM Group: %s", name)
+
+			getGroupInput := &iam.GetGroupInput{
+				GroupName: group.GroupName,
+			}
+
+			getGroupOutput, err := conn.GetGroup(getGroupInput)
+
+			if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+				continue
+			}
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error reading IAM Group (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			if getGroupOutput != nil {
+				for _, user := range getGroupOutput.Users {
+					username := aws.StringValue(user.UserName)
+
+					log.Printf("[INFO] Removing IAM User (%s) from Group: %s", username, name)
+
+					input := &iam.RemoveUserFromGroupInput{
+						UserName:  user.UserName,
+						GroupName: group.GroupName,
+					}
+
+					_, err := conn.RemoveUserFromGroup(input)
+
+					if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+						continue
+					}
+
+					if err != nil {
+						sweeperErr := fmt.Errorf("error removing IAM User (%s) from IAM Group (%s): %w", username, name, err)
+						log.Printf("[ERROR] %s", sweeperErr)
+						sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+						continue
+					}
+				}
+			}
+
+			input := &iam.DeleteGroupInput{
+				GroupName: group.GroupName,
+			}
 
 			if err := deleteAwsIamGroupPolicyAttachments(conn, name); err != nil {
 				sweeperErr := fmt.Errorf("error deleting IAM Group (%s) policy attachments: %w", name, err)
@@ -67,9 +112,9 @@ func testSweepIamGroups(region string) error {
 				continue
 			}
 
-			_, err := conn.DeleteGroup(input)
+			_, err = conn.DeleteGroup(input)
 
-			if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+			if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 				continue
 			}
 

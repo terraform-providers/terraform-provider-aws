@@ -155,14 +155,14 @@ func snapshotDescriptionAttributes(d *schema.ResourceData, snapshot *ec2.Snapsho
 	d.Set("owner_alias", snapshot.OwnerAlias)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(snapshot.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	snapshotArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
 		Resource:  fmt.Sprintf("snapshot/%s", d.Id()),
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 	}.String()
 
 	d.Set("arn", snapshotArn)

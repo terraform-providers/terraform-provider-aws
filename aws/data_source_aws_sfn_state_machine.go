@@ -60,7 +60,7 @@ func dataSourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) 
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error listing state machines: %s", err)
+		return fmt.Errorf("Error listing state machines: %w", err)
 	}
 
 	if len(arns) == 0 {

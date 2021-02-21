@@ -22,6 +22,7 @@ func init() {
 	resource.AddTestSweepers("aws_vpc", &resource.Sweeper{
 		Name: "aws_vpc",
 		Dependencies: []string{
+			"aws_ec2_carrier_gateway",
 			"aws_egress_only_internet_gateway",
 			"aws_internet_gateway",
 			"aws_nat_gateway",
@@ -165,7 +166,7 @@ func TestAccAWSVpc_ignoreTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesInternal(&providers),
 		CheckDestroy:      testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{

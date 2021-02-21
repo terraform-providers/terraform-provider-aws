@@ -51,17 +51,8 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						cognitoidentityprovider.ExplicitAuthFlowsTypeAdminNoSrpAuth,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeCustomAuthFlowOnly,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeUserPasswordAuth,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeAllowAdminUserPasswordAuth,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeAllowCustomAuth,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeAllowUserPasswordAuth,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeAllowUserSrpAuth,
-						cognitoidentityprovider.ExplicitAuthFlowsTypeAllowRefreshTokenAuth,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(cognitoidentityprovider.ExplicitAuthFlowsType_Values(), false),
 				},
 			},
 
@@ -93,12 +84,8 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 				Optional: true,
 				MaxItems: 3,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						cognitoidentityprovider.OAuthFlowTypeCode,
-						cognitoidentityprovider.OAuthFlowTypeImplicit,
-						cognitoidentityprovider.OAuthFlowTypeClientCredentials,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(cognitoidentityprovider.OAuthFlowType_Values(), false),
 				},
 			},
 
@@ -166,17 +153,28 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"application_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ExactlyOneOf: []string{"analytics_configuration.0.application_id", "analytics_configuration.0.application_arn"},
+						},
+						"application_arn": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ExactlyOneOf:  []string{"analytics_configuration.0.application_id", "analytics_configuration.0.application_arn"},
+							ConflictsWith: []string{"analytics_configuration.0.external_id", "analytics_configuration.0.role_arn"},
+							ValidateFunc:  validateArn,
 						},
 						"external_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							ConflictsWith: []string{"analytics_configuration.0.application_arn"},
+							Optional:      true,
 						},
 						"role_arn": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateArn,
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"analytics_configuration.0.application_arn"},
+							ValidateFunc:  validateArn,
 						},
 						"user_data_shared": {
 							Type:     schema.TypeBool,
@@ -261,7 +259,7 @@ func resourceAwsCognitoUserPoolClientCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating Cognito User Pool Client: %s", err)
 	}
 
-	d.SetId(*resp.UserPoolClient.ClientId)
+	d.SetId(aws.StringValue(resp.UserPoolClient.ClientId))
 
 	return resourceAwsCognitoUserPoolClientRead(d, meta)
 }
@@ -287,7 +285,7 @@ func resourceAwsCognitoUserPoolClientRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	d.SetId(*resp.UserPoolClient.ClientId)
+	d.SetId(aws.StringValue(resp.UserPoolClient.ClientId))
 	d.Set("user_pool_id", resp.UserPoolClient.UserPoolId)
 	d.Set("name", resp.UserPoolClient.ClientName)
 	d.Set("explicit_auth_flows", flattenStringSet(resp.UserPoolClient.ExplicitAuthFlows))
@@ -424,10 +422,22 @@ func expandAwsCognitoUserPoolClientAnalyticsConfig(l []interface{}) *cognitoiden
 
 	m := l[0].(map[string]interface{})
 
-	analyticsConfig := &cognitoidentityprovider.AnalyticsConfigurationType{
-		ApplicationId: aws.String(m["application_id"].(string)),
-		ExternalId:    aws.String(m["external_id"].(string)),
-		RoleArn:       aws.String(m["role_arn"].(string)),
+	analyticsConfig := &cognitoidentityprovider.AnalyticsConfigurationType{}
+
+	if v, ok := m["role_arn"]; ok && v != "" {
+		analyticsConfig.RoleArn = aws.String(v.(string))
+	}
+
+	if v, ok := m["external_id"]; ok && v != "" {
+		analyticsConfig.ExternalId = aws.String(v.(string))
+	}
+
+	if v, ok := m["application_id"]; ok && v != "" {
+		analyticsConfig.ApplicationId = aws.String(v.(string))
+	}
+
+	if v, ok := m["application_arn"]; ok && v != "" {
+		analyticsConfig.ApplicationArn = aws.String(v.(string))
 	}
 
 	if v, ok := m["user_data_shared"]; ok {
@@ -443,10 +453,23 @@ func flattenAwsCognitoUserPoolClientAnalyticsConfig(analyticsConfig *cognitoiden
 	}
 
 	m := map[string]interface{}{
-		"application_id":   aws.StringValue(analyticsConfig.ApplicationId),
-		"external_id":      aws.StringValue(analyticsConfig.ExternalId),
-		"role_arn":         aws.StringValue(analyticsConfig.RoleArn),
 		"user_data_shared": aws.BoolValue(analyticsConfig.UserDataShared),
+	}
+
+	if analyticsConfig.ExternalId != nil {
+		m["external_id"] = aws.StringValue(analyticsConfig.ExternalId)
+	}
+
+	if analyticsConfig.RoleArn != nil {
+		m["role_arn"] = aws.StringValue(analyticsConfig.RoleArn)
+	}
+
+	if analyticsConfig.ApplicationId != nil {
+		m["application_id"] = aws.StringValue(analyticsConfig.ApplicationId)
+	}
+
+	if analyticsConfig.ApplicationArn != nil {
+		m["application_arn"] = aws.StringValue(analyticsConfig.ApplicationArn)
 	}
 
 	return []interface{}{m}

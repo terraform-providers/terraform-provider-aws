@@ -47,6 +47,7 @@ data "aws_acm_certificate" "rsa_4096" {
 
 ## Attributes Reference
 
-* `arn` - Set to the ARN of the found certificate, suitable for referencing in other resources that support ACM certificates.
+* `arn` - Amazon Resource Name (ARN) of the found certificate, suitable for referencing in other resources that support ACM certificates.
+* `id` - Amazon Resource Name (ARN) of the found certificate, suitable for referencing in other resources that support ACM certificates.
 * `tags` - A mapping of tags for the resource.
 

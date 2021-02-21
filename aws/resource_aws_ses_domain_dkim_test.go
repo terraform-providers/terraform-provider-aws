@@ -17,7 +17,7 @@ func TestAccAWSSESDomainDkim_basic(t *testing.T) {
 	resourceName := "aws_ses_domain_dkim.test"
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {

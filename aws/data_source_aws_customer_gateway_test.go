@@ -57,6 +57,7 @@ func TestAccAWSCustomerGatewayDataSource_ID(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "ip_address", dataSourceName, "ip_address"),
 					resource.TestCheckResourceAttrPair(resourceName, "tags.%", dataSourceName, "tags.%"),
 					resource.TestCheckResourceAttrPair(resourceName, "type", dataSourceName, "type"),
+					resource.TestCheckResourceAttrPair(resourceName, "device_name", dataSourceName, "device_name"),
 				),
 			},
 		},
@@ -88,9 +89,10 @@ data "aws_customer_gateway" "test" {
 func testAccAWSCustomerGatewayDataSourceConfigID(asn, hostOctet int) string {
 	return fmt.Sprintf(`
 resource "aws_customer_gateway" "test" {
-  bgp_asn    = %d
-  ip_address = "50.0.0.%d"
-  type       = "ipsec.1"
+  bgp_asn     = %d
+  ip_address  = "50.0.0.%d"
+  device_name = "test"
+  type        = "ipsec.1"
 }
 
 data "aws_customer_gateway" "test" {

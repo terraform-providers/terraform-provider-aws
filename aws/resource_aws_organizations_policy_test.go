@@ -51,7 +51,7 @@ func testAccAwsOrganizationsPolicy_basic(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/5073
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/5073
 func testAccAwsOrganizationsPolicy_concurrent(t *testing.T) {
 	var policy1, policy2, policy3, policy4, policy5 organizations.Policy
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -113,6 +113,80 @@ func testAccAwsOrganizationsPolicy_description(t *testing.T) {
 	})
 }
 
+func testAccAwsOrganizationsPolicy_tags(t *testing.T) {
+	var p1, p2, p3, p4 organizations.Policy
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_organizations_policy.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_TagA(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &p1),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TerraformProviderAwsTest", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Alpha", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_TagB(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &p2),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TerraformProviderAwsTest", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Beta", "1"),
+				),
+			},
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_TagC(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &p3),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TerraformProviderAwsTest", "true"),
+				),
+			},
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_NoTag(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &p4),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func testAccAwsOrganizationsPolicy_disappears(t *testing.T) {
+	var p organizations.Policy
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_organizations_policy.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_Description(rName, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &p),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsOrganizationsPolicy(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccAwsOrganizationsPolicy_type_AI_OPT_OUT(t *testing.T) {
 	var policy organizations.Policy
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -146,73 +220,75 @@ func testAccAwsOrganizationsPolicy_type_Backup(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_organizations_policy.test"
 	// Reference: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_backup_syntax.html
-	backupPolicyContent := `{
-  "plans": {
-    "PII_Backup_Plan": {
-      "regions": {
-        "@@assign": [
-          "ap-northeast-2",
-          "us-east-1",
-          "eu-north-1"
-        ]
-      },
-      "rules": {
-        "Hourly": {
-          "schedule_expression": {
-            "@@assign": "cron(0 5/1 ? * * *)"
-          },
-          "start_backup_window_minutes": {
-            "@@assign": "480"
-          },
-          "complete_backup_window_minutes": {
-            "@@assign": "10080"
-          },
-          "lifecycle": {
-            "move_to_cold_storage_after_days": {
-              "@@assign": "180"
-            },
-            "delete_after_days": {
-              "@@assign": "270"
+	backupPolicyContent := fmt.Sprintf(`{
+   "plans":{
+      "PII_Backup_Plan":{
+         "regions":{
+            "@@assign":[
+               "%[1]s",
+               "%[2]s"
+            ]
+         },
+         "rules":{
+            "Hourly":{
+               "schedule_expression":{
+                  "@@assign":"cron(0 5/1 ? * * *)"
+               },
+               "start_backup_window_minutes":{
+                  "@@assign":"480"
+               },
+               "complete_backup_window_minutes":{
+                  "@@assign":"10080"
+               },
+               "lifecycle":{
+                  "move_to_cold_storage_after_days":{
+                     "@@assign":"180"
+                  },
+                  "delete_after_days":{
+                     "@@assign":"270"
+                  }
+               },
+               "target_backup_vault_name":{
+                  "@@assign":"FortKnox"
+               },
+               "copy_actions":{
+                  "arn:%[3]s:backup:%[1]s:$account:backup-vault:secondary_vault":{
+                     "target_backup_vault_arn":{
+                        "@@assign":"arn:%[3]s:backup:%[1]s:$account:backup-vault:secondary_vault"
+                     },
+                     "lifecycle":{
+                        "delete_after_days":{
+                           "@@assign":"100"
+                        },
+                        "move_to_cold_storage_after_days":{
+                           "@@assign":"10"
+                        }
+                     }
+                  }
+               }
             }
-          },
-          "target_backup_vault_name": {
-            "@@assign": "FortKnox"
-          },
-          "copy_actions": {
-            "arn:aws:backup:us-east-1:$account:backup-vault:secondary_vault": {
-              "lifecycle": {
-                "delete_after_days": {
-                  "@@assign": "100"
-                },
-                "move_to_cold_storage_after_days": {
-                  "@@assign": "10"
-                }
-              }
+         },
+         "selections":{
+            "tags":{
+               "datatype":{
+                  "iam_role_arn":{
+                     "@@assign":"arn:%[3]s:iam::$account:role/MyIamRole"
+                  },
+                  "tag_key":{
+                     "@@assign":"dataType"
+                  },
+                  "tag_value":{
+                     "@@assign":[
+                        "PII",
+                        "RED"
+                     ]
+                  }
+               }
             }
-          }
-        }
-      },
-      "selections": {
-        "tags": {
-          "datatype": {
-            "iam_role_arn": {
-              "@@assign": "arn:aws:iam::$account:role/MyIamRole"
-            },
-            "tag_key": {
-              "@@assign": "dataType"
-            },
-            "tag_value": {
-              "@@assign": [
-                "PII",
-                "RED"
-              ]
-            }
-          }
-        }
+         }
       }
-    }
-  }
-}`
+   }
+}`, testAccGetAlternateRegion(), testAccGetRegion(), testAccGetPartition())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
@@ -291,6 +367,30 @@ func testAccAwsOrganizationsPolicy_type_Tag(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAwsOrganizationsPolicy_ImportAwsManagedPolicy(t *testing.T) {
+	resourceName := "aws_organizations_policy.test"
+
+	resourceID := "p-FullAWSAccess"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_AwsManagedPolicySetup,
+			},
+			{
+				Config:        testAccAwsOrganizationsPolicyConfig_AwsManagedPolicy,
+				ResourceName:  resourceName,
+				ImportStateId: resourceID,
+				ImportState:   true,
+				ExpectError:   regexp.MustCompile(regexp.QuoteMeta(fmt.Sprintf("AWS-managed Organizations policy (%s) cannot be imported.", resourceID))),
 			},
 		},
 	})
@@ -381,6 +481,112 @@ EOF
   depends_on = [aws_organizations_organization.test]
 }
 `, description, rName)
+}
+
+func testAccAwsOrganizationsPolicyConfig_TagA(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_policy" "test" {
+  content = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
+
+  name = "%s"
+
+  depends_on = [aws_organizations_organization.test]
+
+  tags = {
+    TerraformProviderAwsTest = true
+    Alpha                    = 1
+  }
+}
+`, rName)
+}
+
+func testAccAwsOrganizationsPolicyConfig_TagB(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_policy" "test" {
+  content = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
+
+  name = "%s"
+
+  depends_on = [aws_organizations_organization.test]
+
+  tags = {
+    TerraformProviderAwsTest = true
+    Beta                     = 1
+  }
+}
+`, rName)
+}
+
+func testAccAwsOrganizationsPolicyConfig_TagC(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_policy" "test" {
+  content = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
+
+  name = "%s"
+
+  depends_on = [aws_organizations_organization.test]
+
+  tags = {
+    TerraformProviderAwsTest = true
+  }
+}
+`, rName)
+}
+
+func testAccAwsOrganizationsPolicyConfig_NoTag(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_policy" "test" {
+  content = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
+
+  name = "%s"
+
+  depends_on = [aws_organizations_organization.test]
+}
+`, rName)
 }
 
 func testAccAwsOrganizationsPolicyConfig_Required(rName, content string) string {
@@ -500,3 +706,19 @@ resource "aws_organizations_policy" "test" {
 }
 `, strconv.Quote(content), rName, policyType)
 }
+
+const testAccAwsOrganizationsPolicyConfig_AwsManagedPolicySetup = `
+resource "aws_organizations_organization" "test" {
+  enabled_policy_types = ["SERVICE_CONTROL_POLICY"]
+}
+`
+
+const testAccAwsOrganizationsPolicyConfig_AwsManagedPolicy = `
+resource "aws_organizations_organization" "test" {
+  enabled_policy_types = ["SERVICE_CONTROL_POLICY"]
+}
+
+resource "aws_organizations_policy" "test" {
+  name = "FullAWSAccess"
+}
+`

@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -29,6 +29,7 @@ func TestAccAWSEc2TrafficMirrorFilter_basic(t *testing.T) {
 				Config: testAccTrafficMirrorFilterConfig(description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TrafficMirrorFilterExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`traffic-mirror-filter/tmf-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "network_services.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -123,7 +124,7 @@ func TestAccAWSEc2TrafficMirrorFilter_disappears(t *testing.T) {
 				Config: testAccTrafficMirrorFilterConfig(description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TrafficMirrorFilterExists(resourceName, &v),
-					testAccCheckAWSEc2TrafficMirrorFilterDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TrafficMirrorFilter(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -159,17 +160,6 @@ func testAccCheckAWSEc2TrafficMirrorFilterExists(name string, traffic *ec2.Traff
 		*traffic = *out.TrafficMirrorFilters[0]
 
 		return nil
-	}
-}
-
-func testAccCheckAWSEc2TrafficMirrorFilterDisappears(traffic *ec2.TrafficMirrorFilter) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		_, err := conn.DeleteTrafficMirrorFilter(&ec2.DeleteTrafficMirrorFilterInput{
-			TrafficMirrorFilterId: traffic.TrafficMirrorFilterId,
-		})
-
-		return err
 	}
 }
 

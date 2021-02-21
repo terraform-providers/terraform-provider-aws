@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,9 +16,9 @@ func TestAccAWSEIPAssociation_instance(t *testing.T) {
 	var a ec2.Address
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPAssociationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEIPAssociationConfig_instance(),
@@ -42,9 +41,9 @@ func TestAccAWSEIPAssociation_networkInterface(t *testing.T) {
 	var a ec2.Address
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPAssociationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEIPAssociationConfig_networkInterface,
@@ -67,9 +66,9 @@ func TestAccAWSEIPAssociation_basic(t *testing.T) {
 	resourceName := "aws_eip_association.by_allocation_id"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccEC2VPCOnlyPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPAssociationDestroy,
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2VPCOnlyPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEIPAssociationConfig(),
@@ -95,21 +94,16 @@ func TestAccAWSEIPAssociation_ec2Classic(t *testing.T) {
 	var a ec2.Address
 	resourceName := "aws_eip_association.test"
 
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
-	// This test cannot run in parallel with the other EIP Association tests
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPAssociationDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEIPAssociationConfig_ec2Classic,
+				Config: testAccAWSEIPAssociationConfig_ec2Classic(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEIPExists("aws_eip.test", &a),
-					testAccCheckAWSEIPAssociationExists(resourceName, &a),
+					testAccCheckAWSEIPEc2ClassicExists("aws_eip.test", &a),
+					testAccCheckAWSEIPAssociationEc2ClassicExists(resourceName, &a),
 					resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
 					resource.TestCheckResourceAttr(resourceName, "allocation_id", ""),
 					testAccCheckAWSEIPAssociationHasIpBasedId(resourceName),
@@ -126,16 +120,16 @@ func TestAccAWSEIPAssociation_ec2Classic(t *testing.T) {
 
 func TestAccAWSEIPAssociation_spotInstance(t *testing.T) {
 	var a ec2.Address
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_eip_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPAssociationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEIPAssociationConfig_spotInstance(rInt),
+				Config: testAccAWSEIPAssociationConfig_spotInstance(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.test", &a),
 					testAccCheckAWSEIPAssociationExists(resourceName, &a),
@@ -158,9 +152,9 @@ func TestAccAWSEIPAssociation_disappears(t *testing.T) {
 	resourceName := "aws_eip_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPAssociationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEIPAssociationConfigDisappears(),
@@ -203,6 +197,42 @@ func testAccCheckAWSEIPAssociationExists(name string, res *ec2.Address) resource
 			(!hasEc2Classic(platforms) && *describe.Addresses[0].AssociationId != *res.AssociationId) {
 			return fmt.Errorf("EIP Association not found")
 		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSEIPAssociationEc2ClassicExists(name string, res *ec2.Address) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No EIP Association ID is set")
+		}
+
+		conn := testAccProviderEc2Classic.Meta().(*AWSClient).ec2conn
+		platforms := testAccProviderEc2Classic.Meta().(*AWSClient).supportedplatforms
+
+		request, err := describeAddressesById(rs.Primary.ID, platforms)
+
+		if err != nil {
+			return err
+		}
+
+		describe, err := conn.DescribeAddresses(request)
+
+		if err != nil {
+			return fmt.Errorf("error describing EC2 Address (%s): %w", rs.Primary.ID, err)
+		}
+
+		if len(describe.Addresses) != 1 || aws.StringValue(describe.Addresses[0].PublicIp) != rs.Primary.ID {
+			return fmt.Errorf("EC2 Address (%s) not found", rs.Primary.ID)
+		}
+
+		*res = *describe.Addresses[0]
 
 		return nil
 	}
@@ -261,16 +291,8 @@ func testAccCheckAWSEIPAssociationDestroy(s *terraform.State) error {
 
 func testAccAWSEIPAssociationConfig() string {
 	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
 resource "aws_vpc" "test" {
   cidr_block = "192.168.0.0/24"
   tags = {
@@ -337,16 +359,8 @@ resource "aws_network_interface" "test" {
 
 func testAccAWSEIPAssociationConfigDisappears() string {
 	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
 resource "aws_vpc" "main" {
   cidr_block = "192.168.0.0/24"
   tags = {
@@ -385,55 +399,60 @@ resource "aws_eip_association" "test" {
 `)
 }
 
-const testAccAWSEIPAssociationConfig_ec2Classic = `
-provider "aws" {
-  region = "us-east-1"
-}
-
+func testAccAWSEIPAssociationConfig_ec2Classic() string {
+	return composeConfig(
+		testAccEc2ClassicRegionProviderConfig(),
+		testAccLatestAmazonLinuxPvEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t1.micro", "m3.medium", "m3.large", "c3.large", "r3.large"),
+		`
 resource "aws_eip" "test" {}
 
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/ebs/ubuntu-trusty-14.04-i386-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["paravirtual"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
 resource "aws_instance" "test" {
-  ami               = data.aws_ami.ubuntu.id
-  availability_zone = data.aws_availability_zones.available.names[0]
-
-  # tflint-ignore: aws_instance_previous_type
-  instance_type = "t1.micro"
+  ami           = data.aws_ami.amzn-ami-minimal-pv-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
 }
 
 resource "aws_eip_association" "test" {
   public_ip   = aws_eip.test.public_ip
   instance_id = aws_instance.test.id
 }
-`
+`)
+}
 
-func testAccAWSEIPAssociationConfig_spotInstance(rInt int) string {
+func testAccAWSEIPAssociationConfig_spotInstance(rName string) string {
 	return composeConfig(
-		testAccAWSSpotInstanceRequestConfig(rInt), `
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t3.micro", "t2.micro"),
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  vpc_id            = aws_vpc.test.id
+}
+
+resource "aws_internet_gateway" "test" {
+  vpc_id = aws_vpc.test.id
+}
+
+resource "aws_key_pair" "test" {
+  key_name   = %[1]q
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
+
+resource "aws_spot_instance_request" "test" {
+  ami                  = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type        = data.aws_ec2_instance_type_offering.available.instance_type
+  key_name             = aws_key_pair.test.key_name
+  spot_price           = "0.10"
+  wait_for_fulfillment = true
+  subnet_id            = aws_subnet.test.id
+}
+
 resource "aws_eip" "test" {
   vpc = true
 }
@@ -442,25 +461,44 @@ resource "aws_eip_association" "test" {
   allocation_id = aws_eip.test.id
   instance_id   = aws_spot_instance_request.test.spot_instance_id
 }
-`)
+`, rName))
 }
 
 func testAccAWSEIPAssociationConfig_instance() string {
 	return composeConfig(
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t3.micro", "t2.micro"),
+		testAccAvailableAZsNoOptInConfig(),
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
-		fmt.Sprintf(`
-resource "aws_instance" "test" {
-  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
-  instance_type = "t2.small"
+		`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
 }
 
-resource "aws_eip" "test" {}
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  vpc_id            = aws_vpc.test.id
+}
+
+resource "aws_internet_gateway" "test" {
+  vpc_id = aws_vpc.test.id
+}
+
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  subnet_id     = aws_subnet.test.id
+}
+
+resource "aws_eip" "test" {
+  vpc = true
+}
 
 resource "aws_eip_association" "test" {
   allocation_id = aws_eip.test.id
   instance_id   = aws_instance.test.id
 }
-`))
+`)
 }
 
 const testAccAWSEIPAssociationConfig_networkInterface = `
@@ -481,7 +519,9 @@ resource "aws_network_interface" "test" {
   subnet_id = aws_subnet.test.id
 }
 
-resource "aws_eip" "test" {}
+resource "aws_eip" "test" {
+  vpc = true
+}
 
 resource "aws_eip_association" "test" {
   allocation_id        = aws_eip.test.id

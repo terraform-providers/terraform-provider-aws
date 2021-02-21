@@ -66,7 +66,7 @@ func resourceAwsWafRegionalGeoMatchSetCreate(d *schema.ResourceData, meta interf
 	}
 	resp := out.(*waf.CreateGeoMatchSetOutput)
 
-	d.SetId(*resp.GeoMatchSet.GeoMatchSetId)
+	d.SetId(aws.StringValue(resp.GeoMatchSet.GeoMatchSetId))
 
 	return resourceAwsWafRegionalGeoMatchSetUpdate(d, meta)
 }

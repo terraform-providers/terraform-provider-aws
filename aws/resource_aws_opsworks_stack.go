@@ -308,7 +308,7 @@ func resourceAwsOpsworksStackRead(d *schema.ResourceData, meta interface{}) erro
 						// If we haven't already, try us-east-1, legacy connection
 						notFound++
 						var connErr error
-						client, connErr = opsworksConnForRegion("us-east-1", meta)
+						client, connErr = opsworksConnForRegion("us-east-1", meta) //lintignore:AWSAT003
 						if connErr != nil {
 							return connErr
 						}

@@ -48,16 +48,23 @@ The following arguments are supported:
 * `availability_zone` - (Optional, Computed) The EC2 Availability Zone that the DB instance is created in. See [docs](https://docs.aws.amazon.com/documentdb/latest/developerguide/API_CreateDBInstance.html) about the details.
 * `cluster_identifier` - (Required) The identifier of the [`aws_docdb_cluster`](/docs/providers/aws/r/docdb_cluster.html) in which to launch this instance.
 * `engine` - (Optional) The name of the database engine to be used for the DocDB instance. Defaults to `docdb`. Valid Values: `docdb`.
-* `identifier` - (Optional, Forces new resource) The indentifier for the DocDB instance, if omitted, Terraform will assign a random, unique identifier.
+* `identifier` - (Optional, Forces new resource) The identifier for the DocDB instance, if omitted, Terraform will assign a random, unique identifier.
 * `identifier_prefix` - (Optional, Forces new resource) Creates a unique identifier beginning with the specified prefix. Conflicts with `identifier`.
 * `instance_class` - (Required) The instance class to use. For details on CPU and memory, see [Scaling for DocDB Instances][2]. DocDB currently
   supports the below instance classes. Please see [AWS Documentation][4] for complete details.
+    - db.r5.large
+    - db.r5.xlarge
+    - db.r5.2xlarge
+    - db.r5.4xlarge
+    - db.r5.12xlarge
+    - db.r5.24xlarge
     - db.r4.large
     - db.r4.xlarge
     - db.r4.2xlarge
     - db.r4.4xlarge
     - db.r4.8xlarge
     - db.r4.16xlarge
+    - db.t3.medium
 * `preferred_maintenance_window` - (Optional) The window to perform maintenance in.
   Syntax: "ddd:hh24:mi-ddd:hh24:mi". Eg: "Mon:00:00-Mon:03:00".
 * `promotion_tier` - (Optional) Default 0. Failover Priority setting on instance level. The reader who has lower tier has higher priority to get promoter to writer.
@@ -81,13 +88,13 @@ In addition to all arguments above, the following attributes are exported:
 
 [1]: /docs/providers/aws/r/docdb_cluster.html
 [2]: https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-manage-performance.html#db-cluster-manage-scaling-instance
-[3]: /docs/configuration/resources.html#count
+[3]: https://www.terraform.io/docs/configuration/meta-arguments/count.html
 [4]: https://docs.aws.amazon.com/documentdb/latest/developerguide/db-instance-classes.html#db-instance-class-specs
 
 ## Timeouts
 
 `aws_docdb_cluster_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `90 minutes`) Used for Creating Instances, Replicas, and
 restoring from Snapshots

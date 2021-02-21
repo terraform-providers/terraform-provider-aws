@@ -3,7 +3,7 @@
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.12.26+ (to run acceptance tests)
-- [Go](https://golang.org/doc/install) 1.14 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.15 (to build the provider plugin)
 
 ## Quick Start
 

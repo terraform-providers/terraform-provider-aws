@@ -59,10 +59,10 @@ func dataSourceAwsLambdaAliasRead(d *schema.ResourceData, meta interface{}) erro
 
 	aliasConfiguration, err := conn.GetAlias(params)
 	if err != nil {
-		return fmt.Errorf("Error getting Lambda alias: %s", err)
+		return fmt.Errorf("Error getting Lambda alias: %w", err)
 	}
 
-	d.SetId(*aliasConfiguration.AliasArn)
+	d.SetId(aws.StringValue(aliasConfiguration.AliasArn))
 
 	d.Set("arn", aliasConfiguration.AliasArn)
 	d.Set("description", aliasConfiguration.Description)

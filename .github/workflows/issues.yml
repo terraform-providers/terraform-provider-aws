@@ -1,4 +1,6 @@
-on: issues
+on:
+  issues:
+    types: [opened]
 name: Issue triage
 jobs:
   markIssuesForTriage:
@@ -6,9 +8,14 @@ jobs:
     steps:
     - uses: actions/checkout@v1.0.0
     - name: Apply Issue Triage Label
-      uses: actions/github@v1.0.0
+      uses: actions/github-script@v3
       if: github.event.action == 'opened' && !contains(fromJSON('["anGie44", "bflad", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        args: label needs-triage
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['needs-triage']
+          })

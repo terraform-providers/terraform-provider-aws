@@ -37,6 +37,7 @@ Terraform will only perform drift detection of its value when present in a confi
 * `threshold_count` - (Optional) The number of consecutive health checks required to set the state of a healthy endpoint to unhealthy, or to set an unhealthy endpoint to healthy. The default value is 3.
 * `traffic_dial_percentage` - (Optional) The percentage of traffic to send to an AWS Region. Additional traffic is distributed to other endpoint groups for this listener. The default value is 100.
 * `endpoint_configuration` - (Optional) The list of endpoint objects. Fields documented below.
+* `port_override` - (Optional) Override specific listener ports used to route traffic to endpoints that are part of this endpoint group. Fields documented below.
 
 **endpoint_configuration** supports the following attributes:
 
@@ -45,11 +46,24 @@ Terraform will only perform drift detection of its value when present in a confi
 * `endpoint_id` - (Optional) An ID for the endpoint. If the endpoint is a Network Load Balancer or Application Load Balancer, this is the Amazon Resource Name (ARN) of the resource. If the endpoint is an Elastic IP address, this is the Elastic IP address allocation ID.
 * `weight` - (Optional) The weight associated with the endpoint. When you add weights to endpoints, you configure AWS Global Accelerator to route traffic based on proportions that you specify.
 
+**port_override** supports the following attributes:
+
+* `endpoint_port` - (Required) The endpoint port that you want a listener port to be mapped to. This is the port on the endpoint, such as the Application Load Balancer or Amazon EC2 instance.
+* `listener_port` - (Required) The listener port that you want to map to a specific endpoint port. This is the port that user traffic arrives to the Global Accelerator on.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) of the endpoint group.
+* `arn` - The Amazon Resource Name (ARN) of the endpoint group.
+
+`aws_globalaccelerator_endpoint_group` provides the following
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+
+* `create` - (Default `30 minutes`) How long to wait for the Global Accelerator Endpoint Group to be created.
+* `update` - (Default `30 minutes`) How long to wait for the Global Accelerator Endpoint Group to be updated.
+* `delete` - (Default `30 minutes`) How long to wait for the Global Accelerator Endpoint Group to be deleted.
 
 ## Import
 

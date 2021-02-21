@@ -97,7 +97,7 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 		resp, err := conn.ListHostedZones(req)
 
 		if err != nil {
-			return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
+			return fmt.Errorf("Error finding Route 53 Hosted Zone: %w", err)
 		}
 		for _, hostedZone := range resp.HostedZones {
 			hostedZoneId := cleanZoneID(aws.StringValue(hostedZone.Id))
@@ -113,7 +113,7 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 
 					respHostedZone, errHostedZone := conn.GetHostedZone(reqHostedZone)
 					if errHostedZone != nil {
-						return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", errHostedZone)
+						return fmt.Errorf("Error finding Route 53 Hosted Zone: %w", errHostedZone)
 					}
 					// we go through all VPCs
 					for _, vpc := range respHostedZone.VPCs {
@@ -170,10 +170,12 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("linked_service_description", hostedZoneFound.LinkedService.Description)
 	}
 
-	nameServers, err := hostedZoneNameServers(idHostedZone, conn)
+	nameServers, err := hostedZoneNameServers(conn, idHostedZone, aws.StringValue(hostedZoneFound.Name))
+
 	if err != nil {
-		return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
+		return fmt.Errorf("error getting Route 53 Hosted Zone (%s) name servers: %w", idHostedZone, err)
 	}
+
 	if err := d.Set("name_servers", nameServers); err != nil {
 		return fmt.Errorf("error setting name_servers: %w", err)
 	}
@@ -181,35 +183,45 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 	tags, err = keyvaluetags.Route53ListTags(conn, idHostedZone, route53.TagResourceTypeHostedzone)
 
 	if err != nil {
-		return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
+		return fmt.Errorf("error listing Route 53 Hosted Zone (%s) tags: %w", idHostedZone, err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil
 }
 
 // used to retrieve name servers
-func hostedZoneNameServers(id string, conn *route53.Route53) ([]string, error) {
-	req := &route53.GetHostedZoneInput{}
-	req.Id = aws.String(id)
+func hostedZoneNameServers(conn *route53.Route53, id string, name string) ([]string, error) {
+	input := &route53.GetHostedZoneInput{
+		Id: aws.String(id),
+	}
 
-	resp, err := conn.GetHostedZone(req)
+	output, err := conn.GetHostedZone(input)
+
 	if err != nil {
-		return []string{}, err
+		return nil, fmt.Errorf("error getting Route 53 Hosted Zone (%s): %w", id, err)
 	}
 
-	if resp.DelegationSet == nil {
-		return []string{}, nil
+	if output == nil {
+		return nil, fmt.Errorf("error getting Route 53 Hosted Zone (%s): empty response", id)
 	}
 
-	servers := []string{}
-	for _, server := range resp.DelegationSet.NameServers {
-		if server != nil {
-			servers = append(servers, aws.StringValue(server))
+	if output.DelegationSet != nil {
+		return aws.StringValueSlice(output.DelegationSet.NameServers), nil
+	}
+
+	if output.HostedZone != nil && output.HostedZone.Config != nil && aws.BoolValue(output.HostedZone.Config.PrivateZone) {
+		nameServers, err := getNameServers(id, name, conn)
+
+		if err != nil {
+			return nil, fmt.Errorf("error listing Route 53 Hosted Zone (%s) NS records: %w", id, err)
 		}
+
+		return nameServers, nil
 	}
-	return servers, nil
+
+	return nil, nil
 }

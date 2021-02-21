@@ -256,10 +256,10 @@ resource "aws_apigatewayv2_deployment" "test" {
   api_id = aws_apigatewayv2_api.test.id
 
   triggers = {
-    redeployment = sha1(join(",", list(
-      jsonencode(aws_apigatewayv2_integration.test),
-      jsonencode(aws_apigatewayv2_route.test),
-    )))
+    redeployment = sha1(jsonencode([
+      aws_apigatewayv2_integration.test,
+      aws_apigatewayv2_route.test,
+    ]))
   }
 
   lifecycle {

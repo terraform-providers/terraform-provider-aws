@@ -67,6 +67,11 @@ func resourceAwsAmiCopy() *schema.Resource {
 							Computed: true,
 						},
 
+						"throughput": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -185,6 +190,38 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"usage_operation": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_owner_alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"hypervisor": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 
 		// The remaining operations are shared with the generic aws_ami resource,
@@ -215,17 +252,16 @@ func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	id := *res.ImageId
-	d.SetId(id)
+	d.SetId(aws.StringValue(res.ImageId))
 	d.Set("manage_ebs_snapshots", true)
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, id, v); err != nil {
+		if err := keyvaluetags.Ec2CreateTags(client, d.Id(), v); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
 
-	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), id, client)
+	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), d.Id(), client)
 	if err != nil {
 		return err
 	}

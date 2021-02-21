@@ -194,7 +194,7 @@ For **insight_selector** the following attributes are supported.
 
 * `insight_type` (Optional) - The type of insights to log on a trail. In this release, only `ApiCallRateInsight` is supported as an insight type.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

@@ -23,7 +23,7 @@ func dataSourceAwsLambdaInvocation() *schema.Resource {
 			"qualifier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "$LATEST",
+				Default:  LambdaFunctionVersionLatest,
 			},
 
 			"input": {

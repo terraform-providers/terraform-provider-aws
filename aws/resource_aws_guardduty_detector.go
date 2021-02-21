@@ -70,7 +70,7 @@ func resourceAwsGuardDutyDetectorCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("Creating GuardDuty Detector failed: %s", err.Error())
 	}
-	d.SetId(*output.DetectorId)
+	d.SetId(aws.StringValue(output.DetectorId))
 
 	return resourceAwsGuardDutyDetectorRead(d, meta)
 }

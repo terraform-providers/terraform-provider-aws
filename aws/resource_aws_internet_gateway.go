@@ -58,7 +58,7 @@ func resourceAwsInternetGatewayCreate(d *schema.ResourceData, meta interface{}) 
 
 	// Get the ID and store it
 	ig := *resp.InternetGateway
-	d.SetId(*ig.InternetGatewayId)
+	d.SetId(aws.StringValue(ig.InternetGatewayId))
 	log.Printf("[INFO] InternetGateway ID: %s", d.Id())
 	var igRaw interface{}
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
@@ -121,7 +121,7 @@ func resourceAwsInternetGatewayRead(d *schema.ResourceData, meta interface{}) er
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("internet-gateway/%s", d.Id()),

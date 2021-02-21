@@ -147,7 +147,7 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[DEBUG] Reading VPC Endpoint: %s", req)
 	respVpce, err := conn.DescribeVpcEndpoints(req)
 	if err != nil {
-		return fmt.Errorf("error reading VPC Endpoint: %s", err)
+		return fmt.Errorf("error reading VPC Endpoint: %w", err)
 	}
 	if respVpce == nil || len(respVpce.VpcEndpoints) == 0 {
 		return fmt.Errorf("no matching VPC Endpoint found")
@@ -161,7 +161,7 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc-endpoint/%s", d.Id()),
@@ -179,7 +179,7 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 		}),
 	})
 	if err != nil {
-		return fmt.Errorf("error reading Prefix List (%s): %s", serviceName, err)
+		return fmt.Errorf("error reading Prefix List (%s): %w", serviceName, err)
 	}
 	if respPl == nil || len(respPl.PrefixLists) == 0 {
 		d.Set("cidr_blocks", []interface{}{})
@@ -191,41 +191,41 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("prefix_list_id", pl.PrefixListId)
 		err = d.Set("cidr_blocks", flattenStringList(pl.Cidrs))
 		if err != nil {
-			return fmt.Errorf("error setting cidr_blocks: %s", err)
+			return fmt.Errorf("error setting cidr_blocks: %w", err)
 		}
 	}
 
 	err = d.Set("dns_entry", flattenVpcEndpointDnsEntries(vpce.DnsEntries))
 	if err != nil {
-		return fmt.Errorf("error setting dns_entry: %s", err)
+		return fmt.Errorf("error setting dns_entry: %w", err)
 	}
 	err = d.Set("network_interface_ids", flattenStringSet(vpce.NetworkInterfaceIds))
 	if err != nil {
-		return fmt.Errorf("error setting network_interface_ids: %s", err)
+		return fmt.Errorf("error setting network_interface_ids: %w", err)
 	}
 	d.Set("owner_id", vpce.OwnerId)
 	policy, err := structure.NormalizeJsonString(aws.StringValue(vpce.PolicyDocument))
 	if err != nil {
-		return fmt.Errorf("policy contains an invalid JSON: %s", err)
+		return fmt.Errorf("policy contains an invalid JSON: %w", err)
 	}
 	d.Set("policy", policy)
 	d.Set("private_dns_enabled", vpce.PrivateDnsEnabled)
 	err = d.Set("route_table_ids", flattenStringSet(vpce.RouteTableIds))
 	if err != nil {
-		return fmt.Errorf("error setting route_table_ids: %s", err)
+		return fmt.Errorf("error setting route_table_ids: %w", err)
 	}
 	d.Set("requester_managed", vpce.RequesterManaged)
 	err = d.Set("security_group_ids", flattenVpcEndpointSecurityGroupIds(vpce.Groups))
 	if err != nil {
-		return fmt.Errorf("error setting security_group_ids: %s", err)
+		return fmt.Errorf("error setting security_group_ids: %w", err)
 	}
 	err = d.Set("subnet_ids", flattenStringSet(vpce.SubnetIds))
 	if err != nil {
-		return fmt.Errorf("error setting subnet_ids: %s", err)
+		return fmt.Errorf("error setting subnet_ids: %w", err)
 	}
 	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	if err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 	// VPC endpoints don't have types in GovCloud, so set type to default if empty
 	if vpceType := aws.StringValue(vpce.VpcEndpointType); vpceType == "" {

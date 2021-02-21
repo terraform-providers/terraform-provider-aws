@@ -85,7 +85,7 @@ func resourceAwsGameliftAliasCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	d.SetId(*out.Alias.AliasId)
+	d.SetId(aws.StringValue(out.Alias.AliasId))
 
 	return resourceAwsGameliftAliasRead(d, meta)
 }

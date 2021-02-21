@@ -42,9 +42,9 @@ The following argument is supported:
 * `rest_api_id` - (Required) The ID of the associated Rest API
 * `description` - (Optional) The description of the API documentation version.
 
-## Attribute Reference
+## Attributes Reference
 
-The arguments listed above are all exported as attributes.
+In addition to all arguments above, the following attributes are exported:
 
 ## Import
 

@@ -70,7 +70,7 @@ func resourceAwsApiGatewayResourceCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating API Gateway Resource: %s", err)
 	}
 
-	d.SetId(*resource.Id)
+	d.SetId(aws.StringValue(resource.Id))
 
 	return resourceAwsApiGatewayResourceRead(d, meta)
 }

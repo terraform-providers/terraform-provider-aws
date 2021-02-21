@@ -96,7 +96,7 @@ func resourceAwsLambdaAliasCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating Lambda alias: %s", err)
 	}
 
-	d.SetId(*aliasConfiguration.AliasArn)
+	d.SetId(aws.StringValue(aliasConfiguration.AliasArn))
 
 	return resourceAwsLambdaAliasRead(d, meta)
 }
@@ -128,7 +128,7 @@ func resourceAwsLambdaAliasRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("function_version", aliasConfiguration.FunctionVersion)
 	d.Set("name", aliasConfiguration.Name)
 	d.Set("arn", aliasConfiguration.AliasArn)
-	d.SetId(*aliasConfiguration.AliasArn)
+	d.SetId(aws.StringValue(aliasConfiguration.AliasArn))
 
 	invokeArn := lambdaFunctionInvokeArn(*aliasConfiguration.AliasArn, meta)
 	d.Set("invoke_arn", invokeArn)

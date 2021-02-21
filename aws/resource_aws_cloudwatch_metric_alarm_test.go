@@ -356,6 +356,28 @@ func TestAccAWSCloudWatchMetricAlarm_tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSCloudWatchMetricAlarm_disappears(t *testing.T) {
+	var alarm cloudwatch.MetricAlarm
+	resourceName := "aws_cloudwatch_metric_alarm.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchMetricAlarmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudWatchMetricAlarmConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchMetricAlarmExists(resourceName, &alarm),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudWatchMetricAlarm(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckCloudWatchMetricAlarmDimension(n, k, v string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]

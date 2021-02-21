@@ -93,6 +93,7 @@ func resourceAwsApiGatewayAuthorizer() *schema.Resource {
 
 func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	var postCreateOps []*apigateway.PatchOperation
 
 	input := apigateway.CreateAuthorizerInput{
 		IdentitySource:               aws.String(d.Get("identity_source").(string)),
@@ -109,7 +110,19 @@ func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interfac
 		input.AuthorizerUri = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("authorizer_credentials"); ok {
-		input.AuthorizerCredentials = aws.String(v.(string))
+		// While the CreateAuthorizer method allows one to pass AuthorizerCredentials
+		// regardless of authorizer Type, the API ignores this setting if the authorizer
+		// is of Type "COGNITO_USER_POOLS"; thus, a PatchOperation is used as an alternative.
+		// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/16613
+		if aws.StringValue(input.Type) != apigateway.AuthorizerTypeCognitoUserPools {
+			input.AuthorizerCredentials = aws.String(v.(string))
+		} else {
+			postCreateOps = append(postCreateOps, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/authorizerCredentials"),
+				Value: aws.String(v.(string)),
+			})
+		}
 	}
 
 	if v, ok := d.GetOk("identity_validation_expression"); ok {
@@ -126,6 +139,20 @@ func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(aws.StringValue(out.Id))
+
+	if postCreateOps != nil {
+		input := apigateway.UpdateAuthorizerInput{
+			AuthorizerId:    aws.String(d.Id()),
+			PatchOperations: postCreateOps,
+			RestApiId:       input.RestApiId,
+		}
+
+		log.Printf("[INFO] Applying update operations to API Gateway Authorizer: %s", d.Id())
+		_, err := conn.UpdateAuthorizer(&input)
+		if err != nil {
+			return fmt.Errorf("applying update operations to API Gateway Authorizer (%s) failed: %w", d.Id(), err)
+		}
+	}
 
 	return resourceAwsApiGatewayAuthorizerRead(d, meta)
 }

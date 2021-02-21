@@ -43,7 +43,7 @@ func resourceAwsSsmPatchGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	d.SetId(*resp.PatchGroup)
+	d.SetId(aws.StringValue(resp.PatchGroup))
 	return resourceAwsSsmPatchGroupRead(d, meta)
 }
 

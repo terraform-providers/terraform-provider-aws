@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -16,6 +17,7 @@ func TestAccAwsEmrManagedScalingPolicy_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 
@@ -40,6 +42,7 @@ func TestAccAwsEmrManagedScalingPolicy_ComputeLimits_MaximumCoreCapacityUnits(t 
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 
@@ -64,6 +67,7 @@ func TestAccAwsEmrManagedScalingPolicy_ComputeLimits_MaximumOndemandCapacityUnit
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 
@@ -88,6 +92,7 @@ func TestAccAwsEmrManagedScalingPolicy_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -101,6 +106,13 @@ func TestAccAwsEmrManagedScalingPolicy_disappears(t *testing.T) {
 			},
 		},
 	})
+}
+
+// testAccErrorCheckSkipEmrManagedScalingPolicy skips tests that have error messages indicating unsupported features
+func testAccErrorCheckSkipEmrManagedScalingPolicy(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"Managed scaling is not available",
+	)
 }
 
 func testAccAWSEmrManagedScalingPolicy_basic(r string) string {
@@ -181,19 +193,21 @@ func testAccCheckAWSEmrManagedScalingPolicyDestroy(s *terraform.State) error {
 			ClusterId: aws.String(rs.Primary.ID),
 		})
 
-		if isAWSErr(err, "InvalidRequestException", "does not exist") {
-			return nil
+		if tfawserr.ErrMessageContains(err, "InvalidRequestException", "does not exist") {
+			continue
+		}
+
+		if tfawserr.ErrMessageContains(err, "ValidationException", "A job flow that is shutting down, terminated, or finished may not be modified") {
+			continue
 		}
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading EMR Managed Scaling Policy (%s): %w", rs.Primary.ID, err)
 		}
 
-		if resp != nil {
-			return fmt.Errorf("Error: EMR Managed Scaling Policy still exists")
+		if resp != nil && resp.ManagedScalingPolicy != nil {
+			return fmt.Errorf("EMR Managed Scaling Policy (%s) still exists", rs.Primary.ID)
 		}
-
-		return nil
 	}
 
 	return nil
@@ -439,10 +453,12 @@ EOT
 }
 
 resource "aws_emr_cluster" "test" {
-  name          = "%[1]s"
-  release_label = "emr-5.30.1"
-  applications  = ["Hadoop", "Hive"]
-  log_uri       = "s3n://terraform/testlog/"
+  applications                      = ["Hadoop", "Hive"]
+  keep_job_flow_alive_when_no_steps = true
+  log_uri                           = "s3n://terraform/testlog/"
+  name                              = "%[1]s"
+  release_label                     = "emr-5.30.1"
+  service_role                      = aws_iam_role.emr_service.arn
 
   master_instance_group {
     instance_type = "c4.large"
@@ -453,7 +469,6 @@ resource "aws_emr_cluster" "test" {
     instance_type  = "c4.large"
   }
 
-  service_role = aws_iam_role.emr_service.arn
   depends_on = [
     aws_route_table_association.test,
     aws_iam_role_policy_attachment.emr_service,

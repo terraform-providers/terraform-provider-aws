@@ -45,7 +45,7 @@ func TestAccAWSELB_basic(t *testing.T) {
 				Config: testAccAWSELBConfig,
 				Check: resource.ComposeTestCheckFunc(
           ...
-          tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+          resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
  						"instance_port":     "8000",
             "instance_protocol": "http",
             "lb_port":           "80",

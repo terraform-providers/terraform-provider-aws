@@ -157,7 +157,7 @@ func resourceAwsRouteTableAssociationUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	// Update the ID
-	d.SetId(*resp.NewAssociationId)
+	d.SetId(aws.StringValue(resp.NewAssociationId))
 	log.Printf("[INFO] Association ID: %s", d.Id())
 
 	return nil

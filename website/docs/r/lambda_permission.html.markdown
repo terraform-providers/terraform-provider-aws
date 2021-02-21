@@ -40,21 +40,21 @@ resource "aws_lambda_function" "test_lambda" {
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
       },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
+    ]
+  })
 }
 ```
 
@@ -90,21 +90,21 @@ resource "aws_lambda_function" "func" {
 resource "aws_iam_role" "default" {
   name = "iam_for_lambda_with_sns"
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
       },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
+    ]
+  })
 }
 ```
 
@@ -128,17 +128,64 @@ resource "aws_lambda_permission" "lambda_permission" {
 }
 ```
 
+## Usage with CloudWatch log group
+
+```hcl
+resource "aws_lambda_permission" "logging" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.logging.function_name
+  principal     = "logs.eu-west-1.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_log_group.default.arn}:*"
+}
+
+resource "aws_cloudwatch_log_group" "default" {
+  name = "/default"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "logging" {
+  depends_on      = [aws_lambda_permission.logging]
+  destination_arn = aws_lambda_function.logging.arn
+  filter_pattern  = ""
+  log_group_name  = aws_cloudwatch_log_group.default.name
+  name            = "logging_default"
+}
+
+resource "aws_lambda_function" "logging" {
+  filename      = "lamba_logging.zip"
+  function_name = "lambda_called_from_cloudwatch_logs"
+  handler       = "exports.handler"
+  role          = aws_iam_role.default.arn
+  runtime       = "python2.7"
+}
+
+resource "aws_iam_role" "default" {
+  name = "iam_for_lambda_called_from_cloudwatch_logs"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+```
+
 ## Argument Reference
 
 * `action` - (Required) The AWS Lambda action you want to allow in this statement. (e.g. `lambda:InvokeFunction`)
 * `event_source_token` - (Optional) The Event Source Token to validate.  Used with [Alexa Skills][1].
 * `function_name` - (Required) Name of the Lambda function whose resource policy you are updating
-* `principal` - (Required) The principal who is getting this permission.
- 	e.g. `s3.amazonaws.com`, an AWS account ID, or any valid AWS service principal
- 	such as `events.amazonaws.com` or `sns.amazonaws.com`.
-* `qualifier` - (Optional) Query parameter to specify function version or alias name.
- 	The permission will then apply to the specific qualified ARN.
- 	e.g. `arn:aws:lambda:aws-region:acct-id:function:function-name:2`
+* `principal` - (Required) The principal who is getting this permission. e.g. `s3.amazonaws.com`, an AWS account ID, or any valid AWS service principal such as `events.amazonaws.com` or `sns.amazonaws.com`.
+* `qualifier` - (Optional) Query parameter to specify function version or alias name. The permission will then apply to the specific qualified ARN. e.g. `arn:aws:lambda:aws-region:acct-id:function:function-name:2`
 * `source_account` - (Optional) This parameter is used for S3 and SES. The AWS account ID (without a hyphen) of the source owner.
 * `source_arn` - (Optional) When the principal is an AWS service, the ARN of the specific resource within that service to grant permission to.
   Without this, any resource from `principal` will be granted permission – even if that resource is from another account.

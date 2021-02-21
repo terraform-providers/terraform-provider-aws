@@ -780,6 +780,76 @@ resource "aws_elastic_beanstalk_application" "test" {
   description = "tf-test-desc"
   name        = %[1]q
 }
+
+# Create custom service role per test to remove dependency on
+# Service-Linked Role existing.
+resource "aws_iam_role" "service_role" {
+  name = "%[1]s-service"
+  assume_role_policy = jsonencode({
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Condition = {
+        StringEquals = {
+          "sts:ExternalId" = "elasticbeanstalk"
+        }
+      }
+      Effect = "Allow"
+      Principal = {
+        Service = "elasticbeanstalk.${data.aws_partition.current.dns_suffix}"
+      }
+    }]
+    Version = "2012-10-17"
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "service_role-AWSElasticBeanstalkEnhancedHealth" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth"
+  role       = aws_iam_role.service_role.id
+}
+
+resource "aws_iam_role_policy_attachment" "service_role-AWSElasticBeanstalkService" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSElasticBeanstalkService"
+  role       = aws_iam_role.service_role.id
+}
+
+# Amazon Linux 2 environments require IAM Instance Profile.
+resource "aws_iam_role" "instance_profile" {
+  name = "%[1]s-instance"
+  assume_role_policy = jsonencode({
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.${data.aws_partition.current.dns_suffix}"
+      }
+    }]
+    Version = "2012-10-17"
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "instance_profile-AWSElasticBeanstalkWebTier" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSElasticBeanstalkWebTier"
+  role       = aws_iam_role.instance_profile.id
+}
+
+resource "aws_iam_role_policy_attachment" "instance_profile-AWSElasticBeanstalkWorkerTier" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
+  role       = aws_iam_role.instance_profile.id
+}
+
+# Since the IAM Instance Profile is required anyways, also use it to
+# ensure IAM Role permissions for both roles are attached.
+resource "aws_iam_instance_profile" "test" {
+  depends_on = [
+    aws_iam_role_policy_attachment.instance_profile-AWSElasticBeanstalkWebTier,
+    aws_iam_role_policy_attachment.instance_profile-AWSElasticBeanstalkWorkerTier,
+    aws_iam_role_policy_attachment.service_role-AWSElasticBeanstalkEnhancedHealth,
+    aws_iam_role_policy_attachment.service_role-AWSElasticBeanstalkService,
+  ]
+
+  name = %[1]q
+  role = aws_iam_role.instance_profile.name
+}
 `, rName)
 }
 
@@ -812,6 +882,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 }
 `, rName)
@@ -847,6 +929,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
   }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
+  }
 }
 `, rName)
 }
@@ -880,6 +974,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 
   setting {
@@ -926,21 +1032,6 @@ resource "aws_elastic_beanstalk_environment" "test" {
 
 func testAccBeanstalkWorkerEnvConfig(rName string) string {
 	return testAccBeanstalkEnvConfigBase(rName) + fmt.Sprintf(`
-resource "aws_iam_instance_profile" "test" {
-  name = %[1]q
-  role = aws_iam_role.test.name
-}
-
-resource "aws_iam_role" "test" {
-  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Principal\":{\"Service\":\"ec2.${data.aws_partition.current.dns_suffix}\"},\"Effect\":\"Allow\",\"Sid\":\"\"}]}"
-  name               = %[1]q
-}
-
-resource "aws_iam_role_policy_attachment" "test" {
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
-  role       = aws_iam_role.test.id
-}
-
 resource "aws_elastic_beanstalk_environment" "test" {
   application         = aws_elastic_beanstalk_application.test.name
   name                = %[1]q
@@ -976,6 +1067,12 @@ resource "aws_elastic_beanstalk_environment" "test" {
     name      = "IamInstanceProfile"
     value     = aws_iam_instance_profile.test.name
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
+  }
 }
 `, rName)
 }
@@ -1010,6 +1107,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 }
 `, rName)
@@ -1053,6 +1162,18 @@ resource "aws_elastic_beanstalk_configuration_template" "test" {
   }
 
   setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
+  }
+
+  setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "TEMPLATE"
     value     = %[2]d
@@ -1090,6 +1211,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 
   setting {
@@ -1147,6 +1280,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     value     = aws_security_group.test.id
   }
 
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
+  }
+
   tags = {
     firstTag  = %[2]q
     secondTag = %[3]q
@@ -1184,6 +1329,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 }
 
@@ -1224,6 +1381,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 }
 
@@ -1283,6 +1452,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
   }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
+  }
 }
 `, rName)
 }
@@ -1335,6 +1516,18 @@ resource "aws_elastic_beanstalk_environment" "test" {
     name      = "SecurityGroups"
     value     = aws_security_group.test.id
   }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
+  }
 }
 `, rName)
 }
@@ -1348,36 +1541,6 @@ resource "aws_sqs_queue" "test" {
 resource "aws_key_pair" "test" {
   key_name   = %[1]q
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
-}
-
-resource "aws_iam_instance_profile" "test" {
-  name = %[1]q
-  role = aws_iam_role.test.name
-}
-
-resource "aws_iam_role" "test" {
-  name = %[1]q
-
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-               "Service": "ec2.${data.aws_partition.current.dns_suffix}"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-        }
-    ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy_attachment" "test" {
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
-  role       = aws_iam_role.test.id
 }
 
 resource "aws_elastic_beanstalk_environment" "test" {
@@ -1478,12 +1641,6 @@ resource "aws_elastic_beanstalk_environment" "test" {
 
   setting {
     namespace = "aws:elasticbeanstalk:environment"
-    name      = "ServiceRole"
-    value     = "aws-elasticbeanstalk-service-role"
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:environment"
     name      = "EnvironmentType"
     value     = "LoadBalanced"
   }
@@ -1510,6 +1667,12 @@ resource "aws_elastic_beanstalk_environment" "test" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
     value     = aws_iam_instance_profile.test.name
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "ServiceRole"
+    value     = aws_iam_role.service_role.name
   }
 
   setting {

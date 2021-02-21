@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -88,7 +89,7 @@ func mostRecentSolutionStack(solutionStacks []*string) *string {
 // populate the numerous fields that the image description returns.
 func solutionStackDescriptionAttributes(d *schema.ResourceData, solutionStack *string) error {
 	// Simple attributes first
-	d.SetId(*solutionStack)
+	d.SetId(aws.StringValue(solutionStack))
 	d.Set("name", solutionStack)
 	return nil
 }

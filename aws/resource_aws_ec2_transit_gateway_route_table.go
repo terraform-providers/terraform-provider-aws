@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -22,6 +23,10 @@ func resourceAwsEc2TransitGatewayRouteTable() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"default_association_route_table": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -100,6 +105,16 @@ func resourceAwsEc2TransitGatewayRouteTableRead(d *schema.ResourceData, meta int
 	}
 
 	d.Set("transit_gateway_id", aws.StringValue(transitGatewayRouteTable.TransitGatewayId))
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   ec2.ServiceName,
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("transit-gateway-route-table/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

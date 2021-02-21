@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ses_receipt_rule: Add `arn` attribute
+```
+
+```release-note:enhancement
+resource/aws_ses_receipt_rule: Add plan time validations for `name`, `tls_policy`, `add_header_action.header_name`, `add_header_action.header_value`, `bounce_action.topic_arn`, `lambda_action.function_arn`, `lambda_action.topic_arn`, `lambda_action.invocation_type`, `s3_action,topic_arn`, `sns_action.topic_arn`, `stop_action.scope`, `stop_action.topic_arn`, `workmail_action.topic_arn`, and `workmail_action.organization_arn` attributes
+```

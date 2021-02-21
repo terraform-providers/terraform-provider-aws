@@ -137,17 +137,18 @@ func resourceAwsGlueJob() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"max_capacity"},
-				ValidateFunc: validation.StringInSlice([]string{
-					glue.WorkerTypeG1x,
-					glue.WorkerTypeG2x,
-					glue.WorkerTypeStandard,
-				}, false),
+				ValidateFunc:  validation.StringInSlice(glue.WorkerType_Values(), false),
 			},
 			"number_of_workers": {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				ConflictsWith: []string{"max_capacity"},
 				ValidateFunc:  validation.IntAtLeast(2),
+			},
+			"non_overridable_arguments": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -176,11 +177,11 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if kv, ok := d.GetOk("default_arguments"); ok {
-		defaultArgumentsMap := make(map[string]string)
-		for k, v := range kv.(map[string]interface{}) {
-			defaultArgumentsMap[k] = v.(string)
-		}
-		input.DefaultArguments = aws.StringMap(defaultArgumentsMap)
+		input.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+	}
+
+	if kv, ok := d.GetOk("non_overridable_arguments"); ok {
+		input.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -270,6 +271,9 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("default_arguments", aws.StringValueMap(job.DefaultArguments)); err != nil {
 		return fmt.Errorf("error setting default_arguments: %s", err)
 	}
+	if err := d.Set("non_overridable_arguments", aws.StringValueMap(job.NonOverridableArguments)); err != nil {
+		return fmt.Errorf("error setting non_overridable_arguments: %w", err)
+	}
 	d.Set("description", job.Description)
 	d.Set("glue_version", job.GlueVersion)
 	if err := d.Set("execution_property", flattenGlueExecutionProperty(job.ExecutionProperty)); err != nil {
@@ -309,7 +313,7 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChanges("command", "connections", "default_arguments", "description",
 		"execution_property", "glue_version", "max_capacity", "max_retries", "notification_property", "number_of_workers",
-		"role_arn", "security_configuration", "timeout", "worker_type") {
+		"role_arn", "security_configuration", "timeout", "worker_type", "non_overridable_arguments") {
 		jobUpdate := &glue.JobUpdate{
 			Command: expandGlueJobCommand(d.Get("command").([]interface{})),
 			Role:    aws.String(d.Get("role_arn").(string)),
@@ -331,11 +335,11 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if kv, ok := d.GetOk("default_arguments"); ok {
-			defaultArgumentsMap := make(map[string]string)
-			for k, v := range kv.(map[string]interface{}) {
-				defaultArgumentsMap[k] = v.(string)
-			}
-			jobUpdate.DefaultArguments = aws.StringMap(defaultArgumentsMap)
+			jobUpdate.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+		}
+
+		if kv, ok := d.GetOk("non_overridable_arguments"); ok {
+			jobUpdate.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
 		}
 
 		if v, ok := d.GetOk("description"); ok {

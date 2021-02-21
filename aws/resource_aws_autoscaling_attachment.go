@@ -68,6 +68,7 @@ func resourceAwsAutoscalingAttachmentCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	//lintignore:R016 // Allow legacy unstable ID usage in managed resource
 	d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-", asgName)))
 
 	return resourceAwsAutoscalingAttachmentRead(d, meta)

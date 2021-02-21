@@ -55,7 +55,7 @@ any fields that are not included in the configuration with the data for
 the selected Internet Gateway.
 
 `attachments` are also exported with the following attributes, when there are relevants:
-Each attachement supports the following:
+Each attachment supports the following:
 
 * `owner_id` - The ID of the AWS account that owns the internet gateway.
 * `state` - The current state of the attachment between the gateway and the VPC. Present only if a VPC is attached

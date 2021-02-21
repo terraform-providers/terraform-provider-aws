@@ -26,7 +26,7 @@ The following arguments are supported:
 * `transit_gateway_attachment_id` - (Required) Identifier of EC2 Transit Gateway Attachment.
 * `transit_gateway_route_table_id` - (Required) Identifier of EC2 Transit Gateway Route Table.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

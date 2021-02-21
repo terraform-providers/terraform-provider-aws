@@ -40,4 +40,5 @@ which take the following arguments:
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `pool_ids` - Set of COIP Pool Identifiers

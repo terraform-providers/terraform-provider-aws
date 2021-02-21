@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_ses_receipt_rule: Fix name validation regex to include `.` (period)
+```

@@ -264,7 +264,7 @@ func testAccAWSConfigConfigurationAggregatorConfig_account(rName string) string 
 data "aws_region" "current" {}
 
 resource "aws_config_configuration_aggregator" "example" {
-  name = %[1]q
+  name = %q
 
   account_aggregation_source {
     account_ids = [data.aws_caller_identity.current.account_id]
@@ -279,8 +279,7 @@ data "aws_caller_identity" "current" {
 
 func testAccAWSConfigConfigurationAggregatorConfig_organization(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_organizations_organization" "test" {
-}
+resource "aws_organizations_organization" "test" {}
 
 resource "aws_config_configuration_aggregator" "example" {
   depends_on = [aws_iam_role_policy_attachment.example]
@@ -293,6 +292,8 @@ resource "aws_config_configuration_aggregator" "example" {
   }
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "example" {
   name = %[1]q
 
@@ -304,7 +305,7 @@ resource "aws_iam_role" "example" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "config.amazonaws.com"
+        "Service": "config.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -315,7 +316,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "example" {
   role       = aws_iam_role.example.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
 }
 `, rName)
 }

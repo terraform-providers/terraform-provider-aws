@@ -46,7 +46,7 @@ The given filters must match exactly one VPC peering connection whose data will 
 
 * `owner_id` - (Optional) The AWS account ID of the owner of the requester VPC of the specific VPC Peering Connection to retrieve.
 
-* `cidr_block` - (Optional) The CIDR block of the requester VPC of the specific VPC Peering Connection to retrieve.
+* `cidr_block` - (Optional) The primary CIDR block of the requester VPC of the specific VPC Peering Connection to retrieve.
 
 * `region` - (Optional) The region of the requester VPC of the specific VPC Peering Connection to retrieve.
 
@@ -54,7 +54,7 @@ The given filters must match exactly one VPC peering connection whose data will 
 
 * `peer_owner_id` - (Optional) The AWS account ID of the owner of the accepter VPC of the specific VPC Peering Connection to retrieve.
 
-* `peer_cidr_block` - (Optional) The CIDR block of the accepter VPC of the specific VPC Peering Connection to retrieve.
+* `peer_cidr_block` - (Optional) The primary CIDR block of the accepter VPC of the specific VPC Peering Connection to retrieve.
 
 * `peer_region` - (Optional) The region of the accepter VPC of the specific VPC Peering Connection to retrieve.
 
@@ -79,6 +79,10 @@ All of the argument attributes except `filter` are also exported as result attri
 * `accepter` - A configuration block that describes [VPC Peering Connection]
 (https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the accepter VPC.
 
+* `cidr_block_set` - List of objects with CIDR blocks of the requester VPC.
+
+* `peer_cidr_block_set` - List of objects with CIDR blocks of the accepter VPC.
+
 * `requester` - A configuration block that describes [VPC Peering Connection]
 (https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the requester VPC.
 
@@ -92,3 +96,7 @@ with the peer VPC over the VPC peering connection.
 
 * `allow_vpc_to_remote_classic_link` - Indicates whether a local VPC can communicate with a ClassicLink
 connection in the peer VPC over the VPC peering connection.
+
+#### CIDR block set Attributes Reference
+
+* `cidr_block` - A CIDR block associated to the VPC of the specific VPC Peering Connection.

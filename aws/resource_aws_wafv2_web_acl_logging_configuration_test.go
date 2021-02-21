@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAwsWafv2WebACLLoggingConfiguration_basic(t *testing.T) {
@@ -19,7 +18,7 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_basic(t *testing.T) {
 	webACLResourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLLoggingConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +47,7 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_update(t *testing.T) {
 	webACLResourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLLoggingConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -68,10 +67,10 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_update(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "resource_arn", webACLResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "log_destination_configs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "redacted_fields.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "redacted_fields.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "redacted_fields.*", map[string]string{
 						"single_header.0.name": "referer",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "redacted_fields.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "redacted_fields.*", map[string]string{
 						"single_header.0.name": "user-agent",
 					}),
 				),
@@ -83,7 +82,7 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_update(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "resource_arn", webACLResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "log_destination_configs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "redacted_fields.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "redacted_fields.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "redacted_fields.*", map[string]string{
 						"single_header.0.name": "user-agent",
 					}),
 				),
@@ -105,7 +104,7 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_changeResourceARNForceNew(t *test
 	webACLResourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLLoggingConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -147,7 +146,7 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_changeLogDestinationConfigsForceN
 	kinesisResourceName := "aws_kinesis_firehose_delivery_stream.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLLoggingConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -186,7 +185,7 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_disappears(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl_logging_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLLoggingConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -202,14 +201,14 @@ func TestAccAwsWafv2WebACLLoggingConfiguration_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAwsWafv2WebACLLoggingConfiguration_webACLDisappears(t *testing.T) {
+func TestAccAwsWafv2WebACLLoggingConfiguration_disappears_WebAcl(t *testing.T) {
 	var v wafv2.LoggingConfiguration
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_wafv2_web_acl_logging_configuration.test"
 	webACLResourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLLoggingConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -306,7 +305,7 @@ resource "aws_iam_role" "firehose" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "firehose.amazonaws.com"
+        "Service": "firehose.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole",
       "Condition": {
@@ -353,7 +352,7 @@ resource "aws_iam_role_policy" "test" {
     {
       "Effect": "Allow",
       "Action": "iam:CreateServiceLinkedRole",
-      "Resource": "arn:aws:iam::*:role/aws-service-role/wafv2.amazonaws.com/AWSServiceRoleForWAFV2Logging",
+      "Resource": "arn:${data.aws_partition.current.partition}:iam::*:role/aws-service-role/wafv2.${data.aws_partition.current.dns_suffix}/AWSServiceRoleForWAFV2Logging",
       "Condition": {
         "StringLike": {
           "iam:AWSServiceName": "wafv2.${data.aws_partition.current.dns_suffix}"

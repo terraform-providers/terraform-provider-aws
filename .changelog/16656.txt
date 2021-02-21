@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_vpc_endpoint: Return unsuccessful deletion information immediately as an error instead of timing out while waiting for deletion
+```
+
+```release-note:bug
+resource/aws_vpc_endpoint_service: Return unsuccessful deletion information immediately as an error instead of timing out while waiting for deletion
+```

@@ -28,7 +28,7 @@ The following arguments are required:
 * `local_gateway_route_table_id` - (Required) Identifier of EC2 Local Gateway Route Table.
 * `local_gateway_virtual_interface_group_id` - (Required) Identifier of EC2 Local Gateway Virtual Interface Group.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

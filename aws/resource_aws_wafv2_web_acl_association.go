@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	Wafv2WebACLAssociationCreateTimeout = 2 * time.Minute
+	Wafv2WebACLAssociationCreateTimeout = 5 * time.Minute
 )
 
 func resourceAwsWafv2WebACLAssociation() *schema.Resource {

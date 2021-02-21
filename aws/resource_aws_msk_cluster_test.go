@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kafka"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -72,6 +71,7 @@ func TestAccAWSMskCluster_basic(t *testing.T) {
 					testAccCheckMskClusterExists(resourceName, &cluster),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "kafka", regexp.MustCompile(`cluster/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "bootstrap_brokers", ""),
+					resource.TestCheckResourceAttr(resourceName, "bootstrap_brokers_sasl_scram", ""),
 					resource.TestMatchResourceAttr(resourceName, "bootstrap_brokers_tls", regexp.MustCompile(`^(([-\w]+\.){1,}[\w]+:\d+,){2,}([-\w]+\.){1,}[\w]+:\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "broker_node_group_info.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "broker_node_group_info.0.az_distribution", kafka.BrokerAZDistributionDefault),
@@ -152,6 +152,59 @@ func TestAccAWSMskCluster_BrokerNodeGroupInfo_EbsVolumeSize(t *testing.T) {
 	})
 }
 
+func TestAccAWSMskCluster_ClientAuthentication_Sasl_Scram(t *testing.T) {
+	var cluster1, cluster2 kafka.ClusterInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_msk_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMsk(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMskClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMskClusterConfigClientAuthenticationSaslScram(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster1),
+					resource.TestMatchResourceAttr(resourceName, "bootstrap_brokers_sasl_scram", regexp.MustCompile(`^(([-\w]+\.){1,}[\w]+:\d+,){2,}([-\w]+\.){1,}[\w]+:\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "client_authentication.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "client_authentication.0.sasl.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "client_authentication.0.sasl.0.scram", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bootstrap_brokers",     // API may mutate ordering and selection of brokers to return
+					"bootstrap_brokers_tls", // API may mutate ordering and selection of brokers to return
+				},
+			},
+			{
+				Config: testAccMskClusterConfigClientAuthenticationSaslScram(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster2),
+					testAccCheckMskClusterRecreated(&cluster1, &cluster2),
+					resource.TestCheckResourceAttr(resourceName, "bootstrap_brokers_sasl_scram", ""),
+					resource.TestCheckResourceAttr(resourceName, "client_authentication.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "client_authentication.0.sasl.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "client_authentication.0.sasl.0.scram", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bootstrap_brokers",     // API may mutate ordering and selection of brokers to return
+					"bootstrap_brokers_tls", // API may mutate ordering and selection of brokers to return
+				},
+			},
+		},
+	})
+}
+
 func TestAccAWSMskCluster_ClientAuthentication_Tls_CertificateAuthorityArns(t *testing.T) {
 	TestAccSkip(t, "Requires the aws_acmpca_certificate_authority resource to support importing the root CA certificate")
 
@@ -187,11 +240,11 @@ func TestAccAWSMskCluster_ClientAuthentication_Tls_CertificateAuthorityArns(t *t
 }
 
 func TestAccAWSMskCluster_ConfigurationInfo_Revision(t *testing.T) {
-	TestAccSkip(t, "aws_msk_cluster is correctly calling UpdateClusterConfiguration however API is always returning 429 and 500 errors")
 
 	var cluster1, cluster2 kafka.ClusterInfo
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	configurationResourceName := "aws_msk_configuration.test"
+	configurationResourceName2 := "aws_msk_configuration.test2"
 	resourceName := "aws_msk_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -223,8 +276,8 @@ func TestAccAWSMskCluster_ConfigurationInfo_Revision(t *testing.T) {
 					testAccCheckMskClusterExists(resourceName, &cluster2),
 					testAccCheckMskClusterNotRecreated(&cluster1, &cluster2),
 					resource.TestCheckResourceAttr(resourceName, "configuration_info.#", "1"),
-					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.arn", configurationResourceName, "arn"),
-					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.revision", configurationResourceName, "latest_revision"),
+					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.arn", configurationResourceName2, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.revision", configurationResourceName2, "latest_revision"),
 				),
 			},
 		},
@@ -515,6 +568,128 @@ func TestAccAWSMskCluster_LoggingInfo(t *testing.T) {
 	})
 }
 
+func TestAccAWSMskCluster_KafkaVersionUpgrade(t *testing.T) {
+	var cluster1, cluster2 kafka.ClusterInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_msk_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMsk(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMskClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMskClusterConfigKafkaVersion(rName, "2.2.1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster1),
+					resource.TestCheckResourceAttr(resourceName, "kafka_version", "2.2.1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bootstrap_brokers",     // API may mutate ordering and selection of brokers to return
+					"bootstrap_brokers_tls", // API may mutate ordering and selection of brokers to return
+				},
+			},
+			{
+				Config: testAccMskClusterConfigKafkaVersion(rName, "2.4.1.1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster2),
+					testAccCheckMskClusterNotRecreated(&cluster1, &cluster2),
+					resource.TestCheckResourceAttr(resourceName, "kafka_version", "2.4.1.1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSMskCluster_KafkaVersionDowngrade(t *testing.T) {
+	var cluster1, cluster2 kafka.ClusterInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_msk_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMsk(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMskClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMskClusterConfigKafkaVersion(rName, "2.4.1.1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster1),
+					resource.TestCheckResourceAttr(resourceName, "kafka_version", "2.4.1.1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bootstrap_brokers",     // API may mutate ordering and selection of brokers to return
+					"bootstrap_brokers_tls", // API may mutate ordering and selection of brokers to return
+				},
+			},
+			{
+				Config: testAccMskClusterConfigKafkaVersion(rName, "2.2.1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster2),
+					testAccCheckMskClusterRecreated(&cluster1, &cluster2),
+					resource.TestCheckResourceAttr(resourceName, "kafka_version", "2.2.1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSMskCluster_KafkaVersionUpgradeWithConfigurationInfo(t *testing.T) {
+	var cluster1, cluster2 kafka.ClusterInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	configurationResourceName1 := "aws_msk_configuration.config1"
+	configurationResourceName2 := "aws_msk_configuration.config2"
+	resourceName := "aws_msk_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMsk(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMskClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMskClusterConfigKafkaVersionWithConfigurationInfo(rName, "2.2.1", "config1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster1),
+					resource.TestCheckResourceAttr(resourceName, "kafka_version", "2.2.1"),
+					resource.TestCheckResourceAttr(resourceName, "configuration_info.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.arn", configurationResourceName1, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.revision", configurationResourceName1, "latest_revision"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bootstrap_brokers",     // API may mutate ordering and selection of brokers to return
+					"bootstrap_brokers_tls", // API may mutate ordering and selection of brokers to return
+				},
+			},
+			{
+				Config: testAccMskClusterConfigKafkaVersionWithConfigurationInfo(rName, "2.4.1.1", "config2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMskClusterExists(resourceName, &cluster2),
+					testAccCheckMskClusterNotRecreated(&cluster1, &cluster2),
+					resource.TestCheckResourceAttr(resourceName, "kafka_version", "2.4.1.1"),
+					resource.TestCheckResourceAttr(resourceName, "configuration_info.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.arn", configurationResourceName2, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "configuration_info.0.revision", configurationResourceName2, "latest_revision"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSMskCluster_Tags(t *testing.T) {
 	var cluster kafka.ClusterInfo
 	var td kafka.ListTagsForResourceOutput
@@ -606,6 +781,16 @@ func testAccCheckMskClusterNotRecreated(i, j *kafka.ClusterInfo) resource.TestCh
 	return func(s *terraform.State) error {
 		if aws.StringValue(i.ClusterArn) != aws.StringValue(j.ClusterArn) {
 			return fmt.Errorf("MSK Cluster (%s) recreated", aws.StringValue(i.ClusterArn))
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckMskClusterRecreated(i, j *kafka.ClusterInfo) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(i.ClusterArn) == aws.StringValue(j.ClusterArn) {
+			return fmt.Errorf("MSK Cluster (%s) was not recreated", aws.StringValue(i.ClusterArn))
 		}
 
 		return nil
@@ -793,6 +978,29 @@ resource "aws_msk_cluster" "test" {
 `, rName)
 }
 
+func testAccMskClusterConfigClientAuthenticationSaslScram(rName string, enabled bool) string {
+	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
+resource "aws_msk_cluster" "test" {
+  cluster_name           = %[1]q
+  kafka_version          = "2.6.0"
+  number_of_broker_nodes = 3
+
+  broker_node_group_info {
+    client_subnets  = [aws_subnet.example_subnet_az1.id, aws_subnet.example_subnet_az2.id, aws_subnet.example_subnet_az3.id]
+    ebs_volume_size = 10
+    instance_type   = "kafka.m5.large"
+    security_groups = [aws_security_group.example_sg.id]
+  }
+
+  client_authentication {
+    sasl {
+      scram = %t
+    }
+  }
+}
+`, rName, enabled)
+}
+
 func testAccMskClusterConfigConfigurationInfoRevision1(rName string) string {
 	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
 resource "aws_msk_configuration" "test" {
@@ -828,6 +1036,15 @@ func testAccMskClusterConfigConfigurationInfoRevision2(rName string) string {
 	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
 resource "aws_msk_configuration" "test" {
   kafka_versions = ["2.2.1"]
+  name           = "%[1]s-1"
+
+  server_properties = <<PROPERTIES
+log.cleaner.delete.retention.ms = 86400000
+PROPERTIES
+}
+
+resource "aws_msk_configuration" "test2" {
+  kafka_versions = ["2.2.1"]
   name           = "%[1]s-2"
 
   server_properties = <<PROPERTIES
@@ -840,12 +1057,6 @@ resource "aws_msk_cluster" "test" {
   kafka_version          = "2.2.1"
   number_of_broker_nodes = 3
 
-  encryption_info {
-    encryption_in_transit {
-      client_broker = "TLS_PLAINTEXT"
-    }
-  }
-
   broker_node_group_info {
     client_subnets  = [aws_subnet.example_subnet_az1.id, aws_subnet.example_subnet_az2.id, aws_subnet.example_subnet_az3.id]
     ebs_volume_size = 10
@@ -854,8 +1065,8 @@ resource "aws_msk_cluster" "test" {
   }
 
   configuration_info {
-    arn      = aws_msk_configuration.test.arn
-    revision = aws_msk_configuration.test.latest_revision
+    arn      = aws_msk_configuration.test2.arn
+    revision = aws_msk_configuration.test2.latest_revision
   }
 }
 `, rName)
@@ -1020,16 +1231,16 @@ func testAccMskClusterConfigLoggingInfo(rName string, cloudwatchLogsEnabled bool
 
 	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
 resource "aws_cloudwatch_log_group" "test" {
-  name = "msk_broker_logs"
+  name = %[1]q
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "msk-broker-logs-test-bucket"
+  bucket = %[1]q
   acl    = "private"
 }
 
 resource "aws_iam_role" "firehose_role" {
-  name = "firehose_test_role"
+  name = %[1]q
 
   assume_role_policy = <<EOF
 {
@@ -1049,7 +1260,7 @@ EOF
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "test" {
-  name        = "terraform-kinesis-firehose-msk-test-stream"
+  name        = %[1]q
   destination = "s3"
 
   s3_configuration {
@@ -1102,6 +1313,73 @@ resource "aws_msk_cluster" "test" {
   }
 }
 `, rName, cloudwatchLogsEnabled, cloudwatchLogsLogGroup, firehoseEnabled, firehoseDeliveryStream, s3Enabled, s3Bucket)
+}
+
+func testAccMskClusterConfigKafkaVersion(rName string, kafkaVersion string) string {
+	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
+resource "aws_msk_cluster" "test" {
+  cluster_name           = %[1]q
+  kafka_version          = %[2]q
+  number_of_broker_nodes = 3
+
+  encryption_info {
+    encryption_in_transit {
+      client_broker = "TLS_PLAINTEXT"
+    }
+  }
+
+  broker_node_group_info {
+    client_subnets  = ["${aws_subnet.example_subnet_az1.id}", "${aws_subnet.example_subnet_az2.id}", "${aws_subnet.example_subnet_az3.id}"]
+    ebs_volume_size = 10
+    instance_type   = "kafka.m5.large"
+    security_groups = ["${aws_security_group.example_sg.id}"]
+  }
+}
+`, rName, kafkaVersion)
+}
+
+func testAccMskClusterConfigKafkaVersionWithConfigurationInfo(rName string, kafkaVersion string, configResourceName string) string {
+	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
+resource "aws_msk_configuration" "config1" {
+  kafka_versions    = ["2.2.1"]
+  name              = "%[1]s-1"
+  server_properties = <<PROPERTIES
+log.cleaner.delete.retention.ms = 86400000
+PROPERTIES
+}
+
+resource "aws_msk_configuration" "config2" {
+  kafka_versions    = ["2.4.1.1"]
+  name              = "%[1]s-2"
+  server_properties = <<PROPERTIES
+log.cleaner.delete.retention.ms = 86400001
+PROPERTIES
+}
+
+resource "aws_msk_cluster" "test" {
+  cluster_name           = %[1]q
+  kafka_version          = %[2]q
+  number_of_broker_nodes = 3
+
+  encryption_info {
+    encryption_in_transit {
+      client_broker = "TLS_PLAINTEXT"
+    }
+  }
+
+  broker_node_group_info {
+    client_subnets  = ["${aws_subnet.example_subnet_az1.id}", "${aws_subnet.example_subnet_az2.id}", "${aws_subnet.example_subnet_az3.id}"]
+    ebs_volume_size = 10
+    instance_type   = "kafka.m5.large"
+    security_groups = ["${aws_security_group.example_sg.id}"]
+  }
+
+  configuration_info {
+    arn      = aws_msk_configuration.%[3]s.arn
+    revision = aws_msk_configuration.%[3]s.latest_revision
+  }
+}
+`, rName, kafkaVersion, configResourceName)
 }
 
 func testAccMskClusterConfigTags1(rName string) string {

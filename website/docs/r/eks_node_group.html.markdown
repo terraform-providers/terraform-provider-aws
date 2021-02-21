@@ -37,7 +37,7 @@ resource "aws_eks_node_group" "example" {
 
 ### Ignoring Changes to Desired Size
 
-You can utilize the generic Terraform resource [lifecycle configuration block](/docs/configuration/resources.html#lifecycle-lifecycle-customizations) with `ignore_changes` to create an EKS Node Group with an initial size of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
+You can utilize the generic Terraform resource [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` to create an EKS Node Group with an initial size of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
 
 ```hcl
 resource "aws_eks_node_group" "example" {
@@ -124,9 +124,10 @@ The following arguments are required:
 The following arguments are optional:
 
 * `ami_type` - (Optional) Type of Amazon Machine Image (AMI) associated with the EKS Node Group. Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`. Terraform will only perform drift detection if a configuration value is provided.
+* `capacity_type` - (Optional) Type of capacity associated with the EKS Node Group. Valid values: `ON_DEMAND`, `SPOT`. Terraform will only perform drift detection if a configuration value is provided.
 * `disk_size` - (Optional) Disk size in GiB for worker nodes. Defaults to `20`. Terraform will only perform drift detection if a configuration value is provided.
 * `force_update_version` - (Optional) Force version update if existing pods are unable to be drained due to a pod disruption budget issue.
-* `instance_types` - (Optional) Set of instance types associated with the EKS Node Group. Defaults to `["t3.medium"]`. Terraform will only perform drift detection if a configuration value is provided. Currently, the EKS API only accepts a single value in the set.
+* `instance_types` - (Optional) List of instance types associated with the EKS Node Group. Defaults to `["t3.medium"]`. Terraform will only perform drift detection if a configuration value is provided.
 * `labels` - (Optional) Key-value map of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed.
 * `launch_template` - (Optional) Configuration block with Launch Template settings. Detailed below.
 * `release_version` – (Optional) AMI version of the EKS Node Group. Defaults to latest version for Kubernetes version.
@@ -168,7 +169,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_eks_node_group` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `60 minutes`) How long to wait for the EKS Node Group to be created.
 * `update` - (Default `60 minutes`) How long to wait for the EKS Node Group to be updated. Note that the `update` timeout is used separately for both configuration and version update operations.

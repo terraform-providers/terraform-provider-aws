@@ -148,7 +148,7 @@ func resourceAwsEfsMountTargetCreate(d *schema.ResourceData, meta interface{}) e
 			log.Printf("[DEBUG] Current status of %q: %q", aws.StringValue(mt.MountTargetId), aws.StringValue(mt.LifeCycleState))
 			return mt, aws.StringValue(mt.LifeCycleState), nil
 		},
-		Timeout:    10 * time.Minute,
+		Timeout:    30 * time.Minute,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

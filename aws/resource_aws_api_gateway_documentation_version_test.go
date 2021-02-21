@@ -21,7 +21,7 @@ func TestAccAWSAPIGatewayDocumentationVersion_basic(t *testing.T) {
 	resourceName := "aws_api_gateway_documentation_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -55,7 +55,7 @@ func TestAccAWSAPIGatewayDocumentationVersion_allFields(t *testing.T) {
 	resourceName := "aws_api_gateway_documentation_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -96,7 +96,7 @@ func TestAccAWSAPIGatewayDocumentationVersion_disappears(t *testing.T) {
 	resourceName := "aws_api_gateway_documentation_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationVersionDestroy,
 		Steps: []resource.TestStep{

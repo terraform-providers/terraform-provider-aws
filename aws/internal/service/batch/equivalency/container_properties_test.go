@@ -209,7 +209,7 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
 			ExpectEquivalent: true,
 		},
 		{
-			Name: "empty command, mountPoints, resourceRequirements, ulimits, volumes",
+			Name: "empty command, mountPoints, resourceRequirements, secrets, ulimits, volumes",
 			ApiJson: `
 {
 	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
@@ -221,7 +221,8 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
 	"environment": [{"name":"ENVIRONMENT","value":"test"}],
 	"mountPoints": [],
 	"ulimits": [],
-	"resourceRequirements": []
+	"resourceRequirements": [],
+	"secrets": []
 }
 `,
 			ConfigurationJson: `

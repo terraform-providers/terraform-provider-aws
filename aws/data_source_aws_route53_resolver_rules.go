@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
@@ -88,13 +87,14 @@ func dataSourceAwsRoute53ResolverRulesRead(d *schema.ResourceData, meta interfac
 		return !isLast
 	})
 	if err != nil {
-		return fmt.Errorf("error getting Route53 Resolver rules: %s", err)
+		return fmt.Errorf("error getting Route53 Resolver rules: %w", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
+
 	err = d.Set("resolver_rule_ids", flattenStringSet(resolverRuleIds))
 	if err != nil {
-		return fmt.Errorf("error setting resolver_rule_ids: %s", err)
+		return fmt.Errorf("error setting resolver_rule_ids: %w", err)
 	}
 
 	return nil

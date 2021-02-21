@@ -9,6 +9,8 @@ AppSync
 Application Autoscaling
 Athena
 Autoscaling
+Autoscaling Plans
+Amazon Managed Service for Prometheus (AMP)
 Backup
 Batch
 Budgets
@@ -23,9 +25,11 @@ CodeBuild
 CodeCommit
 CodeDeploy
 CodePipeline
+CodeStar Connections
 CodeStar Notifications
 Cognito
 Config
+Connect
 Cost and Usage Report
 Data Lifecycle Manager (DLM)
 DataPipeline
@@ -39,6 +43,7 @@ DynamoDB Accelerator (DAX)
 DynamoDB
 EC2
 ECR
+ECR Public
 ECS
 EFS
 EKS
@@ -47,8 +52,10 @@ Elastic Beanstalk
 Elastic Load Balancing (ELB Classic)
 Elastic Load Balancing v2 (ALB/NLB)
 Elastic Map Reduce (EMR)
+Elastic Map Reduce Containers
 Elastic Transcoder
 ElasticSearch
+EventBridge (CloudWatch Events)
 File System (FSx)
 Firewall Manager (FMS)
 Gamelift
@@ -58,24 +65,30 @@ Glue
 GuardDuty
 IAM
 Identity Store
+Image Builder
 Inspector
 IoT
 KMS
 Kinesis
-Kinesis Data Analytics v2 (SQL and Java Applications)
+Kinesis Data Analytics (SQL Applications)
+Kinesis Data Analytics v2 (SQL and Flink Applications)
 Kinesis Firehose
 Kinesis Video
+Lake Formation
 Lambda
 Lex
 License Manager
 Lightsail
 MQ
+Macie
 Macie Classic
 Managed Streaming for Kafka (MSK)
 MediaConvert
 MediaPackage
 MediaStore
+Managed Workflows for Apache Airflow (MWAA)
 Neptune
+Network Firewall
 OpsWorks
 Organizations
 Outposts
@@ -92,6 +105,8 @@ Route53 Domains
 Route53 Resolver
 Route53
 S3
+S3 Control
+S3 Outposts
 SES
 SNS
 SQS
@@ -101,14 +116,17 @@ SWF
 Sagemaker
 Secrets Manager
 Security Hub
+Serverless Application Repository
 Service Catalog
 Service Discovery
 Service Quotas
 Shield
 SimpleDB
+Signer
 Step Function (SFN)
 Storage Gateway
 Synthetics
+Timestream Write
 Transfer
 Transit Gateway Network Manager
 VPC

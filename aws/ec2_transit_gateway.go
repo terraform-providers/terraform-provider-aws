@@ -109,8 +109,9 @@ func ec2DescribeTransitGatewayRoute(conn *ec2.EC2, transitGatewayRouteTableID, d
 		if route == nil {
 			continue
 		}
-
-		if aws.StringValue(route.DestinationCidrBlock) == destination {
+		if cidrBlocksEqual(aws.StringValue(route.DestinationCidrBlock), destination) {
+			cidrString := canonicalCidrBlock(aws.StringValue(route.DestinationCidrBlock))
+			route.DestinationCidrBlock = aws.String(cidrString)
 			return route, nil
 		}
 	}

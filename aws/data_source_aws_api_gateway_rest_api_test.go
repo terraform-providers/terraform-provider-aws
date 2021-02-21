@@ -12,7 +12,7 @@ func TestAccDataSourceAwsApiGatewayRestApi_basic(t *testing.T) {
 	dataSourceName := "data.aws_api_gateway_rest_api.test"
 	resourceName := "aws_api_gateway_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +48,7 @@ func TestAccDataSourceAwsApiGatewayRestApi_EndpointConfiguration_VpcEndpointIds(
 		Steps: []resource.TestStep{
 			{
 				Config: composeConfig(
-					testAccAWSAPIGatewayRestAPIConfig_VPCEndpointConfiguration(rName),
+					testAccAWSAPIGatewayRestAPIConfigEndpointConfigurationVpcEndpointIds1(rName),
 					testAccDataSourceAwsApiGatewayRestApiConfigName(),
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -61,7 +61,8 @@ func TestAccDataSourceAwsApiGatewayRestApi_EndpointConfiguration_VpcEndpointIds(
 					resource.TestCheckResourceAttrPair(dataSourceName, "api_key_source", resourceName, "api_key_source"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "minimum_compression_size", resourceName, "minimum_compression_size"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "binary_media_types", resourceName, "binary_media_types"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "endpoint_configuration", resourceName, "endpoint_configuration"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "endpoint_configuration.#", resourceName, "endpoint_configuration.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "endpoint_configuration.0.vpc_endpoint_ids.#", resourceName, "endpoint_configuration.0.vpc_endpoint_ids.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "execution_arn", resourceName, "execution_arn"),
 				),
 			},

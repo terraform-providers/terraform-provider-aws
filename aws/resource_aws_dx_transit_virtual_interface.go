@@ -125,13 +125,13 @@ func resourceAwsDxTransitVirtualInterfaceCreate(d *schema.ResourceData, meta int
 			Vlan:                   aws.Int64(int64(d.Get("vlan").(int))),
 		},
 	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("amazon_address"); ok {
 		req.NewTransitVirtualInterface.AmazonAddress = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("bgp_auth_key"); ok {
 		req.NewTransitVirtualInterface.AuthKey = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("customer_address"); ok {
 		req.NewTransitVirtualInterface.CustomerAddress = aws.String(v.(string))
 	}
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {

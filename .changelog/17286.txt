@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_imagebuilder_image_recipe: Add `gp3` as a valid value for the `volume_type` attribute
+```

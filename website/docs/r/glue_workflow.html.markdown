@@ -3,7 +3,7 @@ subcategory: "Glue"
 layout: "aws"
 page_title: "AWS: aws_glue_workflow"
 description: |-
-  Provides an Glue Workflow resource.
+  Provides a Glue Workflow resource.
 ---
 
 # Resource: aws_glue_workflow
@@ -51,14 +51,17 @@ resource "aws_glue_trigger" "example-inner" {
 
 The following arguments are supported:
 
+* `name` – (Required) The name you assign to this workflow.
 * `default_run_properties` – (Optional) A map of default run properties for this workflow. These properties are passed to all jobs associated to the workflow.
 * `description` – (Optional) Description of the workflow.
-* `name` – (Required) The name you assign to this workflow.
+* `max_concurrent_runs` - (Optional) Prevents exceeding the maximum number of concurrent runs of any of the component jobs. If you leave this parameter blank, there is no limit to the number of concurrent workflow runs.
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of Glue Workflow
 * `id` - Workflow name
 
 ## Import

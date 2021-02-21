@@ -82,6 +82,7 @@ func TestAccAWSRoute53Zone_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -114,6 +115,7 @@ func TestAccAWSRoute53Zone_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -134,6 +136,7 @@ func TestAccAWSRoute53Zone_multiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -165,6 +168,7 @@ func TestAccAWSRoute53Zone_Comment(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -202,6 +206,7 @@ func TestAccAWSRoute53Zone_DelegationSetID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -231,6 +236,7 @@ func TestAccAWSRoute53Zone_ForceDestroy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -256,6 +262,7 @@ func TestAccAWSRoute53Zone_ForceDestroy_TrailingPeriod(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -281,6 +288,7 @@ func TestAccAWSRoute53Zone_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -329,6 +337,7 @@ func TestAccAWSRoute53Zone_VPC_Single(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -361,6 +370,7 @@ func TestAccAWSRoute53Zone_VPC_Multiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -394,6 +404,7 @@ func TestAccAWSRoute53Zone_VPC_Updates(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
@@ -693,7 +704,7 @@ resource "aws_vpc" "test1" {
   cidr_block = "10.1.0.0/16"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
@@ -701,12 +712,12 @@ resource "aws_vpc" "test2" {
   cidr_block = "10.2.0.0/16"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_route53_zone" "test" {
-  name = "%s."
+  name = "%[2]s."
 
   vpc {
     vpc_id = aws_vpc.test1.id
@@ -716,5 +727,5 @@ resource "aws_route53_zone" "test" {
     vpc_id = aws_vpc.test2.id
   }
 }
-`, rName, rName, zoneName)
+`, rName, zoneName)
 }

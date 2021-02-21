@@ -81,7 +81,7 @@ func resourceAwsRedshiftSubnetGroupCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error creating Redshift Subnet Group: %s", err)
 	}
 
-	d.SetId(*createOpts.ClusterSubnetGroupName)
+	d.SetId(aws.StringValue(createOpts.ClusterSubnetGroupName))
 	log.Printf("[INFO] Redshift Subnet Group ID: %s", d.Id())
 	return resourceAwsRedshiftSubnetGroupRead(d, meta)
 }

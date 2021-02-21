@@ -54,4 +54,5 @@ which take the following arguments:
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - A set of all the route table ids found. This data source will fail if none are found.

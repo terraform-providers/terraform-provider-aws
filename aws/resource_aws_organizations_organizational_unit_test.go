@@ -147,7 +147,7 @@ resource "aws_organizations_organization" "test" {}
 
 resource "aws_organizations_organizational_unit" "test" {
   name      = %[1]q
-  parent_id = aws_organizations_organization.test.roots.0.id
+  parent_id = aws_organizations_organization.test.roots[0].id
 }
 `, name)
 }

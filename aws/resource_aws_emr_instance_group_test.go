@@ -33,10 +33,11 @@ func TestAccAWSEMRInstanceGroup_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 		},
 	})
@@ -60,10 +61,11 @@ func TestAccAWSEMRInstanceGroup_BidPrice(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 			{
 				Config: testAccAWSEmrInstanceGroupConfig_BidPrice(rInt),
@@ -74,10 +76,11 @@ func TestAccAWSEMRInstanceGroup_BidPrice(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 			{
 				Config: testAccAWSEmrInstanceGroupConfig_basic(rInt),
@@ -109,10 +112,11 @@ func TestAccAWSEMRInstanceGroup_ConfigurationsJson(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 			{
 				Config: testAccAWSEmrInstanceGroupConfig_ConfigurationsJson(rInt, "partitionName2"),
@@ -122,10 +126,11 @@ func TestAccAWSEMRInstanceGroup_ConfigurationsJson(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 		},
 	})
@@ -149,10 +154,11 @@ func TestAccAWSEMRInstanceGroup_AutoScalingPolicy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 			{
 				Config: testAccAWSEmrInstanceGroupConfig_AutoScalingPolicy(rInt, 2, 3),
@@ -162,17 +168,18 @@ func TestAccAWSEMRInstanceGroup_AutoScalingPolicy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 		},
 	})
 }
 
 // Confirm we can scale down the instance count.
-// Regression test for https://github.com/terraform-providers/terraform-provider-aws/issues/1264
+// Regression test for https://github.com/hashicorp/terraform-provider-aws/issues/1264
 func TestAccAWSEMRInstanceGroup_InstanceCount(t *testing.T) {
 	var ig emr.InstanceGroup
 	rInt := acctest.RandInt()
@@ -188,10 +195,11 @@ func TestAccAWSEMRInstanceGroup_InstanceCount(t *testing.T) {
 				Check:  testAccCheckAWSEmrInstanceGroupExists(resourceName, &ig),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 			{
 				Config: testAccAWSEmrInstanceGroupConfig_zeroCount(rInt),
@@ -201,8 +209,8 @@ func TestAccAWSEMRInstanceGroup_InstanceCount(t *testing.T) {
 	})
 }
 
-// Regression test for https://github.com/terraform-providers/terraform-provider-aws/issues/1355
-func TestAccAWSEMRInstanceGroup_EmrClusterDisappears(t *testing.T) {
+// Regression test for https://github.com/hashicorp/terraform-provider-aws/issues/1355
+func TestAccAWSEMRInstanceGroup_disappears_EmrCluster(t *testing.T) {
 	var cluster emr.Cluster
 	var ig emr.InstanceGroup
 	rInt := acctest.RandInt()
@@ -246,10 +254,11 @@ func TestAccAWSEMRInstanceGroup_EbsConfig_EbsOptimized(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccAWSEMRInstanceGroupResourceImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"status"},
 			},
 			{
 				Config: testAccAWSEmrInstanceGroupConfig_ebsConfig(rInt, false),

@@ -44,7 +44,7 @@ func resourceAwsWafSizeConstraintSetCreate(d *schema.ResourceData, meta interfac
 	}
 	resp := out.(*waf.CreateSizeConstraintSetOutput)
 
-	d.SetId(*resp.SizeConstraintSet.SizeConstraintSetId)
+	d.SetId(aws.StringValue(resp.SizeConstraintSet.SizeConstraintSetId))
 
 	return resourceAwsWafSizeConstraintSetUpdate(d, meta)
 }

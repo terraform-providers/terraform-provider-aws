@@ -3,10 +3,8 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -63,16 +61,9 @@ func dataAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	param := resp.Parameter
-	d.SetId(*param.Name)
 
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "ssm",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("parameter/%s", strings.TrimPrefix(d.Id(), "/")),
-	}
-	d.Set("arn", arn.String())
+	d.SetId(aws.StringValue(param.Name))
+	d.Set("arn", param.ARN)
 	d.Set("name", param.Name)
 	d.Set("type", param.Type)
 	d.Set("value", param.Value)

@@ -13,12 +13,14 @@ if [ -f ~/developer/terrafmt/terrafmt ]; then TERRAFMT_CMD="$HOME/developer/terr
 exit_code=0
 
 # Configure the rules for tflint.
-# The *_invalid_* rules disabled here prevent evaluation of expressions.
 rules=(
     # Syntax checks
     "--only=terraform_deprecated_interpolation"
     "--only=terraform_deprecated_index"
     "--only=terraform_comment_syntax"
+    # Ensure valid instance types
+    "--only=aws_db_instance_invalid_type"
+    "--only=aws_elasticache_cluster_invalid_type"
     # Ensure modern instance types
     "--only=aws_instance_previous_type"
     "--only=aws_db_instance_previous_type"
@@ -27,7 +29,6 @@ rules=(
     "--only=aws_route_specified_multiple_targets"
 )
 while read -r filename ; do
-    echo "$filename"
     block_number=0
 
     while IFS= read -r block ; do

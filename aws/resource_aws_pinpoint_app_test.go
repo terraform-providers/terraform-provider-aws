@@ -288,6 +288,8 @@ resource "aws_lambda_function" "test" {
   publish       = true
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test" {
   name = %[1]q
 
@@ -298,7 +300,7 @@ resource "aws_iam_role" "test" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "lambda.amazonaws.com"
+        "Service": "lambda.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -309,14 +311,15 @@ EOF
 }
 
 data "aws_caller_identity" "aws" {}
+
 data "aws_region" "current" {}
 
 resource "aws_lambda_permission" "test" {
   statement_id  = "AllowExecutionFromPinpoint"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.test.function_name
-  principal     = "pinpoint.${data.aws_region.current.name}.amazonaws.com"
-  source_arn    = "arn:aws:mobiletargeting:${data.aws_region.current.name}:${data.aws_caller_identity.aws.account_id}:/apps/*"
+  principal     = "pinpoint.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
+  source_arn    = "arn:${data.aws_partition.current.partition}:mobiletargeting:${data.aws_region.current.name}:${data.aws_caller_identity.aws.account_id}:/apps/*"
 }
 `, rName)
 }

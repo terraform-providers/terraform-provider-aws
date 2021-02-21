@@ -39,5 +39,5 @@ VPC Endpoint Route Table Associations can be imported using `vpc_endpoint_id` to
 e.g.
 
 ```
-$ terraform import aws_vpc_endpoint_route_table_association.example vpce-aaaaaaaa/rt-bbbbbbbb
+$ terraform import aws_vpc_endpoint_route_table_association.example vpce-aaaaaaaa/rtb-bbbbbbbb
 ```

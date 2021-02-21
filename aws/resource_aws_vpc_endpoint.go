@@ -9,11 +9,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
+)
+
+const (
+	// Maximum amount of time to wait for VPC Endpoint creation
+	Ec2VpcEndpointCreationTimeout = 10 * time.Minute
 )
 
 func resourceAwsVpcEndpoint() *schema.Resource {
@@ -122,14 +129,11 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 			},
 			"tags": tagsSchema(),
 			"vpc_endpoint_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  ec2.VpcEndpointTypeGateway,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.VpcEndpointTypeGateway,
-					ec2.VpcEndpointTypeInterface,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.VpcEndpointTypeGateway,
+				ValidateFunc: validation.StringInSlice(ec2.VpcEndpointType_Values(), false),
 			},
 			"vpc_id": {
 				Type:     schema.TypeString,
@@ -139,7 +143,7 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(Ec2VpcEndpointCreationTimeout),
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
@@ -222,7 +226,7 @@ func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc-endpoint/%s", d.Id()),
@@ -356,20 +360,30 @@ func resourceAwsVpcEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsVpcEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf("[DEBUG] Deleting VPC Endpoint: %s", d.Id())
-	_, err := conn.DeleteVpcEndpoints(&ec2.DeleteVpcEndpointsInput{
+	input := &ec2.DeleteVpcEndpointsInput{
 		VpcEndpointIds: aws.StringSlice([]string{d.Id()}),
-	})
+	}
+
+	output, err := conn.DeleteVpcEndpoints(input)
+
+	if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointIdNotFound) {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidVpcEndpointId.NotFound", "") {
-			log.Printf("[DEBUG] VPC Endpoint %s is already gone", d.Id())
-		} else {
-			return fmt.Errorf("Error deleting VPC Endpoint: %s", err)
+		return fmt.Errorf("error deleting EC2 VPC Endpoint (%s): %w", d.Id(), err)
+	}
+
+	if output != nil && len(output.Unsuccessful) > 0 {
+		err := tfec2.UnsuccessfulItemsError(output.Unsuccessful)
+
+		if err != nil {
+			return fmt.Errorf("error deleting EC2 VPC Endpoint (%s): %w", d.Id(), err)
 		}
 	}
 
 	if err := vpcEndpointWaitUntilDeleted(conn, d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return fmt.Errorf("error waiting for VPC Endpoint (%s) to delete: %s", d.Id(), err)
+		return fmt.Errorf("error waiting for EC2 VPC Endpoint (%s) to delete: %w", d.Id(), err)
 	}
 
 	return nil
@@ -468,11 +482,11 @@ func vpcEndpointWaitUntilAvailable(conn *ec2.EC2, vpceId string, timeout time.Du
 	return err
 }
 
-func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceId string, timeout time.Duration) error {
+func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceID string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"available", "pending", "deleting"},
 		Target:     []string{"deleted"},
-		Refresh:    vpcEndpointStateRefresh(conn, vpceId),
+		Refresh:    vpcEndpointStateRefresh(conn, vpceID),
 		Timeout:    timeout,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
@@ -485,9 +499,9 @@ func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceId string, timeout time.Dura
 
 func setVpcEndpointCreateList(d *schema.ResourceData, key string, c *[]*string) {
 	if v, ok := d.GetOk(key); ok {
-		list := v.(*schema.Set).List()
-		if len(list) > 0 {
-			*c = expandStringList(list)
+		list := v.(*schema.Set)
+		if list.Len() > 0 {
+			*c = expandStringSet(list)
 		}
 	}
 }
@@ -498,12 +512,12 @@ func setVpcEndpointUpdateLists(d *schema.ResourceData, key string, a, r *[]*stri
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		add := expandStringList(ns.Difference(os).List())
+		add := expandStringSet(ns.Difference(os))
 		if len(add) > 0 {
 			*a = add
 		}
 
-		remove := expandStringList(os.Difference(ns).List())
+		remove := expandStringSet(os.Difference(ns))
 		if len(remove) > 0 {
 			*r = remove
 		}

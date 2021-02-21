@@ -19,15 +19,10 @@ func dataSourceAwsNeptuneOrderableDbInstance() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"instance_class": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"engine": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Default:  "neptune",
 			},
 
 			"engine_version": {
@@ -36,10 +31,17 @@ func dataSourceAwsNeptuneOrderableDbInstance() *schema.Resource {
 				Computed: true,
 			},
 
+			"instance_class": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"preferred_instance_classes"},
+			},
+
 			"license_model": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "amazon-license",
 			},
 
 			"max_iops_per_db_instance": {
@@ -78,9 +80,10 @@ func dataSourceAwsNeptuneOrderableDbInstance() *schema.Resource {
 			},
 
 			"preferred_instance_classes": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:          schema.TypeList,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"instance_class"},
 			},
 
 			"read_replica_capable": {

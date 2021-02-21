@@ -5,11 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -18,7 +16,7 @@ func TestAccAWSEc2TrafficMirrorTarget_nlb(t *testing.T) {
 	var v ec2.TrafficMirrorTarget
 	resourceName := "aws_ec2_traffic_mirror_target.test"
 	description := "test nlb target"
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -50,7 +48,7 @@ func TestAccAWSEc2TrafficMirrorTarget_nlb(t *testing.T) {
 func TestAccAWSEc2TrafficMirrorTarget_eni(t *testing.T) {
 	var v ec2.TrafficMirrorTarget
 	resourceName := "aws_ec2_traffic_mirror_target.test"
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 	description := "test eni target"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,7 +81,7 @@ func TestAccAWSEc2TrafficMirrorTarget_tags(t *testing.T) {
 	var v ec2.TrafficMirrorTarget
 	resourceName := "aws_ec2_traffic_mirror_target.test"
 	description := "test nlb target"
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -131,7 +129,7 @@ func TestAccAWSEc2TrafficMirrorTarget_disappears(t *testing.T) {
 	var v ec2.TrafficMirrorTarget
 	resourceName := "aws_ec2_traffic_mirror_target.test"
 	description := "test nlb target"
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -226,7 +224,7 @@ resource "aws_subnet" "sub2" {
 }
 
 func testAccTrafficMirrorTargetConfigNlb(rName, description string) string {
-	return testAccTrafficMirrorTargetConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccTrafficMirrorTargetConfigBase(rName), fmt.Sprintf(`
 resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
@@ -245,29 +243,16 @@ resource "aws_ec2_traffic_mirror_target" "test" {
   description               = %[2]q
   network_load_balancer_arn = aws_lb.lb.arn
 }
-`, rName, description)
+`, rName, description))
 }
 
 func testAccTrafficMirrorTargetConfigEni(rName, description string) string {
-	return testAccTrafficMirrorTargetConfigBase(rName) + fmt.Sprintf(`
-data "aws_ami" "amzn-linux" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-2.0*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  owners = ["137112412989"]
-}
-
+	return composeConfig(
+		testAccTrafficMirrorTargetConfigBase(rName),
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		fmt.Sprintf(`
 resource "aws_instance" "src" {
-  ami           = data.aws_ami.amzn-linux.id
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.sub1.id
 
@@ -280,11 +265,11 @@ resource "aws_ec2_traffic_mirror_target" "test" {
   description          = %[2]q
   network_interface_id = aws_instance.src.primary_network_interface_id
 }
-`, rName, description)
+`, rName, description))
 }
 
 func testAccTrafficMirrorTargetConfigTags1(rName, description, tagKey1, tagValue1 string) string {
-	return testAccTrafficMirrorTargetConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccTrafficMirrorTargetConfigBase(rName), fmt.Sprintf(`
 resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
@@ -307,11 +292,11 @@ resource "aws_ec2_traffic_mirror_target" "test" {
     %[3]q = %[4]q
   }
 }
-`, rName, description, tagKey1, tagValue1)
+`, rName, description, tagKey1, tagValue1))
 }
 
 func testAccTrafficMirrorTargetConfigTags2(rName, description, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
-	return testAccTrafficMirrorTargetConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccTrafficMirrorTargetConfigBase(rName), fmt.Sprintf(`
 resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
@@ -335,7 +320,7 @@ resource "aws_ec2_traffic_mirror_target" "test" {
     %[5]q = %[6]q
   }
 }
-`, rName, description, tagKey1, tagValue1, tagKey2, tagValue2)
+`, rName, description, tagKey1, tagValue1, tagKey2, tagValue2))
 }
 
 func testAccPreCheckAWSEc2TrafficMirrorTarget(t *testing.T) {

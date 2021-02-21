@@ -57,7 +57,7 @@ func resourceAwsWafRegexPatternSetCreate(d *schema.ResourceData, meta interface{
 	}
 	resp := out.(*waf.CreateRegexPatternSetOutput)
 
-	d.SetId(*resp.RegexPatternSet.RegexPatternSetId)
+	d.SetId(aws.StringValue(resp.RegexPatternSet.RegexPatternSetId))
 
 	return resourceAwsWafRegexPatternSetUpdate(d, meta)
 }

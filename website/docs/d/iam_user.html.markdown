@@ -31,3 +31,4 @@ data "aws_iam_user" "example" {
 * `permissions_boundary` - The ARN of the policy that is used to set the permissions boundary for the user.
 * `user_id` - The unique ID assigned by AWS for this user.
 * `user_name` - The name associated to this User
+* `tags` - Map of key-value pairs associated with the user.

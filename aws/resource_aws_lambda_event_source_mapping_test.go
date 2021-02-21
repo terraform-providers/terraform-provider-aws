@@ -62,6 +62,7 @@ func TestAccAWSLambdaEventSourceMapping_kinesis_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "function_arn", functionResourceNameUpdated, "arn"),
 					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "starting_position", "TRIM_HORIZON"),
+					resource.TestCheckResourceAttr(resourceName, "topics.#", "0"),
 				),
 			},
 		},
@@ -209,16 +210,13 @@ func TestAccAWSLambdaEventSourceMapping_sqs_withFunctionName(t *testing.T) {
 	})
 }
 
-func TestAccAWSLambdaEventSourceMapping_kinesis_disappears(t *testing.T) {
+func TestAccAWSLambdaEventSourceMapping_SQSBatchWindow(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 
-	rString := acctest.RandString(8)
-	roleName := fmt.Sprintf("tf_acc_role_lambda_esm_import_%s", rString)
-	policyName := fmt.Sprintf("tf_acc_policy_lambda_esm_import_%s", rString)
-	attName := fmt.Sprintf("tf_acc_att_lambda_esm_import_%s", rString)
-	streamName := fmt.Sprintf("tf_acc_stream_lambda_esm_import_%s", rString)
-	funcName := fmt.Sprintf("tf_acc_lambda_esm_import_%s", rString)
-	uFuncName := fmt.Sprintf("tf_acc_lambda_esm_import_updated_%s", rString)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_lambda_event_source_mapping.test"
+	batchWindow := int64(0)
+	batchWindowUpdate := int64(100)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -226,18 +224,30 @@ func TestAccAWSLambdaEventSourceMapping_kinesis_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckLambdaEventSourceMappingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLambdaEventSourceMappingConfig_kinesis(roleName, policyName, attName, streamName, funcName, uFuncName),
+				Config: testAccAWSLambdaEventSourceMappingConfigSqsWithBatchWindow(rName, batchWindow),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsLambdaEventSourceMappingExists("aws_lambda_event_source_mapping.lambda_event_source_mapping_test", &conf),
-					testAccCheckAWSLambdaEventSourceMappingDisappears(&conf),
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_batching_window_in_seconds", strconv.Itoa(int(batchWindow))),
 				),
-				ExpectNonEmptyPlan: true,
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"enabled", "starting_position"},
+			},
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigSqsWithBatchWindow(rName, batchWindowUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_batching_window_in_seconds", strconv.Itoa(int(batchWindowUpdate))),
+				),
 			},
 		},
 	})
 }
 
-func TestAccAWSLambdaEventSourceMapping_sqsDisappears(t *testing.T) {
+func TestAccAWSLambdaEventSourceMapping_disappears(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 
 	rString := acctest.RandString(8)
@@ -325,7 +335,7 @@ func TestAccAWSLambdaEventSourceMapping_StartingPositionTimestamp(t *testing.T) 
 	})
 }
 
-func TestAccAWSLambdaEventSourceMapping_BatchWindow(t *testing.T) {
+func TestAccAWSLambdaEventSourceMapping_KinesisBatchWindow(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_lambda_event_source_mapping.test"
@@ -612,6 +622,39 @@ func TestAccAWSLambdaEventSourceMapping_KinesisDestinationConfig(t *testing.T) {
 	})
 }
 
+func TestAccAWSLambdaEventSourceMapping_MSK(t *testing.T) {
+	var v lambda.EventSourceMappingConfiguration
+	resourceName := "aws_lambda_event_source_mapping.test"
+	eventSourceResourceName := "aws_msk_cluster.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaEventSourceMappingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigMsk(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &v),
+					testAccCheckAWSLambdaEventSourceMappingAttributes(&v),
+					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
+					testAccCheckResourceAttrRfc3339(resourceName, "last_modified"),
+					resource.TestCheckNoResourceAttr(resourceName, "starting_position"),
+					resource.TestCheckResourceAttr(resourceName, "topics.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "topics.*", "test"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"enabled", "starting_position"},
+			},
+		},
+	})
+}
+
 func testAccCheckAWSLambdaEventSourceMappingIsBeingDisabled(conf *lambda.EventSourceMappingConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
@@ -631,7 +674,7 @@ func testAccCheckAWSLambdaEventSourceMappingIsBeingDisabled(conf *lambda.EventSo
 				}
 
 				return resource.NonRetryableError(
-					fmt.Errorf("Error updating Lambda Event Source Mapping: %s", err))
+					fmt.Errorf("Error updating Lambda Event Source Mapping: %w", err))
 			}
 
 			return nil
@@ -866,7 +909,7 @@ func testAccAWSLambdaEventSourceMappingConfigKinesisBatchWindow(rName string, ba
 	return testAccAWSLambdaEventSourceMappingConfigKinesisBase(rName) + fmt.Sprintf(`
 resource "aws_lambda_event_source_mapping" "test" {
   batch_size                         = 100
-  maximum_batching_window_in_seconds = %v
+  maximum_batching_window_in_seconds = %d
   enabled                            = true
   event_source_arn                   = aws_kinesis_stream.test.arn
   function_name                      = aws_lambda_function.test.arn
@@ -879,7 +922,7 @@ func testAccAWSLambdaEventSourceMappingConfigKinesisParallelizationFactor(rName 
 	return testAccAWSLambdaEventSourceMappingConfigKinesisBase(rName) + fmt.Sprintf(`
 resource "aws_lambda_event_source_mapping" "test" {
   batch_size             = 100
-  parallelization_factor = %v
+  parallelization_factor = %d
   enabled                = true
   event_source_arn       = aws_kinesis_stream.test.arn
   function_name          = aws_lambda_function.test.arn
@@ -892,7 +935,7 @@ func testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRetryAttempts(rName s
 	return testAccAWSLambdaEventSourceMappingConfigKinesisBase(rName) + fmt.Sprintf(`
 resource "aws_lambda_event_source_mapping" "test" {
   batch_size             = 100
-  maximum_retry_attempts = %v
+  maximum_retry_attempts = %d
   enabled                = true
   event_source_arn       = aws_kinesis_stream.test.arn
   function_name          = aws_lambda_function.test.arn
@@ -918,7 +961,7 @@ func testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRecordAgeInSeconds(rN
 	return testAccAWSLambdaEventSourceMappingConfigKinesisBase(rName) + fmt.Sprintf(`
 resource "aws_lambda_event_source_mapping" "test" {
   batch_size                    = 100
-  maximum_record_age_in_seconds = %v
+  maximum_record_age_in_seconds = %d
   enabled                       = true
   event_source_arn              = aws_kinesis_stream.test.arn
   function_name                 = aws_lambda_function.test.arn
@@ -932,6 +975,7 @@ func testAccAWSLambdaEventSourceMappingConfigKinesisDestinationConfig(rName stri
 resource "aws_sqs_queue" "sqs_queue_test" {
   name = "%s"
 }
+
 resource "aws_lambda_event_source_mapping" "test" {
   batch_size        = 100
   enabled           = true
@@ -1449,4 +1493,190 @@ resource "aws_lambda_event_source_mapping" "lambda_event_source_mapping_test" {
   function_name    = "%[5]s"
 }
 `, roleName, policyName, attName, streamName, funcName)
+}
+
+func testAccAWSLambdaEventSourceMappingConfigSQSBase(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test" {
+  role = aws_iam_role.test.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sqs:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_sqs_queue" "test" {
+  name = %[1]q
+}
+
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = %[1]q
+  handler       = "exports.example"
+  role          = aws_iam_role.test.arn
+  runtime       = "nodejs12.x"
+}
+`, rName)
+}
+
+func testAccAWSLambdaEventSourceMappingConfigSqsWithBatchWindow(rName string, batchWindow int64) string {
+	return composeConfig(testAccAWSLambdaEventSourceMappingConfigSQSBase(rName), fmt.Sprintf(`
+resource "aws_lambda_event_source_mapping" "test" {
+  batch_size                         = 10
+  maximum_batching_window_in_seconds = %d
+  event_source_arn                   = aws_sqs_queue.test.arn
+  enabled                            = false
+  function_name                      = aws_lambda_function.test.arn
+}
+`, batchWindow))
+}
+
+func testAccAWSLambdaEventSourceMappingConfigMsk(rName string) string {
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "test" {
+  name = %[1]q
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kafka:DescribeCluster",
+        "kafka:GetBootstrapBrokers",
+        "ec2:CreateNetworkInterface",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "test" {
+  name       = %[1]q
+  roles      = [aws_iam_role.test.name]
+  policy_arn = aws_iam_policy.test.arn
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "192.168.0.0/22"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "test" {
+  count = 2
+
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 2, count.index)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_security_group" "test" {
+  name   = %[1]q
+  vpc_id = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_msk_cluster" "test" {
+  cluster_name           = %[1]q
+  kafka_version          = "2.2.1"
+  number_of_broker_nodes = 2
+
+  broker_node_group_info {
+    client_subnets  = aws_subnet.test[*].id
+    ebs_volume_size = 10
+    instance_type   = "kafka.t3.small"
+    security_groups = [aws_security_group.test.id]
+  }
+}
+
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = %[1]q
+  role          = aws_iam_role.test.arn
+  handler       = "exports.example"
+  runtime       = "nodejs12.x"
+}
+
+resource "aws_lambda_event_source_mapping" "test" {
+  batch_size       = 100
+  event_source_arn = aws_msk_cluster.test.arn
+  enabled          = true
+  function_name    = aws_lambda_function.test.arn
+  topics           = ["test"]
+
+  depends_on = [aws_iam_policy_attachment.test]
+}
+`, rName))
 }

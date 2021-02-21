@@ -1,0 +1,6 @@
+```release-note:enhancement
+resource/aws_spot_instance_request: Add import support
+```
+```release-note:enhancement
+resource/aws_spot_instance_request: Add plan time validation for `spot_type` and `block_duration_minutes`
+```

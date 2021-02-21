@@ -123,22 +123,24 @@ The following arguments are supported:
 * `name` - (Optional) The name of a budget. Unique within accounts.
 * `name_prefix` - (Optional) The prefix of the name of a budget. Unique within accounts.
 * `budget_type` - (Required) Whether this budget tracks monetary cost or usage.
-* `cost_filters` - (Optional) Map of [CostFilters](#CostFilters) key/value pairs to apply to the budget.
-* `cost_types` - (Optional) Object containing [CostTypes](#CostTypes) The types of cost included in a budget, such as tax and subscriptions..
+* `cost_filters` - (Optional) Map of [Cost Filters](#Cost-Filters) key/value pairs to apply to the budget.
+* `cost_types` - (Optional) Object containing [Cost Types](#Cost-Types) The types of cost included in a budget, such as tax and subscriptions..
 * `limit_amount` - (Required) The amount of cost or usage being measured for a budget.
 * `limit_unit` - (Required) The unit of measurement used for the budget forecast, actual spend, or budget threshold, such as dollars or GB. See [Spend](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/data-type-spend.html) documentation.
 * `time_period_end` - (Optional) The end of the time period covered by the budget. There are no restrictions on the end date. Format: `2017-01-01_12:00`.
 * `time_period_start` - (Required) The start of the time period covered by the budget. The start date must come before the end date. Format: `2017-01-01_12:00`.
-* `time_unit` - (Required) The length of time until a budget resets the actual and forecasted spend. Valid values: `MONTHLY`, `QUARTERLY`, `ANNUALLY`.
-* `notification` - (Optional) Object containing [Budget Notifications](#BudgetNotification). Can be used multiple times to define more than one budget notification
+* `time_unit` - (Required) The length of time until a budget resets the actual and forecasted spend. Valid values: `MONTHLY`, `QUARTERLY`, `ANNUALLY`, and `DAILY`.
+* `notification` - (Optional) Object containing [Budget Notifications](#Budget-Notification). Can be used multiple times to define more than one budget notification
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - id of resource.
+* `arn` - The ARN of the budget.
 
-### CostTypes
+
+### Cost Types
 
 Valid keys for `cost_types` parameter.
 
@@ -156,7 +158,7 @@ Valid keys for `cost_types` parameter.
 
 Refer to [AWS CostTypes documentation](https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_budgets_CostTypes.html) for further detail.
 
-### CostFilters
+### Cost Filters
 
 Valid keys for `cost_filters` parameter vary depending on the `budget_type` value.
 
@@ -177,7 +179,7 @@ Valid keys for `cost_filters` parameter vary depending on the `budget_type` valu
 
 Refer to [AWS CostFilter documentation](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/data-type-filter.html) for further detail.
 
-### BudgetNotification
+### Budget Notification
 
 Valid keys for `notification` parameter.
 

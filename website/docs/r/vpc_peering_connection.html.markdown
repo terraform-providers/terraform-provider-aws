@@ -140,7 +140,7 @@ connection.
 ### Timeouts
 
 `aws_vpc_peering_connection` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `1 minute`) Used for creating a peering connection
 - `update` - (Default `1 minute`) Used for peering connection modifications

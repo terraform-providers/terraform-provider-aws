@@ -639,7 +639,7 @@ func expandIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup) (*ec2.IpPermiss
 		groups[raw.(string)] = true
 	}
 
-	if v, ok := d.GetOk("self"); ok && v.(bool) {
+	if _, ok := d.GetOk("self"); ok {
 		if sg.VpcId != nil && *sg.VpcId != "" {
 			groups[*sg.GroupId] = true
 		} else {

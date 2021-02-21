@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -197,14 +195,7 @@ func resourceAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "ssm",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("parameter/%s", strings.TrimPrefix(d.Id(), "/")),
-	}
-	d.Set("arn", arn.String())
+	d.Set("arn", param.ARN)
 
 	return nil
 }

@@ -105,7 +105,7 @@ func resourceAwsOrganizationsOrganizationalUnitCreate(d *schema.ResourceData, me
 
 	// Store the ID
 	ouId := resp.OrganizationalUnit.Id
-	d.SetId(*ouId)
+	d.SetId(aws.StringValue(ouId))
 
 	return resourceAwsOrganizationsOrganizationalUnitRead(d, meta)
 }

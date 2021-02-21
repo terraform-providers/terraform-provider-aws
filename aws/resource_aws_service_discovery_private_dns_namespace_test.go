@@ -164,8 +164,8 @@ func TestAccAWSServiceDiscoveryPrivateDnsNamespace_Description(t *testing.T) {
 }
 
 // This acceptance test ensures we properly send back error messaging. References:
-//  * https://github.com/terraform-providers/terraform-provider-aws/issues/2830
-//  * https://github.com/terraform-providers/terraform-provider-aws/issues/5532
+//  * https://github.com/hashicorp/terraform-provider-aws/issues/2830
+//  * https://github.com/hashicorp/terraform-provider-aws/issues/5532
 func TestAccAWSServiceDiscoveryPrivateDnsNamespace_error_Overlap(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 

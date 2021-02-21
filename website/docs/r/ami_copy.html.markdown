@@ -52,7 +52,7 @@ This resource also exposes the full set of arguments from the [`aws_ami`](ami.ht
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 40 mins) Used when creating the AMI
 * `update` - (Defaults to 40 mins) Used when updating the AMI
@@ -66,5 +66,5 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the created AMI.
 
 This resource also exports a full set of attributes corresponding to the arguments of the
-[`aws_ami`](ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
+[`aws_ami`](/docs/providers/aws/r/ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
 configuration.

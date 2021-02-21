@@ -79,18 +79,18 @@ func dataSourceAwsIAMGroupRead(d *schema.ResourceData, meta interface{}) error {
 		return !lastPage
 	})
 	if err != nil {
-		return fmt.Errorf("Error getting group: %s", err)
+		return fmt.Errorf("Error getting group: %w", err)
 	}
 	if group == nil {
 		return fmt.Errorf("no IAM group found")
 	}
 
-	d.SetId(*group.GroupId)
+	d.SetId(aws.StringValue(group.GroupId))
 	d.Set("arn", group.Arn)
 	d.Set("path", group.Path)
 	d.Set("group_id", group.GroupId)
 	if err := d.Set("users", dataSourceUsersRead(users)); err != nil {
-		return fmt.Errorf("error setting users: %s", err)
+		return fmt.Errorf("error setting users: %w", err)
 	}
 
 	return nil

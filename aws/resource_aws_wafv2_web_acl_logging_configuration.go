@@ -2,10 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 func resourceAwsWafv2WebACLLoggingConfiguration() *schema.Resource {
@@ -55,7 +56,7 @@ func resourceAwsWafv2WebACLLoggingConfigurationPut(d *schema.ResourceData, meta 
 
 	resourceArn := d.Get("resource_arn").(string)
 	config := &wafv2.LoggingConfiguration{
-		LogDestinationConfigs: expandStringList(d.Get("log_destination_configs").(*schema.Set).List()),
+		LogDestinationConfigs: expandStringSet(d.Get("log_destination_configs").(*schema.Set)),
 		ResourceArn:           aws.String(resourceArn),
 	}
 

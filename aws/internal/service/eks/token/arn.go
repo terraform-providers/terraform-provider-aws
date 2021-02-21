@@ -4,6 +4,7 @@ https://github.com/kubernetes-sigs/aws-iam-authenticator/blob/7547c74e660f8d34d9
 
 With the following modifications:
  - Rename package from arn to token for simplication
+ - Ignore errorlint reports
 */
 
 package token
@@ -28,7 +29,7 @@ import (
 func Canonicalize(arn string) (string, error) {
 	parsed, err := awsarn.Parse(arn)
 	if err != nil {
-		return "", fmt.Errorf("arn '%s' is invalid: '%v'", arn, err)
+		return "", fmt.Errorf("arn '%s' is invalid: '%v'", arn, err) // nolint:errorlint
 	}
 
 	if err := checkPartition(parsed.Partition); err != nil {

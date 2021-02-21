@@ -2,19 +2,17 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
-
-	"regexp"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/route53"
 )
 
 func TestCleanRecordName(t *testing.T) {
@@ -112,6 +110,7 @@ func TestAccAWSRoute53Record_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -138,6 +137,7 @@ func TestAccAWSRoute53Record_underscored(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -164,6 +164,7 @@ func TestAccAWSRoute53Record_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -186,6 +187,7 @@ func TestAccAWSRoute53Record_disappears_MultipleRecords(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -212,6 +214,7 @@ func TestAccAWSRoute53Record_basic_fqdn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -253,6 +256,7 @@ func TestAccAWSRoute53Record_basic_trailingPeriodAndZoneID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -279,6 +283,7 @@ func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheckSkipRoute53(t),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"zone_id"}, // just for this test
 		Providers:       testAccProviders,
@@ -306,6 +311,7 @@ func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -314,7 +320,7 @@ func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
 				Config: testAccRoute53RecordConfigSPF,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53RecordExists(resourceName, &record1),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "records.*", "include:notexample.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "records.*", "include:notexample.com"),
 				),
 			},
 			{
@@ -333,6 +339,7 @@ func TestAccAWSRoute53Record_caaSupport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -341,7 +348,7 @@ func TestAccAWSRoute53Record_caaSupport(t *testing.T) {
 				Config: testAccRoute53RecordConfigCAA,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53RecordExists(resourceName, &record1),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "records.*", "0 issue \"exampleca.com;\""),
+					resource.TestCheckTypeSetElemAttr(resourceName, "records.*", "0 issue \"exampleca.com;\""),
 				),
 			},
 			{
@@ -360,6 +367,7 @@ func TestAccAWSRoute53Record_generatesSuffix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -386,6 +394,7 @@ func TestAccAWSRoute53Record_wildcard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -420,6 +429,7 @@ func TestAccAWSRoute53Record_failover(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -447,6 +457,7 @@ func TestAccAWSRoute53Record_weighted_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: "aws_route53_record.www-live",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -475,6 +486,7 @@ func TestAccAWSRoute53Record_weighted_to_simple_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -508,6 +520,7 @@ func TestAccAWSRoute53Record_Alias_Elb(t *testing.T) {
 	config := fmt.Sprintf(testAccRoute53RecordConfigAliasElb, rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -535,6 +548,7 @@ func TestAccAWSRoute53Record_Alias_S3(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -561,6 +575,7 @@ func TestAccAWSRoute53Record_Alias_VpcEndpoint(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -592,6 +607,7 @@ func TestAccAWSRoute53Record_Alias_Uppercase(t *testing.T) {
 	config := fmt.Sprintf(testAccRoute53RecordConfigAliasElbUppercase, rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -618,6 +634,7 @@ func TestAccAWSRoute53Record_weighted_alias(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -655,6 +672,7 @@ func TestAccAWSRoute53Record_geolocation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -683,6 +701,7 @@ func TestAccAWSRoute53Record_HealthCheckId_SetIdentifierChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -715,6 +734,7 @@ func TestAccAWSRoute53Record_HealthCheckId_TypeChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -743,19 +763,20 @@ func TestAccAWSRoute53Record_HealthCheckId_TypeChange(t *testing.T) {
 
 func TestAccAWSRoute53Record_latency_basic(t *testing.T) {
 	var record1, record2, record3 route53.ResourceRecordSet
-	resourceName := "aws_route53_record.us-east-1"
+	resourceName := "aws_route53_record.first_region"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoute53LatencyCNAMERecord,
+				Config: testAccRoute53LatencyCNAMERecord(endpoints.UsEast1RegionID, endpoints.EuWest1RegionID, endpoints.ApNortheast1RegionID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53RecordExists(resourceName, &record1),
-					testAccCheckRoute53RecordExists("aws_route53_record.eu-west-1", &record2),
-					testAccCheckRoute53RecordExists("aws_route53_record.ap-northeast-1", &record3),
+					testAccCheckRoute53RecordExists("aws_route53_record.second_region", &record2),
+					testAccCheckRoute53RecordExists("aws_route53_record.third_region", &record3),
 				),
 			},
 			{
@@ -774,6 +795,7 @@ func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -808,6 +830,7 @@ func TestAccAWSRoute53Record_NameChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -843,6 +866,7 @@ func TestAccAWSRoute53Record_SetIdentifierChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -877,6 +901,7 @@ func TestAccAWSRoute53Record_AliasChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -911,6 +936,7 @@ func TestAccAWSRoute53Record_empty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -932,6 +958,7 @@ func TestAccAWSRoute53Record_longTXTrecord(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipRoute53(t),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53RecordDestroy,
@@ -958,6 +985,7 @@ func TestAccAWSRoute53Record_multivalue_answer_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
@@ -978,19 +1006,30 @@ func TestAccAWSRoute53Record_multivalue_answer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSRoute53Record_doNotAllowOverwrite(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccAWSRoute53RecordOverwriteExpectErrorCheck(t),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoute53RecordConfig_allowOverwrite(false),
+			},
+		},
+	})
+}
+
 func TestAccAWSRoute53Record_allowOverwrite(t *testing.T) {
 	var record1 route53.ResourceRecordSet
 	resourceName := "aws_route53_record.overwriting"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config:      testAccRoute53RecordConfig_allowOverwrite(false),
-				ExpectError: regexp.MustCompile(`Tried to create resource record set \[name='www.notexample.com.', type='A'] but it already exists`),
-			},
 			{
 				Config: testAccRoute53RecordConfig_allowOverwrite(true),
 				Check:  resource.ComposeTestCheckFunc(testAccCheckRoute53RecordExists("aws_route53_record.overwriting", &record1)),
@@ -1003,6 +1042,32 @@ func TestAccAWSRoute53Record_allowOverwrite(t *testing.T) {
 			},
 		},
 	})
+}
+
+// testAccErrorCheckSkipRoute53 skips Route53 tests that have error messages indicating unsupported features
+func testAccErrorCheckSkipRoute53(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"Operations related to PublicDNS",
+		"Regional control plane current does not support",
+	)
+}
+
+func testAccAWSRoute53RecordOverwriteExpectErrorCheck(t *testing.T) resource.ErrorCheckFunc {
+	return func(err error) error {
+		f := testAccErrorCheckSkipRoute53(t)
+		err = f(err)
+
+		if err == nil {
+			t.Fatalf("Expected an error but got none")
+		}
+
+		re := regexp.MustCompile(`Tried to create resource record set \[name='www.notexample.com.', type='A'] but it already exists`)
+		if !re.MatchString(err.Error()) {
+			t.Fatalf("Expected an error with pattern, no match on: %s", err)
+		}
+
+		return nil
+	}
 }
 
 func testAccCheckRoute53RecordDestroy(s *terraform.State) error {
@@ -1181,7 +1246,7 @@ resource "aws_route53_record" "default" {
 resource "aws_route53_record" "overwriting" {
   depends_on = [aws_route53_record.default]
 
-  allow_overwrite = %v
+  allow_overwrite = %[1]t
   zone_id         = aws_route53_zone.main.zone_id
   name            = "www.notexample.com"
   type            = "A"
@@ -1531,53 +1596,55 @@ resource "aws_route53_record" "denmark" {
 }
 `
 
-const testAccRoute53LatencyCNAMERecord = `
+func testAccRoute53LatencyCNAMERecord(firstRegion, secondRegion, thirdRegion string) string {
+	return fmt.Sprintf(`
 resource "aws_route53_zone" "main" {
   name = "notexample.com"
 }
 
-resource "aws_route53_record" "us-east-1" {
+resource "aws_route53_record" "first_region" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
 
   latency_routing_policy {
-    region = "us-east-1"
+    region = %[1]q
   }
 
-  set_identifier = "us-east-1"
+  set_identifier = %[1]q
   records        = ["dev.notexample.com"]
 }
 
-resource "aws_route53_record" "eu-west-1" {
+resource "aws_route53_record" "second_region" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
 
   latency_routing_policy {
-    region = "eu-west-1"
+    region = %[2]q
   }
 
-  set_identifier = "eu-west-1"
+  set_identifier = %[2]q
   records        = ["dev.notexample.com"]
 }
 
-resource "aws_route53_record" "ap-northeast-1" {
+resource "aws_route53_record" "third_region" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
 
   latency_routing_policy {
-    region = "ap-northeast-1"
+    region = %[3]q
   }
 
-  set_identifier = "ap-northeast-1"
+  set_identifier = %[3]q
   records        = ["dev.notexample.com"]
 }
-`
+`, firstRegion, secondRegion, thirdRegion)
+}
 
 const testAccRoute53RecordConfigAliasElb = `
 data "aws_availability_zones" "available" {
@@ -1664,7 +1731,7 @@ resource "aws_route53_zone" "main" {
 }
 
 resource "aws_s3_bucket" "website" {
-  bucket = %q
+  bucket = %[1]q
   acl    = "public-read"
 
   website {

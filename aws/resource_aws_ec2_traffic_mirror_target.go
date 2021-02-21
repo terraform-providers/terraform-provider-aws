@@ -135,7 +135,7 @@ func resourceAwsEc2TrafficMirrorTargetRead(d *schema.ResourceData, meta interfac
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("traffic-mirror-target/%s", d.Id()),

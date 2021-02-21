@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -59,22 +58,6 @@ func TestAccAWSIoTPolicy_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsIotPolicy(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAWSIoTPolicy_invalidJson(t *testing.T) {
-	rName := acctest.RandomWithPrefix("tf-acc-test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSIoTPolicyDestroy_basic,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAWSIoTPolicyInvalidJsonConfig(rName),
-				ExpectError: regexp.MustCompile("MalformedPolicyException.*"),
 			},
 		},
 	})
@@ -140,32 +123,6 @@ func testAccCheckAWSIoTPolicyExists(n string, v *iot.GetPolicyOutput) resource.T
 }
 
 func testAccAWSIoTPolicyConfigInitialState(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_iot_policy" "test" {
-  name = "%s"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "iot:*"
-      ],
-      "Resource": [
-        "*"
-      ]
-    }
-  ]
-}
-EOF
-
-}
-`, rName)
-}
-
-func testAccAWSIoTPolicyInvalidJsonConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_policy" "test" {
   name = "%s"

@@ -49,6 +49,7 @@ func resourceAwsKmsCiphertext() *schema.Resource {
 func resourceAwsKmsCiphertextCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kmsconn
 
+	//lintignore:R017 // Allow legacy unstable ID usage in managed resource
 	d.SetId(time.Now().UTC().String())
 
 	req := &kms.EncryptInput{

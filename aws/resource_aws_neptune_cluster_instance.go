@@ -490,6 +490,7 @@ var resourceAwsNeptuneClusterInstanceCreateUpdatePendingStates = []string{
 	"starting",
 	"upgrading",
 	"configuring-log-exports",
+	"configuring-enhanced-monitoring",
 }
 
 var resourceAwsNeptuneClusterInstanceDeletePendingStates = []string{

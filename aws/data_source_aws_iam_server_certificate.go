@@ -119,7 +119,7 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing certificates: %s", err)
+		return fmt.Errorf("Error describing certificates: %w", err)
 	}
 
 	if len(metadatas) == 0 {
@@ -134,7 +134,7 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 	}
 
 	metadata := metadatas[0]
-	d.SetId(*metadata.ServerCertificateId)
+	d.SetId(aws.StringValue(metadata.ServerCertificateId))
 	d.Set("arn", metadata.Arn)
 	d.Set("path", metadata.Path)
 	d.Set("name", metadata.ServerCertificateName)

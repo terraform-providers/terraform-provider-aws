@@ -2,15 +2,13 @@ package aws
 
 import (
 	"fmt"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/qldb"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"log"
 	"regexp"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/qldb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsQLDBLedger() *schema.Resource {
@@ -52,7 +50,7 @@ func dataSourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := conn.DescribeLedger(req)
 
 	if err != nil {
-		return fmt.Errorf("Error describing ledger: %s", err)
+		return fmt.Errorf("Error describing ledger: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.Name))

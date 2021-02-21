@@ -17,10 +17,9 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_sameAccount(t
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,10 +45,10 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_differentAcco
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
+			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,10 +72,9 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_sameAccount(t *te
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -102,10 +100,10 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_differentAccount(
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
+			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,10 +127,9 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Tags(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
 			{

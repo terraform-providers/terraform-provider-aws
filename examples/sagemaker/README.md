@@ -4,7 +4,7 @@ This example takes the [example model provided by AWS](https://github.com/awslab
 to show how to deploy your own machine learning algorithm into a SageMaker container using Terraform.
 
 
-### Wrap model in Docker container and upload to [ECS](https://aws.amazon.com/ecs/)
+### Wrap model in Docker container and upload to [ECR](https://aws.amazon.com/ecr/)
 
 Get the SageMaker example model from AWS:
 

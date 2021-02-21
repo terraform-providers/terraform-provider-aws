@@ -82,7 +82,7 @@ func resourceAwsServiceCatalogPortfolioCreate(d *schema.ResourceData, meta inter
 	if err != nil {
 		return fmt.Errorf("Creating Service Catalog Portfolio failed: %s", err.Error())
 	}
-	d.SetId(*resp.PortfolioDetail.Id)
+	d.SetId(aws.StringValue(resp.PortfolioDetail.Id))
 
 	return resourceAwsServiceCatalogPortfolioRead(d, meta)
 }

@@ -81,7 +81,7 @@ func resourceAwsGameliftGameSessionQueueCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error creating Gamelift Game Session Queue: %s", err)
 	}
 
-	d.SetId(*out.GameSessionQueue.Name)
+	d.SetId(aws.StringValue(out.GameSessionQueue.Name))
 
 	return resourceAwsGameliftGameSessionQueueRead(d, meta)
 }

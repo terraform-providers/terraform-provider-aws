@@ -78,13 +78,13 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Reading CloudFormation Stack: %s", input)
 	out, err := conn.DescribeStacks(input)
 	if err != nil {
-		return fmt.Errorf("Failed describing CloudFormation stack (%s): %s", name, err)
+		return fmt.Errorf("Failed describing CloudFormation stack (%s): %w", name, err)
 	}
 	if l := len(out.Stacks); l != 1 {
 		return fmt.Errorf("Expected 1 CloudFormation stack (%s), found %d", name, l)
 	}
 	stack := out.Stacks[0]
-	d.SetId(*stack.StackId)
+	d.SetId(aws.StringValue(stack.StackId))
 
 	d.Set("description", stack.Description)
 	d.Set("disable_rollback", stack.DisableRollback)
@@ -92,17 +92,17 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	d.Set("iam_role_arn", stack.RoleARN)
 
 	if len(stack.NotificationARNs) > 0 {
-		d.Set("notification_arns", schema.NewSet(schema.HashString, flattenStringList(stack.NotificationARNs)))
+		d.Set("notification_arns", flattenStringSet(stack.NotificationARNs))
 	}
 
 	d.Set("parameters", flattenAllCloudFormationParameters(stack.Parameters))
 	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 	d.Set("outputs", flattenCloudFormationOutputs(stack.Outputs))
 
 	if len(stack.Capabilities) > 0 {
-		d.Set("capabilities", schema.NewSet(schema.HashString, flattenStringList(stack.Capabilities)))
+		d.Set("capabilities", flattenStringSet(stack.Capabilities))
 	}
 
 	tInput := cloudformation.GetTemplateInput{
@@ -115,7 +115,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 
 	template, err := normalizeJsonOrYamlString(*tOut.TemplateBody)
 	if err != nil {
-		return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
+		return fmt.Errorf("template body contains an invalid JSON or YAML: %w", err)
 	}
 	d.Set("template_body", template)
 

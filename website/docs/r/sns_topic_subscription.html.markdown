@@ -81,7 +81,6 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       "SNS:Subscribe",
       "SNS:SetTopicAttributes",
       "SNS:RemovePermission",
-      "SNS:Receive",
       "SNS:Publish",
       "SNS:ListSubscriptionsByTopic",
       "SNS:GetTopicAttributes",
@@ -239,6 +238,7 @@ The following arguments are supported:
 * `raw_message_delivery` - (Optional) Boolean indicating whether or not to enable raw message delivery (the original message is directly passed, not wrapped in JSON with the original message in the message property) (default is false).
 * `filter_policy` - (Optional) JSON String with the filter policy that will be used in the subscription to filter messages seen by the target resource. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/message-filtering.html) for more details.
 * `delivery_policy` - (Optional) JSON String with the delivery policy (retries, backoff, etc.) that will be used in the subscription - this only applies to HTTP/S subscriptions. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/DeliveryPolicies.html) for more details.
+* `redrive_policy` - (Optional) JSON String with the redrive policy that will be used in the subscription. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/sns-dead-letter-queues.html#how-messages-moved-into-dead-letter-queue) for more details.
 
 ### Protocols supported
 

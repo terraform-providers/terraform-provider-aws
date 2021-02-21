@@ -364,13 +364,9 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"log_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								elasticsearch.LogTypeIndexSlowLogs,
-								elasticsearch.LogTypeSearchSlowLogs,
-								elasticsearch.LogTypeEsApplicationLogs,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(elasticsearch.LogType_Values(), false),
 						},
 						"cloudwatch_log_group_arn": {
 							Type:         schema.TypeString,

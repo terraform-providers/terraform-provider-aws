@@ -12,12 +12,18 @@ Retrieve information about an AWS WorkSpaces bundle.
 
 ## Example Usage
 
+### By ID
+
 ```hcl
-data "aws_workspaces_bundle" "by_id" {
+data "aws_workspaces_bundle" "example" {
   bundle_id = "wsb-b0s22j3d7"
 }
+```
 
-data "aws_workspaces_bundle" "by_owner_and_name" {
+### By Owner & Name
+
+```hcl
+data "aws_workspaces_bundle" "example" {
   owner = "AMAZON"
   name  = "Value with Windows 10 and Office 2016"
 }

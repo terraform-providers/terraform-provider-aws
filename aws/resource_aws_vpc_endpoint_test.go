@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -21,64 +21,70 @@ func init() {
 	resource.AddTestSweepers("aws_vpc_endpoint", &resource.Sweeper{
 		Name: "aws_vpc_endpoint",
 		F:    testSweepEc2VpcEndpoints,
+		Dependencies: []string{
+			"aws_route_table",
+		},
 	})
 }
 
 func testSweepEc2VpcEndpoints(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
+
 	conn := client.(*AWSClient).ec2conn
+
+	var sweeperErrs *multierror.Error
+
 	input := &ec2.DescribeVpcEndpointsInput{}
 
-	for {
-		output, err := conn.DescribeVpcEndpoints(input)
-
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping EC2 VPC Endpoint sweep for %s: %s", region, err)
-			return nil
+	err = conn.DescribeVpcEndpointsPages(input, func(page *ec2.DescribeVpcEndpointsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if err != nil {
-			return fmt.Errorf("error retrieving EC2 VPC Endpoints: %s", err)
-		}
+		for _, vpcEndpoint := range page.VpcEndpoints {
+			if vpcEndpoint == nil {
+				continue
+			}
 
-		for _, vpcEndpoint := range output.VpcEndpoints {
 			if aws.StringValue(vpcEndpoint.State) != "available" {
 				continue
 			}
 
 			id := aws.StringValue(vpcEndpoint.VpcEndpointId)
 
-			input := &ec2.DeleteVpcEndpointsInput{
-				VpcEndpointIds: []*string{aws.String(id)},
-			}
-
 			log.Printf("[INFO] Deleting EC2 VPC Endpoint: %s", id)
-			_, err := conn.DeleteVpcEndpoints(input)
 
-			if isAWSErr(err, "InvalidVpcEndpointId.NotFound", "") {
-				continue
-			}
+			r := resourceAwsVpcEndpoint()
+			d := r.Data(nil)
+			d.SetId(id)
+
+			err := r.Delete(d, client)
 
 			if err != nil {
-				return fmt.Errorf("error deleting EC2 VPC Endpoint (%s): %s", id, err)
-			}
-
-			if err := vpcEndpointWaitUntilDeleted(conn, id, 10*time.Minute); err != nil {
-				return fmt.Errorf("error waiting for VPC Endpoint (%s) to delete: %s", id, err)
+				sweeperErr := fmt.Errorf("error deleting EC2 VPC Endpoint (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
 			}
 		}
 
-		if aws.StringValue(output.NextToken) == "" {
-			break
-		}
+		return !lastPage
+	})
 
-		input.NextToken = output.NextToken
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping EC2 VPC Endpoint sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
 	}
 
-	return nil
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing EC2 VPC Endpoints: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSVpcEndpoint_gatewayBasic(t *testing.T) {
@@ -184,15 +190,14 @@ func TestAccAWSVpcEndpoint_gatewayPolicy(t *testing.T) {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AmazonLinux2AMIRepositoryAccess",
+      "Sid": "ReadOnly",
       "Principal": "*",
       "Action": [
-        "s3:GetObject"
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTables"
       ],
       "Effect": "Allow",
-      "Resource": [
-        "arn:aws:s3:::amazonlinux.*.amazonaws.com/*"
-      ]
+      "Resource": "*"
     }
   ]
 }
@@ -505,6 +510,33 @@ func TestAccAWSVpcEndpoint_tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSVpcEndpoint_VpcEndpointType_GatewayLoadBalancer(t *testing.T) {
+	var endpoint ec2.VpcEndpoint
+	vpcEndpointServiceResourceName := "aws_vpc_endpoint_service.test"
+	resourceName := "aws_vpc_endpoint.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckElbv2GatewayLoadBalancer(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVpcEndpointConfigVpcEndpointTypeGatewayLoadBalancer(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcEndpointExists(resourceName, &endpoint),
+					resource.TestCheckResourceAttrPair(resourceName, "vpc_endpoint_type", vpcEndpointServiceResourceName, "service_type"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckVpcEndpointDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
@@ -774,7 +806,7 @@ resource "aws_vpc_endpoint" "test" {
 func testAccVpcEndpointConfigGatewayPolicy(rName, policy string) string {
 	return fmt.Sprintf(`
 data "aws_vpc_endpoint_service" "test" {
-  service = "s3"
+  service = "dynamodb"
 }
 
 resource "aws_vpc" "test" {
@@ -786,7 +818,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_vpc_endpoint" "test" {
-  policy       = <<POLICY%[2]sPOLICY
+  policy       = <<POLICY
+%[2]s
+POLICY
   service_name = data.aws_vpc_endpoint_service.test.service_name
   vpc_id       = aws_vpc.test.id
 
@@ -1118,4 +1152,52 @@ resource "aws_vpc_endpoint" "test" {
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
+}
+
+func testAccVpcEndpointConfigVpcEndpointTypeGatewayLoadBalancer(rName string) string {
+	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.10.10.0/25"
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 2, 0)
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_lb" "test" {
+  load_balancer_type = "gateway"
+  name               = %[1]q
+
+  subnet_mapping {
+    subnet_id = aws_subnet.test.id
+  }
+}
+
+resource "aws_vpc_endpoint_service" "test" {
+  acceptance_required        = false
+  allowed_principals         = [data.aws_caller_identity.current.arn]
+  gateway_load_balancer_arns = [aws_lb.test.arn]
+}
+
+resource "aws_vpc_endpoint" "test" {
+  service_name      = aws_vpc_endpoint_service.test.service_name
+  subnet_ids        = [aws_subnet.test.id]
+  vpc_endpoint_type = aws_vpc_endpoint_service.test.service_type
+  vpc_id            = aws_vpc.test.id
+}
+`, rName))
 }

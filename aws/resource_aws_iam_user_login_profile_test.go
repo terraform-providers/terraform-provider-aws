@@ -3,10 +3,9 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
-
-	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -253,7 +252,7 @@ func testDecryptPasswordAndTest(nProfile, nAccessKey, key string) resource.TestC
 		}
 
 		iamAsCreatedUserSession := session.New(&aws.Config{
-			Region:      aws.String("us-west-2"),
+			Region:      aws.String(testAccGetRegion()),
 			Credentials: credentials.NewStaticCredentials(accessKeyId, secretAccessKey, ""),
 		})
 		_, err = iamAsCreatedUserSession.Config.Credentials.Get()
@@ -323,6 +322,8 @@ resource "aws_iam_user" "user" {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "user" {
   statement {
     effect    = "Allow"
@@ -333,7 +334,7 @@ data "aws_iam_policy_document" "user" {
   statement {
     effect    = "Allow"
     actions   = ["iam:ChangePassword"]
-    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/&{aws:username}"]
+    resources = ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:user/&{aws:username}"]
   }
 }
 

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -43,12 +42,10 @@ func dataSourceAwsKmsSecrets() *schema.Resource {
 				},
 			},
 			"plaintext": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:      schema.TypeString,
-					Sensitive: true,
-				},
+				Type:      schema.TypeMap,
+				Computed:  true,
+				Sensitive: true,
+				Elem:      &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -66,7 +63,7 @@ func dataSourceAwsKmsSecretsRead(d *schema.ResourceData, meta interface{}) error
 		// base64 decode the payload
 		payload, err := base64.StdEncoding.DecodeString(secret["payload"].(string))
 		if err != nil {
-			return fmt.Errorf("Invalid base64 value for secret '%s': %v", secret["name"].(string), err)
+			return fmt.Errorf("Invalid base64 value for secret '%s': %w", secret["name"].(string), err)
 		}
 
 		// build the kms decrypt params
@@ -89,7 +86,7 @@ func dataSourceAwsKmsSecretsRead(d *schema.ResourceData, meta interface{}) error
 		// decrypt
 		resp, err := conn.Decrypt(params)
 		if err != nil {
-			return fmt.Errorf("Failed to decrypt '%s': %s", secret["name"].(string), err)
+			return fmt.Errorf("Failed to decrypt '%s': %w", secret["name"].(string), err)
 		}
 
 		// Set the secret via the name
@@ -98,10 +95,10 @@ func dataSourceAwsKmsSecretsRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if err := d.Set("plaintext", plaintext); err != nil {
-		return fmt.Errorf("error setting plaintext: %s", err)
+		return fmt.Errorf("error setting plaintext: %w", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 
 	return nil
 }

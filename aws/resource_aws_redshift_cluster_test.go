@@ -255,7 +255,7 @@ func TestAccAWSRedshiftCluster_snapshotCopy(t *testing.T) {
 			testAccPreCheck(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSRedshiftClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -765,10 +765,6 @@ resource "aws_redshift_cluster" "default" {
   automated_snapshot_retention_period = 0
   allow_version_upgrade               = false
   skip_final_snapshot                 = true
-
-  timeouts {
-    create = "30m"
-  }
 }
 `, rInt))
 }

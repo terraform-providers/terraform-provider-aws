@@ -21,12 +21,12 @@ func TestALBTargetGroupCloudwatchSuffixFromARN(t *testing.T) {
 	}{
 		{
 			name:   "valid suffix",
-			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup/my-targets/73e2d6bc24d8a067`),
+			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup/my-targets/73e2d6bc24d8a067`), //lintignore:AWSAT003,AWSAT005
 			suffix: `targetgroup/my-targets/73e2d6bc24d8a067`,
 		},
 		{
 			name:   "no suffix",
-			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup`),
+			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup`), //lintignore:AWSAT003,AWSAT005
 			suffix: ``,
 		},
 		{
@@ -46,7 +46,7 @@ func TestALBTargetGroupCloudwatchSuffixFromARN(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_basic(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -128,8 +128,8 @@ func TestAccAWSALBTargetGroup_generatedName(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupNameBefore := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
-	targetGroupNameAfter := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(4, acctest.CharSetAlphaNum))
+	targetGroupNameBefore := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	targetGroupNameAfter := fmt.Sprintf("test-target-group-%s", acctest.RandString(4))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -157,7 +157,7 @@ func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -185,7 +185,7 @@ func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -213,7 +213,7 @@ func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -239,7 +239,7 @@ func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -270,7 +270,7 @@ func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -332,7 +332,7 @@ func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -417,7 +417,7 @@ func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -445,7 +445,7 @@ func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -628,7 +628,7 @@ func TestAccAWSALBTargetGroup_lambdaMultiValueHeadersEnabled(t *testing.T) {
 }
 
 func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

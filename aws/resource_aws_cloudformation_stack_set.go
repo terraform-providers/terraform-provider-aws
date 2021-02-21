@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudformation/waiter"
 )
 
 func resourceAwsCloudFormationStackSet() *schema.Resource {
@@ -26,7 +26,7 @@ func resourceAwsCloudFormationStackSet() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(waiter.StackSetUpdatedDefaultTimeout),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -240,7 +240,7 @@ func resourceAwsCloudFormationStackSetUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error updating CloudFormation StackSet (%s): %s", d.Id(), err)
 	}
 
-	if err := waitForCloudFormationStackSetOperation(conn, d.Id(), aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
+	if err := waiter.StackSetOperationSucceeded(conn, d.Id(), aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
 		return fmt.Errorf("error waiting for CloudFormation StackSet (%s) update: %s", d.Id(), err)
 	}
 

@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_fms_policy: Allow use of `resource_type` or `resource_type_list` attributes
+```

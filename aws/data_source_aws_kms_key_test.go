@@ -12,7 +12,7 @@ import (
 func TestAccDataSourceAwsKmsKey_basic(t *testing.T) {
 	resourceName := "aws_kms_key.test"
 	datasourceName := "data.aws_kms_key.test"
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

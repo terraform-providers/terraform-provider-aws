@@ -16,6 +16,7 @@ func dataSourceAwsGuarddutyDetector() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"status": {
 				Type:     schema.TypeString,
@@ -43,7 +44,7 @@ func dataSourceAwsGuarddutyDetectorRead(d *schema.ResourceData, meta interface{}
 
 		resp, err := conn.ListDetectors(input)
 		if err != nil {
-			return fmt.Errorf("error listing GuardDuty Detectors: %s ,", err)
+			return fmt.Errorf("error listing GuardDuty Detectors: %w", err)
 		}
 
 		if resp == nil || len(resp.DetectorIds) == 0 {

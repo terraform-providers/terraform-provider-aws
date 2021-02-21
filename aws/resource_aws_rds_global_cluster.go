@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -99,6 +100,7 @@ func resourceAwsRDSGlobalCluster() *schema.Resource {
 			"storage_encrypted": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 		},
@@ -249,7 +251,13 @@ func resourceAwsRDSGlobalClusterDelete(d *schema.ResourceData, meta interface{})
 				GlobalClusterIdentifier: aws.String(d.Id()),
 			}
 
-			if _, err := conn.RemoveFromGlobalCluster(input); err != nil {
+			_, err := conn.RemoveFromGlobalCluster(input)
+
+			if tfawserr.ErrMessageContains(err, "InvalidParameterValue", "is not found in global cluster") {
+				continue
+			}
+
+			if err != nil {
 				return fmt.Errorf("error removing RDS DB Cluster (%s) from Global Cluster (%s): %w", dbClusterArn, d.Id(), err)
 			}
 

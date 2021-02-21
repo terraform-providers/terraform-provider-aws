@@ -9,6 +9,7 @@ With the following modifications:
  - Use *sts.STS instead of stsiface.STSAPI in Generator interface and GetWithSTS implementation
  - Hard copy and use local Canonicalize implementation instead of "sigs.k8s.io/aws-iam-authenticator/pkg/arn"
  - Fix staticcheck reports
+ - Ignore errorlint reports
 */
 
 /*
@@ -308,7 +309,7 @@ func (v tokenVerifier) Verify(token string) (*Identity, error) {
 	response, err := v.client.Do(req)
 	if err != nil {
 		// special case to avoid printing the full URL if possible
-		if urlErr, ok := err.(*url.Error); ok {
+		if urlErr, ok := err.(*url.Error); ok { // nolint:errorlint
 			return nil, NewSTSError(fmt.Sprintf("error during GET: %v", urlErr.Err))
 		}
 		return nil, NewSTSError(fmt.Sprintf("error during GET: %v", err))

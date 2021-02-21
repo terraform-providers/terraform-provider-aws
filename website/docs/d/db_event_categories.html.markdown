@@ -43,3 +43,4 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `event_categories` - A list of the event categories.
+* `id` - Region of the event categories.

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -123,7 +122,7 @@ func TestAccAWSWafRegionalRateBasedRule_basic(t *testing.T) {
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -151,7 +150,7 @@ func TestAccAWSWafRegionalRateBasedRule_tags(t *testing.T) {
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -196,7 +195,7 @@ func TestAccAWSWafRegionalRateBasedRule_changeNameForceNew(t *testing.T) {
 	wafRuleNewName := fmt.Sprintf("wafrulenew%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -233,7 +232,7 @@ func TestAccAWSWafRegionalRateBasedRule_disappears(t *testing.T) {
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -258,7 +257,7 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -269,7 +268,7 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "false",
 						"type":    "IPMatch",
 					}),
@@ -282,7 +281,7 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "true",
 						"type":    "ByteMatch",
 					}),
@@ -305,7 +304,7 @@ func TestAccAWSWafRegionalRateBasedRule_changeRateLimit(t *testing.T) {
 	rateLimitAfter := "2001"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -340,7 +339,7 @@ func TestAccAWSWafRegionalRateBasedRule_noPredicates(t *testing.T) {
 	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{

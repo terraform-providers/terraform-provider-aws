@@ -41,6 +41,8 @@ AWS account and region the Stream is created in.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The unique Stream id
 * `arn` - The Amazon Resource Name (ARN) specifying the Stream (same as `id`)
 * `creation_time` - A time stamp that indicates when the stream was created.
@@ -48,7 +50,7 @@ AWS account and region the Stream is created in.
 
 ## Timeouts
 
-`aws_kinesis_video_stream` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_kinesis_video_stream` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `5 minutes`)  Used for Creating a Kinesis Stream
 - `update` - (Default `120 minutes`) Used for Updating a Kinesis Stream

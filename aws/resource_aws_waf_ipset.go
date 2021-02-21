@@ -74,7 +74,7 @@ func resourceAwsWafIPSetCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resp := out.(*waf.CreateIPSetOutput)
-	d.SetId(*resp.IPSet.IPSetId)
+	d.SetId(aws.StringValue(resp.IPSet.IPSetId))
 
 	if v, ok := d.GetOk("ip_set_descriptors"); ok && v.(*schema.Set).Len() > 0 {
 

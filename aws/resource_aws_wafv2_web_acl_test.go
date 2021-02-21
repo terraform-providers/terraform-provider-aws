@@ -2,17 +2,77 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/wafv2/lister"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_wafv2_web_acl", &resource.Sweeper{
+		Name: "aws_wafv2_web_acl",
+		F:    testSweepWafv2WebAcls,
+	})
+}
+
+func testSweepWafv2WebAcls(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).wafv2conn
+
+	var sweeperErrs *multierror.Error
+
+	input := &wafv2.ListWebACLsInput{
+		Scope: aws.String(wafv2.ScopeRegional),
+	}
+
+	err = lister.ListWebACLsPages(conn, input, func(page *wafv2.ListWebACLsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, webAcl := range page.WebACLs {
+			id := aws.StringValue(webAcl.Id)
+
+			r := resourceAwsWafv2WebACL()
+			d := r.Data(nil)
+			d.SetId(id)
+			d.Set("lock_token", webAcl.LockToken)
+			d.Set("name", webAcl.Name)
+			d.Set("scope", input.Scope)
+			err := r.Delete(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting WAFv2 Web ACL (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping WAFv2 Web ACL sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAFv2 Web ACLs: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAwsWafv2WebACL_basic(t *testing.T) {
 	var v wafv2.WebACL
@@ -20,7 +80,7 @@ func TestAccAwsWafv2WebACL_basic(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +121,7 @@ func TestAccAwsWafv2WebACL_updateRule(t *testing.T) {
 	ruleName2 := fmt.Sprintf("%s-2", webACLName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -82,7 +142,7 @@ func TestAccAwsWafv2WebACL_updateRule(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.sampled_requests_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName1,
 						"priority":            "10",
 						"action.#":            "1",
@@ -101,11 +161,11 @@ func TestAccAwsWafv2WebACL_updateRule(t *testing.T) {
 						"statement.0.size_constraint_statement.0.size":                            "50",
 						"statement.0.size_constraint_statement.0.text_transformation.#":           "2",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "2",
 						"type":     "CMD_LINE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "5",
 						"type":     "NONE",
 					}),
@@ -129,7 +189,7 @@ func TestAccAwsWafv2WebACL_updateRule(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.sampled_requests_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName1,
 						"priority":            "10",
 						"action.#":            "1",
@@ -148,15 +208,15 @@ func TestAccAwsWafv2WebACL_updateRule(t *testing.T) {
 						"statement.0.size_constraint_statement.0.size":                            "50",
 						"statement.0.size_constraint_statement.0.text_transformation.#":           "2",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "2",
 						"type":     "CMD_LINE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "5",
 						"type":     "NONE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName2,
 						"priority":            "5",
 						"action.#":            "1",
@@ -191,7 +251,7 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 	ruleName2 := fmt.Sprintf("%s-2", webACLName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -212,7 +272,7 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.sampled_requests_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName1,
 						"priority":            "5",
 						"action.#":            "1",
@@ -231,15 +291,15 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 						"statement.0.size_constraint_statement.0.size":                            "50",
 						"statement.0.size_constraint_statement.0.text_transformation.#":           "2",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "2",
 						"type":     "CMD_LINE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "5",
 						"type":     "NONE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName2,
 						"priority":            "10",
 						"action.#":            "1",
@@ -273,7 +333,7 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.sampled_requests_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName1,
 						"priority":            "10",
 						"action.#":            "1",
@@ -292,15 +352,15 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 						"statement.0.size_constraint_statement.0.size":                            "50",
 						"statement.0.size_constraint_statement.0.text_transformation.#":           "2",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "2",
 						"type":     "CMD_LINE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "5",
 						"type":     "NONE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName2,
 						"priority":            "5",
 						"action.#":            "1",
@@ -334,7 +394,7 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.sampled_requests_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                ruleName1,
 						"priority":            "10",
 						"action.#":            "1",
@@ -353,15 +413,15 @@ func TestAccAwsWafv2WebACL_UpdateRuleProperties(t *testing.T) {
 						"statement.0.size_constraint_statement.0.size":                            "50",
 						"statement.0.size_constraint_statement.0.text_transformation.#":           "2",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "2",
 						"type":     "CMD_LINE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*.statement.0.size_constraint_statement.0.text_transformation.*", map[string]string{
 						"priority": "5",
 						"type":     "NONE",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                "updated",
 						"priority":            "5",
 						"action.#":            "1",
@@ -395,7 +455,7 @@ func TestAccAwsWafv2WebACL_ChangeNameForceNew(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -445,7 +505,7 @@ func TestAccAwsWafv2WebACL_Disappears(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -467,7 +527,7 @@ func TestAccAwsWafv2WebACL_ManagedRuleGroupStatement(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -478,7 +538,7 @@ func TestAccAwsWafv2WebACL_ManagedRuleGroupStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                      "rule-1",
 						"action.#":                  "0",
 						"override_action.#":         "1",
@@ -499,7 +559,7 @@ func TestAccAwsWafv2WebACL_ManagedRuleGroupStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                      "rule-1",
 						"action.#":                  "0",
 						"override_action.#":         "1",
@@ -531,7 +591,7 @@ func TestAccAwsWafv2WebACL_Minimal(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -563,7 +623,7 @@ func TestAccAwsWafv2WebACL_RateBasedStatement(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -574,7 +634,7 @@ func TestAccAwsWafv2WebACL_RateBasedStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                               "rule-1",
 						"action.#":                           "1",
 						"action.0.allow.#":                   "0",
@@ -596,7 +656,7 @@ func TestAccAwsWafv2WebACL_RateBasedStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                               "rule-1",
 						"action.#":                           "1",
 						"action.0.allow.#":                   "0",
@@ -633,7 +693,7 @@ func TestAccAwsWafv2WebACL_GeoMatchStatement(t *testing.T) {
 	countryCodes := fmt.Sprintf("%s, %q", countryCode, "CA")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -648,7 +708,7 @@ func TestAccAwsWafv2WebACL_GeoMatchStatement(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "default_action.0.block.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "scope", "REGIONAL"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                              "rule-1",
 						"action.#":                          "1",
 						"action.0.allow.#":                  "0",
@@ -682,7 +742,7 @@ func TestAccAwsWafv2WebACL_GeoMatchStatement(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "default_action.0.block.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "scope", "REGIONAL"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                              "rule-1",
 						"action.#":                          "1",
 						"action.0.allow.#":                  "0",
@@ -722,7 +782,7 @@ func TestAccAwsWafv2WebACL_GeoMatchStatement_ForwardedIPConfig(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -733,7 +793,7 @@ func TestAccAwsWafv2WebACL_GeoMatchStatement_ForwardedIPConfig(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#":                            "1",
 						"statement.0.or_statement.#":             "1",
 						"statement.0.or_statement.0.statement.#": "2",
@@ -755,7 +815,7 @@ func TestAccAwsWafv2WebACL_GeoMatchStatement_ForwardedIPConfig(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#":                            "1",
 						"statement.0.or_statement.#":             "1",
 						"statement.0.or_statement.0.statement.#": "2",
@@ -786,7 +846,7 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -797,7 +857,7 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#": "1",
 						"statement.0.ip_set_reference_statement.#":                              "1",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.#": "0",
@@ -806,7 +866,7 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement(t *testing.T) {
 						"visibility_config.0.metric_name":                "friendly-rule-metric-name",
 						"visibility_config.0.sampled_requests_enabled":   "false",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.ip_set_reference_statement.0.arn": regexp.MustCompile(`regional/ipset/.+$`),
 					}),
 					resource.TestCheckResourceAttr(resourceName, "visibility_config.#", "1"),
@@ -831,7 +891,7 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement_IPSetForwardedIPConfig(t *tes
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -842,14 +902,14 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement_IPSetForwardedIPConfig(t *tes
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#": "1",
 						"statement.0.ip_set_reference_statement.#": "1",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.ip_set_reference_statement.0.arn": regexp.MustCompile(`regional/ipset/.+$`),
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.#":                   "1",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.0.fallback_behavior": "MATCH",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.0.header_name":       "X-Forwarded-For",
@@ -864,14 +924,14 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement_IPSetForwardedIPConfig(t *tes
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#": "1",
 						"statement.0.ip_set_reference_statement.#": "1",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.ip_set_reference_statement.0.arn": regexp.MustCompile(`regional/ipset/.+$`),
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.#":                   "1",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.0.fallback_behavior": "NO_MATCH",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.0.header_name":       "X-Forwarded-For",
@@ -886,14 +946,14 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement_IPSetForwardedIPConfig(t *tes
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#": "1",
 						"statement.0.ip_set_reference_statement.#": "1",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.ip_set_reference_statement.0.arn": regexp.MustCompile(`regional/ipset/.+$`),
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.#":                   "1",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.0.fallback_behavior": "MATCH",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.0.header_name":       "Updated",
@@ -908,12 +968,12 @@ func TestAccAwsWafv2WebACL_IPSetReferenceStatement_IPSetForwardedIPConfig(t *tes
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#": "1",
 						"statement.0.ip_set_reference_statement.#":                              "1",
 						"statement.0.ip_set_reference_statement.0.ip_set_forwarded_ip_config.#": "0",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.ip_set_reference_statement.0.arn": regexp.MustCompile(`regional/ipset/.+$`),
 					}),
 				),
@@ -934,7 +994,7 @@ func TestAccAwsWafv2WebACL_RateBasedStatement_ForwardedIPConfig(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -945,7 +1005,7 @@ func TestAccAwsWafv2WebACL_RateBasedStatement_ForwardedIPConfig(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                               "rule-1",
 						"action.#":                           "1",
 						"action.0.allow.#":                   "0",
@@ -969,7 +1029,7 @@ func TestAccAwsWafv2WebACL_RateBasedStatement_ForwardedIPConfig(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                               "rule-1",
 						"action.#":                           "1",
 						"action.0.allow.#":                   "0",
@@ -1002,7 +1062,7 @@ func TestAccAwsWafv2WebACL_RuleGroupReferenceStatement(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -1013,7 +1073,7 @@ func TestAccAwsWafv2WebACL_RuleGroupReferenceStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                      "rule-1",
 						"override_action.#":         "1",
 						"override_action.0.count.#": "1",
@@ -1022,7 +1082,7 @@ func TestAccAwsWafv2WebACL_RuleGroupReferenceStatement(t *testing.T) {
 						"statement.0.rule_group_reference_statement.#":                 "1",
 						"statement.0.rule_group_reference_statement.0.excluded_rule.#": "0",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.rule_group_reference_statement.0.arn": regexp.MustCompile(`regional/rulegroup/.+$`),
 					}),
 				),
@@ -1034,7 +1094,7 @@ func TestAccAwsWafv2WebACL_RuleGroupReferenceStatement(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"name":                      "rule-1",
 						"override_action.#":         "1",
 						"override_action.0.count.#": "1",
@@ -1045,7 +1105,7 @@ func TestAccAwsWafv2WebACL_RuleGroupReferenceStatement(t *testing.T) {
 						"statement.0.rule_group_reference_statement.0.excluded_rule.0.name": "rule-to-exclude-b",
 						"statement.0.rule_group_reference_statement.0.excluded_rule.1.name": "rule-to-exclude-a",
 					}),
-					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
+					resource.TestMatchTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]*regexp.Regexp{
 						"statement.0.rule_group_reference_statement.0.arn": regexp.MustCompile(`regional/rulegroup/.+$`),
 					}),
 				),
@@ -1066,7 +1126,7 @@ func TestAccAwsWafv2WebACL_Tags(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -1108,14 +1168,14 @@ func TestAccAwsWafv2WebACL_Tags(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/13862
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/13862
 func TestAccAwsWafv2WebACL_MaxNestedRateBasedStatements(t *testing.T) {
 	var v wafv2.WebACL
 	webACLName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -1126,7 +1186,7 @@ func TestAccAwsWafv2WebACL_MaxNestedRateBasedStatements(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#":                                                                                                      "1",
 						"statement.0.rate_based_statement.#":                                                                               "1",
 						"statement.0.rate_based_statement.0.limit":                                                                         "300",
@@ -1157,7 +1217,7 @@ func TestAccAwsWafv2WebACL_MaxNestedOperatorStatements(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsWafv2WebACLDestroy,
 		Steps: []resource.TestStep{
@@ -1168,7 +1228,7 @@ func TestAccAwsWafv2WebACL_MaxNestedOperatorStatements(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"statement.#":                                                                                    "1",
 						"statement.0.and_statement.#":                                                                    "1",
 						"statement.0.and_statement.0.statement.#":                                                        "2",
@@ -1786,12 +1846,12 @@ resource "aws_wafv2_web_acl" "test" {
 
     statement {
       rate_based_statement {
-	    aggregate_key_type = "FORWARDED_IP"
-	    forwarded_ip_config {
-	      fallback_behavior = "%s"
-	      header_name = "%s"
-	    }
-	    limit = 50000
+        aggregate_key_type = "FORWARDED_IP"
+        forwarded_ip_config {
+          fallback_behavior = "%s"
+          header_name       = "%s"
+        }
+        limit = 50000
       }
     }
 

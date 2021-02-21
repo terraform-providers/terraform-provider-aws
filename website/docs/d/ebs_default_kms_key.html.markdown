@@ -28,3 +28,4 @@ resource "aws_ebs_volume" "example" {
 The following attributes are exported:
 
 * `key_arn` - Amazon Resource Name (ARN) of the default KMS key uses to encrypt an EBS volume in this region when no key is specified in an API call that creates the volume and encryption by default is enabled.
+* `id` - Region of the default KMS Key.

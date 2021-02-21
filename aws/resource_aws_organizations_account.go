@@ -143,7 +143,7 @@ func resourceAwsOrganizationsAccountCreate(d *schema.ResourceData, meta interfac
 
 	// Store the ID
 	accountId := stateResp.(*organizations.CreateAccountStatus).AccountId
-	d.SetId(*accountId)
+	d.SetId(aws.StringValue(accountId))
 
 	if v, ok := d.GetOk("parent_id"); ok {
 		newParentID := v.(string)

@@ -74,7 +74,7 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 	return errors
 }
 
-func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
+func TestAccAWSRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 	var ep route53resolver.ResolverEndpoint
 	resourceName := "aws_route53_resolver_endpoint.foo"
 	rInt := acctest.RandInt()
@@ -82,6 +82,7 @@ func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -105,7 +106,7 @@ func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 	})
 }
 
-func TestAccAwsRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
+func TestAccAWSRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
 	var ep route53resolver.ResolverEndpoint
 	resourceName := "aws_route53_resolver_endpoint.foo"
 	rInt := acctest.RandInt()
@@ -114,6 +115,7 @@ func TestAccAwsRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -217,7 +219,7 @@ resource "aws_vpc" "foo" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "terraform-testacc-r53-resolver-vpc-%d"
+    Name = "terraform-testacc-r53-resolver-vpc-%[1]d"
   }
 }
 
@@ -236,7 +238,7 @@ resource "aws_subnet" "sn1" {
   availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
-    Name = "tf-acc-r53-resolver-sn1-%d"
+    Name = "tf-acc-r53-resolver-sn1-%[1]d"
   }
 }
 
@@ -246,7 +248,7 @@ resource "aws_subnet" "sn2" {
   availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
-    Name = "tf-acc-r53-resolver-sn2-%d"
+    Name = "tf-acc-r53-resolver-sn2-%[1]d"
   }
 }
 
@@ -256,28 +258,28 @@ resource "aws_subnet" "sn3" {
   availability_zone = data.aws_availability_zones.available.names[2]
 
   tags = {
-    Name = "tf-acc-r53-resolver-sn3-%d"
+    Name = "tf-acc-r53-resolver-sn3-%[1]d"
   }
 }
 
 resource "aws_security_group" "sg1" {
   vpc_id = aws_vpc.foo.id
-  name   = "tf-acc-r53-resolver-sg1-%d"
+  name   = "tf-acc-r53-resolver-sg1-%[1]d"
 
   tags = {
-    Name = "tf-acc-r53-resolver-sg1-%d"
+    Name = "tf-acc-r53-resolver-sg1-%[1]d"
   }
 }
 
 resource "aws_security_group" "sg2" {
   vpc_id = aws_vpc.foo.id
-  name   = "tf-acc-r53-resolver-sg2-%d"
+  name   = "tf-acc-r53-resolver-sg2-%[1]d"
 
   tags = {
-    Name = "tf-acc-r53-resolver-sg2-%d"
+    Name = "tf-acc-r53-resolver-sg2-%[1]d"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt)
 }
 
 func testAccRoute53ResolverEndpointConfig_initial(rInt int, direction, name string) string {

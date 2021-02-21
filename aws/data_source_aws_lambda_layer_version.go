@@ -66,6 +66,14 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"signing_profile_version_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"signing_job_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -89,7 +97,7 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 		log.Printf("[DEBUG] Looking up latest version for lambda layer %s", layerName)
 		listOutput, err := conn.ListLayerVersions(listInput)
 		if err != nil {
-			return fmt.Errorf("error listing Lambda Layer Versions (%s): %s", layerName, err)
+			return fmt.Errorf("error listing Lambda Layer Versions (%s): %w", layerName, err)
 		}
 
 		if len(listOutput.LayerVersions) == 0 {
@@ -108,7 +116,7 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 	output, err := conn.GetLayerVersion(input)
 
 	if err != nil {
-		return fmt.Errorf("error getting Lambda Layer Version (%s, version %d): %s", layerName, version, err)
+		return fmt.Errorf("error getting Lambda Layer Version (%s, version %d): %w", layerName, version, err)
 	}
 
 	if output == nil {
@@ -116,31 +124,37 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err := d.Set("version", int(aws.Int64Value(output.Version))); err != nil {
-		return fmt.Errorf("error setting lambda layer version: %s", err)
+		return fmt.Errorf("error setting lambda layer version: %w", err)
 	}
 	if err := d.Set("compatible_runtimes", flattenStringList(output.CompatibleRuntimes)); err != nil {
-		return fmt.Errorf("error setting lambda layer compatible runtimes: %s", err)
+		return fmt.Errorf("error setting lambda layer compatible runtimes: %w", err)
 	}
 	if err := d.Set("description", output.Description); err != nil {
-		return fmt.Errorf("error setting lambda layer description: %s", err)
+		return fmt.Errorf("error setting lambda layer description: %w", err)
 	}
 	if err := d.Set("license_info", output.LicenseInfo); err != nil {
-		return fmt.Errorf("error setting lambda layer license info: %s", err)
+		return fmt.Errorf("error setting lambda layer license info: %w", err)
 	}
 	if err := d.Set("arn", output.LayerVersionArn); err != nil {
-		return fmt.Errorf("error setting lambda layer version arn: %s", err)
+		return fmt.Errorf("error setting lambda layer version arn: %w", err)
 	}
 	if err := d.Set("layer_arn", output.LayerArn); err != nil {
-		return fmt.Errorf("error setting lambda layer arn: %s", err)
+		return fmt.Errorf("error setting lambda layer arn: %w", err)
 	}
 	if err := d.Set("created_date", output.CreatedDate); err != nil {
-		return fmt.Errorf("error setting lambda layer created date: %s", err)
+		return fmt.Errorf("error setting lambda layer created date: %w", err)
 	}
 	if err := d.Set("source_code_hash", output.Content.CodeSha256); err != nil {
-		return fmt.Errorf("error setting lambda layer source code hash: %s", err)
+		return fmt.Errorf("error setting lambda layer source code hash: %w", err)
 	}
 	if err := d.Set("source_code_size", output.Content.CodeSize); err != nil {
-		return fmt.Errorf("error setting lambda layer source code size: %s", err)
+		return fmt.Errorf("error setting lambda layer source code size: %w", err)
+	}
+	if err := d.Set("signing_profile_version_arn", output.Content.SigningProfileVersionArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing profile arn: %w", err)
+	}
+	if err := d.Set("signing_job_arn", output.Content.SigningJobArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing job arn: %w", err)
 	}
 
 	d.SetId(aws.StringValue(output.LayerVersionArn))

@@ -1,4 +1,92 @@
 rules:
+  - id: acceptance-test-naming-parent-disappears
+    languages: [go]
+    message: Prefer naming acceptance tests with _disappears_Parent suffix
+    paths:
+      include:
+        - 'aws/*_test.go'
+    patterns:
+      - pattern: func $FUNCNAME(t *testing.T) { ... }
+      - metavariable-regex:
+          metavariable: "$FUNCNAME"
+          regex: "^TestAcc[^_]+_([a-zA-Z]+[dD]isappears|[^_]+_disappears)$"
+    severity: WARNING
+
+  - id: aws-sdk-go-multiple-service-imports
+    languages: [go]
+    message: Resources should not implement multiple AWS service functionality
+    paths:
+      exclude:
+        - aws/config.go
+        - aws/structure.go
+        - aws/validators.go
+        - aws/*wafregional*.go
+        - aws/resource_aws_serverlessapplicationrepository_cloudformation_stack.go
+        - aws/*_test.go
+        - aws/internal/keyvaluetags/
+        - aws/internal/service/wafregional/
+        # Legacy resource handling
+        - aws/resource_aws_autoscaling_group.go
+        - aws/resource_aws_efs_mount_target.go
+        - aws/resource_aws_elastic_beanstalk_environment.go
+        - aws/resource_aws_elb.go
+        - aws/resource_aws_iam_server_certificate.go
+        - aws/resource_aws_lambda_event_source_mapping.go
+        - aws/resource_aws_launch_configuration.go
+        - aws/resource_aws_lb.go
+        - aws/resource_aws_s3_bucket_object.go
+      include:
+        - aws/
+    patterns:
+      - pattern: |
+          import ("$X")
+          import ("$Y")
+      - metavariable-regex:
+          metavariable: '$X'
+          regex: '^"github.com/aws/aws-sdk-go/service/[^/]+"$'
+      - metavariable-regex:
+          metavariable: '$Y'
+          regex: '^"github.com/aws/aws-sdk-go/service/[^/]+"$'
+    severity: WARNING
+  
+  - id: aws-go-sdk-pointer-conversion-ResourceData-SetId
+    fix: d.SetId(aws.StringValue($VALUE))
+    languages: [go]
+    message: Prefer AWS Go SDK pointer conversion aws.StringValue() function for dereferencing during d.SetId()
+    paths:
+      include:
+        - aws/
+    pattern: 'd.SetId(*$VALUE)'
+    severity: WARNING
+
+  - id: helper-schema-Set-extraneous-NewSet-with-flattenStringList
+    languages: [go]
+    message: Prefer `flattenStringSet()` function for casting a list of string pointers to a set
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern: schema.NewSet(schema.HashString, flattenStringList($APIOBJECT))
+      - pattern-not-inside: func flattenStringSet(list []*string) *schema.Set { ... }
+    severity: WARNING
+    
+  - id: helper-schema-Set-extraneous-expandStringList-with-List
+    languages: [go]
+    message: Prefer `expandStringSet()` function for casting a set to a list of string pointers
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: expandStringList($SET.List())
+        - pattern: |
+            $LIST := $SET.List()
+            ...
+            expandStringList($LIST)
+      - pattern-not-inside: func expandStringSet(configured *schema.Set) []*string { ... }
+    severity: WARNING
+
+
   - id: helper-schema-ResourceData-GetOk-with-extraneous-conditional
     languages: [go]
     message: Zero value conditional check after `d.GetOk()` is extraneous
@@ -9,5 +97,71 @@ rules:
       - pattern-either:
         - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(bool) { $BODY }
         - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(int) != 0 { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(int) > 0 { $BODY }
         - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(string) != "" { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && len($VALUE.(string)) > 0 { $BODY }
+    severity: WARNING
+
+  - id: helper-schema-resource-Retry-without-TimeoutError-check
+    languages: [go]
+    message: Check resource.Retry() errors with tfresource.TimedOut()
+    paths:
+      exclude:
+        - "*_test.go"
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            $ERR := resource.Retry(...)
+            ...
+            return ...
+        - pattern: |
+            $ERR = resource.Retry(...)
+            ...
+            return ...
+      - pattern-not: |
+          $ERR := resource.Retry(...)
+          ...
+          if isResourceTimeoutError($ERR) { ... }
+          ...
+          return ...
+      - pattern-not: |
+          $ERR = resource.Retry(...)
+          ...
+          if isResourceTimeoutError($ERR) { ... }
+          ...
+          return ...
+      - pattern-not: |
+          $ERR := resource.Retry(...)
+          ...
+          if tfresource.TimedOut($ERR) { ... }
+          ...
+          return ...
+      - pattern-not: |
+          $ERR = resource.Retry(...)
+          ...
+          if tfresource.TimedOut($ERR) { ... }
+          ...
+          return ...
+    severity: WARNING
+
+  - id: is-not-found-error
+    languages: [go]
+    message: Check for resource.NotFoundError errors with tfresource.NotFound()
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - patterns:
+          - pattern: |
+              var $CAST *resource.NotFoundError
+              ...
+              errors.As($ERR, &$CAST)
+          - pattern-not-inside: func NotFound(err error) bool { ... }
+        - patterns:
+          - pattern: |
+              $X, $Y := $ERR.(*resource.NotFoundError)
+          - pattern-not-inside: func isResourceNotFoundError(err error) bool { ... }
     severity: WARNING

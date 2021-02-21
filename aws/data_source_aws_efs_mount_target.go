@@ -78,7 +78,7 @@ func dataSourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] Reading EFS Mount Target: %s", describeEfsOpts)
 	resp, err := conn.DescribeMountTargets(describeEfsOpts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving EFS Mount Target: %s", err)
+		return fmt.Errorf("Error retrieving EFS Mount Target: %w", err)
 	}
 	if len(resp.MountTargets) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(resp.MountTargets))

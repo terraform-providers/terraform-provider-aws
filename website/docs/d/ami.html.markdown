@@ -82,6 +82,7 @@ interpolation.
     not a provisioned IOPS image, otherwise the supported IOPS count.
     * `block_device_mappings.#.ebs.snapshot_id` - The ID of the snapshot.
     * `block_device_mappings.#.ebs.volume_size` - The size of the volume, in GiB.
+    * `block_device_mappings.#.ebs.throughput` - The throughput that the EBS volume supports, in MiB/s.
     * `block_device_mappings.#.ebs.volume_type` - The volume type.
     * `block_device_mappings.#.no_device` - Suppresses the specified device
     included in the block device mapping of the AMI.
@@ -122,5 +123,8 @@ interpolation.
     * `tags.#.value` - The value of the tag.
 * `virtualization_type` - The type of virtualization of the AMI (ie: `hvm` or
   `paravirtual`).
+* `usage_operation` - The operation of the Amazon EC2 instance and the billing code that is associated with the AMI.
+* `platform_details` - The platform details associated with the billing code of the AMI.
+* `ena_support` - Specifies whether enhanced networking with ENA is enabled.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html

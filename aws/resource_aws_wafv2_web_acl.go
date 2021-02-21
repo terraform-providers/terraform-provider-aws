@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -256,7 +257,7 @@ func resourceAwsWafv2WebACLUpdate(d *schema.ResourceData, meta interface{}) erro
 			VisibilityConfig: expandWafv2VisibilityConfig(d.Get("visibility_config").([]interface{})),
 		}
 
-		if v, ok := d.GetOk("description"); ok && len(v.(string)) > 0 {
+		if v, ok := d.GetOk("description"); ok {
 			u.Description = aws.String(v.(string))
 		}
 
@@ -308,10 +309,10 @@ func resourceAwsWafv2WebACLDelete(d *schema.ResourceData, meta interface{}) erro
 	err := resource.Retry(Wafv2WebACLDeleteTimeout, func() *resource.RetryError {
 		_, err := conn.DeleteWebACL(r)
 		if err != nil {
-			if isAWSErr(err, wafv2.ErrCodeWAFAssociatedItemException, "") {
+			if tfawserr.ErrCodeEquals(err, wafv2.ErrCodeWAFAssociatedItemException) {
 				return resource.RetryableError(err)
 			}
-			if isAWSErr(err, wafv2.ErrCodeWAFUnavailableEntityException, "") {
+			if tfawserr.ErrCodeEquals(err, wafv2.ErrCodeWAFUnavailableEntityException) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -321,6 +322,10 @@ func resourceAwsWafv2WebACLDelete(d *schema.ResourceData, meta interface{}) erro
 
 	if isResourceTimeoutError(err) {
 		_, err = conn.DeleteWebACL(r)
+	}
+
+	if tfawserr.ErrCodeEquals(err, wafv2.ErrCodeWAFNonexistentItemException) {
+		return nil
 	}
 
 	if err != nil {

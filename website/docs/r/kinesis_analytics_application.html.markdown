@@ -1,5 +1,5 @@
 ---
-subcategory: "Kinesis"
+subcategory: "Kinesis Data Analytics (SQL Applications)"
 layout: "aws"
 page_title: "AWS: aws_kinesis_analytics_application"
 description: |-
@@ -12,6 +12,8 @@ Provides a Kinesis Analytics Application resource. Kinesis Analytics is a manage
 allows processing and analyzing streaming data using standard SQL.
 
 For more details, see the [Amazon Kinesis Analytics Documentation][1].
+
+-> **Note:** To manage Amazon Kinesis Data Analytics for Apache Flink applications, use the [`aws_kinesisanalyticsv2_application`](/docs/providers/aws/r/kinesisanalyticsv2_application.html) resource.
 
 ## Example Usage
 
@@ -245,7 +247,7 @@ The `s3` blcok supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported along with all argument references:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the Kinesis Analytics Application.
 * `arn` - The ARN of the Kinesis Analytics Appliation.

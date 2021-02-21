@@ -167,7 +167,7 @@ resource "aws_ec2_client_vpn_network_association" "test" {
 }
 
 resource "aws_ec2_client_vpn_endpoint" "test" {
-  description            = "terraform-testacc-clientvpn-%s"
+  description            = "terraform-testacc-clientvpn-%[1]s"
   server_certificate_arn = aws_acm_certificate.test.arn
   client_cidr_block      = "10.0.0.0/16"
 
@@ -205,7 +205,7 @@ resource "aws_ec2_client_vpn_network_association" "test" {
 }
 
 resource "aws_ec2_client_vpn_endpoint" "test" {
-  description            = "terraform-testacc-clientvpn-%s"
+  description            = "terraform-testacc-clientvpn-%[1]s"
   server_certificate_arn = aws_acm_certificate.test.arn
   client_cidr_block      = "10.0.0.0/16"
 
@@ -222,18 +222,7 @@ resource "aws_ec2_client_vpn_endpoint" "test" {
 }
 
 func testAccEc2ClientVpnRouteVpcBase(rName string, subnetCount int) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  # InvalidParameterValue: AZ us-west-2d is not currently supported. Please choose another az in this region
-  exclude_zone_ids = ["usw2-az4"]
-  state            = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -253,7 +242,7 @@ resource "aws_subnet" "test" {
     Name = "tf-acc-subnet-%[1]s"
   }
 }
-`, rName, subnetCount)
+`, rName, subnetCount))
 }
 
 func testAccEc2ClientVpnRouteAcmCertificateBase() string {

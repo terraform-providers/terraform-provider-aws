@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 // These tests assume the existence of predefined Opsworks IAM roles named `aws-opsworks-ec2-role`
@@ -22,7 +21,7 @@ func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 	resourceName := "aws_opsworks_custom_layer.tf-acc"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
 		Steps: []resource.TestStep{
@@ -37,10 +36,10 @@ func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "instance_shutdown_timeout", "300"),
 					resource.TestCheckResourceAttr(resourceName, "custom_security_group_ids.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "system_packages.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "git"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "golang"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "git"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "golang"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
 						"type":            "gp2",
 						"number_of_disks": "2",
 						"mount_point":     "/home",
@@ -64,7 +63,7 @@ func TestAccAWSOpsworksCustomLayer_tags(t *testing.T) {
 	resourceName := "aws_opsworks_custom_layer.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
 		Steps: []resource.TestStep{
@@ -108,7 +107,7 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 	resourceName := "aws_opsworks_custom_layer.tf-acc"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
 		Steps: []resource.TestStep{
@@ -124,10 +123,10 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "instance_shutdown_timeout", "300"),
 					resource.TestCheckResourceAttr(resourceName, "custom_security_group_ids.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "system_packages.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "git"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "golang"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "git"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "golang"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
 						"type":            "gp2",
 						"number_of_disks": "2",
 						"mount_point":     "/home",
@@ -144,17 +143,17 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "instance_shutdown_timeout", "120"),
 					resource.TestCheckResourceAttr(resourceName, "custom_security_group_ids.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "system_packages.#", "3"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "git"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "golang"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "subversion"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "git"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "golang"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "system_packages.*", "subversion"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
 						"type":            "gp2",
 						"number_of_disks": "2",
 						"mount_point":     "/home",
 						"size":            "100",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_volume.*", map[string]string{
 						"type":            "io1",
 						"number_of_disks": "4",
 						"mount_point":     "/var",
@@ -399,6 +398,7 @@ resource "aws_security_group" "tf-ops-acc-layer3" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
 resource "aws_opsworks_custom_layer" "tf-acc" {
   stack_id               = aws_opsworks_stack.tf-acc.id
   name                   = "%[1]s"

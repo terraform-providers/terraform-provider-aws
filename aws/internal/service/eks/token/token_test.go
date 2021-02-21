@@ -5,6 +5,7 @@ https://github.com/kubernetes-sigs/aws-iam-authenticator/blob/7547c74e660f8d34d9
 With the following modifications:
 
  - Fix staticcheck reports
+ - Ignore errorlint reports
 */
 
 package token
@@ -49,7 +50,7 @@ func errorContains(t *testing.T, err error, expectedErr string) {
 
 func assertSTSError(t *testing.T, err error) {
 	t.Helper()
-	if _, ok := err.(STSError); !ok {
+	if _, ok := err.(STSError); !ok { // nolint:errorlint
 		t.Errorf("Expected err %v to be an STSError but was not", err)
 	}
 }

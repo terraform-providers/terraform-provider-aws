@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition the the arguments listed above the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the environment.
 * `arn` - The ARN of the environment.

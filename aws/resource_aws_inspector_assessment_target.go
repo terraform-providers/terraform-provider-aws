@@ -55,7 +55,7 @@ func resourceAwsInspectorAssessmentTargetCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("error creating Inspector Assessment Target: %s", err)
 	}
 
-	d.SetId(*resp.AssessmentTargetArn)
+	d.SetId(aws.StringValue(resp.AssessmentTargetArn))
 
 	return resourceAwsInspectorAssessmentTargetRead(d, meta)
 }

@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceAwsDynamoDbTable_basic(t *testing.T) {
 	datasourceName := "data.aws_dynamodb_table.test"
-	tableName := fmt.Sprintf("testaccawsdynamodbtable-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	tableName := fmt.Sprintf("testaccawsdynamodbtable-basic-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

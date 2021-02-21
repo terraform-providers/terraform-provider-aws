@@ -133,12 +133,15 @@ The following arguments are supported:
 
 ### Analytics Configuration
 
-* `application_id` - (Required) The application ID for an Amazon Pinpoint application.
-* `external_id`  - (Required) An ID for the Analytics Configuration.
-* `role_arn` - (Required) The ARN of an IAM role that authorizes Amazon Cognito to publish events to Amazon Pinpoint analytics.
+Either `application_arn` or `application_id` is required.
+
+* `application_arn` - (Optional) The application ARN for an Amazon Pinpoint application. Conflicts with `external_id` and `role_arn`.
+* `application_id` - (Optional) The application ID for an Amazon Pinpoint application.
+* `external_id`  - (Optional) An ID for the Analytics Configuration. Conflicts with `application_arn`.
+* `role_arn` - (Optional) The ARN of an IAM role that authorizes Amazon Cognito to publish events to Amazon Pinpoint analytics. Conflicts with `application_arn`.
 * `user_data_shared` (Optional) If set to `true`, Amazon Cognito will include user data in the events it publishes to Amazon Pinpoint analytics.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

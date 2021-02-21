@@ -14,11 +14,7 @@ Information about Neptune orderable DB instances.
 
 ```hcl
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  engine_version = "1.0.3.0"
-  license_model  = "amazon-license"
-  storage_type   = "aurora"
-
+  engine_version             = "1.0.3.0"
   preferred_instance_classes = ["db.r5.large", "db.r4.large", "db.t3.medium"]
 }
 ```
@@ -27,12 +23,12 @@ data "aws_neptune_orderable_db_instance" "test" {
 
 The following arguments are supported:
 
-* `engine` - (Required) DB engine. Engine values include `neptune`.
-* `instance_class` - (Optional) DB instance class. Examples of classes are `db.r5.large`, `db.r5.xlarge`, `db.r4.large`, `db.r5.4xlarge`, `db.r5.12xlarge`, `db.r4.xlarge`, and `db.t3.medium`.
+* `engine` - (Optional) DB engine. (Default: `neptune`)
 * `engine_version` - (Optional) Version of the DB engine. For example, `1.0.1.0`, `1.0.1.2`, `1.0.2.2`, and `1.0.3.0`.
-* `license_model` - (Optional) License model. For example, `amazon-license`.
+* `instance_class` - (Optional) DB instance class. Examples of classes are `db.r5.large`, `db.r5.xlarge`, `db.r4.large`, `db.r5.4xlarge`, `db.r5.12xlarge`, `db.r4.xlarge`, and `db.t3.medium`.
+* `license_model` - (Optional) License model. (Default: `amazon-license`)
 * `preferred_instance_classes` - (Optional) Ordered list of preferred Neptune DB instance classes. The first match in this list will be returned. If no preferred matches are found and the original search returned more than one result, an error is returned.
-* `vpc` - (Optional) Boolean that indicates whether to show only VPC or non-VPC offerings.
+* `vpc` - (Optional) Enable to show only VPC offerings.
 
 ## Attribute Reference
 

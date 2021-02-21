@@ -16,7 +16,7 @@ func TestAccAWSCloudFrontOriginAccessIdentity_basic(t *testing.T) {
 	resourceName := "aws_cloudfront_origin_access_identity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudFrontOriginAccessIdentityDestroy,
 		Steps: []resource.TestStep{
@@ -29,7 +29,7 @@ func TestAccAWSCloudFrontOriginAccessIdentity_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "s3_canonical_user_id", regexp.MustCompile("^[a-z0-9]+")),
 					resource.TestMatchResourceAttr(resourceName, "cloudfront_access_identity_path", regexp.MustCompile("^origin-access-identity/cloudfront/[A-Z0-9]+")),
 					//lintignore:AWSAT001
-					resource.TestMatchResourceAttr(resourceName, "iam_arn", regexp.MustCompile("^arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity [A-Z0-9]+")),
+					resource.TestMatchResourceAttr(resourceName, "iam_arn", regexp.MustCompile(fmt.Sprintf("^arn:%s:iam::cloudfront:user/CloudFront Origin Access Identity [A-Z0-9]+", testAccGetPartition()))),
 				),
 			},
 			{
@@ -46,7 +46,7 @@ func TestAccAWSCloudFrontOriginAccessIdentity_noComment(t *testing.T) {
 	resourceName := "aws_cloudfront_origin_access_identity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudFrontOriginAccessIdentityDestroy,
 		Steps: []resource.TestStep{
@@ -58,7 +58,7 @@ func TestAccAWSCloudFrontOriginAccessIdentity_noComment(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "s3_canonical_user_id", regexp.MustCompile("^[a-z0-9]+")),
 					resource.TestMatchResourceAttr(resourceName, "cloudfront_access_identity_path", regexp.MustCompile("^origin-access-identity/cloudfront/[A-Z0-9]+")),
 					//lintignore:AWSAT001
-					resource.TestMatchResourceAttr(resourceName, "iam_arn", regexp.MustCompile("^arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity [A-Z0-9]+")),
+					resource.TestMatchResourceAttr(resourceName, "iam_arn", regexp.MustCompile(fmt.Sprintf("^arn:%s:iam::cloudfront:user/CloudFront Origin Access Identity [A-Z0-9]+", testAccGetPartition()))),
 				),
 			},
 			{
@@ -75,7 +75,7 @@ func TestAccAWSCloudFrontOriginAccessIdentity_disappears(t *testing.T) {
 	resourceName := "aws_cloudfront_origin_access_identity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudFrontOriginAccessIdentityDestroy,
 		Steps: []resource.TestStep{

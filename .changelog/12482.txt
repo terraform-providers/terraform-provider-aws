@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_dx_gateway_association: Changes to `proposal_id` do not force resource recreation
+```

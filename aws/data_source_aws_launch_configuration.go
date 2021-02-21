@@ -156,6 +156,27 @@ func dataSourceAwsLaunchConfiguration() *schema.Resource {
 				},
 			},
 
+			"metadata_options": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_endpoint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_tokens": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_put_response_hop_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"root_block_device": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -207,7 +228,7 @@ func dataSourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] launch configuration describe configuration: %s", describeOpts)
 	describConfs, err := autoscalingconn.DescribeLaunchConfigurations(&describeOpts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving launch configuration: %s", err)
+		return fmt.Errorf("Error retrieving launch configuration: %w", err)
 	}
 
 	if describConfs == nil || len(describConfs.LaunchConfigurations) == 0 {
@@ -242,7 +263,11 @@ func dataSourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface
 		vpcSGs = append(vpcSGs, *sg)
 	}
 	if err := d.Set("security_groups", vpcSGs); err != nil {
-		return fmt.Errorf("error setting security_groups: %s", err)
+		return fmt.Errorf("error setting security_groups: %w", err)
+	}
+
+	if err := d.Set("metadata_options", flattenLaunchConfigInstanceMetadataOptions(lc.MetadataOptions)); err != nil {
+		return fmt.Errorf("error setting metadata_options: %w", err)
 	}
 
 	classicSGs := make([]string, 0, len(lc.ClassicLinkVPCSecurityGroups))
@@ -250,7 +275,7 @@ func dataSourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface
 		classicSGs = append(classicSGs, *sg)
 	}
 	if err := d.Set("vpc_classic_link_security_groups", classicSGs); err != nil {
-		return fmt.Errorf("error setting vpc_classic_link_security_groups: %s", err)
+		return fmt.Errorf("error setting vpc_classic_link_security_groups: %w", err)
 	}
 
 	if err := readLCBlockDevices(d, lc, ec2conn); err != nil {

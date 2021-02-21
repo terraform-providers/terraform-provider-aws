@@ -103,7 +103,7 @@ func resourceAwsApiGatewayModelCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating API Gateway Model: %s", err)
 	}
 
-	d.SetId(*model.Id)
+	d.SetId(aws.StringValue(model.Id))
 
 	return nil
 }

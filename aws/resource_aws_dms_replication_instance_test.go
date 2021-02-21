@@ -829,7 +829,7 @@ resource "aws_subnet" "test" {
 resource "aws_dms_replication_subnet_group" "test" {
   replication_subnet_group_description = %q
   replication_subnet_group_id          = %q
-  subnet_ids                           = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnet_ids                           = aws_subnet.test[*].id
 }
 
 resource "aws_dms_replication_instance" "test" {
@@ -916,7 +916,7 @@ resource "aws_subnet" "test" {
 resource "aws_dms_replication_subnet_group" "test" {
   replication_subnet_group_description = %q
   replication_subnet_group_id          = %q
-  subnet_ids                           = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnet_ids                           = aws_subnet.test[*].id
 }
 
 resource "aws_dms_replication_instance" "test" {

@@ -242,7 +242,7 @@ func resourceAwsAppsyncGraphqlApiCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error creating AppSync GraphQL API: %s", err)
 	}
 
-	d.SetId(*resp.GraphqlApi.ApiId)
+	d.SetId(aws.StringValue(resp.GraphqlApi.ApiId))
 
 	if err := resourceAwsAppsyncSchemaPut(d, meta); err != nil {
 		return fmt.Errorf("error creating AppSync GraphQL API (%s) Schema: %s", d.Id(), err)

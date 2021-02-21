@@ -43,7 +43,7 @@ func resourceAwsDxConnectionAssociationCreate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	d.SetId(*resp.ConnectionId)
+	d.SetId(aws.StringValue(resp.ConnectionId))
 	return nil
 }
 

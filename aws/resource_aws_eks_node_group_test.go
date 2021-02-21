@@ -96,6 +96,7 @@ func TestAccAWSEksNodeGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ami_type", eks.AMITypesAl2X8664),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "eks", regexp.MustCompile(fmt.Sprintf("nodegroup/%[1]s/%[1]s/.+", rName))),
 					resource.TestCheckResourceAttrPair(resourceName, "cluster_name", eksClusterResourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "capacity_type", eks.CapacityTypesOnDemand),
 					resource.TestCheckResourceAttr(resourceName, "disk_size", "20"),
 					resource.TestCheckResourceAttr(resourceName, "instance_types.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "labels.%", "0"),
@@ -179,6 +180,32 @@ func TestAccAWSEksNodeGroup_AmiType(t *testing.T) {
 	})
 }
 
+func TestAccAWSEksNodeGroup_CapacityType_Spot(t *testing.T) {
+	var nodeGroup1 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigCapacityType(rName, eks.CapacityTypesSpot),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "capacity_type", eks.CapacityTypesSpot),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSEksNodeGroup_DiskSize(t *testing.T) {
 	var nodeGroup1 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -239,7 +266,34 @@ func TestAccAWSEksNodeGroup_ForceUpdateVersion(t *testing.T) {
 	})
 }
 
-func TestAccAWSEksNodeGroup_InstanceTypes(t *testing.T) {
+func TestAccAWSEksNodeGroup_InstanceTypes_Multiple(t *testing.T) {
+	var nodeGroup1 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	ec2InstanceTypeOfferingsDataSourceName := "data.aws_ec2_instance_type_offerings.available"
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigInstanceTypesMultiple(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttrPair(resourceName, "instance_types.#", ec2InstanceTypeOfferingsDataSourceName, "instance_types.#"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEksNodeGroup_InstanceTypes_Single(t *testing.T) {
 	var nodeGroup1 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_eks_node_group.test"
@@ -250,7 +304,7 @@ func TestAccAWSEksNodeGroup_InstanceTypes(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEksNodeGroupConfigInstanceTypes1(rName, "t3.large"),
+				Config: testAccAWSEksNodeGroupConfigInstanceTypesSingle(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
 					resource.TestCheckResourceAttr(resourceName, "instance_types.#", "1"),
@@ -386,7 +440,7 @@ func TestAccAWSEksNodeGroup_LaunchTemplate_Name(t *testing.T) {
 }
 
 func TestAccAWSEksNodeGroup_LaunchTemplate_Version(t *testing.T) {
-	var nodeGroup1 eks.Nodegroup
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	launchTemplateResourceName := "aws_launch_template.test"
 	resourceName := "aws_eks_node_group.test"
@@ -411,14 +465,12 @@ func TestAccAWSEksNodeGroup_LaunchTemplate_Version(t *testing.T) {
 			},
 			{
 				Config: testAccAWSEksNodeGroupConfigLaunchTemplateVersion2(rName),
-				// This API error is incorrect and will need to be rectified by the service team.
-				ExpectError: regexp.MustCompile(`User data was not in the MIME multipart format`),
-				// Check: resource.ComposeTestCheckFunc(
-				// 	testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
-				// 	testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
-				// 	resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
-				// 	resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.version", launchTemplateResourceName, "default_version"),
-				// ),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.version", launchTemplateResourceName, "default_version"),
+				),
 			},
 		},
 	})
@@ -436,7 +488,7 @@ func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.15"),
+				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.17"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
 					resource.TestCheckResourceAttrPair(resourceName, "release_version", ssmParameterDataSourceName, "value"),
@@ -448,7 +500,7 @@ func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.16"),
+				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.18"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
 					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
@@ -1053,6 +1105,30 @@ resource "aws_eks_node_group" "test" {
 `, rName, amiType)
 }
 
+func testAccAWSEksNodeGroupConfigCapacityType(rName, capacityType string) string {
+	return testAccAWSEksNodeGroupConfigBase(rName) + fmt.Sprintf(`
+resource "aws_eks_node_group" "test" {
+  capacity_type   = %[2]q
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName, capacityType)
+}
+
 func testAccAWSEksNodeGroupConfigDiskSize(rName string, diskSize int) string {
 	return testAccAWSEksNodeGroupConfigBase(rName) + fmt.Sprintf(`
 resource "aws_eks_node_group" "test" {
@@ -1102,11 +1178,20 @@ resource "aws_eks_node_group" "test" {
 `, rName)
 }
 
-func testAccAWSEksNodeGroupConfigInstanceTypes1(rName, instanceType1 string) string {
-	return testAccAWSEksNodeGroupConfigBase(rName) + fmt.Sprintf(`
+func testAccAWSEksNodeGroupConfigInstanceTypesMultiple(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ec2_instance_type_offerings" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["t3.medium", "t3.large", "t2.medium", "t2.large"]
+  }
+}
+
 resource "aws_eks_node_group" "test" {
   cluster_name    = aws_eks_cluster.test.name
-  instance_types  = [%[2]q]
+  instance_types  = data.aws_ec2_instance_type_offerings.available.instance_types
   node_group_name = %[1]q
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = aws_subnet.test[*].id
@@ -1123,7 +1208,42 @@ resource "aws_eks_node_group" "test" {
     "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
   ]
 }
-`, rName, instanceType1)
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigInstanceTypesSingle(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ec2_instance_type_offering" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["t3.large", "t2.large"]
+  }
+
+  preferred_instance_types = ["t3.large", "t2.large"]
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  instance_types  = [data.aws_ec2_instance_type_offering.available.instance_type]
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
 }
 
 func testAccAWSEksNodeGroupConfigLabels1(rName, labelKey1, labelValue1 string) string {

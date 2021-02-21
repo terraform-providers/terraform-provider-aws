@@ -1,25 +1,28 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/organizations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsOrganizationsPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAwsOrganizationsPolicyCreate,
-		Read:   resourceAwsOrganizationsPolicyRead,
-		Update: resourceAwsOrganizationsPolicyUpdate,
-		Delete: resourceAwsOrganizationsPolicyDelete,
+		CreateContext: resourceAwsOrganizationsPolicyCreate,
+		ReadContext:   resourceAwsOrganizationsPolicyRead,
+		UpdateContext: resourceAwsOrganizationsPolicyUpdate,
+		DeleteContext: resourceAwsOrganizationsPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: resourceAwsOrganizationsPolicyImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -42,35 +45,31 @@ func resourceAwsOrganizationsPolicy() *schema.Resource {
 				Required: true,
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  organizations.PolicyTypeServiceControlPolicy,
-				ValidateFunc: validation.StringInSlice([]string{
-					organizations.PolicyTypeAiservicesOptOutPolicy,
-					organizations.PolicyTypeBackupPolicy,
-					organizations.PolicyTypeServiceControlPolicy,
-					organizations.PolicyTypeTagPolicy,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      organizations.PolicyTypeServiceControlPolicy,
+				ValidateFunc: validation.StringInSlice(organizations.PolicyType_Values(), false),
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceAwsOrganizationsPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsOrganizationsPolicyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).organizationsconn
 
-	// Description is required:
-	// InvalidParameter: 1 validation error(s) found.
-	// - missing required field, CreatePolicyInput.Description.
+	name := d.Get("name").(string)
+
 	input := &organizations.CreatePolicyInput{
 		Content:     aws.String(d.Get("content").(string)),
 		Description: aws.String(d.Get("description").(string)),
-		Name:        aws.String(d.Get("name").(string)),
+		Name:        aws.String(name),
 		Type:        aws.String(d.Get("type").(string)),
+		Tags:        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().OrganizationsTags(),
 	}
 
-	log.Printf("[DEBUG] Creating Organizations Policy: %s", input)
+	log.Printf("[DEBUG] Creating Organizations Policy (%s): %v", name, input)
 
 	var err error
 	var resp *organizations.CreatePolicyOutput
@@ -79,7 +78,7 @@ func resourceAwsOrganizationsPolicyCreate(d *schema.ResourceData, meta interface
 
 		if err != nil {
 			if isAWSErr(err, organizations.ErrCodeFinalizingOrganizationException, "") {
-				log.Printf("[DEBUG] Trying to create policy again: %q", err.Error())
+				log.Printf("[DEBUG] Retrying creating Organizations Policy (%s): %s", name, err)
 				return resource.RetryableError(err)
 			}
 
@@ -93,34 +92,35 @@ func resourceAwsOrganizationsPolicyCreate(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("error creating Organizations Policy: %s", err)
+		return diag.FromErr(fmt.Errorf("error creating Organizations Policy (%s): %w", name, err))
 	}
 
-	d.SetId(*resp.Policy.PolicySummary.Id)
+	d.SetId(aws.StringValue(resp.Policy.PolicySummary.Id))
 
-	return resourceAwsOrganizationsPolicyRead(d, meta)
+	return resourceAwsOrganizationsPolicyRead(ctx, d, meta)
 }
 
-func resourceAwsOrganizationsPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsOrganizationsPolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).organizationsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &organizations.DescribePolicyInput{
 		PolicyId: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Reading Organizations Policy: %s", input)
+	log.Printf("[DEBUG] Reading Organizations policy: %s", input)
 	resp, err := conn.DescribePolicy(input)
 	if err != nil {
 		if isAWSErr(err, organizations.ErrCodePolicyNotFoundException, "") {
-			log.Printf("[WARN] Policy does not exist, removing from state: %s", d.Id())
+			log.Printf("[WARN] Organizations policy does not exist, removing from state: %s", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return err
+		return diag.FromErr(fmt.Errorf("error reading Organizations Policy (%s): %w", d.Id(), err))
 	}
 
 	if resp.Policy == nil || resp.Policy.PolicySummary == nil {
-		log.Printf("[WARN] Policy does not exist, removing from state: %s", d.Id())
+		log.Printf("[WARN] Organizations policy does not exist, removing from state: %s", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -130,10 +130,30 @@ func resourceAwsOrganizationsPolicyRead(d *schema.ResourceData, meta interface{}
 	d.Set("description", resp.Policy.PolicySummary.Description)
 	d.Set("name", resp.Policy.PolicySummary.Name)
 	d.Set("type", resp.Policy.PolicySummary.Type)
+
+	if aws.BoolValue(resp.Policy.PolicySummary.AwsManaged) {
+		return diag.Diagnostics{
+			diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "AWS-managed Organizations policies cannot be imported",
+				Detail:   fmt.Sprintf("This resource should be removed from your Terraform state using `terraform state rm` (https://www.terraform.io/docs/commands/state/rm.html) and references should use the ID (%s) directly.", d.Id()),
+			},
+		}
+	}
+
+	tags, err := keyvaluetags.OrganizationsListTags(conn, d.Id())
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error listing tags for Organizations policy (%s): %w", d.Id(), err))
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags for Organizations policy (%s): %w", d.Id(), err))
+	}
+
 	return nil
 }
 
-func resourceAwsOrganizationsPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsOrganizationsPolicyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).organizationsconn
 
 	input := &organizations.UpdatePolicyInput{
@@ -155,26 +175,51 @@ func resourceAwsOrganizationsPolicyUpdate(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Updating Organizations Policy: %s", input)
 	_, err := conn.UpdatePolicy(input)
 	if err != nil {
-		return fmt.Errorf("error updating Organizations Policy: %s", err)
+		return diag.FromErr(fmt.Errorf("error updating Organizations policy (%s): %w", d.Id(), err))
 	}
 
-	return resourceAwsOrganizationsPolicyRead(d, meta)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.OrganizationsUpdateTags(conn, d.Id(), o, n); err != nil {
+			return diag.FromErr(fmt.Errorf("error updating tags for Organizations policy (%s): %w", d.Id(), err))
+		}
+	}
+
+	return resourceAwsOrganizationsPolicyRead(ctx, d, meta)
 }
 
-func resourceAwsOrganizationsPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsOrganizationsPolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).organizationsconn
 
 	input := &organizations.DeletePolicyInput{
 		PolicyId: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Deletion Organizations Policy: %s", input)
+	log.Printf("[DEBUG] Deleting Organizations Policy: %s", input)
 	_, err := conn.DeletePolicy(input)
 	if err != nil {
 		if isAWSErr(err, organizations.ErrCodePolicyNotFoundException, "") {
 			return nil
 		}
-		return err
+		return diag.FromErr(fmt.Errorf("error deleting Organizations policy (%s): %w", d.Id(), err))
 	}
 	return nil
+}
+
+func resourceAwsOrganizationsPolicyImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*AWSClient).organizationsconn
+
+	input := &organizations.DescribePolicyInput{
+		PolicyId: aws.String(d.Id()),
+	}
+	resp, err := conn.DescribePolicyWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	if aws.BoolValue(resp.Policy.PolicySummary.AwsManaged) {
+		return nil, fmt.Errorf("AWS-managed Organizations policy (%s) cannot be imported. Use the policy ID directly in your configuration.", d.Id())
+	}
+
+	return []*schema.ResourceData{d}, nil
 }

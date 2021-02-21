@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: aws_rds_orderable_db_instance
 
-Information about RDS orderable DB instances.
+Information about RDS orderable DB instances and valid parameter combinations.
 
 ## Example Usage
 
@@ -23,16 +23,30 @@ data "aws_rds_orderable_db_instance" "test" {
 }
 ```
 
+Valid parameter combinations can also be found with `preferred_engine_versions` and/or `preferred_instance_classes`.
+
+```hcl
+data "aws_rds_orderable_db_instance" "test" {
+  engine        = "mysql"
+  license_model = "general-public-license"
+
+  preferred_engine_versions  = ["5.6.35", "5.6.41", "5.6.44"]
+  preferred_instance_classes = ["db.t2.small", "db.t3.medium", "db.t3.large"]
+}
+```
+
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `engine` - (Required) DB engine. Engine values include `aurora`, `aurora-mysql`, `aurora-postgresql`, `docdb`, `mariadb`, `mysql`, `neptune`, `oracle-ee`, `oracle-se`, `oracle-se1`, `oracle-se2`, `postgres`, `sqlserver-ee`, `sqlserver-ex`, `sqlserver-se`, and `sqlserver-web`.
 * `availability_zone_group` - (Optional) Availability zone group.
+* `engine` - (Required) DB engine. Engine values include `aurora`, `aurora-mysql`, `aurora-postgresql`, `docdb`, `mariadb`, `mysql`, `neptune`, `oracle-ee`, `oracle-se`, `oracle-se1`, `oracle-se2`, `postgres`, `sqlserver-ee`, `sqlserver-ex`, `sqlserver-se`, and `sqlserver-web`.
+* `engine_version` - (Optional) Version of the DB engine. If none is provided, the AWS-defined default version will be used.
 * `instance_class` - (Optional) DB instance class. Examples of classes are `db.m3.2xlarge`, `db.t2.small`, and `db.m3.medium`.
-* `engine_version` - (Optional) Version of the DB engine.
 * `license_model` - (Optional) License model. Examples of license models are `general-public-license`, `bring-your-own-license`, and `amazon-license`.
 * `preferred_instance_classes` - (Optional) Ordered list of preferred RDS DB instance classes. The first match in this list will be returned. If no preferred matches are found and the original search returned more than one result, an error is returned.
+* `preferred_engine_versions` - (Optional) Ordered list of preferred RDS DB instance engine versions. The first match in this list will be returned. If no preferred matches are found and the original search returned more than one result, an error is returned.
 * `storage_type` - (Optional) Storage types. Examples of storage types are `standard`, `io1`, `gp2`, and `aurora`.
 * `supports_enhanced_monitoring` - (Optional) Enable this to ensure a DB instance supports Enhanced Monitoring at intervals from 1 to 60 seconds.
 * `supports_global_databases` - (Optional) Enable this to ensure a DB instance supports Aurora global databases with a specific combination of other DB engine attributes.

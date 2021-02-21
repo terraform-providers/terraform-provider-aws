@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSNeptuneCluster_basic(t *testing.T) {
@@ -377,7 +376,7 @@ func TestAccAWSNeptuneCluster_updateCloudwatchLogsExports(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSNeptuneClusterExists(resourceName, &dbCluster),
 					resource.TestCheckResourceAttr(resourceName, "enable_cloudwatch_logs_exports.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "enable_cloudwatch_logs_exports.*", "audit"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "enable_cloudwatch_logs_exports.*", "audit"),
 				),
 			},
 			{
@@ -571,11 +570,11 @@ func testAccCheckAWSNeptuneClusterSnapshot(rName string) resource.TestCheckFunc 
 }
 
 func testAccAWSNeptuneClusterConfigBase() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 locals {
   availability_zone_names = slice(data.aws_availability_zones.available.names, 0, min(3, length(data.aws_availability_zones.available.names)))
 }
-`))
+`)
 }
 
 func testAccAWSNeptuneClusterConfig(rName string) string {

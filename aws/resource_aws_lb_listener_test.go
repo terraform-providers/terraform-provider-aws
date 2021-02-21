@@ -15,8 +15,8 @@ import (
 
 func TestAccAWSLBListener_basic(t *testing.T) {
 	var conf elbv2.Listener
-	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -47,9 +47,9 @@ func TestAccAWSLBListener_basic(t *testing.T) {
 func TestAccAWSLBListener_forwardWeighted(t *testing.T) {
 	var conf elbv2.Listener
 	resourceName := "aws_lb_listener.weighted"
-	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName1 := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
-	targetGroupName2 := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandString(13))
+	targetGroupName1 := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
+	targetGroupName2 := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -119,8 +119,8 @@ func TestAccAWSLBListener_forwardWeighted(t *testing.T) {
 
 func TestAccAWSLBListener_basicUdp(t *testing.T) {
 	var conf elbv2.Listener
-	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -150,8 +150,8 @@ func TestAccAWSLBListener_basicUdp(t *testing.T) {
 
 func TestAccAWSLBListener_BackwardsCompatibility(t *testing.T) {
 	var conf elbv2.Listener
-	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -213,6 +213,30 @@ func TestAccAWSLBListener_https(t *testing.T) {
 	})
 }
 
+func TestAccAWSLBListener_LoadBalancerArn_GatewayLoadBalancer(t *testing.T) {
+	var conf elbv2.Listener
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	lbResourceName := "aws_lb.test"
+	resourceName := "aws_lb_listener.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBListenerConfig_LoadBalancerArn_GatewayLoadBalancer(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBListenerExists(resourceName, &conf),
+					resource.TestCheckResourceAttrPair(resourceName, "load_balancer_arn", lbResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", ""),
+					resource.TestCheckResourceAttr(resourceName, "port", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLBListener_Protocol_Tls(t *testing.T) {
 	var listener1 elbv2.Listener
 	key := tlsRsaPrivateKeyPem(2048)
@@ -238,7 +262,7 @@ func TestAccAWSLBListener_Protocol_Tls(t *testing.T) {
 
 func TestAccAWSLBListener_redirect(t *testing.T) {
 	var conf elbv2.Listener
-	lbName := fmt.Sprintf("testlistener-redirect-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-redirect-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -274,7 +298,7 @@ func TestAccAWSLBListener_redirect(t *testing.T) {
 
 func TestAccAWSLBListener_fixedResponse(t *testing.T) {
 	var conf elbv2.Listener
-	lbName := fmt.Sprintf("testlistener-fixedresponse-%s", acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-fixedresponse-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -407,7 +431,7 @@ func TestAccAWSLBListener_DefaultAction_Order(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/6171
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/6171
 func TestAccAWSLBListener_DefaultAction_Order_Recreates(t *testing.T) {
 	var listener elbv2.Listener
 	key := tlsRsaPrivateKeyPem(2048)
@@ -528,7 +552,6 @@ func testAccAWSLBListenerConfig_basic(lbName, targetGroupName string) string {
 	return fmt.Sprintf(`
 resource "aws_lb_listener" "front_end" {
   load_balancer_arn = aws_lb.alb_test.id
-  protocol          = "HTTP"
   port              = "80"
 
   default_action {
@@ -541,7 +564,7 @@ resource "aws_lb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -657,7 +680,7 @@ resource "aws_lb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -796,7 +819,7 @@ resource "aws_lb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -919,7 +942,7 @@ resource "aws_lb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -1042,7 +1065,7 @@ resource "aws_lb" "alb_test" {
   name               = "%s"
   internal           = false
   load_balancer_type = "network"
-  subnets            = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets            = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -1125,7 +1148,7 @@ resource "aws_alb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -1232,7 +1255,7 @@ resource "aws_lb" "alb_test" {
   name            = "%[1]s"
   internal        = false
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -1336,6 +1359,60 @@ resource "aws_iam_server_certificate" "test_cert" {
 `, rName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key))
 }
 
+func testAccAWSLBListenerConfig_LoadBalancerArn_GatewayLoadBalancer(rName string) string {
+	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.10.10.0/25"
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 2, 0)
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_lb" "test" {
+  load_balancer_type = "gateway"
+  name               = %[1]q
+
+  subnet_mapping {
+    subnet_id = aws_subnet.test.id
+  }
+}
+
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 6081
+  protocol = "GENEVE"
+  vpc_id   = aws_vpc.test.id
+
+  health_check {
+    port     = 80
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = aws_lb.test.id
+
+  default_action {
+    target_group_arn = aws_lb_target_group.test.id
+    type             = "forward"
+  }
+}
+`, rName))
+}
+
 func testAccAWSLBListenerConfig_Protocol_Tls(rName, key, certificate string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
@@ -1376,7 +1453,7 @@ resource "aws_lb" "test" {
   internal           = true
   load_balancer_type = "network"
   name               = %[1]q
-  subnets            = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnets            = aws_subnet.test[*].id
 
   tags = {
     Name = "tf-acc-test-lb-listener-protocol-tls"
@@ -1439,7 +1516,7 @@ resource "aws_lb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -1531,7 +1608,7 @@ resource "aws_lb" "alb_test" {
   name            = "%s"
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
-  subnets         = [aws_subnet.alb_test[0].id, aws_subnet.alb_test[1].id]
+  subnets         = aws_subnet.alb_test[*].id
 
   idle_timeout               = 30
   enable_deletion_protection = false
@@ -1607,7 +1684,7 @@ resource "aws_lb" "test" {
   name                       = "%[1]s"
   internal                   = false
   security_groups            = [aws_security_group.test.id]
-  subnets                    = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnets                    = aws_subnet.test[*].id
   enable_deletion_protection = false
 }
 
@@ -1741,7 +1818,7 @@ resource "aws_lb" "test" {
   name                       = "%[1]s"
   internal                   = false
   security_groups            = [aws_security_group.test.id]
-  subnets                    = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnets                    = aws_subnet.test[*].id
   enable_deletion_protection = false
 }
 
@@ -1908,7 +1985,7 @@ resource "aws_lb" "test" {
   internal        = true
   name            = var.rName
   security_groups = [aws_security_group.test.id]
-  subnets         = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnets         = aws_subnet.test[*].id
 }
 
 resource "aws_lb_target_group" "test" {

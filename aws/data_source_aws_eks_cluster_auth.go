@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -34,14 +33,14 @@ func dataSourceAwsEksClusterAuthRead(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	generator, err := token.NewGenerator(false, false)
 	if err != nil {
-		return fmt.Errorf("error getting token generator: %v", err)
+		return fmt.Errorf("error getting token generator: %w", err)
 	}
 	token, err := generator.GetWithSTS(name, conn)
 	if err != nil {
-		return fmt.Errorf("error getting token: %v", err)
+		return fmt.Errorf("error getting token: %w", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(name)
 	d.Set("token", token.Token)
 
 	return nil

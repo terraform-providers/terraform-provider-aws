@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ses_event_destination: Add `arn` attribute
+```
+
+```release-note:enhancement
+resource/aws_ses_event_destination: Add plan time validation for `name`, `cloudwatch_destination.default_value`, `cloudwatch_destination.default_name`, `kinesis_destination.role_arn`, `kinesis_destination.stream_arn`, and `sns_destination.topic_arn` attributes
+```

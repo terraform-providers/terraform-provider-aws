@@ -273,6 +273,29 @@ func TestAccAWSGlueConnection_PhysicalConnectionRequirements(t *testing.T) {
 	})
 }
 
+func TestAccAWSGlueConnection_disappears(t *testing.T) {
+	var connection glue.Connection
+
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_glue_connection.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSGlueConnectionConfig_Required(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueConnectionExists(resourceName, &connection),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsGlueConnection(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSGlueConnectionExists(resourceName string, connection *glue.Connection) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]

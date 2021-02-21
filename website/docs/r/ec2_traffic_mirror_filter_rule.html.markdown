@@ -57,16 +57,16 @@ resource "aws_ec2_traffic_mirror_filter_rule" "rulein" {
 
 The following arguments are supported:
 
-* `description` - (Optional) A description of the traffic mirror filter rule.
+* `description` - (Optional) Description of the traffic mirror filter rule.
 * `traffic_mirror_filter_id`  - (Required) ID of the traffic mirror filter to which this rule should be added
-* `destination_cidr_block` - (Required) The destination CIDR block to assign to the Traffic Mirror rule.
-* `destination_port_range` - (Optional) The destination port range. Supported only when the protocol is set to TCP(6) or UDP(17). See Traffic mirror port range documented below
-* `protocol` - (Optional) The protocol number, for example 17 (UDP), to assign to the Traffic Mirror rule. For information about the protocol value, see [Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml) on the Internet Assigned Numbers Authority (IANA) website.
-* `rule_action` - (Required) The action to take (accept | reject) on the filtered traffic. Valid values are `accept` and `reject`
-* `rule_number` - (Required) The number of the Traffic Mirror rule. This number must be unique for each Traffic Mirror rule in a given direction. The rules are processed in ascending order by rule number.
-* `source_cidr_block` - (Required) The source CIDR block to assign to the Traffic Mirror rule.
-* `source_port_range` - (Optional) The source port range. Supported only when the protocol is set to TCP(6) or UDP(17). See Traffic mirror port range documented below
-* `traffic_direction` - (Required) The direction of traffic to be captured. Valid values are `ingress` and `egress`
+* `destination_cidr_block` - (Required) Destination CIDR block to assign to the Traffic Mirror rule.
+* `destination_port_range` - (Optional) Destination port range. Supported only when the protocol is set to TCP(6) or UDP(17). See Traffic mirror port range documented below
+* `protocol` - (Optional) Protocol number, for example 17 (UDP), to assign to the Traffic Mirror rule. For information about the protocol value, see [Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml) on the Internet Assigned Numbers Authority (IANA) website.
+* `rule_action` - (Required) Action to take (accept | reject) on the filtered traffic. Valid values are `accept` and `reject`
+* `rule_number` - (Required) Number of the Traffic Mirror rule. This number must be unique for each Traffic Mirror rule in a given direction. The rules are processed in ascending order by rule number.
+* `source_cidr_block` - (Required) Source CIDR block to assign to the Traffic Mirror rule.
+* `source_port_range` - (Optional) Source port range. Supported only when the protocol is set to TCP(6) or UDP(17). See Traffic mirror port range documented below
+* `traffic_direction` - (Required) Direction of traffic to be captured. Valid values are `ingress` and `egress`
 
 Traffic mirror port range support following attributes:
 
@@ -77,7 +77,8 @@ Traffic mirror port range support following attributes:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The name of the traffic mirror filter rule.
+* `arn` - ARN of the traffic mirror filter rule.
+* `id` - Name of the traffic mirror filter rule.
 
 ## Import
 

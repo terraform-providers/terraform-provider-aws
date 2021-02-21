@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/wafregional"
 )
 
 func TestAccAWSWafRegionalWebAclAssociation_basic(t *testing.T) {
 	resourceName := "aws_wafregional_web_acl_association.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckWafRegionalWebAclAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -37,7 +36,7 @@ func TestAccAWSWafRegionalWebAclAssociation_basic(t *testing.T) {
 
 func TestAccAWSWafRegionalWebAclAssociation_disappears(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckWafRegionalWebAclAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +56,7 @@ func TestAccAWSWafRegionalWebAclAssociation_multipleAssociations(t *testing.T) {
 	resourceName := "aws_wafregional_web_acl_association.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckWafRegionalWebAclAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -82,7 +81,11 @@ func TestAccAWSWafRegionalWebAclAssociation_ResourceArn_ApiGatewayStage(t *testi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t)
+			testAccAPIGatewayTypeEDGEPreCheck(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckWafRegionalWebAclAssociationDestroy,
 		Steps: []resource.TestStep{

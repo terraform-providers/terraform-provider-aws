@@ -24,4 +24,6 @@ The core services we have identified are:
 
 * Autoscaling (ASG)
 
+* ElastiCache
+
 We'll continue to evaluate the selected services as our user base grows and changes.

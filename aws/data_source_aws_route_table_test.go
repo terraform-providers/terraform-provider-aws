@@ -1,8 +1,11 @@
 package aws
 
 import (
+	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -10,160 +13,114 @@ func TestAccDataSourceAwsRouteTable_basic(t *testing.T) {
 	rtResourceName := "aws_route_table.test"
 	snResourceName := "aws_subnet.test"
 	vpcResourceName := "aws_vpc.test"
-	gwResourceName := "aws_internet_gateway.test"
-	ds1ResourceName := "data.aws_route_table.by_tag"
-	ds2ResourceName := "data.aws_route_table.by_filter"
-	ds3ResourceName := "data.aws_route_table.by_subnet"
-	ds4ResourceName := "data.aws_route_table.by_id"
-	ds5ResourceName := "data.aws_route_table.by_gateway"
-	tagValue := "terraform-testacc-routetable-data-source"
+	igwResourceName := "aws_internet_gateway.test"
+	datasource1Name := "data.aws_route_table.by_tag"
+	datasource2Name := "data.aws_route_table.by_filter"
+	datasource3Name := "data.aws_route_table.by_subnet"
+	datasource4Name := "data.aws_route_table.by_id"
+	datasource5Name := "data.aws_route_table.by_gateway"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsRouteTableGroupConfig,
+				Config: testAccDataSourceAwsRouteTableConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(
-						ds1ResourceName, "id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds1ResourceName, "route_table_id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds1ResourceName, "owner_id", rtResourceName, "owner_id"),
-					resource.TestCheckResourceAttrPair(
-						ds1ResourceName, "vpc_id", vpcResourceName, "id"),
-					resource.TestCheckNoResourceAttr(
-						ds1ResourceName, "subnet_id"),
-					resource.TestCheckNoResourceAttr(
-						ds1ResourceName, "gateway_id"),
-					resource.TestCheckResourceAttr(
-						ds1ResourceName, "associations.#", "2"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds1ResourceName, "associations", "subnet_id", snResourceName, "id"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds1ResourceName, "associations", "gateway_id", gwResourceName, "id"),
-					resource.TestCheckResourceAttr(
-						ds1ResourceName, "tags.Name", tagValue),
-
-					resource.TestCheckResourceAttrPair(
-						ds2ResourceName, "id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds2ResourceName, "route_table_id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds2ResourceName, "owner_id", rtResourceName, "owner_id"),
-					resource.TestCheckResourceAttrPair(
-						ds2ResourceName, "vpc_id", vpcResourceName, "id"),
-					resource.TestCheckNoResourceAttr(
-						ds2ResourceName, "subnet_id"),
-					resource.TestCheckNoResourceAttr(
-						ds2ResourceName, "gateway_id"),
-					resource.TestCheckResourceAttr(
-						ds2ResourceName, "associations.#", "2"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds2ResourceName, "associations", "subnet_id", snResourceName, "id"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds2ResourceName, "associations", "gateway_id", gwResourceName, "id"),
-					resource.TestCheckResourceAttr(
-						ds2ResourceName, "tags.Name", tagValue),
-
-					resource.TestCheckResourceAttrPair(
-						ds3ResourceName, "id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds3ResourceName, "route_table_id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds3ResourceName, "owner_id", rtResourceName, "owner_id"),
-					resource.TestCheckResourceAttrPair(
-						ds3ResourceName, "vpc_id", vpcResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds3ResourceName, "subnet_id", snResourceName, "id"),
-					resource.TestCheckNoResourceAttr(
-						ds3ResourceName, "gateway_id"),
-					resource.TestCheckResourceAttr(
-						ds3ResourceName, "associations.#", "2"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds3ResourceName, "associations", "subnet_id", snResourceName, "id"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds3ResourceName, "associations", "gateway_id", gwResourceName, "id"),
-					resource.TestCheckResourceAttr(
-						ds3ResourceName, "tags.Name", tagValue),
-
-					resource.TestCheckResourceAttrPair(
-						ds4ResourceName, "id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds4ResourceName, "route_table_id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds4ResourceName, "owner_id", rtResourceName, "owner_id"),
-					resource.TestCheckResourceAttrPair(
-						ds4ResourceName, "vpc_id", vpcResourceName, "id"),
-					resource.TestCheckNoResourceAttr(
-						ds4ResourceName, "subnet_id"),
-					resource.TestCheckNoResourceAttr(
-						ds4ResourceName, "gateway_id"),
-					resource.TestCheckResourceAttr(
-						ds4ResourceName, "associations.#", "2"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds4ResourceName, "associations", "subnet_id", snResourceName, "id"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds4ResourceName, "associations", "gateway_id", gwResourceName, "id"),
-					resource.TestCheckResourceAttr(
-						ds4ResourceName, "tags.Name", tagValue),
-
-					resource.TestCheckResourceAttrPair(
-						ds5ResourceName, "id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds5ResourceName, "route_table_id", rtResourceName, "id"),
-					resource.TestCheckResourceAttrPair(
-						ds5ResourceName, "owner_id", rtResourceName, "owner_id"),
-					resource.TestCheckResourceAttrPair(
-						ds5ResourceName, "vpc_id", vpcResourceName, "id"),
-					resource.TestCheckNoResourceAttr(
-						ds5ResourceName, "subnet_id"),
-					resource.TestCheckResourceAttrPair(
-						ds5ResourceName, "gateway_id", gwResourceName, "id"),
-					resource.TestCheckResourceAttr(
-						ds5ResourceName, "associations.#", "2"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds5ResourceName, "associations", "subnet_id", snResourceName, "id"),
-					testAccCheckListHasSomeElementAttrPair(
-						ds5ResourceName, "associations", "gateway_id", gwResourceName, "id"),
-					resource.TestCheckResourceAttr(
-						ds5ResourceName, "tags.Name", tagValue),
+					// By tags.
+					testAccMatchResourceAttrRegionalARN(datasource1Name, "arn", "ec2", regexp.MustCompile(`route-table/.+$`)),
+					resource.TestCheckResourceAttrPair(datasource1Name, "id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource1Name, "route_table_id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource1Name, "owner_id", rtResourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(datasource1Name, "vpc_id", vpcResourceName, "id"),
+					resource.TestCheckNoResourceAttr(datasource1Name, "subnet_id"),
+					resource.TestCheckNoResourceAttr(datasource1Name, "gateway_id"),
+					resource.TestCheckResourceAttr(datasource1Name, "associations.#", "2"),
+					testAccCheckListHasSomeElementAttrPair(datasource1Name, "associations", "subnet_id", snResourceName, "id"),
+					testAccCheckListHasSomeElementAttrPair(datasource1Name, "associations", "gateway_id", igwResourceName, "id"),
+					resource.TestCheckResourceAttr(datasource1Name, "tags.Name", rName),
+					// By filter.
+					testAccMatchResourceAttrRegionalARN(datasource2Name, "arn", "ec2", regexp.MustCompile(`route-table/.+$`)),
+					resource.TestCheckResourceAttrPair(datasource2Name, "id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource2Name, "route_table_id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource2Name, "owner_id", rtResourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(datasource2Name, "vpc_id", vpcResourceName, "id"),
+					resource.TestCheckNoResourceAttr(datasource2Name, "subnet_id"),
+					resource.TestCheckNoResourceAttr(datasource2Name, "gateway_id"),
+					resource.TestCheckResourceAttr(datasource2Name, "associations.#", "2"),
+					testAccCheckListHasSomeElementAttrPair(datasource2Name, "associations", "subnet_id", snResourceName, "id"),
+					testAccCheckListHasSomeElementAttrPair(datasource2Name, "associations", "gateway_id", igwResourceName, "id"),
+					resource.TestCheckResourceAttr(datasource2Name, "tags.Name", rName),
+					// By subnet ID.
+					testAccMatchResourceAttrRegionalARN(datasource3Name, "arn", "ec2", regexp.MustCompile(`route-table/.+$`)),
+					resource.TestCheckResourceAttrPair(datasource3Name, "id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource3Name, "route_table_id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource3Name, "owner_id", rtResourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(datasource3Name, "vpc_id", vpcResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource3Name, "subnet_id", snResourceName, "id"),
+					resource.TestCheckNoResourceAttr(datasource3Name, "gateway_id"),
+					resource.TestCheckResourceAttr(datasource3Name, "associations.#", "2"),
+					testAccCheckListHasSomeElementAttrPair(datasource3Name, "associations", "subnet_id", snResourceName, "id"),
+					testAccCheckListHasSomeElementAttrPair(datasource3Name, "associations", "gateway_id", igwResourceName, "id"),
+					resource.TestCheckResourceAttr(datasource3Name, "tags.Name", rName),
+					// By route table ID.
+					testAccMatchResourceAttrRegionalARN(datasource4Name, "arn", "ec2", regexp.MustCompile(`route-table/.+$`)),
+					resource.TestCheckResourceAttrPair(datasource4Name, "id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource4Name, "route_table_id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource4Name, "owner_id", rtResourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(datasource4Name, "vpc_id", vpcResourceName, "id"),
+					resource.TestCheckNoResourceAttr(datasource4Name, "subnet_id"),
+					resource.TestCheckNoResourceAttr(datasource4Name, "gateway_id"),
+					resource.TestCheckResourceAttr(datasource4Name, "associations.#", "2"),
+					testAccCheckListHasSomeElementAttrPair(datasource4Name, "associations", "subnet_id", snResourceName, "id"),
+					testAccCheckListHasSomeElementAttrPair(datasource4Name, "associations", "gateway_id", igwResourceName, "id"),
+					resource.TestCheckResourceAttr(datasource4Name, "tags.Name", rName),
+					// By gateway ID.
+					testAccMatchResourceAttrRegionalARN(datasource5Name, "arn", "ec2", regexp.MustCompile(`route-table/.+$`)),
+					resource.TestCheckResourceAttrPair(datasource5Name, "id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource5Name, "route_table_id", rtResourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasource5Name, "owner_id", rtResourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(datasource5Name, "vpc_id", vpcResourceName, "id"),
+					resource.TestCheckNoResourceAttr(datasource5Name, "subnet_id"),
+					resource.TestCheckResourceAttrPair(datasource5Name, "gateway_id", igwResourceName, "id"),
+					resource.TestCheckResourceAttr(datasource5Name, "associations.#", "2"),
+					testAccCheckListHasSomeElementAttrPair(datasource5Name, "associations", "subnet_id", snResourceName, "id"),
+					testAccCheckListHasSomeElementAttrPair(datasource5Name, "associations", "gateway_id", igwResourceName, "id"),
+					resource.TestCheckResourceAttr(datasource5Name, "tags.Name", rName),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccDataSourceAwsRouteTable_main(t *testing.T) {
-	dsResourceName := "data.aws_route_table.by_filter"
+	datasourceName := "data.aws_route_table.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsRouteTableMainRoute,
+				Config: testAccDataSourceAwsRouteTableConfigMain(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(
-						dsResourceName, "id"),
-					resource.TestCheckResourceAttrSet(
-						dsResourceName, "vpc_id"),
-					resource.TestCheckResourceAttr(
-						dsResourceName, "associations.0.main", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(datasourceName, "associations.0.main", "true"),
 				),
 			},
 		},
 	})
 }
 
-const testAccDataSourceAwsRouteTableGroupConfig = `
+func testAccDataSourceAwsRouteTableConfigBasic(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-route-table-data-source"
+    Name = %[1]q
   }
 }
 
@@ -172,7 +129,7 @@ resource "aws_subnet" "test" {
   vpc_id     = aws_vpc.test.id
 
   tags = {
-    Name = "tf-acc-route-table-data-source"
+    Name = %[1]q
   }
 }
 
@@ -180,7 +137,7 @@ resource "aws_route_table" "test" {
   vpc_id = aws_vpc.test.id
 
   tags = {
-    Name = "terraform-testacc-routetable-data-source"
+    Name = %[1]q
   }
 }
 
@@ -193,7 +150,7 @@ resource "aws_internet_gateway" "test" {
   vpc_id = aws_vpc.test.id
 
   tags = {
-    Name = "terraform-testacc-routetable-data-source"
+    Name = %[1]q
   }
 }
 
@@ -208,10 +165,7 @@ data "aws_route_table" "by_filter" {
     values = [aws_route_table_association.a.id]
   }
 
-  depends_on = [
-    "aws_route_table_association.a",
-    "aws_route_table_association.b"
-  ]
+  depends_on = [aws_route_table_association.a, aws_route_table_association.b]
 }
 
 data "aws_route_table" "by_tag" {
@@ -219,47 +173,40 @@ data "aws_route_table" "by_tag" {
     Name = aws_route_table.test.tags["Name"]
   }
 
-  depends_on = [
-    "aws_route_table_association.a",
-    "aws_route_table_association.b"
-  ]
+  depends_on = [aws_route_table_association.a, aws_route_table_association.b]
 }
 
 data "aws_route_table" "by_subnet" {
   subnet_id = aws_subnet.test.id
-  depends_on = [
-    "aws_route_table_association.a",
-    "aws_route_table_association.b"
-  ]
+
+  depends_on = [aws_route_table_association.a, aws_route_table_association.b]
 }
 
 data "aws_route_table" "by_gateway" {
   gateway_id = aws_internet_gateway.test.id
-  depends_on = [
-    "aws_route_table_association.a",
-    "aws_route_table_association.b"
-  ]
+
+  depends_on = [aws_route_table_association.a, aws_route_table_association.b]
 }
 
 data "aws_route_table" "by_id" {
   route_table_id = aws_route_table.test.id
-  depends_on = [
-    "aws_route_table_association.a",
-    "aws_route_table_association.b"
-  ]
-}
-`
 
-const testAccDataSourceAwsRouteTableMainRoute = `
+  depends_on = [aws_route_table_association.a, aws_route_table_association.b]
+}
+`, rName)
+}
+
+func testAccDataSourceAwsRouteTableConfigMain(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-route-table-data-source-main-route"
+    Name = %[1]q
   }
 }
 
-data "aws_route_table" "by_filter" {
+data "aws_route_table" "test" {
   filter {
     name   = "association.main"
     values = ["true"]
@@ -270,4 +217,5 @@ data "aws_route_table" "by_filter" {
     values = [aws_vpc.test.id]
   }
 }
-`
+`, rName)
+}

@@ -41,8 +41,6 @@ resource "aws_autoscaling_group" "bar" {
 
 ## Argument Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name of the policy.
 * `autoscaling_group_name` - (Required) The name of the autoscaling group.
 * `adjustment_type` - (Optional) Specifies whether the adjustment is an absolute number or a percentage of the current capacity. Valid values are `ChangeInCapacity`, `ExactCapacity`, and `PercentChangeInCapacity`.
@@ -94,6 +92,8 @@ Without a value, AWS will treat this bound as infinity.
 difference between the alarm threshold and the CloudWatch metric.
 Without a value, AWS will treat this bound as infinity. The upper bound
 must be greater than the lower bound.
+
+Notice the bounds are **relative** to the alarm threshold, meaning that the starting point is not 0%, but the alarm threshold. Check the official [docs](https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html#as-scaling-steps) for a detailed example.
 
 The following arguments are only available to "TargetTrackingScaling" type policies:
 
@@ -159,7 +159,9 @@ The following arguments are supported:
 * `name` - (Required) The name of the dimension.
 * `value` - (Required) The value of the dimension.
 
-## Attribute Reference
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN assigned by AWS to the scaling policy.
 * `name` - The scaling policy's name.

@@ -2,11 +2,13 @@ package aws
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"log"
 )
 
 func resourceAwsEMRManagedScalingPolicy() *schema.Resource {
@@ -100,44 +102,93 @@ func resourceAwsEMRManagedScalingPolicyCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsEMRManagedScalingPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).emrconn
-	resp, err := conn.GetManagedScalingPolicy(&emr.GetManagedScalingPolicyInput{
+
+	input := &emr.GetManagedScalingPolicyInput{
 		ClusterId: aws.String(d.Id()),
-	})
+	}
+
+	resp, err := conn.GetManagedScalingPolicy(input)
+
+	if tfawserr.ErrMessageContains(err, "ValidationException", "A job flow that is shutting down, terminated, or finished may not be modified") {
+		log.Printf("[WARN] EMR Managed Scaling Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if tfawserr.ErrMessageContains(err, "InvalidRequestException", "does not exist") {
+		log.Printf("[WARN] EMR Managed Scaling Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidRequestException", "does not exist") {
-			log.Printf("[WARN] EMR Managed Scaling Policy (%s) not found, removing from state", d.Get("cluster_id").(string))
-			d.SetId("")
-			return nil
-		}
 		return fmt.Errorf("error getting EMR Managed Scaling Policy (%s): %w", d.Id(), err)
 	}
 
-	if resp.ManagedScalingPolicy != nil {
-		attrs := make(map[string]interface{})
-		attrs["unit_type"] = aws.StringValue(resp.ManagedScalingPolicy.ComputeLimits.UnitType)
-		attrs["minimum_capacity_units"] = aws.Int64Value(resp.ManagedScalingPolicy.ComputeLimits.MinimumCapacityUnits)
-		attrs["maximum_capacity_units"] = aws.Int64Value(resp.ManagedScalingPolicy.ComputeLimits.MaximumCapacityUnits)
-		attrs["maximum_core_capacity_units"] = aws.Int64Value(resp.ManagedScalingPolicy.ComputeLimits.MaximumCoreCapacityUnits)
-		attrs["maximum_ondemand_capacity_units"] = aws.Int64Value(resp.ManagedScalingPolicy.ComputeLimits.MaximumOnDemandCapacityUnits)
-
-		computeLimits := make([]interface{}, 0)
-		computeLimits = append(computeLimits, attrs)
-		d.Set("compute_limits", computeLimits)
+	// Previously after RemoveManagedScalingPolicy the API returned an error, but now it
+	// returns an empty response. We keep the original error handling above though just in case.
+	if resp == nil || resp.ManagedScalingPolicy == nil {
+		log.Printf("[WARN] EMR Managed Scaling Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
+
+	d.Set("cluster_id", d.Id())
+	d.Set("compute_limits", flattenEmrComputeLimits(resp.ManagedScalingPolicy.ComputeLimits))
 
 	return nil
 }
 
 func resourceAwsEMRManagedScalingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).emrconn
-	_, err := conn.RemoveManagedScalingPolicy(&emr.RemoveManagedScalingPolicyInput{
+
+	input := &emr.RemoveManagedScalingPolicyInput{
 		ClusterId: aws.String(d.Get("cluster_id").(string)),
-	})
+	}
+
+	_, err := conn.RemoveManagedScalingPolicy(input)
+
+	if tfawserr.ErrMessageContains(err, "ValidationException", "A job flow that is shutting down, terminated, or finished may not be modified") {
+		return nil
+	}
+
+	if tfawserr.ErrMessageContains(err, "InvalidRequestException", "does not exist") {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidRequestException", "does not exist") {
-			return nil
-		}
 		return fmt.Errorf("error removing EMR Managed Scaling Policy (%s): %w", d.Id(), err)
 	}
+
 	return nil
+}
+
+func flattenEmrComputeLimits(apiObject *emr.ComputeLimits) []interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	if v := apiObject.UnitType; v != nil {
+		tfMap["unit_type"] = aws.StringValue(v)
+	}
+
+	if v := apiObject.MaximumCapacityUnits; v != nil {
+		tfMap["maximum_capacity_units"] = aws.Int64Value(v)
+	}
+
+	if v := apiObject.MaximumCoreCapacityUnits; v != nil {
+		tfMap["maximum_core_capacity_units"] = aws.Int64Value(v)
+	}
+
+	if v := apiObject.MaximumOnDemandCapacityUnits; v != nil {
+		tfMap["maximum_ondemand_capacity_units"] = aws.Int64Value(v)
+	}
+
+	if v := apiObject.MinimumCapacityUnits; v != nil {
+		tfMap["minimum_capacity_units"] = aws.Int64Value(v)
+	}
+
+	return []interface{}{tfMap}
 }

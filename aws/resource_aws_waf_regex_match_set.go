@@ -90,7 +90,7 @@ func resourceAwsWafRegexMatchSetCreate(d *schema.ResourceData, meta interface{})
 	}
 	resp := out.(*waf.CreateRegexMatchSetOutput)
 
-	d.SetId(*resp.RegexMatchSet.RegexMatchSetId)
+	d.SetId(aws.StringValue(resp.RegexMatchSet.RegexMatchSetId))
 
 	return resourceAwsWafRegexMatchSetUpdate(d, meta)
 }

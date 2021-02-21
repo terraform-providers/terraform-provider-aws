@@ -23,6 +23,10 @@ func resourceAwsLicenseManagerLicenseConfiguration() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -59,6 +63,10 @@ func resourceAwsLicenseManagerLicenseConfiguration() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"owner_account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"tags": tagsSchema(),
 		},
@@ -99,7 +107,7 @@ func resourceAwsLicenseManagerLicenseConfigurationCreate(d *schema.ResourceData,
 	if err != nil {
 		return fmt.Errorf("Error creating License Manager license configuration: %s", err)
 	}
-	d.SetId(*resp.LicenseConfigurationArn)
+	d.SetId(aws.StringValue(resp.LicenseConfigurationArn))
 	return resourceAwsLicenseManagerLicenseConfigurationRead(d, meta)
 }
 
@@ -120,6 +128,7 @@ func resourceAwsLicenseManagerLicenseConfigurationRead(d *schema.ResourceData, m
 		return fmt.Errorf("Error reading License Manager license configuration: %s", err)
 	}
 
+	d.Set("arn", resp.LicenseConfigurationArn)
 	d.Set("description", resp.Description)
 	d.Set("license_count", resp.LicenseCount)
 	d.Set("license_count_hard_limit", resp.LicenseCountHardLimit)
@@ -128,6 +137,7 @@ func resourceAwsLicenseManagerLicenseConfigurationRead(d *schema.ResourceData, m
 		return fmt.Errorf("error setting license_rules: %s", err)
 	}
 	d.Set("name", resp.Name)
+	d.Set("owner_account_id", resp.OwnerAccountId)
 
 	if err := d.Set("tags", keyvaluetags.LicensemanagerKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -153,6 +155,10 @@ func testAccCheckAwsSecurityHubActionTargetDestroy(s *terraform.State) error {
 		}
 
 		action, err := resourceAwsSecurityHubActionTargetCheckExists(conn, rs.Primary.ID)
+
+		if tfawserr.ErrMessageContains(err, securityhub.ErrCodeInvalidAccessException, "not subscribed to AWS Security Hub") {
+			continue
+		}
 
 		if err != nil {
 			return err

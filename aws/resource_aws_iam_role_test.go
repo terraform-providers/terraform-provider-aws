@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -115,38 +117,29 @@ func testSweepIamRoles(region string) error {
 		return nil
 	}
 
+	var sweeperErrs *multierror.Error
+
 	for _, role := range roles {
 		rolename := aws.StringValue(role.RoleName)
-		log.Printf("[DEBUG] Deleting IAM Role: %s", rolename)
+		log.Printf("[DEBUG] Deleting IAM Role (%s)", rolename)
 
-		if err := deleteAwsIamRoleInstanceProfiles(conn, rolename); err != nil {
-			return fmt.Errorf("error deleting IAM Role (%s) instance profiles: %s", rolename, err)
-		}
-
-		if err := deleteAwsIamRolePolicyAttachments(conn, rolename); err != nil {
-			return fmt.Errorf("error deleting IAM Role (%s) policy attachments: %s", rolename, err)
-		}
-
-		if err := deleteAwsIamRolePolicies(conn, rolename); err != nil {
-			return fmt.Errorf("error deleting IAM Role (%s) policies: %s", rolename, err)
-		}
-
-		input := &iam.DeleteRoleInput{
-			RoleName: aws.String(rolename),
-		}
-
-		_, err := conn.DeleteRole(input)
-
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		err := deleteAwsIamRole(conn, rolename, true)
+		if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 			continue
 		}
-
+		if testSweepSkipResourceError(err) {
+			log.Printf("[WARN] Skipping IAM Role (%s): %s", rolename, err)
+			continue
+		}
 		if err != nil {
-			return fmt.Errorf("Error deleting IAM Role (%s): %s", rolename, err)
+			sweeperErr := fmt.Errorf("error deleting IAM Role (%s): %w", rolename, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 	}
 
-	return nil
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSIAMRole_basic(t *testing.T) {

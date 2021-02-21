@@ -53,7 +53,7 @@ The Cognito Identity Pool argument layout is a structure composed of several sub
 * `developer_provider_name` (Optional) - The "domain" by which Cognito will refer to your users. This name acts as a placeholder that allows your
 backend and the Cognito service to communicate about the developer provider.
 * `cognito_identity_providers` (Optional) - An array of [Amazon Cognito Identity user pools](#cognito-identity-providers) and their client IDs.
-* `openid_connect_provider_arns` (Optional) - A list of OpendID Connect provider ARNs.
+* `openid_connect_provider_arns` (Optional) - Set of OpendID Connect provider ARNs.
 * `saml_provider_arns` (Optional) - An array of Amazon Resource Names (ARNs) of the SAML provider for your identity.
 * `supported_login_providers` (Optional) - Key-Value pairs mapping provider names to provider app IDs.
 * `tags` - (Optional) A map of tags to assign to the Identity Pool.
@@ -66,7 +66,7 @@ backend and the Cognito service to communicate about the developer provider.
 
 ## Attributes Reference
 
-In addition to the arguments, which are exported, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - An identity pool ID in the format REGION:GUID.
 * `arn` - The ARN of the identity pool.

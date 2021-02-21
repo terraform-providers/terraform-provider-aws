@@ -22,6 +22,12 @@ func resourceAwsEc2TransitGatewayVpcAttachment() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"appliance_mode_support": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.ApplianceModeSupportValueDisable,
+				ValidateFunc: validation.StringInSlice(ec2.ApplianceModeSupportValue_Values(), false),
+			},
 			"dns_support": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -84,8 +90,9 @@ func resourceAwsEc2TransitGatewayVpcAttachmentCreate(d *schema.ResourceData, met
 
 	input := &ec2.CreateTransitGatewayVpcAttachmentInput{
 		Options: &ec2.CreateTransitGatewayVpcAttachmentRequestOptions{
-			DnsSupport:  aws.String(d.Get("dns_support").(string)),
-			Ipv6Support: aws.String(d.Get("ipv6_support").(string)),
+			ApplianceModeSupport: aws.String(d.Get("appliance_mode_support").(string)),
+			DnsSupport:           aws.String(d.Get("dns_support").(string)),
+			Ipv6Support:          aws.String(d.Get("ipv6_support").(string)),
 		},
 		SubnetIds:         expandStringSet(d.Get("subnet_ids").(*schema.Set)),
 		TransitGatewayId:  aws.String(transitGatewayID),
@@ -188,6 +195,7 @@ func resourceAwsEc2TransitGatewayVpcAttachmentRead(d *schema.ResourceData, meta 
 		return fmt.Errorf("error reading EC2 Transit Gateway VPC Attachment (%s): missing options", d.Id())
 	}
 
+	d.Set("appliance_mode_support", transitGatewayVpcAttachment.Options.ApplianceModeSupport)
 	d.Set("dns_support", transitGatewayVpcAttachment.Options.DnsSupport)
 	d.Set("ipv6_support", transitGatewayVpcAttachment.Options.Ipv6Support)
 
@@ -211,11 +219,12 @@ func resourceAwsEc2TransitGatewayVpcAttachmentRead(d *schema.ResourceData, meta 
 func resourceAwsEc2TransitGatewayVpcAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChanges("dns_support", "ipv6_support", "subnet_ids") {
+	if d.HasChanges("appliance_mode_support", "dns_support", "ipv6_support", "subnet_ids") {
 		input := &ec2.ModifyTransitGatewayVpcAttachmentInput{
 			Options: &ec2.ModifyTransitGatewayVpcAttachmentRequestOptions{
-				DnsSupport:  aws.String(d.Get("dns_support").(string)),
-				Ipv6Support: aws.String(d.Get("ipv6_support").(string)),
+				ApplianceModeSupport: aws.String(d.Get("appliance_mode_support").(string)),
+				DnsSupport:           aws.String(d.Get("dns_support").(string)),
+				Ipv6Support:          aws.String(d.Get("ipv6_support").(string)),
 			},
 			TransitGatewayAttachmentId: aws.String(d.Id()),
 		}

@@ -37,8 +37,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the Lightsail Instance. Names be unique within each AWS Region in your Lightsail account.
 * `availability_zone` - (Required) The Availability Zone in which to create your
 instance (see list below)
-* `blueprint_id` - (Required) The ID for a virtual private server image
-(see list below)
+* `blueprint_id` - (Required) The ID for a virtual private server image. A list of available blueprint IDs can be obtained using the AWS CLI command: `aws lightsail get-blueprints`
 * `bundle_id` - (Required) The bundle of specification information (see list below)
 * `key_pair_name` - (Optional) The name of your key pair. Created in the
 Lightsail console (cannot use `aws_key_pair` at this time)
@@ -61,37 +60,6 @@ Lightsail currently supports the following Availability Zones (e.g. `us-east-1a`
 - `us-east-1{a,b,c,d,e,f}`
 - `us-east-2{a,b,c}`
 - `us-west-2{a,b,c}`
-
-## Blueprints
-
-Lightsail currently supports the following Blueprint IDs:
-
-### OS Only
-
-- `amazon_linux_2018_03_0_2`
-- `centos_7_1901_01`
-- `debian_8_7`
-- `debian_9_5`
-- `freebsd_11_1`
-- `opensuse_42_2`
-- `ubuntu_16_04_2`
-- `ubuntu_18_04`
-
-### Apps and OS
-
-- `drupal_8_5_6`
-- `gitlab_11_1_4_1`
-- `joomla_3_8_11`
-- `lamp_5_6_37_2`
-- `lamp_7_1_20_1`
-- `magento_2_2_5`
-- `mean_4_0_1`
-- `nginx_1_14_0_1`
-- `nodejs_10_8_0`
-- `plesk_ubuntu_17_8_11_1`
-- `redmine_3_4_6`
-- `wordpress_4_9_8`
-- `wordpress_multisite_4_9_8`
 
 ## Bundles
 
@@ -129,16 +97,13 @@ A Bundle ID ends with one of the following suffixes depending on Availability Zo
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the Lightsail instance (matches `arn`).
 * `arn` - The ARN of the Lightsail instance (matches `id`).
 * `created_at` - The timestamp when the instance was created.
-* `availability_zone`
-* `blueprint_id`
-* `bundle_id`
-* `key_pair_name`
-* `user_data`
+* `ipv6_address` - (**Deprecated**) The first IPv6 address of the Lightsail instance. Use `ipv6_addresses` attribute instead.
+* `ipv6_addresses` - List of IPv6 addresses for the Lightsail instance.
 
 ## Import
 

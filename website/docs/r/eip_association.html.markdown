@@ -61,6 +61,8 @@ address.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `association_id` - The ID that represents the association of the Elastic IP
 address with an instance.
 * `allocation_id` - As above

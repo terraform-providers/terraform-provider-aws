@@ -54,7 +54,7 @@ func resourceAwsSfnActivityCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating Step Function Activity: %s", err)
 	}
 
-	d.SetId(*activity.ActivityArn)
+	d.SetId(aws.StringValue(activity.ActivityArn))
 
 	return resourceAwsSfnActivityRead(d, meta)
 }

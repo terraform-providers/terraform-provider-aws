@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAWSRDSCluster_basic(t *testing.T) {
-	clusterName := fmt.Sprintf("testaccawsrdscluster-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	clusterName := fmt.Sprintf("testaccawsrdscluster-basic-%s", acctest.RandString(10))
 	dataSourceName := "data.aws_rds_cluster.test"
 	resourceName := "aws_rds_cluster.test"
 

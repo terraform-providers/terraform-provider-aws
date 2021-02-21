@@ -59,7 +59,7 @@ func dataSourceAwsCodeCommitRepositoryRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return fmt.Errorf("Resource codecommit repository not found for %s", repositoryName)
 		} else {
-			return fmt.Errorf("Error reading CodeCommit Repository: %s", err.Error())
+			return fmt.Errorf("Error reading CodeCommit Repository: %w", err)
 		}
 	}
 

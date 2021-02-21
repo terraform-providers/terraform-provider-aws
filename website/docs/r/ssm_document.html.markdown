@@ -55,6 +55,7 @@ The following arguments are supported:
 * `permissions` - (Optional) Additional Permissions to attach to the document. See [Permissions](#permissions) below for details.
 * `target_type` - (Optional) The target type which defines the kinds of resources the document can run on. For example, /AWS::EC2::Instance. For a list of valid resource types, see AWS Resource Types Reference (http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html)
 * `tags` - (Optional) A map of tags to assign to the object.
+* `version_name` - (Optional) A field specifying the version of the artifact you are creating with the document. For example, "Release 12, Update 6". This value is unique across all versions of a document and cannot be changed for an existing document version.
 
 ## attachments_source
 
@@ -102,7 +103,7 @@ SSM Documents can be imported using the name, e.g.
 $ terraform import aws_ssm_document.example example
 ```
 
-The `attachments_source` argument does not have an SSM API method for reading the attachment information detail after creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](/docs/configuration/resources.html#ignore_changes) to hide the difference, e.g.
+The `attachments_source` argument does not have an SSM API method for reading the attachment information detail after creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
 ```hcl
 resource "aws_ssm_document" "test" {

@@ -96,6 +96,7 @@ func TestAccAWSSSMMaintenanceWindow_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "end_date", ""),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "schedule_timezone", ""),
+					resource.TestCheckResourceAttr(resourceName, "schedule_offset", "0"),
 					resource.TestCheckResourceAttr(resourceName, "schedule", "cron(0 16 ? * TUE *)"),
 					resource.TestCheckResourceAttr(resourceName, "start_date", ""),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -462,6 +463,39 @@ func TestAccAWSSSMMaintenanceWindow_ScheduleTimezone(t *testing.T) {
 	})
 }
 
+func TestAccAWSSSMMaintenanceWindow_ScheduleOffset(t *testing.T) {
+	var maintenanceWindow1, maintenanceWindow2 ssm.MaintenanceWindowIdentity
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ssm_maintenance_window.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMMaintenanceWindowConfigScheduleOffset(rName, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMMaintenanceWindowExists(resourceName, &maintenanceWindow1),
+					resource.TestCheckResourceAttr(resourceName, "schedule_offset", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSSSMMaintenanceWindowConfigScheduleOffset(rName, 5),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMMaintenanceWindowExists(resourceName, &maintenanceWindow2),
+					resource.TestCheckResourceAttr(resourceName, "schedule_offset", "5"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSSSMMaintenanceWindow_StartDate(t *testing.T) {
 	var maintenanceWindow1, maintenanceWindow2, maintenanceWindow3 ssm.MaintenanceWindowIdentity
 	startDate1 := time.Now().UTC().Add(1 * time.Hour).Format(time.RFC3339)
@@ -717,6 +751,18 @@ resource "aws_ssm_maintenance_window" "test" {
   schedule_timezone = %q
 }
 `, rName, scheduleTimezone)
+}
+
+func testAccAWSSSMMaintenanceWindowConfigScheduleOffset(rName string, scheduleOffset int) string {
+	return fmt.Sprintf(`
+resource "aws_ssm_maintenance_window" "test" {
+  cutoff          = 1
+  duration        = 3
+  name            = %q
+  schedule        = "cron(0 16 ? * TUE#3 *)"
+  schedule_offset = %d
+}
+`, rName, scheduleOffset)
 }
 
 func testAccAWSSSMMaintenanceWindowConfigStartDate(rName, startDate string) string {

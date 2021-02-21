@@ -85,7 +85,7 @@ func TestAccAWSSESReceiptRuleSet_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t); testAccPreCheckSESReceiptRule(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleSetDestroy,
 		Steps: []resource.TestStep{
@@ -94,6 +94,7 @@ func TestAccAWSSESReceiptRuleSet_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSESReceiptRuleSetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule_set_name", rName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ses", fmt.Sprintf("receipt-rule-set/%s", rName)),
 				),
 			},
 			{
@@ -110,7 +111,7 @@ func TestAccAWSSESReceiptRuleSet_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t); testAccPreCheckSESReceiptRule(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleSetDestroy,
 		Steps: []resource.TestStep{

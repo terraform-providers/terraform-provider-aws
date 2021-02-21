@@ -47,7 +47,9 @@ func resourceAwsIamUserPolicyAttachmentCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error attaching policy %s to IAM User %s: %v", arn, user, err)
 	}
 
+	//lintignore:R016 // Allow legacy unstable ID usage in managed resource
 	d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-", user)))
+
 	return resourceAwsIamUserPolicyAttachmentRead(d, meta)
 }
 

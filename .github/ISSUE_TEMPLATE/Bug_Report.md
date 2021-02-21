@@ -40,6 +40,8 @@ If you are running into one of these scenarios, we recommend opening an issue in
 
 <!--- Information about code formatting: https://help.github.com/articles/basic-writing-and-formatting-syntax/#quoting-code --->
 
+Please include all Terraform configurations required to reproduce the bug. Bug reports without a functional reproduction may be closed without investigation.
+
 ```hcl
 # Copy-paste your Terraform configurations here - for large Terraform configs,
 # please use a service like Dropbox and share a link to the ZIP file. For

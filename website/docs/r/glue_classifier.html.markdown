@@ -105,7 +105,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - Name of the classifier
 

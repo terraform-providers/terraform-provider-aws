@@ -59,7 +59,7 @@ func TestAccAwsBackupSelection_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAwsBackupSelection_backupPlanDisappears(t *testing.T) {
+func TestAccAwsBackupSelection_disappears_BackupPlan(t *testing.T) {
 	var selection1 backup.GetBackupSelectionOutput
 	resourceName := "aws_backup_selection.test"
 	backupPlanResourceName := "aws_backup_plan.test"

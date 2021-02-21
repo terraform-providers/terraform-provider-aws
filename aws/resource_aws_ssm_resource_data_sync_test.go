@@ -95,9 +95,11 @@ func testAccCheckAWSSsmResourceDataSyncExists(name string) resource.TestCheckFun
 func testAccSsmResourceDataSyncConfig(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "hoge" {
-  bucket        = "tf-test-bucket-%d"
+  bucket        = "tf-test-bucket-%[1]d"
   force_destroy = true
 }
+
+data "aws_partition" "current" {}
 
 resource "aws_s3_bucket_policy" "hoge" {
   bucket = aws_s3_bucket.hoge.bucket
@@ -110,20 +112,20 @@ resource "aws_s3_bucket_policy" "hoge" {
       "Sid": "SSMBucketPermissionsCheck",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ssm.amazonaws.com"
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "s3:GetBucketAcl",
-      "Resource": "arn:aws:s3:::tf-test-bucket-%d"
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d"
     },
     {
       "Sid": " SSMBucketDelivery",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ssm.amazonaws.com"
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "s3:PutObject",
       "Resource": [
-        "arn:aws:s3:::tf-test-bucket-%d/*"
+        "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -138,22 +140,24 @@ resource "aws_s3_bucket_policy" "hoge" {
 }
 
 resource "aws_ssm_resource_data_sync" "test" {
-  name = "tf-test-ssm-%s"
+  name = "tf-test-ssm-%[2]s"
 
   s3_destination {
     bucket_name = aws_s3_bucket.hoge.bucket
     region      = aws_s3_bucket.hoge.region
   }
 }
-`, rInt, rInt, rInt, rName)
+`, rInt, rName)
 }
 
 func testAccSsmResourceDataSyncConfigUpdate(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "hoge" {
-  bucket        = "tf-test-bucket-%d"
+  bucket        = "tf-test-bucket-%[1]d"
   force_destroy = true
 }
+
+data "aws_partition" "current" {}
 
 resource "aws_s3_bucket_policy" "hoge" {
   bucket = aws_s3_bucket.hoge.bucket
@@ -166,20 +170,20 @@ resource "aws_s3_bucket_policy" "hoge" {
       "Sid": "SSMBucketPermissionsCheck",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ssm.amazonaws.com"
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "s3:GetBucketAcl",
-      "Resource": "arn:aws:s3:::tf-test-bucket-%d"
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d"
     },
     {
       "Sid": " SSMBucketDelivery",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ssm.amazonaws.com"
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "s3:PutObject",
       "Resource": [
-        "arn:aws:s3:::tf-test-bucket-%d/*"
+        "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -194,7 +198,7 @@ resource "aws_s3_bucket_policy" "hoge" {
 }
 
 resource "aws_ssm_resource_data_sync" "test" {
-  name = "tf-test-ssm-%s"
+  name = "tf-test-ssm-%[2]s"
 
   s3_destination {
     bucket_name = aws_s3_bucket.hoge.bucket
@@ -202,5 +206,5 @@ resource "aws_ssm_resource_data_sync" "test" {
     prefix      = "test-"
   }
 }
-`, rInt, rInt, rInt, rName)
+`, rInt, rName)
 }

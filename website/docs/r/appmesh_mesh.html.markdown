@@ -38,7 +38,7 @@ resource "aws_appmesh_mesh" "simple" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name to use for the service mesh.
+* `name` - (Required) The name to use for the service mesh. Must be between 1 and 255 characters in length.
 * `spec` - (Optional) The service mesh specification to apply.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
@@ -59,6 +59,8 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The ARN of the service mesh.
 * `created_date` - The creation date of the service mesh.
 * `last_updated_date` - The last update date of the service mesh.
+* `mesh_owner` - The AWS account ID of the service mesh's owner.
+* `resource_owner` - The resource owner's AWS account ID.
 
 ## Import
 

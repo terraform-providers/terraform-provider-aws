@@ -58,6 +58,7 @@ func resourceAwsSecretsManagerSecret() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
@@ -122,7 +123,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SecretsmanagerTags()
 	}
 
-	if v, ok := d.GetOk("kms_key_id"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("kms_key_id"); ok {
 		input.KmsKeyId = aws.String(v.(string))
 	}
 
@@ -278,7 +279,7 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 			SecretId:    aws.String(d.Id()),
 		}
 
-		if v, ok := d.GetOk("kms_key_id"); ok && v.(string) != "" {
+		if v, ok := d.GetOk("kms_key_id"); ok {
 			input.KmsKeyId = aws.String(v.(string))
 		}
 

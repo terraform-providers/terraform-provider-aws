@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -72,6 +73,7 @@ func TestAccAWSLicenseManagerLicenseConfiguration_basic(t *testing.T) {
 				Config: testAccLicenseManagerLicenseConfigurationConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLicenseManagerLicenseConfigurationExists(resourceName, &licenseConfiguration),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "license-manager", regexp.MustCompile(`license-configuration:lic-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "license_count", "10"),
@@ -79,6 +81,7 @@ func TestAccAWSLicenseManagerLicenseConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "license_counting_type", "Socket"),
 					resource.TestCheckResourceAttr(resourceName, "license_rules.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "license_rules.0", "#minimumSockets=3"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.foo", "barr"),
 				),

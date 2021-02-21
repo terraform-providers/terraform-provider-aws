@@ -127,18 +127,6 @@ func TestAccAWSSubnet_basic(t *testing.T) {
 	var v ec2.Subnet
 	resourceName := "aws_subnet.test"
 
-	testCheck := func(*terraform.State) error {
-		if aws.StringValue(v.CidrBlock) != "10.1.1.0/24" {
-			return fmt.Errorf("bad cidr: %s", aws.StringValue(v.CidrBlock))
-		}
-
-		if !aws.BoolValue(v.MapPublicIpOnLaunch) {
-			return fmt.Errorf("bad MapPublicIpOnLaunch: %t", aws.BoolValue(v.MapPublicIpOnLaunch))
-		}
-
-		return nil
-	}
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: resourceName,
@@ -149,14 +137,16 @@ func TestAccAWSSubnet_basic(t *testing.T) {
 				Config: testAccSubnetConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &v),
-					testCheck,
-					// ipv6 should be empty if disabled so we can still use the property in conditionals
-					resource.TestCheckResourceAttr(resourceName, "ipv6_cidr_block", ""),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`subnet/subnet-.+`)),
-					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.1.0/24"),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ipv4_pool", ""),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_cidr_block", ""),
+					resource.TestCheckResourceAttr(resourceName, "map_customer_owned_ip_on_launch", "false"),
+					resource.TestCheckResourceAttr(resourceName, "map_public_ip_on_launch", "false"),
 					resource.TestCheckResourceAttr(resourceName, "outpost_arn", ""),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -220,7 +210,7 @@ func TestAccAWSSubnet_ignoreTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesInternal(&providers),
 		CheckDestroy:      testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -341,7 +331,7 @@ func TestAccAWSSubnet_availabilityZoneId(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone"),
-					resource.TestCheckResourceAttrPair(resourceName, "availability_zone_id", "data.aws_availability_zones.test", "zone_ids.0"),
+					resource.TestCheckResourceAttrPair(resourceName, "availability_zone_id", "data.aws_availability_zones.available", "zone_ids.0"),
 				),
 			},
 			{
@@ -369,6 +359,96 @@ func TestAccAWSSubnet_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSubnet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSubnet_CustomerOwnedIpv4Pool(t *testing.T) {
+	var subnet ec2.Subnet
+	coipDataSourceName := "data.aws_ec2_coip_pool.test"
+	resourceName := "aws_subnet.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSubnetConfigCustomerOwnedIpv4Pool(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttrPair(resourceName, "customer_owned_ipv4_pool", coipDataSourceName, "pool_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSubnet_MapCustomerOwnedIpOnLaunch(t *testing.T) {
+	var subnet ec2.Subnet
+	resourceName := "aws_subnet.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSubnetConfigMapCustomerOwnedIpOnLaunch(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttr(resourceName, "map_customer_owned_ip_on_launch", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSubnet_MapPublicIpOnLaunch(t *testing.T) {
+	var subnet ec2.Subnet
+	resourceName := "aws_subnet.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSubnetConfigMapPublicIpOnLaunch(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttr(resourceName, "map_public_ip_on_launch", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccSubnetConfigMapPublicIpOnLaunch(false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttr(resourceName, "map_public_ip_on_launch", "false"),
+				),
+			},
+			{
+				Config: testAccSubnetConfigMapPublicIpOnLaunch(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttr(resourceName, "map_public_ip_on_launch", "true"),
+				),
 			},
 		},
 	})
@@ -514,9 +594,8 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  cidr_block              = "10.1.1.0/24"
-  vpc_id                  = aws_vpc.test.id
-  map_public_ip_on_launch = true
+  cidr_block = "10.1.1.0/24"
+  vpc_id     = aws_vpc.test.id
 }
 `
 
@@ -574,9 +653,8 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  cidr_block              = "10.10.1.0/24"
-  vpc_id                  = aws_vpc.test.id
-  map_public_ip_on_launch = true
+  cidr_block = "10.10.1.0/24"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-subnet-ipv6"
@@ -598,7 +676,6 @@ resource "aws_subnet" "test" {
   cidr_block                      = "10.10.1.0/24"
   vpc_id                          = aws_vpc.test.id
   ipv6_cidr_block                 = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)
-  map_public_ip_on_launch         = true
   assign_ipv6_address_on_creation = true
 
   tags = {
@@ -621,7 +698,6 @@ resource "aws_subnet" "test" {
   cidr_block                      = "10.10.1.0/24"
   vpc_id                          = aws_vpc.test.id
   ipv6_cidr_block                 = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)
-  map_public_ip_on_launch         = true
   assign_ipv6_address_on_creation = false
 
   tags = {
@@ -644,7 +720,6 @@ resource "aws_subnet" "test" {
   cidr_block                      = "10.10.1.0/24"
   vpc_id                          = aws_vpc.test.id
   ipv6_cidr_block                 = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 3)
-  map_public_ip_on_launch         = true
   assign_ipv6_address_on_creation = false
 
   tags = {
@@ -673,6 +748,134 @@ resource "aws_subnet" "test" {
   }
 }
 `)
+}
+
+func testAccSubnetConfigCustomerOwnedIpv4Pool() string {
+	return `
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+data "aws_ec2_local_gateway_route_tables" "test" {
+  filter {
+    name   = "outpost-arn"
+    values = [data.aws_outposts_outpost.test.arn]
+  }
+}
+
+data "aws_ec2_coip_pools" "test" {
+  # Filtering by Local Gateway Route Table ID is documented but not working in EC2 API.
+  # If there are multiple Outposts in the test account, this lookup can
+  # be misaligned and cause downstream resource errors.
+  #
+  # filter {
+  #   name   = "coip-pool.local-gateway-route-table-id"
+  #   values = [tolist(data.aws_ec2_local_gateway_route_tables.test.ids)[0]]
+  # }
+}
+
+data "aws_ec2_coip_pool" "test" {
+  pool_id = tolist(data.aws_ec2_coip_pools.test.pool_ids)[0]
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-subnet-outpost"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone               = data.aws_outposts_outpost.test.availability_zone
+  cidr_block                      = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  customer_owned_ipv4_pool        = data.aws_ec2_coip_pool.test.pool_id
+  map_customer_owned_ip_on_launch = true
+  outpost_arn                     = data.aws_outposts_outpost.test.arn
+  vpc_id                          = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-subnet-outpost"
+  }
+}
+`
+}
+
+func testAccSubnetConfigMapCustomerOwnedIpOnLaunch(mapCustomerOwnedIpOnLaunch bool) string {
+	return fmt.Sprintf(`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+data "aws_ec2_local_gateway_route_tables" "test" {
+  filter {
+    name   = "outpost-arn"
+    values = [data.aws_outposts_outpost.test.arn]
+  }
+}
+
+data "aws_ec2_coip_pools" "test" {
+  # Filtering by Local Gateway Route Table ID is documented but not working in EC2 API.
+  # If there are multiple Outposts in the test account, this lookup can
+  # be misaligned and cause downstream resource errors.
+  #
+  # filter {
+  #   name   = "coip-pool.local-gateway-route-table-id"
+  #   values = [tolist(data.aws_ec2_local_gateway_route_tables.test.ids)[0]]
+  # }
+}
+
+data "aws_ec2_coip_pool" "test" {
+  pool_id = tolist(data.aws_ec2_coip_pools.test.pool_ids)[0]
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-subnet-outpost"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone               = data.aws_outposts_outpost.test.availability_zone
+  cidr_block                      = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  customer_owned_ipv4_pool        = data.aws_ec2_coip_pool.test.pool_id
+  map_customer_owned_ip_on_launch = %[1]t
+  outpost_arn                     = data.aws_outposts_outpost.test.arn
+  vpc_id                          = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-subnet-outpost"
+  }
+}
+`, mapCustomerOwnedIpOnLaunch)
+}
+
+func testAccSubnetConfigMapPublicIpOnLaunch(mapPublicIpOnLaunch bool) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-subnet-map-public-ip-on-launch"
+  }
+}
+
+resource "aws_subnet" "test" {
+  cidr_block              = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  map_public_ip_on_launch = %[1]t
+  vpc_id                  = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-subnet-map-public-ip-on-launch"
+  }
+}
+`, mapPublicIpOnLaunch)
 }
 
 func testAccSubnetConfigOutpost() string {

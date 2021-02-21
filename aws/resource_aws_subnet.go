@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 )
 
 func resourceAwsSubnet() *schema.Resource {
@@ -65,6 +66,18 @@ func resourceAwsSubnet() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"availability_zone"},
+			},
+
+			"customer_owned_ipv4_pool": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"map_customer_owned_ip_on_launch", "outpost_arn"},
+			},
+
+			"map_customer_owned_ip_on_launch": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"customer_owned_ipv4_pool", "outpost_arn"},
 			},
 
 			"map_public_ip_on_launch": {
@@ -153,7 +166,8 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error waiting for subnet (%s) to become ready: %w", d.Id(), err)
 	}
 
-	// You cannot modify multiple subnet attributes in the same request.
+	// You cannot modify multiple subnet attributes in the same request,
+	// except CustomerOwnedIpv4Pool and MapCustomerOwnedIpOnLaunch.
 	// Reference: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifySubnetAttribute.html
 
 	if d.Get("assign_ipv6_address_on_creation").(bool) {
@@ -169,6 +183,24 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if v, ok := d.GetOk("customer_owned_ipv4_pool"); ok {
+		input := &ec2.ModifySubnetAttributeInput{
+			CustomerOwnedIpv4Pool: aws.String(v.(string)),
+			MapCustomerOwnedIpOnLaunch: &ec2.AttributeBooleanValue{
+				Value: aws.Bool(d.Get("map_customer_owned_ip_on_launch").(bool)),
+			},
+			SubnetId: aws.String(d.Id()),
+		}
+
+		if _, err := conn.ModifySubnetAttribute(input); err != nil {
+			return fmt.Errorf("error setting EC2 Subnet (%s) customer owned IPv4 pool and map customer owned IP on launch: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.SubnetMapCustomerOwnedIpOnLaunchUpdated(conn, d.Id(), d.Get("map_customer_owned_ip_on_launch").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Subnet (%s) map customer owned IP on launch update: %w", d.Id(), err)
+		}
+	}
+
 	if d.Get("map_public_ip_on_launch").(bool) {
 		input := &ec2.ModifySubnetAttributeInput{
 			MapPublicIpOnLaunch: &ec2.AttributeBooleanValue{
@@ -179,6 +211,10 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 		if _, err := conn.ModifySubnetAttribute(input); err != nil {
 			return fmt.Errorf("error enabling EC2 Subnet (%s) map public IP on launch: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.SubnetMapPublicIpOnLaunchUpdated(conn, d.Id(), d.Get("map_public_ip_on_launch").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Subnet (%s) map public IP on launch update: %w", d.Id(), err)
 		}
 	}
 
@@ -211,6 +247,8 @@ func resourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("availability_zone", subnet.AvailabilityZone)
 	d.Set("availability_zone_id", subnet.AvailabilityZoneId)
 	d.Set("cidr_block", subnet.CidrBlock)
+	d.Set("customer_owned_ipv4_pool", subnet.CustomerOwnedIpv4Pool)
+	d.Set("map_customer_owned_ip_on_launch", subnet.MapCustomerOwnedIpOnLaunch)
 	d.Set("map_public_ip_on_launch", subnet.MapPublicIpOnLaunch)
 	d.Set("assign_ipv6_address_on_creation", subnet.AssignIpv6AddressOnCreation)
 	d.Set("outpost_arn", subnet.OutpostArn)
@@ -249,6 +287,31 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	// You cannot modify multiple subnet attributes in the same request,
+	// except CustomerOwnedIpv4Pool and MapCustomerOwnedIpOnLaunch.
+	// Reference: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifySubnetAttribute.html
+
+	if d.HasChanges("customer_owned_ipv4_pool", "map_customer_owned_ip_on_launch") {
+		input := &ec2.ModifySubnetAttributeInput{
+			MapCustomerOwnedIpOnLaunch: &ec2.AttributeBooleanValue{
+				Value: aws.Bool(d.Get("map_customer_owned_ip_on_launch").(bool)),
+			},
+			SubnetId: aws.String(d.Id()),
+		}
+
+		if v, ok := d.GetOk("customer_owned_ipv4_pool"); ok {
+			input.CustomerOwnedIpv4Pool = aws.String(v.(string))
+		}
+
+		if _, err := conn.ModifySubnetAttribute(input); err != nil {
+			return fmt.Errorf("error updating EC2 Subnet (%s) customer owned IPv4 pool and map customer owned IP on launch: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.SubnetMapCustomerOwnedIpOnLaunchUpdated(conn, d.Id(), d.Get("map_customer_owned_ip_on_launch").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Subnet (%s) map customer owned IP on launch update: %w", d.Id(), err)
+		}
+	}
+
 	if d.HasChange("map_public_ip_on_launch") {
 		modifyOpts := &ec2.ModifySubnetAttributeInput{
 			SubnetId: aws.String(d.Id()),
@@ -257,12 +320,14 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 			},
 		}
 
-		log.Printf("[DEBUG] Subnet modify attributes: %#v", modifyOpts)
-
 		_, err := conn.ModifySubnetAttribute(modifyOpts)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error updating EC2 Subnet (%s) map public IP on launch: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.SubnetMapPublicIpOnLaunchUpdated(conn, d.Id(), d.Get("map_public_ip_on_launch").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Subnet (%s) map public IP on launch update: %w", d.Id(), err)
 		}
 	}
 

@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func dataSourceAwsEbsSnapshotIds() *schema.Resource {
@@ -74,7 +73,8 @@ func dataSourceAwsEbsSnapshotIdsRead(d *schema.ResourceData, meta interface{}) e
 		snapshotIds = append(snapshotIds, *snapshot.SnapshotId)
 	}
 
-	d.SetId(fmt.Sprintf("%d", hashcode.String(params.String())))
+	d.SetId(meta.(*AWSClient).region)
+
 	d.Set("ids", snapshotIds)
 
 	return nil

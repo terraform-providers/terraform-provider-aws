@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
@@ -16,6 +17,10 @@ func dataSourceAwsEc2TransitGatewayRouteTable() *schema.Resource {
 		Read: dataSourceAwsEc2TransitGatewayRouteTableRead,
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"default_association_route_table": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -28,6 +33,7 @@ func dataSourceAwsEc2TransitGatewayRouteTable() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"transit_gateway_id": {
 				Type:     schema.TypeString,
@@ -56,7 +62,7 @@ func dataSourceAwsEc2TransitGatewayRouteTableRead(d *schema.ResourceData, meta i
 	output, err := conn.DescribeTransitGatewayRouteTables(input)
 
 	if err != nil {
-		return fmt.Errorf("error reading EC2 Transit Gateway Route Table: %s", err)
+		return fmt.Errorf("error reading EC2 Transit Gateway Route Table: %w", err)
 	}
 
 	if output == nil || len(output.TransitGatewayRouteTables) == 0 {
@@ -77,12 +83,22 @@ func dataSourceAwsEc2TransitGatewayRouteTableRead(d *schema.ResourceData, meta i
 	d.Set("default_propagation_route_table", aws.BoolValue(transitGatewayRouteTable.DefaultPropagationRouteTable))
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGatewayRouteTable.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("transit_gateway_id", aws.StringValue(transitGatewayRouteTable.TransitGatewayId))
 
 	d.SetId(aws.StringValue(transitGatewayRouteTable.TransitGatewayRouteTableId))
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   ec2.ServiceName,
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("transit-gateway-route-table/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

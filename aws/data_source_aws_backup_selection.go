@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -47,7 +48,7 @@ func dataSourceAwsBackupSelectionRead(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := conn.GetBackupSelection(input)
 	if err != nil {
-		return fmt.Errorf("Error getting Backup Selection: %s", err)
+		return fmt.Errorf("Error getting Backup Selection: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.SelectionId))
@@ -56,7 +57,7 @@ func dataSourceAwsBackupSelectionRead(d *schema.ResourceData, meta interface{}) 
 
 	if resp.BackupSelection.Resources != nil {
 		if err := d.Set("resources", aws.StringValueSlice(resp.BackupSelection.Resources)); err != nil {
-			return fmt.Errorf("error setting resources: %s", err)
+			return fmt.Errorf("error setting resources: %w", err)
 		}
 	}
 

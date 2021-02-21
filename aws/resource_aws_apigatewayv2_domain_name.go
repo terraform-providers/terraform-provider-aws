@@ -84,6 +84,24 @@ func resourceAwsApiGatewayV2DomainName() *schema.Resource {
 					},
 				},
 			},
+			"mutual_tls_authentication": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"truststore_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"truststore_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"tags": tagsSchema(),
 		},
 	}
@@ -95,6 +113,7 @@ func resourceAwsApiGatewayV2DomainNameCreate(d *schema.ResourceData, meta interf
 	req := &apigatewayv2.CreateDomainNameInput{
 		DomainName:               aws.String(d.Get("domain_name").(string)),
 		DomainNameConfigurations: expandApiGatewayV2DomainNameConfiguration(d.Get("domain_name_configuration").([]interface{})),
+		MutualTlsAuthentication:  expandApiGatewayV2MutualTlsAuthentication(d.Get("mutual_tls_authentication").([]interface{})),
 		Tags:                     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Apigatewayv2Tags(),
 	}
 
@@ -138,6 +157,10 @@ func resourceAwsApiGatewayV2DomainNameRead(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("error setting domain_name_configuration: %s", err)
 	}
+	err = d.Set("mutual_tls_authentication", flattenApiGatewayV2MutualTlsAuthentication(resp.MutualTlsAuthentication))
+	if err != nil {
+		return fmt.Errorf("error setting mutual_tls_authentication: %s", err)
+	}
 	if err := d.Set("tags", keyvaluetags.Apigatewayv2KeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
@@ -148,10 +171,27 @@ func resourceAwsApiGatewayV2DomainNameRead(d *schema.ResourceData, meta interfac
 func resourceAwsApiGatewayV2DomainNameUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
 
-	if d.HasChange("domain_name_configuration") {
+	if d.HasChanges("domain_name_configuration", "mutual_tls_authentication") {
 		req := &apigatewayv2.UpdateDomainNameInput{
-			DomainName:               aws.String(d.Id()),
-			DomainNameConfigurations: expandApiGatewayV2DomainNameConfiguration(d.Get("domain_name_configuration").([]interface{})),
+			DomainName: aws.String(d.Id()),
+		}
+
+		if d.HasChange("domain_name_configuration") {
+			req.DomainNameConfigurations = expandApiGatewayV2DomainNameConfiguration(d.Get("domain_name_configuration").([]interface{}))
+		}
+		if d.HasChange("mutual_tls_authentication") {
+			vMutualTlsAuthentication := d.Get("mutual_tls_authentication").([]interface{})
+
+			if len(vMutualTlsAuthentication) == 0 || vMutualTlsAuthentication[0] == nil {
+				// To disable mutual TLS for a custom domain name, remove the truststore from your custom domain name.
+				req.MutualTlsAuthentication = &apigatewayv2.MutualTlsAuthenticationInput{
+					TruststoreUri: aws.String(""),
+				}
+			} else {
+				req.MutualTlsAuthentication = &apigatewayv2.MutualTlsAuthenticationInput{
+					TruststoreVersion: aws.String(vMutualTlsAuthentication[0].(map[string]interface{})["truststore_version"].(string)),
+				}
+			}
 		}
 
 		log.Printf("[DEBUG] Updating API Gateway v2 domain name: %s", req)
@@ -256,5 +296,33 @@ func flattenApiGatewayV2DomainNameConfiguration(domainNameConfiguration *apigate
 		"hosted_zone_id":     aws.StringValue(domainNameConfiguration.HostedZoneId),
 		"security_policy":    aws.StringValue(domainNameConfiguration.SecurityPolicy),
 		"target_domain_name": aws.StringValue(domainNameConfiguration.ApiGatewayDomainName),
+	}}
+}
+
+func expandApiGatewayV2MutualTlsAuthentication(vMutualTlsAuthentication []interface{}) *apigatewayv2.MutualTlsAuthenticationInput {
+	if len(vMutualTlsAuthentication) == 0 || vMutualTlsAuthentication[0] == nil {
+		return nil
+	}
+	mMutualTlsAuthentication := vMutualTlsAuthentication[0].(map[string]interface{})
+
+	mutualTlsAuthentication := &apigatewayv2.MutualTlsAuthenticationInput{
+		TruststoreUri: aws.String(mMutualTlsAuthentication["truststore_uri"].(string)),
+	}
+
+	if vTruststoreVersion, ok := mMutualTlsAuthentication["truststore_version"].(string); ok && vTruststoreVersion != "" {
+		mutualTlsAuthentication.TruststoreVersion = aws.String(vTruststoreVersion)
+	}
+
+	return mutualTlsAuthentication
+}
+
+func flattenApiGatewayV2MutualTlsAuthentication(mutualTlsAuthentication *apigatewayv2.MutualTlsAuthentication) []interface{} {
+	if mutualTlsAuthentication == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"truststore_uri":     aws.StringValue(mutualTlsAuthentication.TruststoreUri),
+		"truststore_version": aws.StringValue(mutualTlsAuthentication.TruststoreVersion),
 	}}
 }

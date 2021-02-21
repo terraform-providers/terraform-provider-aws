@@ -20,6 +20,7 @@ func dataSourceAwsEc2TransitGatewayPeeringAttachment() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"peer_account_id": {
 				Type:     schema.TypeString,
@@ -65,7 +66,7 @@ func dataSourceAwsEc2TransitGatewayPeeringAttachmentRead(d *schema.ResourceData,
 	output, err := conn.DescribeTransitGatewayPeeringAttachments(input)
 
 	if err != nil {
-		return fmt.Errorf("error reading EC2 Transit Gateway Peering Attachments: %s", err)
+		return fmt.Errorf("error reading EC2 Transit Gateway Peering Attachments: %ws", err)
 	}
 
 	if output == nil || len(output.TransitGatewayPeeringAttachments) == 0 {
@@ -96,7 +97,7 @@ func dataSourceAwsEc2TransitGatewayPeeringAttachmentRead(d *schema.ResourceData,
 	d.Set("transit_gateway_id", local.TransitGatewayId)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGatewayPeeringAttachment.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.SetId(aws.StringValue(transitGatewayPeeringAttachment.TransitGatewayAttachmentId))

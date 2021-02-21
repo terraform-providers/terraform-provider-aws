@@ -15,7 +15,7 @@ func TestAccDataSourceAwsWafv2RuleGroup_basic(t *testing.T) {
 	datasourceName := "data.aws_wafv2_rule_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

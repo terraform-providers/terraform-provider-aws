@@ -1,0 +1,8 @@
+```release-note:enhancement
+resource/aws_ec2_traffic_mirror_filter_rule: Add arn attribute.
+```
+
+```release-note:enhancement
+resource/aws_ec2_traffic_mirror_filter_rule: Add plan time validation to `destination_port_range.from_port`, 
+`destination_port_range.to_port`, `source_port_range.from_port`, and `source_port_range.to_port`.
+```

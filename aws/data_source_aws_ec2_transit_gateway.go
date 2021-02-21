@@ -52,6 +52,7 @@ func dataSourceAwsEc2TransitGateway() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"owner_id": {
 				Type:     schema.TypeString,
@@ -88,7 +89,7 @@ func dataSourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}
 	output, err := conn.DescribeTransitGateways(input)
 
 	if err != nil {
-		return fmt.Errorf("error reading EC2 Transit Gateway: %s", err)
+		return fmt.Errorf("error reading EC2 Transit Gateway: %w", err)
 	}
 
 	if output == nil || len(output.TransitGateways) == 0 {
@@ -121,7 +122,7 @@ func dataSourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}
 	d.Set("propagation_default_route_table_id", transitGateway.Options.PropagationDefaultRouteTableId)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("vpn_ecmp_support", transitGateway.Options.VpnEcmpSupport)

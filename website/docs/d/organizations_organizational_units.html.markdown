@@ -29,3 +29,4 @@ data "aws_organizations_organizational_units" "ou" {
     * `arn` - ARN of the organizational unit
     * `name` - Name of the organizational unit
     * `id` - ID of the organizational unit
+* `id` - Parent identifier of the organizational units.

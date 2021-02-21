@@ -233,7 +233,7 @@ of several sub-resources - these resources are laid out below.
     distribution (multiples allowed).
 
 * `origin_group` (Optional) - One or more [origin_group](#origin-group-arguments) for this
-  distribution (multiples allowed).  
+  distribution (multiples allowed).
 
 * `price_class` (Optional) - The price class for this distribution. One of
     `PriceClass_All`, `PriceClass_200`, `PriceClass_100`
@@ -247,11 +247,13 @@ of several sub-resources - these resources are laid out below.
     configuration](#viewer-certificate-arguments) for this distribution (maximum
     one).
 
-* `web_acl_id` (Optional) - If you're using AWS WAF to filter CloudFront
-    requests, the Id of the AWS WAF web ACL that is associated with the
-    distribution. The WAF Web ACL must exist in the WAF Global (CloudFront)
-    region and the credentials configuring this argument must have
-    `waf:GetWebACL` permissions assigned. If using WAFv2, provide the ARN of the web ACL.
+* `web_acl_id` (Optional) - A unique identifier that specifies the AWS WAF web ACL,
+    if any, to associate with this distribution.  
+    To specify a web ACL created using the latest version of AWS WAF (WAFv2), use the ACL ARN,
+    for example `aws_wafv2_web_acl.example.arn`. To specify a web
+    ACL created using AWS WAF Classic, use the ACL ID, for example `aws_waf_web_acl.example.id`.
+    The WAF Web ACL must exist in the WAF Global (CloudFront) region and the
+    credentials configuring this argument must have `waf:GetWebACL` permissions assigned.
 
 * `retain_on_delete` (Optional) - Disables the distribution instead of
     deleting it when destroying the resource through Terraform. If this is set,
@@ -269,35 +271,43 @@ of several sub-resources - these resources are laid out below.
 * `cached_methods` (Required) - Controls whether CloudFront caches the
     response to requests using the specified HTTP methods.
 
+* `cache_policy_id` (Optional) - The unique identifier of the cache policy that
+    is attached to the cache behavior.
+
 * `compress` (Optional) - Whether you want CloudFront to automatically
     compress content for web requests that include `Accept-Encoding: gzip` in
     the request header (default: `false`).
 
 * `default_ttl` (Optional) - The default amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
-    in the absence of an `Cache-Control max-age` or `Expires` header. Defaults to
-    1 day.
+    in the absence of an `Cache-Control max-age` or `Expires` header.
 
 * `field_level_encryption_id` (Optional) - Field level encryption configuration ID
 
-* `forwarded_values` (Required) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
+* `forwarded_values` (Optional) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
     handles query strings, cookies and headers (maximum one).
 
-* `lambda_function_association` (Optional) - A config block that triggers a lambda function with
-  specific actions. Defined below, maximum 4.
+* `lambda_function_association` (Optional) - A [config block](#lambda-function-association) that triggers a lambda
+    function with specific actions (maximum 4).
 
 * `max_ttl` (Optional) - The maximum amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
     to your origin to determine whether the object has been updated. Only
     effective in the presence of `Cache-Control max-age`, `Cache-Control
-    s-maxage`, and `Expires` headers. Defaults to 365 days.
+    s-maxage`, and `Expires` headers.
 
 * `min_ttl` (Optional) - The minimum amount of time that you want objects to
     stay in CloudFront caches before CloudFront queries your origin to see
     whether the object has been updated. Defaults to 0 seconds.
 
+* `origin_request_policy_id` (Optional) - The unique identifier of the origin request policy
+    that is attached to the behavior.
+
 * `path_pattern` (Required) - The pattern (for example, `images/*.jpg)` that
     specifies which requests you want this cache behavior to apply to.
+
+* `realtime_log_config_arn` (Optional) - The ARN of the [real-time log configuration](cloudfront_realtime_log_config.html)
+    that is attached to this cache behavior.
 
 * `smooth_streaming` (Optional) - Indicates whether you want to distribute
     media files in Microsoft Smooth Streaming format using the origin that is
@@ -514,7 +524,7 @@ The arguments of `geo_restriction` are:
     `acm_certificate_arn` or `iam_certificate_id`. **NOTE:** `vip` causes
     CloudFront to use a dedicated IP address and may incur extra charges.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

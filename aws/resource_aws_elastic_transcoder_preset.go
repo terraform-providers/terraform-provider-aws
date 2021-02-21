@@ -348,7 +348,7 @@ func resourceAwsElasticTranscoderPresetCreate(d *schema.ResourceData, meta inter
 		log.Printf("[WARN] Elastic Transcoder Preset: %s", *resp.Warning)
 	}
 
-	d.SetId(*resp.Preset.Id)
+	d.SetId(aws.StringValue(resp.Preset.Id))
 	d.Set("arn", resp.Preset.Arn)
 
 	return nil

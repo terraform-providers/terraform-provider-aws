@@ -75,7 +75,7 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Get the ID and store it
 	ng := natResp.NatGateway
-	d.SetId(*ng.NatGatewayId)
+	d.SetId(aws.StringValue(ng.NatGatewayId))
 	log.Printf("[INFO] NAT Gateway ID: %s", d.Id())
 
 	// Wait for the NAT Gateway to become available

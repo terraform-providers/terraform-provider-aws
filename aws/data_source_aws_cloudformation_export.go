@@ -49,7 +49,7 @@ func dataSourceAwsCloudFormationExportRead(d *schema.ResourceData, meta interfac
 			return !lastPage
 		})
 	if err != nil {
-		return fmt.Errorf("Failed listing CloudFormation exports: %s", err)
+		return fmt.Errorf("Failed listing CloudFormation exports: %w", err)
 	}
 	if value == "" {
 		return fmt.Errorf("%s was not found in CloudFormation Exports for region %s", name, region)

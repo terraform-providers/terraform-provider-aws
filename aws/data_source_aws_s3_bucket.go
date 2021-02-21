@@ -67,7 +67,7 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	_, err := conn.HeadBucket(input)
 
 	if err != nil {
-		return fmt.Errorf("Failed getting S3 bucket: %s Bucket: %q", err, bucket)
+		return fmt.Errorf("Failed getting S3 bucket (%s): %w", bucket, err)
 	}
 
 	d.SetId(bucket)
@@ -81,7 +81,7 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 
 	err = bucketLocation(meta.(*AWSClient), d, bucket)
 	if err != nil {
-		return fmt.Errorf("error getting S3 Bucket location: %s", err)
+		return fmt.Errorf("error getting S3 Bucket location: %w", err)
 	}
 
 	regionalDomainName, err := BucketRegionalDomainName(bucket, d.Get("region").(string))
@@ -100,6 +100,12 @@ func bucketLocation(client *AWSClient, d *schema.ResourceData, bucket string) er
 		// the provider s3_force_path_style configuration, which defaults to
 		// false, but allows override.
 		r.Config.S3ForcePathStyle = client.s3conn.Config.S3ForcePathStyle
+
+		// By default, GetBucketRegion uses anonymous credentials when doing
+		// a HEAD request to get the bucket region. This breaks in aws-cn regions
+		// when the account doesn't have an ICP license to host public content.
+		// Use the current credentials when getting the bucket region.
+		r.Config.Credentials = client.s3conn.Config.Credentials
 	})
 	if err != nil {
 		return err

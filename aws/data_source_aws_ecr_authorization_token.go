@@ -50,13 +50,13 @@ func dataSourceAwsEcrAuthorizationToken() *schema.Resource {
 func dataSourceAwsEcrAuthorizationTokenRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecrconn
 	params := &ecr.GetAuthorizationTokenInput{}
-	if v, ok := d.GetOk("registry_id"); ok && len(v.(string)) > 0 {
+	if v, ok := d.GetOk("registry_id"); ok {
 		params.RegistryIds = []*string{aws.String(v.(string))}
 	}
 	log.Printf("[DEBUG] Getting ECR authorization token")
 	out, err := conn.GetAuthorizationToken(params)
 	if err != nil {
-		return fmt.Errorf("error getting ECR authorization token: %s", err)
+		return fmt.Errorf("error getting ECR authorization token: %w", err)
 	}
 	log.Printf("[DEBUG] Received ECR AuthorizationData %v", out.AuthorizationData)
 	authorizationData := out.AuthorizationData[0]
@@ -66,7 +66,7 @@ func dataSourceAwsEcrAuthorizationTokenRead(d *schema.ResourceData, meta interfa
 	authBytes, err := base64.URLEncoding.DecodeString(authorizationToken)
 	if err != nil {
 		d.SetId("")
-		return fmt.Errorf("error decoding ECR authorization token: %s", err)
+		return fmt.Errorf("error decoding ECR authorization token: %w", err)
 	}
 	basicAuthorization := strings.Split(string(authBytes), ":")
 	if len(basicAuthorization) != 2 {
@@ -74,7 +74,7 @@ func dataSourceAwsEcrAuthorizationTokenRead(d *schema.ResourceData, meta interfa
 	}
 	userName := basicAuthorization[0]
 	password := basicAuthorization[1]
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 	d.Set("authorization_token", authorizationToken)
 	d.Set("proxy_endpoint", proxyEndpoint)
 	d.Set("expires_at", expiresAt)

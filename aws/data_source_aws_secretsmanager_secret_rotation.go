@@ -55,7 +55,7 @@ func dataSourceAwsSecretsManagerSecretRotationRead(d *schema.ResourceData, meta 
 	log.Printf("[DEBUG] Reading Secrets Manager Secret: %s", input)
 	output, err := conn.DescribeSecret(input)
 	if err != nil {
-		return fmt.Errorf("error reading Secrets Manager Secret: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret: %w", err)
 	}
 
 	if output.ARN == nil {
@@ -67,7 +67,7 @@ func dataSourceAwsSecretsManagerSecretRotationRead(d *schema.ResourceData, meta 
 	d.Set("rotation_lambda_arn", output.RotationLambdaARN)
 
 	if err := d.Set("rotation_rules", flattenSecretsManagerRotationRules(output.RotationRules)); err != nil {
-		return fmt.Errorf("error setting rotation_rules: %s", err)
+		return fmt.Errorf("error setting rotation_rules: %w", err)
 	}
 
 	return nil

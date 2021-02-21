@@ -258,8 +258,8 @@ func testAccAWSNeptuneClusterInstanceConfig(instanceName string, n int) string {
 		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }
@@ -301,8 +301,8 @@ func testAccAWSNeptuneClusterInstanceConfigModified(instanceName string, n int) 
 		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }
@@ -345,8 +345,8 @@ func testAccAWSNeptuneClusterInstanceConfig_az(n int) string {
 		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }
@@ -389,8 +389,8 @@ func testAccAWSNeptuneClusterInstanceConfig_withSubnetGroup(n int) string {
 		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }
@@ -449,8 +449,8 @@ func testAccAWSNeptuneClusterInstanceConfig_namePrefix(namePrefix string, n int)
 		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }
@@ -509,8 +509,8 @@ func testAccAWSNeptuneClusterInstanceConfig_generatedName(n int) string {
 		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }
@@ -590,8 +590,8 @@ POLICY
 }
 
 data "aws_neptune_orderable_db_instance" "test" {
-  engine         = "neptune"
-  license_model  = "amazon-license"
+  engine        = "neptune"
+  license_model = "amazon-license"
 
   preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
 }

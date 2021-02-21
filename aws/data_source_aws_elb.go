@@ -207,12 +207,12 @@ func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Reading ELB: %s", input)
 	resp, err := elbconn.DescribeLoadBalancers(input)
 	if err != nil {
-		return fmt.Errorf("Error retrieving LB: %s", err)
+		return fmt.Errorf("Error retrieving LB: %w", err)
 	}
 	if len(resp.LoadBalancerDescriptions) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(resp.LoadBalancerDescriptions))
 	}
-	d.SetId(*resp.LoadBalancerDescriptions[0].LoadBalancerName)
+	d.SetId(aws.StringValue(resp.LoadBalancerDescriptions[0].LoadBalancerName))
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,

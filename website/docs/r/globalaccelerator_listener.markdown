@@ -57,6 +57,13 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) of the listener.
 
+`aws_globalaccelerator_listener` provides the following
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+
+* `create` - (Default `30 minutes`) How long to wait for the Global Accelerator Listener to be created.
+* `update` - (Default `30 minutes`) How long to wait for the Global Accelerator Listener to be updated.
+* `delete` - (Default `30 minutes`) How long to wait for the Global Accelerator Listener to be deleted.
+
 ## Import
 
 Global Accelerator listeners can be imported using the `id`, e.g.

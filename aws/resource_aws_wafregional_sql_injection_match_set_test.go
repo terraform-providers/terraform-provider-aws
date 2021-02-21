@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSWafRegionalSqlInjectionMatchSet_basic(t *testing.T) {
@@ -19,7 +18,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_basic(t *testing.T) {
 	sqlInjectionMatchSet := fmt.Sprintf("sqlInjectionMatchSet-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalSqlInjectionMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -29,7 +28,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_basic(t *testing.T) {
 					testAccCheckAWSWafRegionalSqlInjectionMatchSetExists(resourceName, &v),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", sqlInjectionMatchSet),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "sql_injection_match_tuple.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "sql_injection_match_tuple.*", map[string]string{
 						"field_to_match.#":      "1",
 						"field_to_match.0.data": "",
 						"field_to_match.0.type": "QUERY_STRING",
@@ -53,7 +52,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_changeNameForceNew(t *testing.T) 
 	sqlInjectionMatchSetNewName := fmt.Sprintf("sqlInjectionMatchSetNewName-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalSqlInjectionMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -92,7 +91,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_disappears(t *testing.T) {
 	sqlInjectionMatchSet := fmt.Sprintf("sqlInjectionMatchSet-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalSqlInjectionMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -114,7 +113,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_changeTuples(t *testing.T) {
 	setName := fmt.Sprintf("sqlInjectionMatchSet-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalSqlInjectionMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -126,7 +125,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_changeTuples(t *testing.T) {
 						resourceName, "name", setName),
 					resource.TestCheckResourceAttr(
 						resourceName, "sql_injection_match_tuple.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "sql_injection_match_tuple.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "sql_injection_match_tuple.*", map[string]string{
 						"field_to_match.#":      "1",
 						"field_to_match.0.data": "",
 						"field_to_match.0.type": "QUERY_STRING",
@@ -142,7 +141,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_changeTuples(t *testing.T) {
 						resourceName, "name", setName),
 					resource.TestCheckResourceAttr(
 						resourceName, "sql_injection_match_tuple.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "sql_injection_match_tuple.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "sql_injection_match_tuple.*", map[string]string{
 						"field_to_match.#":      "1",
 						"field_to_match.0.data": "user-agent",
 						"field_to_match.0.type": "HEADER",
@@ -165,7 +164,7 @@ func TestAccAWSWafRegionalSqlInjectionMatchSet_noTuples(t *testing.T) {
 	setName := fmt.Sprintf("sqlInjectionMatchSet-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalSqlInjectionMatchSetDestroy,
 		Steps: []resource.TestStep{

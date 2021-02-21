@@ -45,7 +45,7 @@ resource "aws_ecs_service" "mongo" {
 
 ### Ignoring Changes to Desired Count
 
-You can utilize the generic Terraform resource [lifecycle configuration block](/docs/configuration/resources.html#lifecycle) with `ignore_changes` to create an ECS service with an initial count of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
+You can utilize the generic Terraform resource [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` to create an ECS service with an initial count of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
 
 ```hcl
 resource "aws_ecs_service" "example" {
@@ -111,6 +111,7 @@ The following arguments are supported:
 * `service_registries` - (Optional) The service discovery registries for the service. The maximum number of `service_registries` blocks is `1`.
 * `tags` - (Optional) Key-value map of resource tags
 * `task_definition` - (Optional) The family and revision (`family:revision`) or full ARN of the task definition that you want to run in your service. Required unless using the `EXTERNAL` deployment controller. If a revision is not specified, the latest `ACTIVE` revision is used.
+* `wait_for_steady_state` - (Optional) If `true`, Terraform will wait for the service to reach a steady state (like [`aws ecs wait services-stable`](https://docs.aws.amazon.com/cli/latest/reference/ecs/wait/services-stable.html)) before continuing. Default `false`.
 
 ## capacity_provider_strategy
 
@@ -192,7 +193,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_ecs_service` provides the following
-[Timeouts](/docs/configuration/resources.html#operation-timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `delete` - (Default `20 minutes`)
 

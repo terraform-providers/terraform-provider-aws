@@ -2,10 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/wafregional"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -15,7 +16,7 @@ func TestAccDataSourceAwsWafRegionalRule_basic(t *testing.T) {
 	datasourceName := "data.aws_wafregional_rule.wafrule"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

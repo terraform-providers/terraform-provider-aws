@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -82,7 +81,7 @@ func dataSourceAwsEc2SpotPriceRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("spot_price", resultSpotPrice.SpotPrice)
 	d.Set("spot_price_timestamp", (*resultSpotPrice.Timestamp).Format(time.RFC3339))
-	d.SetId(resource.UniqueId())
+	d.SetId(meta.(*AWSClient).region)
 
 	return nil
 }

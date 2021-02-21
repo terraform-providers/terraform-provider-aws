@@ -88,56 +88,40 @@ func testAccAwsAppmeshVirtualRouter_basic(t *testing.T) {
 	vrName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualRouterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAppmeshVirtualRouterConfig_basic(meshName, vrName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppmeshVirtualRouterExists(
-						resourceName, &vr),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", vrName),
-					resource.TestCheckResourceAttr(
-						resourceName, "mesh_name", meshName),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.0.port_mapping.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.0.port_mapping.0.port", "8080"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.0.port_mapping.0.protocol", "http"),
-					resource.TestCheckResourceAttrSet(
-						resourceName, "created_date"),
-					resource.TestCheckResourceAttrSet(
-						resourceName, "last_updated_date"),
-					testAccCheckResourceAttrRegionalARN(
-						resourceName, "arn", "appmesh", fmt.Sprintf("mesh/%s/virtualRouter/%s", meshName, vrName)),
+					testAccCheckAppmeshVirtualRouterExists(resourceName, &vr),
+					resource.TestCheckResourceAttr(resourceName, "name", vrName),
+					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
+					testAccCheckResourceAttrAccountID(resourceName, "mesh_owner"),
+					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.port_mapping.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.port_mapping.0.port", "8080"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.port_mapping.0.protocol", "http"),
+					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "last_updated_date"),
+					testAccCheckResourceAttrAccountID(resourceName, "resource_owner"),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "appmesh", fmt.Sprintf("mesh/%s/virtualRouter/%s", meshName, vrName)),
 				),
 			},
 			{
 				Config: testAccAppmeshVirtualRouterConfig_updated(meshName, vrName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppmeshVirtualRouterExists(
-						resourceName, &vr),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", vrName),
-					resource.TestCheckResourceAttr(
-						resourceName, "mesh_name", meshName),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.0.port_mapping.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.0.port_mapping.0.port", "8081"),
-					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.0.port_mapping.0.protocol", "http"),
+					testAccCheckAppmeshVirtualRouterExists(resourceName, &vr),
+					resource.TestCheckResourceAttr(resourceName, "name", vrName),
+					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
+					testAccCheckResourceAttrAccountID(resourceName, "mesh_owner"),
+					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.port_mapping.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.port_mapping.0.port", "8081"),
+					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.port_mapping.0.protocol", "http"),
 				),
 			},
 			{
@@ -157,7 +141,7 @@ func testAccAwsAppmeshVirtualRouter_tags(t *testing.T) {
 	vrName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualRouterDestroy,
 		Steps: []resource.TestStep{

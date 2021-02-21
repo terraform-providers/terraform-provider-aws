@@ -8,7 +8,7 @@ description: |-
 
 # Resource: aws_ses_receipt_rule_set
 
-Provides an SES receipt rule set resource
+Provides an SES receipt rule set resource.
 
 ## Example Usage
 
@@ -22,7 +22,14 @@ resource "aws_ses_receipt_rule_set" "main" {
 
 The following arguments are supported:
 
-* `rule_set_name` - (Required) The name of the rule set
+* `rule_set_name` - (Required) Name of the rule set.
+
+## Attributes Reference
+
+In addition to the arguments, which are exported, the following attributes are exported:
+
+* `arn` - SES receipt rule set ARN.
+* `id` - SES receipt rule set name.
 
 ## Import
 

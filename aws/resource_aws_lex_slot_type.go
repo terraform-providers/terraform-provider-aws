@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/lex/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const (
@@ -95,13 +96,10 @@ func resourceAwsLexSlotType() *schema.Resource {
 				),
 			},
 			"value_selection_strategy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  lexmodelbuildingservice.SlotValueSelectionStrategyOriginalValue,
-				ValidateFunc: validation.StringInSlice([]string{
-					lexmodelbuildingservice.SlotValueSelectionStrategyOriginalValue,
-					lexmodelbuildingservice.SlotValueSelectionStrategyTopResolution,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      lexmodelbuildingservice.SlotValueSelectionStrategyOriginalValue,
+				ValidateFunc: validation.StringInSlice(lexmodelbuildingservice.SlotValueSelectionStrategy_Values(), false),
 			},
 			"version": {
 				Type:     schema.TypeString,
@@ -139,6 +137,11 @@ func resourceAwsLexSlotTypeCreate(d *schema.ResourceData, meta interface{}) erro
 
 		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.PutSlotType(input)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error creating slot type %s: %w", name, err)
 	}
@@ -186,7 +189,7 @@ func resourceAwsLexSlotTypeRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func getLatestLexSlotTypeVersion(conn *lexmodelbuildingservice.LexModelBuildingService, input *lexmodelbuildingservice.GetSlotTypeVersionsInput) (string, error) {
-	version := "$LATEST"
+	version := LexSlotTypeVersionLatest
 
 	for {
 		page, err := conn.GetSlotTypeVersions(input)
@@ -244,6 +247,11 @@ func resourceAwsLexSlotTypeUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.PutSlotType(input)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error updating slot type %s: %w", d.Id(), err)
 	}
@@ -254,10 +262,12 @@ func resourceAwsLexSlotTypeUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsLexSlotTypeDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lexmodelconn
 
+	input := &lexmodelbuildingservice.DeleteSlotTypeInput{
+		Name: aws.String(d.Id()),
+	}
+
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := conn.DeleteSlotType(&lexmodelbuildingservice.DeleteSlotTypeInput{
-			Name: aws.String(d.Id()),
-		})
+		_, err := conn.DeleteSlotType(input)
 
 		if tfawserr.ErrCodeEquals(err, lexmodelbuildingservice.ErrCodeConflictException) {
 			return resource.RetryableError(fmt.Errorf("%q: there is a pending operation, slot type still deleting", d.Id()))
@@ -268,6 +278,11 @@ func resourceAwsLexSlotTypeDelete(d *schema.ResourceData, meta interface{}) erro
 
 		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.DeleteSlotType(input)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error deleting slot type %s: %w", d.Id(), err)
 	}

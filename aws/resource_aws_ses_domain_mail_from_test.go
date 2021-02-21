@@ -14,7 +14,7 @@ import (
 func TestAccAWSSESDomainMailFrom_basic(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	mailFromDomain1 := fmt.Sprintf("bounce1.%s", domain)
 	mailFromDomain2 := fmt.Sprintf("bounce2.%s", domain)
 	resourceName := "aws_ses_domain_mail_from.test"
@@ -54,7 +54,7 @@ func TestAccAWSSESDomainMailFrom_basic(t *testing.T) {
 func TestAccAWSSESDomainMailFrom_disappears(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	mailFromDomain := fmt.Sprintf("bounce.%s", domain)
 	resourceName := "aws_ses_domain_mail_from.test"
 
@@ -78,7 +78,7 @@ func TestAccAWSSESDomainMailFrom_disappears(t *testing.T) {
 func TestAccAWSSESDomainMailFrom_disappears_Identity(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	mailFromDomain := fmt.Sprintf("bounce.%s", domain)
 	resourceName := "aws_ses_domain_mail_from.test"
 
@@ -102,7 +102,7 @@ func TestAccAWSSESDomainMailFrom_disappears_Identity(t *testing.T) {
 func TestAccAWSSESDomainMailFrom_behaviorOnMxFailure(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	resourceName := "aws_ses_domain_mail_from.test"
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -21,6 +22,10 @@ func resourceAwsEc2TrafficMirrorFilter() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -59,7 +64,7 @@ func resourceAwsEc2TrafficMirrorFilterCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error while creating traffic filter %s", err)
 	}
 
-	d.SetId(*out.TrafficMirrorFilter.TrafficMirrorFilterId)
+	d.SetId(aws.StringValue(out.TrafficMirrorFilter.TrafficMirrorFilterId))
 
 	if v, ok := d.GetOk("network_services"); ok {
 		input := &ec2.ModifyTrafficMirrorFilterNetworkServicesInput{
@@ -86,14 +91,14 @@ func resourceAwsEc2TrafficMirrorFilterUpdate(d *schema.ResourceData, meta interf
 		}
 
 		o, n := d.GetChange("network_services")
-		newServices := n.(*schema.Set).Difference(o.(*schema.Set)).List()
-		if len(newServices) > 0 {
-			input.AddNetworkServices = expandStringList(newServices)
+		newServices := n.(*schema.Set).Difference(o.(*schema.Set))
+		if newServices.Len() > 0 {
+			input.AddNetworkServices = expandStringSet(newServices)
 		}
 
-		removeServices := o.(*schema.Set).Difference(n.(*schema.Set)).List()
-		if len(removeServices) > 0 {
-			input.RemoveNetworkServices = expandStringList(removeServices)
+		removeServices := o.(*schema.Set).Difference(n.(*schema.Set))
+		if removeServices.Len() > 0 {
+			input.RemoveNetworkServices = expandStringSet(removeServices)
 		}
 
 		_, err := conn.ModifyTrafficMirrorFilterNetworkServices(input)
@@ -149,6 +154,16 @@ func resourceAwsEc2TrafficMirrorFilterRead(d *schema.ResourceData, meta interfac
 	if err := d.Set("network_services", aws.StringValueSlice(trafficMirrorFilter.NetworkServices)); err != nil {
 		return fmt.Errorf("error setting network_services for filter %v: %s", d.Id(), err)
 	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   ec2.ServiceName,
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("traffic-mirror-filter/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

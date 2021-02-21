@@ -45,7 +45,7 @@ func dataSourceAwsServiceQuotasServiceRead(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("error listing Services: %s", err)
+		return fmt.Errorf("error listing Services: %w", err)
 	}
 
 	if service == nil {

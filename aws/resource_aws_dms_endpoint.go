@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -128,9 +129,10 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 				}, false),
 			},
 			"extra_connection_attributes": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
+				Type:             schema.TypeString,
+				Computed:         true,
+				Optional:         true,
+				DiffSuppressFunc: suppressExtraConnectionAttributesDiffs,
 			},
 			"kafka_settings": {
 				Type:     schema.TypeList,
@@ -299,6 +301,11 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 							Optional: true,
 							Default:  "NONE",
 						},
+						"date_partition_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -396,6 +403,7 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
 			BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
 			CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
+			DatePartitionEnabled:    aws.Bool(d.Get("s3_settings.0.date_partition_enabled").(bool)),
 		}
 	default:
 		request.Password = aws.String(d.Get("password").(string))
@@ -406,9 +414,7 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		if v, ok := d.GetOk("database_name"); ok {
 			request.DatabaseName = aws.String(v.(string))
 		}
-		if v, ok := d.GetOk("extra_connection_attributes"); ok {
-			request.ExtraConnectionAttributes = aws.String(v.(string))
-		}
+
 		if v, ok := d.GetOk("kms_key_arn"); ok {
 			request.KmsKeyId = aws.String(v.(string))
 		}
@@ -417,6 +423,13 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("certificate_arn"); ok {
 		request.CertificateArn = aws.String(v.(string))
 	}
+
+	// Send ExtraConnectionAttributes in the API request for all resource types
+	// per https://github.com/hashicorp/terraform-provider-aws/issues/8009
+	if v, ok := d.GetOk("extra_connection_attributes"); ok {
+		request.ExtraConnectionAttributes = aws.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("ssl_mode"); ok {
 		request.SslMode = aws.String(v.(string))
 	}
@@ -690,7 +703,7 @@ func resourceAwsDmsEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceAwsDmsEndpointSetState(d *schema.ResourceData, endpoint *dms.Endpoint) error {
-	d.SetId(*endpoint.EndpointIdentifier)
+	d.SetId(aws.StringValue(endpoint.EndpointIdentifier))
 
 	d.Set("certificate_arn", endpoint.CertificateArn)
 	d.Set("endpoint_arn", endpoint.EndpointArn)
@@ -698,6 +711,7 @@ func resourceAwsDmsEndpointSetState(d *schema.ResourceData, endpoint *dms.Endpoi
 	// For some reason the AWS API only accepts lowercase type but returns it as uppercase
 	d.Set("endpoint_type", strings.ToLower(*endpoint.EndpointType))
 	d.Set("engine_name", endpoint.EngineName)
+	d.Set("extra_connection_attributes", endpoint.ExtraConnectionAttributes)
 
 	switch *endpoint.EngineName {
 	case "dynamodb":
@@ -823,7 +837,95 @@ func flattenDmsS3Settings(settings *dms.S3Settings) []map[string]interface{} {
 		"bucket_folder":             aws.StringValue(settings.BucketFolder),
 		"bucket_name":               aws.StringValue(settings.BucketName),
 		"compression_type":          aws.StringValue(settings.CompressionType),
+		"date_partition_enabled":    aws.BoolValue(settings.DatePartitionEnabled),
 	}
 
 	return []map[string]interface{}{m}
+}
+
+func suppressExtraConnectionAttributesDiffs(_, old, new string, d *schema.ResourceData) bool {
+	if d.Id() != "" {
+		o := extraConnectionAttributesToSet(old)
+		n := extraConnectionAttributesToSet(new)
+
+		var config *schema.Set
+		// when the engine is "s3" or "mongodb", the extra_connection_attributes
+		// can consist of a subset of the attributes configured in the {engine}_settings block;
+		// fields such as service_access_role_arn (in the case of "s3") are not returned from the API in
+		// extra_connection_attributes thus we take the Set difference to ensure
+		// the returned attributes were set in the {engine}_settings block or originally
+		// in the extra_connection_attributes field
+		if v, ok := d.GetOk("mongodb_settings"); ok {
+			config = engineSettingsToSet(v.([]interface{}))
+		} else if v, ok := d.GetOk("s3_settings"); ok {
+			config = engineSettingsToSet(v.([]interface{}))
+		}
+
+		if o != nil && config != nil {
+			diff := o.Difference(config)
+
+			return diff.Len() == 0 || diff.Equal(n)
+		}
+	}
+	return false
+}
+
+// extraConnectionAttributesToSet accepts an extra_connection_attributes
+// string in the form of "key=value;key2=value2;" and returns
+// the Set representation, with each element being the key/value pair
+func extraConnectionAttributesToSet(extra string) *schema.Set {
+	if extra == "" {
+		return nil
+	}
+
+	s := &schema.Set{F: schema.HashString}
+
+	parts := strings.Split(extra, ";")
+	for _, part := range parts {
+		kvParts := strings.Split(part, "=")
+		if len(kvParts) != 2 {
+			continue
+		}
+
+		k, v := kvParts[0], kvParts[1]
+		// normalize key, from camelCase to snake_case,
+		// and value where hyphens maybe used in a config
+		// but the API returns with underscores
+		matchAllCap := regexp.MustCompile("([a-z])([A-Z])")
+		key := matchAllCap.ReplaceAllString(k, "${1}_${2}")
+		normalizedVal := strings.Replace(strings.ToLower(v), "-", "_", -1)
+
+		s.Add(fmt.Sprintf("%s=%s", strings.ToLower(key), normalizedVal))
+	}
+
+	return s
+}
+
+// engineSettingsToSet accepts the {engine}_settings block as a list
+// and returns the Set representation, with each element being the key/value pair
+func engineSettingsToSet(l []interface{}) *schema.Set {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	tfMap, ok := l[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	s := &schema.Set{F: schema.HashString}
+
+	for k, v := range tfMap {
+		switch t := v.(type) {
+		case string:
+			// normalize value for changes in case or where hyphens
+			// maybe used in a config but the API returns with underscores
+			normalizedVal := strings.Replace(strings.ToLower(t), "-", "_", -1)
+			s.Add(fmt.Sprintf("%s=%v", k, normalizedVal))
+		default:
+			s.Add(fmt.Sprintf("%s=%v", k, t))
+		}
+	}
+
+	return s
 }

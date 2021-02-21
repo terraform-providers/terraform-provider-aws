@@ -10,11 +10,11 @@ func TestDataSyncParseLocationURI(t *testing.T) {
 		Subdirectory string
 	}{
 		{
-			LocationURI:  "efs://us-east-2.fs-abcd1234/",
+			LocationURI:  "efs://us-east-2.fs-abcd1234/", // lintignore:AWSAT003
 			Subdirectory: "/",
 		},
 		{
-			LocationURI:  "efs://us-east-2.fs-abcd1234/path",
+			LocationURI:  "efs://us-east-2.fs-abcd1234/path", // lintignore:AWSAT003
 			Subdirectory: "/path",
 		},
 		{

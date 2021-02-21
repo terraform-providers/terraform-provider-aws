@@ -257,7 +257,7 @@ resource "aws_subnet" "test" {
 
 resource "aws_db_subnet_group" "test" {
   name       = %[1]q
-  subnet_ids = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnet_ids = aws_subnet.test[*].id
 }
 
 resource "aws_rds_cluster" "test" {

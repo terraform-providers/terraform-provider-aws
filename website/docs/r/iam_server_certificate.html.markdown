@@ -20,7 +20,7 @@ For information about server certificates in IAM, see [Managing Server
 Certificates][2] in AWS Documentation.
 
 ~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
@@ -111,6 +111,8 @@ The following arguments are supported:
 ~> **NOTE:** AWS performs behind-the-scenes modifications to some certificate files if they do not adhere to a specific format. These modifications will result in terraform forever believing that it needs to update the resources since the local and AWS file contents will not match after theses modifications occur. In order to prevent this from happening you must ensure that all your PEM-encoded files use UNIX line-breaks and that `certificate_body` contains only one certificate. All other certificates should go in `certificate_chain`. It is common for some Certificate Authorities to issue certificate files that have DOS line-breaks and that are actually multiple certificates concatenated together in order to form a full certificate chain.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique Server Certificate name
 * `name` - The name of the Server Certificate

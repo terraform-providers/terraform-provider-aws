@@ -73,7 +73,7 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 			},
 
 			"openid_connect_provider_arns": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -130,7 +130,7 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("openid_connect_provider_arns"); ok {
-		params.OpenIdConnectProviderARNs = expandStringList(v.([]interface{}))
+		params.OpenIdConnectProviderARNs = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
@@ -142,7 +142,7 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error creating Cognito Identity Pool: %s", err)
 	}
 
-	d.SetId(*entity.IdentityPoolId)
+	d.SetId(aws.StringValue(entity.IdentityPoolId))
 
 	return resourceAwsCognitoIdentityPoolRead(d, meta)
 }
@@ -221,7 +221,7 @@ func resourceAwsCognitoIdentityPoolUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("openid_connect_provider_arns"); ok {
-		params.OpenIdConnectProviderARNs = expandStringList(v.([]interface{}))
+		params.OpenIdConnectProviderARNs = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("saml_provider_arns"); ok {

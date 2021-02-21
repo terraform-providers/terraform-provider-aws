@@ -58,7 +58,7 @@ Without a PGP key, the private key material will be stored in state unencrypted.
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name used for this key pair
 * `arn` - The ARN of the Lightsail key pair

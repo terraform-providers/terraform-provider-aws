@@ -62,7 +62,7 @@ any fields that are not included in the configuration with the data for
 the selected Nat Gateway.
 
 `addresses` are also exported with the following attributes, when they are relevant:
-Each attachement supports the following:
+Each attachment supports the following:
 
 * `allocation_id` - The Id of the EIP allocated to the selected Nat Gateway.
 * `network_interface_id` - The Id of the ENI allocated to the selected Nat Gateway.

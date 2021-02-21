@@ -5,6 +5,7 @@ package keyvaluetags
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
@@ -39,6 +40,21 @@ func AutoscalingGetTag(conn *autoscaling.AutoScaling, identifier string, resourc
 	listTags := AutoscalingKeyValueTags(output.Tags, identifier, resourceType)
 
 	return listTags.KeyExists(key), listTags.KeyTagData(key), nil
+}
+
+// BatchGetTag fetches an individual batch service tag for a resource.
+// Returns whether the key exists, the key value, and any errors.
+// This function will optimise the handling over BatchListTags, if possible.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func BatchGetTag(conn *batch.Batch, identifier string, key string) (bool, *string, error) {
+	listTags, err := BatchListTags(conn, identifier)
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	return listTags.KeyExists(key), listTags.KeyValue(key), nil
 }
 
 // DynamodbGetTag fetches an individual dynamodb service tag for a resource.

@@ -275,8 +275,8 @@ resource "aws_wafv2_rule_group" "example" {
   }
 
   tags = {
-    "Name" = "example-and-statement"
-    "Code" = "123456"
+    Name = "example-and-statement"
+    Code = "123456"
   }
 }
 ```

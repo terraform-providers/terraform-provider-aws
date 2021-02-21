@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_ssm_maintenance_window_task: Make `service_role_arn` optional
+```

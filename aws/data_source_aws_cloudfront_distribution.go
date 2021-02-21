@@ -88,7 +88,7 @@ func dataSourceAwsCloudFrontDistributionRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error listing tags for CloudFront Distribution (%s): %w", d.Id(), err)
 	}
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("hosted_zone_id", cloudFrontRoute53ZoneID)

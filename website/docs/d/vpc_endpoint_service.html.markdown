@@ -18,7 +18,8 @@ can be specified when creating a VPC endpoint within the region configured in th
 ```hcl
 # Declare the data source
 data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
+  service      = "s3"
+  service_type = "Gateway"
 }
 
 # Create a VPC
@@ -57,9 +58,10 @@ data "aws_vpc_endpoint_service" "test" {
 The arguments of this data source act as filters for querying the available VPC endpoint services.
 The given filters must match exactly one VPC endpoint service whose data will be exported as attributes.
 
+* `filter` - (Optional) Configuration block(s) for filtering. Detailed below.
 * `service` - (Optional) The common name of an AWS service (e.g. `s3`).
 * `service_name` - (Optional) The service name that is specified when creating a VPC endpoint. For AWS services the service name is usually in the form `com.amazonaws.<region>.<service>` (the SageMaker Notebook service is an exception to this rule, the service name is in the form `aws.sagemaker.<region>.notebook`).
-* `filter` - (Optional) Configuration block(s) for filtering. Detailed below.
+* `service_type` - (Optional) The service type, `Gateway` or `Interface`.
 * `tags` - (Optional) A map of tags, each pair of which must exactly match a pair on the desired VPC Endpoint Service.
 
 ~> **NOTE:** Specifying `service` will not work for non-AWS services or AWS services that don't follow the standard `service_name` pattern of `com.amazonaws.<region>.<service>`.
@@ -83,6 +85,5 @@ In addition to all arguments above, the following attributes are exported:
 * `owner` - The AWS account ID of the service owner or `amazon`.
 * `private_dns_name` - The private DNS name for the service.
 * `service_id` - The ID of the endpoint service.
-* `service_type` - The service type, `Gateway` or `Interface`.
 * `tags` - A map of tags assigned to the resource.
 * `vpc_endpoint_policy_supported` - Whether or not the service supports endpoint policies - `true` or `false`.

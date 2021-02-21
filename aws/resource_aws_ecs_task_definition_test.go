@@ -546,7 +546,7 @@ func TestAccAWSEcsTaskDefinition_changeVolumesForcesNewResource(t *testing.T) {
 	})
 }
 
-// Regression for https://github.com/terraform-providers/terraform-provider-aws/issues/2336
+// Regression for https://github.com/hashicorp/terraform-provider-aws/issues/2336
 func TestAccAWSEcsTaskDefinition_arrays(t *testing.T) {
 	var conf ecs.TaskDefinition
 	resourceName := "aws_ecs_task_definition.test"
@@ -639,23 +639,11 @@ func TestAccAWSEcsTaskDefinition_ExecutionRole(t *testing.T) {
 }
 
 // Regression for https://github.com/hashicorp/terraform/issues/3582#issuecomment-286409786
-func TestAccAWSEcsTaskDefinition_Inactive(t *testing.T) {
+func TestAccAWSEcsTaskDefinition_disappears(t *testing.T) {
 	var def ecs.TaskDefinition
 
 	tdName := acctest.RandomWithPrefix("tf-acc-td-basic")
 	resourceName := "aws_ecs_task_definition.test"
-
-	markTaskDefinitionInactive := func() {
-		conn := testAccProvider.Meta().(*AWSClient).ecsconn
-
-		_, err := conn.DeregisterTaskDefinition(&ecs.DeregisterTaskDefinitionInput{
-			TaskDefinition: aws.String(fmt.Sprintf("%s:1", tdName)),
-		})
-
-		if err != nil {
-			t.Fatalf("error deregistering ECS Task Definition (%s): %s", tdName, err)
-		}
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -666,18 +654,13 @@ func TestAccAWSEcsTaskDefinition_Inactive(t *testing.T) {
 				Config: testAccAWSEcsTaskDefinition(tdName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcsTaskDefinitionExists(resourceName, &def),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEcsTaskDefinition(), resourceName),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSEcsTaskDefinitionImportStateIdFunc(resourceName),
-				ImportStateVerify: true,
-			},
-			{
-				Config:    testAccAWSEcsTaskDefinition(tdName),
-				PreConfig: markTaskDefinitionInactive,
-				Check:     resource.TestCheckResourceAttr(resourceName, "revision", "2"), // should get re-created
+				Config: testAccAWSEcsTaskDefinition(tdName),
+				Check:  resource.TestCheckResourceAttr(resourceName, "revision", "2"), // should get re-created
 			},
 		},
 	})
@@ -994,7 +977,7 @@ func testAccCheckAWSTaskDefinitionDockerVolumeConfigurationAutoprovisionNil(def 
 }
 
 func testAccAWSEcsTaskDefinition_constraint(tdName string) string {
-	return fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_ecs_task_definition" "test" {
   family = "%s"
 
@@ -1045,10 +1028,10 @@ TASK_DEFINITION
 
   placement_constraints {
     type       = "memberOf"
-    expression = "attribute:ecs.availability-zone in [us-west-2a, us-west-2b]"
+    expression = "attribute:ecs.availability-zone in [${data.aws_availability_zones.available.names[0]}, ${data.aws_availability_zones.available.names[1]}]"
   }
 }
-`, tdName)
+`, tdName))
 }
 
 func testAccAWSEcsTaskDefinition(tdName string) string {
@@ -1674,6 +1657,8 @@ resource "aws_iam_role" "test" {
 EOF
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role_policy" "test" {
   name = %[2]q
   role = aws_iam_role.test.id
@@ -1688,7 +1673,7 @@ resource "aws_iam_role_policy" "test" {
 				"s3:GetBucketLocation",
 				"s3:ListAllMyBuckets"
 			],
-			"Resource": "arn:aws:s3:::*"
+			"Resource": "arn:${data.aws_partition.current.partition}:s3:::*"
 		}
 	]
 }
@@ -1743,6 +1728,8 @@ resource "aws_iam_role" "test" {
 EOF
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role_policy" "test" {
   name = %[2]q
   role = aws_iam_role.test.id
@@ -1757,7 +1744,7 @@ resource "aws_iam_role_policy" "test" {
 			 "s3:GetBucketLocation",
 			 "s3:ListAllMyBuckets"
 		 ],
-		 "Resource": "arn:aws:s3:::*"
+		 "Resource": "arn:${data.aws_partition.current.partition}:s3:::*"
 	 }
  ]
 }
@@ -1815,6 +1802,8 @@ resource "aws_iam_role" "test" {
 EOF
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role_policy" "test" {
   name = %[2]q
   role = aws_iam_role.test.id
@@ -1829,7 +1818,7 @@ resource "aws_iam_role_policy" "test" {
 			 "s3:GetBucketLocation",
 			 "s3:ListAllMyBuckets"
 		 ],
-		 "Resource": "arn:aws:s3:::*"
+		 "Resource": "arn:${data.aws_partition.current.partition}:s3:::*"
 	 }
  ]
 }
@@ -1887,6 +1876,8 @@ resource "aws_iam_role" "test" {
 EOF
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role_policy" "test" {
   name = %[2]q
   role = aws_iam_role.test.id
@@ -1901,7 +1892,7 @@ resource "aws_iam_role_policy" "test" {
 			 "s3:GetBucketLocation",
 			 "s3:ListAllMyBuckets"
 		 ],
-		 "Resource": "arn:aws:s3:::*"
+		 "Resource": "arn:${data.aws_partition.current.partition}:s3:::*"
 	 }
  ]
 }

@@ -95,7 +95,7 @@ func resourceAwsIamPolicyCreate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error creating IAM policy %s: %s", name, err)
 	}
 
-	d.SetId(*response.Policy.Arn)
+	d.SetId(aws.StringValue(response.Policy.Arn))
 
 	return resourceAwsIamPolicyRead(d, meta)
 }

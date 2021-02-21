@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -86,7 +85,7 @@ func dataSourceAwsEcrImageRead(d *schema.ResourceData, meta interface{}) error {
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing ECR images: %q", err)
+		return fmt.Errorf("Error describing ECR images: %w", err)
 	}
 
 	if len(imageDetails) == 0 {
@@ -98,21 +97,21 @@ func dataSourceAwsEcrImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	image := imageDetails[0]
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(aws.StringValue(image.ImageDigest))
 	if err = d.Set("registry_id", aws.StringValue(image.RegistryId)); err != nil {
-		return fmt.Errorf("failed to set registry_id: %s", err)
+		return fmt.Errorf("failed to set registry_id: %w", err)
 	}
 	if err = d.Set("image_digest", aws.StringValue(image.ImageDigest)); err != nil {
-		return fmt.Errorf("failed to set image_digest: %s", err)
+		return fmt.Errorf("failed to set image_digest: %w", err)
 	}
 	if err = d.Set("image_pushed_at", image.ImagePushedAt.Unix()); err != nil {
-		return fmt.Errorf("failed to set image_pushed_at: %s", err)
+		return fmt.Errorf("failed to set image_pushed_at: %w", err)
 	}
 	if err = d.Set("image_size_in_bytes", aws.Int64Value(image.ImageSizeInBytes)); err != nil {
-		return fmt.Errorf("failed to set image_size_in_bytes: %s", err)
+		return fmt.Errorf("failed to set image_size_in_bytes: %w", err)
 	}
 	if err := d.Set("image_tags", aws.StringValueSlice(image.ImageTags)); err != nil {
-		return fmt.Errorf("failed to set image_tags: %s", err)
+		return fmt.Errorf("failed to set image_tags: %w", err)
 	}
 
 	return nil

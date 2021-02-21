@@ -42,7 +42,7 @@ The following arguments are supported:
 ### Timeouts
 
 `aws_ebs_snapshot` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating the ebs snapshot
 - `delete` - (Default `10 minutes`) Used for deleting the ebs snapshot

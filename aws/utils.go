@@ -52,3 +52,12 @@ func isResourceTimeoutError(err error) bool {
 	timeoutErr, ok := err.(*resource.TimeoutError)
 	return ok && timeoutErr.LastError == nil
 }
+
+func appendUniqueString(slice []string, elem string) []string {
+	for _, e := range slice {
+		if e == elem {
+			return slice
+		}
+	}
+	return append(slice, elem)
+}

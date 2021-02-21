@@ -15,7 +15,7 @@ import (
 func TestAccAWSVpcEndpointRouteTableAssociation_basic(t *testing.T) {
 	var vpce ec2.VpcEndpoint
 	resourceName := "aws_vpc_endpoint_route_table_association.test"
-	rName := fmt.Sprintf("tf-testacc-vpce-%s", acctest.RandStringFromCharSet(16, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-vpce-%s", acctest.RandString(16))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -3,6 +3,8 @@ package ec2
 import (
 	"fmt"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 const clientVpnAuthorizationRuleIDSeparator = ","
@@ -67,4 +69,27 @@ func ClientVpnRouteParseID(id string) (string, string, string, error) {
 	return "", "", "",
 		fmt.Errorf("unexpected format for ID (%q), expected endpoint-id"+clientVpnRouteIDSeparator+
 			"target-subnet-id"+clientVpnRouteIDSeparator+"destination-cidr-block", id)
+}
+
+const transitGatewayPrefixListReferenceSeparator = "_"
+
+func TransitGatewayPrefixListReferenceCreateID(transitGatewayRouteTableID string, prefixListID string) string {
+	parts := []string{transitGatewayRouteTableID, prefixListID}
+	id := strings.Join(parts, transitGatewayPrefixListReferenceSeparator)
+
+	return id
+}
+
+func TransitGatewayPrefixListReferenceParseID(id string) (string, string, error) {
+	parts := strings.Split(id, transitGatewayPrefixListReferenceSeparator)
+
+	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+		return parts[0], parts[1], nil
+	}
+
+	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected transit-gateway-route-table-id%[2]sprefix-list-id", id, transitGatewayPrefixListReferenceSeparator)
+}
+
+func VpnGatewayVpcAttachmentCreateID(vpnGatewayID, vpcID string) string {
+	return fmt.Sprintf("vpn-attachment-%x", hashcode.String(fmt.Sprintf("%s-%s", vpcID, vpnGatewayID)))
 }

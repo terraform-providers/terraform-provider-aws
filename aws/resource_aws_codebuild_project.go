@@ -981,8 +981,8 @@ func expandCodeBuildVpcConfig(rawVpcConfig []interface{}) *codebuild.VpcConfig {
 
 	data := rawVpcConfig[0].(map[string]interface{})
 	vpcConfig.VpcId = aws.String(data["vpc_id"].(string))
-	vpcConfig.Subnets = expandStringList(data["subnets"].(*schema.Set).List())
-	vpcConfig.SecurityGroupIds = expandStringList(data["security_group_ids"].(*schema.Set).List())
+	vpcConfig.Subnets = expandStringSet(data["subnets"].(*schema.Set))
+	vpcConfig.SecurityGroupIds = expandStringSet(data["security_group_ids"].(*schema.Set))
 
 	return &vpcConfig
 }
@@ -1467,8 +1467,8 @@ func flattenAwsCodeBuildVpcConfig(vpcConfig *codebuild.VpcConfig) []interface{} 
 		values := map[string]interface{}{}
 
 		values["vpc_id"] = aws.StringValue(vpcConfig.VpcId)
-		values["subnets"] = schema.NewSet(schema.HashString, flattenStringList(vpcConfig.Subnets))
-		values["security_group_ids"] = schema.NewSet(schema.HashString, flattenStringList(vpcConfig.SecurityGroupIds))
+		values["subnets"] = flattenStringSet(vpcConfig.Subnets)
+		values["security_group_ids"] = flattenStringSet(vpcConfig.SecurityGroupIds)
 
 		return []interface{}{values}
 	}

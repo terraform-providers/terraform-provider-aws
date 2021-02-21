@@ -3,7 +3,6 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -11,15 +10,12 @@ import (
 )
 
 func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
-	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckPricing(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsPricingProductConfigEc2("test", "c5.large"),
+				Config: testAccDataSourceAwsPricingProductConfigEc2(),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.aws_pricing_product.test", "result"),
 					testAccPricingCheckValueIsJSON("data.aws_pricing_product.test"),
@@ -30,12 +26,9 @@ func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
 }
 
 func TestAccDataSourceAwsPricingProduct_redshift(t *testing.T) {
-	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckPricing(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsPricingProductConfigRedshift(),
@@ -48,14 +41,22 @@ func TestAccDataSourceAwsPricingProduct_redshift(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAwsPricingProductConfigEc2(dataName string, instanceType string) string {
-	return fmt.Sprintf(`
-data "aws_pricing_product" "%s" {
+func testAccDataSourceAwsPricingProductConfigEc2() string {
+	return composeConfig(
+		testAccPricingRegionProviderConfig(),
+		`
+data "aws_ec2_instance_type_offering" "available" {
+  preferred_instance_types = ["c5.large", "c4.large"]
+}
+
+data "aws_region" "current" {}
+
+data "aws_pricing_product" "test" {
   service_code = "AmazonEC2"
 
   filters {
     field = "instanceType"
-    value = "%s"
+    value = data.aws_ec2_instance_type_offering.available.instance_type
   }
 
   filters {
@@ -65,7 +66,7 @@ data "aws_pricing_product" "%s" {
 
   filters {
     field = "location"
-    value = "US East (N. Virginia)"
+    value = data.aws_region.current.description
   }
 
   filters {
@@ -88,25 +89,38 @@ data "aws_pricing_product" "%s" {
     value = "Used"
   }
 }
-`, dataName, instanceType)
+`)
 }
 
 func testAccDataSourceAwsPricingProductConfigRedshift() string {
-	return `
+	return composeConfig(
+		testAccPricingRegionProviderConfig(),
+		`
+data "aws_redshift_orderable_cluster" "test" {
+  preferred_node_types = ["dc2.8xlarge", "ds2.8xlarge"]
+}
+
+data "aws_region" "current" {}
+
 data "aws_pricing_product" "test" {
   service_code = "AmazonRedshift"
 
   filters {
     field = "instanceType"
-    value = "ds1.xlarge"
+    value = data.aws_redshift_orderable_cluster.test.node_type
   }
 
   filters {
     field = "location"
-    value = "US East (N. Virginia)"
+    value = data.aws_region.current.description
+  }
+
+  filters {
+    field = "productFamily"
+    value = "Compute Instance"
   }
 }
-`
+`)
 }
 
 func testAccPricingCheckValueIsJSON(data string) resource.TestCheckFunc {

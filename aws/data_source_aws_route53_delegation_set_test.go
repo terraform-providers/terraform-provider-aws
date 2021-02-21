@@ -7,13 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceRoute53DelegationSet_basic(t *testing.T) {
+func TestAccAWSRoute53DelegationSetDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_route53_delegation_set.dset"
 	resourceName := "aws_route53_delegation_set.dset"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDataSourceAWSRoute53DelegationSetConfig_basic,

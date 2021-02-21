@@ -16,6 +16,9 @@ func resourceAwsCloudFrontPublicKey() *schema.Resource {
 		Read:   resourceAwsCloudFrontPublicKeyRead,
 		Update: resourceAwsCloudFrontPublicKeyUpdate,
 		Delete: resourceAwsCloudFrontPublicKeyDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"caller_reference": {

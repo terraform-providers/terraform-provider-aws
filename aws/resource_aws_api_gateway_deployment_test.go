@@ -19,7 +19,7 @@ func TestAccAWSAPIGatewayDeployment_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test-deployment")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -49,7 +49,7 @@ func TestAccAWSAPIGatewayDeployment_disappears_RestApi(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test-deployment")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -72,7 +72,7 @@ func TestAccAWSAPIGatewayDeployment_Triggers(t *testing.T) {
 	resourceName := "aws_api_gateway_deployment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -127,7 +127,7 @@ func TestAccAWSAPIGatewayDeployment_Description(t *testing.T) {
 	resourceName := "aws_api_gateway_deployment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -155,7 +155,7 @@ func TestAccAWSAPIGatewayDeployment_StageDescription(t *testing.T) {
 	resourceName := "aws_api_gateway_deployment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -177,7 +177,7 @@ func TestAccAWSAPIGatewayDeployment_StageName(t *testing.T) {
 	resourceName := "aws_api_gateway_deployment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -204,7 +204,7 @@ func TestAccAWSAPIGatewayDeployment_StageName_EmptyString(t *testing.T) {
 	resourceName := "aws_api_gateway_deployment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -224,7 +224,7 @@ func TestAccAWSAPIGatewayDeployment_Variables(t *testing.T) {
 	resourceName := "aws_api_gateway_deployment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -403,9 +403,7 @@ resource "aws_api_gateway_deployment" "test" {
   stage_name        = "tf-acc-test"
 
   triggers = {
-    redeployment = sha1(join(",", list(
-      jsonencode(aws_api_gateway_integration.test),
-    )))
+    redeployment = sha1(jsonencode(aws_api_gateway_integration.test))
   }
 
   lifecycle {

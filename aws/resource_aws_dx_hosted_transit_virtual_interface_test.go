@@ -51,7 +51,7 @@ func testAccAwsDxHostedTransitVirtualInterface_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDxHostedTransitVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +110,7 @@ func testAccAwsDxHostedTransitVirtualInterface_accepterTags(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDxHostedTransitVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{

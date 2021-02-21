@@ -141,8 +141,9 @@ func TestAccAWSLaunchTemplate_BlockDeviceMappings_EBS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/sda1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/xvda"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.throughput", "0"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.volume_size", "15"),
 				),
 			},
@@ -170,7 +171,7 @@ func TestAccAWSLaunchTemplate_BlockDeviceMappings_EBS_DeleteOnTermination(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/sda1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/xvda"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.delete_on_termination", "true"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.volume_size", "15"),
@@ -181,10 +182,42 @@ func TestAccAWSLaunchTemplate_BlockDeviceMappings_EBS_DeleteOnTermination(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/sda1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/xvda"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.delete_on_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.volume_size", "15"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchTemplate_BlockDeviceMappings_EBS_Gp3(t *testing.T) {
+	var template ec2.LaunchTemplate
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfig_BlockDeviceMappings_EBS_Gp3(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.device_name", "/dev/xvda"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.iops", "4000"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.throughput", "500"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.volume_size", "15"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.volume_type", "gp3"),
 				),
 			},
 			{
@@ -642,7 +675,7 @@ func TestAccAWSLaunchTemplate_creditSpecification_t3(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/6757
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/6757
 func TestAccAWSLaunchTemplate_IamInstanceProfile_EmptyConfigurationBlock(t *testing.T) {
 	var template1 ec2.LaunchTemplate
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -765,6 +798,55 @@ func TestAccAWSLaunchTemplate_associatePublicIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "network_interfaces.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "network_interfaces.0.network_interface_id"),
 					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.associate_public_ip_address", ""),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.ipv4_address_count", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchTemplate_associateCarrierIPAddress(t *testing.T) {
+	var template ec2.LaunchTemplate
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfig_associateCarrierIpAddress(rName, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interfaces.0.network_interface_id"),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.associate_carrier_ip_address", "true"),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.ipv4_address_count", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSLaunchTemplateConfig_associateCarrierIpAddress(rName, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interfaces.0.network_interface_id"),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.associate_carrier_ip_address", "false"),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.ipv4_address_count", "2"),
+				),
+			},
+			{
+				Config: testAccAWSLaunchTemplateConfig_associateCarrierIpAddress(rName, "null"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interfaces.0.network_interface_id"),
+					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.associate_carrier_ip_address", ""),
 					resource.TestCheckResourceAttr(resourceName, "network_interfaces.0.ipv4_address_count", "2"),
 				),
 			},
@@ -952,6 +1034,46 @@ func TestAccAWSLaunchTemplate_metadataOptions(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchTemplate_enclaveOptions(t *testing.T) {
+	var template ec2.LaunchTemplate
+	resourceName := "aws_launch_template.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfig_enclaveOptions(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "enclave_options.0.enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSLaunchTemplateConfig_enclaveOptions(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "enclave_options.0.enabled", "false"),
+				),
+			},
+			{
+				Config: testAccAWSLaunchTemplateConfig_enclaveOptions(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "enclave_options.0.enabled", "true"),
+				),
 			},
 		},
 	})
@@ -1196,38 +1318,18 @@ resource "aws_launch_template" "test" {
 }
 
 func testAccAWSLaunchTemplateConfig_BlockDeviceMappings_EBS(rName string) string {
-	return fmt.Sprintf(`
-data "aws_ami" "test" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableAZsNoOptInConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 resource "aws_launch_template" "test" {
-  image_id      = data.aws_ami.test.id
-  instance_type = "t2.micro"
-  name          = %q
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  name          = %[1]q
 
   block_device_mappings {
-    device_name = "/dev/sda1"
+    device_name = "/dev/xvda"
 
     ebs {
       volume_size = 15
@@ -1242,49 +1344,29 @@ resource "aws_autoscaling_group" "test" {
   desired_capacity   = 0
   max_size           = 0
   min_size           = 0
-  name               = %q
+  name               = %[1]q
 
   launch_template {
     id      = aws_launch_template.test.id
     version = aws_launch_template.test.default_version
   }
 }
-`, rName, rName)
+`, rName))
 }
 
 func testAccAWSLaunchTemplateConfig_BlockDeviceMappings_EBS_DeleteOnTermination(rName string, deleteOnTermination bool) string {
-	return fmt.Sprintf(`
-data "aws_ami" "test" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableAZsNoOptInConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 resource "aws_launch_template" "test" {
-  image_id      = data.aws_ami.test.id
-  instance_type = "t2.micro"
-  name          = %q
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  name          = %[1]q
 
   block_device_mappings {
-    device_name = "/dev/sda1"
+    device_name = "/dev/xvda"
 
     ebs {
       delete_on_termination = %t
@@ -1300,14 +1382,54 @@ resource "aws_autoscaling_group" "test" {
   desired_capacity   = 0
   max_size           = 0
   min_size           = 0
-  name               = %q
+  name               = %[1]q
 
   launch_template {
     id      = aws_launch_template.test.id
     version = aws_launch_template.test.default_version
   }
 }
-`, rName, deleteOnTermination, rName)
+`, rName, deleteOnTermination))
+}
+
+func testAccAWSLaunchTemplateConfig_BlockDeviceMappings_EBS_Gp3(rName string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableAZsNoOptInConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  name          = %[1]q
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      iops        = 4000
+      throughput  = 500
+      volume_size = 15
+      volume_type = "gp3"
+    }
+  }
+}
+
+# Creating an AutoScaling Group verifies the launch template
+# ValidationError: You must use a valid fully-formed launch template. the encrypted flag cannot be specified since device /dev/sda1 has a snapshot specified.
+resource "aws_autoscaling_group" "test" {
+  availability_zones = [data.aws_availability_zones.available.names[0]]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %[1]q
+
+  launch_template {
+    id      = aws_launch_template.test.id
+    version = aws_launch_template.test.default_version
+  }
+}
+`, rName))
 }
 
 func testAccAWSLaunchTemplateConfig_NetworkInterfaces_DeleteOnTermination(rName string, deleteOnTermination string) string {
@@ -1327,7 +1449,7 @@ resource "aws_launch_template" "test" {
 func testAccAWSLaunchTemplateConfig_EbsOptimized(rName, ebsOptimized string) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
-  ebs_optimized = %s # allows "", false, true, "false", "true" values
+  ebs_optimized = %s
   name          = %q
 }
 `, ebsOptimized, rName)
@@ -1355,8 +1477,7 @@ resource "aws_launch_template" "test" {
   }
 
   disable_api_termination = true
-
-  ebs_optimized = false
+  ebs_optimized           = false
 
   elastic_gpu_specifications {
     type = "test"
@@ -1366,8 +1487,7 @@ resource "aws_launch_template" "test" {
     name = "test"
   }
 
-  image_id = "ami-12a3b456"
-
+  image_id                             = "ami-12a3b456"
   instance_initiated_shutdown_behavior = "terminate"
 
   instance_market_options {
@@ -1375,10 +1495,8 @@ resource "aws_launch_template" "test" {
   }
 
   instance_type = "t2.micro"
-
-  kernel_id = "aki-a12bc3de"
-
-  key_name = "test"
+  kernel_id     = "aki-a12bc3de"
+  key_name      = "test"
 
   monitoring {
     enabled = true
@@ -1393,8 +1511,7 @@ resource "aws_launch_template" "test" {
     availability_zone = data.aws_availability_zones.available.names[0]
   }
 
-  ram_disk_id = "ari-a12bc3de"
-
+  ram_disk_id            = "ari-a12bc3de"
   vpc_security_group_ids = ["sg-12a3b45c"]
 
   tag_specifications {
@@ -1650,6 +1767,33 @@ resource "aws_launch_template" "test" {
 `, rName, associatePublicIPAddress)
 }
 
+func testAccAWSLaunchTemplateConfig_associateCarrierIpAddress(rName, associateCarrierIPAddress string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_subnet" "test" {
+  vpc_id     = aws_vpc.test.id
+  cidr_block = "10.1.0.0/24"
+}
+
+resource "aws_network_interface" "test" {
+  subnet_id = aws_subnet.test.id
+}
+
+resource "aws_launch_template" "test" {
+  name = %[1]q
+
+  network_interfaces {
+    network_interface_id         = aws_network_interface.test.id
+    associate_carrier_ip_address = %[2]s
+    ipv4_address_count           = 2
+  }
+}
+`, rName, associateCarrierIPAddress)
+}
+
 func testAccAWSLaunchTemplateConfig_networkInterface_ipv6Addresses(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
@@ -1852,6 +1996,18 @@ resource "aws_launch_template" "test" {
 `, rName)
 }
 
+func testAccAWSLaunchTemplateConfig_enclaveOptions(rName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  name = %[1]q
+
+  enclave_options {
+    enabled = %[2]t
+  }
+}
+`, rName, enabled)
+}
+
 func testAccAWSLaunchTemplateConfigHibernation(rName string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
@@ -1883,7 +2039,7 @@ func testAccAWSLaunchTemplateconfig_descriptionUpdateDefaultVersion(rName, descr
 resource "aws_launch_template" "test" {
   name                   = %q
   description            = %q
-  update_default_version = %v
+  update_default_version = %t
 
   tags = {
     test = "baz"

@@ -44,7 +44,7 @@ func resourceAwsLBCookieStickinessPolicy() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 		},
 	}

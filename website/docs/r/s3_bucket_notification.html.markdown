@@ -37,7 +37,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -76,7 +76,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -129,7 +129,7 @@ resource "aws_lambda_function" "func" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -200,7 +200,7 @@ resource "aws_lambda_function" "func2" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -252,7 +252,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {

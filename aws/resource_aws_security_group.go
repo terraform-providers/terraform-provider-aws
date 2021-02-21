@@ -53,6 +53,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
 				ValidateFunc:  validation.StringLenBetween(0, 100),
@@ -262,7 +263,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Security Group: %s", err)
 	}
 
-	d.SetId(*createResp.GroupId)
+	d.SetId(aws.StringValue(createResp.GroupId))
 
 	log.Printf("[INFO] Security Group ID: %s", d.Id())
 
@@ -381,7 +382,7 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("arn", sgArn.String())
 	d.Set("description", sg.Description)
 	d.Set("name", sg.GroupName)
-	d.Set("name_prefix", aws.StringValue(naming.NamePrefixFromName(aws.StringValue(sg.GroupName))))
+	d.Set("name_prefix", naming.NamePrefixFromName(aws.StringValue(sg.GroupName)))
 	d.Set("owner_id", sg.OwnerId)
 	d.Set("vpc_id", sg.VpcId)
 
@@ -1229,7 +1230,7 @@ func resourceAwsSecurityGroupCollapseRules(ruleset string, rules []interface{}) 
 // resourceAwsSecurityGroupExpandRules works in pair with
 // resourceAwsSecurityGroupCollapseRules and is used as a
 // workaround for the problem explained in
-// https://github.com/terraform-providers/terraform-provider-aws/pull/4726
+// https://github.com/hashicorp/terraform-provider-aws/pull/4726
 //
 // This function converts every ingress/egress block that
 // contains multiple rules to multiple blocks with only one

@@ -213,6 +213,46 @@ func dataSourceAwsLbListener() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"forward": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"target_group": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"arn": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"weight": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+											},
+										},
+									},
+									"stickiness": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Type:     schema.TypeBool,
+													Computed: true,
+												},
+												"duration": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -245,7 +285,7 @@ func dataSourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error
 	for _, listener := range resp.Listeners {
 		if *listener.Port == int64(port.(int)) {
 			//log.Printf("[DEBUG] get listener arn for %s:%s: %s", lbArn, port, *listener.Port)
-			d.SetId(*listener.ListenerArn)
+			d.SetId(aws.StringValue(listener.ListenerArn))
 			return resourceAwsLbListenerRead(d, meta)
 		}
 	}

@@ -66,7 +66,7 @@ func dataAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := ssmconn.GetDocument(docInput)
 
 	if err != nil {
-		return fmt.Errorf("Error reading SSM Document: %s", err)
+		return fmt.Errorf("Error reading SSM Document: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.Name))

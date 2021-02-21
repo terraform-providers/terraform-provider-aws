@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/ses_receipt_rule_set: Add `arn` attribute
+```
+
+```release-note:enhancement
+resource/ses_receipt_rule_set: Add plan time validation to `name`
+```

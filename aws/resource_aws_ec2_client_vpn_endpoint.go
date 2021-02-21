@@ -150,7 +150,7 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("dns_servers"); ok {
-		req.DnsServers = expandStringList(v.(*schema.Set).List())
+		req.DnsServers = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("authentication_options"); ok {
@@ -191,7 +191,7 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating Client VPN endpoint: %w", err)
 	}
 
-	d.SetId(*resp.ClientVpnEndpointId)
+	d.SetId(aws.StringValue(resp.ClientVpnEndpointId))
 
 	return resourceAwsEc2ClientVpnEndpointRead(d, meta)
 }
@@ -255,7 +255,7 @@ func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("client-vpn-endpoint/%s", d.Id()),
@@ -288,7 +288,7 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("dns_servers") {
-		dnsValue := expandStringList(d.Get("dns_servers").(*schema.Set).List())
+		dnsValue := expandStringSet(d.Get("dns_servers").(*schema.Set))
 		var enabledValue *bool
 
 		if len(dnsValue) > 0 {

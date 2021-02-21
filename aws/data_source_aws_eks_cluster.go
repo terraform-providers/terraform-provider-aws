@@ -66,6 +66,18 @@ func dataSourceAwsEksCluster() *schema.Resource {
 					},
 				},
 			},
+			"kubernetes_network_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"service_ipv4_cidr": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -144,7 +156,7 @@ func dataSourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[DEBUG] Reading EKS Cluster: %s", input)
 	output, err := conn.DescribeCluster(input)
 	if err != nil {
-		return fmt.Errorf("error reading EKS Cluster (%s): %s", name, err)
+		return fmt.Errorf("error reading EKS Cluster (%s): %w", name, err)
 	}
 
 	cluster := output.Cluster
@@ -156,17 +168,17 @@ func dataSourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("arn", cluster.Arn)
 
 	if err := d.Set("certificate_authority", flattenEksCertificate(cluster.CertificateAuthority)); err != nil {
-		return fmt.Errorf("error setting certificate_authority: %s", err)
+		return fmt.Errorf("error setting certificate_authority: %w", err)
 	}
 
 	d.Set("created_at", aws.TimeValue(cluster.CreatedAt).String())
 	if err := d.Set("enabled_cluster_log_types", flattenEksEnabledLogTypes(cluster.Logging)); err != nil {
-		return fmt.Errorf("error setting enabled_cluster_log_types: %s", err)
+		return fmt.Errorf("error setting enabled_cluster_log_types: %w", err)
 	}
 	d.Set("endpoint", cluster.Endpoint)
 
 	if err := d.Set("identity", flattenEksIdentity(cluster.Identity)); err != nil {
-		return fmt.Errorf("error setting identity: %s", err)
+		return fmt.Errorf("error setting identity: %w", err)
 	}
 
 	d.Set("name", cluster.Name)
@@ -175,13 +187,17 @@ func dataSourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("status", cluster.Status)
 
 	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("version", cluster.Version)
 
 	if err := d.Set("vpc_config", flattenEksVpcConfigResponse(cluster.ResourcesVpcConfig)); err != nil {
-		return fmt.Errorf("error setting vpc_config: %s", err)
+		return fmt.Errorf("error setting vpc_config: %w", err)
+	}
+
+	if err := d.Set("kubernetes_network_config", flattenEksNetworkConfig(cluster.KubernetesNetworkConfig)); err != nil {
+		return fmt.Errorf("error setting kubernetes_network_config: %w", err)
 	}
 
 	return nil

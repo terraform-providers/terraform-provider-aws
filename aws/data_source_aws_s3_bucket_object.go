@@ -147,11 +147,10 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] Reading S3 Bucket Object: %s", input)
 	out, err := conn.HeadObject(&input)
 	if err != nil {
-		return fmt.Errorf("Failed getting S3 object: %s Bucket: %q Object: %q", err, bucket, key)
+		return fmt.Errorf("failed getting S3 Bucket (%s) Object (%s): %w", bucket, key, err)
 	}
-	if out.DeleteMarker != nil && *out.DeleteMarker {
-		return fmt.Errorf("Requested S3 object %q%s has been deleted",
-			bucket+key, versionText)
+	if aws.BoolValue(out.DeleteMarker) {
+		return fmt.Errorf("Requested S3 object %q%s has been deleted", bucket+key, versionText)
 	}
 
 	log.Printf("[DEBUG] Received S3 object: %s", out)
@@ -165,14 +164,18 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("content_length", out.ContentLength)
 	d.Set("content_type", out.ContentType)
 	// See https://forums.aws.amazon.com/thread.jspa?threadID=44003
-	d.Set("etag", strings.Trim(*out.ETag, `"`))
+	d.Set("etag", strings.Trim(aws.StringValue(out.ETag), `"`))
 	d.Set("expiration", out.Expiration)
 	d.Set("expires", out.Expires)
-	d.Set("last_modified", out.LastModified.Format(time.RFC1123))
+	if out.LastModified != nil {
+		d.Set("last_modified", out.LastModified.Format(time.RFC1123))
+	} else {
+		d.Set("last_modified", "")
+	}
 	d.Set("metadata", pointersMapToStringList(out.Metadata))
 	d.Set("object_lock_legal_hold_status", out.ObjectLockLegalHoldStatus)
 	d.Set("object_lock_mode", out.ObjectLockMode)
-	d.Set("object_lock_retain_until_date", flattenS3ObjectLockRetainUntilDate(out.ObjectLockRetainUntilDate))
+	d.Set("object_lock_retain_until_date", flattenS3ObjectDate(out.ObjectLockRetainUntilDate))
 	d.Set("server_side_encryption", out.ServerSideEncryption)
 	d.Set("sse_kms_key_id", out.SSEKMSKeyId)
 	d.Set("version_id", out.VersionId)
@@ -198,14 +201,13 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 		}
 		out, err := conn.GetObject(&input)
 		if err != nil {
-			return fmt.Errorf("Failed getting S3 object: %s", err)
+			return fmt.Errorf("Failed getting S3 object: %w", err)
 		}
 
 		buf := new(bytes.Buffer)
 		bytesRead, err := buf.ReadFrom(out.Body)
 		if err != nil {
-			return fmt.Errorf("Failed reading content of S3 object (%s): %s",
-				uniqueId, err)
+			return fmt.Errorf("Failed reading content of S3 object (%s): %w", uniqueId, err)
 		}
 		log.Printf("[INFO] Saving %d bytes from S3 object %s", bytesRead, uniqueId)
 		d.Set("body", buf.String())
@@ -217,18 +219,17 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 			contentType = *out.ContentType
 		}
 
-		log.Printf("[INFO] Ignoring body of S3 object %s with Content-Type %q",
-			uniqueId, contentType)
+		log.Printf("[INFO] Ignoring body of S3 object %s with Content-Type %q", uniqueId, contentType)
 	}
 
 	tags, err := keyvaluetags.S3ObjectListTags(conn, bucket, key)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
+		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %w", bucket, key, err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

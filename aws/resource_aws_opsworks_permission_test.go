@@ -16,7 +16,7 @@ func TestAccAWSOpsworksPermission_basic(t *testing.T) {
 	sName := fmt.Sprintf("tf-ops-perm-%d", acctest.RandInt())
 	var opsperm opsworks.Permission
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -92,14 +92,14 @@ func TestAccAWSOpsworksPermission_basic(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/4804
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/4804
 func TestAccAWSOpsworksPermission_Self(t *testing.T) {
 	var opsperm opsworks.Permission
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_permission.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: nil, // Cannot delete own OpsWorks Permission
 		Steps: []resource.TestStep{

@@ -221,10 +221,10 @@ func dataSourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) er
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving DynamoDB table: %s", err)
+		return fmt.Errorf("Error retrieving DynamoDB table: %w", err)
 	}
 
-	d.SetId(*result.Table.TableName)
+	d.SetId(aws.StringValue(result.Table.TableName))
 
 	err = flattenAwsDynamoDbTableResource(d, result.Table)
 	if err != nil {
@@ -235,20 +235,20 @@ func dataSourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) er
 		TableName: aws.String(d.Id()),
 	})
 	if err != nil {
-		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %s", d.Id(), err)
+		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %w", d.Id(), err)
 	}
 	if err := d.Set("ttl", flattenDynamoDbTtl(ttlOut)); err != nil {
-		return fmt.Errorf("error setting ttl: %s", err)
+		return fmt.Errorf("error setting ttl: %w", err)
 	}
 
 	tags, err := keyvaluetags.DynamodbListTags(conn, d.Get("arn").(string))
 
 	if err != nil && !isAWSErr(err, "UnknownOperationException", "Tagging is not currently supported in DynamoDB Local.") {
-		return fmt.Errorf("error listing tags for DynamoDB Table (%s): %s", d.Get("arn").(string), err)
+		return fmt.Errorf("error listing tags for DynamoDB Table (%s): %w", d.Get("arn").(string), err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	pitrOut, err := conn.DescribeContinuousBackups(&dynamodb.DescribeContinuousBackupsInput{

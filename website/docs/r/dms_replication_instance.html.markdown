@@ -15,7 +15,7 @@ Provides a DMS (Data Migration Service) replication instance resource. DMS repli
 ```hcl
 # Database Migration Service requires the below IAM Roles to be created before
 # replication instances can be created. See the DMS Documentation for
-# additional information: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.APIRole.html
+# additional information: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#CHAP_Security.APIRole
 #  * dms-vpc-role
 #  * dms-cloudwatch-logs-role
 #  * dms-access-for-endpoint
@@ -129,7 +129,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dms_replication_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Used for Creating Instances
 - `update` - (Default `30 minutes`) Used for Database modifications

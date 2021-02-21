@@ -139,8 +139,7 @@ func TestAccAwsDxGateway_basic(t *testing.T) {
 }
 
 func TestAccAwsDxGateway_complex(t *testing.T) {
-	rName1 := fmt.Sprintf("terraform-testacc-dxgwassoc-%d", acctest.RandInt())
-	rName2 := fmt.Sprintf("terraform-testacc-dxgwassoc-%d", acctest.RandInt())
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_dx_gateway.test"
 
@@ -150,7 +149,7 @@ func TestAccAwsDxGateway_complex(t *testing.T) {
 		CheckDestroy: testAccCheckAwsDxGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDxGatewayAssociationConfig_multiVpnGatewaysSingleAccount(rName1, rName2, rBgpAsn),
+				Config: testAccDxGatewayAssociationConfig_multiVpnGatewaysSingleAccount(rName, rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsDxGatewayExists(resourceName),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_account_id"),

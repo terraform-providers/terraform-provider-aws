@@ -108,19 +108,19 @@ The following arguments are supported:
 
 Contains information about the certificate subject. Identifies the entity that owns or controls the public key in the certificate. The entity can be a user, computer, device, or service.
 
-* `common_name` - (Optional) Fully qualified domain name (FQDN) associated with the certificate subject.
-* `country` - (Optional) Two digit code that specifies the country in which the certificate subject located.
-* `distinguished_name_qualifier` - (Optional) Disambiguating information for the certificate subject.
-* `generation_qualifier` - (Optional) Typically a qualifier appended to the name of an individual. Examples include Jr. for junior, Sr. for senior, and III for third.
-* `given_name` - (Optional) First name.
-* `initials` - (Optional) Concatenation that typically contains the first letter of the `given_name`, the first letter of the middle name if one exists, and the first letter of the `surname`.
-* `locality` - (Optional) The locality (such as a city or town) in which the certificate subject is located.
-* `organization` - (Optional) Legal name of the organization with which the certificate subject is affiliated.
-* `organizational_unit` - (Optional) A subdivision or unit of the organization (such as sales or finance) with which the certificate subject is affiliated.
-* `pseudonym` - (Optional) Typically a shortened version of a longer `given_name`. For example, Jonathan is often shortened to John. Elizabeth is often shortened to Beth, Liz, or Eliza.
-* `state` - (Optional) State in which the subject of the certificate is located.
-* `surname` - (Optional) Family name. In the US and the UK for example, the surname of an individual is ordered last. In Asian cultures the surname is typically ordered first.
-* `title` - (Optional) A title such as Mr. or Ms. which is pre-pended to the name to refer formally to the certificate subject.
+* `common_name` - (Optional) Fully qualified domain name (FQDN) associated with the certificate subject. Must be less than or equal to 64 characters in length.
+* `country` - (Optional) Two digit code that specifies the country in which the certificate subject located. Must be less than or equal to 2 characters in length.
+* `distinguished_name_qualifier` - (Optional) Disambiguating information for the certificate subject. Must be less than or equal to 64 characters in length.
+* `generation_qualifier` - (Optional) Typically a qualifier appended to the name of an individual. Examples include Jr. for junior, Sr. for senior, and III for third. Must be less than or equal to 3 characters in length.
+* `given_name` - (Optional) First name. Must be less than or equal to 16 characters in length.
+* `initials` - (Optional) Concatenation that typically contains the first letter of the `given_name`, the first letter of the middle name if one exists, and the first letter of the `surname`. Must be less than or equal to 5 characters in length.
+* `locality` - (Optional) The locality (such as a city or town) in which the certificate subject is located. Must be less than or equal to 128 characters in length.
+* `organization` - (Optional) Legal name of the organization with which the certificate subject is affiliated. Must be less than or equal to 64 characters in length.
+* `organizational_unit` - (Optional) A subdivision or unit of the organization (such as sales or finance) with which the certificate subject is affiliated. Must be less than or equal to 64 characters in length.
+* `pseudonym` - (Optional) Typically a shortened version of a longer `given_name`. For example, Jonathan is often shortened to John. Elizabeth is often shortened to Beth, Liz, or Eliza. Must be less than or equal to 128 characters in length.
+* `state` - (Optional) State in which the subject of the certificate is located. Must be less than or equal to 128 characters in length.
+* `surname` - (Optional) Family name. In the US and the UK for example, the surname of an individual is ordered last. In Asian cultures the surname is typically ordered first. Must be less than or equal to 40 characters in length.
+* `title` - (Optional) A title such as Mr. or Ms. which is pre-pended to the name to refer formally to the certificate subject. Must be less than or equal to 64 characters in length.
 
 ### revocation_configuration
 
@@ -128,12 +128,12 @@ Contains information about the certificate subject. Identifies the entity that o
 
 #### crl_configuration
 
-* `custom_cname` - (Optional) Name inserted into the certificate CRL Distribution Points extension that enables the use of an alias for the CRL distribution point. Use this value if you don't want the name of your S3 bucket to be public.
+* `custom_cname` - (Optional) Name inserted into the certificate CRL Distribution Points extension that enables the use of an alias for the CRL distribution point. Use this value if you don't want the name of your S3 bucket to be public. Must be less than or equal to 253 characters in length.
 * `enabled` - (Optional) Boolean value that specifies whether certificate revocation lists (CRLs) are enabled. Defaults to `false`.
 * `expiration_in_days` - (Required) Number of days until a certificate expires. Must be between 1 and 5000.
-* `s3_bucket_name` - (Optional) Name of the S3 bucket that contains the CRL. If you do not provide a value for the `custom_cname` argument, the name of your S3 bucket is placed into the CRL Distribution Points extension of the issued certificate. You must specify a bucket policy that allows ACM PCA to write the CRL to your bucket.
+* `s3_bucket_name` - (Optional) Name of the S3 bucket that contains the CRL. If you do not provide a value for the `custom_cname` argument, the name of your S3 bucket is placed into the CRL Distribution Points extension of the issued certificate. You must specify a bucket policy that allows ACM PCA to write the CRL to your bucket. Must be less than or equal to 255 characters in length.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -149,7 +149,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_acmpca_certificate_authority` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_acmpca_certificate_authority` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 * `create` - (Default `1m`) How long to wait for a certificate authority to be created.

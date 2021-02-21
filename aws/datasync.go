@@ -106,7 +106,7 @@ func flattenDataSyncEc2Config(ec2Config *datasync.Ec2Config) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"security_group_arns": schema.NewSet(schema.HashString, flattenStringList(ec2Config.SecurityGroupArns)),
+		"security_group_arns": flattenStringSet(ec2Config.SecurityGroupArns),
 		"subnet_arn":          aws.StringValue(ec2Config.SubnetArn),
 	}
 
@@ -131,7 +131,7 @@ func flattenDataSyncOnPremConfig(onPremConfig *datasync.OnPremConfig) []interfac
 	}
 
 	m := map[string]interface{}{
-		"agent_arns": schema.NewSet(schema.HashString, flattenStringList(onPremConfig.AgentArns)),
+		"agent_arns": flattenStringSet(onPremConfig.AgentArns),
 	}
 
 	return []interface{}{m}

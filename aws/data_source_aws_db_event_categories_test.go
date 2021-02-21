@@ -2,130 +2,73 @@ package aws
 
 import (
 	"fmt"
-	"reflect"
-	"regexp"
-	"sort"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDbEventCategories_basic(t *testing.T) {
+	dataSourceName := "data.aws_db_event_categories.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsDbEventCategoriesConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccAwsDbEventCategoriesAttrCheck("data.aws_db_event_categories.example",
-						completeEventCategoriesList),
+				Config: testAccCheckAwsDbEventCategoriesConfig(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// These checks are not meant to be exhaustive, as regions have different support.
+					// Instead these are generally to indicate that filtering works as expected.
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "availability"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "backup"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "configuration change"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "creation"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "deletion"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "failover"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "failure"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "low storage"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "maintenance"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "notification"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "recovery"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "restoration"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSDbEventCategories_sourceType(t *testing.T) {
+func TestAccAWSDbEventCategories_SourceType(t *testing.T) {
+	dataSourceName := "data.aws_db_event_categories.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsDbEventCategoriesConfig_sourceType,
-				Check: resource.ComposeTestCheckFunc(
-					testAccAwsDbEventCategoriesAttrCheck("data.aws_db_event_categories.example",
-						DbSnapshotEventCategoriesList),
+				Config: testAccCheckAwsDbEventCategoriesConfigSourceType("db-snapshot"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// These checks are not meant to be exhaustive, as regions have different support.
+					// Instead these are generally to indicate that filtering works as expected.
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "creation"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "deletion"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "notification"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "event_categories.*", "restoration"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAwsDbEventCategoriesAttrCheck(n string, expected []string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Can't find DB Event Categories: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("DB Event Categories resource ID not set.")
-		}
-
-		actual, err := testAccCheckAwsDbEventCategoriesBuild(rs.Primary.Attributes)
-		if err != nil {
-			return err
-		}
-
-		sort.Strings(actual)
-		sort.Strings(expected)
-		if !reflect.DeepEqual(expected, actual) {
-			return fmt.Errorf("DB Event Categories not matched: expected %v, got %v", expected, actual)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckAwsDbEventCategoriesBuild(attrs map[string]string) ([]string, error) {
-	v, ok := attrs["event_categories.#"]
-	if !ok {
-		return nil, fmt.Errorf("DB Event Categories list is missing.")
-	}
-
-	qty, err := strconv.Atoi(v)
-	if err != nil {
-		return nil, err
-	}
-	if qty < 1 {
-		return nil, fmt.Errorf("No DB Event Categories found.")
-	}
-
-	var eventCategories []string
-	r := regexp.MustCompile("event_categories.[0-9]+")
-	for k, v := range attrs {
-		matched := r.MatchString(k)
-		if matched {
-			eventCategories = append(eventCategories, v)
-		}
-	}
-
-	return eventCategories, nil
-}
-
-var testAccCheckAwsDbEventCategoriesConfig = `
-data "aws_db_event_categories" "example" {}
+func testAccCheckAwsDbEventCategoriesConfig() string {
+	return `
+data "aws_db_event_categories" "test" {}
 `
-
-var completeEventCategoriesList = []string{
-	"notification",
-	"deletion",
-	"failover",
-	"maintenance",
-	"availability",
-	"read replica",
-	"failure",
-	"configuration change",
-	"recovery",
-	"low storage",
-	"backup",
-	"creation",
-	"backtrack",
-	"restoration",
 }
 
-var testAccCheckAwsDbEventCategoriesConfig_sourceType = `
-data "aws_db_event_categories" "example" {
-  source_type = "db-snapshot"
+func testAccCheckAwsDbEventCategoriesConfigSourceType(sourceType string) string {
+	return fmt.Sprintf(`
+data "aws_db_event_categories" "test" {
+  source_type = %[1]q
 }
-`
-
-var DbSnapshotEventCategoriesList = []string{
-	"notification",
-	"deletion",
-	"creation",
-	"restoration",
+`, sourceType)
 }

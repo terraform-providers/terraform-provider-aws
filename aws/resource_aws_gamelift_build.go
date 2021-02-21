@@ -108,7 +108,7 @@ func resourceAwsGameliftBuildCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Gamelift build client: %s", err)
 	}
 
-	d.SetId(*out.Build.BuildId)
+	d.SetId(aws.StringValue(out.Build.BuildId))
 
 	stateConf := resource.StateChangeConf{
 		Pending: []string{gamelift.BuildStatusInitialized},

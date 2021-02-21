@@ -5,13 +5,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ram"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ram"
 )
 
 func TestAccAwsRamResourceShareAccepter_basic(t *testing.T) {
@@ -19,14 +18,14 @@ func TestAccAwsRamResourceShareAccepter_basic(t *testing.T) {
 	resourceName := "aws_ram_resource_share_accepter.test"
 	principalAssociationResourceName := "aws_ram_principal_association.test"
 
-	shareName := fmt.Sprintf("tf-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	shareName := fmt.Sprintf("tf-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsRamResourceShareAccepterDestroy,
 		Steps: []resource.TestStep{
 			{

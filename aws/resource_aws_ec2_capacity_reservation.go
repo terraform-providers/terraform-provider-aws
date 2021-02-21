@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -97,6 +96,10 @@ func resourceAwsEc2CapacityReservation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"tags": tagsSchema(),
 			"tenancy": {
 				Type:     schema.TypeString,
@@ -158,7 +161,7 @@ func resourceAwsEc2CapacityReservationCreate(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error creating EC2 Capacity Reservation: %s", err)
 	}
-	d.SetId(*out.CapacityReservation.CapacityReservationId)
+	d.SetId(aws.StringValue(out.CapacityReservation.CapacityReservationId))
 	return resourceAwsEc2CapacityReservationRead(d, meta)
 }
 
@@ -205,22 +208,14 @@ func resourceAwsEc2CapacityReservationRead(d *schema.ResourceData, meta interfac
 	d.Set("instance_match_criteria", reservation.InstanceMatchCriteria)
 	d.Set("instance_platform", reservation.InstancePlatform)
 	d.Set("instance_type", reservation.InstanceType)
+	d.Set("owner_id", reservation.OwnerId)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(reservation.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	d.Set("tenancy", reservation.Tenancy)
-
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
-		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("capacity-reservation/%s", d.Id()),
-	}.String()
-
-	d.Set("arn", arn)
+	d.Set("arn", reservation.CapacityReservationArn)
 
 	return nil
 }

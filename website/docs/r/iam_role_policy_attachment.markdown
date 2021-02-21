@@ -19,19 +19,19 @@ resource "aws_iam_role" "role" {
   name = "test-role"
 
   assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
     {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Action": "sts:AssumeRole",
-          "Principal": {
-            "Service": "ec2.amazonaws.com"
-          },
-          "Effect": "Allow",
-          "Sid": ""
-        }
-      ]
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
+  ]
+}
 EOF
 }
 
@@ -65,8 +65,8 @@ resource "aws_iam_role_policy_attachment" "test-attach" {
 
 The following arguments are supported:
 
-* `role`		(Required) - The role the policy should be applied to
-* `policy_arn`	(Required) - The ARN of the policy you want to apply
+* `role`  (Required) - The role the policy should be applied to
+* `policy_arn` (Required) - The ARN of the policy you want to apply
 
 ## Import
 

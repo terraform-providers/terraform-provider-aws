@@ -56,6 +56,7 @@ several valid keys, for a full reference, check out
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - IDs of instances found through the filter
 * `private_ips` - Private IP addresses of instances found through the filter
 * `public_ips` - Public IP addresses of instances found through the filter

@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_transfer_ssh_key: Corrects user_name validation
+```
+
+```release-note:bug
+resource/aws_transfer_user: Corrects user_name validation
+```

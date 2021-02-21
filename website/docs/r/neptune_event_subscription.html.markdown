@@ -55,7 +55,7 @@ resource "aws_neptune_event_subscription" "default" {
   ]
 
   tags = {
-    "env" = "test"
+    env = "test"
   }
 }
 ```
@@ -83,7 +83,7 @@ The following additional atttributes are provided:
 
 ## Timeouts
 
-`aws_neptune_event_subscription` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_neptune_event_subscription` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `40m`) How long to wait for creating event subscription to become available.

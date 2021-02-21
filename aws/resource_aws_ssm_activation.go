@@ -130,7 +130,7 @@ func resourceAwsSsmActivationCreate(d *schema.ResourceData, meta interface{}) er
 	if resp.ActivationId == nil {
 		return fmt.Errorf("ActivationId was nil")
 	}
-	d.SetId(*resp.ActivationId)
+	d.SetId(aws.StringValue(resp.ActivationId))
 	d.Set("activation_code", resp.ActivationCode)
 
 	return resourceAwsSsmActivationRead(d, meta)

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSAutoscalingPolicy_basic(t *testing.T) {
@@ -46,7 +45,7 @@ func TestAccAWSAutoscalingPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceStepName, "metric_aggregation_type", "Minimum"),
 					resource.TestCheckResourceAttr(resourceStepName, "estimated_instance_warmup", "200"),
 					resource.TestCheckResourceAttr(resourceStepName, "autoscaling_group_name", name),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceStepName, "step_adjustment.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceStepName, "step_adjustment.*", map[string]string{
 						"scaling_adjustment": "1",
 					}),
 					testAccCheckScalingPolicyExists(resourceTargetTrackingName, &policy),
@@ -87,7 +86,7 @@ func TestAccAWSAutoscalingPolicy_basic(t *testing.T) {
 					testAccCheckScalingPolicyExists(resourceStepName, &policy),
 					resource.TestCheckResourceAttr(resourceStepName, "policy_type", "StepScaling"),
 					resource.TestCheckResourceAttr(resourceStepName, "estimated_instance_warmup", "20"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceStepName, "step_adjustment.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceStepName, "step_adjustment.*", map[string]string{
 						"scaling_adjustment": "10",
 					}),
 					testAccCheckScalingPolicyExists(resourceTargetTrackingName, &policy),

@@ -3,11 +3,12 @@ name: Terraform Provider Checks
 on:
   push:
     branches:
-      - master
+      - main
       - 'release/**'
   pull_request:
     paths:
       - .github/workflows/terraform_provider.yml
+      - .go-version
       - .golangci.yml
       - .goreleaser.yml
       - .semgrep.yml
@@ -21,11 +22,11 @@ on:
       - GNUmakefile
       - main.go
       - staticcheck.conf
+      - tools/**
       - website/**
 
 env:
   AWS_DEFAULT_REGION: us-west-2
-  GO_VERSION: "1.14"
   GO111MODULE: on
   TERRAFORM_VERSION: "0.12.25"
 
@@ -35,6 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
@@ -61,14 +64,17 @@ jobs:
       with:
         path: terraform-plugin-dir
         key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/cache@v2
       with:
@@ -124,12 +130,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -142,7 +151,7 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go install ./awsproviderlint
+    - run: cd awsproviderlint && go install .
     - name: awsproviderlint
       run: make awsproviderlint
 
@@ -152,12 +161,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -170,7 +182,7 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go generate ./...
+    - run: make gen
     - name: Check for Git Differences
       run: |
         git diff --compact-summary --exit-code || \
@@ -182,12 +194,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -200,19 +215,22 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go test ./... -timeout=120s
+    - run: go test ./... -timeout=5m
 
   golangci-lint:
     needs: [go_build]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -225,15 +243,46 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
+    - run: cd tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
     - run: golangci-lint run ./aws/...
-    - run: golangci-lint run ./awsproviderlint/...
+    - run: cd awsproviderlint && golangci-lint run ./...
+
+  importlint:
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
+    - name: go env
+      run: |
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: cd tools && go install github.com/pavius/impi/cmd/impi
+    - run: impi --local . --scheme stdThirdPartyLocal ./...
 
   goreleaser:
     needs: [go_mod_download]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -251,7 +300,7 @@ jobs:
       - name: goreleaser build
         uses: goreleaser/goreleaser-action@v2
         with:
-          args: build --snapshot --timeout 1h
+          args: build --snapshot --timeout 2h
 
   semgrep:
     runs-on: ubuntu-latest
@@ -267,6 +316,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
@@ -276,7 +327,7 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go install github.com/bflad/tfproviderdocs
+    - run: cd tools && go install github.com/bflad/tfproviderdocs
     - uses: actions/cache@v2
       timeout-minutes: 2
       with:

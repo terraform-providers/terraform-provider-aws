@@ -329,6 +329,47 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
 }
 ```
 
+### HTTP Endpoint (e.g. New Relic) Destination
+
+```hcl
+resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
+  name        = "terraform-kinesis-firehose-test-stream"
+  destination = "http_endpoint"
+
+  s3_configuration {
+    role_arn           = aws_iam_role.firehose.arn
+    bucket_arn         = aws_s3_bucket.bucket.arn
+    buffer_size        = 10
+    buffer_interval    = 400
+    compression_format = "GZIP"
+  }
+
+  http_endpoint_configuration {
+    url                = "https://aws-api.newrelic.com/firehose/v1"
+    name               = "New Relic"
+    access_key         = "my-key"
+    buffering_size     = 15
+    buffering_interval = 600
+    role_arn           = aws_iam_role.firehose.arn
+    s3_backup_mode     = "FailedDataOnly"
+
+    request_configuration {
+      content_encoding = "GZIP"
+
+      common_attributes {
+        name  = "testname"
+        value = "testvalue"
+      }
+
+      common_attributes {
+        name  = "testname2"
+        value = "testvalue2"
+      }
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -339,7 +380,7 @@ AWS account and region the Stream is created in.
 * `kinesis_source_configuration` - (Optional) Allows the ability to specify the kinesis stream that is used as the source of the firehose delivery stream.
 * `server_side_encryption` - (Optional) Encrypt at rest options.
 Server-side encryption should not be enabled when a kinesis stream is configured as the source of the firehose delivery stream.
-* `destination` – (Required) This is the destination to where the data is delivered. The only options are `s3` (Deprecated, use `extended_s3` instead), `extended_s3`, `redshift`, `elasticsearch`, and `splunk`.
+* `destination` – (Required) This is the destination to where the data is delivered. The only options are `s3` (Deprecated, use `extended_s3` instead), `extended_s3`, `redshift`, `elasticsearch`, `splunk`, and `http_endpoint`.
 * `s3_configuration` - (Optional) Required for non-S3 destinations. For S3 destination, use `extended_s3_configuration` instead. Configuration options for the s3 destination (or the intermediate bucket if the destination
 is redshift). More details are given below.
 * `extended_s3_configuration` - (Optional, only Required when `destination` is `extended_s3`) Enhanced configuration options for the s3 destination. More details are given below.
@@ -347,6 +388,8 @@ is redshift). More details are given below.
 Using `redshift_configuration` requires the user to also specify a
 `s3_configuration` block. More details are given below.
 * `elasticsearch_configuration` - (Optional) Configuration options if elasticsearch is the destination. More details are given below.
+* `splunk_configuration` - (Optional) Configuration options if splunk is the destination. More details are given below.
+* `http_endpoint_configuration` - (Optional) Configuration options if http_endpoint is the destination. requires the user to also specify a `s3_configuration` block.  More details are given below.
 
 The `kinesis_source_configuration` object supports the following:
 
@@ -356,6 +399,8 @@ The `kinesis_source_configuration` object supports the following:
 The `server_side_encryption` object supports the following:
 
 * `enabled` - (Optional) Whether to enable encryption at rest. Default is `false`.
+* `key_type`- (Optional) Type of encryption key. Default is `AWS_OWNED_CMK`. Valid values are `AWS_OWNED_CMK` and `CUSTOMER_MANAGED_CMK`
+* `key_arn` - (Optional) Amazon Resource Name (ARN) of the encryption key. Required when `key_type` is `CUSTOMER_MANAGED_CMK`.
 
 The `s3_configuration` object supports the following:
 
@@ -404,7 +449,7 @@ The `elasticsearch_configuration` object supports the following:
 * `retry_duration` - (Optional) After an initial failure to deliver to Amazon Elasticsearch, the total amount of time, in seconds between 0 to 7200, during which Firehose re-attempts delivery (including the first attempt).  After this time has elapsed, the failed documents are written to Amazon S3.  The default value is 300s.  There will be no retry if the value is 0.
 * `role_arn` - (Required) The ARN of the IAM role to be assumed by Firehose for calling the Amazon ES Configuration API and for indexing documents.  The pattern needs to be `arn:.*`.
 * `s3_backup_mode` - (Optional) Defines how documents should be delivered to Amazon S3.  Valid values are `FailedDocumentsOnly` and `AllDocuments`.  Default value is `FailedDocumentsOnly`.
-* `type_name` - (Required) The Elasticsearch type name with maximum length of 100 characters.
+* `type_name` - (Optional) The Elasticsearch type name with maximum length of 100 characters.
 * `cloudwatch_logging_options` - (Optional) The CloudWatch Logging Options for the delivery stream. More details are given below
 * `vpc_config` - (Optional) The VPC configuration for the delivery stream to connect to Elastic Search associated with the VPC. More details are given below
 * `processing_configuration` - (Optional) The data processing configuration.  More details are given below.
@@ -414,11 +459,25 @@ The `splunk_configuration` objects supports the following:
 * `hec_acknowledgment_timeout` - (Optional) The amount of time, in seconds between 180 and 600, that Kinesis Firehose waits to receive an acknowledgment from Splunk after it sends it data.
 * `hec_endpoint` - (Required) The HTTP Event Collector (HEC) endpoint to which Kinesis Firehose sends your data.
 * `hec_endpoint_type` - (Optional) The HEC endpoint type. Valid values are `Raw` or `Event`. The default value is `Raw`.
-* `hec_token` - The GUID that you obtain from your Splunk cluster when you create a new HEC endpoint.
+* `hec_token` - (Required) The GUID that you obtain from your Splunk cluster when you create a new HEC endpoint.
 * `s3_backup_mode` - (Optional) Defines how documents should be delivered to Amazon S3.  Valid values are `FailedEventsOnly` and `AllEvents`.  Default value is `FailedEventsOnly`.
 * `retry_duration` - (Optional) After an initial failure to deliver to Splunk, the total amount of time, in seconds between 0 to 7200, during which Firehose re-attempts delivery (including the first attempt).  After this time has elapsed, the failed documents are written to Amazon S3.  The default value is 300s.  There will be no retry if the value is 0.
 * `cloudwatch_logging_options` - (Optional) The CloudWatch Logging Options for the delivery stream. More details are given below.
 * `processing_configuration` - (Optional) The data processing configuration.  More details are given below.
+
+The `http_endpoint_configuration` objects supports the following:
+
+* `url` - (Required) The HTTP endpoint URL to which Kinesis Firehose sends your data.
+* `name` - (Optional) The HTTP endpoint name.
+* `access_key` - (Optional) The access key required for Kinesis Firehose to authenticate with the HTTP endpoint selected as the destination.
+* `role_arn` - (Required) Kinesis Data Firehose uses this IAM role for all the permissions that the delivery stream needs. The pattern needs to be `arn:.*`.
+* `s3_backup_mode` - (Optional) Defines how documents should be delivered to Amazon S3.  Valid values are `FailedEventsOnly` and `AllEvents`.  Default value is `FailedEventsOnly`.
+* `buffering_size` - (Optional) Buffer incoming data to the specified size, in MBs, before delivering it to the destination. The default value is 5.
+* `buffering_interval` - (Optional) Buffer incoming data for the specified period of time, in seconds, before delivering it to the destination. The default value is 300 (5 minutes).
+* `cloudwatch_logging_options` - (Optional) The CloudWatch Logging Options for the delivery stream. More details are given below.
+* `processing_configuration` - (Optional) The data processing configuration.  More details are given below.
+* `request_configuration` - (Optional) The request configuration.  More details are given below.
+* `retry_duration` - (Optional) Total amount of seconds Firehose spends on retries. This duration starts after the initial attempt fails, It does not include the time periods during which Firehose waits for acknowledgment from the specified destination after each attempt. Valid values between `0` and `7200`. Default is `300`.
 
 The `cloudwatch_logging_options` object supports the following:
 
@@ -440,6 +499,16 @@ The `parameters` array objects support the following:
 
 * `parameter_name` - (Required) Parameter name. Valid Values: `LambdaArn`, `NumberOfRetries`, `RoleArn`, `BufferSizeInMBs`, `BufferIntervalInSeconds`
 * `parameter_value` - (Required) Parameter value. Must be between 1 and 512 length (inclusive). When providing a Lambda ARN, you should specify the resource version as well.
+
+The `request_configuration` object supports the following:
+
+* `content_encoding` - (Optional) Kinesis Data Firehose uses the content encoding to compress the body of a request before sending the request to the destination. Valid values are `NONE` and `GZIP`.  Default value is `NONE`.
+* `common_attributes` - (Optional) Describes the metadata sent to the HTTP endpoint destination. More details are given below
+
+The `common_attributes` array objects support the following:
+
+* `name` - (Required) The name of the HTTP endpoint common attribute.
+* `value` - (Optional) The value of the HTTP endpoint common attribute.
 
 The `vpc_config` object supports the following:
 
@@ -553,6 +622,8 @@ resource "aws_kinesis_firehose_delivery_stream" "example" {
 * `version_id` - (Optional) Specifies the table version for the output data schema. Defaults to `LATEST`.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name (ARN) specifying the Stream
 

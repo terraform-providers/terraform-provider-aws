@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 )
 
 func resourceAwsVpc() *schema.Resource {
@@ -145,7 +147,7 @@ func resourceAwsVpcCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Get the ID and store it
 	vpc := vpcResp.Vpc
-	d.SetId(*vpc.VpcId)
+	d.SetId(aws.StringValue(vpc.VpcId))
 	log.Printf("[INFO] VPC ID: %s", d.Id())
 
 	// Wait for the VPC to become available
@@ -183,7 +185,11 @@ func resourceAwsVpcCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if _, err := conn.ModifyVpcAttribute(input); err != nil {
-			return fmt.Errorf("error enabling VPC (%s) DNS hostnames: %s", d.Id(), err)
+			return fmt.Errorf("error enabling EC2 VPC (%s) DNS Hostnames: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.VpcAttributeUpdated(conn, d.Id(), ec2.VpcAttributeNameEnableDnsHostnames, d.Get("enable_dns_hostnames").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 VPC (%s) DNS Hostnames to enable: %w", d.Id(), err)
 		}
 	}
 
@@ -199,7 +205,11 @@ func resourceAwsVpcCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if _, err := conn.ModifyVpcAttribute(input); err != nil {
-			return fmt.Errorf("error disabling VPC (%s) DNS support: %s", d.Id(), err)
+			return fmt.Errorf("error disabling EC2 VPC (%s) DNS Support: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.VpcAttributeUpdated(conn, d.Id(), ec2.VpcAttributeNameEnableDnsSupport, d.Get("enable_dns_support").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 VPC (%s) DNS Support to disable: %w", d.Id(), err)
 		}
 	}
 
@@ -250,7 +260,7 @@ func resourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 	// ARN
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc/%s", d.Id()),
@@ -276,17 +286,21 @@ func resourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	resp, err := awsVpcDescribeVpcAttribute("enableDnsSupport", vpcid, conn)
-	if err != nil {
-		return err
-	}
-	d.Set("enable_dns_support", resp.EnableDnsSupport.Value)
+	enableDnsHostnames, err := finder.VpcAttribute(conn, aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsHostnames)
 
-	resp, err = awsVpcDescribeVpcAttribute("enableDnsHostnames", vpcid, conn)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading EC2 VPC (%s) Attribute (%s): %w", aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsHostnames, err)
 	}
-	d.Set("enable_dns_hostnames", resp.EnableDnsHostnames.Value)
+
+	d.Set("enable_dns_hostnames", enableDnsHostnames)
+
+	enableDnsSupport, err := finder.VpcAttribute(conn, aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsSupport)
+
+	if err != nil {
+		return fmt.Errorf("error reading EC2 VPC (%s) Attribute (%s): %w", aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsSupport, err)
+	}
+
+	d.Set("enable_dns_support", enableDnsSupport)
 
 	describeClassiclinkOpts := &ec2.DescribeVpcClassicLinkInput{
 		VpcIds: []*string{&vpcid},
@@ -362,38 +376,38 @@ func resourceAwsVpcUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	vpcid := d.Id()
 	if d.HasChange("enable_dns_hostnames") {
-		val := d.Get("enable_dns_hostnames").(bool)
-		modifyOpts := &ec2.ModifyVpcAttributeInput{
-			VpcId: &vpcid,
+		input := &ec2.ModifyVpcAttributeInput{
+			VpcId: aws.String(d.Id()),
 			EnableDnsHostnames: &ec2.AttributeBooleanValue{
-				Value: &val,
+				Value: aws.Bool(d.Get("enable_dns_hostnames").(bool)),
 			},
 		}
 
-		log.Printf(
-			"[INFO] Modifying enable_dns_hostnames vpc attribute for %s: %s",
-			d.Id(), modifyOpts)
-		if _, err := conn.ModifyVpcAttribute(modifyOpts); err != nil {
-			return err
+		if _, err := conn.ModifyVpcAttribute(input); err != nil {
+			return fmt.Errorf("error updating EC2 VPC (%s) DNS Hostnames: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.VpcAttributeUpdated(conn, d.Id(), ec2.VpcAttributeNameEnableDnsHostnames, d.Get("enable_dns_hostnames").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 VPC (%s) DNS Hostnames update: %w", d.Id(), err)
 		}
 	}
 
 	_, hasEnableDnsSupportOption := d.GetOk("enable_dns_support")
 
 	if !hasEnableDnsSupportOption || d.HasChange("enable_dns_support") {
-		val := d.Get("enable_dns_support").(bool)
-		modifyOpts := &ec2.ModifyVpcAttributeInput{
-			VpcId: &vpcid,
+		input := &ec2.ModifyVpcAttributeInput{
+			VpcId: aws.String(d.Id()),
 			EnableDnsSupport: &ec2.AttributeBooleanValue{
-				Value: &val,
+				Value: aws.Bool(d.Get("enable_dns_support").(bool)),
 			},
 		}
 
-		log.Printf(
-			"[INFO] Modifying enable_dns_support vpc attribute for %s: %s",
-			d.Id(), modifyOpts)
-		if _, err := conn.ModifyVpcAttribute(modifyOpts); err != nil {
-			return err
+		if _, err := conn.ModifyVpcAttribute(input); err != nil {
+			return fmt.Errorf("error updating EC2 VPC (%s) DNS Support: %w", d.Id(), err)
+		}
+
+		if _, err := waiter.VpcAttributeUpdated(conn, d.Id(), ec2.VpcAttributeNameEnableDnsSupport, d.Get("enable_dns_support").(bool)); err != nil {
+			return fmt.Errorf("error waiting for EC2 VPC (%s) DNS Support update: %w", d.Id(), err)
 		}
 	}
 
@@ -731,19 +745,6 @@ func resourceAwsVpcInstanceImport(
 	d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	d.Set("assign_generated_ipv6_cidr_block", false)
 	return []*schema.ResourceData{d}, nil
-}
-
-func awsVpcDescribeVpcAttribute(attribute string, vpcId string, conn *ec2.EC2) (*ec2.DescribeVpcAttributeOutput, error) {
-	describeAttrOpts := &ec2.DescribeVpcAttributeInput{
-		Attribute: aws.String(attribute),
-		VpcId:     aws.String(vpcId),
-	}
-	resp, err := conn.DescribeVpcAttribute(describeAttrOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }
 
 // vpcDescribe returns EC2 API information about the specified VPC.

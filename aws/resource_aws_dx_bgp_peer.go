@@ -88,13 +88,13 @@ func resourceAwsDxBgpPeerCreate(d *schema.ResourceData, meta interface{}) error 
 			Asn:           aws.Int64(asn),
 		},
 	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("amazon_address"); ok {
 		req.NewBGPPeer.AmazonAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("bgp_auth_key"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("bgp_auth_key"); ok {
 		req.NewBGPPeer.AuthKey = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("customer_address"); ok {
 		req.NewBGPPeer.CustomerAddress = aws.String(v.(string))
 	}
 

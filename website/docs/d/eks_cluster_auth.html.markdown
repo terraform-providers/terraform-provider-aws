@@ -15,6 +15,8 @@ Uses IAM credentials from the AWS provider to generate a temporary token that is
 This can be used to authenticate to an EKS cluster or to a cluster that has the AWS IAM Authenticator
 server configured.
 
+~> **NOTE:** Dynamically configuring a Terraform Provider via data sources currently has implications on [resource import support](https://github.com/hashicorp/terraform/issues/13018).
+
 ## Example Usage
 
 ```hcl
@@ -40,4 +42,5 @@ provider "kubernetes" {
 
 ## Attributes Reference
 
+* `id` - Name of the cluster.
 * `token` - The token to use to authenticate with the cluster.

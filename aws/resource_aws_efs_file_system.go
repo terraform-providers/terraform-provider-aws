@@ -158,7 +158,7 @@ func resourceAwsEfsFileSystemCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating EFS file system: %s", err)
 	}
 
-	d.SetId(*fs.FileSystemId)
+	d.SetId(aws.StringValue(fs.FileSystemId))
 	log.Printf("[INFO] EFS file system ID: %s", d.Id())
 
 	stateConf := &resource.StateChangeConf{

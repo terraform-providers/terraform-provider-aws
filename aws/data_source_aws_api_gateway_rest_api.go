@@ -93,7 +93,7 @@ func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}
 		return !lastPage
 	})
 	if err != nil {
-		return fmt.Errorf("error describing API Gateway REST APIs: %s", err)
+		return fmt.Errorf("error describing API Gateway REST APIs: %w", err)
 	}
 
 	if len(matchedApis) == 0 {
@@ -105,7 +105,7 @@ func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}
 
 	match := matchedApis[0]
 
-	d.SetId(*match.Id)
+	d.SetId(aws.StringValue(match.Id))
 
 	restApiArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -126,11 +126,11 @@ func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(match.EndpointConfiguration)); err != nil {
-		return fmt.Errorf("error setting endpoint_configuration: %s", err)
+		return fmt.Errorf("error setting endpoint_configuration: %w", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(match.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	executionArn := arn.ARN{

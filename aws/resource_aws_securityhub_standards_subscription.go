@@ -47,7 +47,7 @@ func resourceAwsSecurityHubStandardsSubscriptionCreate(d *schema.ResourceData, m
 
 	standardsSubscription := resp.StandardsSubscriptions[0]
 
-	d.SetId(*standardsSubscription.StandardsSubscriptionArn)
+	d.SetId(aws.StringValue(standardsSubscription.StandardsSubscriptionArn))
 
 	return resourceAwsSecurityHubStandardsSubscriptionRead(d, meta)
 }

@@ -42,6 +42,14 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 
+			"mesh_owner": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAwsAccountId,
+			},
+
 			"spec": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -66,16 +74,13 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 												"port": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validation.IntBetween(1, 65535),
+													ValidateFunc: validation.IsPortNumber,
 												},
 
 												"protocol": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														appmesh.PortProtocolHttp,
-														appmesh.PortProtocolTcp,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(appmesh.PortProtocol_Values(), false),
 												},
 											},
 										},
@@ -102,6 +107,11 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 				Computed: true,
 			},
 
+			"resource_owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -115,6 +125,9 @@ func resourceAwsAppmeshVirtualRouterCreate(d *schema.ResourceData, meta interfac
 		VirtualRouterName: aws.String(d.Get("name").(string)),
 		Spec:              expandAppmeshVirtualRouterSpec(d.Get("spec").([]interface{})),
 		Tags:              keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh virtual router: %#v", req)
@@ -132,10 +145,15 @@ func resourceAwsAppmeshVirtualRouterRead(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).appmeshconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeVirtualRouter(&appmesh.DescribeVirtualRouterInput{
+	req := &appmesh.DescribeVirtualRouterInput{
 		MeshName:          aws.String(d.Get("mesh_name").(string)),
 		VirtualRouterName: aws.String(d.Get("name").(string)),
-	})
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
+	}
+
+	resp, err := conn.DescribeVirtualRouter(req)
 	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
 		log.Printf("[WARN] App Mesh virtual router (%s) not found, removing from state", d.Id())
 		d.SetId("")
@@ -153,9 +171,11 @@ func resourceAwsAppmeshVirtualRouterRead(d *schema.ResourceData, meta interface{
 	arn := aws.StringValue(resp.VirtualRouter.Metadata.Arn)
 	d.Set("name", resp.VirtualRouter.VirtualRouterName)
 	d.Set("mesh_name", resp.VirtualRouter.MeshName)
+	d.Set("mesh_owner", resp.VirtualRouter.Metadata.MeshOwner)
 	d.Set("arn", arn)
 	d.Set("created_date", resp.VirtualRouter.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.VirtualRouter.Metadata.LastUpdatedAt.Format(time.RFC3339))
+	d.Set("resource_owner", resp.VirtualRouter.Metadata.ResourceOwner)
 	err = d.Set("spec", flattenAppmeshVirtualRouterSpec(resp.VirtualRouter.Spec))
 	if err != nil {
 		return fmt.Errorf("error setting spec: %s", err)
@@ -183,6 +203,9 @@ func resourceAwsAppmeshVirtualRouterUpdate(d *schema.ResourceData, meta interfac
 			MeshName:          aws.String(d.Get("mesh_name").(string)),
 			VirtualRouterName: aws.String(d.Get("name").(string)),
 			Spec:              expandAppmeshVirtualRouterSpec(v.([]interface{})),
+		}
+		if v, ok := d.GetOk("mesh_owner"); ok {
+			req.MeshOwner = aws.String(v.(string))
 		}
 
 		log.Printf("[DEBUG] Updating App Mesh virtual router: %#v", req)

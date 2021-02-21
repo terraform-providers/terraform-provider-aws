@@ -1,0 +1,14 @@
+```release-note:enhancement
+resource/aws_ami: Add `usage_operation`, `platform_details`, `image_owner_alias`, `image_type`, `hypervisor`, `owner_id`, `platform`, `public` attributes
+```
+```release-note:enhancement
+resource/aws_ami_copy: Add `usage_operation`, `platform_details`, `image_owner_alias`, `image_type`, `hypervisor`, `owner_id`, `platform`, `public` attributes
+```
+
+```release-note:enhancement
+resource/aws_ami_from_instance: Add `usage_operation`, `platform_details`, `image_owner_alias`, `image_type`, `hypervisor`, `owner_id`, `platform`, `public` attributes
+```
+
+```release-note:enhancement
+data-source/aws_ami: Add `usage_operation`, `platform_details`, `ena_support` attributes
+```

@@ -226,7 +226,7 @@ func resourceAwsDocDBClusterInstanceCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error creating DocDB Instance: %s", err)
 	}
 
-	d.SetId(*resp.DBInstance.DBInstanceIdentifier)
+	d.SetId(aws.StringValue(resp.DBInstance.DBInstanceIdentifier))
 
 	// reuse db_instance refresh func
 	stateConf := &resource.StateChangeConf{

@@ -51,7 +51,7 @@ func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) erro
 	for {
 		resp, err := conn.ListWebACLs(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAFv2 WebACLs: %s", err)
+			return fmt.Errorf("Error reading WAFv2 WebACLs: %w", err)
 		}
 
 		if resp == nil || resp.WebACLs == nil {

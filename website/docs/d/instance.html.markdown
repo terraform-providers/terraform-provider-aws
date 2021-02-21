@@ -69,6 +69,7 @@ interpolation.
     * `iops` - `0` If the EBS volume is not a provisioned IOPS image, otherwise the supported IOPS count.
     * `kms_key_arn` - Amazon Resource Name (ARN) of KMS Key, if EBS volume is encrypted.
     * `snapshot_id` - The ID of the snapshot.
+    * `throughput` - The throughput of the volume, in MiB/s.
     * `volume_size` - The size of the volume, in GiB.
     * `volume_type` - The volume type.
 * `ebs_optimized` - Whether the Instance is EBS optimized or not (Boolean).
@@ -102,6 +103,7 @@ interpolation.
     * `encrypted` - If the EBS volume is encrypted.
     * `iops` - `0` If the volume is not a provisioned IOPS image, otherwise the supported IOPS count.
     * `kms_key_arn` - Amazon Resource Name (ARN) of KMS Key, if EBS volume is encrypted.
+    * `throughput` - The throughput of the volume, in MiB/s.
     * `volume_size` - The size of the volume, in GiB.
     * `volume_type` - The type of the volume.
 * `security_groups` - The associated security groups.
@@ -109,7 +111,7 @@ interpolation.
 * `subnet_id` - The VPC subnet ID.
 * `outpost_arn` - The Amazon Resource Name (ARN) of the Outpost.
 * `user_data` - SHA-1 hash of User Data supplied to the Instance.
-* `user_data_base64` - Base64 encoded contents of User Data supplied to the Instance. Valid UTF-8 contents can be decoded with the [`base64decode` function](/docs/configuration/functions/base64decode.html). This attribute is only exported if `get_user_data` is true.
+* `user_data_base64` - Base64 encoded contents of User Data supplied to the Instance. Valid UTF-8 contents can be decoded with the [`base64decode` function](https://www.terraform.io/docs/configuration/functions/base64decode.html). This attribute is only exported if `get_user_data` is true.
 * `tags` - A map of tags assigned to the Instance.
 * `tenancy` - The tenancy of the instance: `dedicated`, `default`, `host`.
 * `host_id` - The Id of the dedicated host the instance will be assigned to.
@@ -119,5 +121,7 @@ interpolation.
     * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
     * `http_tokens` - If session tokens are required: `optional`, `required`.
     * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
+* `enclave_options` - The enclave options of the Instance.
+    * `enabled` - Whether Nitro Enclaves are enabled.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html

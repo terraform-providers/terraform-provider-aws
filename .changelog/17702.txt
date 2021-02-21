@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_glue_catalog_table: Prevent `schema_reference` attribute error
+```
+
+```release-note:enhancement
+resource/aws_glue_partition: Add plan time validation for `partition_values`
+```

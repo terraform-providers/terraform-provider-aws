@@ -116,13 +116,13 @@ func resourceAwsDxPublicVirtualInterfaceCreate(d *schema.ResourceData, meta inte
 			Vlan:                 aws.Int64(int64(d.Get("vlan").(int))),
 		},
 	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("amazon_address"); ok {
 		req.NewPublicVirtualInterface.AmazonAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("bgp_auth_key"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("bgp_auth_key"); ok {
 		req.NewPublicVirtualInterface.AuthKey = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("customer_address"); ok {
 		req.NewPublicVirtualInterface.CustomerAddress = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("route_filter_prefixes"); ok {

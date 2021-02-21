@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -75,7 +75,7 @@ func testSweepCognitoUserPoolDomains(region string) error {
 
 func TestAccAWSCognitoUserPoolDomain_basic(t *testing.T) {
 	domainName := fmt.Sprintf("tf-acc-test-domain-%d", acctest.RandInt())
-	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentityProvider(t) },
@@ -104,48 +104,37 @@ func TestAccAWSCognitoUserPoolDomain_basic(t *testing.T) {
 }
 
 func TestAccAWSCognitoUserPoolDomain_custom(t *testing.T) {
-	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
-	// This test must always run in us-east-1
-	// BadRequestException: Invalid certificate ARN: arn:aws:acm:us-west-2:123456789012:certificate/xxxxx. Certificate must be in 'us-east-1'.
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
+	rootDomain := testAccAwsAcmCertificateDomainFromEnv(t)
+	domain := testAccAwsAcmCertificateRandomSubDomain(rootDomain)
+	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandString(10))
 
-	customDomainName := os.Getenv("AWS_COGNITO_USER_POOL_DOMAIN_ROOT_DOMAIN")
-	if customDomainName == "" {
-		t.Skip(
-			"Environment variable AWS_COGNITO_USER_POOL_DOMAIN_ROOT_DOMAIN is not set. " +
-				"This environment variable must be set to the fqdn of " +
-				"an ISSUED ACM certificate in us-east-1 to enable this test.")
-	}
-
-	customSubDomainName := fmt.Sprintf("%s.%s", fmt.Sprintf("tf-acc-test-domain-%d", acctest.RandInt()), customDomainName)
-	// For now, use an environment variable to limit running this test
-	certificateArn := os.Getenv("AWS_COGNITO_USER_POOL_DOMAIN_CERTIFICATE_ARN")
-	if certificateArn == "" {
-		t.Skip(
-			"Environment variable AWS_COGNITO_USER_POOL_DOMAIN_CERTIFICATE_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"an ISSUED ACM certificate in us-east-1 to enable this test.")
-	}
+	acmCertificateResourceName := "aws_acm_certificate.test"
+	cognitoUserPoolResourceName := "aws_cognito_user_pool.test"
+	resourceName := "aws_cognito_user_pool_domain.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentityProvider(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSCognitoUserPoolDomainDestroy,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCognitoUserPoolCustomDomain(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSCognitoUserPoolDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCognitoUserPoolDomainConfig_custom(customSubDomainName, poolName, certificateArn),
+				Config: testAccAWSCognitoUserPoolDomainConfig_custom(rootDomain, domain, poolName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoUserPoolDomainExists("aws_cognito_user_pool_domain.main"),
-					resource.TestCheckResourceAttr("aws_cognito_user_pool_domain.main", "domain", customSubDomainName),
-					resource.TestCheckResourceAttr("aws_cognito_user_pool_domain.main", "certificate_arn", certificateArn),
-					resource.TestCheckResourceAttr("aws_cognito_user_pool.main", "name", poolName),
-					resource.TestCheckResourceAttrSet("aws_cognito_user_pool_domain.main", "aws_account_id"),
-					resource.TestCheckResourceAttrSet("aws_cognito_user_pool_domain.main", "cloudfront_distribution_arn"),
-					resource.TestCheckResourceAttrSet("aws_cognito_user_pool_domain.main", "s3_bucket"),
-					resource.TestCheckResourceAttrSet("aws_cognito_user_pool_domain.main", "version"),
+					testAccCheckAWSCognitoUserPoolDomainExists(resourceName),
+					testAccCheckResourceAttrAccountID(resourceName, "aws_account_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "certificate_arn", acmCertificateResourceName, "arn"),
+					//lintignore:AWSAT001 // Reference: https://github.com/hashicorp/terraform-provider-aws/issues/11666
+					resource.TestMatchResourceAttr(resourceName, "cloudfront_distribution_arn", regexp.MustCompile(`[a-z0-9]+.cloudfront.net$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "domain", acmCertificateResourceName, "domain_name"),
+					resource.TestMatchResourceAttr(resourceName, "s3_bucket", regexp.MustCompile(`^.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "user_pool_id", cognitoUserPoolResourceName, "id"),
+					resource.TestMatchResourceAttr(resourceName, "version", regexp.MustCompile(`^.+$`)),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -153,7 +142,7 @@ func TestAccAWSCognitoUserPoolDomain_custom(t *testing.T) {
 
 func TestAccAWSCognitoUserPoolDomain_disappears(t *testing.T) {
 	domainName := fmt.Sprintf("tf-acc-test-domain-%d", acctest.RandInt())
-	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandString(10))
 	resourceName := "aws_cognito_user_pool_domain.main"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -230,16 +219,63 @@ resource "aws_cognito_user_pool" "main" {
 `, domainName, poolName)
 }
 
-func testAccAWSCognitoUserPoolDomainConfig_custom(customSubDomainName, poolName, certificateArn string) string {
-	return fmt.Sprintf(`
-resource "aws_cognito_user_pool_domain" "main" {
-  domain          = "%s"
-  user_pool_id    = aws_cognito_user_pool.main.id
-  certificate_arn = "%s"
+func testAccAWSCognitoUserPoolDomainConfig_custom(rootDomain string, domain string, poolName string) string {
+	return composeConfig(
+		testAccCognitoUserPoolCustomDomainRegionProviderConfig(),
+		fmt.Sprintf(`
+data "aws_route53_zone" "test" {
+  name         = %[1]q
+  private_zone = false
 }
 
-resource "aws_cognito_user_pool" "main" {
-  name = "%s"
+resource "aws_acm_certificate" "test" {
+  domain_name       = %[2]q
+  validation_method = "DNS"
 }
-`, customSubDomainName, certificateArn, poolName)
+
+#
+# for_each acceptance testing requires:
+# https://github.com/hashicorp/terraform-plugin-sdk/issues/536
+#
+# resource "aws_route53_record" "test" {
+#   for_each = {
+#     for dvo in aws_acm_certificate.test.domain_validation_options: dvo.domain_name => {
+#       name   = dvo.resource_record_name
+#       record = dvo.resource_record_value
+#       type   = dvo.resource_record_type
+#     }
+#   }
+
+#   allow_overwrite = true
+#   name            = each.value.name
+#   records         = [each.value.record]
+#   ttl             = 60
+#   type            = each.value.type
+#   zone_id         = data.aws_route53_zone.test.zone_id
+# }
+
+resource "aws_route53_record" "test" {
+  allow_overwrite = true
+  name            = tolist(aws_acm_certificate.test.domain_validation_options)[0].resource_record_name
+  records         = [tolist(aws_acm_certificate.test.domain_validation_options)[0].resource_record_value]
+  ttl             = 60
+  type            = tolist(aws_acm_certificate.test.domain_validation_options)[0].resource_record_type
+  zone_id         = data.aws_route53_zone.test.zone_id
+}
+
+resource "aws_acm_certificate_validation" "test" {
+  certificate_arn         = aws_acm_certificate.test.arn
+  validation_record_fqdns = [aws_route53_record.test.fqdn]
+}
+
+resource "aws_cognito_user_pool" "test" {
+  name = %[3]q
+}
+
+resource "aws_cognito_user_pool_domain" "test" {
+  certificate_arn = aws_acm_certificate_validation.test.certificate_arn
+  domain          = aws_acm_certificate.test.domain_name
+  user_pool_id    = aws_cognito_user_pool.test.id
+}
+`, rootDomain, domain, poolName))
 }

@@ -3,37 +3,38 @@ package aws
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // See http://docs.aws.amazon.com/general/latest/gr/rande.html#elb_region
 // See https://docs.amazonaws.cn/en_us/general/latest/gr/rande.html#elb_region
 var elbHostedZoneIdPerRegionMap = map[string]string{
-	"af-south-1":     "Z268VQBMOI5EKX",
-	"ap-east-1":      "Z3DQVH9N71FHZ0",
-	"ap-northeast-1": "Z14GRHDCWA56QT",
-	"ap-northeast-2": "ZWKZPGTI48KDX",
-	"ap-northeast-3": "Z5LXEXXYW11ES",
-	"ap-south-1":     "ZP97RAFLXTNZK",
-	"ap-southeast-1": "Z1LMS91P8CMLE5",
-	"ap-southeast-2": "Z1GM3OXH4ZPM65",
-	"ca-central-1":   "ZQSVJUPU6J1EY",
-	"cn-north-1":     "Z3BX2TMKNYI13Y",
-	"cn-northwest-1": "Z3BX2TMKNYI13Y",
-	"eu-central-1":   "Z215JYRZR1TBD5",
-	"eu-north-1":     "Z23TAZ6LKFMNIO",
-	"eu-south-1":     "Z3ULH7SSC9OV64",
-	"eu-west-1":      "Z32O12XQLNTSW2",
-	"eu-west-2":      "ZHURV8PSTC4K8",
-	"eu-west-3":      "Z3Q77PNBQS71R4",
-	"me-south-1":     "ZS929ML54UICD",
-	"sa-east-1":      "Z2P70J7HTTTPLU",
-	"us-east-1":      "Z35SXDOTRQ7X7K",
-	"us-east-2":      "Z3AADJGX6KTTL2",
-	"us-gov-east-1":  "Z166TLBEWOO7G0",
-	"us-gov-west-1":  "Z33AYJ8TM3BH4J",
-	"us-west-1":      "Z368ELLRRE2KJ0",
-	"us-west-2":      "Z1H1FL5HABSF5",
+	endpoints.AfSouth1RegionID:     "Z268VQBMOI5EKX",
+	endpoints.ApEast1RegionID:      "Z3DQVH9N71FHZ0",
+	endpoints.ApNortheast1RegionID: "Z14GRHDCWA56QT",
+	endpoints.ApNortheast2RegionID: "ZWKZPGTI48KDX",
+	"ap-northeast-3":               "Z5LXEXXYW11ES", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApSouth1RegionID:     "ZP97RAFLXTNZK",
+	endpoints.ApSoutheast1RegionID: "Z1LMS91P8CMLE5",
+	endpoints.ApSoutheast2RegionID: "Z1GM3OXH4ZPM65",
+	endpoints.CaCentral1RegionID:   "ZQSVJUPU6J1EY",
+	endpoints.CnNorth1RegionID:     "Z1GDH35T77C1KE",
+	endpoints.CnNorthwest1RegionID: "ZM7IZAIOVVDZF",
+	endpoints.EuCentral1RegionID:   "Z215JYRZR1TBD5",
+	endpoints.EuNorth1RegionID:     "Z23TAZ6LKFMNIO",
+	endpoints.EuSouth1RegionID:     "Z3ULH7SSC9OV64",
+	endpoints.EuWest1RegionID:      "Z32O12XQLNTSW2",
+	endpoints.EuWest2RegionID:      "ZHURV8PSTC4K8",
+	endpoints.EuWest3RegionID:      "Z3Q77PNBQS71R4",
+	endpoints.MeSouth1RegionID:     "ZS929ML54UICD",
+	endpoints.SaEast1RegionID:      "Z2P70J7HTTTPLU",
+	endpoints.UsEast1RegionID:      "Z35SXDOTRQ7X7K",
+	endpoints.UsEast2RegionID:      "Z3AADJGX6KTTL2",
+	endpoints.UsGovEast1RegionID:   "Z166TLBEWOO7G0",
+	endpoints.UsGovWest1RegionID:   "Z33AYJ8TM3BH4J",
+	endpoints.UsWest1RegionID:      "Z368ELLRRE2KJ0",
+	endpoints.UsWest2RegionID:      "Z1H1FL5HABSF5",
 }
 
 func dataSourceAwsElbHostedZoneId() *schema.Resource {

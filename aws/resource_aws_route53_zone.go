@@ -33,10 +33,11 @@ func resourceAwsRoute53Zone() *schema.Resource {
 				// returned from API, no longer requiring custom DiffSuppressFunc;
 				// instead a StateFunc allows input to be provided
 				// with or without the trailing period
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: trimTrailingPeriod,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				StateFunc:    trimTrailingPeriod,
+				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
 
 			"comment": {
@@ -77,6 +78,7 @@ func resourceAwsRoute53Zone() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"vpc"},
+				ValidateFunc:  validation.StringLenBetween(0, 32),
 			},
 
 			"name_servers": {

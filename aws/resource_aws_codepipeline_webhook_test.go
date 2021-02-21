@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,17 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/envvar"
 )
 
+const envVarGithubTokenUsageCodePipelineWebhook = "token with GitHub permissions to repository for CodePipeline webhook creation"
+
 func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
-	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, envVarGithubTokenUsageCodePipelineWebhook)
 
 	var v codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -44,14 +49,17 @@ func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
-	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, envVarGithubTokenUsageCodePipelineWebhook)
 
 	var v codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -75,14 +83,17 @@ func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
-	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, envVarGithubTokenUsageCodePipelineWebhook)
 
 	var v codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -104,14 +115,17 @@ func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
-	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, envVarGithubTokenUsageCodePipelineWebhook)
 
 	var v1, v2, v3 codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -164,14 +178,17 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_UpdateAuthenticationConfiguration_SecretToken(t *testing.T) {
-	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, envVarGithubTokenUsageCodePipelineWebhook)
 
 	var v1, v2 codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{

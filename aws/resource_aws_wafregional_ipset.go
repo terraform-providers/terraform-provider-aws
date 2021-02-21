@@ -68,7 +68,7 @@ func resourceAwsWafRegionalIPSetCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	resp := out.(*waf.CreateIPSetOutput)
-	d.SetId(*resp.IPSet.IPSetId)
+	d.SetId(aws.StringValue(resp.IPSet.IPSetId))
 	return resourceAwsWafRegionalIPSetUpdate(d, meta)
 }
 

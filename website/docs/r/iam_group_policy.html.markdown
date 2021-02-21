@@ -17,20 +17,20 @@ resource "aws_iam_group_policy" "my_developer_policy" {
   name  = "my_developer_policy"
   group = aws_iam_group.my_developers.name
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "ec2:Describe*"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
 
 resource "aws_iam_group" "my_developers" {
@@ -51,6 +51,8 @@ assign a random, unique name.
 * `group` - (Required) The IAM group to attach to the policy.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The group policy ID.
 * `group` - The group to which this policy applies.

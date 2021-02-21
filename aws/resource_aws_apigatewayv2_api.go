@@ -93,6 +93,10 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 1024),
 			},
+			"disable_execute_api_endpoint": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"execution_arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -109,13 +113,10 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				ValidateFunc:     validateStringIsJsonOrYaml,
 			},
 			"protocol_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.ProtocolTypeHttp,
-					apigatewayv2.ProtocolTypeWebsocket,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.ProtocolType_Values(), false),
 			},
 			"route_key": {
 				Type:     schema.TypeString,
@@ -221,6 +222,9 @@ func resourceAwsApiGatewayV2ApiCreate(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("description"); ok {
 		req.Description = aws.String(v.(string))
 	}
+	if v, ok := d.GetOk("disable_execute_api_endpoint"); ok {
+		req.DisableExecuteApiEndpoint = aws.Bool(v.(bool))
+	}
 	if v, ok := d.GetOk("route_key"); ok {
 		req.RouteKey = aws.String(v.(string))
 	}
@@ -279,6 +283,7 @@ func resourceAwsApiGatewayV2ApiRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error setting cors_configuration: %s", err)
 	}
 	d.Set("description", resp.Description)
+	d.Set("disable_execute_api_endpoint", resp.DisableExecuteApiEndpoint)
 	executionArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Service:   "execute-api",
@@ -317,7 +322,7 @@ func resourceAwsApiGatewayV2ApiUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChanges("api_key_selection_expression", "description", "name", "route_selection_expression", "version") ||
+	if d.HasChanges("api_key_selection_expression", "description", "disable_execute_api_endpoint", "name", "route_selection_expression", "version") ||
 		(d.HasChange("cors_configuration") && !deleteCorsConfiguration) {
 		req := &apigatewayv2.UpdateApiInput{
 			ApiId: aws.String(d.Id()),
@@ -331,6 +336,9 @@ func resourceAwsApiGatewayV2ApiUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		if d.HasChange("description") {
 			req.Description = aws.String(d.Get("description").(string))
+		}
+		if d.HasChange("disable_execute_api_endpoint") {
+			req.DisableExecuteApiEndpoint = aws.Bool(d.Get("disable_execute_api_endpoint").(bool))
 		}
 		if d.HasChange("name") {
 			req.Name = aws.String(d.Get("name").(string))

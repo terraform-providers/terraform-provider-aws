@@ -1,14 +1,16 @@
 ---
-subcategory: "CloudWatch"
+subcategory: "EventBridge (CloudWatch Events)"
 layout: "aws"
 page_title: "AWS: aws_cloudwatch_event_target"
 description: |-
-  Provides a CloudWatch Event Target resource.
+  Provides an EventBridge Target resource.
 ---
 
 # Resource: aws_cloudwatch_event_target
 
-Provides a CloudWatch Event Target resource.
+Provides an EventBridge Target resource.
+
+~> **Note:** EventBridge was formerly known as CloudWatch Events. The functionality is identical.
 
 ## Example Usage
 
@@ -235,31 +237,78 @@ DOC
 }
 ```
 
+## Example Input Transformer Usage - JSON Object
+
+```terraform
+resource "aws_cloudwatch_event_target" "example" {
+  arn  = aws_lambda_function.example.arn
+  rule = aws_cloudwatch_event_rule.example.id
+
+  input_transformer {
+    input_paths = {
+      instance = "$.detail.instance",
+      status   = "$.detail.status",
+    }
+    input_template = <<EOF
+{
+  "instance_id": <instance>,
+  "instance_status": <status>
+}
+EOF
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "example" {
+  # ...
+}
+```
+
+## Example Input Transformer Usage - Simple String
+
+```terraform
+resource "aws_cloudwatch_event_target" "example" {
+  arn  = aws_lambda_function.example.arn
+  rule = aws_cloudwatch_event_rule.example.id
+
+  input_transformer {
+    input_paths = {
+      instance = "$.detail.instance",
+      status   = "$.detail.status",
+    }
+    input_template = "\"<instance> is in state <status>\""
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "example" {
+  # ...
+}
+```
+
 ## Argument Reference
 
--> **Note:** `input` and `input_path` are mutually exclusive options.
-
 -> **Note:** In order to be able to have your AWS Lambda function or
-   SNS topic invoked by a CloudWatch Events rule, you must setup the right permissions
-   using [`aws_lambda_permission`](https://www.terraform.io/docs/providers/aws/r/lambda_permission.html)
-   or [`aws_sns_topic.policy`](https://www.terraform.io/docs/providers/aws/r/sns_topic.html#policy).
+   SNS topic invoked by an EventBridge rule, you must setup the right permissions
+   using [`aws_lambda_permission`](/docs/providers/aws/r/lambda_permission.html)
+   or [`aws_sns_topic.policy`](/docs/providers/aws/r/sns_topic.html#policy).
    More info [here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/resource-based-policies-cwe.html).
 
 The following arguments are supported:
 
 * `rule` - (Required) The name of the rule you want to add targets to.
+* `event_bus_name` - (Optional) The event bus to associate with the rule. If you omit this, the `default` event bus is used.
 * `target_id` - (Optional) The unique target assignment ID.  If missing, will generate a random, unique id.
 * `arn` - (Required) The Amazon Resource Name (ARN) associated of the target.
-* `input` - (Optional) Valid JSON text passed to the target.
-* `input_path` - (Optional) The value of the [JSONPath](http://goessner.net/articles/JsonPath/)
-	that is used for extracting part of the matched event when passing it to the target.
+* `input` - (Optional) Valid JSON text passed to the target. Conflicts with `input_path` and `input_transformer`.
+* `input_path` - (Optional) The value of the [JSONPath](http://goessner.net/articles/JsonPath/) that is used for extracting part of the matched event when passing it to the target. Conflicts with `input` and `input_transformer`.
 * `role_arn` - (Optional) The Amazon Resource Name (ARN) of the IAM role to be used for this target when the rule is triggered. Required if `ecs_target` is used.
 * `run_command_targets` - (Optional) Parameters used when you are using the rule to invoke Amazon EC2 Run Command. Documented below. A maximum of 5 are allowed.
 * `ecs_target` - (Optional) Parameters used when you are using the rule to invoke Amazon ECS Task. Documented below. A maximum of 1 are allowed.
 * `batch_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Batch Job. Documented below. A maximum of 1 are allowed.
 * `kinesis_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Kinesis Stream. Documented below. A maximum of 1 are allowed.
 * `sqs_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon SQS Queue. Documented below. A maximum of 1 are allowed.
-* `input_transformer` - (Optional) Parameters used when you are providing a custom input to a target based on certain event data.
+* `input_transformer` - (Optional) Parameters used when you are providing a custom input to a target based on certain event data. Conflicts with `input` and `input_path`.
+* `retry_policy` - (Optional)  Parameters used when you are providing retry policies. Documented below. A maximum of 1 are allowed.
+* `dead_letter_config` - (Optional)  Parameters used when you are providing a dead letter conifg. Documented below. A maximum of 1 are allowed.
 
 `run_command_targets` support the following:
 
@@ -269,7 +318,7 @@ The following arguments are supported:
 `ecs_target` support the following:
 
 * `group` - (Optional) Specifies an ECS task group for the task. The maximum length is 255 characters.
-* `launch_type` - (Optional) Specifies the launch type on which your task is running. The launch type that you specify here must match one of the launch type (compatibilities) of the target task. Valid values are EC2 or FARGATE.
+* `launch_type` - (Optional) Specifies the launch type on which your task is running. The launch type that you specify here must match one of the launch type (compatibilities) of the target task. Valid values are `EC2` or `FARGATE`.
 * `network_configuration` - (Optional) Use this if the ECS task uses the awsvpc network mode. This specifies the VPC subnets and security groups associated with the task, and whether a public IP address is to be used. Required if launch_type is FARGATE because the awsvpc mode is required for Fargate tasks.
 * `platform_version` - (Optional) Specifies the platform version for the task. Specify only the numeric portion of the platform version, such as 1.1.0. This is used only if LaunchType is FARGATE. For more information about valid platform versions, see [AWS Fargate Platform Versions](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/platform_versions.html).
 * `task_count` - (Optional) The number of tasks to create based on the TaskDefinition. The default is 1.
@@ -301,11 +350,24 @@ For more information, see [Task Networking](https://docs.aws.amazon.com/AmazonEC
 `input_transformer` support the following:
 
 * `input_paths` - (Optional) Key value pairs specified in the form of JSONPath (for example, time = $.time)
-* `input_template` - (Required) Structure containing the template body.
+    * You can have as many as 10 key-value pairs.
+    * You must use JSON dot notation, not bracket notation.
+    * The keys can't start with "AWS".
+
+* `input_template` - (Required) Template to customize data sent to the target. Must be valid JSON. To send a string value, the string value must include double quotes. Values must be escaped for both JSON and Terraform, e.g. `"\"Your string goes here.\\nA new line.\""`
+
+`retry_policy` support the following:
+
+* `maximum_event_age_in_seconds` - (Optional) The age in seconds to continue to make retry attempts.
+* `maximum_retry_attempts` - (Optional) maximum number of retry attempts to make before the request fails
+
+`dead_letter_config` support the following:
+
+* `arn` - (Optional) - ARN of the SQS queue specified as the target for the dead-letter queue.
 
 ## Import
 
-Cloud Watch Event Target can be imported using the role event_rule and target_id separated by `/`.
+EventBridge Targets can be imported using `event_bus_name/rule-name/target-id` (if you omit `event_bus_name`, the `default` event bus will be used).
 
  ```
 $ terraform import aws_cloudwatch_event_target.test-event-target rule-name/target-id

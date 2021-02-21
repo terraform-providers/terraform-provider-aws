@@ -192,13 +192,13 @@ func resourceAwsRDSClusterEndpointUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if attr := d.Get("excluded_members").(*schema.Set); attr.Len() > 0 {
-		input.ExcludedMembers = expandStringList(attr.List())
+		input.ExcludedMembers = expandStringSet(attr)
 	} else {
 		input.ExcludedMembers = make([]*string, 0)
 	}
 
 	if attr := d.Get("static_members").(*schema.Set); attr.Len() > 0 {
-		input.StaticMembers = expandStringList(attr.List())
+		input.StaticMembers = expandStringSet(attr)
 	} else {
 		input.StaticMembers = make([]*string, 0)
 	}
