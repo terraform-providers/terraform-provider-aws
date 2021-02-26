@@ -212,6 +212,8 @@ func Provider() *schema.Provider {
 			"aws_directory_service_directory":                dataSourceAwsDirectoryServiceDirectory(),
 			"aws_docdb_engine_version":                       dataSourceAwsDocdbEngineVersion(),
 			"aws_docdb_orderable_db_instance":                dataSourceAwsDocdbOrderableDbInstance(),
+			"aws_dx_connection":                              dataSourceAwsDxConnection(),
+			"aws_dx_connections":                             dataSourceAwsDxConnections(),
 			"aws_dx_gateway":                                 dataSourceAwsDxGateway(),
 			"aws_dynamodb_table":                             dataSourceAwsDynamoDbTable(),
 			"aws_ebs_default_kms_key":                        dataSourceAwsEbsDefaultKmsKey(),
