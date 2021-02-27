@@ -35,14 +35,10 @@ func resourceAwsPlacementGroup() *schema.Resource {
 				ForceNew: true,
 			},
 			"strategy": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.PlacementStrategyCluster,
-					ec2.PlacementStrategyPartition,
-					ec2.PlacementStrategySpread,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.PlacementStrategy_Values(), false),
 			},
 			"placement_group_id": {
 				Type:     schema.TypeString,

@@ -73,10 +73,7 @@ func resourceAwsNetworkAcl() *schema.Resource {
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return strings.EqualFold(old, new)
 							},
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.RuleActionAllow,
-								ec2.RuleActionDeny,
-							}, true),
+							ValidateFunc: validation.StringInSlice(ec2.RuleAction_Values(), true),
 						},
 						"protocol": {
 							Type:     schema.TypeString,
@@ -138,10 +135,7 @@ func resourceAwsNetworkAcl() *schema.Resource {
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return strings.EqualFold(old, new)
 							},
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.RuleActionAllow,
-								ec2.RuleActionDeny,
-							}, true),
+							ValidateFunc: validation.StringInSlice(ec2.RuleAction_Values(), true),
 						},
 						"protocol": {
 							Type:     schema.TypeString,

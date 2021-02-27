@@ -47,12 +47,10 @@ func resourceAwsResourceGroupsGroup() *schema.Resource {
 						},
 
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  resourcegroups.QueryTypeTagFilters10,
-							ValidateFunc: validation.StringInSlice([]string{
-								resourcegroups.QueryTypeTagFilters10,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      resourcegroups.QueryTypeTagFilters10,
+							ValidateFunc: validation.StringInSlice(resourcegroups.QueryType_Values(), false),
 						},
 					},
 				},

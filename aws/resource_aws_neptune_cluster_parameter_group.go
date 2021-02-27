@@ -70,13 +70,10 @@ func resourceAwsNeptuneClusterParameterGroup() *schema.Resource {
 							Required: true,
 						},
 						"apply_method": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  neptune.ApplyMethodPendingReboot,
-							ValidateFunc: validation.StringInSlice([]string{
-								neptune.ApplyMethodImmediate,
-								neptune.ApplyMethodPendingReboot,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      neptune.ApplyMethodPendingReboot,
+							ValidateFunc: validation.StringInSlice(neptune.ApplyMethod_Values(), false),
 						},
 					},
 				},

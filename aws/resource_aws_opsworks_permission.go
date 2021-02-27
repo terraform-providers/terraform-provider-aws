@@ -38,6 +38,7 @@ func resourceAwsOpsworksPermission() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 				Optional: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"deny",
 					"show",

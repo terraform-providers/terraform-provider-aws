@@ -51,6 +51,7 @@ func resourceAwsQuickSightGroup() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "default",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"default",
 				}, false),

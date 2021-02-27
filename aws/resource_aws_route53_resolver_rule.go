@@ -47,14 +47,10 @@ func resourceAwsRoute53ResolverRule() *schema.Resource {
 			},
 
 			"rule_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					route53resolver.RuleTypeOptionForward,
-					route53resolver.RuleTypeOptionSystem,
-					route53resolver.RuleTypeOptionRecursive,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(route53resolver.RuleTypeOption_Values(), false),
 			},
 
 			"name": {

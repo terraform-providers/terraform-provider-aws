@@ -48,6 +48,7 @@ func resourceAwsRDSGlobalCluster() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source_db_cluster_identifier"},
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"aurora",
 					"aurora-mysql",

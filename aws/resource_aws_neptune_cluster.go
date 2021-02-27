@@ -111,6 +111,7 @@ func resourceAwsNeptuneCluster() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+					//lintignore:AWSV001 // no enum in AWS SDK
 					ValidateFunc: validation.StringInSlice([]string{
 						CloudwatchLogsExportsAudit,
 					}, false),

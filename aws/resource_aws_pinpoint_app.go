@@ -61,12 +61,9 @@ func resourceAwsPinpointApp() *schema.Resource {
 							Optional: true,
 						},
 						"mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								pinpoint.ModeDelivery,
-								pinpoint.ModeFilter,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pinpoint.Mode_Values(), false),
 						},
 						"web_url": {
 							Type:     schema.TypeString,

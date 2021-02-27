@@ -263,6 +263,7 @@ func resourceAwsOpsworksInstance() *schema.Resource {
 			"state": {
 				Type:     schema.TypeString,
 				Optional: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"running",
 					"stopped",
@@ -287,6 +288,7 @@ func resourceAwsOpsworksInstance() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"dedicated",
 					"default",

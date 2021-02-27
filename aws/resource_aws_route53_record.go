@@ -54,22 +54,9 @@ func resourceAwsRoute53Record() *schema.Resource {
 			},
 
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					route53.RRTypeSoa,
-					route53.RRTypeA,
-					route53.RRTypeTxt,
-					route53.RRTypeNs,
-					route53.RRTypeCname,
-					route53.RRTypeMx,
-					route53.RRTypeNaptr,
-					route53.RRTypePtr,
-					route53.RRTypeSrv,
-					route53.RRTypeSpf,
-					route53.RRTypeAaaa,
-					route53.RRTypeCaa,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(route53.RRType_Values(), false),
 			},
 
 			"zone_id": {

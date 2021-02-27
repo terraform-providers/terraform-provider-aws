@@ -66,7 +66,7 @@ func resourceAwsOrganizationsAccount() *schema.Resource {
 				ForceNew:     true,
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{organizations.IAMUserAccessToBillingAllow, organizations.IAMUserAccessToBillingDeny}, true),
+				ValidateFunc: validation.StringInSlice(organizations.IAMUserAccessToBilling_Values(), true),
 			},
 			"role_name": {
 				ForceNew:     true,

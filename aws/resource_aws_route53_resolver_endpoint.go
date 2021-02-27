@@ -31,13 +31,10 @@ func resourceAwsRoute53ResolverEndpoint() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"direction": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					route53resolver.ResolverEndpointDirectionInbound,
-					route53resolver.ResolverEndpointDirectionOutbound,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(route53resolver.ResolverEndpointDirection_Values(), false),
 			},
 
 			"ip_address": {

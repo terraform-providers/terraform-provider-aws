@@ -33,15 +33,7 @@ func resourceAwsRoute53HealthCheck() *schema.Resource {
 				StateFunc: func(val interface{}) string {
 					return strings.ToUpper(val.(string))
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					route53.HealthCheckTypeCalculated,
-					route53.HealthCheckTypeCloudwatchMetric,
-					route53.HealthCheckTypeHttp,
-					route53.HealthCheckTypeHttpStrMatch,
-					route53.HealthCheckTypeHttps,
-					route53.HealthCheckTypeHttpsStrMatch,
-					route53.HealthCheckTypeTcp,
-				}, true),
+				ValidateFunc: validation.StringInSlice(route53.HealthCheckType_Values(), true),
 			},
 			"failure_threshold": {
 				Type:     schema.TypeInt,
@@ -115,13 +107,9 @@ func resourceAwsRoute53HealthCheck() *schema.Resource {
 			},
 
 			"insufficient_data_health_status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					route53.InsufficientDataHealthStatusHealthy,
-					route53.InsufficientDataHealthStatusLastKnownStatus,
-					route53.InsufficientDataHealthStatusUnhealthy,
-				}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(route53.InsufficientDataHealthStatus_Values(), true),
 			},
 			"reference_name": {
 				Type:     schema.TypeString,

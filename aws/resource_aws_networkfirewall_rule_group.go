@@ -210,6 +210,7 @@ func resourceAwsNetworkFirewallRuleGroup() *schema.Resource {
 																Required: true,
 																ValidateFunc: validation.Any(
 																	validateIpv4CIDRNetworkAddress,
+																	//lintignore:AWSV001 // only "ANY" is valid here
 																	validation.StringInSlice([]string{networkfirewall.StatefulRuleDirectionAny}, false),
 																),
 															},

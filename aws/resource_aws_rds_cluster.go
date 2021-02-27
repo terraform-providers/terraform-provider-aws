@@ -154,6 +154,7 @@ func resourceAwsRDSCluster() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "provisioned",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"global",
 					"multimaster",
@@ -201,6 +202,7 @@ func resourceAwsRDSCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "RollbackCapacityChange",
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{
 								"ForceApplyCapacityChange",
 								"RollbackCapacityChange",
@@ -242,6 +244,7 @@ func resourceAwsRDSCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{
 								"full-copy",
 								"copy-on-write",
@@ -440,6 +443,7 @@ func resourceAwsRDSCluster() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+					//lintignore:AWSV001 // no enum in AWS SDK
 					ValidateFunc: validation.StringInSlice([]string{
 						"audit",
 						"error",

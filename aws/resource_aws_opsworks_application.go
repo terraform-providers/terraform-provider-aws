@@ -106,6 +106,7 @@ func resourceAwsOpsworksApplication() *schema.Resource {
 			"data_source_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				//awslintignore:AWS001
 				ValidateFunc: validation.StringInSlice([]string{
 					"AutoSelectOpsworksMysqlInstance",
 					"OpsworksMysqlInstance",
