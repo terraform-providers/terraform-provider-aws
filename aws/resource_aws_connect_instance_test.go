@@ -79,7 +79,6 @@ func TestAccAwsConnectInstance_basic(t *testing.T) {
 				Config: testAccAwsConnectInstanceConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsConnectInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "connect", regexp.MustCompile(`instance/.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
 					resource.TestCheckResourceAttr(resourceName, "identity_management_type", connect.DirectoryTypeConnectManaged),
