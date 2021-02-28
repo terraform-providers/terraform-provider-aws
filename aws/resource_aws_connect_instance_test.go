@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -66,7 +67,7 @@ func testSweepConnectInstance(region string) error {
 }
 func TestAccAwsConnectInstance_basic(t *testing.T) {
 	var v connect.DescribeInstanceOutput
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("resource-test-terraform")
 	resourceName := "aws_connect_instance.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -75,14 +76,14 @@ func TestAccAwsConnectInstance_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsConnectInstanceConfigBasic(rInt),
+				Config: testAccAwsConnectInstanceConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsConnectInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "connect", regexp.MustCompile(`instance/.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
 					resource.TestCheckResourceAttr(resourceName, "identity_management_type", connect.DirectoryTypeConnectManaged),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_alias"),
+					resource.TestMatchResourceAttr(resourceName, "instance_alias", regexp.MustCompile(rName)),
 					resource.TestCheckResourceAttr(resourceName, "inbound_calls_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "outbound_calls_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "contact_flow_logs_enabled", "false"),
@@ -91,7 +92,7 @@ func TestAccAwsConnectInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "use_custom_tts_voices", "false"),
 					resource.TestCheckResourceAttr(resourceName, "early_media_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "status", connect.InstanceStatusActive),
-					resource.TestCheckResourceAttrSet(resourceName, "service_role"),
+					testAccMatchResourceAttrGlobalARN(resourceName, "service_role", "iam", regexp.MustCompile(`role/aws-service-role/connect.amazonaws.com/.+`)),
 				),
 			},
 			{
@@ -105,7 +106,7 @@ func TestAccAwsConnectInstance_basic(t *testing.T) {
 
 func TestAccAwsConnectInstance_custom(t *testing.T) {
 	var v connect.DescribeInstanceOutput
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("resource-test-terraform")
 	resourceName := "aws_connect_instance.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -114,14 +115,13 @@ func TestAccAwsConnectInstance_custom(t *testing.T) {
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsConnectInstanceConfigCustom(rInt),
+				Config: testAccAwsConnectInstanceConfigCustom(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsConnectInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "connect", regexp.MustCompile(`instance/.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
 					resource.TestCheckResourceAttr(resourceName, "identity_management_type", connect.DirectoryTypeConnectManaged),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_alias"),
+					resource.TestMatchResourceAttr(resourceName, "instance_alias", regexp.MustCompile(rName)),
 					resource.TestCheckResourceAttr(resourceName, "inbound_calls_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "outbound_calls_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "contact_flow_logs_enabled", "true"),
@@ -130,7 +130,7 @@ func TestAccAwsConnectInstance_custom(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "use_custom_tts_voices", "true"),
 					resource.TestCheckResourceAttr(resourceName, "early_media_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "status", connect.InstanceStatusActive),
-					resource.TestCheckResourceAttrSet(resourceName, "service_role"),
+					testAccMatchResourceAttrGlobalARN(resourceName, "service_role", "iam", regexp.MustCompile(`role/aws-service-role/connect.amazonaws.com/.+`)),
 				),
 			},
 			{
@@ -144,7 +144,7 @@ func TestAccAwsConnectInstance_custom(t *testing.T) {
 
 func TestAccAwsConnectInstance_directory(t *testing.T) {
 	var v connect.DescribeInstanceOutput
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("resource-test-terraform")
 	resourceName := "aws_connect_instance.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -153,7 +153,7 @@ func TestAccAwsConnectInstance_directory(t *testing.T) {
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsConnectInstanceConfigDirectory(rInt),
+				Config: testAccAwsConnectInstanceConfigDirectory(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "identity_management_type", connect.DirectoryTypeExistingDirectory),
 					testAccCheckAwsConnectInstanceExists(resourceName, &v),
@@ -199,7 +199,7 @@ func testAccCheckAwsConnectInstanceExists(resourceName string, function *connect
 
 func TestAccAwsConnectInstance_saml(t *testing.T) {
 	var v connect.DescribeInstanceOutput
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("resource-test-terraform")
 	resourceName := "aws_connect_instance.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -208,7 +208,7 @@ func TestAccAwsConnectInstance_saml(t *testing.T) {
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsConnectInstanceConfigSAML(rInt),
+				Config: testAccAwsConnectInstanceConfigSAML(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "identity_management_type", connect.DirectoryTypeSaml),
 					testAccCheckAwsConnectInstanceExists(resourceName, &v),
@@ -248,22 +248,22 @@ func testAccCheckAwsConnectInstanceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAwsConnectInstanceConfigBasic(rInt int) string {
+func testAccAwsConnectInstanceConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_connect_instance" "foo" {
   identity_management_type = "CONNECT_MANAGED"
-  instance_alias           = "resource-test-terraform-%d"
+  instance_alias           = %[1]q
   inbound_calls_enabled    = true
   outbound_calls_enabled   = true
 }
-`, rInt)
+`, rName)
 }
 
-func testAccAwsConnectInstanceConfigCustom(rInt int) string {
+func testAccAwsConnectInstanceConfigCustom(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_connect_instance" "foo" {
   identity_management_type  = "CONNECT_MANAGED"
-  instance_alias            = "resource-test-terraform-%d"
+  instance_alias            = %[1]q
   inbound_calls_enabled     = false
   outbound_calls_enabled    = true
   early_media_enabled       = false
@@ -272,10 +272,10 @@ resource "aws_connect_instance" "foo" {
   auto_resolve_best_voices  = false
   use_custom_tts_voices     = true
 }
-`, rInt)
+`, rName)
 }
 
-func testAccAwsConnectInstanceConfigDirectory(rInt int) string {
+func testAccAwsConnectInstanceConfigDirectory(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
@@ -325,22 +325,22 @@ resource "aws_directory_service_directory" "test" {
 resource "aws_connect_instance" "foo" {
   directory_id             = aws_directory_service_directory.test.id
   identity_management_type = "EXISTING_DIRECTORY"
-  instance_alias           = "resource-test-terraform-%d"
+  instance_alias           = %[1]q
   inbound_calls_enabled    = true
   outbound_calls_enabled   = true
 
   depends_on = [aws_directory_service_directory.test]
 }
-`, rInt)
+`, rName)
 }
 
-func testAccAwsConnectInstanceConfigSAML(rInt int) string {
+func testAccAwsConnectInstanceConfigSAML(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_connect_instance" "foo" {
   identity_management_type = "SAML"
-  instance_alias           = "resource-test-terraform-%d"
+  instance_alias           = %[1]q
   inbound_calls_enabled    = true
   outbound_calls_enabled   = true
 }
-`, rInt)
+`, rName)
 }

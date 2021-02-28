@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -39,15 +40,11 @@ func resourceAwsConnectInstance() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"identity_management_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  connect.DirectoryTypeConnectManaged,
-				ValidateFunc: validation.StringInSlice([]string{
-					connect.DirectoryTypeSaml,
-					connect.DirectoryTypeConnectManaged,
-					connect.DirectoryTypeExistingDirectory,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      connect.DirectoryTypeConnectManaged,
+				ValidateFunc: validation.StringInSlice(connect.DirectoryType_Values(), false),
 			},
 			"directory_id": {
 				Type:         schema.TypeString,
@@ -56,10 +53,13 @@ func resourceAwsConnectInstance() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(12, 12),
 			},
 			"instance_alias": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 64),
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 64),
+					validation.StringMatch(regexp.MustCompile(`^(?!d-)([\da-zA-Z]+)([-]*[\da-zA-Z])*$`), "must contain only alphanumeric hyphen and underscore characters"),
+				),
 			},
 			"inbound_calls_enabled": {
 				Type:     schema.TypeBool,
