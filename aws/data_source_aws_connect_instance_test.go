@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAwsConnectInstanceDataSource_basic(t *testing.T) {
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("datasource-test-terraform")
 	resourceName := "aws_connect_instance.foo"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -25,13 +25,12 @@ func TestAccAwsConnectInstanceDataSource_basic(t *testing.T) {
 				ExpectError: regexp.MustCompile(`error finding Connect Instance by instance_alias`),
 			},
 			{
-				Config: testAccAwsConnectInstanceDataSourceConfigBasic(rInt),
+				Config: testAccAwsConnectInstanceDataSourceConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "connect", regexp.MustCompile(`instance/.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
 					resource.TestCheckResourceAttrSet(resourceName, "identity_management_type"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_alias"),
+					resource.TestMatchResourceAttr(resourceName, "instance_alias", regexp.MustCompile(rName)),
 					resource.TestCheckResourceAttrSet(resourceName, "inbound_calls_enabled"),
 					resource.TestCheckResourceAttrSet(resourceName, "outbound_calls_enabled"),
 					resource.TestCheckResourceAttrSet(resourceName, "contact_flow_logs_enabled"),
@@ -48,20 +47,19 @@ func TestAccAwsConnectInstanceDataSource_basic(t *testing.T) {
 }
 
 func TestAccAwsConnectInstanceDataSource_alias(t *testing.T) {
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("datasource-test-terraform")
 	resourceName := "aws_connect_instance.foo"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsConnectInstanceDataSourceConfigAlias(rInt),
+				Config: testAccAwsConnectInstanceDataSourceConfigAlias(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "connect", regexp.MustCompile(`instance/.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
 					resource.TestCheckResourceAttrSet(resourceName, "identity_management_type"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_alias"),
+					resource.TestMatchResourceAttr(resourceName, "instance_alias", regexp.MustCompile(rName)),
 					resource.TestCheckResourceAttrSet(resourceName, "inbound_calls_enabled"),
 					resource.TestCheckResourceAttrSet(resourceName, "outbound_calls_enabled"),
 					resource.TestCheckResourceAttrSet(resourceName, "contact_flow_logs_enabled"),
@@ -89,26 +87,26 @@ data "aws_connect_instance" "foo" {
 }
 `
 
-func testAccAwsConnectInstanceDataSourceConfigBasic(rInt int) string {
+func testAccAwsConnectInstanceDataSourceConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_connect_instance" "foo" {
-  instance_alias = "datasource-test-terraform-%d"
+  instance_alias = %[1]q
 }
 
 data "aws_connect_instance" "foo" {
   instance_id = aws_connect_instance.foo.id
 }
-`, rInt)
+`, rName)
 }
 
-func testAccAwsConnectInstanceDataSourceConfigAlias(rInt int) string {
+func testAccAwsConnectInstanceDataSourceConfigAlias(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_connect_instance" "foo" {
-  instance_alias = "datasource-test-terraform-%d"
+  instance_alias = %[1]q
 }
 
 data "aws_connect_instance" "foo" {
   instance_alias = aws_connect_instance.foo.instance_alias
 }
-`, rInt)
+`, rName)
 }
