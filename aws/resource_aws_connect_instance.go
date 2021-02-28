@@ -58,7 +58,8 @@ func resourceAwsConnectInstance() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(1, 64),
-					validation.StringMatch(regexp.MustCompile(`^(?!d-)([\da-zA-Z]+)([-]*[\da-zA-Z])*$`), "must contain only alphanumeric hyphen and underscore characters"),
+					validation.StringMatch(regexp.MustCompile(`^([\da-zA-Z]+)([\da-zA-Z-]+)$`), "must contain only alphanumeric hyphen and underscore characters"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`^(d-).+$`), "can not start with d-"),
 				),
 			},
 			"inbound_calls_enabled": {
