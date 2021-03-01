@@ -221,7 +221,7 @@ func testAccCheckAwsDxLagDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("DirectConnect LAG %s still exists", rs.Primary.ID)
+		return fmt.Errorf("Direct Connect LAG %s still exists", rs.Primary.ID)
 	}
 
 	return nil

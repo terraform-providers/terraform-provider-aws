@@ -7,8 +7,62 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// LagByID returns the locations corresponding to the specified location code.
-// Returns NotFoundError if no location is found.
+// ConnectionByID returns the connections corresponding to the specified connection ID.
+// Returns NotFoundError if no connection is found.
+func ConnectionByID(conn *directconnect.DirectConnect, connectionID string) (*directconnect.Connection, error) {
+	input := &directconnect.DescribeConnectionsInput{
+		ConnectionId: aws.String(connectionID),
+	}
+
+	connections, err := Connections(conn, input)
+
+	if tfawserr.ErrMessageContains(err, directconnect.ErrCodeClientException, "Could not find Connection with ID") {
+		return nil, &resource.NotFoundError{
+			LastError:   err,
+			LastRequest: input,
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Handle any empty result.
+	if len(connections) == 0 {
+		return nil, &resource.NotFoundError{
+			Message:     "Empty result",
+			LastRequest: input,
+		}
+	}
+
+	if state := aws.StringValue(connections[0].ConnectionState); state == directconnect.ConnectionStateDeleted {
+		return nil, &resource.NotFoundError{
+			Message:     state,
+			LastRequest: input,
+		}
+	}
+
+	return connections[0], nil
+}
+
+// Connections returns the connections corresponding to the specified input.
+// Returns an empty slice if no connections are found.
+func Connections(conn *directconnect.DirectConnect, input *directconnect.DescribeConnectionsInput) ([]*directconnect.Connection, error) {
+	output, err := conn.DescribeConnections(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return []*directconnect.Connection{}, nil
+	}
+
+	return output.Connections, nil
+}
+
+// LagByID returns the locations corresponding to the specified LAG ID.
+// Returns NotFoundError if no LAG is found.
 func LagByID(conn *directconnect.DirectConnect, lagID string) (*directconnect.Lag, error) {
 	input := &directconnect.DescribeLagsInput{
 		LagId: aws.String(lagID),
