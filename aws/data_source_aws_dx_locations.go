@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -32,7 +31,7 @@ func dataSourceAwsDxLocationsRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing Direct Connect locations: %s", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 
 	locationCodes := []*string{}
 	for _, location := range resp.Locations {
