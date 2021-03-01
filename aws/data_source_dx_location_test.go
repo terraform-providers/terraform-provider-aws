@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsDxLocation_basic(t *testing.T) {
@@ -30,6 +30,6 @@ const testAccDataSourceDxLocationConfig_basic = `
 data "aws_dx_locations" "test" {}
 
 data "aws_dx_location" "test" {
-  location_code = "${data.aws_dx_locations.test.location_codes[0]}"
+  location_code = data.aws_dx_locations.test.location_codes[0]
 }
 `

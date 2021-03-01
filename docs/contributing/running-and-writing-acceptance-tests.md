@@ -38,6 +38,7 @@
         - [Hardcoded AMI IDs](#hardcoded-ami-ids)
         - [Hardcoded Availability Zones](#hardcoded-availability-zones)
         - [Hardcoded Database Versions](#hardcoded-database-versions)
+        - [Hardcoded Direct Connect Locations](#hardcoded-direct-connect-locations)
         - [Hardcoded Instance Types](#hardcoded-instance-types)
         - [Hardcoded Partition DNS Suffix](#hardcoded-partition-dns-suffix)
         - [Hardcoded Partition in ARN](#hardcoded-partition-in-arn)
@@ -1387,6 +1388,23 @@ resource "aws_db_instance" "bar" {
   instance_class       = data.aws_rds_orderable_db_instance.test.instance_class
   skip_final_snapshot  = true
   parameter_group_name = "default.${data.aws_rds_engine_version.default.parameter_group_family}"
+}
+```
+
+#### Hardcoded Direct Connect Locations
+
+- [ ] __Uses aws_dx_locations Data Source__: Hardcoded AWS Direct Connect locations, e.g. `EqSe2`, should be replaced with the [`aws_dx_locations` data source](https://www.terraform.io/docs/providers/aws/d/dx_locations.html).
+
+Here's an example using `data.aws_dx_locations.test.location_codes[0]`:
+
+```hcl
+data "aws_dx_locations" "test" {}
+
+resource "aws_dx_lag" "test" {
+  name                  = "Test LAG"
+  connections_bandwidth = "1Gbps"
+  location              = data.aws_dx_locations.test.location_codes[0]
+  force_destroy         = true
 }
 ```
 
