@@ -3,29 +3,76 @@ package finder
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// LocationByCode returns the locations corresponding to the specified location code.
+// LagByID returns the locations corresponding to the specified location code.
 // Returns NotFoundError if no location is found.
-func LocationByCode(conn *directconnect.DirectConnect, locationCode string) (*directconnect.Location, error) {
-	input := &directconnect.DescribeLocationsInput{}
+func LagByID(conn *directconnect.DirectConnect, lagID string) (*directconnect.Lag, error) {
+	input := &directconnect.DescribeLagsInput{
+		LagId: aws.String(lagID),
+	}
 
-	output, err := conn.DescribeLocations(input)
+	lags, err := Lags(conn, input)
+
+	if tfawserr.ErrMessageContains(err, directconnect.ErrCodeClientException, "Could not find Lag with ID") {
+		return nil, &resource.NotFoundError{
+			LastError:   err,
+			LastRequest: input,
+		}
+	}
 
 	if err != nil {
 		return nil, err
 	}
 
 	// Handle any empty result.
-	if output == nil || len(output.Locations) == 0 {
+	if len(lags) == 0 {
 		return nil, &resource.NotFoundError{
 			Message:     "Empty result",
 			LastRequest: input,
 		}
 	}
 
-	for _, location := range output.Locations {
+	if state := aws.StringValue(lags[0].LagState); state == directconnect.LagStateDeleted {
+		return nil, &resource.NotFoundError{
+			Message:     state,
+			LastRequest: input,
+		}
+	}
+
+	return lags[0], nil
+}
+
+// Lags returns the LAGs corresponding to the specified input.
+// Returns an empty slice if no LAGs are found.
+func Lags(conn *directconnect.DirectConnect, input *directconnect.DescribeLagsInput) ([]*directconnect.Lag, error) {
+	output, err := conn.DescribeLags(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return []*directconnect.Lag{}, nil
+	}
+
+	return output.Lags, nil
+}
+
+// LocationByCode returns the locations corresponding to the specified location code.
+// Returns NotFoundError if no location is found.
+func LocationByCode(conn *directconnect.DirectConnect, locationCode string) (*directconnect.Location, error) {
+	input := &directconnect.DescribeLocationsInput{}
+
+	locations, err := Locations(conn, input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, location := range locations {
 		if aws.StringValue(location.LocationCode) == locationCode {
 			return location, nil
 		}
