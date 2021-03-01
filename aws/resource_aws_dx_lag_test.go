@@ -227,7 +227,7 @@ func testAccCheckAwsDxLagDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAwsDxLagExists(name string, lag *directconnect.Lag) resource.TestCheckFunc {
+func testAccCheckAwsDxLagExists(name string, v *directconnect.Lag) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).dxconn
 
@@ -240,11 +240,13 @@ func testAccCheckAwsDxLagExists(name string, lag *directconnect.Lag) resource.Te
 			return fmt.Errorf("No ID is set")
 		}
 
-		_, err := finder.LagByID(conn, rs.Primary.ID)
+		lag, err := finder.LagByID(conn, rs.Primary.ID)
 
 		if err != nil {
 			return err
 		}
+
+		*v = *lag
 
 		return nil
 	}

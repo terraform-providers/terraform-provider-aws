@@ -206,7 +206,7 @@ func testAccCheckAwsDxConnectionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAwsDxConnectionExists(name string, connection *directconnect.Connection) resource.TestCheckFunc {
+func testAccCheckAwsDxConnectionExists(name string, v *directconnect.Connection) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).dxconn
 
@@ -219,11 +219,13 @@ func testAccCheckAwsDxConnectionExists(name string, connection *directconnect.Co
 			return fmt.Errorf("No ID is set")
 		}
 
-		_, err := finder.ConnectionByID(conn, rs.Primary.ID)
+		connection, err := finder.ConnectionByID(conn, rs.Primary.ID)
 
 		if err != nil {
 			return err
 		}
+
+		*v = *connection
 
 		return nil
 	}
