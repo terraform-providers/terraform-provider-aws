@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/directconnect/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func dataSourceAwsDxLocation() *schema.Resource {
@@ -41,31 +41,23 @@ func dataSourceAwsDxLocation() *schema.Resource {
 
 func dataSourceAwsDxLocationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
-
-	log.Printf("[DEBUG] Listing Direct Connect locations")
-	resp, err := conn.DescribeLocations(&directconnect.DescribeLocationsInput{})
-	if err != nil {
-		return fmt.Errorf("error listing Direct Connect locations: %w", err)
-	}
-
-	found := false
 	locationCode := d.Get("location_code").(string)
-	for _, location := range resp.Locations {
-		if aws.StringValue(location.LocationCode) == locationCode {
-			found = true
 
-			d.SetId(locationCode)
-			d.Set("available_port_speeds", aws.StringValueSlice(location.AvailablePortSpeeds))
-			d.Set("available_providers", aws.StringValueSlice(location.AvailableProviders))
-			d.Set("location_code", location.LocationCode)
-			d.Set("location_name", location.LocationName)
+	location, err := finder.LocationByCode(conn, locationCode)
 
-			break
-		}
+	if tfresource.NotFound(err) {
+		return fmt.Errorf("no Direct Connection location matched; change the search criteria and try again")
 	}
-	if !found {
-		return fmt.Errorf("no Direct Connect location matched")
+
+	if err != nil {
+		return fmt.Errorf("error reading Direct Connection location (%s): %w", locationCode, err)
 	}
+
+	d.SetId(locationCode)
+	d.Set("available_port_speeds", aws.StringValueSlice(location.AvailablePortSpeeds))
+	d.Set("available_providers", aws.StringValueSlice(location.AvailableProviders))
+	d.Set("location_code", location.LocationCode)
+	d.Set("location_name", location.LocationName)
 
 	return nil
 }

@@ -2,10 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/directconnect/finder"
 )
 
 func dataSourceAwsDxLocations() *schema.Resource {
@@ -25,22 +26,20 @@ func dataSourceAwsDxLocations() *schema.Resource {
 func dataSourceAwsDxLocationsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
 
-	log.Printf("[DEBUG] Listing Direct Connect locations")
-	resp, err := conn.DescribeLocations(&directconnect.DescribeLocationsInput{})
+	locations, err := finder.Locations(conn, &directconnect.DescribeLocationsInput{})
+
 	if err != nil {
-		return fmt.Errorf("error listing Direct Connect locations: %w", err)
+		return fmt.Errorf("error reading Direct Connect locations: %w", err)
+	}
+
+	var locationCodes []*string
+
+	for _, location := range locations {
+		locationCodes = append(locationCodes, location.LocationCode)
 	}
 
 	d.SetId(meta.(*AWSClient).region)
-
-	locationCodes := []*string{}
-	for _, location := range resp.Locations {
-		locationCodes = append(locationCodes, location.LocationCode)
-	}
-	err = d.Set("location_codes", flattenStringList(locationCodes))
-	if err != nil {
-		return fmt.Errorf("error setting location_codes: %w", err)
-	}
+	d.Set("location_codes", aws.StringValueSlice(locationCodes))
 
 	return nil
 }
