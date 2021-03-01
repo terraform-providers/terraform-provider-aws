@@ -30,6 +30,6 @@ const testAccDataSourceDxLocationConfig_basic = `
 data "aws_dx_locations" "test" {}
 
 data "aws_dx_location" "test" {
-  location_code = data.aws_dx_locations.test.location_codes[0]
+  location_code = tolist(data.aws_dx_locations.test.location_codes)[0]
 }
 `

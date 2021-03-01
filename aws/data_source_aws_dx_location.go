@@ -15,21 +15,22 @@ func dataSourceAwsDxLocation() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"available_port_speeds": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
+
 			"available_providers": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
+
 			"location_code": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+
 			"location_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -44,7 +45,7 @@ func dataSourceAwsDxLocationRead(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[DEBUG] Listing Direct Connect locations")
 	resp, err := conn.DescribeLocations(&directconnect.DescribeLocationsInput{})
 	if err != nil {
-		return fmt.Errorf("error listing Direct Connect locations: %s", err)
+		return fmt.Errorf("error listing Direct Connect locations: %w", err)
 	}
 
 	found := false
@@ -54,14 +55,8 @@ func dataSourceAwsDxLocationRead(d *schema.ResourceData, meta interface{}) error
 			found = true
 
 			d.SetId(locationCode)
-			err = d.Set("available_port_speeds", flattenStringSet(location.AvailablePortSpeeds))
-			if err != nil {
-				return fmt.Errorf("error setting available_port_speeds: %s", err)
-			}
-			err = d.Set("available_providers", flattenStringSet(location.AvailableProviders))
-			if err != nil {
-				return fmt.Errorf("error setting available_providers: %s", err)
-			}
+			d.Set("available_port_speeds", aws.StringValueSlice(location.AvailablePortSpeeds))
+			d.Set("available_providers", aws.StringValueSlice(location.AvailableProviders))
 			d.Set("location_code", location.LocationCode)
 			d.Set("location_name", location.LocationName)
 

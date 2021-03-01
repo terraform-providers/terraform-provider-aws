@@ -246,8 +246,8 @@ data "aws_dx_locations" "test" {}
 resource "aws_dx_lag" "test" {
   name                  = %[1]q
   connections_bandwidth = "1Gbps"
-  location              = data.aws_dx_locations.test.location_codes[0]
-  force_destroy         = true
+  location              = tolist(data.aws_dx_locations.test.location_codes)[0]
+  force_destroy         = false
 }
 `, rName)
 }
@@ -259,7 +259,7 @@ data "aws_dx_locations" "test" {}
 resource "aws_dx_lag" "test" {
   name                  = %[1]q
   connections_bandwidth = "1Gbps"
-  location              = data.aws_dx_locations.test.location_codes[0]
+  location              = tolist(data.aws_dx_locations.test.location_codes)[0]
   force_destroy         = true
 
   tags = {
@@ -278,7 +278,7 @@ data "aws_dx_locations" "test" {}
 resource "aws_dx_lag" "test" {
   name                  = %[1]q
   connections_bandwidth = "1Gbps"
-  location              = data.aws_dx_locations.test.location_codes[0]
+  location              = tolist(data.aws_dx_locations.test.location_codes)[0]
   force_destroy         = true
 
   tags = {

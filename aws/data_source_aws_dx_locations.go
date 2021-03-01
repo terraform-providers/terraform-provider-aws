@@ -14,7 +14,7 @@ func dataSourceAwsDxLocations() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"location_codes": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -28,7 +28,7 @@ func dataSourceAwsDxLocationsRead(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[DEBUG] Listing Direct Connect locations")
 	resp, err := conn.DescribeLocations(&directconnect.DescribeLocationsInput{})
 	if err != nil {
-		return fmt.Errorf("error listing Direct Connect locations: %s", err)
+		return fmt.Errorf("error listing Direct Connect locations: %w", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)
@@ -39,7 +39,7 @@ func dataSourceAwsDxLocationsRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	err = d.Set("location_codes", flattenStringList(locationCodes))
 	if err != nil {
-		return fmt.Errorf("error setting location_codes: %s", err)
+		return fmt.Errorf("error setting location_codes: %w", err)
 	}
 
 	return nil

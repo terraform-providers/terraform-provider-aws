@@ -228,7 +228,7 @@ data "aws_dx_locations" "test" {}
 resource "aws_dx_connection" "test" {
   name      = %[1]q
   bandwidth = "1Gbps"
-  location  = data.aws_dx_locations.test.location_codes[0]
+  location  = tolist(data.aws_dx_locations.test.location_codes)[0]
 }
 `, rName)
 }
@@ -240,7 +240,7 @@ data "aws_dx_locations" "test" {}
 resource "aws_dx_connection" "test" {
   name      = %[1]q
   bandwidth = "1Gbps"
-  location  = data.aws_dx_locations.test.location_codes[0]
+  location  = tolist(data.aws_dx_locations.test.location_codes)[0]
 
   tags = {
     Name = %[1]q
@@ -258,7 +258,7 @@ data "aws_dx_locations" "test" {}
 resource "aws_dx_connection" "test" {
   name      = %[1]q
   bandwidth = "1Gbps"
-  location  = data.aws_dx_locations.test.location_codes[0]
+  location  = tolist(data.aws_dx_locations.test.location_codes)[0]
 
   tags = {
     Name = %[1]q
