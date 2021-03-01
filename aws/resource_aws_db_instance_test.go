@@ -7645,8 +7645,8 @@ resource "aws_ec2_local_gateway_route_table_vpc_association" "test" {
 }
 
 data "aws_rds_engine_version" "test" {
-  engine = "mysql"
-version = "8.0.17"
+  engine  = "mysql"
+  version = "8.0.17"
 }
 
 data "aws_rds_orderable_db_instance" "test" {
@@ -7656,23 +7656,23 @@ data "aws_rds_orderable_db_instance" "test" {
 }
 
 resource "aws_db_instance" "test" {
-  allocated_storage       = 10
-  backup_retention_period = 1
-  engine                  = data.aws_rds_orderable_db_instance.test.engine
-  engine_version          = data.aws_rds_orderable_db_instance.test.engine_version
-  instance_class          = data.aws_rds_orderable_db_instance.test.instance_class
-  name                    = "baz"
-  parameter_group_name    = "default.${data.aws_rds_engine_version.test.parameter_group_family}"
-  password                = "barbarbarbar"
-  skip_final_snapshot     = true
-  username                = "foo"
-  db_subnet_group_name = aws_db_subnet_group.foo.name
-storage_encrypted       = true
+  allocated_storage         = 20
+  backup_retention_period   = 1
+  engine                    = data.aws_rds_orderable_db_instance.test.engine
+  engine_version            = data.aws_rds_orderable_db_instance.test.engine_version
+  instance_class            = data.aws_rds_orderable_db_instance.test.instance_class
+  name                      = "baz"
+  parameter_group_name      = "default.${data.aws_rds_engine_version.test.parameter_group_family}"
+  password                  = "barbarbarbar"
+  skip_final_snapshot       = true
+  username                  = "foo"
+  db_subnet_group_name      = aws_db_subnet_group.foo.name
+  storage_encrypted         = true
   customer_owned_ip_enabled = %[2]t
 
   timeouts {
     create = "180m"
-	update = "180m"
+    update = "180m"
   }
 }
 `, rInt, coipEnabled)
@@ -7689,12 +7689,12 @@ resource "aws_db_instance" "restore" {
     source_db_instance_identifier = aws_db_instance.test.identifier
     use_latest_restorable_time    = true
   }
-  skip_final_snapshot = true
+  skip_final_snapshot       = true
   customer_owned_ip_enabled = %[2]t
 
   timeouts {
     create = "180m"
-	update = "180m"
+    update = "180m"
   }
 }
 `, acctest.RandInt(), targetCoipEnabled))
@@ -7709,16 +7709,16 @@ resource "aws_db_snapshot" "test" {
 
 resource "aws_db_instance" "target" {
   customer_owned_ip_enabled = %[2]t
-  db_subnet_group_name = aws_db_subnet_group.foo.name
-storage_encrypted       = true
-  identifier                          = %[1]q
-  instance_class                      = aws_db_instance.test.instance_class
-  snapshot_identifier                 = aws_db_snapshot.test.id
-  skip_final_snapshot                 = true
+  db_subnet_group_name      = aws_db_subnet_group.foo.name
+  storage_encrypted         = true
+  identifier                = %[1]q
+  instance_class            = aws_db_instance.test.instance_class
+  snapshot_identifier       = aws_db_snapshot.test.id
+  skip_final_snapshot       = true
 
   timeouts {
     create = "180m"
-	update = "180m"
+    update = "180m"
   }
 }
 `, rName, targetCoipEnabled))
