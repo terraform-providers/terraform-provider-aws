@@ -2,7 +2,6 @@
 subcategory: "Direct Connect"
 layout: "aws"
 page_title: "AWS: aws_dx_location"
-sidebar_current: "docs-aws-datasource-dx-location"
 description: |-
   Retrieve information about a specific AWS Direct Connect location in the current AWS Region.
 ---
