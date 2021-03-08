@@ -5,7 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 // CarrierGatewayByID returns the carrier gateway corresponding to the specified identifier.
@@ -95,18 +98,46 @@ func InstanceByID(conn *ec2.EC2, id string) (*ec2.Instance, error) {
 	return output.Reservations[0].Instances[0], nil
 }
 
-// SecurityGroupByID looks up a security group by ID. When not found, returns nil and potentially an API error.
+// SecurityGroupByID looks up a security group by ID. Returns a resource.NotFoundError if not found.
 func SecurityGroupByID(conn *ec2.EC2, id string) (*ec2.SecurityGroup, error) {
-	req := &ec2.DescribeSecurityGroupsInput{
+	input := &ec2.DescribeSecurityGroupsInput{
 		GroupIds: aws.StringSlice([]string{id}),
 	}
-	result, err := conn.DescribeSecurityGroups(req)
+	return SecurityGroup(conn, input)
+}
+
+// SecurityGroupByNameAndVpcID looks up a security group by name and VPC ID. Returns a resource.NotFoundError if not found.
+func SecurityGroupByNameAndVpcID(conn *ec2.EC2, name, vpcID string) (*ec2.SecurityGroup, error) {
+	input := &ec2.DescribeSecurityGroupsInput{
+		Filters: tfec2.BuildAttributeFilterList(
+			map[string]string{
+				"group-name": name,
+				"vpc-id":     vpcID,
+			},
+		),
+	}
+	return SecurityGroup(conn, input)
+}
+
+func SecurityGroup(conn *ec2.EC2, input *ec2.DescribeSecurityGroupsInput) (*ec2.SecurityGroup, error) {
+	result, err := conn.DescribeSecurityGroups(input)
+	if tfawserr.ErrCodeEquals(err, tfec2.InvalidSecurityGroupIDNotFound) ||
+		tfawserr.ErrCodeEquals(err, tfec2.InvalidGroupNotFound) {
+		return nil, &resource.NotFoundError{
+			LastError:   err,
+			LastRequest: input,
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	if result == nil || len(result.SecurityGroups) == 0 || result.SecurityGroups[0] == nil {
-		return nil, nil
+		return nil, tfresource.NewEmptyResultError(input)
+	}
+
+	if len(result.SecurityGroups) > 1 {
+		return nil, tfresource.NewTooManyResultsError(len(result.SecurityGroups), input)
 	}
 
 	return result.SecurityGroups[0], nil

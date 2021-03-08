@@ -216,6 +216,8 @@ rules:
               ...
               errors.As($ERR, &$CAST)
           - pattern-not-inside: func NotFound(err error) bool { ... }
+          - pattern-not-inside: func TestEmptyResultErrorAsNotFoundError(t *testing.T) { ... }
+          - pattern-not-inside: func TestTooManyResultsErrorAsNotFoundError(t *testing.T) { ... }
         - patterns:
           - pattern: |
               $X, $Y := $ERR.(*resource.NotFoundError)

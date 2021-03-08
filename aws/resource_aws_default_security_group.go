@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const DefaultSecurityGroupName = "default"
@@ -261,13 +262,13 @@ func resourceAwsDefaultSecurityGroupRead(d *schema.ResourceData, meta interface{
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	group, err := finder.SecurityGroupByID(conn, d.Id())
-	if err != nil {
-		return err
-	}
-	if group == nil {
+	if tfresource.NotFound(err) {
 		log.Printf("[WARN] Security group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
+	}
+	if err != nil {
+		return err
 	}
 
 	remoteIngressRules := resourceAwsSecurityGroupIPPermGather(d.Id(), group.IpPermissions, group.OwnerId)
@@ -314,13 +315,13 @@ func resourceAwsDefaultSecurityGroupUpdate(d *schema.ResourceData, meta interfac
 	conn := meta.(*AWSClient).ec2conn
 
 	group, err := finder.SecurityGroupByID(conn, d.Id())
-	if err != nil {
-		return err
-	}
-	if group == nil {
+	if tfresource.NotFound(err) {
 		log.Printf("[WARN] Security group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
+	}
+	if err != nil {
+		return err
 	}
 
 	err = resourceAwsSecurityGroupUpdateRules(d, "ingress", meta, group)

@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func resourceAwsElb() *schema.Resource {
@@ -405,14 +406,12 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 		d.Set("source_security_group", group)
 
 		// Manually look up the ELB Security Group ID, since it's not provided
-		var elbVpc string
 		if lb.VPCId != nil {
-			elbVpc = *lb.VPCId
-			sgId, err := sourceSGIdByName(ec2conn, *lb.SourceSecurityGroup.GroupName, elbVpc)
+			sg, err := finder.SecurityGroupByNameAndVpcID(ec2conn, aws.StringValue(lb.SourceSecurityGroup.GroupName), aws.StringValue(lb.VPCId))
 			if err != nil {
-				return fmt.Errorf("Error looking up ELB Security Group ID: %s", err)
+				return fmt.Errorf("Error looking up ELB Security Group ID: %w", err)
 			} else {
-				d.Set("source_security_group_id", sgId)
+				d.Set("source_security_group_id", aws.StringValue(sg.GroupId))
 			}
 		}
 	}
@@ -819,54 +818,6 @@ func resourceAwsElbListenerHash(v interface{}) int {
 func isLoadBalancerNotFound(err error) bool {
 	elberr, ok := err.(awserr.Error)
 	return ok && elberr.Code() == elb.ErrCodeAccessPointNotFoundException
-}
-
-func sourceSGIdByName(conn *ec2.EC2, sg, vpcId string) (string, error) {
-	var filters []*ec2.Filter
-	var sgFilterName, sgFilterVPCID *ec2.Filter
-	sgFilterName = &ec2.Filter{
-		Name:   aws.String("group-name"),
-		Values: []*string{aws.String(sg)},
-	}
-
-	if vpcId != "" {
-		sgFilterVPCID = &ec2.Filter{
-			Name:   aws.String("vpc-id"),
-			Values: []*string{aws.String(vpcId)},
-		}
-	}
-
-	filters = append(filters, sgFilterName)
-
-	if sgFilterVPCID != nil {
-		filters = append(filters, sgFilterVPCID)
-	}
-
-	req := &ec2.DescribeSecurityGroupsInput{
-		Filters: filters,
-	}
-	resp, err := conn.DescribeSecurityGroups(req)
-	if err != nil {
-		if ec2err, ok := err.(awserr.Error); ok {
-			if ec2err.Code() == "InvalidSecurityGroupID.NotFound" ||
-				ec2err.Code() == "InvalidGroup.NotFound" {
-				resp = nil
-				err = nil
-			}
-		}
-
-		if err != nil {
-			log.Printf("Error on ELB SG look up: %s", err)
-			return "", err
-		}
-	}
-
-	if resp == nil || len(resp.SecurityGroups) == 0 {
-		return "", fmt.Errorf("No security groups found for name %s and vpc id %s", sg, vpcId)
-	}
-
-	group := resp.SecurityGroups[0]
-	return *group.GroupId, nil
 }
 
 func validateAccessLogsInterval(v interface{}, k string) (ws []string, errors []error) {
