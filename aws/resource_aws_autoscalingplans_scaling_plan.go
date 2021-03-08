@@ -521,6 +521,14 @@ func expandAutoScalingPlansScalingInstructions(vScalingInstructions *schema.Set)
 
 		scalingInstruction := &autoscalingplans.ScalingInstruction{}
 
+		if v, ok := mScalingInstruction["service_namespace"].(string); ok && v != "" {
+			scalingInstruction.ServiceNamespace = aws.String(v)
+		} else {
+			// https://github.com/hashicorp/terraform-provider-aws/issues/17929
+			// https://github.com/hashicorp/terraform-plugin-sdk/issues/588
+			continue
+		}
+
 		if v, ok := mScalingInstruction["disable_dynamic_scaling"].(bool); ok {
 			scalingInstruction.DisableDynamicScaling = aws.Bool(v)
 		}
@@ -550,9 +558,6 @@ func expandAutoScalingPlansScalingInstructions(vScalingInstructions *schema.Set)
 		}
 		if v, ok := mScalingInstruction["scheduled_action_buffer_time"].(int); ok && v > 0 {
 			scalingInstruction.ScheduledActionBufferTime = aws.Int64(int64(v))
-		}
-		if v, ok := mScalingInstruction["service_namespace"].(string); ok && v != "" {
-			scalingInstruction.ServiceNamespace = aws.String(v)
 		}
 
 		if vCustomizedLoadMetricSpecification, ok := mScalingInstruction["customized_load_metric_specification"].([]interface{}); ok && len(vCustomizedLoadMetricSpecification) > 0 && vCustomizedLoadMetricSpecification[0] != nil {
