@@ -1129,6 +1129,31 @@ func TestAccAWSDBInstance_ReplicateSourceDb_CACertificateIdentifier(t *testing.T
 	})
 }
 
+func TestAccAWSDBInstance_ReplicateSourceDb_ReplicaMode(t *testing.T) {
+	var dbInstance, sourceDbInstance rds.DBInstance
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	sourceResourceName := "aws_db_instance.source"
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_ReplicateSourceDb_ReplicaMode(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(sourceResourceName, &sourceDbInstance),
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					testAccCheckAWSDBInstanceReplicaAttributes(&sourceDbInstance, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "replica_mode", "mounted"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDBInstance_S3Import(t *testing.T) {
 	var snap rds.DBInstance
 	bucket := acctest.RandomWithPrefix("tf-acc-test")
@@ -6044,6 +6069,38 @@ resource "aws_db_instance" "test" {
   skip_final_snapshot = true
 }
 `, rName))
+}
+
+func testAccAWSDBInstanceConfig_ReplicateSourceDb_ReplicaMode(rName string) string {
+	return fmt.Sprintf(`
+data "aws_rds_orderable_db_instance" "test" {
+  engine         = "oracle-ee"
+  engine_version = "12.1.0.2.v22"
+  license_model  = "bring-your-own-license"
+  storage_type   = "standard"
+
+  preferred_instance_classes = ["db.m5.large", "db.m4.large", "db.r4.large"]
+}
+
+resource "aws_db_instance" "source" {
+  allocated_storage       = 5
+  backup_retention_period = 1
+  engine                  = data.aws_rds_orderable_db_instance.test.engine
+  identifier              = "%[1]s-source"
+  instance_class          = data.aws_rds_orderable_db_instance.test.instance_class
+  password                = "avoid-plaintext-passwords"
+  username                = "tfacctest"
+  skip_final_snapshot     = true
+}
+
+resource "aws_db_instance" "test" {
+  identifier          = %[1]q
+  instance_class      = aws_db_instance.source.instance_class
+  replica_mode        = "mounted"
+  replicate_source_db = aws_db_instance.source.id
+  skip_final_snapshot = true
+}
+`, rName)
 }
 
 func testAccAWSDBInstanceConfig_SnapshotIdentifier(rName string) string {

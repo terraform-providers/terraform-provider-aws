@@ -164,6 +164,8 @@ logs, and it will be stored in the state file.
 * `port` - (Optional) The port on which the DB accepts connections.
 * `publicly_accessible` - (Optional) Bool to control if instance is publicly
 accessible. Default is `false`.
+* `replica_mode` - (Optional) Specifies whether the replica is in either `mounted` or `open-read-only` mode. This attribute
+is only supported by Oracle instances. Oracle replicas operate in `open-read-only` mode unless otherwise specified. See [Working with Oracle Read Replicas](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html) for more information.
 * `replicate_source_db` - (Optional) Specifies that this resource is a Replicate
 database, and to use this value as the source database. This correlates to the
 `identifier` of another Amazon RDS Database to replicate (if replicating within
