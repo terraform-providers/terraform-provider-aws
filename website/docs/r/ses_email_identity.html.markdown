@@ -10,6 +10,13 @@ description: |-
 
 Provides an SES email identity resource
 
+## Example Usage
+
+```hcl
+resource "aws_ses_email_identity" "example" {
+  email = "email@example.com"
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -22,13 +29,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the email identity.
 
-## Example Usage
-
-```hcl
-resource "aws_ses_email_identity" "example" {
-  email = "email@example.com"
-}
-```
 
 ## Import
 

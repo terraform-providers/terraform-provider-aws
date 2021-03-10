@@ -10,6 +10,22 @@ description: |-
 
 Provides an SES domain identity resource
 
+## Example Usage
+
+```hcl
+resource "aws_ses_domain_identity" "example" {
+  domain = "example.com"
+}
+
+resource "aws_route53_record" "example_amazonses_verification_record" {
+  zone_id = "ABCDEFGHIJ123"
+  name    = "_amazonses.example.com"
+  type    = "TXT"
+  ttl     = "600"
+  records = [aws_ses_domain_identity.example.verification_token]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -29,22 +45,6 @@ In addition to all arguments above, the following attributes are exported:
   when the domain is hosted in Route 53 and managed by Terraform.  Find out
   more about verifying domains in Amazon SES in the [AWS SES
   docs](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-domains.html).
-
-## Example Usage
-
-```hcl
-resource "aws_ses_domain_identity" "example" {
-  domain = "example.com"
-}
-
-resource "aws_route53_record" "example_amazonses_verification_record" {
-  zone_id = "ABCDEFGHIJ123"
-  name    = "_amazonses.example.com"
-  type    = "TXT"
-  ttl     = "600"
-  records = [aws_ses_domain_identity.example.verification_token]
-}
-```
 
 ## Import
 
