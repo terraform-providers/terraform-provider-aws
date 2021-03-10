@@ -2323,26 +2323,23 @@ func testAccCheckAWSSecurityGroupAttributesNegOneProtocol(group *ec2.SecurityGro
 	}
 }
 
-// testAccAWSSecurityGroupRulesPerGroupLimitFromEnv returns security group rules per group limit
+// testAccAWSSecurityGroupRulesPerGroupLimit returns security group rules per group limit
 // Currently this information is not available from any EC2 or Trusted Advisor API
-// Prefers the EC2_SECURITY_GROUP_RULES_PER_GROUP_LIMIT environment variable or defaults to 50
-func testAccAWSSecurityGroupRulesPerGroupLimitFromEnv() int {
-	const defaultLimit = 50
-	const envVar = "EC2_SECURITY_GROUP_RULES_PER_GROUP_LIMIT"
-
-	envLimitStr := os.Getenv(envVar)
-	if envLimitStr == "" {
-		return defaultLimit
+// but is available from the Service Quotas API; if still not available, defaults to 60
+func testAccAWSSecurityGroupRulesPerGroupLimit(ruleLimit *int) {
+	const defaultLimit = 60
+	conn := testAccProvider.Meta().(*AWSClient).servicequotasconn
+	input := &servicequotas.GetServiceQuotaInput{
+		QuotaCode:   aws.String("L-0EA8095F"),
+		ServiceCode: aws.String("vpc"),
 	}
-	envLimitInt, err := strconv.Atoi(envLimitStr)
+	output, err := conn.GetServiceQuota(input)
 	if err != nil {
-		log.Printf("[WARN] Error converting %q environment variable value %q to integer: %s", envVar, envLimitStr, err)
-		return defaultLimit
+		log.Printf("[DEBUG] Setting Security Group Rules per Group Limit to default (%d): %s", defaultLimit, err)
+		*ruleLimit = defaultLimit
+	} else {
+		*ruleLimit = int(aws.Float64Value(output.Quota.Value))
 	}
-	if envLimitInt <= 50 {
-		return defaultLimit
-	}
-	return envLimitInt
 }
 
 func testAccCheckAWSSecurityGroupSGandCidrAttributes(group *ec2.SecurityGroup) resource.TestCheckFunc {
@@ -2550,14 +2547,14 @@ func TestAccAWSSecurityGroup_failWithDiffMismatch(t *testing.T) {
 }
 
 func TestAccAWSSecurityGroup_ruleLimitExceededAppend(t *testing.T) {
-	ruleLimit := testAccAWSSecurityGroupRulesPerGroupLimitFromEnv()
+	var ruleLimit int
 
 	var group ec2.SecurityGroup
 
 	resourceName := "aws_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAWSSecurityGroupRulesPerGroupLimit(&ruleLimit) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -2596,14 +2593,14 @@ func TestAccAWSSecurityGroup_ruleLimitExceededAppend(t *testing.T) {
 }
 
 func TestAccAWSSecurityGroup_ruleLimitCidrBlockExceededAppend(t *testing.T) {
-	ruleLimit := testAccAWSSecurityGroupRulesPerGroupLimitFromEnv()
+	var ruleLimit int
 
 	var group ec2.SecurityGroup
 
 	resourceName := "aws_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAWSSecurityGroupRulesPerGroupLimit(&ruleLimit) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -2664,14 +2661,13 @@ func TestAccAWSSecurityGroup_ruleLimitCidrBlockExceededAppend(t *testing.T) {
 }
 
 func TestAccAWSSecurityGroup_ruleLimitExceededPrepend(t *testing.T) {
-	ruleLimit := testAccAWSSecurityGroupRulesPerGroupLimitFromEnv()
-
+	var ruleLimit int
 	var group ec2.SecurityGroup
 
 	resourceName := "aws_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAWSSecurityGroupRulesPerGroupLimit(&ruleLimit) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -2708,14 +2704,13 @@ func TestAccAWSSecurityGroup_ruleLimitExceededPrepend(t *testing.T) {
 }
 
 func TestAccAWSSecurityGroup_ruleLimitExceededAllNew(t *testing.T) {
-	ruleLimit := testAccAWSSecurityGroupRulesPerGroupLimitFromEnv()
-
+	var ruleLimit int
 	var group ec2.SecurityGroup
 
 	resourceName := "aws_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAWSSecurityGroupRulesPerGroupLimit(&ruleLimit) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityGroupDestroy,
 		Steps: []resource.TestStep{
