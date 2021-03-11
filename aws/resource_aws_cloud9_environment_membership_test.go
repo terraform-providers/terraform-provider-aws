@@ -20,7 +20,7 @@ func TestAccAWSCloud9EnvironmentMembership_basic(t *testing.T) {
 	envResourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentMembershipDestroy,
 		Steps: []resource.TestStep{
@@ -58,7 +58,7 @@ func TestAccAWSCloud9EnvironmentMembership_disappears(t *testing.T) {
 	resourceName := "aws_cloud9_environment_membership.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentMembershipDestroy,
 		Steps: []resource.TestStep{
