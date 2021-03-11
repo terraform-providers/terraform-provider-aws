@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/aws_iam_user_login_profil: Make `pgp_key` optional
-```
