@@ -8,13 +8,13 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	elasticsearch "github.com/aws/aws-sdk-go/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticsearch/finder"
 )
 
 func init() {
@@ -67,12 +67,7 @@ func testSweepElasticSearchDomains(region string) error {
 		// Elasticsearch Domains have regularly gotten stuck in a "being deleted" state
 		// e.g. Deleted and Processing are both true for days in the API
 		// Filter out domains that are Deleted already.
-
-		input := &elasticsearch.DescribeElasticsearchDomainInput{
-			DomainName: domainInfo.DomainName,
-		}
-
-		output, err := conn.DescribeElasticsearchDomain(input)
+		output, err := finder.DomainByName(conn, name)
 
 		if err != nil {
 			sweeperErr := fmt.Errorf("error describing Elasticsearch Domain (%s): %w", name, err)
@@ -81,7 +76,7 @@ func testSweepElasticSearchDomains(region string) error {
 			continue
 		}
 
-		if output != nil && output.DomainStatus != nil && aws.BoolValue(output.DomainStatus.Deleted) {
+		if output != nil && aws.BoolValue(output.Deleted) {
 			log.Printf("[INFO] Skipping Elasticsearch Domain (%s) with deleted status", name)
 			continue
 		}
@@ -122,9 +117,13 @@ func TestAccAWSElasticSearchDomain_basic(t *testing.T) {
 				Config: testAccESDomainConfig(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckESDomainExists(resourceName, &domain),
-					resource.TestCheckResourceAttr(
-						resourceName, "elasticsearch_version", "1.5"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name", resourceId),
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch_version", "1.5"),
 					resource.TestMatchResourceAttr(resourceName, "kibana_endpoint", regexp.MustCompile(`.*es\..*/_plugin/kibana/`)),
+					resource.TestCheckResourceAttr(resourceName, "access_policies", ""),
+					resource.TestCheckResourceAttr(resourceName, "cognito_options.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_options.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -1362,16 +1361,13 @@ func testAccCheckESDomainExists(n string, domain *elasticsearch.ElasticsearchDom
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).esconn
-		opts := &elasticsearch.DescribeElasticsearchDomainInput{
-			DomainName: aws.String(rs.Primary.Attributes["domain_name"]),
-		}
 
-		resp, err := conn.DescribeElasticsearchDomain(opts)
+		resp, err := finder.DomainByName(conn, rs.Primary.Attributes["domain_name"])
 		if err != nil {
 			return fmt.Errorf("Error describing domain: %s", err.Error())
 		}
 
-		*domain = *resp.DomainStatus
+		*domain = *resp
 
 		return nil
 	}
@@ -1409,14 +1405,10 @@ func testAccCheckESDomainDestroy(s *terraform.State) error {
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).esconn
-		opts := &elasticsearch.DescribeElasticsearchDomainInput{
-			DomainName: aws.String(rs.Primary.Attributes["domain_name"]),
-		}
-
-		_, err := conn.DescribeElasticsearchDomain(opts)
+		_, err := finder.DomainByName(conn, rs.Primary.Attributes["domain_name"])
 		// Verify the error is what we want
 		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceNotFoundException" {
+			if isAWSErr(err, elasticsearch.ErrCodeResourceNotFoundException, "") {
 				continue
 			}
 			return err
