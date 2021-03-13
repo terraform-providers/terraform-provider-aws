@@ -1744,7 +1744,7 @@ resource "aws_elasticsearch_domain" "test" {
 `, randInt)
 }
 
-func testAccESDomainConfigWithPolicy(randESId int, randRoleId int) string {
+func testAccESDomainConfigWithPolicy(randESId, randRoleId int) string {
 	return fmt.Sprintf(`
 data "aws_partition" "current" {
 }
