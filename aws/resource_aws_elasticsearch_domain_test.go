@@ -120,8 +120,6 @@ func TestAccAWSElasticSearchDomain_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "domain_name", resourceId),
 					resource.TestCheckResourceAttr(resourceName, "elasticsearch_version", "1.5"),
 					resource.TestMatchResourceAttr(resourceName, "kibana_endpoint", regexp.MustCompile(`.*es\..*/_plugin/kibana/`)),
-					resource.TestCheckResourceAttr(resourceName, "access_policies", ""),
-					resource.TestCheckResourceAttr(resourceName, "cognito_options.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_options.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),

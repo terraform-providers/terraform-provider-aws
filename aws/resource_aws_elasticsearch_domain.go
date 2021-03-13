@@ -446,18 +446,17 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
+	domainName := d.Get("domain_name").(string)
 	// The API doesn't check for duplicate names
 	// so w/out this check Create would act as upsert
 	// and might cause duplicate domain to appear in state
-	resp, err := conn.DescribeElasticsearchDomain(&elasticsearch.DescribeElasticsearchDomainInput{
-		DomainName: aws.String(d.Get("domain_name").(string)),
-	})
+	resp, err := finder.DomainByName(conn, domainName)
 	if err == nil {
-		return fmt.Errorf("ElasticSearch domain %s already exists", aws.StringValue(resp.DomainStatus.DomainName))
+		return fmt.Errorf("ElasticSearch domain %s already exists", aws.StringValue(resp.DomainName))
 	}
 
 	input := elasticsearch.CreateElasticsearchDomainInput{
-		DomainName:           aws.String(d.Get("domain_name").(string)),
+		DomainName:           aws.String(domainName),
 		ElasticsearchVersion: aws.String(d.Get("elasticsearch_version").(string)),
 		TagList:              tags.ElasticsearchserviceTags(),
 	}
@@ -612,7 +611,7 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 	d.SetId(aws.StringValue(out.DomainStatus.ARN))
 
 	log.Printf("[DEBUG] Waiting for ElasticSearch domain %q to be created", d.Id())
-	err = waitForElasticSearchDomainCreation(conn, d.Get("domain_name").(string), d.Id())
+	err = waitForElasticSearchDomainCreation(conn, domainName, d.Id())
 	if err != nil {
 		return err
 	}
