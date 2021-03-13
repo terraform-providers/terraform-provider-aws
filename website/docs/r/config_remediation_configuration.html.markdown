@@ -45,6 +45,17 @@ resource "aws_config_remediation_configuration" "this" {
     name         = "SSEAlgorithm"
     static_value = "AES256"
   }
+
+  automatic = true
+  maximum_automatic_attempts = 10
+  retry_attempt_seconds = 600
+
+  execution_controls {
+    ssm_controls {
+      concurrent_execution_rate_percentage = 25
+      error_percentage = 20
+    }
+  }
 }
 ```
 
@@ -59,6 +70,10 @@ The following arguments are supported:
 * `target_version` - (Optional) Version of the target. For example, version of the SSM document
 * `parameter` - (Optional) Can be specified multiple times for each
    parameter. Each parameter block supports fields documented below.
+* `automatic` - (Optional) The remediation is triggered automatically if `true`
+* `maximum_automatic_attempts` - (Optional) The maximum number of failed attempts for auto-remediation. If you do not select a number, the default is 5.
+* `retry_attempt_seconds` - (Optional) Maximum time in seconds that AWS Config runs auto-remediation. If you do not select a number, the default is 60 seconds.
+* `execution_controls` - (Optional) This object is described below.
 
 The `parameter` block supports:
 
@@ -68,6 +83,21 @@ You must select either a dynamic value or a static value.
 * `name` - (Required) The name of the attribute.
 * `resource_value` - (Optional) The value is dynamic and changes at run-time.
 * `static_value` - (Optional) The value is static and does not change at run-time.
+
+The `execution_controls` block supports:
+
+The value is either a dynamic (resource) value or a static value.
+You must select either a dynamic value or a static value.
+
+* `ssm_controls` - (Required) This object is described below.
+
+The `ssm_controls` block supports:
+
+The value is either a dynamic (resource) value or a static value.
+You must select either a dynamic value or a static value.
+
+* `concurrent_execution_rate_percentage` - (Optional) The maximum percentage of remediation actions allowed to run in parallel on the non-compliant resources for that specific rule.  The default value is 10%.
+* `error_percentage` - (Optional) The percentage of errors that are allowed before SSM stops running automations on non-compliant resources for that specific rule.  The default is 50%.
 
 ## Import
 
