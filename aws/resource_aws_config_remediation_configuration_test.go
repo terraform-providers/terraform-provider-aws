@@ -259,13 +259,13 @@ resource "aws_config_remediation_configuration" "test" {
     name         = "SSEAlgorithm"
     static_value = "%[2]s"
   }
-  automatic = %[8]s
+  automatic                  = %[8]s
   maximum_automatic_attempts = %[4]d
-  retry_attempt_seconds = %[5]d
+  retry_attempt_seconds      = %[5]d
   execution_controls {
     ssm_controls {
       concurrent_execution_rate_percentage = %[6]d
-      error_percentage = %[7]d
+      error_percentage                     = %[7]d
     }
   }
 }
