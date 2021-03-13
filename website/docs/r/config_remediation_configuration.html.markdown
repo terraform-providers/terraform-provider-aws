@@ -86,15 +86,11 @@ You must select either a dynamic value or a static value.
 
 The `execution_controls` block supports:
 
-The value is either a dynamic (resource) value or a static value.
-You must select either a dynamic value or a static value.
-
 * `ssm_controls` - (Required) This object is described below.
 
 The `ssm_controls` block supports:
 
-The value is either a dynamic (resource) value or a static value.
-You must select either a dynamic value or a static value.
+One or both of these values are required.
 
 * `concurrent_execution_rate_percentage` - (Optional) The maximum percentage of remediation actions allowed to run in parallel on the non-compliant resources for that specific rule.  The default value is 10%.
 * `error_percentage` - (Optional) The percentage of errors that are allowed before SSM stops running automations on non-compliant resources for that specific rule.  The default is 50%.
