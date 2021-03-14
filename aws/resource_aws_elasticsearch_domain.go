@@ -1173,20 +1173,20 @@ func flattenElasticsearchZoneAwarenessConfig(zoneAwarenessConfig *elasticsearch.
 }
 
 func flattenElasticsearchLogPublishingOption(lpo map[string]*elasticsearch.LogPublishingOption) []interface{} {
-	if lpo == nil {
-		return []interface{}{}
-	}
+	options := []interface{}{}
 
-	m := make([]map[string]interface{}, 0)
-	for k, val := range lpo {
-		mm := map[string]interface{}{}
-		mm["log_type"] = k
-		if val.CloudWatchLogsLogGroupArn != nil {
-			mm["cloudwatch_log_group_arn"] = aws.StringValue(val.CloudWatchLogsLogGroupArn)
+	for k, option := range lpo {
+		vMap := map[string]interface{}{
+			"log_type": k,
+			"enabled":  aws.BoolValue(option.Enabled),
 		}
-		mm["enabled"] = aws.BoolValue(val.Enabled)
-		m = append(m, mm)
+
+		if option.CloudWatchLogsLogGroupArn != nil {
+			vMap["cloudwatch_log_group_arn"] = aws.StringValue(option.CloudWatchLogsLogGroupArn)
+
+			options = append(options, vMap)
+		}
 	}
 
-	return []interface{}{m}
+	return options
 }
