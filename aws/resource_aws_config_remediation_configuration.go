@@ -81,6 +81,48 @@ func resourceAwsConfigRemediationConfiguration() *schema.Resource {
 					},
 				},
 			},
+			"automatic": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"execution_controls": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ssm_controls": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"concurrent_execution_rate_percentage": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"error_percentage": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"maximum_automatic_attempts": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 25),
+			},
+			"retry_attempt_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 2678000),
+			},
 		},
 	}
 }
@@ -113,6 +155,40 @@ func expandConfigRemediationConfigurationParameters(configured *schema.Set) (map
 	return results, nil
 }
 
+func expandConfigRemediationConfigurationExecutionControlsConfig(v map[string]interface{}) (ret *configservice.ExecutionControls, err error) {
+	if w, ok := v["ssm_controls"]; ok {
+		x := w.([]interface{})
+		if len(x) > 0 {
+			ssmControls, err := expandConfigRemediationConfigurationSsmControlsConfig(x[0].(map[string]interface{}))
+			if err != nil {
+				return nil, err
+			}
+			ret = &configservice.ExecutionControls{
+				SsmControls: ssmControls,
+			}
+			return ret, nil
+		}
+	}
+	return nil, fmt.Errorf("expected 'ssm_controls' in execution controls configuration")
+}
+
+func expandConfigRemediationConfigurationSsmControlsConfig(v map[string]interface{}) (ret *configservice.SsmControls, err error) {
+	ret = &configservice.SsmControls{}
+	p := false
+	if concurrentExecutionRatePercentage, ok := v["concurrent_execution_rate_percentage"]; ok {
+		p = true
+		ret.ConcurrentExecutionRatePercentage = aws.Int64(int64(concurrentExecutionRatePercentage.(int)))
+	}
+	if errorPercentage, ok := v["error_percentage"]; ok {
+		p = true
+		ret.ErrorPercentage = aws.Int64(int64(errorPercentage.(int)))
+	}
+	if !p {
+		return nil, fmt.Errorf("'concurrent_execution_rate_percentage' or 'error_percentage' must be provided in ssm_controls")
+	}
+	return ret, nil
+}
+
 func flattenRemediationConfigurationParameters(parameters map[string]*configservice.RemediationParameterValue) []interface{} {
 	var items []interface{}
 
@@ -130,6 +206,29 @@ func flattenRemediationConfigurationParameters(parameters map[string]*configserv
 	}
 
 	return items
+}
+
+func flattenConfigRemediationConfigurationExecutionControlsConfig(controls *configservice.ExecutionControls) []interface{} {
+	if controls == nil {
+		return nil
+	}
+	return []interface{}{map[string]interface{}{
+		"ssm_controls": flattenConfigRemediationConfigurationSsmControlsConfig(controls.SsmControls),
+	}}
+}
+
+func flattenConfigRemediationConfigurationSsmControlsConfig(controls *configservice.SsmControls) []interface{} {
+	if controls == nil {
+		return nil
+	}
+	m := make(map[string]interface{})
+	if controls.ConcurrentExecutionRatePercentage != nil {
+		m["concurrent_execution_rate_percentage"] = controls.ConcurrentExecutionRatePercentage
+	}
+	if controls.ErrorPercentage != nil {
+		m["error_percentage"] = controls.ErrorPercentage
+	}
+	return []interface{}{m}
 }
 
 func resourceAwsConfigRemediationConfigurationPut(d *schema.ResourceData, meta interface{}) error {
@@ -159,7 +258,26 @@ func resourceAwsConfigRemediationConfigurationPut(d *schema.ResourceData, meta i
 	if v, ok := d.GetOk("target_version"); ok {
 		remediationConfigurationInput.TargetVersion = aws.String(v.(string))
 	}
-
+	if v, ok := d.GetOk("automatic"); ok {
+		remediationConfigurationInput.Automatic = aws.Bool(v.(bool))
+	}
+	if v, ok := d.GetOk("maximum_automatic_attempts"); ok {
+		remediationConfigurationInput.MaximumAutomaticAttempts = aws.Int64(int64(v.(int)))
+	}
+	if v, ok := d.GetOk("retry_attempt_seconds"); ok {
+		remediationConfigurationInput.RetryAttemptSeconds = aws.Int64(int64(v.(int)))
+	}
+	if v, ok := d.GetOk("execution_controls"); ok {
+		executionControlsConfigs := v.([]interface{})
+		if len(executionControlsConfigs) == 1 {
+			w := executionControlsConfigs[0].(map[string]interface{})
+			controls, err := expandConfigRemediationConfigurationExecutionControlsConfig(w)
+			if err != nil {
+				return err
+			}
+			remediationConfigurationInput.ExecutionControls = controls
+		}
+	}
 	input := configservice.PutRemediationConfigurationsInput{
 		RemediationConfigurations: []*configservice.RemediationConfiguration{&remediationConfigurationInput},
 	}
@@ -207,6 +325,11 @@ func resourceAwsConfigRemediationConfigurationRead(d *schema.ResourceData, meta 
 	d.Set("target_type", remediationConfiguration.TargetType)
 	d.Set("target_version", remediationConfiguration.TargetVersion)
 	d.Set("parameter", flattenRemediationConfigurationParameters(remediationConfiguration.Parameters))
+	d.Set("automatic", remediationConfiguration.Automatic)
+	d.Set("maximum_automatic_attempts", remediationConfiguration.MaximumAutomaticAttempts)
+	d.Set("retry_attempt_seconds", remediationConfiguration.RetryAttemptSeconds)
+	d.Set("maximum_automatic_attempts", remediationConfiguration.MaximumAutomaticAttempts)
+	d.Set("execution_controls", flattenConfigRemediationConfigurationExecutionControlsConfig(remediationConfiguration.ExecutionControls))
 	d.SetId(aws.StringValue(remediationConfiguration.ConfigRuleName))
 
 	return nil
