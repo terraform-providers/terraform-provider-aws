@@ -273,6 +273,7 @@ func Provider() *schema.Provider {
 			"aws_iam_policy":                                 dataSourceAwsIAMPolicy(),
 			"aws_iam_policy_document":                        dataSourceAwsIamPolicyDocument(),
 			"aws_iam_role":                                   dataSourceAwsIAMRole(),
+			"aws_iam_saml_provider":                          dataSourceAwsIAMSamlProvider(),
 			"aws_iam_server_certificate":                     dataSourceAwsIAMServerCertificate(),
 			"aws_iam_user":                                   dataSourceAwsIAMUser(),
 			"aws_identitystore_group":                        dataSourceAwsIdentityStoreGroup(),
