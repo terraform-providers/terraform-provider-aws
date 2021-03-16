@@ -205,6 +205,34 @@ func TestAccAWSKmsKey_policyBypass(t *testing.T) {
 	})
 }
 
+func TestAccAWSKmsKey_policyBypassUpdate(t *testing.T) {
+	var before, after kms.KeyMetadata
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
+	resourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSKmsKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSKmsKey(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSKmsKeyExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "bypass_policy_lockout_check", "false"),
+				),
+			},
+			{
+				Config: testAccAWSKmsKey_policyBypass(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSKmsKeyExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "bypass_policy_lockout_check", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSKmsKey_Policy_IamRole(t *testing.T) {
 	var key kms.KeyMetadata
 	rName := acctest.RandomWithPrefix("tf-acc-test")

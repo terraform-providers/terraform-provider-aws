@@ -323,13 +323,15 @@ func resourceAwsKmsKeyPolicyUpdate(conn *kms.KMS, d *schema.ResourceData) error 
 		return fmt.Errorf("policy contains an invalid JSON: %s", err)
 	}
 	keyId := d.Get("key_id").(string)
+	bypassPolicyLockoutCheck := d.Get("bypass_policy_lockout_check").(bool)
 
-	log.Printf("[DEBUG] KMS key: %s, update policy: %s", keyId, policy)
+	log.Printf("[DEBUG] KMS key: %s, bypass policy lockout check: %t, update policy: %s", keyId, bypassPolicyLockoutCheck, policy)
 
 	req := &kms.PutKeyPolicyInput{
-		KeyId:      aws.String(keyId),
-		Policy:     aws.String(policy),
-		PolicyName: aws.String("default"),
+		KeyId:                          aws.String(keyId),
+		Policy:                         aws.String(policy),
+		PolicyName:                     aws.String("default"),
+		BypassPolicyLockoutSafetyCheck: aws.Bool(bypassPolicyLockoutCheck),
 	}
 	_, err = conn.PutKeyPolicy(req)
 
