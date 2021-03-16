@@ -75,6 +75,11 @@ func resourceAwsKmsKey() *schema.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
+			"bypass_policy_lockout_check": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"is_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
