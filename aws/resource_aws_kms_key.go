@@ -105,8 +105,9 @@ func resourceAwsKmsKeyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Allow aws to chose default values if we don't pass them
 	req := &kms.CreateKeyInput{
-		CustomerMasterKeySpec: aws.String(d.Get("customer_master_key_spec").(string)),
-		KeyUsage:              aws.String(d.Get("key_usage").(string)),
+		CustomerMasterKeySpec:          aws.String(d.Get("customer_master_key_spec").(string)),
+		KeyUsage:                       aws.String(d.Get("key_usage").(string)),
+		BypassPolicyLockoutSafetyCheck: aws.Bool(d.Get("bypass_policy_lockout_check").(bool)),
 	}
 	if v, exists := d.GetOk("description"); exists {
 		req.Description = aws.String(v.(string))
