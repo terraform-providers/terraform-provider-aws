@@ -539,7 +539,7 @@ resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 
   bypass_policy_lockout_check = %t
-  policy = <<-POLICY
+  policy                      = <<-POLICY
     {
       "Version": "2012-10-17",
       "Id": "kms-tf-1",
