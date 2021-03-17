@@ -112,17 +112,12 @@ func resourceAwsAthenaDatabaseCreate(d *schema.ResourceData, meta interface{}) e
 func resourceAwsAthenaDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).athenaconn
 
-	input := &athena.StartQueryExecutionInput{
-		QueryString:         aws.String("show databases;"),
-		ResultConfiguration: expandAthenaResultConfiguration(d.Get("bucket").(string), d.Get("encryption_configuration").([]interface{})),
+	input := &athena.GetDatabaseInput{
+		DatabaseName: aws.String(d.Get("name").(string)),
+		CatalogName:  aws.String("AwsDataCatalog"),
 	}
-
-	resp, err := conn.StartQueryExecution(input)
+	_, err := conn.GetDatabase(input)
 	if err != nil {
-		return err
-	}
-
-	if err := executeAndExpectMatchingRow(*resp.QueryExecutionId, d.Get("name").(string), conn); err != nil {
 		return err
 	}
 	return nil
@@ -168,25 +163,6 @@ func executeAndExpectNoRowsWhenCreate(qeid string, conn *athena.Athena) error {
 		return fmt.Errorf("Athena create database, unexpected query result: %s", flattenAthenaResultSet(rs))
 	}
 	return nil
-}
-
-func executeAndExpectMatchingRow(qeid string, dbName string, conn *athena.Athena) error {
-	rs, err := queryExecutionResult(qeid, conn)
-	if err != nil {
-		return err
-	}
-	for _, row := range rs.Rows {
-		for _, datum := range row.Data {
-			if datum == nil {
-				continue
-			}
-
-			if aws.StringValue(datum.VarCharValue) == dbName {
-				return nil
-			}
-		}
-	}
-	return fmt.Errorf("Athena not found database: %s, query result: %s", dbName, flattenAthenaResultSet(rs))
 }
 
 func executeAndExpectNoRowsWhenDrop(qeid string, conn *athena.Athena) error {
