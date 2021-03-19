@@ -30,6 +30,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the ECS Cluster
+* `name` - The name of the ECS Cluster (to provide compatibility with the resource)
 * `status` - The status of the ECS Cluster
 * `pending_tasks_count` - The number of pending tasks for the ECS Cluster
 * `running_tasks_count` - The number of running tasks for the ECS Cluster

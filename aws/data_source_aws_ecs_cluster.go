@@ -19,6 +19,11 @@ func dataSourceAwsEcsCluster() *schema.Resource {
 				Required: true,
 			},
 
+			"name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -87,6 +92,7 @@ func dataSourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error
 
 	cluster := desc.Clusters[0]
 	d.SetId(aws.StringValue(cluster.ClusterArn))
+	d.Set("name", cluster.ClusterName)
 	d.Set("arn", cluster.ClusterArn)
 	d.Set("status", cluster.Status)
 	d.Set("pending_tasks_count", cluster.PendingTasksCount)
