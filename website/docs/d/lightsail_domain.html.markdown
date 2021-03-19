@@ -3,27 +3,20 @@ subcategory: "Lightsail"
 layout: "aws"
 page_title: "AWS: aws_lightsail_domain"
 description: |-
-  Provides an Lightsail Domain
+  Provides details about a Lightsail Domain
 ---
 
-# Resource: aws_lightsail_domain
+# Data Source: aws_lightsail_domain
 
-Creates a domain resource for the specified domain (e.g., example.com).
-You cannot register a new domain name using Lightsail. You must register
-a domain name using Amazon Route 53 or another domain name registrar.
-If you have already registered your domain, you can enter its name in
-this parameter to manage the DNS records for that domain.
+Provides details about a Lightsail Domain for the specified domain (e.g., example.com).
 
 ~> **Note:** Lightsail is currently only supported in a limited number of AWS Regions, please see ["Regions and Availability Zones in Amazon Lightsail"](https://lightsail.aws.amazon.com/ls/docs/overview/article/understanding-regions-and-availability-zones-in-amazon-lightsail) for more details
 
-## Example Usage
+## Example Usage, getting details of a domain
 
-```terraform
-resource "aws_lightsail_domain" "domain_test" {
+```hcl
+data "aws_lightsail_domain" "domain_test" {
   domain_name = "mydomain.com"
-  tags = {
-    foo = "bar"
-  }
 }
 ```
 

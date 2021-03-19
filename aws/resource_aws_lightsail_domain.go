@@ -1,19 +1,25 @@
 package aws
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lightsail"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsLightsailDomain() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsLightsailDomainCreate,
 		Read:   resourceAwsLightsailDomainRead,
+		Update: resourceAwsLightsailDomainUpdate,
 		Delete: resourceAwsLightsailDomainDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"domain_name": {
@@ -25,15 +31,23 @@ func resourceAwsLightsailDomain() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceAwsLightsailDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lightsailconn
-	_, err := conn.CreateDomain(&lightsail.CreateDomainInput{
+
+	req := lightsail.CreateDomainInput{
 		DomainName: aws.String(d.Get("domain_name").(string)),
-	})
+	}
+
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.Tags = keyvaluetags.New(v).IgnoreAws().LightsailTags()
+	}
+
+	_, err := conn.CreateDomain(&req)
 
 	if err != nil {
 		return err
@@ -46,6 +60,8 @@ func resourceAwsLightsailDomainCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsLightsailDomainRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lightsailconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	resp, err := conn.GetDomain(&lightsail.GetDomainInput{
 		DomainName: aws.String(d.Id()),
 	})
@@ -62,7 +78,14 @@ func resourceAwsLightsailDomainRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	d.Set("arn", resp.Domain.Arn)
+	domain := resp.Domain
+
+	d.Set("arn", domain.Arn)
+	d.Set("domain_name", domain.Name)
+	d.SetId(d.Get("domain_name").(string))
+	if err := d.Set("tags", keyvaluetags.LightsailKeyValueTags(domain.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 	return nil
 }
 
@@ -73,4 +96,18 @@ func resourceAwsLightsailDomainDelete(d *schema.ResourceData, meta interface{}) 
 	})
 
 	return err
+}
+
+func resourceAwsLightsailDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).lightsailconn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.LightsailUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating Lightsail domain (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	return resourceAwsLightsailDomainRead(d, meta)
 }

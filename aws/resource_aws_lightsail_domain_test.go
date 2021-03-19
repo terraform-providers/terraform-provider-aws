@@ -13,39 +13,61 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSLightsailDomain_basic(t *testing.T) {
+func TestAccAWSLightsailDomain_serial(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"Domain": {
+			"basic":      testAccAWSLightsailDomain_basic,
+			"disappears": testAccAWSLightsailDomain_disappears,
+			"DomainName": testAccAWSLightsailDomain_DomainName,
+			"Tags":       testAccAWSLightsailDomain_Tags,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccAWSLightsailDomain_basic(t *testing.T) {
 	var domain lightsail.Domain
-	lightsailDomainName := fmt.Sprintf("tf-test-lightsail-%s.com", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test.com")
 	resourceName := "aws_lightsail_domain.test"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckLightsailDomain(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckAWSLightsailDomainDestroy,
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckLightsailDomain(t) },
+		CheckDestroy: testAccCheckAWSLightsailDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLightsailDomainConfig_basic(lightsailDomainName),
-				Check: resource.ComposeAggregateTestCheckFunc(
+				Config: testAccAWSLightsailDomainConfigBasic(rName),
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLightsailDomainExists(resourceName, &domain),
+					resource.TestCheckResourceAttr(resourceName, "domain_name", rName),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSLightsailDomain_disappears(t *testing.T) {
+func testAccAWSLightsailDomain_disappears(t *testing.T) {
 	var domain lightsail.Domain
-	lightsailDomainName := fmt.Sprintf("tf-test-lightsail-%s.com", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test.com")
 	resourceName := "aws_lightsail_domain.test"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckLightsailDomain(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckAWSLightsailDomainDestroy,
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckLightsailDomain(t) },
+		CheckDestroy: testAccCheckAWSLightsailDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLightsailDomainConfig_basic(lightsailDomainName),
-				Check: resource.ComposeAggregateTestCheckFunc(
+				Config: testAccAWSLightsailDomainConfigBasic(rName),
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLightsailDomainExists(resourceName, &domain),
 					testAccCheckResourceDisappears(testAccProviderLightsailDomain, resourceAwsLightsailDomain(), resourceName),
 				),
@@ -84,6 +106,75 @@ func testAccCheckAWSLightsailDomainExists(n string, domain *lightsail.Domain) re
 	}
 }
 
+func testAccAWSLightsailDomain_DomainName(t *testing.T) {
+	var domain1, domain2 lightsail.Domain
+	rName := acctest.RandomWithPrefix("tf-acc-test.com")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test.com")
+	resourceName := "aws_lightsail_domain.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckLightsailDomain(t) },
+		CheckDestroy: testAccCheckAWSLightsailDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLightsailDomainConfigBasic(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLightsailDomainExists(resourceName, &domain1),
+				),
+			},
+			{
+				Config: testAccAWSLightsailDomainConfigBasic(rName2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLightsailDomainExists(resourceName, &domain2),
+				),
+			},
+		},
+	})
+}
+
+func testAccAWSLightsailDomain_Tags(t *testing.T) {
+	var domain1, domain2, domain3 lightsail.Domain
+	rName := acctest.RandomWithPrefix("tf-acc-test.com")
+	resourceName := "aws_lightsail_domain.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckLightsailDomain(t) },
+		CheckDestroy: testAccCheckAWSLightsailDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLightsailDomainConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLightsailDomainExists(resourceName, &domain1),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSLightsailDomainConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLightsailDomainExists(resourceName, &domain2),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSLightsailDomainConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLightsailDomainExists(resourceName, &domain3),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSLightsailDomainDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lightsail_domain" {
@@ -114,12 +205,39 @@ func testAccCheckAWSLightsailDomainDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAWSLightsailDomainConfig_basic(lightsailDomainName string) string {
+func testAccAWSLightsailDomainConfigBasic(rName string) string {
 	return composeConfig(
 		testAccLightsailDomainRegionProviderConfig(),
 		fmt.Sprintf(`
 resource "aws_lightsail_domain" "test" {
-  domain_name = "%s"
+  domain_name = %[1]q
 }
-`, lightsailDomainName))
+`, rName))
+}
+
+func testAccAWSLightsailDomainConfigTags1(rName string, tagKey1, tagValue1 string) string {
+	return composeConfig(
+		testAccLightsailDomainRegionProviderConfig(),
+		fmt.Sprintf(`
+resource "aws_lightsail_domain" "test" {
+  domain_name = %[1]q
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1))
+}
+
+func testAccAWSLightsailDomainConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return composeConfig(
+		testAccLightsailDomainRegionProviderConfig(),
+		fmt.Sprintf(`
+resource "aws_lightsail_domain" "test" {
+  domain_name = %[1]q
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }
