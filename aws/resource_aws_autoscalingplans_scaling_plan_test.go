@@ -315,6 +315,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_dynamicScaling_CustomizedScalingMetri
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, autoscalingplans.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAutoScalingPlansScalingPlanDestroy,
 		Steps: []resource.TestStep{
