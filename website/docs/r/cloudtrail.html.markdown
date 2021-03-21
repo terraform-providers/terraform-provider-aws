@@ -180,6 +180,7 @@ For **event_selector** the following attributes are supported.
 
 * `read_write_type` (Optional) - Specify if you want your trail to log read-only events, write-only events, or all. By default, the value is All. You can specify only the following value: "ReadOnly", "WriteOnly", "All". Defaults to `All`.
 * `include_management_events` (Optional) - Specify if you want your event selector to include management events for your trail.
+* `exclude_management_event_sources` (Optional) -  A list of event sources to exclude (currently only `"kms.amazonaws.com"`). `include_management_events` has to be `true` to allow this.
 * `data_resource` (Optional) - Specifies logging data events. Fields documented below.
 
 #### Data Resource Arguments

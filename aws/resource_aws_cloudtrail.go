@@ -102,6 +102,12 @@ func resourceAwsCloudTrail() *schema.Resource {
 							Default:  true,
 						},
 
+						"exclude_management_event_sources": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
 						"data_resource": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -522,10 +528,14 @@ func expandAwsCloudTrailEventSelector(configured []interface{}) []*cloudtrail.Ev
 		data := raw.(map[string]interface{})
 		dataResources := expandAwsCloudTrailEventSelectorDataResource(data["data_resource"].([]interface{}))
 
+		includeManagementEvents := data["include_management_events"].(bool)
 		es := &cloudtrail.EventSelector{
-			IncludeManagementEvents: aws.Bool(data["include_management_events"].(bool)),
+			IncludeManagementEvents: aws.Bool(includeManagementEvents),
 			ReadWriteType:           aws.String(data["read_write_type"].(string)),
 			DataResources:           dataResources,
+		}
+		if data["exclude_management_event_sources"] != nil && includeManagementEvents {
+			es.ExcludeManagementEventSources = expandStringList(data["exclude_management_event_sources"].([]interface{}))
 		}
 		eventSelectors = append(eventSelectors, es)
 	}
@@ -560,7 +570,7 @@ func flattenAwsCloudTrailEventSelector(configured []*cloudtrail.EventSelector) [
 	eventSelectors := make([]map[string]interface{}, 0, len(configured))
 
 	// Prevent default configurations shows differences
-	if len(configured) == 1 && len(configured[0].DataResources) == 0 && aws.StringValue(configured[0].ReadWriteType) == "All" {
+	if len(configured) == 1 && len(configured[0].DataResources) == 0 && aws.StringValue(configured[0].ReadWriteType) == "All" && len(configured[0].ExcludeManagementEventSources) == 0 {
 		return eventSelectors
 	}
 
@@ -568,6 +578,7 @@ func flattenAwsCloudTrailEventSelector(configured []*cloudtrail.EventSelector) [
 		item := make(map[string]interface{})
 		item["read_write_type"] = *raw.ReadWriteType
 		item["include_management_events"] = *raw.IncludeManagementEvents
+		item["exclude_management_event_sources"] = flattenStringList(raw.ExcludeManagementEventSources)
 		item["data_resource"] = flattenAwsCloudTrailEventSelectorDataResource(raw.DataResources)
 
 		eventSelectors = append(eventSelectors, item)

@@ -103,6 +103,7 @@ func TestAccAWSCloudTrail_serial(t *testing.T) {
 			"kmsKey":                     testAccAWSCloudTrail_kmsKey,
 			"tags":                       testAccAWSCloudTrail_tags,
 			"eventSelector":              testAccAWSCloudTrail_event_selector,
+			"eventSelectorExclude":       testAccAWSCloudTrail_event_selector_exclude,
 			"insightSelector":            testAccAWSCloudTrail_insight_selector,
 		},
 	}
@@ -507,6 +508,7 @@ func testAccAWSCloudTrail_event_selector(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "event_selector.0.data_resource.0.values.1", regexp.MustCompile(`^arn:[^:]+:s3:::.+/baz$`)),
 					resource.TestCheckResourceAttr(resourceName, "event_selector.0.include_management_events", "false"),
 					resource.TestCheckResourceAttr(resourceName, "event_selector.0.read_write_type", "ReadOnly"),
+					resource.TestCheckResourceAttr(resourceName, "event_selector.0.exclude_management_event_sources.#", "0"),
 				),
 			},
 			{
@@ -532,6 +534,7 @@ func testAccAWSCloudTrail_event_selector(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "event_selector.0.data_resource.0.values.0", regexp.MustCompile(`^arn:[^:]+:s3:::.+/foobar$`)),
 					resource.TestMatchResourceAttr(resourceName, "event_selector.0.data_resource.0.values.1", regexp.MustCompile(`^arn:[^:]+:s3:::.+/baz$`)),
 					resource.TestCheckResourceAttr(resourceName, "event_selector.0.include_management_events", "true"),
+					resource.TestCheckResourceAttr(resourceName, "event_selector.0.exclude_management_event_sources.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "event_selector.0.read_write_type", "ReadOnly"),
 					resource.TestCheckResourceAttr(resourceName, "event_selector.1.data_resource.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "event_selector.1.data_resource.0.type", "AWS::S3::Object"),
@@ -550,6 +553,33 @@ func testAccAWSCloudTrail_event_selector(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "event_selector.#", "0"),
 				),
+			},
+		},
+	})
+}
+
+func testAccAWSCloudTrail_event_selector_exclude(t *testing.T) {
+	cloudTrailRandInt := acctest.RandInt()
+	resourceName := "aws_cloudtrail.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudTrailDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudTrailConfig_eventSelectorExclude(cloudTrailRandInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "event_selector.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "event_selector.0.include_management_events", "true"),
+					resource.TestCheckResourceAttr(resourceName, "event_selector.0.exclude_management_event_sources.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "event_selector.0.exclude_management_event_sources.0", "kms.amazonaws.com"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -1420,6 +1450,53 @@ resource "aws_cloudtrail" "foobar" {
 data "aws_partition" "current" {}
 
 resource "aws_s3_bucket" "foo" {
+  bucket        = "tf-test-trail-%[1]d"
+  force_destroy = true
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AWSCloudTrailAclCheck",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-trail-%[1]d"
+    },
+    {
+      "Sid": "AWSCloudTrailWrite",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-trail-%[1]d/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+`, cloudTrailRandInt)
+}
+
+func testAccAWSCloudTrailConfig_eventSelectorExclude(cloudTrailRandInt int) string {
+	return fmt.Sprintf(`
+resource "aws_cloudtrail" "test" {
+  name           = "tf-trail-foobar-%[1]d"
+  s3_bucket_name = aws_s3_bucket.test.id
+  event_selector {
+    include_management_events        = true
+    exclude_management_event_sources = ["kms.amazonaws.com"]
+  }
+}
+
+data "aws_partition" "current" {}
+
+resource "aws_s3_bucket" "test" {
   bucket        = "tf-test-trail-%[1]d"
   force_destroy = true
 
