@@ -12,7 +12,7 @@ Manages an AWS Storage Gateway NFS File Share.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_storagegateway_nfs_file_share" "example" {
   client_list  = ["0.0.0.0/0"]
   gateway_arn  = aws_storagegateway_gateway.example.arn
@@ -70,7 +70,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_storagegateway_nfs_file_share` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_storagegateway_nfs_file_share` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for file share creation.
 * `update` - (Default `10m`) How long to wait for file share updates.

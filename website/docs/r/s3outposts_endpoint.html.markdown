@@ -12,7 +12,7 @@ Provides a resource to manage an S3 Outposts Endpoint.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3outposts_endpoint" "example" {
   outpost_id        = data.aws_outposts_outpost.example.id
   security_group_id = aws_security_group.example.id

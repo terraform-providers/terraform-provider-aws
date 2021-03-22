@@ -12,7 +12,7 @@ Use this data source to get the default EBS encryption KMS key in the current re
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ebs_default_kms_key" "current" {}
 
 resource "aws_ebs_volume" "example" {

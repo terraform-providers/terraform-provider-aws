@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/storagegateway/finder"
 )
 
 func TestDecodeStorageGatewayUploadBufferID(t *testing.T) {
@@ -74,8 +74,9 @@ func TestAccAWSStorageGatewayUploadBuffer_basic(t *testing.T) {
 	gatewayResourceName := "aws_storagegateway_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, storagegateway.EndpointsID),
+		Providers:  testAccProviders,
 		// Storage Gateway API does not support removing upload buffers,
 		// but we want to ensure other resources are removed.
 		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
@@ -111,27 +112,17 @@ func testAccCheckAWSStorageGatewayUploadBufferExists(resourceName string) resour
 			return err
 		}
 
-		input := &storagegateway.DescribeUploadBufferInput{
-			GatewayARN: aws.String(gatewayARN),
-		}
-
-		output, err := conn.DescribeUploadBuffer(input)
+		foundDiskID, err := finder.UploadBufferDisk(conn, gatewayARN, diskID)
 
 		if err != nil {
-			return fmt.Errorf("error reading Storage Gateway upload buffer: %s", err)
+			return fmt.Errorf("error reading Storage Gateway Upload Buffer (%s): %w", rs.Primary.ID, err)
 		}
 
-		if output == nil || len(output.DiskIds) == 0 {
-			return fmt.Errorf("Storage Gateway upload buffer %q not found", rs.Primary.ID)
+		if foundDiskID == nil {
+			return fmt.Errorf("Storage Gateway Upload Buffer (%s) not found", rs.Primary.ID)
 		}
 
-		for _, existingDiskID := range output.DiskIds {
-			if aws.StringValue(existingDiskID) == diskID {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("Storage Gateway upload buffer %q not found", rs.Primary.ID)
+		return nil
 	}
 }
 

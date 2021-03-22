@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_subnet: Add `customer_owned_ipv4_pool` and `map_customer_owned_ip_on_launch` attributes
+```
+
+```release-note:enhancement
+resource/aws_subnet: Add `customer_owned_ipv4_pool` and `map_customer_owned_ip_on_launch` attributes
+```

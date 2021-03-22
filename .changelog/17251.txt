@@ -1,0 +1,15 @@
+```release-note:new-resource
+aws_sagemaker_app
+```
+
+```release-note:enhancement
+resource/aws_sagemaker_domain: Make `default_resource_spec` optional for the `tensor_board_app_settings`, `jupyter_server_app_settings` and `kernel_gateway_app_settings` config blocks. 
+```
+
+```release-note:bug
+resource/aws_sagemaker_domain: Wait for update to finish.
+```
+
+```release-note:bug
+resource/aws_sagemaker_user_profile: Wait for update to finish.
+```

@@ -51,7 +51,7 @@ func dataSourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) e
 	for {
 		resp, err := conn.ListRuleGroups(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAFv2 RuleGroups: %s", err)
+			return fmt.Errorf("Error reading WAFv2 RuleGroups: %w", err)
 		}
 
 		if resp == nil || resp.RuleGroups == nil {

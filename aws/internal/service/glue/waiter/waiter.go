@@ -114,6 +114,7 @@ func TriggerCreated(conn *glue.Glue, triggerName string) (*glue.GetTriggerOutput
 		Pending: []string{
 			glue.TriggerStateActivating,
 			glue.TriggerStateCreating,
+			glue.TriggerStateUpdating,
 		},
 		Target: []string{
 			glue.TriggerStateActivated,

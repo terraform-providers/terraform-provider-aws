@@ -126,11 +126,11 @@ func dataSourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("vpc_id", ngw.VpcId)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(ngw.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	for _, address := range ngw.NatGatewayAddresses {
-		if *address.AllocationId != "" {
+		if aws.StringValue(address.AllocationId) != "" {
 			d.Set("allocation_id", address.AllocationId)
 			d.Set("network_interface_id", address.NetworkInterfaceId)
 			d.Set("private_ip", address.PrivateIp)

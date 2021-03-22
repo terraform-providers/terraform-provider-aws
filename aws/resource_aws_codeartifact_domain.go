@@ -35,7 +35,8 @@ func resourceAwsCodeArtifactDomain() *schema.Resource {
 			},
 			"encryption_key": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validateArn,
 			},
@@ -65,9 +66,12 @@ func resourceAwsCodeArtifactDomainCreate(d *schema.ResourceData, meta interface{
 	log.Print("[DEBUG] Creating CodeArtifact Domain")
 
 	params := &codeartifact.CreateDomainInput{
-		Domain:        aws.String(d.Get("domain").(string)),
-		EncryptionKey: aws.String(d.Get("encryption_key").(string)),
-		Tags:          keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodeartifactTags(),
+		Domain: aws.String(d.Get("domain").(string)),
+		Tags:   keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodeartifactTags(),
+	}
+
+	if v, ok := d.GetOk("encryption_key"); ok {
+		params.EncryptionKey = aws.String(v.(string))
 	}
 
 	domain, err := conn.CreateDomain(params)

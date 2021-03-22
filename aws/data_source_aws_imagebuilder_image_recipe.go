@@ -116,6 +116,10 @@ func dataSourceAwsImageBuilderImageRecipe() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"working_directory": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -154,6 +158,7 @@ func dataSourceAwsImageBuilderImageRecipeRead(d *schema.ResourceData, meta inter
 	d.Set("platform", imageRecipe.Platform)
 	d.Set("tags", keyvaluetags.ImagebuilderKeyValueTags(imageRecipe.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	d.Set("version", imageRecipe.Version)
+	d.Set("working_directory", imageRecipe.WorkingDirectory)
 
 	return nil
 }

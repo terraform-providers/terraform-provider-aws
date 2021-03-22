@@ -12,7 +12,7 @@ Manages an EC2 Carrier Gateway. See the AWS [documentation](https://docs.aws.ama
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_carrier_gateway" "example" {
   vpc_id = aws_vpc.example.id
 

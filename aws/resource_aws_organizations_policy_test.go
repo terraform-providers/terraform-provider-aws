@@ -21,6 +21,7 @@ func testAccAwsOrganizationsPolicy_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -63,6 +64,7 @@ func testAccAwsOrganizationsPolicy_concurrent(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -87,6 +89,7 @@ func testAccAwsOrganizationsPolicy_description(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -120,6 +123,7 @@ func testAccAwsOrganizationsPolicy_tags(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -172,6 +176,7 @@ func testAccAwsOrganizationsPolicy_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -196,6 +201,7 @@ func testAccAwsOrganizationsPolicy_type_AI_OPT_OUT(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -225,9 +231,8 @@ func testAccAwsOrganizationsPolicy_type_Backup(t *testing.T) {
       "PII_Backup_Plan":{
          "regions":{
             "@@assign":[
-               "ap-northeast-2",
-               "us-east-1",
-               "eu-north-1"
+               "%[1]s",
+               "%[2]s"
             ]
          },
          "rules":{
@@ -253,9 +258,9 @@ func testAccAwsOrganizationsPolicy_type_Backup(t *testing.T) {
                   "@@assign":"FortKnox"
                },
                "copy_actions":{
-                  "arn:%[1]s:backup:us-east-1:$account:backup-vault:secondary_vault":{
+                  "arn:%[3]s:backup:%[1]s:$account:backup-vault:secondary_vault":{
                      "target_backup_vault_arn":{
-                        "@@assign":"arn:%[1]s:backup:us-east-1:$account:backup-vault:secondary_vault"
+                        "@@assign":"arn:%[3]s:backup:%[1]s:$account:backup-vault:secondary_vault"
                      },
                      "lifecycle":{
                         "delete_after_days":{
@@ -273,7 +278,7 @@ func testAccAwsOrganizationsPolicy_type_Backup(t *testing.T) {
             "tags":{
                "datatype":{
                   "iam_role_arn":{
-                     "@@assign":"arn:%[1]s:iam::$account:role/MyIamRole"
+                     "@@assign":"arn:%[3]s:iam::$account:role/MyIamRole"
                   },
                   "tag_key":{
                      "@@assign":"dataType"
@@ -289,10 +294,11 @@ func testAccAwsOrganizationsPolicy_type_Backup(t *testing.T) {
          }
       }
    }
-}`, testAccGetPartition())
+}`, testAccGetAlternateRegion(), testAccGetRegion(), testAccGetPartition())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -320,6 +326,7 @@ func testAccAwsOrganizationsPolicy_type_SCP(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -354,6 +361,7 @@ func testAccAwsOrganizationsPolicy_type_Tag(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -380,6 +388,7 @@ func testAccAwsOrganizationsPolicy_ImportAwsManagedPolicy(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{

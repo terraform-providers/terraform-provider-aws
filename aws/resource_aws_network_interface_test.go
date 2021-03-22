@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -74,6 +73,7 @@ func TestAccAWSENI_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -108,6 +108,7 @@ func TestAccAWSENI_ipv6(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -155,6 +156,7 @@ func TestAccAWSENI_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -200,6 +202,7 @@ func TestAccAWSENI_ipv6_count(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -247,6 +250,7 @@ func TestAccAWSENI_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSENIDestroy,
 		Steps: []resource.TestStep{
@@ -268,6 +272,7 @@ func TestAccAWSENI_updatedDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -301,6 +306,7 @@ func TestAccAWSENI_attached(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -329,6 +335,7 @@ func TestAccAWSENI_ignoreExternalAttachment(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -357,6 +364,7 @@ func TestAccAWSENI_sourceDestCheck(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -397,6 +405,7 @@ func TestAccAWSENI_computedIPs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,
@@ -423,6 +432,7 @@ func TestAccAWSENI_PrivateIpsCount(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSENIDestroy,
 		Steps: []resource.TestStep{
@@ -524,8 +534,9 @@ func testAccCheckAWSENIAttributes(conf *ec2.NetworkInterface) resource.TestCheck
 			return fmt.Errorf("expected private ip to be 172.16.10.100, but was %s", *conf.PrivateIpAddress)
 		}
 
-		if !strings.HasPrefix(*conf.PrivateDnsName, "ip-172-16-10-100.") || !strings.HasSuffix(*conf.PrivateDnsName, ".compute.internal") {
-			return fmt.Errorf("expected private dns name to be ip-172-16-10-100.<region>.compute.internal, but was %s", *conf.PrivateDnsName)
+		expectedPrivateDnsName := fmt.Sprintf("ip-%s.%s", resourceAwsEc2DashIP(*conf.PrivateIpAddress), resourceAwsEc2RegionalPrivateDnsSuffix(testAccGetRegion()))
+		if *conf.PrivateDnsName != expectedPrivateDnsName {
+			return fmt.Errorf("expected private dns name to be %s, but was %s", expectedPrivateDnsName, *conf.PrivateDnsName)
 		}
 
 		if len(*conf.MacAddress) == 0 {
@@ -573,8 +584,9 @@ func testAccCheckAWSENIAttributesWithAttachment(conf *ec2.NetworkInterface) reso
 			return fmt.Errorf("expected private ip to be 172.16.10.100, but was %s", *conf.PrivateIpAddress)
 		}
 
-		if !strings.HasPrefix(*conf.PrivateDnsName, "ip-172-16-10-100.") || !strings.HasSuffix(*conf.PrivateDnsName, ".compute.internal") {
-			return fmt.Errorf("expected private dns name to be ip-172-16-10-100.<region>.compute.internal, but was %s", *conf.PrivateDnsName)
+		expectedPrivateDnsName := fmt.Sprintf("ip-%s.%s", resourceAwsEc2DashIP(*conf.PrivateIpAddress), resourceAwsEc2RegionalPrivateDnsSuffix(testAccGetRegion()))
+		if *conf.PrivateDnsName != expectedPrivateDnsName {
+			return fmt.Errorf("expected private dns name to be %s, but was %s", expectedPrivateDnsName, *conf.PrivateDnsName)
 		}
 
 		return nil
@@ -626,7 +638,7 @@ func testAccCheckAWSENIMakeExternalAttachment(n string, conf *ec2.NetworkInterfa
 }
 
 func testAccAWSENIConfig() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block           = "172.16.0.0/16"
   enable_dns_hostnames = true
@@ -714,7 +726,7 @@ resource "aws_security_group" "test" {
 }
 
 func testAccAWSENIIPV6Config(rName string) string {
-	return testAccAWSENIIPV6ConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccAWSENIIPV6ConfigBase(rName), `
 resource "aws_network_interface" "test" {
   subnet_id       = aws_subnet.test.id
   private_ips     = ["172.16.10.100"]
@@ -726,7 +738,7 @@ resource "aws_network_interface" "test" {
 }
 
 func testAccAWSENIIPV6MultipleConfig(rName string) string {
-	return testAccAWSENIIPV6ConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccAWSENIIPV6ConfigBase(rName), `
 resource "aws_network_interface" "test" {
   subnet_id       = aws_subnet.test.id
   private_ips     = ["172.16.10.100"]
@@ -750,7 +762,7 @@ resource "aws_network_interface" "test" {
 }
 
 func testAccAWSENIConfigUpdatedDescription() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block           = "172.16.0.0/16"
   enable_dns_hostnames = true
@@ -825,7 +837,7 @@ resource "aws_network_interface" "test" {
 }
 
 func testAccAWSENIConfigWithNoPrivateIPs() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block           = "172.16.0.0/16"
   enable_dns_hostnames = true
@@ -855,7 +867,7 @@ resource "aws_network_interface" "test" {
 func testAccAWSENIConfigWithAttachment() string {
 	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(),
 		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
-		testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+		testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block           = "172.16.0.0/16"
   enable_dns_hostnames = true
@@ -917,13 +929,13 @@ resource "aws_network_interface" "test" {
     Name = "test_interface"
   }
 }
-`))
+`)
 }
 
 func testAccAWSENIConfigExternalAttachment() string {
 	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(),
 		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
-		testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+		testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block           = "172.16.0.0/16"
   enable_dns_hostnames = true
@@ -980,7 +992,7 @@ resource "aws_network_interface" "test" {
     Name = "test_interface"
   }
 }
-`))
+`)
 }
 
 func testAccAWSENIConfigPrivateIpsCount(privateIpsCount int) string {

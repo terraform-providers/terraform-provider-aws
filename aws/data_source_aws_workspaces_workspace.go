@@ -152,16 +152,16 @@ func dataSourceAwsWorkspacesWorkspaceRead(d *schema.ResourceData, meta interface
 	d.Set("user_volume_encryption_enabled", aws.BoolValue(workspace.UserVolumeEncryptionEnabled))
 	d.Set("volume_encryption_key", aws.StringValue(workspace.VolumeEncryptionKey))
 	if err := d.Set("workspace_properties", flattenWorkspaceProperties(workspace.WorkspaceProperties)); err != nil {
-		return fmt.Errorf("error setting workspace properties: %s", err)
+		return fmt.Errorf("error setting workspace properties: %w", err)
 	}
 
 	tags, err := keyvaluetags.WorkspacesListTags(conn, d.Id())
 	if err != nil {
-		return fmt.Errorf("error listing tags: %s", err)
+		return fmt.Errorf("error listing tags: %w", err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ test: tools
 	gotestsum --format=short-verbose $(TEST) $(TESTARGS)
 
 generate:
-	cd test-fixtures && make generate
+	cd testdata && make generate
 
 modules:
 	go mod download && go mod verify

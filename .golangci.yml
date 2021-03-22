@@ -1,9 +1,5 @@
 issues:
   exclude-rules:
-    - linters:
-        - gosimple
-      text: "S1039:"
-
     # Exclude issues bypassing staticcheck.conf
     - linters:
         - staticcheck
@@ -24,6 +20,7 @@ linters:
     - gofmt
     - gosimple
     - ineffassign
+    - makezero
     - misspell
     - nakedret
     - staticcheck

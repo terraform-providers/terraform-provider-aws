@@ -12,7 +12,7 @@ Provides a Glue Schema resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_schema" "example" {
   schema_name       = "example"
   registry_arn      = aws_glue_registry.test.arn

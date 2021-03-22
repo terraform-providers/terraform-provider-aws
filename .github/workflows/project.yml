@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Move team PRs to Review column
-      uses: alex-page/github-project-automation-plus@v0.3.0
+      uses: alex-page/github-project-automation-plus@v0.5.1
       if: contains(fromJSON('["anGie44", "bflad", "bill-rich", "breathingdust", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor) && github.event.pull_request.draft == false
       with:
         project: AWS Provider Working Board

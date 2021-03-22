@@ -12,7 +12,7 @@ Information about Outposts Instance Types.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_outposts_outpost_instance_types" "example" {
   arn = data.aws_outposts_outpost.example.arn
 }

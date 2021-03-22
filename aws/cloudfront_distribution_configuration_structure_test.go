@@ -12,6 +12,7 @@ import (
 func defaultCacheBehaviorConf() map[string]interface{} {
 	return map[string]interface{}{
 		"viewer_protocol_policy":      "allow-all",
+		"cache_policy_id":             "",
 		"target_origin_id":            "myS3Origin",
 		"forwarded_values":            []interface{}{forwardedValuesConf()},
 		"min_ttl":                     0,
@@ -21,9 +22,11 @@ func defaultCacheBehaviorConf() map[string]interface{} {
 		"smooth_streaming":            false,
 		"default_ttl":                 86400,
 		"allowed_methods":             allowedMethodsConf(),
+		"origin_request_policy_id":    "ABCD1234",
 		"cached_methods":              cachedMethodsConf(),
 		"compress":                    true,
 		"field_level_encryption_id":   "",
+		"realtime_log_config_arn":     "",
 	}
 }
 
@@ -301,10 +304,10 @@ func TestCloudFrontStructure_expandCloudFrontDefaultCacheBehavior(t *testing.T) 
 	if *dcb.LambdaFunctionAssociations.Quantity != 2 {
 		t.Fatalf("Expected LambdaFunctionAssociations to be 2, got %v", *dcb.LambdaFunctionAssociations.Quantity)
 	}
-	if !reflect.DeepEqual(dcb.AllowedMethods.Items, expandStringList(allowedMethodsConf().List())) {
+	if !reflect.DeepEqual(dcb.AllowedMethods.Items, expandStringSet(allowedMethodsConf())) {
 		t.Fatalf("Expected AllowedMethods.Items to be %v, got %v", allowedMethodsConf().List(), dcb.AllowedMethods.Items)
 	}
-	if !reflect.DeepEqual(dcb.AllowedMethods.CachedMethods.Items, expandStringList(cachedMethodsConf().List())) {
+	if !reflect.DeepEqual(dcb.AllowedMethods.CachedMethods.Items, expandStringSet(cachedMethodsConf())) {
 		t.Fatalf("Expected AllowedMethods.CachedMethods.Items to be %v, got %v", cachedMethodsConf().List(), dcb.AllowedMethods.CachedMethods.Items)
 	}
 }
@@ -502,7 +505,7 @@ func TestCloudFrontStructure_expandAllowedMethods(t *testing.T) {
 	if *am.Quantity != 7 {
 		t.Fatalf("Expected Quantity to be 7, got %v", *am.Quantity)
 	}
-	if !reflect.DeepEqual(am.Items, expandStringList(data.List())) {
+	if !reflect.DeepEqual(am.Items, expandStringSet(data)) {
 		t.Fatalf("Expected Items to be %v, got %v", data, am.Items)
 	}
 }
@@ -523,7 +526,7 @@ func TestCloudFrontStructure_expandCachedMethods(t *testing.T) {
 	if *cm.Quantity != 3 {
 		t.Fatalf("Expected Quantity to be 3, got %v", *cm.Quantity)
 	}
-	if !reflect.DeepEqual(cm.Items, expandStringList(data.List())) {
+	if !reflect.DeepEqual(cm.Items, expandStringSet(data)) {
 		t.Fatalf("Expected Items to be %v, got %v", data, cm.Items)
 	}
 }
@@ -870,7 +873,7 @@ func TestCloudFrontStructure_expandAliases(t *testing.T) {
 	if *a.Quantity != 2 {
 		t.Fatalf("Expected Quantity to be 2, got %v", *a.Quantity)
 	}
-	if !reflect.DeepEqual(a.Items, expandStringList(data.List())) {
+	if !reflect.DeepEqual(a.Items, expandStringSet(data)) {
 		t.Fatalf("Expected Items to be [example.com www.example.com], got %v", a.Items)
 	}
 }

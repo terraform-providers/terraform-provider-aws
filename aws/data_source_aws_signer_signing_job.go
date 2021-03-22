@@ -151,47 +151,47 @@ func dataSourceAwsSignerSigningJobRead(d *schema.ResourceData, meta interface{})
 	})
 
 	if err != nil {
-		return fmt.Errorf("error reading Signer signing job (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading Signer signing job (%s): %w", d.Id(), err)
 	}
 
 	if err := d.Set("completed_at", aws.TimeValue(describeSigningJobOutput.CompletedAt).Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting signer signing job completed at: %s", err)
+		return fmt.Errorf("error setting signer signing job completed at: %w", err)
 	}
 
 	if err := d.Set("created_at", aws.TimeValue(describeSigningJobOutput.CreatedAt).Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting signer signing job created at: %s", err)
+		return fmt.Errorf("error setting signer signing job created at: %w", err)
 	}
 
 	if err := d.Set("job_invoker", describeSigningJobOutput.JobInvoker); err != nil {
-		return fmt.Errorf("error setting signer signing job invoker: %s", err)
+		return fmt.Errorf("error setting signer signing job invoker: %w", err)
 	}
 
 	if err := d.Set("job_owner", describeSigningJobOutput.JobOwner); err != nil {
-		return fmt.Errorf("error setting signer signing job owner: %s", err)
+		return fmt.Errorf("error setting signer signing job owner: %w", err)
 	}
 
 	if err := d.Set("platform_display_name", describeSigningJobOutput.PlatformDisplayName); err != nil {
-		return fmt.Errorf("error setting signer signing job platform display name: %s", err)
+		return fmt.Errorf("error setting signer signing job platform display name: %w", err)
 	}
 
 	if err := d.Set("platform_id", describeSigningJobOutput.PlatformId); err != nil {
-		return fmt.Errorf("error setting signer signing job platform id: %s", err)
+		return fmt.Errorf("error setting signer signing job platform id: %w", err)
 	}
 
 	if err := d.Set("profile_name", describeSigningJobOutput.ProfileName); err != nil {
-		return fmt.Errorf("error setting signer signing job profile name: %s", err)
+		return fmt.Errorf("error setting signer signing job profile name: %w", err)
 	}
 
 	if err := d.Set("profile_version", describeSigningJobOutput.ProfileVersion); err != nil {
-		return fmt.Errorf("error setting signer signing job profile version: %s", err)
+		return fmt.Errorf("error setting signer signing job profile version: %w", err)
 	}
 
 	if err := d.Set("requested_by", describeSigningJobOutput.RequestedBy); err != nil {
-		return fmt.Errorf("error setting signer signing job requested by: %s", err)
+		return fmt.Errorf("error setting signer signing job requested by: %w", err)
 	}
 
 	if err := d.Set("revocation_record", flattenSignerSigningJobRevocationRecord(describeSigningJobOutput.RevocationRecord)); err != nil {
-		return fmt.Errorf("error setting signer signing job revocation record: %s", err)
+		return fmt.Errorf("error setting signer signing job revocation record: %w", err)
 	}
 
 	signatureExpiresAt := ""
@@ -199,23 +199,23 @@ func dataSourceAwsSignerSigningJobRead(d *schema.ResourceData, meta interface{})
 		signatureExpiresAt = aws.TimeValue(describeSigningJobOutput.SignatureExpiresAt).Format(time.RFC3339)
 	}
 	if err := d.Set("signature_expires_at", signatureExpiresAt); err != nil {
-		return fmt.Errorf("error setting signer signing job requested by: %s", err)
+		return fmt.Errorf("error setting signer signing job requested by: %w", err)
 	}
 
 	if err := d.Set("signed_object", flattenSignerSigningJobSignedObject(describeSigningJobOutput.SignedObject)); err != nil {
-		return fmt.Errorf("error setting signer signing job signed object: %s", err)
+		return fmt.Errorf("error setting signer signing job signed object: %w", err)
 	}
 
 	if err := d.Set("source", flattenSignerSigningJobSource(describeSigningJobOutput.Source)); err != nil {
-		return fmt.Errorf("error setting signer signing job source: %s", err)
+		return fmt.Errorf("error setting signer signing job source: %w", err)
 	}
 
 	if err := d.Set("status", describeSigningJobOutput.Status); err != nil {
-		return fmt.Errorf("error setting signer signing job status: %s", err)
+		return fmt.Errorf("error setting signer signing job status: %w", err)
 	}
 
 	if err := d.Set("status_reason", describeSigningJobOutput.StatusReason); err != nil {
-		return fmt.Errorf("error setting signer signing job status reason: %s", err)
+		return fmt.Errorf("error setting signer signing job status reason: %w", err)
 	}
 
 	d.SetId(aws.StringValue(describeSigningJobOutput.JobId))

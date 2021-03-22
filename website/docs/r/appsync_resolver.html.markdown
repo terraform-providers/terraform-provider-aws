@@ -12,7 +12,7 @@ Provides an AppSync Resolver.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "test" {
   authentication_type = "API_KEY"
   name                = "tf-example"

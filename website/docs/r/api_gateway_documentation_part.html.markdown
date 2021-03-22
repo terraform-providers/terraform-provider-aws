@@ -12,7 +12,7 @@ Provides a settings of an API Gateway Documentation Part.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_api_gateway_documentation_part" "example" {
   location {
     type   = "METHOD"

@@ -14,7 +14,7 @@ Provides an API Gateway API Key.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_api_gateway_api_key" "MyDemoApiKey" {
   name = "demo"
 }

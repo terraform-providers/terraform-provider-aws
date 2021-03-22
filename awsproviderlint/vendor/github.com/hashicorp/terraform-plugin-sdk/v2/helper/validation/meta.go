@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -55,5 +57,32 @@ func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
 			allErrors = append(allErrors, validatorErrors...)
 		}
 		return allWarnings, allErrors
+	}
+}
+
+// ToDiagFunc is a wrapper for legacy schema.SchemaValidateFunc
+// converting it to schema.SchemaValidateDiagFunc
+func ToDiagFunc(validator schema.SchemaValidateFunc) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, p cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+
+		attr := p[len(p)-1].(cty.GetAttrStep)
+		ws, es := validator(i, attr.Name)
+
+		for _, w := range ws {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Warning,
+				Summary:       w,
+				AttributePath: p,
+			})
+		}
+		for _, e := range es {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       e.Error(),
+				AttributePath: p,
+			})
+		}
+		return diags
 	}
 }

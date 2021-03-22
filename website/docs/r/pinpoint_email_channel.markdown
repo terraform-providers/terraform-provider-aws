@@ -12,7 +12,7 @@ Provides a Pinpoint Email Channel resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_pinpoint_email_channel" "email" {
   application_id = aws_pinpoint_app.app.application_id
   from_address   = "user@example.com"

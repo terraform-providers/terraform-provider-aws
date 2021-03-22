@@ -13,8 +13,9 @@ import (
 func TestAccDataSourceAwsDirectoryServiceDirectory_NonExistent(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, directoryservice.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDataSourceAwsDirectoryServiceDirectoryConfig_NonExistent,
@@ -30,8 +31,9 @@ func TestAccDataSourceAwsDirectoryServiceDirectory_SimpleAD(t *testing.T) {
 	dataSourceName := "data.aws_directory_service_directory.test-simple-ad"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSDirectoryServiceSimpleDirectory(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSDirectoryServiceSimpleDirectory(t) },
+		ErrorCheck: testAccErrorCheck(t, directoryservice.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsDirectoryServiceDirectoryConfig_SimpleAD(alias),
@@ -61,8 +63,9 @@ func TestAccDataSourceAwsDirectoryServiceDirectory_MicrosoftAD(t *testing.T) {
 	dataSourceName := "data.aws_directory_service_directory.test-microsoft-ad"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, directoryservice.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsDirectoryServiceDirectoryConfig_MicrosoftAD(alias),
@@ -96,7 +99,8 @@ func TestAccDataSourceAWSDirectoryServiceDirectory_connector(t *testing.T) {
 			testAccPreCheckAWSDirectoryService(t)
 			testAccPreCheckAWSDirectoryServiceSimpleDirectory(t)
 		},
-		Providers: testAccProviders,
+		ErrorCheck: testAccErrorCheck(t, directoryservice.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDirectoryServiceDirectoryConfig_connector(),
@@ -197,7 +201,8 @@ data "aws_directory_service_directory" "test-microsoft-ad" {
 }
 
 func testAccDataSourceDirectoryServiceDirectoryConfig_connector() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(),
+		`
 resource "aws_directory_service_directory" "test" {
   name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
@@ -254,5 +259,5 @@ resource "aws_subnet" "test" {
 data "aws_directory_service_directory" "test-ad-connector" {
   directory_id = aws_directory_service_directory.connector.id
 }
-`))
+`)
 }

@@ -15,7 +15,7 @@ Provides an RDS DB cluster parameter group resource. Documentation of the availa
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_rds_cluster_parameter_group" "default" {
   name        = "rds-cluster-pg"
   family      = "aurora5.6"

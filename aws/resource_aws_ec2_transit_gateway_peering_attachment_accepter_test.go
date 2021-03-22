@@ -25,6 +25,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentAccepter_basic_sameAccount(t *t
 			testAccMultipleRegionPreCheck(t, 2)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -62,6 +63,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentAccepter_Tags_sameAccount(t *te
 			testAccMultipleRegionPreCheck(t, 2)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -112,6 +114,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentAccepter_basic_differentAccount
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{

@@ -65,7 +65,7 @@ func dataSourceAwsPricingProductRead(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] Reading pricing of products: %s", params)
 	resp, err := conn.GetProducts(params)
 	if err != nil {
-		return fmt.Errorf("Error reading pricing of products: %s", err)
+		return fmt.Errorf("Error reading pricing of products: %w", err)
 	}
 
 	numberOfElements := len(resp.PriceList)
@@ -82,7 +82,7 @@ func dataSourceAwsPricingProductRead(d *schema.ResourceData, meta interface{}) e
 
 	pricingResult, err := json.Marshal(resp.PriceList[0])
 	if err != nil {
-		return fmt.Errorf("Invalid JSON value returned by AWS: %s", err)
+		return fmt.Errorf("Invalid JSON value returned by AWS: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%d", hashcode.String(params.String())))

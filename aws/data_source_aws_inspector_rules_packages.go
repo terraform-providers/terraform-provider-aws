@@ -40,7 +40,7 @@ func dataSourceAwsInspectorRulesPackagesRead(d *schema.ResourceData, meta interf
 		return !lastPage
 	})
 	if err != nil {
-		return fmt.Errorf("Error fetching Rules Packages: %s", err)
+		return fmt.Errorf("Error fetching Rules Packages: %w", err)
 	}
 
 	if len(arns) == 0 {

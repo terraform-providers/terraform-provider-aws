@@ -3,9 +3,11 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -21,10 +23,18 @@ func resourceAwsSesEventDestination() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 64),
+					validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z_-]+$`), "must contain only alphanumeric, underscore, and hyphen characters"),
+				),
 			},
 
 			"configuration_set_name": {
@@ -70,11 +80,19 @@ func resourceAwsSesEventDestination() *schema.Resource {
 						"default_value": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 256),
+								validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z_-]+$`), "must contain only alphanumeric, underscore, and hyphen characters"),
+							),
 						},
 
 						"dimension_name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 256),
+								validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z_:-]+$`), "must contain only alphanumeric, underscore, and hyphen characters"),
+							),
 						},
 
 						"value_source": {
@@ -99,13 +117,15 @@ func resourceAwsSesEventDestination() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"stream_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 
 						"role_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 					},
 				},
@@ -120,8 +140,9 @@ func resourceAwsSesEventDestination() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"topic_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 					},
 				},
@@ -136,14 +157,14 @@ func resourceAwsSesEventDestinationCreate(d *schema.ResourceData, meta interface
 	configurationSetName := d.Get("configuration_set_name").(string)
 	eventDestinationName := d.Get("name").(string)
 	enabled := d.Get("enabled").(bool)
-	matchingEventTypes := d.Get("matching_types").(*schema.Set).List()
+	matchingEventTypes := d.Get("matching_types").(*schema.Set)
 
 	createOpts := &ses.CreateConfigurationSetEventDestinationInput{
 		ConfigurationSetName: aws.String(configurationSetName),
 		EventDestination: &ses.EventDestination{
 			Name:               aws.String(eventDestinationName),
 			Enabled:            aws.Bool(enabled),
-			MatchingEventTypes: expandStringList(matchingEventTypes),
+			MatchingEventTypes: expandStringSet(matchingEventTypes),
 		},
 	}
 
@@ -233,6 +254,15 @@ func resourceAwsSesEventDestinationRead(d *schema.ResourceData, meta interface{}
 	if err := d.Set("sns_destination", flattenSesSnsDestination(thisEventDestination.SNSDestination)); err != nil {
 		return fmt.Errorf("error setting sns_destination: %w", err)
 	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ses",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("configuration-set/%s:event-destination/%s", configurationSetName, d.Id()),
+	}.String()
+	d.Set("arn", arn)
 
 	return nil
 }

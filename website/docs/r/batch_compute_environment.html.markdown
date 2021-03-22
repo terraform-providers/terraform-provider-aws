@@ -18,7 +18,7 @@ otherwise, the policy may be destroyed too soon and the compute environment will
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "ecs_instance_role" {
   name = "ecs_instance_role"
 

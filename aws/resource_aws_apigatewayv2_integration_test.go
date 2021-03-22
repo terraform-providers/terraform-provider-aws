@@ -19,6 +19,7 @@ func TestAccAWSAPIGatewayV2Integration_basicWebSocket(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -40,6 +41,7 @@ func TestAccAWSAPIGatewayV2Integration_basicWebSocket(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -63,6 +65,7 @@ func TestAccAWSAPIGatewayV2Integration_basicHttp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -82,9 +85,12 @@ func TestAccAWSAPIGatewayV2Integration_basicHttp(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "integration_uri", "https://example.com"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "30000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
 				),
 			},
 			{
@@ -105,6 +111,7 @@ func TestAccAWSAPIGatewayV2Integration_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -120,6 +127,97 @@ func TestAccAWSAPIGatewayV2Integration_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayV2Integration_DataMappingHttp(t *testing.T) {
+	var apiId string
+	var v apigatewayv2.GetIntegrationOutput
+	resourceName := "aws_apigatewayv2_integration.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_dataMappingHttp(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "connection_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "INTERNET"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttr(resourceName, "credentials_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", "ANY"),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP_PROXY"),
+					resource.TestCheckResourceAttr(resourceName, "integration_uri", "http://www.example.com"),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.append:header.header1", "$context.requestId"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.remove:querystring.qs1", "''"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "response_parameters.*", map[string]string{
+						"status_code":                    "500",
+						"mappings.%":                     "2",
+						"mappings.append:header.header1": "$context.requestId",
+						"mappings.overwrite:statuscode":  "403",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "response_parameters.*", map[string]string{
+						"status_code":                  "404",
+						"mappings.%":                   "1",
+						"mappings.append:header.error": "$stageVariables.environmentId",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "30000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_dataMappingHttpUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "connection_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "INTERNET"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttr(resourceName, "credentials_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", "ANY"),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP_PROXY"),
+					resource.TestCheckResourceAttr(resourceName, "integration_uri", "http://www.example.com"),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.append:header.header1", "$context.accountId"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.overwrite:header.header2", "$stageVariables.environmentId"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "response_parameters.*", map[string]string{
+						"status_code":                    "500",
+						"mappings.%":                     "2",
+						"mappings.append:header.header1": "$context.requestId",
+						"mappings.overwrite:statuscode":  "403",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "30000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2IntegrationImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 	var apiId string
 	var v apigatewayv2.GetIntegrationOutput
@@ -128,6 +226,7 @@ func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -151,6 +250,7 @@ func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.integration.request.querystring.stage", "'value1'"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/json", ""),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", "$request.body.name"),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "28999"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -178,6 +278,7 @@ func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/json", "#set($number=42)"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/xml", "#set($percent=$number/100)"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", "$request.body.id"),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "51"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -202,6 +303,7 @@ func TestAccAWSAPIGatewayV2Integration_LambdaWebSocket(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -222,6 +324,7 @@ func TestAccAWSAPIGatewayV2Integration_LambdaWebSocket(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -246,6 +349,7 @@ func TestAccAWSAPIGatewayV2Integration_LambdaHttp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -266,6 +370,7 @@ func TestAccAWSAPIGatewayV2Integration_LambdaHttp(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "2.0"),
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "30000"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -290,6 +395,7 @@ func TestAccAWSAPIGatewayV2Integration_VpcLinkWebSocket(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -311,6 +417,7 @@ func TestAccAWSAPIGatewayV2Integration_VpcLinkWebSocket(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "12345"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -336,6 +443,7 @@ func TestAccAWSAPIGatewayV2Integration_VpcLinkHttp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -355,7 +463,9 @@ func TestAccAWSAPIGatewayV2Integration_VpcLinkHttp(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "integration_uri", lbListenerResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29001"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "1"),
@@ -384,7 +494,9 @@ func TestAccAWSAPIGatewayV2Integration_VpcLinkHttp(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "integration_uri", lbListenerResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29001"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "1"),
@@ -412,6 +524,7 @@ func TestAccAWSAPIGatewayV2Integration_AwsServiceIntegration(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -435,6 +548,7 @@ func TestAccAWSAPIGatewayV2Integration_AwsServiceIntegration(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.MessageGroupId", "$request.body.authentication_key"),
 					resource.TestCheckResourceAttrPair(resourceName, "request_parameters.QueueUrl", sqsQueue1ResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "30000"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -460,6 +574,7 @@ func TestAccAWSAPIGatewayV2Integration_AwsServiceIntegration(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.MessageGroupId", "$request.body.authentication_key"),
 					resource.TestCheckResourceAttrPair(resourceName, "request_parameters.QueueUrl", sqsQueue2ResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "30000"),
 					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
@@ -681,6 +796,66 @@ resource "aws_apigatewayv2_integration" "test" {
 `
 }
 
+func testAccAWSAPIGatewayV2IntegrationConfig_dataMappingHttp(rName string) string {
+	return testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName) + `
+resource "aws_apigatewayv2_integration" "test" {
+  api_id = aws_apigatewayv2_api.test.id
+
+  integration_type   = "HTTP_PROXY"
+  integration_method = "ANY"
+  integration_uri    = "http://www.example.com"
+
+  request_parameters = {
+    "append:header.header1"  = "$context.requestId"
+    "remove:querystring.qs1" = "''"
+  }
+
+  response_parameters {
+    status_code = "500"
+
+    mappings = {
+      "append:header.header1" = "$context.requestId"
+      "overwrite:statuscode"  = "403"
+    }
+  }
+
+  response_parameters {
+    status_code = "404"
+
+    mappings = {
+      "append:header.error" = "$stageVariables.environmentId"
+    }
+  }
+}
+`
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_dataMappingHttpUpdated(rName string) string {
+	return testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName) + `
+resource "aws_apigatewayv2_integration" "test" {
+  api_id = aws_apigatewayv2_api.test.id
+
+  integration_type   = "HTTP_PROXY"
+  integration_method = "ANY"
+  integration_uri    = "http://www.example.com"
+
+  request_parameters = {
+    "append:header.header1"    = "$context.accountId"
+    "overwrite:header.header2" = "$stageVariables.environmentId"
+  }
+
+  response_parameters {
+    status_code = "500"
+
+    mappings = {
+      "append:header.header1" = "$context.requestId"
+      "overwrite:statuscode"  = "403"
+    }
+  }
+}
+`
+}
+
 func testAccAWSAPIGatewayV2IntegrationConfig_integrationTypeHttp(rName string) string {
 	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + `
 resource "aws_apigatewayv2_integration" "test" {
@@ -776,7 +951,7 @@ resource "aws_apigatewayv2_integration" "test" {
 }
 
 func testAccAWSAPIGatewayV2IntegrationConfig_httpProxy(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName) + fmt.Sprintf(`
+	return composeConfig(testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName), `
 resource "aws_apigatewayv2_integration" "test" {
   api_id           = aws_apigatewayv2_api.test.id
   integration_type = "HTTP_PROXY"
@@ -790,7 +965,7 @@ resource "aws_apigatewayv2_integration" "test" {
 func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttp(rName string) string {
 	return composeConfig(
 		testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpBase(rName),
-		fmt.Sprintf(`
+		`
 resource "aws_apigatewayv2_integration" "test" {
   api_id           = aws_apigatewayv2_api.test.id
   integration_type = "HTTP_PROXY"
@@ -806,13 +981,13 @@ resource "aws_apigatewayv2_integration" "test" {
     server_name_to_verify = "www.example.com"
   }
 }
-`))
+`)
 }
 
 func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpUpdated(rName string) string {
 	return composeConfig(
 		testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpBase(rName),
-		fmt.Sprintf(`
+		`
 resource "aws_apigatewayv2_integration" "test" {
   api_id           = aws_apigatewayv2_api.test.id
   integration_type = "HTTP_PROXY"
@@ -827,7 +1002,7 @@ resource "aws_apigatewayv2_integration" "test" {
     server_name_to_verify = "www.example.org"
   }
 }
-`))
+`)
 }
 
 func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkWebSocket(rName string) string {

@@ -14,7 +14,7 @@ Provides a resource to manage a GuardDuty detector.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_detector" "MyDetector" {
   enable = true
 }

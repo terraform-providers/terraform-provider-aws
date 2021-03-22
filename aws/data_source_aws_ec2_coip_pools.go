@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -49,26 +48,40 @@ func dataSourceAwsEc2CoipPoolsRead(d *schema.ResourceData, meta interface{}) err
 		req.Filters = nil
 	}
 
-	log.Printf("[DEBUG] DescribeCoipPools %s\n", req)
-	resp, err := conn.DescribeCoipPools(req)
+	var coipPools []*ec2.CoipPool
+
+	err := conn.DescribeCoipPoolsPages(req, func(page *ec2.DescribeCoipPoolsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		coipPools = append(coipPools, page.CoipPools...)
+
+		return !lastPage
+	})
+
 	if err != nil {
 		return fmt.Errorf("error describing EC2 COIP Pools: %w", err)
 	}
 
-	if resp == nil || len(resp.CoipPools) == 0 {
-		return fmt.Errorf("no matching Coip Pool found")
+	if len(coipPools) == 0 {
+		return fmt.Errorf("no matching EC2 COIP Pools found")
 	}
 
-	coippools := make([]string, 0)
+	var poolIDs []string
 
-	for _, coippool := range resp.CoipPools {
-		coippools = append(coippools, aws.StringValue(coippool.PoolId))
+	for _, coipPool := range coipPools {
+		if coipPool == nil {
+			continue
+		}
+
+		poolIDs = append(poolIDs, aws.StringValue(coipPool.PoolId))
 	}
 
 	d.SetId(meta.(*AWSClient).region)
 
-	if err := d.Set("pool_ids", coippools); err != nil {
-		return fmt.Errorf("Error setting coip pool ids: %s", err)
+	if err := d.Set("pool_ids", poolIDs); err != nil {
+		return fmt.Errorf("error setting pool_ids: %w", err)
 	}
 
 	return nil

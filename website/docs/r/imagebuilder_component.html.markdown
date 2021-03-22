@@ -14,7 +14,7 @@ Manages an Image Builder Component.
 
 ### Inline Data Document
 
-```hcl
+```terraform
 resource "aws_imagebuilder_component" "example" {
   data = yamlencode({
     phases = [{
@@ -38,7 +38,7 @@ resource "aws_imagebuilder_component" "example" {
 
 ### URI Document
 
-```hcl
+```terraform
 resource "aws_imagebuilder_component" "example" {
   name     = "example"
   platform = "Linux"

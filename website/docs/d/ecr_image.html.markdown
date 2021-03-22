@@ -12,7 +12,7 @@ The ECR Image data source allows the details of an image with a particular tag o
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ecr_image" "service_image" {
   repository_name = "my/service"
   image_tag       = "latest"

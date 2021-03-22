@@ -20,6 +20,7 @@ func TestAccAWSLBListener_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_lb_listener.front_end",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -53,6 +54,7 @@ func TestAccAWSLBListener_forwardWeighted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -124,6 +126,7 @@ func TestAccAWSLBListener_basicUdp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_lb_listener.front_end",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -155,6 +158,7 @@ func TestAccAWSLBListener_BackwardsCompatibility(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_listener.front_end",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -187,6 +191,7 @@ func TestAccAWSLBListener_https(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_lb_listener.front_end",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -221,6 +226,7 @@ func TestAccAWSLBListener_LoadBalancerArn_GatewayLoadBalancer(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipELBV2(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
@@ -246,6 +252,7 @@ func TestAccAWSLBListener_Protocol_Tls(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
@@ -266,6 +273,7 @@ func TestAccAWSLBListener_redirect(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_lb_listener.front_end",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -302,6 +310,7 @@ func TestAccAWSLBListener_fixedResponse(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_lb_listener.front_end",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -337,6 +346,7 @@ func TestAccAWSLBListener_cognito(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheckSkipELBV2(t),
 		IDRefreshName: "aws_lb_listener.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -374,6 +384,7 @@ func TestAccAWSLBListener_oidc(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_lb_listener.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
@@ -415,6 +426,7 @@ func TestAccAWSLBListener_DefaultAction_Order(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
@@ -441,6 +453,7 @@ func TestAccAWSLBListener_DefaultAction_Order_Recreates(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
@@ -457,6 +470,14 @@ func TestAccAWSLBListener_DefaultAction_Order_Recreates(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccErrorCheckSkipELBV2(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"ValidationError: Type must be one of: 'application, network'",
+		"ValidationError: Protocol 'GENEVE' must be one of",
+		"ValidationError: Action type 'authenticate-cognito' must be one",
+	)
 }
 
 func testAccCheckAWSLBListenerDefaultActionOrderDisappears(listener *elbv2.Listener, actionOrderToDelete int) resource.TestCheckFunc {
@@ -594,7 +615,7 @@ resource "aws_lb_target_group" "test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -728,7 +749,7 @@ resource "aws_lb_target_group" "test2" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -867,7 +888,7 @@ resource "aws_lb_target_group" "test2" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -990,7 +1011,7 @@ resource "aws_lb_target_group" "test2" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1089,7 +1110,7 @@ resource "aws_lb_target_group" "test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1178,7 +1199,7 @@ resource "aws_alb_target_group" "test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1287,7 +1308,7 @@ resource "aws_lb_target_group" "test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1528,7 +1549,7 @@ resource "aws_lb" "alb_test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1620,7 +1641,7 @@ resource "aws_lb" "alb_test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1708,7 +1729,7 @@ resource "aws_lb_target_group" "test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -1842,7 +1863,7 @@ resource "aws_lb_target_group" "test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {

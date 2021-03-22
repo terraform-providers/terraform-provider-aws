@@ -14,21 +14,19 @@ Choose a role that has read/write access to the chosen Amazon S3 path or use the
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_s3_bucket" "example" {
   bucket = "an-example-bucket"
 }
 
 resource "aws_lakeformation_resource" "example" {
-  resource_arn = data.aws_s3_bucket.example.arn
+  arn = data.aws_s3_bucket.example.arn
 }
 ```
 
 ## Argument Reference
 
-The following arguments are required:
-
-* `resource_arn` – (Required) Amazon Resource Name (ARN) of the resource, an S3 path.
+* `arn` – (Required) Amazon Resource Name (ARN) of the resource, an S3 path.
 * `role_arn` – (Optional) Role that has read/write access to the resource. If not provided, the Lake Formation service-linked role must exist and is used.
 
 ~> **NOTE:** AWS does not support registering an S3 location with an IAM role and subsequently updating the S3 location registration to a service-linked role.

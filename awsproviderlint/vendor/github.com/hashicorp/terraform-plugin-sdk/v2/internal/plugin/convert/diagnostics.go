@@ -107,6 +107,9 @@ func AttributePathToPath(ap *tftypes.AttributePath) cty.Path {
 
 // PathToAttributePath takes a cty.Path and converts it to a proto-encoded path.
 func PathToAttributePath(p cty.Path) *tftypes.AttributePath {
+	if p == nil || len(p) < 1 {
+		return nil
+	}
 	ap := &tftypes.AttributePath{}
 	for _, step := range p {
 		switch selector := step.(type) {

@@ -14,7 +14,7 @@ Provides an AWS App Mesh service mesh resource.
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_appmesh_mesh" "simple" {
   name = "simpleapp"
 }
@@ -22,7 +22,7 @@ resource "aws_appmesh_mesh" "simple" {
 
 ### Egress Filter
 
-```hcl
+```terraform
 resource "aws_appmesh_mesh" "simple" {
   name = "simpleapp"
 

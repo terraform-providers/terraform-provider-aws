@@ -74,7 +74,7 @@ func dataSourceAwsEc2TransitGatewayVpcAttachmentRead(d *schema.ResourceData, met
 	output, err := conn.DescribeTransitGatewayVpcAttachments(input)
 
 	if err != nil {
-		return fmt.Errorf("error reading EC2 Transit Gateway Route Table: %s", err)
+		return fmt.Errorf("error reading EC2 Transit Gateway Route Table: %w", err)
 	}
 
 	if output == nil || len(output.TransitGatewayVpcAttachments) == 0 {
@@ -100,11 +100,11 @@ func dataSourceAwsEc2TransitGatewayVpcAttachmentRead(d *schema.ResourceData, met
 	d.Set("ipv6_support", transitGatewayVpcAttachment.Options.Ipv6Support)
 
 	if err := d.Set("subnet_ids", aws.StringValueSlice(transitGatewayVpcAttachment.SubnetIds)); err != nil {
-		return fmt.Errorf("error setting subnet_ids: %s", err)
+		return fmt.Errorf("error setting subnet_ids: %w", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGatewayVpcAttachment.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("transit_gateway_id", aws.StringValue(transitGatewayVpcAttachment.TransitGatewayId))

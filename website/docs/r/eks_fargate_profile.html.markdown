@@ -12,7 +12,7 @@ Manages an EKS Fargate Profile.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_eks_fargate_profile" "example" {
   cluster_name           = aws_eks_cluster.example.name
   fargate_profile_name   = "example"
@@ -27,7 +27,7 @@ resource "aws_eks_fargate_profile" "example" {
 
 ### Example IAM Role for EKS Fargate Profile
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "eks-fargate-profile-example"
 
@@ -83,7 +83,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_eks_fargate_profile` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_eks_fargate_profile` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10 minutes`) How long to wait for the EKS Fargate Profile to be created.
 * `delete` - (Default `10 minutes`) How long to wait for the EKS Fargate Profile to be deleted.

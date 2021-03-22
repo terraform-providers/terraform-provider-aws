@@ -91,7 +91,7 @@ func resourceAwsBatchJobQueueCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error waiting for JobQueue state to be \"VALID\": %s", err)
 	}
 
-	arn := *out.JobQueueArn
+	arn := aws.StringValue(out.JobQueueArn)
 	log.Printf("[DEBUG] JobQueue created: %s", arn)
 	d.SetId(arn)
 

@@ -3,11 +3,11 @@ package aws
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"sort"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -21,6 +21,7 @@ func TestAccAWSElasticTranscoderPipeline_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:    testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckElasticTranscoderPipelineDestroy,
@@ -29,6 +30,7 @@ func TestAccAWSElasticTranscoderPipeline_basic(t *testing.T) {
 				Config: awsElasticTranscoderPipelineConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticTranscoderPipelineExists(resourceName, pipeline),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "elastictranscoder", regexp.MustCompile(`pipeline/.+`)),
 				),
 			},
 			{
@@ -48,6 +50,7 @@ func TestAccAWSElasticTranscoderPipeline_kmsKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:    testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckElasticTranscoderPipelineDestroy,
@@ -76,6 +79,7 @@ func TestAccAWSElasticTranscoderPipeline_notifications(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:    testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckElasticTranscoderPipelineDestroy,
@@ -110,16 +114,16 @@ func testAccCheckAWSElasticTranscoderPipeline_notifications(
 	return func(s *terraform.State) error {
 
 		var notes []string
-		if p.Notifications.Completed != nil && *p.Notifications.Completed != "" {
+		if aws.StringValue(p.Notifications.Completed) != "" {
 			notes = append(notes, "completed")
 		}
-		if p.Notifications.Error != nil && *p.Notifications.Error != "" {
+		if aws.StringValue(p.Notifications.Error) != "" {
 			notes = append(notes, "error")
 		}
-		if p.Notifications.Progressing != nil && *p.Notifications.Progressing != "" {
+		if aws.StringValue(p.Notifications.Progressing) != "" {
 			notes = append(notes, "progressing")
 		}
-		if p.Notifications.Warning != nil && *p.Notifications.Warning != "" {
+		if aws.StringValue(p.Notifications.Warning) != "" {
 			notes = append(notes, "warning")
 		}
 
@@ -146,6 +150,7 @@ func TestAccAWSElasticTranscoderPipeline_withContentConfig(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:    testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckElasticTranscoderPipelineDestroy,
@@ -179,6 +184,7 @@ func TestAccAWSElasticTranscoderPipeline_withPermissions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:    testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckElasticTranscoderPipelineDestroy,
@@ -205,6 +211,7 @@ func TestAccAWSElasticTranscoderPipeline_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:   testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckElasticTranscoderPipelineDestroy,
 		Steps: []resource.TestStep{
@@ -212,7 +219,7 @@ func TestAccAWSElasticTranscoderPipeline_disappears(t *testing.T) {
 				Config: awsElasticTranscoderPipelineConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticTranscoderPipelineExists(resourceName, pipeline),
-					testAccCheckAWSElasticTranscoderPipelineDisappears(pipeline),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsElasticTranscoderPipeline(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -247,18 +254,6 @@ func testAccCheckAWSElasticTranscoderPipelineExists(n string, res *elastictransc
 	}
 }
 
-func testAccCheckAWSElasticTranscoderPipelineDisappears(res *elastictranscoder.Pipeline) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).elastictranscoderconn
-
-		_, err := conn.DeletePipeline(&elastictranscoder.DeletePipelineInput{
-			Id: res.Id,
-		})
-
-		return err
-	}
-}
-
 func testAccCheckElasticTranscoderPipelineDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).elastictranscoderconn
 
@@ -270,22 +265,16 @@ func testAccCheckElasticTranscoderPipelineDestroy(s *terraform.State) error {
 		out, err := conn.ReadPipeline(&elastictranscoder.ReadPipelineInput{
 			Id: aws.String(rs.Primary.ID),
 		})
-
-		if err == nil {
-			if out.Pipeline != nil && *out.Pipeline.Id == rs.Primary.ID {
-				return fmt.Errorf("Elastic Transcoder Pipeline still exists")
-			}
+		if isAWSErr(err, elastictranscoder.ErrCodeResourceNotFoundException, "") {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("unexpected error: %w", err)
 		}
 
-		awsErr, ok := err.(awserr.Error)
-		if !ok {
-			return err
+		if out.Pipeline != nil && aws.StringValue(out.Pipeline.Id) == rs.Primary.ID {
+			return fmt.Errorf("Elastic Transcoder Pipeline still exists")
 		}
-
-		if awsErr.Code() != "ResourceNotFoundException" {
-			return fmt.Errorf("unexpected error: %s", awsErr)
-		}
-
 	}
 	return nil
 }

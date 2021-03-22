@@ -12,7 +12,7 @@ Provides an Elastic File System (EFS) access point.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_efs_access_point" "test" {
   file_system_id = aws_efs_file_system.foo.id
 }

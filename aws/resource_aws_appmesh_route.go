@@ -103,8 +103,8 @@ func resourceAwsAppmeshRoute() *schema.Resource {
 
 									"match": {
 										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
+										Optional: true,
+										MinItems: 0,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -196,8 +196,9 @@ func resourceAwsAppmeshRoute() *schema.Resource {
 												},
 
 												"service_name": {
-													Type:     schema.TypeString,
-													Optional: true,
+													Type:         schema.TypeString,
+													Optional:     true,
+													RequiredWith: []string{"spec.0.grpc_route.0.match.0.method_name"},
 												},
 											},
 										},

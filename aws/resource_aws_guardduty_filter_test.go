@@ -21,6 +21,7 @@ func testAccAwsGuardDutyFilter_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyFilterDestroy,
 		Steps: []resource.TestStep{
@@ -40,7 +41,7 @@ func testAccAwsGuardDutyFilter_basic(t *testing.T) {
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":    "region",
 						"equals.#": "1",
-						"equals.0": "eu-west-1",
+						"equals.0": testAccGetRegion(),
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":        "service.additionalInfo.threatListName",
@@ -86,6 +87,7 @@ func testAccAwsGuardDutyFilter_update(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyFilterDestroy,
 		Steps: []resource.TestStep{
@@ -129,6 +131,7 @@ func testAccAwsGuardDutyFilter_tags(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyFilterDestroy,
 		Steps: []resource.TestStep{
@@ -169,6 +172,7 @@ func testAccAwsGuardDutyFilter_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAcmpcaCertificateAuthorityDestroy,
 		Steps: []resource.TestStep{
@@ -248,6 +252,8 @@ func testAccCheckAwsGuardDutyFilterExists(name string, filter *guardduty.GetFilt
 
 func testAccGuardDutyFilterConfig_full(startDate, endDate string) string {
 	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_guardduty_filter" "test" {
   detector_id = aws_guardduty_detector.test.id
   name        = "test-filter"
@@ -257,7 +263,7 @@ resource "aws_guardduty_filter" "test" {
   finding_criteria {
     criterion {
       field  = "region"
-      equals = ["eu-west-1"]
+      equals = [data.aws_region.current.name]
     }
 
     criterion {
@@ -281,6 +287,8 @@ resource "aws_guardduty_detector" "test" {
 
 func testAccGuardDutyFilterConfigNoop_full(startDate, endDate string) string {
 	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_guardduty_filter" "test" {
   detector_id = aws_guardduty_detector.test.id
   name        = "test-filter"
@@ -291,7 +299,7 @@ resource "aws_guardduty_filter" "test" {
   finding_criteria {
     criterion {
       field  = "region"
-      equals = ["eu-west-1"]
+      equals = [data.aws_region.current.name]
     }
 
     criterion {

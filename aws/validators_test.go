@@ -359,6 +359,50 @@ func TestValidateArn(t *testing.T) {
 	}
 }
 
+func TestValidatePrincipal(t *testing.T) {
+	v := ""
+	_, errors := validatePrincipal(v, "arn")
+	if len(errors) == 0 {
+		t.Fatalf("%q should not be validated as a principal %d: %q", v, len(errors), errors)
+	}
+
+	validNames := []string{
+		"IAM_ALLOWED_PRINCIPALS", // Special principal
+		"arn:aws-us-gov:iam::357342307427:role/tf-acc-test-3217321001347236965",          // lintignore:AWSAT005          // IAM Role
+		"arn:aws:iam::123456789012:user/David",                                           // lintignore:AWSAT005          // IAM User
+		"arn:aws-us-gov:iam:us-west-2:357342307427:role/tf-acc-test-3217321001347236965", // lintignore:AWSAT003,AWSAT005 // Non-global IAM Role?
+		"arn:aws:iam:us-east-1:123456789012:user/David",                                  // lintignore:AWSAT003,AWSAT005 // Non-global IAM User?
+	}
+	for _, v := range validNames {
+		_, errors := validatePrincipal(v, "arn")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid principal: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"IAM_NOT_ALLOWED_PRINCIPALS", // doesn't exist
+		"arn",
+		"123456789012",
+		"arn:aws",
+		"arn:aws:logs",            //lintignore:AWSAT005
+		"arn:aws:logs:region:*:*", //lintignore:AWSAT005
+		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",                                 // lintignore:AWSAT005          // not a user or role
+		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // lintignore:AWSAT005          // not a user or role
+		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws-us-gov:ec2:us-gov-west-1:123456789012:instance/i-12345678",                // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws-us-gov:s3:::bucket/object",                                                // lintignore:AWSAT005          // not a user or role
+	}
+	for _, v := range invalidNames {
+		_, errors := validatePrincipal(v, "arn")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid principal", v)
+		}
+	}
+}
+
 func TestValidateEC2AutomateARN(t *testing.T) {
 	validNames := []string{
 		"arn:aws:automate:us-east-1:ec2:reboot",    //lintignore:AWSAT003,AWSAT005
@@ -1260,37 +1304,6 @@ func TestValidateDmsEndpointId(t *testing.T) {
 		_, errors := validateDmsEndpointId(s, "endpoint_id")
 		if len(errors) == 0 {
 			t.Fatalf("%q should not be a valid endpoint id: %v", s, errors)
-		}
-	}
-}
-
-func TestValidateDmsCertificateId(t *testing.T) {
-	validIds := []string{
-		"tf-test-certificate-1",
-		"tfTestEndpoint",
-	}
-
-	for _, s := range validIds {
-		_, errors := validateDmsCertificateId(s, "certificate_id")
-		if len(errors) > 0 {
-			t.Fatalf("%q should be a valid certificate id: %v", s, errors)
-		}
-	}
-
-	invalidIds := []string{
-		"tf_test_certificate_1",
-		"tf.test.certificate.1",
-		"tf test certificate 1",
-		"tf-test-certificate-1!",
-		"tf-test-certificate-1-",
-		"tf-test-certificate--1",
-		"tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1",
-	}
-
-	for _, s := range invalidIds {
-		_, errors := validateDmsEndpointId(s, "certificate_id")
-		if len(errors) == 0 {
-			t.Fatalf("%q should not be a valid certificate id: %v", s, errors)
 		}
 	}
 }
@@ -3261,6 +3274,35 @@ func TestValidateUTCTimestamp(t *testing.T) {
 		_, errors := validateUTCTimestamp(f, "utc_timestamp")
 		if len(errors) == 0 {
 			t.Fatalf("expected the time %q to fail validation", f)
+		}
+	}
+}
+
+func TestValidateTypeStringIsDateOrInt(t *testing.T) {
+	validT := []string{
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05-07:00",
+		"1234",
+		"0",
+	}
+
+	for _, f := range validT {
+		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
+		if len(errors) > 0 {
+			t.Fatalf("expected the value %q to be either RFC 3339 or positive integer, got error %q", f, errors)
+		}
+	}
+
+	invalidT := []string{
+		"2018-03-01T00:00:00", // No time zone
+		"ABC",
+		"-789",
+	}
+
+	for _, f := range invalidT {
+		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
+		if len(errors) == 0 {
+			t.Fatalf("expected the value %q to fail validation", f)
 		}
 	}
 }

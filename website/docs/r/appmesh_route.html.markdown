@@ -14,7 +14,7 @@ Provides an AWS App Mesh route resource.
 
 ### HTTP Routing
 
-```hcl
+```terraform
 resource "aws_appmesh_route" "serviceb" {
   name                = "serviceB-route"
   mesh_name           = aws_appmesh_mesh.simple.id
@@ -44,7 +44,7 @@ resource "aws_appmesh_route" "serviceb" {
 
 ### HTTP Header Routing
 
-```hcl
+```terraform
 resource "aws_appmesh_route" "serviceb" {
   name                = "serviceB-route"
   mesh_name           = aws_appmesh_mesh.simple.id
@@ -79,7 +79,7 @@ resource "aws_appmesh_route" "serviceb" {
 
 ### Retry Policy
 
-```hcl
+```terraform
 resource "aws_appmesh_route" "serviceb" {
   name                = "serviceB-route"
   mesh_name           = aws_appmesh_mesh.simple.id
@@ -116,7 +116,7 @@ resource "aws_appmesh_route" "serviceb" {
 
 ### TCP Routing
 
-```hcl
+```terraform
 resource "aws_appmesh_route" "serviceb" {
   name                = "serviceB-route"
   mesh_name           = aws_appmesh_mesh.simple.id

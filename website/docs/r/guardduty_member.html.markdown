@@ -12,7 +12,7 @@ Provides a resource to manage a GuardDuty member. To accept invitations in membe
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_detector" "primary" {
   enable = true
 }
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-`aws_guardduty_member` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_guardduty_member` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `60s`) How long to wait for a verification to be done against inviting GuardDuty member account.

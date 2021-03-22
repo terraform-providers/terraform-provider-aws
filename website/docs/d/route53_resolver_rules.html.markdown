@@ -14,7 +14,7 @@ description: |-
 
 Retrieving the default resolver rule.
 
-```hcl
+```terraform
 data "aws_route53_resolver_rules" "example" {
   owner_id     = "Route 53 Resolver"
   rule_type    = "RECURSIVE"
@@ -22,7 +22,7 @@ data "aws_route53_resolver_rules" "example" {
 }
 ```
 
-```hcl
+```terraform
 data "aws_route53_resolver_rules" "example" {
   rule_type    = "FORWARD"
   share_status = "SHARED_WITH_ME"

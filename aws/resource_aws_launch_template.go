@@ -737,7 +737,7 @@ func resourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) err
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("launch-template/%s", d.Id()),
@@ -1323,11 +1323,11 @@ func buildLaunchTemplateData(d *schema.ResourceData) (*ec2.RequestLaunchTemplate
 	}
 
 	if v, ok := d.GetOk("security_group_names"); ok {
-		opts.SecurityGroups = expandStringList(v.(*schema.Set).List())
+		opts.SecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("vpc_security_group_ids"); ok {
-		opts.SecurityGroupIds = expandStringList(v.(*schema.Set).List())
+		opts.SecurityGroupIds = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("block_device_mappings"); ok {

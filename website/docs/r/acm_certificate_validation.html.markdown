@@ -22,7 +22,7 @@ deploy the required validation records and wait for validation to complete.
 
 ### DNS Validation with Route 53
 
-```hcl
+```terraform
 resource "aws_acm_certificate" "example" {
   domain_name       = "example.com"
   validation_method = "DNS"
@@ -64,7 +64,7 @@ resource "aws_lb_listener" "example" {
 
 ### Alternative Domains DNS Validation with Route 53
 
-```hcl
+```terraform
 resource "aws_acm_certificate" "example" {
   domain_name               = "example.com"
   subject_alternative_names = ["www.example.com", "example.org"]
@@ -115,7 +115,7 @@ resource "aws_lb_listener" "example" {
 
 In this situation, the resource is simply a waiter for manual email approval of ACM certificates.
 
-```hcl
+```terraform
 resource "aws_acm_certificate" "example" {
   domain_name       = "example.com"
   validation_method = "EMAIL"
@@ -141,7 +141,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`acm_certificate_validation` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`acm_certificate_validation` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `45m`) How long to wait for a certificate to be issued.

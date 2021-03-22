@@ -12,7 +12,7 @@ Provides an SSM Maintenance Window resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window" "production" {
   name     = "maintenance-window-application"
   schedule = "cron(0 16 ? * TUE *)"

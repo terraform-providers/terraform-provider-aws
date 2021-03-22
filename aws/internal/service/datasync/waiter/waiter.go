@@ -1,6 +1,7 @@
 package waiter
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,15 +31,12 @@ func TaskStatusAvailable(conn *datasync.DataSync, arn string, timeout time.Durat
 		if err != nil && output != nil && output.ErrorCode != nil && output.ErrorDetail != nil {
 			newErr := fmt.Errorf("%s: %s", aws.StringValue(output.ErrorCode), aws.StringValue(output.ErrorDetail))
 
-			switch e := err.(type) {
-			case *resource.TimeoutError:
-				if e.LastError == nil {
-					e.LastError = newErr
-				}
-			case *resource.UnexpectedStateError:
-				if e.LastError == nil {
-					e.LastError = newErr
-				}
+			var te *resource.TimeoutError
+			var use *resource.UnexpectedStateError
+			if ok := errors.As(err, &te); ok && te.LastError == nil {
+				te.LastError = newErr
+			} else if ok := errors.As(err, &use); ok && use.LastError == nil {
+				use.LastError = newErr
 			}
 		}
 

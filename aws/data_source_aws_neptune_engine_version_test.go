@@ -16,6 +16,7 @@ func TestAccAWSNeptuneEngineVersionDataSource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAWSNeptuneEngineVersionPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, neptune.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -43,6 +44,7 @@ func TestAccAWSNeptuneEngineVersionDataSource_preferred(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAWSNeptuneEngineVersionPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, neptune.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -62,6 +64,7 @@ func TestAccAWSNeptuneEngineVersionDataSource_defaultOnly(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAWSNeptuneEngineVersionPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, neptune.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -105,15 +108,15 @@ data "aws_neptune_engine_version" "test" {
 }
 
 func testAccAWSNeptuneEngineVersionDataSourcePreferredConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_neptune_engine_version" "test" {
   preferred_versions = ["85.9.12", "1.0.3.0", "1.0.2.2"]
 }
-`)
+`
 }
 
 func testAccAWSNeptuneEngineVersionDataSourceDefaultOnlyConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_neptune_engine_version" "test" {}
-`)
+`
 }

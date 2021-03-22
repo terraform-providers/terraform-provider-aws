@@ -12,7 +12,7 @@ Provides a Direct Connect public virtual interface resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_public_virtual_interface" "foo" {
   connection_id = "dxcon-zzzzzzzz"
 
@@ -57,7 +57,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_public_virtual_interface` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating virtual interface
 - `delete` - (Default `10 minutes`) Used for destroying virtual interface

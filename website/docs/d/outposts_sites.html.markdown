@@ -12,7 +12,7 @@ Provides details about multiple Outposts Sites.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_outposts_sites" "all" {}
 ```
 

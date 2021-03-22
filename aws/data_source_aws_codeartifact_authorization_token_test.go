@@ -14,8 +14,9 @@ func TestAccAWSCodeArtifactAuthorizationTokenDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_codeartifact_authorization_token.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck: testAccErrorCheck(t, codeartifact.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAWSCodeArtifactAuthorizationTokenBasicConfig(rName),
@@ -34,8 +35,9 @@ func TestAccAWSCodeArtifactAuthorizationTokenDataSource_owner(t *testing.T) {
 	dataSourceName := "data.aws_codeartifact_authorization_token.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck: testAccErrorCheck(t, codeartifact.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAWSCodeArtifactAuthorizationTokenOwnerConfig(rName),
@@ -54,8 +56,9 @@ func TestAccAWSCodeArtifactAuthorizationTokenDataSource_duration(t *testing.T) {
 	dataSourceName := "data.aws_codeartifact_authorization_token.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck: testAccErrorCheck(t, codeartifact.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAWSCodeArtifactAuthorizationTokenDurationConfig(rName),
@@ -85,8 +88,9 @@ resource "aws_codeartifact_domain" "test" {
 }
 
 func testAccCheckAWSCodeArtifactAuthorizationTokenBasicConfig(rName string) string {
-	return testAccCheckAWSCodeArtifactAuthorizationTokenBaseConfig(rName) +
-		fmt.Sprintf(`
+	return composeConfig(
+		testAccCheckAWSCodeArtifactAuthorizationTokenBaseConfig(rName),
+		`
 data "aws_codeartifact_authorization_token" "test" {
   domain = aws_codeartifact_domain.test.domain
 }
@@ -94,8 +98,9 @@ data "aws_codeartifact_authorization_token" "test" {
 }
 
 func testAccCheckAWSCodeArtifactAuthorizationTokenOwnerConfig(rName string) string {
-	return testAccCheckAWSCodeArtifactAuthorizationTokenBaseConfig(rName) +
-		fmt.Sprintf(`
+	return composeConfig(
+		testAccCheckAWSCodeArtifactAuthorizationTokenBaseConfig(rName),
+		`
 data "aws_codeartifact_authorization_token" "test" {
   domain       = aws_codeartifact_domain.test.domain
   domain_owner = aws_codeartifact_domain.test.owner
@@ -104,8 +109,9 @@ data "aws_codeartifact_authorization_token" "test" {
 }
 
 func testAccCheckAWSCodeArtifactAuthorizationTokenDurationConfig(rName string) string {
-	return testAccCheckAWSCodeArtifactAuthorizationTokenBaseConfig(rName) +
-		fmt.Sprintf(`
+	return composeConfig(
+		testAccCheckAWSCodeArtifactAuthorizationTokenBaseConfig(rName),
+		`
 data "aws_codeartifact_authorization_token" "test" {
   domain           = aws_codeartifact_domain.test.domain
   duration_seconds = 900

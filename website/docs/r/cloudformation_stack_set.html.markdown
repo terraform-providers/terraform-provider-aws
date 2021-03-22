@@ -16,7 +16,7 @@ Manages a CloudFormation StackSet. StackSets allow CloudFormation templates to b
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "AWSCloudFormationStackSetAdministrationRole_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -105,7 +105,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_cloudformation_stack_set` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_cloudformation_stack_set` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `update` - (Default `30m`) How long to wait for a StackSet to be updated.
 

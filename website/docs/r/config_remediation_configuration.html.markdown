@@ -16,7 +16,7 @@ Provides an AWS Config Remediation Configuration.
 
 AWS managed rules can be used by setting the source owner to `AWS` and the source identifier to the name of the managed rule. More information about AWS managed rules can be found in the [AWS Config Developer Guide](https://docs.aws.amazon.com/config/latest/developerguide/evaluate-config_use-managed-rules.html).
 
-```hcl
+```terraform
 resource "aws_config_config_rule" "this" {
   name = "example"
 
@@ -68,6 +68,12 @@ You must select either a dynamic value or a static value.
 * `name` - (Required) The name of the attribute.
 * `resource_value` - (Optional) The value is dynamic and changes at run-time.
 * `static_value` - (Optional) The value is static and does not change at run-time.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `arn` - Amazon Resource Name (ARN) of the Config Remediation Configuration.
 
 ## Import
 

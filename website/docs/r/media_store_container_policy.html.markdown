@@ -12,7 +12,7 @@ Provides a MediaStore Container Policy.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
@@ -48,6 +48,10 @@ The following arguments are supported:
 
 * `container_name` - (Required) The name of the container.
 * `policy` - (Required) The contents of the policy. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

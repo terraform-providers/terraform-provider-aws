@@ -29,7 +29,6 @@ rules=(
     "--only=aws_route_specified_multiple_targets"
 )
 while read -r filename ; do
-    echo "$filename"
     block_number=0
 
     while IFS= read -r block ; do

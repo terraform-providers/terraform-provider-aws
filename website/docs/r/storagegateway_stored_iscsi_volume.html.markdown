@@ -16,7 +16,7 @@ Manages an AWS Storage Gateway stored iSCSI volume.
 
 ### Create Empty Stored iSCSI Volume
 
-```hcl
+```terraform
 resource "aws_storagegateway_stored_iscsi_volume" "example" {
   gateway_arn            = aws_storagegateway_cache.example.gateway_arn
   network_interface_id   = aws_instance.example.private_ip
@@ -28,7 +28,7 @@ resource "aws_storagegateway_stored_iscsi_volume" "example" {
 
 ### Create Stored iSCSI Volume From Snapshot
 
-```hcl
+```terraform
 resource "aws_storagegateway_stored_iscsi_volume" "example" {
   gateway_arn            = aws_storagegateway_cache.example.gateway_arn
   network_interface_id   = aws_instance.example.private_ip
@@ -75,5 +75,5 @@ In addition to all arguments above, the following attributes are exported:
 `aws_storagegateway_stored_iscsi_volume` can be imported by using the volume Amazon Resource Name (ARN), e.g.
 
 ```
-$ terraform import aws_storagegateway_cache.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678
+$ terraform import aws_storagegateway_stored_iscsi_volume.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678
 ```

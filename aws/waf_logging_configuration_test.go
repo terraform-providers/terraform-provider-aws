@@ -34,16 +34,16 @@ var testAccProviderWafLoggingConfigurationConfigure sync.Once
 func testAccPreCheckWafLoggingConfiguration(t *testing.T) {
 	testAccPartitionHasServicePreCheck(waf.EndpointsID, t)
 
+	region := testAccGetWafLoggingConfigurationRegion()
+
+	if region == "" {
+		t.Skip("WAF Logging Configuration not available in this AWS Partition")
+	}
+
 	// Since we are outside the scope of the Terraform configuration we must
 	// call Configure() to properly initialize the provider configuration.
 	testAccProviderWafLoggingConfigurationConfigure.Do(func() {
 		testAccProviderWafLoggingConfiguration = Provider()
-
-		region := testAccGetWafLoggingConfigurationRegion()
-
-		if region == "" {
-			t.Skip("WAF Logging Configuration not available in this AWS Partition")
-		}
 
 		config := map[string]interface{}{
 			"region": region,

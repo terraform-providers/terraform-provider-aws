@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -40,6 +41,14 @@ func dataSourceAwsAvailabilityZone() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"parent_zone_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"parent_zone_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"region": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -52,6 +61,10 @@ func dataSourceAwsAvailabilityZone() *schema.Resource {
 			"zone_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"zone_type": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -108,7 +121,9 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 	// the AZ suffix alone, without the region name.
 	// This can be used e.g. to create lookup tables by AZ letter that
 	// work regardless of region.
-	nameSuffix := (*az.ZoneName)[len(*az.RegionName):]
+	nameSuffix := aws.StringValue(az.ZoneName)[len(aws.StringValue(az.RegionName)):]
+	// For Local and Wavelength zones, remove any leading "-".
+	nameSuffix = strings.TrimLeft(nameSuffix, "-")
 
 	d.SetId(aws.StringValue(az.ZoneName))
 	d.Set("group_name", az.GroupName)
@@ -116,9 +131,12 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 	d.Set("name_suffix", nameSuffix)
 	d.Set("network_border_group", az.NetworkBorderGroup)
 	d.Set("opt_in_status", az.OptInStatus)
+	d.Set("parent_zone_id", az.ParentZoneId)
+	d.Set("parent_zone_name", az.ParentZoneName)
 	d.Set("region", az.RegionName)
 	d.Set("state", az.State)
 	d.Set("zone_id", az.ZoneId)
+	d.Set("zone_type", az.ZoneType)
 
 	return nil
 }

@@ -14,7 +14,7 @@ Manages a Lambda Provisioned Concurrency Configuration.
 
 ### Alias Name
 
-```hcl
+```terraform
 resource "aws_lambda_provisioned_concurrency_config" "example" {
   function_name                     = aws_lambda_alias.example.function_name
   provisioned_concurrent_executions = 1
@@ -24,7 +24,7 @@ resource "aws_lambda_provisioned_concurrency_config" "example" {
 
 ### Function Version
 
-```hcl
+```terraform
 resource "aws_lambda_provisioned_concurrency_config" "example" {
   function_name                     = aws_lambda_function.example.function_name
   provisioned_concurrent_executions = 1
@@ -48,7 +48,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_lambda_provisioned_concurrency_config` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_lambda_provisioned_concurrency_config` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `15 minutes`) How long to wait for the Lambda Provisioned Concurrency Config to be ready on creation.
 * `update` - (Default `15 minutes`) How long to wait for the Lambda Provisioned Concurrency Config to be ready on update.

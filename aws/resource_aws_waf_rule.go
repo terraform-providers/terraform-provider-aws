@@ -3,14 +3,22 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
+)
+
+const (
+	WafRuleDeleteTimeout = 5 * time.Minute
 )
 
 func resourceAwsWafRule() *schema.Resource {
@@ -33,7 +41,7 @@ func resourceAwsWafRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateWafMetricName,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9A-Za-z]+$`), "must contain only alphanumeric characters"),
 			},
 			"predicates": {
 				Type:     schema.TypeSet,
@@ -52,7 +60,7 @@ func resourceAwsWafRule() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateWafPredicatesType(),
+							ValidateFunc: validation.StringInSlice(waf.PredicateType_Values(), false),
 						},
 					},
 				},
@@ -84,9 +92,11 @@ func resourceAwsWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 
 		return conn.CreateRule(params)
 	})
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating WAF Rule (%s): %w", d.Get("name").(string), err)
 	}
+
 	resp := out.(*waf.CreateRuleOutput)
 	d.SetId(aws.StringValue(resp.Rule.RuleId))
 
@@ -95,7 +105,7 @@ func resourceAwsWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 		noPredicates := []interface{}{}
 		err := updateWafRuleResource(d.Id(), noPredicates, newPredicates, conn)
 		if err != nil {
-			return fmt.Errorf("Error Updating WAF Rule: %s", err)
+			return fmt.Errorf("error updating WAF Rule (%s): %w", d.Id(), err)
 		}
 	}
 
@@ -111,14 +121,24 @@ func resourceAwsWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	resp, err := conn.GetRule(params)
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, waf.ErrCodeNonexistentItemException) {
+		log.Printf("[WARN] WAF Rule (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == waf.ErrCodeNonexistentItemException {
-			log.Printf("[WARN] WAF Rule (%s) not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+		return fmt.Errorf("error reading WAF Rule (%s): %w", d.Id(), err)
+	}
+
+	if resp == nil || resp.Rule == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading WAF Rule (%s): not found", d.Id())
 		}
 
-		return err
+		log.Printf("[WARN] WAF Rule (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
 	var predicates []map[string]interface{}
@@ -143,11 +163,11 @@ func resourceAwsWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 	tags, err := keyvaluetags.WafListTags(conn, arn)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for WAF Rule (%s): %s", arn, err)
+		return fmt.Errorf("error listing tags for WAF Rule (%s): %w", arn, err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("predicates", predicates)
@@ -166,7 +186,7 @@ func resourceAwsWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		err := updateWafRuleResource(d.Id(), oldP, newP, conn)
 		if err != nil {
-			return fmt.Errorf("Error Updating WAF Rule: %s", err)
+			return fmt.Errorf("error updating WAF Rule (%s): %w", d.Id(), err)
 		}
 	}
 
@@ -174,7 +194,7 @@ func resourceAwsWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.WafUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+			return fmt.Errorf("error updating WAF Rule (%s) tags: %w", d.Id(), err)
 		}
 	}
 
@@ -189,21 +209,48 @@ func resourceAwsWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
 		noPredicates := []interface{}{}
 		err := updateWafRuleResource(d.Id(), oldPredicates, noPredicates, conn)
 		if err != nil {
-			return fmt.Errorf("Error updating WAF Rule Predicates: %s", err)
+			return fmt.Errorf("error updating WAF Rule (%s) predicates: %w", d.Id(), err)
 		}
 	}
 
 	wr := newWafRetryer(conn)
-	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
-		req := &waf.DeleteRuleInput{
-			ChangeToken: token,
-			RuleId:      aws.String(d.Id()),
+	err := resource.Retry(WafRuleDeleteTimeout, func() *resource.RetryError {
+		var err error
+		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
+			req := &waf.DeleteRuleInput{
+				ChangeToken: token,
+				RuleId:      aws.String(d.Id()),
+			}
+
+			return conn.DeleteRule(req)
+		})
+
+		if err != nil {
+			if tfawserr.ErrCodeEquals(err, waf.ErrCodeReferencedItemException) {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
-		log.Printf("[INFO] Deleting WAF Rule")
-		return conn.DeleteRule(req)
+
+		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
+			req := &waf.DeleteRuleInput{
+				ChangeToken: token,
+				RuleId:      aws.String(d.Id()),
+			}
+
+			return conn.DeleteRule(req)
+		})
+	}
+
 	if err != nil {
-		return fmt.Errorf("Error deleting WAF Rule: %s", err)
+		if tfawserr.ErrCodeEquals(err, waf.ErrCodeNonexistentItemException) {
+			return nil
+		}
+		return fmt.Errorf("error deleting WAF Rule (%s): %w", d.Id(), err)
 	}
 
 	return nil
@@ -220,9 +267,6 @@ func updateWafRuleResource(id string, oldP, newP []interface{}, conn *waf.WAF) e
 
 		return conn.UpdateRule(req)
 	})
-	if err != nil {
-		return fmt.Errorf("Error Updating WAF Rule: %s", err)
-	}
 
-	return nil
+	return err
 }

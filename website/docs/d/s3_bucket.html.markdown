@@ -17,7 +17,7 @@ Distribution.
 
 ### Route53 Record
 
-```hcl
+```terraform
 data "aws_s3_bucket" "selected" {
   bucket = "bucket.test.com"
 }
@@ -40,7 +40,7 @@ resource "aws_route53_record" "example" {
 
 ### CloudFront Origin
 
-```hcl
+```terraform
 data "aws_s3_bucket" "selected" {
   bucket = "a-test-bucket"
 }

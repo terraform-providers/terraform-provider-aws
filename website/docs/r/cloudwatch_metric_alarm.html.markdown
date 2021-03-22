@@ -12,7 +12,7 @@ Provides a CloudWatch Metric Alarm resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_metric_alarm" "foobar" {
   alarm_name                = "terraform-test-foobar5"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -29,7 +29,7 @@ resource "aws_cloudwatch_metric_alarm" "foobar" {
 
 ## Example in Conjunction with Scaling Policies
 
-```hcl
+```terraform
 resource "aws_autoscaling_policy" "bat" {
   name                   = "foobar3-terraform-test"
   scaling_adjustment     = 4
@@ -59,7 +59,7 @@ resource "aws_cloudwatch_metric_alarm" "bat" {
 
 ## Example with an Expression
 
-```hcl
+```terraform
 resource "aws_cloudwatch_metric_alarm" "foobar" {
   alarm_name                = "terraform-test-foobar"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -109,7 +109,7 @@ resource "aws_cloudwatch_metric_alarm" "foobar" {
 }
 ```
 
-```hcl
+```terraform
 resource "aws_cloudwatch_metric_alarm" "xx_anomaly_detection" {
   alarm_name                = "terraform-test-foobar"
   comparison_operator       = "GreaterThanUpperThreshold"
@@ -145,7 +145,7 @@ resource "aws_cloudwatch_metric_alarm" "xx_anomaly_detection" {
 
 ## Example of monitoring Healthy Hosts on NLB using Target Group and NLB
 
-```hcl
+```terraform
 resource "aws_cloudwatch_metric_alarm" "nlb_healthyhosts" {
   alarm_name          = "alarmname"
   comparison_operator = "LessThanThreshold"
@@ -238,12 +238,12 @@ The following values are supported: `ignore`, and `evaluate`.
 
 In addition to all arguments above, the following attributes are exported:
 
-* `arn` - The ARN of the cloudwatch metric alarm.
-* `id` - The ID of the health check
+* `arn` - The ARN of the CloudWatch Metric Alarm.
+* `id` - The ID of the health check.
 
 ## Import
 
-Cloud Metric Alarms can be imported using the `alarm_name`, e.g.
+CloudWatch Metric Alarm can be imported using the `alarm_name`, e.g.
 
 ```
 $ terraform import aws_cloudwatch_metric_alarm.test alarm-12345

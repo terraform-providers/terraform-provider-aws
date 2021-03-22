@@ -60,13 +60,13 @@ func dataSourceAwsOrganizationsOrganizationalUnitsRead(d *schema.ResourceData, m
 		})
 
 	if err != nil {
-		return fmt.Errorf("error listing Organizations Organization Units for parent (%s): %s", parent_id, err)
+		return fmt.Errorf("error listing Organizations Organization Units for parent (%s): %w", parent_id, err)
 	}
 
 	d.SetId(parent_id)
 
 	if err := d.Set("children", flattenOrganizationsOrganizationalUnits(children)); err != nil {
-		return fmt.Errorf("Error setting children: %s", err)
+		return fmt.Errorf("error setting children: %w", err)
 	}
 
 	return nil

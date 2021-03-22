@@ -14,7 +14,7 @@ For more information on Amazon MQ, see [Amazon MQ documentation](https://docs.aw
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_mq_configuration" "example" {
   description    = "Example Configuration"
   name           = "example"

@@ -12,7 +12,7 @@ Provides a Managed Scaling policy for EMR Cluster. With Amazon EMR versions 5.30
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "sample" {
   name          = "emr-sample-cluster"
   release_label = "emr-5.30.0"
@@ -53,6 +53,10 @@ The following arguments are supported:
 * `maximum_capacity_units` - (Required) The upper boundary of EC2 units. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. Managed scaling activities are not allowed beyond this boundary. The limit only applies to the core and task nodes. The master node cannot be scaled after initial configuration.
 * `maximum_ondemand_capacity_units` - (Optional) The upper boundary of On-Demand EC2 units. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. The On-Demand units are not allowed to scale beyond this boundary. The parameter is used to split capacity allocation between On-Demand and Spot instances.
 * `maximum_core_capacity_units` - (Optional) The upper boundary of EC2 units for core node type in a cluster. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. The core units are not allowed to scale beyond this boundary. The parameter is used to split capacity allocation between core and task nodes.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

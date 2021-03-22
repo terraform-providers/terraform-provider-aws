@@ -15,7 +15,7 @@ Provides a SageMaker endpoint configuration resource.
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_sagemaker_endpoint_configuration" "ec" {
   name = "my-endpoint-config"
 

@@ -12,7 +12,7 @@ Provides information about multiple Elastic File System (EFS) Access Points.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_efs_access_points" "test" {
   file_system_id = "fs-12345678"
 }

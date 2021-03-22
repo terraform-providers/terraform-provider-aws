@@ -14,7 +14,7 @@ Provides a Glue Catalog Table Resource. You can refer to the [Glue Developer Gui
 
 ### Basic Table
 
-```hcl
+```terraform
 resource "aws_glue_catalog_table" "aws_glue_catalog_table" {
   name          = "MyCatalogTable"
   database_name = "MyCatalogDatabase"
@@ -23,7 +23,7 @@ resource "aws_glue_catalog_table" "aws_glue_catalog_table" {
 
 ### Parquet Table for Athena
 
-```hcl
+```terraform
 resource "aws_glue_catalog_table" "aws_glue_catalog_table" {
   name          = "MyCatalogTable"
   database_name = "MyCatalogDatabase"
@@ -123,6 +123,7 @@ The following arguments are supported:
 * `parameters` - (Optional) User-supplied properties in key-value form.
 * `skewed_info` - (Optional) Information about values that appear very frequently in a column (skewed values).
 * `stored_as_sub_directories` - (Optional) True if the table data is stored in subdirectories, or False if not.
+* `schema_reference` - (Optional) An object that references a schema stored in the AWS Glue Schema Registry. When creating a table, you can pass an empty list of columns for the schema, and instead use a schema reference. See [Schema Reference](#schema-reference) below.
 
 ##### Column
 
@@ -147,6 +148,18 @@ The following arguments are supported:
 * `skewed_column_names` - (Optional) A list of names of columns that contain skewed values.
 * `skewed_column_value_location_maps` - (Optional) A list of values that appear so frequently as to be considered skewed.
 * `skewed_column_values` - (Optional) A map of skewed values to the columns that contain them.
+
+##### Schema Reference
+
+* `schema_id` - (Optional) A structure that contains schema identity fields. Either this or the `schema_version_id` has to be provided. See [Schema ID](#schema-id) below.
+* `schema_version_id` - (Optional) The unique ID assigned to a version of the schema. Either this or the `schema_id` has to be provided.
+* `schema_version_number` - (Required) The version number of the schema.
+
+###### Schema ID
+
+* `schema_arn` - (Optional) The Amazon Resource Name (ARN) of the schema. One of `schema_arn` or `schema_name` has to be provided.
+* `schema_name` - (Optional) The name of the schema. One of `schema_arn` or `schema_name` has to be provided.
+* `registry_name` - (Optional) The name of the schema registry that contains the schema. Must be provided when `schema_name` is specified and conflicts with `schema_arn`.
 
 ## Attributes Reference
 

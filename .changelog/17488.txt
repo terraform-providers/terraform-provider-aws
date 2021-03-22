@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_glue_trigger: Support starting ON_DEMAND triggers via `enabled` flag.
+```

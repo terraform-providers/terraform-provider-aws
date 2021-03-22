@@ -12,7 +12,7 @@ Provides a resource to create a VPC NAT Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_nat_gateway" "gw" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.example.id
@@ -21,7 +21,7 @@ resource "aws_nat_gateway" "gw" {
 
 Usage with tags:
 
-```hcl
+```terraform
 resource "aws_nat_gateway" "gw" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.example.id
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 -> **Note:** It's recommended to denote that the NAT Gateway depends on the Internet Gateway for the VPC in which the NAT Gateway's subnet is located. For example:
 
-```hcl
+```terraform
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 }

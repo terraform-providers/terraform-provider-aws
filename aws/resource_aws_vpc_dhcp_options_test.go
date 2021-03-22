@@ -33,11 +33,6 @@ func testSweepVpcDhcpOptions(region string) error {
 		for _, dhcpOption := range page.DhcpOptions {
 			var defaultDomainNameFound, defaultDomainNameServersFound bool
 
-			domainName := region + ".compute.internal"
-			if region == "us-east-1" {
-				domainName = "ec2.internal"
-			}
-
 			// This skips the default dhcp configurations so they don't get deleted
 			for _, dhcpConfiguration := range dhcpOption.DhcpConfigurations {
 				if aws.StringValue(dhcpConfiguration.Key) == "domain-name" {
@@ -45,7 +40,7 @@ func testSweepVpcDhcpOptions(region string) error {
 						continue
 					}
 
-					if aws.StringValue(dhcpConfiguration.Values[0].Value) == domainName {
+					if aws.StringValue(dhcpConfiguration.Values[0].Value) == resourceAwsEc2RegionalPrivateDnsSuffix(region) {
 						defaultDomainNameFound = true
 					}
 				} else if aws.StringValue(dhcpConfiguration.Key) == "domain-name-servers" {
@@ -95,6 +90,7 @@ func TestAccAWSDHCPOptions_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsDestroy,
 		Steps: []resource.TestStep{
@@ -129,6 +125,7 @@ func TestAccAWSDHCPOptions_deleteOptions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsDestroy,
 		Steps: []resource.TestStep{
@@ -151,6 +148,7 @@ func TestAccAWSDHCPOptions_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsDestroy,
 		Steps: []resource.TestStep{
@@ -195,6 +193,7 @@ func TestAccAWSDHCPOptions_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsDestroy,
 		Steps: []resource.TestStep{

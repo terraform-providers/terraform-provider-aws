@@ -186,7 +186,7 @@ func resourceAwsRoute53HealthCheckUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if d.HasChange("child_healthchecks") {
-		updateHealthCheck.ChildHealthChecks = expandStringList(d.Get("child_healthchecks").(*schema.Set).List())
+		updateHealthCheck.ChildHealthChecks = expandStringSet(d.Get("child_healthchecks").(*schema.Set))
 
 	}
 	if d.HasChange("child_health_threshold") {
@@ -215,7 +215,7 @@ func resourceAwsRoute53HealthCheckUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if d.HasChange("regions") {
-		updateHealthCheck.Regions = expandStringList(d.Get("regions").(*schema.Set).List())
+		updateHealthCheck.Regions = expandStringSet(d.Get("regions").(*schema.Set))
 	}
 
 	if d.HasChange("disabled") {
@@ -289,7 +289,7 @@ func resourceAwsRoute53HealthCheckCreate(d *schema.ResourceData, meta interface{
 
 	if *healthConfig.Type == route53.HealthCheckTypeCalculated {
 		if v, ok := d.GetOk("child_healthchecks"); ok {
-			healthConfig.ChildHealthChecks = expandStringList(v.(*schema.Set).List())
+			healthConfig.ChildHealthChecks = expandStringSet(v.(*schema.Set))
 		}
 
 		if v, ok := d.GetOk("child_health_threshold"); ok {
@@ -316,7 +316,7 @@ func resourceAwsRoute53HealthCheckCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("regions"); ok {
-		healthConfig.Regions = expandStringList(v.(*schema.Set).List())
+		healthConfig.Regions = expandStringSet(v.(*schema.Set))
 	}
 
 	callerRef := resource.UniqueId()

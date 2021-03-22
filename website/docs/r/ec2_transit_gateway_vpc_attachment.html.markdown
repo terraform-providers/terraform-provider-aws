@@ -12,7 +12,7 @@ Manages an EC2 Transit Gateway VPC Attachment. For examples of custom route tabl
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway_vpc_attachment" "example" {
   subnet_ids         = [aws_subnet.example.id]
   transit_gateway_id = aws_ec2_transit_gateway.example.id

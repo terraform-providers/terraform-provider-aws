@@ -442,7 +442,7 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("requires_compatibilities"); ok && v.(*schema.Set).Len() > 0 {
-		input.RequiresCompatibilities = expandStringList(v.(*schema.Set).List())
+		input.RequiresCompatibilities = expandStringSet(v.(*schema.Set))
 	}
 
 	proxyConfigs := d.Get("proxy_configuration").([]interface{})

@@ -93,11 +93,11 @@ func dataSourceAwsSignerSigningProfileRead(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("error reading Signer signing profile (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading Signer signing profile (%s): %w", d.Id(), err)
 	}
 
 	if err := d.Set("platform_id", signingProfileOutput.PlatformId); err != nil {
-		return fmt.Errorf("error setting signer signing profile platform id: %s", err)
+		return fmt.Errorf("error setting signer signing profile platform id: %w", err)
 	}
 
 	if err := d.Set("signature_validity_period", []interface{}{
@@ -106,35 +106,35 @@ func dataSourceAwsSignerSigningProfileRead(d *schema.ResourceData, meta interfac
 			"type":  signingProfileOutput.SignatureValidityPeriod.Type,
 		},
 	}); err != nil {
-		return fmt.Errorf("error setting signer signing profile signature validity period: %s", err)
+		return fmt.Errorf("error setting signer signing profile signature validity period: %w", err)
 	}
 
 	if err := d.Set("platform_display_name", signingProfileOutput.PlatformDisplayName); err != nil {
-		return fmt.Errorf("error setting signer signing profile platform display name: %s", err)
+		return fmt.Errorf("error setting signer signing profile platform display name: %w", err)
 	}
 
 	if err := d.Set("arn", signingProfileOutput.Arn); err != nil {
-		return fmt.Errorf("error setting signer signing profile arn: %s", err)
+		return fmt.Errorf("error setting signer signing profile arn: %w", err)
 	}
 
 	if err := d.Set("version", signingProfileOutput.ProfileVersion); err != nil {
-		return fmt.Errorf("error setting signer signing profile version: %s", err)
+		return fmt.Errorf("error setting signer signing profile version: %w", err)
 	}
 
 	if err := d.Set("version_arn", signingProfileOutput.ProfileVersionArn); err != nil {
-		return fmt.Errorf("error setting signer signing profile version arn: %s", err)
+		return fmt.Errorf("error setting signer signing profile version arn: %w", err)
 	}
 
 	if err := d.Set("status", signingProfileOutput.Status); err != nil {
-		return fmt.Errorf("error setting signer signing profile status: %s", err)
+		return fmt.Errorf("error setting signer signing profile status: %w", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.SignerKeyValueTags(signingProfileOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting signer signing profile tags: %s", err)
+		return fmt.Errorf("error setting signer signing profile tags: %w", err)
 	}
 
 	if err := d.Set("revocation_record", flattenSignerSigningProfileRevocationRecord(signingProfileOutput.RevocationRecord)); err != nil {
-		return fmt.Errorf("error setting signer signing profile revocation record: %s", err)
+		return fmt.Errorf("error setting signer signing profile revocation record: %w", err)
 	}
 
 	d.SetId(aws.StringValue(signingProfileOutput.ProfileName))

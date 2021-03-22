@@ -16,6 +16,7 @@ func TestAccAWSSimpleDBDomain_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(simpledb.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, simpledb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSimpleDBDomainDestroy,
 		Steps: []resource.TestStep{

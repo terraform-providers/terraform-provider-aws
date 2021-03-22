@@ -14,7 +14,7 @@ Provides an AWS App Mesh virtual gateway resource.
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_appmesh_virtual_gateway" "example" {
   name      = "example-virtual-gateway"
   mesh_name = "example-service-mesh"
@@ -36,7 +36,7 @@ resource "aws_appmesh_virtual_gateway" "example" {
 
 ### Access Logs and TLS
 
-```hcl
+```terraform
 resource "aws_appmesh_virtual_gateway" "example" {
   name      = "example-virtual-gateway"
   mesh_name = "example-service-mesh"

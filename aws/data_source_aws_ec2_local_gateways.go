@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -49,26 +48,40 @@ func dataSourceAwsEc2LocalGatewaysRead(d *schema.ResourceData, meta interface{})
 		req.Filters = nil
 	}
 
-	log.Printf("[DEBUG] DescribeLocalGateways %s\n", req)
-	resp, err := conn.DescribeLocalGateways(req)
+	var localGateways []*ec2.LocalGateway
+
+	err := conn.DescribeLocalGatewaysPages(req, func(page *ec2.DescribeLocalGatewaysOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		localGateways = append(localGateways, page.LocalGateways...)
+
+		return !lastPage
+	})
+
 	if err != nil {
 		return fmt.Errorf("error describing EC2 Local Gateways: %w", err)
 	}
 
-	if resp == nil || len(resp.LocalGateways) == 0 {
-		return fmt.Errorf("no matching Local Gateways found")
+	if len(localGateways) == 0 {
+		return fmt.Errorf("no matching EC2 Local Gateways found")
 	}
 
-	localgateways := make([]string, 0)
+	var ids []string
 
-	for _, localgateway := range resp.LocalGateways {
-		localgateways = append(localgateways, aws.StringValue(localgateway.LocalGatewayId))
+	for _, localGateway := range localGateways {
+		if localGateway == nil {
+			continue
+		}
+
+		ids = append(ids, aws.StringValue(localGateway.LocalGatewayId))
 	}
 
 	d.SetId(meta.(*AWSClient).region)
 
-	if err := d.Set("ids", localgateways); err != nil {
-		return fmt.Errorf("Error setting local gateway ids: %s", err)
+	if err := d.Set("ids", ids); err != nil {
+		return fmt.Errorf("error setting ids: %w", err)
 	}
 
 	return nil

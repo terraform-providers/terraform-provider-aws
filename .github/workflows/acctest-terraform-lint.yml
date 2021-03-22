@@ -2,7 +2,7 @@ name: Acceptance Test Linting
 on:
   push:
     branches:
-      - master
+      - main
       - "release/**"
   pull_request:
     paths:
@@ -11,9 +11,6 @@ on:
       - aws/*_test.go
       - scripts/validate-terraform.sh
       - tools/go.mod
-
-env:
-  GO111MODULE: on
 
 jobs:
   terrafmt:
@@ -54,7 +51,7 @@ jobs:
       - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
-          go-version: ${{ steps.go-version.outputs.content }}
+          go-version: ${{ env.GO_VERSION }}
       - uses: actions/cache@v2
         continue-on-error: true
         timeout-minutes: 2

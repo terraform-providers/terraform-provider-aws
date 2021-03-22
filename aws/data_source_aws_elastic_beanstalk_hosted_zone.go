@@ -15,7 +15,7 @@ var elasticBeanstalkHostedZoneIds = map[string]string{
 	endpoints.ApEast1RegionID:      "ZPWYUBWRU171A",
 	endpoints.ApNortheast1RegionID: "Z1R25G3KIG2GBW",
 	endpoints.ApNortheast2RegionID: "Z3JE5OI70TWKCP",
-	"ap-northeast-3":               "ZNE5GEY1TIAGY", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApNortheast3RegionID: "ZNE5GEY1TIAGY",
 	endpoints.ApSouth1RegionID:     "Z18NTBI3Y7N9TZ",
 	endpoints.CaCentral1RegionID:   "ZJFCZL7SSZB5I",
 	endpoints.EuCentral1RegionID:   "Z1FRNW7UH4DEZJ",

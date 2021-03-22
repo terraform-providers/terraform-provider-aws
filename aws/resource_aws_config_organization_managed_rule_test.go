@@ -18,6 +18,7 @@ func testAccConfigOrganizationManagedRule_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -54,6 +55,7 @@ func testAccConfigOrganizationManagedRule_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -74,6 +76,7 @@ func testAccConfigOrganizationManagedRule_errorHandling(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -92,6 +95,7 @@ func testAccConfigOrganizationManagedRule_Description(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -125,6 +129,7 @@ func testAccConfigOrganizationManagedRule_ExcludedAccounts(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -161,6 +166,7 @@ func testAccConfigOrganizationManagedRule_InputParameters(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -194,6 +200,7 @@ func testAccConfigOrganizationManagedRule_MaximumExecutionFrequency(t *testing.T
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -227,6 +234,7 @@ func testAccConfigOrganizationManagedRule_ResourceIdScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -260,6 +268,7 @@ func testAccConfigOrganizationManagedRule_ResourceTypesScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -293,6 +302,7 @@ func testAccConfigOrganizationManagedRule_RuleIdentifier(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -326,6 +336,7 @@ func testAccConfigOrganizationManagedRule_TagKeyScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -359,6 +370,7 @@ func testAccConfigOrganizationManagedRule_TagValueScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{

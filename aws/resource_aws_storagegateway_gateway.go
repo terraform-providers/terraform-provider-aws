@@ -193,6 +193,10 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(storagegateway.SMBSecurityStrategy_Values(), false),
 			},
+			"smb_file_share_visibility": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"average_download_rate_limit_in_bits_per_sec": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -391,6 +395,19 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	if v, ok := d.GetOk("smb_file_share_visibility"); ok {
+		input := &storagegateway.UpdateSMBFileShareVisibilityInput{
+			GatewayARN:        aws.String(d.Id()),
+			FileSharesVisible: aws.Bool(v.(bool)),
+		}
+
+		log.Printf("[DEBUG] Storage Gateway Gateway %q setting SMB File Share Visibility", input)
+		_, err := conn.UpdateSMBFileShareVisibility(input)
+		if err != nil {
+			return fmt.Errorf("error updating Storage Gateway Gateway (%s) SMB file share visibility: %w", d.Id(), err)
+		}
+	}
+
 	bandwidthInput := &storagegateway.UpdateBandwidthRateLimitInput{
 		GatewayARN: aws.String(d.Id()),
 	}
@@ -526,6 +543,7 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 	d.Set("tape_drive_type", d.Get("tape_drive_type").(string))
 	d.Set("cloudwatch_log_group_arn", output.CloudWatchLogGroupARN)
 	d.Set("smb_security_strategy", smbSettingsOutput.SMBSecurityStrategy)
+	d.Set("smb_file_share_visibility", smbSettingsOutput.FileSharesVisible)
 	d.Set("ec2_instance_id", output.Ec2InstanceId)
 	d.Set("endpoint_type", output.EndpointType)
 	d.Set("host_environment", output.HostEnvironment)
@@ -612,6 +630,19 @@ func resourceAwsStorageGatewayGatewayUpdate(d *schema.ResourceData, meta interfa
 		_, err := conn.UpdateSMBSecurityStrategy(input)
 		if err != nil {
 			return fmt.Errorf("error updating SMB Security Strategy: %w", err)
+		}
+	}
+
+	if d.HasChange("smb_file_share_visibility") {
+		input := &storagegateway.UpdateSMBFileShareVisibilityInput{
+			GatewayARN:        aws.String(d.Id()),
+			FileSharesVisible: aws.Bool(d.Get("smb_file_share_visibility").(bool)),
+		}
+
+		log.Printf("[DEBUG] Storage Gateway Gateway %q updating SMB File Share Visibility", input)
+		_, err := conn.UpdateSMBFileShareVisibility(input)
+		if err != nil {
+			return fmt.Errorf("error updating Storage Gateway Gateway (%s) SMB file share visibility: %w", d.Id(), err)
 		}
 	}
 

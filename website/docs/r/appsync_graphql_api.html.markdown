@@ -14,7 +14,7 @@ Provides an AppSync GraphQL API.
 
 ### API Key Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "API_KEY"
   name                = "example"
@@ -23,7 +23,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### AWS Cognito User Pool Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AMAZON_COGNITO_USER_POOLS"
   name                = "example"
@@ -38,7 +38,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### AWS IAM Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AWS_IAM"
   name                = "example"
@@ -47,7 +47,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### With Schema
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AWS_IAM"
   name                = "example"
@@ -65,7 +65,7 @@ EOF
 
 ### OpenID Connect Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "OPENID_CONNECT"
   name                = "example"
@@ -78,7 +78,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### With Multiple Authentication Providers
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "API_KEY"
   name                = "example"
@@ -91,7 +91,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### Enabling Logging
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "example"
 

@@ -12,7 +12,7 @@ Provides details about a specific redshift cluster.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_redshift_cluster" "test_cluster" {
   cluster_identifier = "test-cluster"
 }

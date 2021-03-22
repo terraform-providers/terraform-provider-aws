@@ -78,7 +78,7 @@ func (tf *Terraform) Import(ctx context.Context, address, id string, opts ...Imp
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) importCmd(ctx context.Context, address, id string, opts ...ImportOption) (*exec.Cmd, error) {

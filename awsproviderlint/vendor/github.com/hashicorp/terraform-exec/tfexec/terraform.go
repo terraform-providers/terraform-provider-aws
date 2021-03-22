@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-version"
@@ -22,6 +21,12 @@ type printfer interface {
 // Typically this is constructed against the root module of a Terraform configuration
 // but you can override paths used in some commands depending on the available
 // options.
+//
+// All functions that execute CLI commands take a context.Context. It should be noted that
+// exec.Cmd.Run will not return context.DeadlineExceeded or context.Canceled by default, we
+// have augmented our wrapped errors to respond true to errors.Is for context.DeadlineExceeded
+// and context.Canceled if those are present on the context when the error is parsed. See
+// https://github.com/golang/go/issues/21880 for more about the Go limitations.
 //
 // By default, the instance inherits the environment from the calling code (using os.Environ)
 // but it ignores certain environment variables that are managed within the code and prohibits
@@ -67,8 +72,9 @@ func NewTerraform(workingDir string, execPath string) (*Terraform, error) {
 
 	if execPath == "" {
 		err := fmt.Errorf("NewTerraform: please supply the path to a Terraform executable using execPath, e.g. using the tfinstall package.")
-		return nil, &ErrNoSuitableBinary{err: err}
-
+		return nil, &ErrNoSuitableBinary{
+			err: err,
+		}
 	}
 	tf := Terraform{
 		execPath:   execPath,
@@ -85,15 +91,10 @@ func NewTerraform(workingDir string, execPath string) (*Terraform, error) {
 // from os.Environ. Attempting to set environment variables that should be managed manually will
 // result in ErrManualEnvVar being returned.
 func (tf *Terraform) SetEnv(env map[string]string) error {
-	for k := range env {
-		if strings.HasPrefix(k, varEnvVarPrefix) {
-			return fmt.Errorf("variables should be passed using the Var option: %w", &ErrManualEnvVar{k})
-		}
-		for _, p := range prohibitedEnvVars {
-			if p == k {
-				return &ErrManualEnvVar{k}
-			}
-		}
+	prohibited := ProhibitedEnv(env)
+	if len(prohibited) > 0 {
+		// just error on the first instance
+		return &ErrManualEnvVar{prohibited[0]}
 	}
 
 	tf.env = env

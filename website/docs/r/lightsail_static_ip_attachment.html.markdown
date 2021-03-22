@@ -14,7 +14,7 @@ Provides a static IP address attachment - relationship between a Lightsail stati
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lightsail_static_ip_attachment" "test" {
   static_ip_name = aws_lightsail_static_ip.test.id
   instance_name  = aws_lightsail_instance.test.id

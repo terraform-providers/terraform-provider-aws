@@ -290,15 +290,15 @@ func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("availability_zones"); ok {
-		elbOpts.AvailabilityZones = expandStringList(v.(*schema.Set).List())
+		elbOpts.AvailabilityZones = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("security_groups"); ok {
-		elbOpts.SecurityGroups = expandStringList(v.(*schema.Set).List())
+		elbOpts.SecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("subnets"); ok {
-		elbOpts.Subnets = expandStringList(v.(*schema.Set).List())
+		elbOpts.Subnets = expandStringSet(v.(*schema.Set))
 	}
 
 	log.Printf("[DEBUG] ELB create configuration: %#v", elbOpts)
@@ -669,11 +669,9 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("security_groups") {
-		groups := d.Get("security_groups").(*schema.Set).List()
-
 		applySecurityGroupsOpts := elb.ApplySecurityGroupsToLoadBalancerInput{
 			LoadBalancerName: aws.String(d.Id()),
-			SecurityGroups:   expandStringList(groups),
+			SecurityGroups:   expandStringSet(d.Get("security_groups").(*schema.Set)),
 		}
 
 		_, err := elbconn.ApplySecurityGroupsToLoadBalancer(&applySecurityGroupsOpts)
@@ -687,8 +685,8 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		removed := expandStringList(os.Difference(ns).List())
-		added := expandStringList(ns.Difference(os).List())
+		removed := expandStringSet(os.Difference(ns))
+		added := expandStringSet(ns.Difference(os))
 
 		if len(added) > 0 {
 			enableOpts := &elb.EnableAvailabilityZonesForLoadBalancerInput{
@@ -722,8 +720,8 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		removed := expandStringList(os.Difference(ns).List())
-		added := expandStringList(ns.Difference(os).List())
+		removed := expandStringSet(os.Difference(ns))
+		added := expandStringSet(ns.Difference(os))
 
 		if len(removed) > 0 {
 			detachOpts := &elb.DetachLoadBalancerFromSubnetsInput{

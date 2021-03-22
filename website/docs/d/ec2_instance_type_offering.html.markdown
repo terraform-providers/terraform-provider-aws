@@ -12,7 +12,7 @@ Information about single EC2 Instance Type Offering.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_instance_type_offering" "example" {
   filter {
     name   = "instance-type"

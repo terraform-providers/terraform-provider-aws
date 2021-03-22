@@ -12,7 +12,7 @@ Manages a Neptune database cluster snapshot.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_neptune_cluster_snapshot" "example" {
   db_cluster_identifier          = aws_neptune_cluster.example.id
   db_cluster_snapshot_identifier = "resourcetestsnapshot1234"
@@ -45,7 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_neptune_cluster_snapshot` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_neptune_cluster_snapshot` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `20m`) How long to wait for the snapshot to be available.
 

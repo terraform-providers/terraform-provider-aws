@@ -17,7 +17,7 @@ This resource is based on `aws_wafv2_rule_group`, check the documentation of the
 
 ### Managed Rule
 
-```hcl
+```terraform
 resource "aws_wafv2_web_acl" "example" {
   name        = "managed-rule-example"
   description = "Example of a managed rule."
@@ -72,7 +72,7 @@ resource "aws_wafv2_web_acl" "example" {
 
 ### Rate Based
 
-```hcl
+```terraform
 resource "aws_wafv2_web_acl" "example" {
   name        = "rate-based-example"
   description = "Example of a rate based statement."
@@ -125,7 +125,7 @@ resource "aws_wafv2_web_acl" "example" {
 
 ### Rule Group Reference
 
-```hcl
+```terraform
 resource "aws_wafv2_rule_group" "example" {
   capacity = 10
   name     = "example-rule-group"
@@ -267,14 +267,14 @@ The following arguments are supported:
 
 The `default_action` block supports the following arguments:
 
-~> **NOTE**: One of `allow` or `block`, expressed as an empty configuration block `{}`, is required when specifying a `default_action`
+~> **NOTE:** One of `allow` or `block`, expressed as an empty configuration block `{}`, is required when specifying a `default_action`
 
 * `allow` - (Optional) Specifies that AWS WAF should allow requests by default.
 * `block` - (Optional) Specifies that AWS WAF should block requests by default.
 
 ### Rules
 
-~> **NOTE**: One of `action` or `override_action` is required when specifying a rule
+~> **NOTE:** One of `action` or `override_action` is required when specifying a rule
 
 Each `rule` supports the following arguments:
 
@@ -289,7 +289,7 @@ Each `rule` supports the following arguments:
 
 The `action` block supports the following arguments:
 
-~> **NOTE**: One of `allow`, `block`, or `count`, expressed as an empty configuration block `{}`, is required when specifying an `action`
+~> **NOTE:** One of `allow`, `block`, or `count`, expressed as an empty configuration block `{}`, is required when specifying an `action`
 
 * `allow` - (Optional) Instructs AWS WAF to allow the web request. Configure as an empty block `{}`.
 * `block` - (Optional) Instructs AWS WAF to block the web request. Configure as an empty block `{}`.
@@ -299,7 +299,7 @@ The `action` block supports the following arguments:
 
 The `override_action` block supports the following arguments:
 
-~> **NOTE**: One of `count` or `none`, expressed as an empty configuration block `{}`, is required when specifying an `override_action`
+~> **NOTE:** One of `count` or `none`, expressed as an empty configuration block `{}`, is required when specifying an `override_action`
 
 * `count` - (Optional) Override the rule action setting to count (i.e. only count matches). Configured as an empty block `{}`.
 * `none` - (Optional) Don't override the rule action setting. Configured as an empty block `{}`.
@@ -466,7 +466,8 @@ The part of a web request that you want AWS WAF to inspect. Include the single `
 
 The `field_to_match` block supports the following arguments:
 
-~> **NOTE**: An empty configuration block `{}` should be used when specifying `all_query_arguments`, `body`, `method`, `query_string`, or `uri_path` attributes
+~> **NOTE:** Only one of `all_query_arguments`, `body`, `method`, `query_string`, `single_header`, `single_query_argument`, or `uri_path` can be specified.
+An empty configuration block `{}` should be used when specifying `all_query_arguments`, `body`, `method`, or `query_string` attributes.
 
 * `all_query_arguments` - (Optional) Inspect all query arguments.
 * `body` - (Optional) Inspect the request body, which immediately follows the request headers.

@@ -23,7 +23,7 @@ into management.
 
 Basic usage with tags:
 
-```hcl
+```terraform
 resource "aws_default_vpc_dhcp_options" "default" {
   tags = {
     Name = "Default DHCP Option Set"
@@ -55,3 +55,11 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the DHCP Options Set.
 * `arn` - The ARN of the DHCP Options Set.
 * `owner_id` - The ID of the AWS account that owns the DHCP options set.
+
+## Import
+
+VPC DHCP Options can be imported using the `dhcp options id`, e.g.
+
+```
+$ terraform import aws_default_vpc_dhcp_options.default_options dopt-d9070ebb
+```

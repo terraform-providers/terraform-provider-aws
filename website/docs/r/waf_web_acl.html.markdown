@@ -12,7 +12,7 @@ Provides a WAF Web ACL Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_ipset" "ipset" {
   name = "tfIPSet"
 
@@ -62,7 +62,7 @@ resource "aws_waf_web_acl" "waf_acl" {
 
 ~> *NOTE:* The Kinesis Firehose Delivery Stream name must begin with `aws-waf-logs-` and be located in `us-east-1` region. See the [AWS WAF Developer Guide](https://docs.aws.amazon.com/waf/latest/developerguide/logging.html) for more information about enabling WAF logging.
 
-```hcl
+```terraform
 resource "aws_waf_web_acl" "example" {
   # ... other configuration ...
   logging_configuration {

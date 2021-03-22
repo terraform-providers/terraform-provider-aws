@@ -13,7 +13,7 @@ A transit virtual interface is a VLAN that transports traffic from a [Direct Con
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_gateway" "example" {
   name            = "tf-dxg-example"
   amazon_side_asn = 64512
@@ -59,7 +59,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_transit_virtual_interface` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating virtual interface
 - `update` - (Default `10 minutes`) Used for virtual interface modifications

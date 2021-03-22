@@ -12,7 +12,7 @@ Use this data source to get information about a Workspaces image.
 
 ## Example Usage
 
-```hcl
+```terraform
 data aws_workspaces_image example {
   image_id = "wsi-ten5h0y19"
 }

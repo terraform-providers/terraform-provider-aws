@@ -17,11 +17,11 @@ with `load_balancers` and `target_group_arns` defined in-line. These two methods
 mutually-exclusive. If `aws_autoscaling_attachment` resources are used, either alone or with inline
 `load_balancers` or `target_group_arns`, the `aws_autoscaling_group` resource must be configured
 to ignore changes to the `load_balancers` and `target_group_arns` arguments within a
-[`lifecycle` configuration block](/docs/configuration/resources.html#lifecycle-lifecycle-customizations).
+[`lifecycle` configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new load balancer attachment
 resource "aws_autoscaling_attachment" "asg_attachment_bar" {
   autoscaling_group_name = aws_autoscaling_group.asg.id
@@ -29,7 +29,7 @@ resource "aws_autoscaling_attachment" "asg_attachment_bar" {
 }
 ```
 
-```hcl
+```terraform
 # Create a new ALB Target Group attachment
 resource "aws_autoscaling_attachment" "asg_attachment_bar" {
   autoscaling_group_name = aws_autoscaling_group.asg.id
@@ -39,7 +39,7 @@ resource "aws_autoscaling_attachment" "asg_attachment_bar" {
 
 ## With An AutoScaling Group Resource
 
-```hcl
+```terraform
 resource "aws_autoscaling_group" "asg" {
   # ... other configuration ...
 
@@ -62,3 +62,6 @@ The following arguments are supported:
 * `elb` - (Optional) The name of the ELB.
 * `alb_target_group_arn` - (Optional) The ARN of an ALB Target Group.
 
+## Attributes Reference
+
+No additional attributes are exported.

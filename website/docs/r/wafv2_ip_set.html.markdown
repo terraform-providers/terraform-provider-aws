@@ -12,7 +12,7 @@ Provides a WAFv2 IP Set Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafv2_ip_set" "example" {
   name               = "example"
   description        = "Example IP set"

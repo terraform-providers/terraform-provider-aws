@@ -12,7 +12,7 @@ Retrieve information about an Elastic Beanstalk Application.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_elastic_beanstalk_application" "example" {
   name = "example"
 }

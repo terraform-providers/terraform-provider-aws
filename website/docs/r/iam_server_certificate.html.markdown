@@ -20,13 +20,13 @@ For information about server certificates in IAM, see [Managing Server
 Certificates][2] in AWS Documentation.
 
 ~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
 **Using certs on file:**
 
-```hcl
+```terraform
 resource "aws_iam_server_certificate" "test_cert" {
   name             = "some_test_cert"
   certificate_body = file("self-ca-cert.pem")
@@ -36,7 +36,7 @@ resource "aws_iam_server_certificate" "test_cert" {
 
 **Example with cert in-line:**
 
-```hcl
+```terraform
 resource "aws_iam_server_certificate" "test_cert_alt" {
   name = "alt_test_cert"
 
@@ -63,7 +63,7 @@ recommended you utilize the `name_prefix` attribute and enable the
 to create a new, updated `aws_iam_server_certificate` resource and replace it in
 dependant resources before attempting to destroy the old version.
 
-```hcl
+```terraform
 resource "aws_iam_server_certificate" "test_cert" {
   name_prefix      = "example-cert"
   certificate_body = file("self-ca-cert.pem")

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/storagegateway/finder"
 )
 
 func resourceAwsStorageGatewayUploadBuffer() *schema.Resource {
@@ -66,42 +67,29 @@ func resourceAwsStorageGatewayUploadBufferRead(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	input := &storagegateway.DescribeUploadBufferInput{
-		GatewayARN: aws.String(gatewayARN),
+	foundDiskID, err := finder.UploadBufferDisk(conn, gatewayARN, diskID)
+
+	if !d.IsNewResource() && isAWSErrStorageGatewayGatewayNotFound(err) {
+		log.Printf("[WARN] Storage Gateway Upload Buffer (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	log.Printf("[DEBUG] Reading Storage Gateway upload buffer: %s", input)
-	output, err := conn.DescribeUploadBuffer(input)
 	if err != nil {
-		if isAWSErrStorageGatewayGatewayNotFound(err) {
-			log.Printf("[WARN] Storage Gateway upload buffer %q not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("error reading Storage Gateway upload buffer: %s", err)
+		return fmt.Errorf("error reading Storage Gateway Upload Buffer (%s): %w", d.Id(), err)
 	}
 
-	if output == nil || len(output.DiskIds) == 0 {
-		log.Printf("[WARN] Storage Gateway upload buffer %q not found - removing from state", d.Id())
+	if foundDiskID == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading Storage Gateway Upload Buffer (%s): not found", d.Id())
+		}
+
+		log.Printf("[WARN] Storage Gateway Upload Buffer (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	found := false
-	for _, existingDiskID := range output.DiskIds {
-		if aws.StringValue(existingDiskID) == diskID {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		log.Printf("[WARN] Storage Gateway upload buffer %q not found - removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
-	d.Set("disk_id", diskID)
+	d.Set("disk_id", foundDiskID)
 	d.Set("gateway_arn", gatewayARN)
 
 	return nil

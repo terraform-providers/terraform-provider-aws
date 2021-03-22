@@ -12,7 +12,7 @@ Provides an IoT role alias.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "role" {
   name = "dynamodb-access-role"
 

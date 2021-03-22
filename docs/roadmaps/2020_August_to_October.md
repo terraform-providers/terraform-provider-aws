@@ -54,7 +54,7 @@ Support for AWS Lake Formation will include:
 New Resource(s):
 
 - aws_lakeformation_resource
-- aws_lakeformation_datalake_settings
+- aws_lakeformation_data_lake_settings
 - aws_lakeformation_permissions
 
 ### AWS Serverless Application Repository

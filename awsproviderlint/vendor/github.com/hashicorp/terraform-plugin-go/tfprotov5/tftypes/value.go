@@ -58,15 +58,17 @@ type Value struct {
 //
 // The builtin Value representations are:
 //
-// * string for String
+// * String: string, *string
 //
-// * *big.Float for Number
+// * Number: *big.Float, int64, *int64, int32, *int32, int16, *int16, int8, *int8, int, *int,
+//   uint64, *uint64, uint32, *uint32, uint16, *uint16, uint8, *uint8, byte, *byte, uint, *uint,
+//   float64, *float64, float32, *float32
 //
-// * bool for Bool
+// * Bool: bool, *bool
 //
-// * map[string]Value for Map and Object
+// * Map and Object: map[string]Value
 //
-// * []Value for Tuple, List, and Set
+// * Tuple, List, and Set: []Value
 func NewValue(t Type, val interface{}) Value {
 	if val == nil || val == UnknownValue {
 		return Value{
@@ -81,7 +83,172 @@ func NewValue(t Type, val interface{}) Value {
 			panic("error creating tftypes.Value: " + err.Error())
 		}
 	}
-	switch val.(type) {
+
+	switch val := val.(type) {
+	case *string:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		return Value{
+			typ:   t,
+			value: *val,
+		}
+	case *bool:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		return Value{
+			typ:   t,
+			value: *val,
+		}
+	case *uint:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetUint64(uint64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *uint64:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetUint64(uint64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *uint8:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *uint16:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *uint32:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *int:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *int8:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *int16:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *int32:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(int64(*val))
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *int64:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		f := new(big.Float).SetInt64(*val)
+		return Value{
+			typ:   t,
+			value: f,
+		}
+	case *float32:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		return Value{
+			typ:   t,
+			value: big.NewFloat(float64(*val)),
+		}
+	case *float64:
+		if val == nil {
+			return Value{
+				typ:   t,
+				value: nil,
+			}
+		}
+		return Value{
+			typ:   t,
+			value: big.NewFloat(*val),
+		}
 	case string, *big.Float, bool, map[string]Value, []Value:
 		return Value{
 			typ:   t,

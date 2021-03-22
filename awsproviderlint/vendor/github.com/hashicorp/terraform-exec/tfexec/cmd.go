@@ -16,6 +16,7 @@ import (
 
 const (
 	checkpointDisableEnvVar  = "CHECKPOINT_DISABLE"
+	cliArgsEnvVar            = "TF_CLI_ARGS"
 	logEnvVar                = "TF_LOG"
 	inputEnvVar              = "TF_INPUT"
 	automationEnvVar         = "TF_IN_AUTOMATION"
@@ -26,10 +27,12 @@ const (
 	disablePluginTLSEnvVar   = "TF_DISABLE_PLUGIN_TLS"
 	skipProviderVerifyEnvVar = "TF_SKIP_PROVIDER_VERIFY"
 
-	varEnvVarPrefix = "TF_VAR_"
+	varEnvVarPrefix    = "TF_VAR_"
+	cliArgEnvVarPrefix = "TF_CLI_ARGS_"
 )
 
 var prohibitedEnvVars = []string{
+	cliArgsEnvVar,
 	inputEnvVar,
 	automationEnvVar,
 	logPathEnvVar,
@@ -39,6 +42,48 @@ var prohibitedEnvVars = []string{
 	workspaceEnvVar,
 	disablePluginTLSEnvVar,
 	skipProviderVerifyEnvVar,
+}
+
+var prohibitedEnvVarPrefixes = []string{
+	varEnvVarPrefix,
+	cliArgEnvVarPrefix,
+}
+
+func manualEnvVars(env map[string]string, cb func(k string)) {
+	for k := range env {
+		for _, p := range prohibitedEnvVars {
+			if p == k {
+				cb(k)
+				goto NextEnvVar
+			}
+		}
+		for _, prefix := range prohibitedEnvVarPrefixes {
+			if strings.HasPrefix(k, prefix) {
+				cb(k)
+				goto NextEnvVar
+			}
+		}
+	NextEnvVar:
+	}
+}
+
+// ProhibitedEnv returns a slice of environment variable keys that are not allowed
+// to be set manually from the passed environment.
+func ProhibitedEnv(env map[string]string) []string {
+	var p []string
+	manualEnvVars(env, func(k string) {
+		p = append(p, k)
+	})
+	return p
+}
+
+// CleanEnv removes any prohibited environment variables from an environment map.
+func CleanEnv(dirty map[string]string) map[string]string {
+	clean := dirty
+	manualEnvVars(clean, func(k string) {
+		delete(clean, k)
+	})
+	return clean
 }
 
 func envMap(environ []string) map[string]string {
@@ -126,7 +171,8 @@ func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 }
 
 func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]string, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, tf.execPath, args...)
+	cmd := exec.Command(tf.execPath, args...)
+
 	cmd.Env = tf.buildEnv(mergeEnv)
 	cmd.Dir = tf.workingDir
 
@@ -135,29 +181,18 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]
 	return cmd
 }
 
-func (tf *Terraform) runTerraformCmdJSON(cmd *exec.Cmd, v interface{}) error {
+func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v interface{}) error {
 	var outbuf = bytes.Buffer{}
 	cmd.Stdout = mergeWriters(cmd.Stdout, &outbuf)
 
-	err := tf.runTerraformCmd(cmd)
+	err := tf.runTerraformCmd(ctx, cmd)
 	if err != nil {
 		return err
 	}
 
-	return json.Unmarshal(outbuf.Bytes(), v)
-}
-
-func (tf *Terraform) runTerraformCmd(cmd *exec.Cmd) error {
-	var errBuf strings.Builder
-
-	cmd.Stdout = mergeWriters(cmd.Stdout, tf.stdout)
-	cmd.Stderr = mergeWriters(cmd.Stderr, tf.stderr, &errBuf)
-
-	err := cmd.Run()
-	if err != nil {
-		return tf.parseError(err, errBuf.String())
-	}
-	return nil
+	dec := json.NewDecoder(&outbuf)
+	dec.UseNumber()
+	return dec.Decode(v)
 }
 
 // mergeUserAgent does some minor deduplication to ensure we aren't

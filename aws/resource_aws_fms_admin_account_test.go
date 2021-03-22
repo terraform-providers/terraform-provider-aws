@@ -19,6 +19,7 @@ func TestAccAwsFmsAdminAccount_basic(t *testing.T) {
 			testAccPreCheckFmsAdmin(t)
 			testAccOrganizationsAccountPreCheck(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, fms.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckFmsAdminAccountDestroy,
 		Steps: []resource.TestStep{

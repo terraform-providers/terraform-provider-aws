@@ -16,7 +16,7 @@ Provides a resource to manage AWS Certificate Manager Private Certificate Author
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_acmpca_certificate_authority" "example" {
   certificate_authority_configuration {
     key_algorithm     = "RSA_4096"
@@ -33,7 +33,7 @@ resource "aws_acmpca_certificate_authority" "example" {
 
 ### Enable Certificate Revocation List
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example"
 }
@@ -149,7 +149,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_acmpca_certificate_authority` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_acmpca_certificate_authority` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 * `create` - (Default `1m`) How long to wait for a certificate authority to be created.

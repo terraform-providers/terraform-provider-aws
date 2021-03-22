@@ -14,7 +14,7 @@ Provides a Sagemaker Notebook Instance resource.
 
 ### Basic usage
 
-```hcl
+```terraform
 resource "aws_sagemaker_notebook_instance" "ni" {
   name          = "my-notebook-instance"
   role_arn      = aws_iam_role.role.arn
@@ -28,7 +28,7 @@ resource "aws_sagemaker_notebook_instance" "ni" {
 
 ### Code repository usage
 
-```hcl
+```terraform
 resource "aws_sagemaker_code_repository" "example" {
   code_repository_name = "my-notebook-instance-code-repo"
 

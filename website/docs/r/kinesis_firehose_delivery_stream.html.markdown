@@ -16,7 +16,7 @@ For more details, see the [Amazon Kinesis Firehose Documentation][1].
 
 ### Extended S3 Destination
 
-```hcl
+```terraform
 resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
   name        = "terraform-kinesis-firehose-extended-s3-test-stream"
   destination = "extended_s3"
@@ -96,7 +96,7 @@ resource "aws_lambda_function" "lambda_processor" {
 
 ### S3 Destination
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "bucket" {
   bucket = "tf-test-bucket"
   acl    = "private"
@@ -135,7 +135,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
 
 ### Redshift Destination
 
-```hcl
+```terraform
 resource "aws_redshift_cluster" "test_cluster" {
   cluster_identifier = "tf-redshift-cluster"
   database_name      = "test"
@@ -180,7 +180,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
 
 ### Elasticsearch Destination
 
-```hcl
+```terraform
 resource "aws_elasticsearch_domain" "test_cluster" {
   domain_name = "firehose-es-test"
 }
@@ -221,7 +221,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
 
 ### Elasticsearch Destination With VPC
 
-```hcl
+```terraform
 resource "aws_elasticsearch_domain" "test_cluster" {
   domain_name = "es-test"
 
@@ -306,7 +306,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
 
 ### Splunk Destination
 
-```hcl
+```terraform
 resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
   name        = "terraform-kinesis-firehose-test-stream"
   destination = "splunk"
@@ -331,7 +331,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
 
 ### HTTP Endpoint (e.g. New Relic) Destination
 
-```hcl
+```terraform
 resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
   name        = "terraform-kinesis-firehose-test-stream"
   destination = "http_endpoint"
@@ -522,7 +522,7 @@ The `vpc_config` object supports the following:
 
 Example:
 
-```hcl
+```terraform
 resource "aws_kinesis_firehose_delivery_stream" "example" {
   # ... other configuration ...
   extended_s3_configuration {

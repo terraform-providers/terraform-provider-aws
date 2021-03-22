@@ -19,6 +19,7 @@ func TestAccAWSAPIGatewayV2Deployment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2DeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +57,7 @@ func TestAccAWSAPIGatewayV2Deployment_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2DeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -79,6 +81,7 @@ func TestAccAWSAPIGatewayV2Deployment_Triggers(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2DeploymentDestroy,
 		Steps: []resource.TestStep{
@@ -192,7 +195,7 @@ func testAccCheckAWSAPIGatewayV2DeploymentExists(n string, vApiId *string, v *ap
 
 func testAccCheckAWSAPIGatewayV2DeploymentNotRecreated(i, j *apigatewayv2.GetDeploymentOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if aws.TimeValue(i.CreatedDate) != aws.TimeValue(j.CreatedDate) {
+		if !aws.TimeValue(i.CreatedDate).Equal(aws.TimeValue(j.CreatedDate)) {
 			return fmt.Errorf("API Gateway V2 Deployment recreated")
 		}
 
@@ -202,7 +205,7 @@ func testAccCheckAWSAPIGatewayV2DeploymentNotRecreated(i, j *apigatewayv2.GetDep
 
 func testAccCheckAWSAPIGatewayV2DeploymentRecreated(i, j *apigatewayv2.GetDeploymentOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if aws.TimeValue(i.CreatedDate) == aws.TimeValue(j.CreatedDate) {
+		if aws.TimeValue(i.CreatedDate).Equal(aws.TimeValue(j.CreatedDate)) {
 			return fmt.Errorf("API Gateway V2 Deployment not recreated")
 		}
 
@@ -256,10 +259,10 @@ resource "aws_apigatewayv2_deployment" "test" {
   api_id = aws_apigatewayv2_api.test.id
 
   triggers = {
-    redeployment = sha1(join(",", list(
-      jsonencode(aws_apigatewayv2_integration.test),
-      jsonencode(aws_apigatewayv2_route.test),
-    )))
+    redeployment = sha1(jsonencode([
+      aws_apigatewayv2_integration.test,
+      aws_apigatewayv2_route.test,
+    ]))
   }
 
   lifecycle {

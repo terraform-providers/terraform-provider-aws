@@ -12,7 +12,7 @@ Manages an EKS Node Group, which can provision and optionally update an Auto Sca
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_eks_node_group" "example" {
   cluster_name    = aws_eks_cluster.example.name
   node_group_name = "example"
@@ -37,9 +37,9 @@ resource "aws_eks_node_group" "example" {
 
 ### Ignoring Changes to Desired Size
 
-You can utilize the generic Terraform resource [lifecycle configuration block](/docs/configuration/resources.html#lifecycle-lifecycle-customizations) with `ignore_changes` to create an EKS Node Group with an initial size of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
+You can utilize the generic Terraform resource [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` to create an EKS Node Group with an initial size of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
 
-```hcl
+```terraform
 resource "aws_eks_node_group" "example" {
   # ... other configurations ...
 
@@ -59,7 +59,7 @@ resource "aws_eks_node_group" "example" {
 
 ### Example IAM Role for EKS Node Group
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "eks-node-group-example"
 
@@ -93,7 +93,7 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEC2ContainerRegistryRea
 
 ### Example Subnets for EKS Node Group
 
-```hcl
+```terraform
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -169,7 +169,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_eks_node_group` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `60 minutes`) How long to wait for the EKS Node Group to be created.
 * `update` - (Default `60 minutes`) How long to wait for the EKS Node Group to be updated. Note that the `update` timeout is used separately for both configuration and version update operations.

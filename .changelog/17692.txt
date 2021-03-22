@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_backup_plan: `backup_options` and `resource_type` attributes in `advanced_backup_setting` configuration block are both required
+```

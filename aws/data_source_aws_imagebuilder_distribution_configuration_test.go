@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/imagebuilder"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -15,6 +16,7 @@ func TestAccAwsImageBuilderDistributionConfigurationDataSource_Arn(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -42,6 +44,10 @@ resource "aws_imagebuilder_distribution_configuration" "test" {
   name = %[1]q
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.current.name
   }
 }

@@ -63,7 +63,7 @@ func dataSourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interfac
 	for {
 		resp, err := conn.ListRegexPatternSets(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAFv2 RegexPatternSets: %s", err)
+			return fmt.Errorf("Error reading WAFv2 RegexPatternSets: %w", err)
 		}
 
 		if resp == nil || resp.RegexPatternSets == nil {
@@ -94,7 +94,7 @@ func dataSourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error reading WAFv2 RegexPatternSet: %s", err)
+		return fmt.Errorf("Error reading WAFv2 RegexPatternSet: %w", err)
 	}
 
 	if resp == nil || resp.RegexPatternSet == nil {
@@ -106,7 +106,7 @@ func dataSourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interfac
 	d.Set("description", aws.StringValue(resp.RegexPatternSet.Description))
 
 	if err := d.Set("regular_expression", flattenWafv2RegexPatternSet(resp.RegexPatternSet.RegularExpressionList)); err != nil {
-		return fmt.Errorf("Error setting regular_expression: %s", err)
+		return fmt.Errorf("Error setting regular_expression: %w", err)
 	}
 
 	return nil

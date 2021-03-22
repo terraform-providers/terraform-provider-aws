@@ -15,7 +15,13 @@ func dataSourceAwsPartition() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"dns_suffix": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"reverse_dns_prefix": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -34,6 +40,9 @@ func dataSourceAwsPartitionRead(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[DEBUG] Setting AWS URL Suffix to %s.", client.dnsSuffix)
 	d.Set("dns_suffix", meta.(*AWSClient).dnsSuffix)
+
+	d.Set("reverse_dns_prefix", meta.(*AWSClient).reverseDnsPrefix)
+	log.Printf("[DEBUG] Setting service prefix to %s.", meta.(*AWSClient).reverseDnsPrefix)
 
 	return nil
 }

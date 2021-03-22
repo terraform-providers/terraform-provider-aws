@@ -11,11 +11,11 @@ description: |-
 Provides a Pinpoint APNs Channel resource.
 
 ~> **Note:** All arguments, including certificates and tokens, will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_pinpoint_apns_channel" "apns" {
   application_id = aws_pinpoint_app.app.application_id
 
@@ -51,6 +51,10 @@ If you choose to use __Key credentials__ you will have to provide:
 * `team_id` - (Required) The ID assigned to your Apple developer account team. This value is provided on the Membership page.
 * `token_key` - (Required) The `.p8` file that you download from your Apple developer account when you create an authentication key.
 * `token_key_id` - (Required) The ID assigned to your signing key. To find this value, choose Certificates, IDs & Profiles, and choose your key in the Keys section.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

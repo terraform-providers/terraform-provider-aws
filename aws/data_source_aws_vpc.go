@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func dataSourceAwsVpc() *schema.Resource {
@@ -184,14 +185,14 @@ func dataSourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("state", vpc.State)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	d.Set("owner_id", vpc.OwnerId)
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc/%s", d.Id()),
@@ -208,7 +209,7 @@ func dataSourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 		cidrAssociations = append(cidrAssociations, association)
 	}
 	if err := d.Set("cidr_block_associations", cidrAssociations); err != nil {
-		return fmt.Errorf("error setting cidr_block_associations: %s", err)
+		return fmt.Errorf("error setting cidr_block_associations: %w", err)
 	}
 
 	if vpc.Ipv6CidrBlockAssociationSet != nil {
@@ -216,17 +217,21 @@ func dataSourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("ipv6_cidr_block", vpc.Ipv6CidrBlockAssociationSet[0].Ipv6CidrBlock)
 	}
 
-	attResp, err := awsVpcDescribeVpcAttribute("enableDnsSupport", aws.StringValue(vpc.VpcId), conn)
-	if err != nil {
-		return err
-	}
-	d.Set("enable_dns_support", attResp.EnableDnsSupport.Value)
+	enableDnsHostnames, err := finder.VpcAttribute(conn, aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsHostnames)
 
-	attResp, err = awsVpcDescribeVpcAttribute("enableDnsHostnames", aws.StringValue(vpc.VpcId), conn)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading EC2 VPC (%s) Attribute (%s): %w", aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsHostnames, err)
 	}
-	d.Set("enable_dns_hostnames", attResp.EnableDnsHostnames.Value)
+
+	d.Set("enable_dns_hostnames", enableDnsHostnames)
+
+	enableDnsSupport, err := finder.VpcAttribute(conn, aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsSupport)
+
+	if err != nil {
+		return fmt.Errorf("error reading EC2 VPC (%s) Attribute (%s): %w", aws.StringValue(vpc.VpcId), ec2.VpcAttributeNameEnableDnsSupport, err)
+	}
+
+	d.Set("enable_dns_support", enableDnsSupport)
 
 	routeTableId, err := resourceAwsVpcSetMainRouteTable(conn, aws.StringValue(vpc.VpcId))
 	if err != nil {

@@ -162,7 +162,7 @@ func resourceAwsLambdaLayerVersionPublish(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("compatible_runtimes"); ok && v.(*schema.Set).Len() > 0 {
-		params.CompatibleRuntimes = expandStringList(v.(*schema.Set).List())
+		params.CompatibleRuntimes = expandStringSet(v.(*schema.Set))
 	}
 
 	log.Printf("[DEBUG] Publishing Lambda layer: %s", params)

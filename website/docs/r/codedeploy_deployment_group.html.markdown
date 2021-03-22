@@ -14,7 +14,7 @@ Provides a CodeDeploy Deployment Group for a CodeDeploy Application
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "example-role"
 
@@ -87,7 +87,7 @@ resource "aws_codedeploy_deployment_group" "example" {
 
 ### Blue Green Deployments with ECS
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   compute_platform = "ECS"
   name             = "example"
@@ -145,7 +145,7 @@ resource "aws_codedeploy_deployment_group" "example" {
 
 ### Blue Green Deployments with Servers and Classic ELB
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   name = "example-app"
 }

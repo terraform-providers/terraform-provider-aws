@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"errors"
 	"fmt"
 
 	tfjson "github.com/hashicorp/terraform-json"
@@ -196,7 +197,7 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 		}
 		return fmt.Errorf("After applying this test step and performing a `terraform refresh`, the plan was not empty.\nstdout\n\n%s", stdout)
 	} else if step.ExpectNonEmptyPlan && planIsEmpty(plan) {
-		return fmt.Errorf("Expected a non-empty plan, but got an empty plan!")
+		return errors.New("Expected a non-empty plan, but got an empty plan")
 	}
 
 	// ID-ONLY REFRESH

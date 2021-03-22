@@ -236,7 +236,7 @@ func resourceAwsASGScheduledActionRetrieve(d *schema.ResourceData, meta interfac
 	}
 
 	if len(actions.ScheduledUpdateGroupActions) != 1 ||
-		*actions.ScheduledUpdateGroupActions[0].ScheduledActionName != d.Id() {
+		aws.StringValue(actions.ScheduledUpdateGroupActions[0].ScheduledActionName) != d.Id() {
 		return nil, false, nil
 	}
 

@@ -12,7 +12,7 @@ Provides a CodeArtifact Repostory Permissions Policy Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_key" "example" {
   description = "domain key"
 }
@@ -28,7 +28,7 @@ resource "aws_codeartifact_repository" "example" {
 }
 
 resource "aws_codeartifact_repository_permissions_policy" "example" {
-  repository      = aws_codeartifact_repository.example.repsitory
+  repository      = aws_codeartifact_repository.example.repository
   domain          = aws_codeartifact_domain.example.domain
   policy_document = <<EOF
 {

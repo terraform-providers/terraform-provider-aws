@@ -152,7 +152,7 @@ func resourceAwsRedshiftSnapshotScheduleUpdate(d *schema.ResourceData, meta inte
 	if d.HasChange("definitions") {
 		modifyOpts := &redshift.ModifySnapshotScheduleInput{
 			ScheduleIdentifier:  aws.String(d.Id()),
-			ScheduleDefinitions: expandStringList(d.Get("definitions").(*schema.Set).List()),
+			ScheduleDefinitions: expandStringSet(d.Get("definitions").(*schema.Set)),
 		}
 		_, err := conn.ModifySnapshotSchedule(modifyOpts)
 		if isAWSErr(err, redshift.ErrCodeSnapshotScheduleNotFoundFault, "") {

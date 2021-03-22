@@ -139,18 +139,26 @@ func resourceAwsSecurityHubMemberRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsSecurityHubMemberDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).securityhubconn
-	log.Printf("[DEBUG] Deleting Security Hub member: %s", d.Id())
+
+	_, err := conn.DisassociateMembers(&securityhub.DisassociateMembersInput{
+		AccountIds: []*string{aws.String(d.Id())},
+	})
+	if isAWSErr(err, securityhub.ErrCodeResourceNotFoundException, "") {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("Error disassociating Security Hub member %s: %w", d.Id(), err)
+	}
 
 	resp, err := conn.DeleteMembers(&securityhub.DeleteMembersInput{
 		AccountIds: []*string{aws.String(d.Id())},
 	})
 
+	if isAWSErr(err, securityhub.ErrCodeResourceNotFoundException, "") {
+		return nil
+	}
 	if err != nil {
-		if isAWSErr(err, securityhub.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Security Hub member (%s) not found", d.Id())
-			return nil
-		}
-		return fmt.Errorf("Error deleting Security Hub member %s: %s", d.Id(), err)
+		return fmt.Errorf("Error deleting Security Hub member %s: %w", d.Id(), err)
 	}
 
 	if len(resp.UnprocessedAccounts) > 0 {

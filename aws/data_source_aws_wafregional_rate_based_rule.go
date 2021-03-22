@@ -31,7 +31,7 @@ func dataSourceAwsWafRegionalRateBasedRuleRead(d *schema.ResourceData, meta inte
 	for {
 		output, err := conn.ListRateBasedRules(input)
 		if err != nil {
-			return fmt.Errorf("error reading WAF Rate Based Rules: %s", err)
+			return fmt.Errorf("error reading WAF Rate Based Rules: %w", err)
 		}
 		for _, rule := range output.Rules {
 			if aws.StringValue(rule.Name) == name {

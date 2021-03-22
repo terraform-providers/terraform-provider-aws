@@ -11,11 +11,11 @@ description: |-
 Provides a DMS (Data Migration Service) endpoint resource. DMS endpoints can be created, updated, deleted, and imported.
 
 ~> **Note:** All arguments including the password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new endpoint
 resource "aws_dms_endpoint" "test" {
   certificate_arn             = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
@@ -123,6 +123,7 @@ The `s3_settings` configuration block supports the following arguments:
 * `compression_type` - (Optional) Set to compress target files. Defaults to `NONE`. Valid values are `GZIP` and `NONE`.
 * `csv_delimiter` - (Optional) Delimiter used to separate columns in the source files. Defaults to `,`.
 * `csv_row_delimiter` - (Optional) Delimiter used to separate rows in the source files. Defaults to `\n`.
+* `date_partition_enabled` - (Optional) Partition S3 bucket folders based on transaction commit dates. Defaults to `false`.
 * `external_table_definition` - (Optional) JSON document that describes how AWS DMS should interpret the data.
 * `service_access_role_arn` - (Optional) Amazon Resource Name (ARN) of the IAM Role with permissions to read from or write to the S3 Bucket.
 

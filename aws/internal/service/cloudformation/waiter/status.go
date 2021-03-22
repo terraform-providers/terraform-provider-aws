@@ -66,7 +66,7 @@ func StackSetOperationStatus(conn *cloudformation.CloudFormation, stackSetName, 
 				listOperationResultsOutput, err := conn.ListStackSetOperationResults(listOperationResultsInput)
 
 				if err != nil {
-					return output.StackSetOperation, cloudformation.StackSetOperationStatusFailed, fmt.Errorf("error listing Operation (%s) errors: %s", operationID, err)
+					return output.StackSetOperation, cloudformation.StackSetOperationStatusFailed, fmt.Errorf("error listing Operation (%s) errors: %w", operationID, err)
 				}
 
 				if listOperationResultsOutput == nil {

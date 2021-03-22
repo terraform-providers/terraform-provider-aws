@@ -15,7 +15,7 @@ Provides an EventBridge event bus resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_bus" "messenger" {
   name = "chat-messages"
 }

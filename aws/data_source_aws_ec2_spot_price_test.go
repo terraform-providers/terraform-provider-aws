@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -15,6 +14,7 @@ func TestAccAwsEc2SpotPriceDataSource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsEc2SpotPrice(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -34,6 +34,7 @@ func TestAccAwsEc2SpotPriceDataSource_Filter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsEc2SpotPrice(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -67,7 +68,7 @@ func testAccPreCheckAwsEc2SpotPrice(t *testing.T) {
 }
 
 func testAccAwsEc2SpotPriceDataSourceConfig() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 data "aws_region" "current" {}
 
 data "aws_ec2_instance_type_offering" "test" {
@@ -91,7 +92,7 @@ data "aws_ec2_spot_price" "test" {
 }
 
 func testAccAwsEc2SpotPriceDataSourceFilterConfig() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 data "aws_region" "current" {}
 
 data "aws_ec2_instance_type_offering" "test" {

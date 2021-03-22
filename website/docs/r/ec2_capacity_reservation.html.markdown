@@ -12,7 +12,7 @@ Provides an EC2 Capacity Reservation. This allows you to reserve capacity for yo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_capacity_reservation" "default" {
   instance_type     = "t2.micro"
   instance_platform = "Linux/UNIX"
@@ -42,6 +42,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Capacity Reservation ID.
+* `owner_id` - The ID of the AWS account that owns the Capacity Reservation.
 * `arn` - The ARN of the Capacity Reservation.
 
 ## Import

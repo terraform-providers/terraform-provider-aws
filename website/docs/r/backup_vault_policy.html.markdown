@@ -12,7 +12,7 @@ Provides an AWS Backup vault policy resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_backup_vault" "example" {
   name = "example"
 }

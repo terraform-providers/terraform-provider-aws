@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/envvar"
 )
 
 // sweeperAwsClients is a shared cache of regional AWSClient
@@ -24,8 +25,16 @@ func sharedClientForRegion(region string) (interface{}, error) {
 		return client, nil
 	}
 
-	if os.Getenv("AWS_PROFILE") == "" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
-		return nil, fmt.Errorf("must provide environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY or environment variable AWS_PROFILE")
+	_, _, err := envvar.RequireOneOf([]string{envvar.AwsProfile, envvar.AwsAccessKeyId, envvar.AwsContainerCredentialsFullUri}, "credentials for running sweepers")
+	if err != nil {
+		return nil, err
+	}
+
+	if os.Getenv(envvar.AwsAccessKeyId) != "" {
+		_, err := envvar.Require(envvar.AwsSecretAccessKey, "static credentials value when using "+envvar.AwsAccessKeyId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	conf := &Config{

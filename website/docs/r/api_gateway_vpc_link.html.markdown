@@ -15,7 +15,7 @@ To enable private integration for HTTP APIs, use the Amazon API Gateway Version 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lb" "example" {
   name               = "example"
   internal           = true

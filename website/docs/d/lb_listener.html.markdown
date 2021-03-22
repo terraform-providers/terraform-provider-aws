@@ -18,7 +18,7 @@ information specific to the listener in question.
 
 ## Example Usage
 
-```hcl
+```terraform
 # get listener from listener arn
 
 variable "listener_arn" {

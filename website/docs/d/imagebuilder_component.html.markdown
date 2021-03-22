@@ -12,7 +12,7 @@ Provides details about an Image Builder Component.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_imagebuilder_component" "example" {
   arn = "arn:aws:imagebuilder:us-west-2:aws:component/amazon-cloudwatch-agent-linux/1.0.0"
 }

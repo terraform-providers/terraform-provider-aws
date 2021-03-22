@@ -14,12 +14,18 @@ Provides an AWS Network Firewall Resource Policy Resource for a rule group or fi
 
 ### For a Firewall Policy resource
 
-```hcl
+```terraform
 resource "aws_networkfirewall_resource_policy" "example" {
   resource_arn = aws_networkfirewall_firewall_policy.example.arn
+  # policy's Action element must include all of the following operations
   policy = jsonencode({
     Statement = [{
-      Action   = "network-firewall:ListFirewallPolicies"
+      Action = [
+        "network-firewall:ListFirewallPolicies",
+        "network-firewall:CreateFirewall",
+        "network-firewall:UpdateFirewall",
+        "network-firewall:AssociateFirewallPolicy"
+      ]
       Effect   = "Allow"
       Resource = aws_networkfirewall_firewall_policy.example.arn
       Principal = {
@@ -33,12 +39,17 @@ resource "aws_networkfirewall_resource_policy" "example" {
 
 ### For a Rule Group resource
 
-```hcl
+```terraform
 resource "aws_networkfirewall_resource_policy" "example" {
   resource_arn = aws_networkfirewall_rule_group.example.arn
+  # policy's Action element must include all of the following operations
   policy = jsonencode({
     Statement = [{
-      Action   = "network-firewall:ListRuleGroups"
+      Action = [
+        "network-firewall:ListRuleGroups",
+        "network-firewall:CreateFirewallPolicy",
+        "network-firewall:UpdateFirewallPolicy"
+      ]
       Effect   = "Allow"
       Resource = aws_networkfirewall_rule_group.example.arn
       Principal = {
@@ -58,9 +69,9 @@ The following arguments are supported:
 
 * `resource_arn` - (Required, Forces new resource) The Amazon Resource Name (ARN) of the rule group or firewall policy.
 
-## Attribute Reference
+## Attributes Reference
 
-In addition to all arguments above, the following attribute is exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) of the rule group or firewall policy associated with the resource policy.
 

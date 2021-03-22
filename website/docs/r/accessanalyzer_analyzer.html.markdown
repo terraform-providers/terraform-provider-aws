@@ -14,7 +14,7 @@ Manages an Access Analyzer Analyzer. More information can be found in the [Acces
 
 ### Account Analyzer
 
-```hcl
+```terraform
 resource "aws_accessanalyzer_analyzer" "example" {
   analyzer_name = "example"
 }
@@ -22,7 +22,7 @@ resource "aws_accessanalyzer_analyzer" "example" {
 
 ### Organization Analyzer
 
-```hcl
+```terraform
 resource "aws_organizations_organization" "example" {
   aws_service_access_principals = ["access-analyzer.amazonaws.com"]
 }

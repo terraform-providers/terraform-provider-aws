@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	tfglue "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/finder"
 )
 
 func resourceAwsGluePartition() *schema.Resource {
@@ -42,10 +43,13 @@ func resourceAwsGluePartition() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 			"partition_values": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringLenBetween(1, 1024),
+				},
 			},
 			"storage_descriptor": {
 				Type:     schema.TypeList,
@@ -198,7 +202,7 @@ func resourceAwsGluePartitionCreate(d *schema.ResourceData, meta interface{}) er
 	catalogID := createAwsGlueCatalogID(d, meta.(*AWSClient).accountid)
 	dbName := d.Get("database_name").(string)
 	tableName := d.Get("table_name").(string)
-	values := d.Get("partition_values").(*schema.Set)
+	values := d.Get("partition_values").([]interface{})
 
 	input := &glue.CreatePartitionInput{
 		CatalogId:      aws.String(catalogID),
@@ -221,37 +225,21 @@ func resourceAwsGluePartitionCreate(d *schema.ResourceData, meta interface{}) er
 func resourceAwsGluePartitionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
 
-	catalogID, dbName, tableName, values, err := tfglue.ReadAwsGluePartitionID(d.Id())
-	if err != nil {
-		return err
-	}
-
 	log.Printf("[DEBUG] Reading Glue Partition: %s", d.Id())
-	input := &glue.GetPartitionInput{
-		CatalogId:       aws.String(catalogID),
-		DatabaseName:    aws.String(dbName),
-		TableName:       aws.String(tableName),
-		PartitionValues: aws.StringSlice(values),
-	}
-
-	out, err := conn.GetPartition(input)
+	partition, err := finder.PartitionByValues(conn, d.Id())
 	if err != nil {
-
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
 			log.Printf("[WARN] Glue Partition (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-
 		return fmt.Errorf("error reading Glue Partition: %w", err)
 	}
 
-	partition := out.Partition
-
 	d.Set("table_name", partition.TableName)
-	d.Set("catalog_id", catalogID)
+	d.Set("catalog_id", partition.CatalogId)
 	d.Set("database_name", partition.DatabaseName)
-	d.Set("partition_values", flattenStringSet(partition.Values))
+	d.Set("partition_values", flattenStringList(partition.Values))
 
 	if partition.LastAccessTime != nil {
 		d.Set("last_accessed_time", partition.LastAccessTime.Format(time.RFC3339))
@@ -332,8 +320,8 @@ func expandGluePartitionInput(d *schema.ResourceData) *glue.PartitionInput {
 		tableInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
 	}
 
-	if v, ok := d.GetOk("partition_values"); ok && v.(*schema.Set).Len() > 0 {
-		tableInput.Values = expandStringSet(v.(*schema.Set))
+	if v, ok := d.GetOk("partition_values"); ok && len(v.([]interface{})) > 0 {
+		tableInput.Values = expandStringList(v.([]interface{}))
 	}
 
 	return tableInput

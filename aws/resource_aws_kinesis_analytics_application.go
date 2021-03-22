@@ -11,12 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
@@ -316,12 +318,15 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 
 						"starting_position_configuration": {
 							Type:     schema.TypeList,
+							Optional: true,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"starting_position": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringInSlice(kinesisanalytics.InputStartingPosition_Values(), false),
 									},
 								},
 							},
@@ -427,7 +432,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"record_format_type": {
 										Type:         schema.TypeString,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validation.StringInSlice(kinesisanalytics.RecordFormatType_Values(), false),
 									},
 								},
@@ -586,6 +591,11 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 				},
 			},
 
+			"start_application": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -603,11 +613,12 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 
 func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
+	applicationName := d.Get("name").(string)
 
 	input := &kinesisanalytics.CreateApplicationInput{
 		ApplicationCode:          aws.String(d.Get("code").(string)),
 		ApplicationDescription:   aws.String(d.Get("description").(string)),
-		ApplicationName:          aws.String(d.Get("name").(string)),
+		ApplicationName:          aws.String(applicationName),
 		CloudWatchLoggingOptions: expandKinesisAnalyticsCloudWatchLoggingOptions(d.Get("cloudwatch_logging_options").([]interface{})),
 		Inputs:                   expandKinesisAnalyticsInputs(d.Get("inputs").([]interface{})),
 		Outputs:                  expandKinesisAnalyticsOutputs(d.Get("outputs").(*schema.Set).List()),
@@ -624,7 +635,7 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 	})
 
 	if err != nil {
-		return fmt.Errorf("error creating Kinesis Analytics Application: %w", err)
+		return fmt.Errorf("error creating Kinesis Analytics Application (%s): %w", applicationName, err)
 	}
 
 	applicationSummary := outputRaw.(*kinesisanalytics.CreateApplicationOutput).ApplicationSummary
@@ -634,7 +645,7 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 	if v := d.Get("reference_data_sources").([]interface{}); len(v) > 0 && v[0] != nil {
 		// Add new reference data source.
 		input := &kinesisanalytics.AddApplicationReferenceDataSourceInput{
-			ApplicationName:             applicationSummary.ApplicationName,
+			ApplicationName:             aws.String(applicationName),
 			CurrentApplicationVersionId: aws.Int64(1), // Newly created application version.
 			ReferenceDataSource:         expandKinesisAnalyticsReferenceDataSource(v),
 		}
@@ -650,6 +661,36 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 		}
 	}
 
+	if _, ok := d.GetOk("start_application"); ok {
+		if v, ok := d.GetOk("inputs"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+			tfMap := v.([]interface{})[0].(map[string]interface{})
+
+			var inputStartingPosition string
+
+			if v, ok := tfMap["starting_position_configuration"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+				tfMap := v[0].(map[string]interface{})
+
+				if v, ok := tfMap["starting_position"].(string); ok && v != "" {
+					inputStartingPosition = v
+				}
+			}
+
+			application, err := finder.ApplicationDetailByName(conn, applicationName)
+
+			if err != nil {
+				return fmt.Errorf("error reading Kinesis Analytics Application (%s): %w", d.Id(), err)
+			}
+
+			err = kinesisAnalyticsStartApplication(conn, application, inputStartingPosition)
+
+			if err != nil {
+				return err
+			}
+		} else {
+			log.Printf("[DEBUG] Kinesis Analytics Application (%s) has no inputs", d.Id())
+		}
+	}
+
 	return resourceAwsKinesisAnalyticsApplicationRead(d, meta)
 }
 
@@ -657,9 +698,9 @@ func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta int
 	conn := meta.(*AWSClient).kinesisanalyticsconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	application, err := finder.ApplicationByName(conn, d.Get("name").(string))
+	application, err := finder.ApplicationDetailByName(conn, d.Get("name").(string))
 
-	if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+	if !d.IsNewResource() && tfresource.NotFound(err) {
 		log.Printf("[WARN] Kinesis Analytics Application (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -747,6 +788,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 					return fmt.Errorf("error adding Kinesis Analytics Application (%s) CloudWatch logging option: %w", d.Id(), err)
 				}
 
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
+				}
+
 				currentApplicationVersionId += 1
 			} else if len(n.([]interface{})) == 0 {
 				// Delete existing CloudWatch logging options.
@@ -766,6 +811,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 
 				if err != nil {
 					return fmt.Errorf("error deleting Kinesis Analytics Application (%s) CloudWatch logging option: %w", d.Id(), err)
+				}
+
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
 				}
 
 				currentApplicationVersionId += 1
@@ -813,6 +862,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 					return fmt.Errorf("error adding Kinesis Analytics Application (%s) input: %w", d.Id(), err)
 				}
 
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
+				}
+
 				currentApplicationVersionId += 1
 			} else if len(n.([]interface{})) == 0 {
 				// The existing input cannot be deleted.
@@ -846,6 +899,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 							return fmt.Errorf("error adding Kinesis Analytics Application (%s) input processing configuration: %w", d.Id(), err)
 						}
 
+						if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+							return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
+						}
+
 						currentApplicationVersionId += 1
 					} else if len(n.([]interface{})) == 0 {
 						// Delete existing input processing configuration.
@@ -863,6 +920,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 
 						if err != nil {
 							return fmt.Errorf("error deleting Kinesis Analytics Application (%s) input processing configuration: %w", d.Id(), err)
+						}
+
+						if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+							return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
 						}
 
 						currentApplicationVersionId += 1
@@ -921,6 +982,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 					return fmt.Errorf("error deleting Kinesis Analytics Application (%s) output: %w", d.Id(), err)
 				}
 
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
+				}
+
 				currentApplicationVersionId += 1
 			}
 
@@ -940,6 +1005,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 
 				if err != nil {
 					return fmt.Errorf("error adding Kinesis Analytics Application (%s) output: %w", d.Id(), err)
+				}
+
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
 				}
 
 				currentApplicationVersionId += 1
@@ -967,6 +1036,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 					return fmt.Errorf("error adding Kinesis Analytics Application (%s) reference data source: %w", d.Id(), err)
 				}
 
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
+				}
+
 				currentApplicationVersionId += 1
 			} else if len(n.([]interface{})) == 0 {
 				// Delete existing reference data source.
@@ -986,6 +1059,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 
 				if err != nil {
 					return fmt.Errorf("error deleting Kinesis Analytics Application (%s) reference data source: %w", d.Id(), err)
+				}
+
+				if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+					return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
 				}
 
 				currentApplicationVersionId += 1
@@ -1011,6 +1088,10 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 			if err != nil {
 				return fmt.Errorf("error updating Kinesis Analytics Application (%s): %w", d.Id(), err)
 			}
+
+			if _, err := waiter.ApplicationUpdated(conn, applicationName); err != nil {
+				return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to update: %w", d.Id(), err)
+			}
 		}
 	}
 
@@ -1019,6 +1100,44 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 		o, n := d.GetChange("tags")
 		if err := keyvaluetags.KinesisanalyticsUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Kinesis Analytics Application (%s) tags: %s", arn, err)
+		}
+	}
+
+	if d.HasChange("start_application") {
+		application, err := finder.ApplicationDetailByName(conn, d.Get("name").(string))
+
+		if err != nil {
+			return fmt.Errorf("error reading Kinesis Analytics Application (%s): %w", d.Id(), err)
+		}
+
+		if _, ok := d.GetOk("start_application"); ok {
+			if v, ok := d.GetOk("inputs"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+				tfMap := v.([]interface{})[0].(map[string]interface{})
+
+				var inputStartingPosition string
+
+				if v, ok := tfMap["starting_position_configuration"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+					tfMap := v[0].(map[string]interface{})
+
+					if v, ok := tfMap["starting_position"].(string); ok && v != "" {
+						inputStartingPosition = v
+					}
+				}
+
+				err = kinesisAnalyticsStartApplication(conn, application, inputStartingPosition)
+
+				if err != nil {
+					return err
+				}
+			} else {
+				log.Printf("[DEBUG] Kinesis Analytics Application (%s) has no inputs", d.Id())
+			}
+		} else {
+			err = kinesisAnalyticsStopApplication(conn, application)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1041,7 +1160,7 @@ func resourceAwsKinesisAnalyticsApplicationDelete(d *schema.ResourceData, meta i
 		CreateTimestamp: aws.Time(createTimestamp),
 	})
 
-	if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+	if tfawserr.ErrCodeEquals(err, kinesisanalytics.ErrCodeResourceNotFoundException) {
 		return nil
 	}
 
@@ -1049,7 +1168,7 @@ func resourceAwsKinesisAnalyticsApplicationDelete(d *schema.ResourceData, meta i
 		return fmt.Errorf("error deleting Kinesis Analytics Application (%s): %w", d.Id(), err)
 	}
 
-	_, err = waiter.ApplicationDeleted(conn, applicationName, d.Timeout(schema.TimeoutDelete))
+	_, err = waiter.ApplicationDeleted(conn, applicationName)
 
 	if err != nil {
 		return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) deletion: %w", d.Id(), err)
@@ -1073,6 +1192,71 @@ func resourceAwsKinesisAnalyticsApplicationImport(d *schema.ResourceData, meta i
 	d.Set("name", parts[1])
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func kinesisAnalyticsStartApplication(conn *kinesisanalytics.KinesisAnalytics, application *kinesisanalytics.ApplicationDetail, inputStartingPosition string) error {
+	applicationARN := aws.StringValue(application.ApplicationARN)
+	applicationName := aws.StringValue(application.ApplicationName)
+
+	if actual, expected := aws.StringValue(application.ApplicationStatus), kinesisanalytics.ApplicationStatusReady; actual != expected {
+		log.Printf("[DEBUG] Kinesis Analytics Application (%s) has status %s. An application can only be started if it's in the %s state", applicationARN, actual, expected)
+		return nil
+	}
+
+	if len(application.InputDescriptions) == 0 {
+		log.Printf("[DEBUG] Kinesis Analytics Application (%s) has no input description", applicationARN)
+		return nil
+	}
+
+	input := &kinesisanalytics.StartApplicationInput{
+		ApplicationName: aws.String(applicationName),
+		InputConfigurations: []*kinesisanalytics.InputConfiguration{{
+			Id:                                 application.InputDescriptions[0].InputId,
+			InputStartingPositionConfiguration: &kinesisanalytics.InputStartingPositionConfiguration{},
+		}},
+	}
+
+	if inputStartingPosition != "" {
+		input.InputConfigurations[0].InputStartingPositionConfiguration.InputStartingPosition = aws.String(inputStartingPosition)
+	}
+
+	log.Printf("[DEBUG] Starting Kinesis Analytics Application (%s): %s", applicationARN, input)
+
+	if _, err := conn.StartApplication(input); err != nil {
+		return fmt.Errorf("error starting Kinesis Analytics Application (%s): %w", applicationARN, err)
+	}
+
+	if _, err := waiter.ApplicationStarted(conn, applicationName); err != nil {
+		return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to start: %w", applicationARN, err)
+	}
+
+	return nil
+}
+
+func kinesisAnalyticsStopApplication(conn *kinesisanalytics.KinesisAnalytics, application *kinesisanalytics.ApplicationDetail) error {
+	applicationARN := aws.StringValue(application.ApplicationARN)
+	applicationName := aws.StringValue(application.ApplicationName)
+
+	if actual, expected := aws.StringValue(application.ApplicationStatus), kinesisanalytics.ApplicationStatusRunning; actual != expected {
+		log.Printf("[DEBUG] Kinesis Analytics Application (%s) has status %s. An application can only be stopped if it's in the %s state", applicationARN, actual, expected)
+		return nil
+	}
+
+	input := &kinesisanalytics.StopApplicationInput{
+		ApplicationName: aws.String(applicationName),
+	}
+
+	log.Printf("[DEBUG] Stopping Kinesis Analytics Application (%s): %s", applicationARN, input)
+
+	if _, err := conn.StopApplication(input); err != nil {
+		return fmt.Errorf("error stopping Kinesis Analytics Application (%s): %w", applicationARN, err)
+	}
+
+	if _, err := waiter.ApplicationStopped(conn, applicationName); err != nil {
+		return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to stop: %w", applicationARN, err)
+	}
+
+	return nil
 }
 
 func expandKinesisAnalyticsCloudWatchLoggingOptions(vCloudWatchLoggingOptions []interface{}) []*kinesisanalytics.CloudWatchLoggingOption {

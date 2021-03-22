@@ -74,6 +74,10 @@ func dataSourceAwsLb() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"ipv6_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -165,7 +169,7 @@ func dataSourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Reading Load Balancer: %s", describeLbOpts)
 	describeResp, err := conn.DescribeLoadBalancers(describeLbOpts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving LB: %s", err)
+		return fmt.Errorf("Error retrieving LB: %w", err)
 	}
 	if len(describeResp.LoadBalancers) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(describeResp.LoadBalancers))

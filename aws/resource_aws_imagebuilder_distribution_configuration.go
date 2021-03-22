@@ -85,7 +85,6 @@ func resourceAwsImageBuilderDistributionConfiguration() *schema.Resource {
 														Type:         schema.TypeString,
 														ValidateFunc: validateAwsAccountId,
 													},
-													MaxItems: 50,
 												},
 											},
 										},

@@ -21,7 +21,7 @@ Provides a CloudTrail resource.
 Enable CloudTrail to capture all compatible management events in region.
 For capturing events from services like IAM, `include_global_service_events` must be enabled.
 
-```hcl
+```terraform
 data "aws_caller_identity" "current" {}
 
 resource "aws_cloudtrail" "foobar" {
@@ -74,7 +74,7 @@ CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/lates
 
 #### Logging All Lambda Function Invocations
 
-```hcl
+```terraform
 resource "aws_cloudtrail" "example" {
   # ... other configuration ...
 
@@ -92,7 +92,7 @@ resource "aws_cloudtrail" "example" {
 
 #### Logging All S3 Bucket Object Events
 
-```hcl
+```terraform
 resource "aws_cloudtrail" "example" {
   # ... other configuration ...
 
@@ -110,7 +110,7 @@ resource "aws_cloudtrail" "example" {
 
 #### Logging Individual S3 Bucket Events
 
-```hcl
+```terraform
 data "aws_s3_bucket" "important-bucket" {
   bucket = "important-bucket"
 }
@@ -135,7 +135,7 @@ resource "aws_cloudtrail" "example" {
 
 #### Sending Events to CloudWatch Logs
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name = "Example"
 }

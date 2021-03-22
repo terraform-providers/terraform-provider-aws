@@ -12,7 +12,7 @@ Provides an SNS topic resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_topic" "user_updates" {
   name = "user-updates-topic"
 }
@@ -47,7 +47,7 @@ EOF
 
 ## Example with Server-side encryption (SSE)
 
-```hcl
+```terraform
 resource "aws_sns_topic" "user_updates" {
   name              = "user-updates-topic"
   kms_master_key_id = "alias/aws/sns"

@@ -12,7 +12,7 @@ description: |-
 
 The following shows outputing all network ACL ids in a vpc.
 
-```hcl
+```terraform
 data "aws_network_acls" "example" {
   vpc_id = var.vpc_id
 }
@@ -25,7 +25,7 @@ output "example" {
 The following example retrieves a list of all network ACL ids in a VPC with a custom
 tag of `Tier` set to a value of "Private".
 
-```hcl
+```terraform
 data "aws_network_acls" "example" {
   vpc_id = var.vpc_id
 
@@ -38,7 +38,7 @@ data "aws_network_acls" "example" {
 The following example retrieves a network ACL id in a VPC which associated
 with specific subnet.
 
-```hcl
+```terraform
 data "aws_network_acls" "example" {
   vpc_id = var.vpc_id
 

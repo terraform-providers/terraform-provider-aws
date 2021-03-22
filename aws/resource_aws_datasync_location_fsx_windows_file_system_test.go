@@ -89,6 +89,7 @@ func TestAccAWSDataSyncLocationFsxWindows_basic(t *testing.T) {
 			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
 			testAccPreCheckAWSDataSync(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -125,6 +126,7 @@ func TestAccAWSDataSyncLocationFsxWindows_disappears(t *testing.T) {
 			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
 			testAccPreCheckAWSDataSync(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -150,6 +152,7 @@ func TestAccAWSDataSyncLocationFsxWindows_subdirectory(t *testing.T) {
 			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
 			testAccPreCheckAWSDataSync(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -181,6 +184,7 @@ func TestAccAWSDataSyncLocationFsxWindows_tags(t *testing.T) {
 			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
 			testAccPreCheckAWSDataSync(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -286,7 +290,7 @@ func testAccWSDataSyncLocationFsxWindowsImportStateIdFunc(resourceName string) r
 }
 
 func testAccAWSDataSyncLocationFsxWindowsConfig() string {
-	return testAccAwsFsxWindowsFileSystemConfigSecurityGroupIds1() + fmt.Sprintf(`
+	return composeConfig(testAccAwsFsxWindowsFileSystemConfigSecurityGroupIds1(), `
 resource "aws_datasync_location_fsx_windows_file_system" "test" {
   fsx_filesystem_arn  = aws_fsx_windows_file_system.test.arn
   user                = "SomeUser"

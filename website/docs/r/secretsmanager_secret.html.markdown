@@ -14,7 +14,7 @@ Provides a resource to manage AWS Secrets Manager secret metadata. To manage sec
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_secretsmanager_secret" "example" {
   name = "example"
 }
@@ -28,7 +28,7 @@ To enable automatic secret rotation, the Secrets Manager service requires usage 
 
 ~> **NOTE:** If you cancel a rotation that is in progress (by removing the `rotation` configuration), it can leave the VersionStage labels in an unexpected state. Depending on what step of the rotation was in progress, you might need to remove the staging label AWSPENDING from the partially created version, specified by the SecretVersionId response value. You should also evaluate the partially rotated new version to see if it should be deleted, which you can do by removing all staging labels from the new version's VersionStage field.
 
-```hcl
+```terraform
 resource "aws_secretsmanager_secret" "rotation-example" {
   name                = "rotation-example"
   rotation_lambda_arn = aws_lambda_function.example.arn

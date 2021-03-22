@@ -19,6 +19,7 @@ func TestAccAWSNetworkInterfaceSGAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSNetworkInterfaceSGAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -41,6 +42,7 @@ func TestAccAWSNetworkInterfaceSGAttachment_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSNetworkInterfaceSGAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -73,6 +75,7 @@ func TestAccAWSNetworkInterfaceSGAttachment_Instance(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSNetworkInterfaceSGAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -97,6 +100,7 @@ func TestAccAWSNetworkInterfaceSGAttachment_DataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSNetworkInterfaceSGAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -127,6 +131,7 @@ func TestAccAWSNetworkInterfaceSGAttachment_Multiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSNetworkInterfaceSGAttachmentDestroy,
 		Steps: []resource.TestStep{

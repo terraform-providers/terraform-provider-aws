@@ -172,7 +172,7 @@ func resourceAwsCurReportDefinitionCreate(d *schema.ResourceData, meta interface
 func resourceAwsCurReportDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).costandusagereportconn
 
-	reportName := *aws.String(d.Id())
+	reportName := d.Id()
 
 	matchingReportDefinition, err := describeCurReportDefinition(conn, reportName)
 	if err != nil {

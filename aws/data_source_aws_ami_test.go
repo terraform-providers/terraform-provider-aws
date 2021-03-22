@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -12,8 +14,9 @@ import (
 func TestAccAWSAmiDataSource_natInstance(t *testing.T) {
 	resourceName := "data.aws_ami.nat_ami"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsAmiDataSourceConfig,
@@ -50,16 +53,21 @@ func TestAccAWSAmiDataSource_natInstance(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state_reason.message", "UNSET"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "virtualization_type", "hvm"),
+					resource.TestCheckResourceAttr(resourceName, "platform_details", "Linux/UNIX"),
+					resource.TestCheckResourceAttr(resourceName, "ena_support", "true"),
+					resource.TestCheckResourceAttr(resourceName, "usage_operation", "RunInstances"),
 				),
 			},
 		},
 	})
 }
+
 func TestAccAWSAmiDataSource_windowsInstance(t *testing.T) {
 	resourceName := "data.aws_ami.windows_ami"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsAmiDataSourceWindowsConfig,
@@ -89,6 +97,9 @@ func TestAccAWSAmiDataSource_windowsInstance(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state_reason.message", "UNSET"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "virtualization_type", "hvm"),
+					resource.TestMatchResourceAttr(resourceName, "platform_details", regexp.MustCompile(`Windows`)),
+					resource.TestCheckResourceAttr(resourceName, "ena_support", "true"),
+					resource.TestMatchResourceAttr(resourceName, "usage_operation", regexp.MustCompile(`^RunInstances`)),
 				),
 			},
 		},
@@ -98,8 +109,9 @@ func TestAccAWSAmiDataSource_windowsInstance(t *testing.T) {
 func TestAccAWSAmiDataSource_instanceStore(t *testing.T) {
 	resourceName := "data.aws_ami.amzn-ami-minimal-hvm-instance-store"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig(),
@@ -125,6 +137,9 @@ func TestAccAWSAmiDataSource_instanceStore(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state_reason.message", "UNSET"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "virtualization_type", "hvm"),
+					resource.TestCheckResourceAttr(resourceName, "platform_details", "Linux/UNIX"),
+					resource.TestCheckResourceAttr(resourceName, "ena_support", "true"),
+					resource.TestCheckResourceAttr(resourceName, "usage_operation", "RunInstances"),
 				),
 			},
 		},
@@ -133,14 +148,47 @@ func TestAccAWSAmiDataSource_instanceStore(t *testing.T) {
 
 func TestAccAWSAmiDataSource_localNameFilter(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsAmiDataSourceNameRegexConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAmiDataSourceID("data.aws_ami.name_regex_filtered_ami"),
 					resource.TestMatchResourceAttr("data.aws_ami.name_regex_filtered_ami", "image_id", regexp.MustCompile("^ami-")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAmiDataSource_Gp3BlockDevice(t *testing.T) {
+	resourceName := "aws_ami.test"
+	datasourceName := "data.aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAmiDataSourceConfigGp3BlockDevice(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAmiDataSourceID(datasourceName),
+					resource.TestCheckResourceAttrPair(datasourceName, "architecture", resourceName, "architecture"),
+					resource.TestCheckResourceAttrPair(datasourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(datasourceName, "block_device_mappings.#", resourceName, "ebs_block_device.#"),
+					resource.TestCheckResourceAttrPair(datasourceName, "description", resourceName, "description"),
+					resource.TestCheckResourceAttrPair(datasourceName, "image_id", resourceName, "id"),
+					testAccCheckResourceAttrAccountID(datasourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "root_device_name", resourceName, "root_device_name"),
+					resource.TestCheckResourceAttr(datasourceName, "root_device_type", "ebs"),
+					resource.TestCheckResourceAttrPair(datasourceName, "root_snapshot_id", resourceName, "root_snapshot_id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "sriov_net_support", resourceName, "sriov_net_support"),
+					resource.TestCheckResourceAttrPair(datasourceName, "tags.%", resourceName, "tags.%"),
+					resource.TestCheckResourceAttrPair(datasourceName, "virtualization_type", resourceName, "virtualization_type"),
 				),
 			},
 		},
@@ -234,3 +282,20 @@ data "aws_ami" "name_regex_filtered_ami" {
   name_regex = "^amzn-ami-min[a-z]{4}-hvm"
 }
 `
+
+func testAccAmiDataSourceConfigGp3BlockDevice(rName string) string {
+	return composeConfig(
+		testAccAmiConfigGp3BlockDevice(rName),
+		`
+data "aws_caller_identity" "current" {}
+
+data "aws_ami" "test" {
+  owners = [data.aws_caller_identity.current.account_id]
+
+  filter {
+    name   = "image-id"
+    values = [aws_ami.test.id]
+  }
+}
+`)
+}

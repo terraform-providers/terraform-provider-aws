@@ -6,16 +6,17 @@ jobs:
   markIssuesForTriage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1.0.0
-    - name: Apply Issue Triage Label
-      uses: actions/github-script@v3
-      if: github.event.action == 'opened' && !contains(fromJSON('["anGie44", "bflad", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
+    - uses: actions/checkout@v2
+    - name: Apply Issue needs-triage Label
+      if: github.event.action == 'opened' && !contains(fromJSON('["anGie44", "bflad", "bill-rich", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
+      uses: github/issue-labeler@v2.2
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          github.issues.addLabels({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            labels: ['needs-triage']
-          })
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: .github/labeler-issue-needs-triage.yml
+        enable-versioned-regex: 0
+    - name: Apply Issue Triage Labels
+      uses: github/issue-labeler@v2.2
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: .github/labeler-issue-triage.yml
+        enable-versioned-regex: 0

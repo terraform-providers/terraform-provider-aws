@@ -1,0 +1,3 @@
+```release-note:new-resource
+aws_acmpca_certificate_authority_certificate
+```

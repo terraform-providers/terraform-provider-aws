@@ -12,7 +12,7 @@ Manages an AWS DataSync FSx Windows Location.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_location_fsx_windows_file_system" "example" {
   fsx_filesystem_arn  = aws_fsx_windows_file_system.example.arn
   user                = "SomeUser"

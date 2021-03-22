@@ -14,7 +14,7 @@ Provides a S3 bucket object resource.
 
 ### Uploading a file to a bucket
 
-```hcl
+```terraform
 resource "aws_s3_bucket_object" "object" {
   bucket = "your_bucket_name"
   key    = "new_object_key"
@@ -29,7 +29,7 @@ resource "aws_s3_bucket_object" "object" {
 
 ### Encrypting with KMS Key
 
-```hcl
+```terraform
 resource "aws_kms_key" "examplekms" {
   description             = "KMS key 1"
   deletion_window_in_days = 7
@@ -50,7 +50,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ### Server Side Encryption with S3 Default Master Key
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "examplebucket" {
   bucket = "examplebuckettftest"
   acl    = "private"
@@ -66,7 +66,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ### Server Side Encryption with AWS-Managed Key
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "examplebucket" {
   bucket = "examplebuckettftest"
   acl    = "private"
@@ -82,7 +82,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ### S3 Object Lock
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "examplebucket" {
   bucket = "examplebuckettftest"
   acl    = "private"

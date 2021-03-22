@@ -20,6 +20,7 @@ func TestAccAWSAPIGatewayIntegration_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -40,6 +41,7 @@ func TestAccAWSAPIGatewayIntegration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/json", ""),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/xml", "#set($inputRoot = $input.path('$'))\n{ }"),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
 				),
 			},
 
@@ -134,6 +136,7 @@ func TestAccAWSAPIGatewayIntegration_contentHandling(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -209,6 +212,7 @@ func TestAccAWSAPIGatewayIntegration_cache_key_parameters(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -251,6 +255,7 @@ func TestAccAWSAPIGatewayIntegration_integrationType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -288,6 +293,43 @@ func TestAccAWSAPIGatewayIntegration_integrationType(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayIntegration_TlsConfig_InsecureSkipVerification(t *testing.T) {
+	var conf apigateway.Integration
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(7))
+	resourceName := "aws_api_gateway_integration.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayIntegrationConfig_TlsConfig_InsecureSkipVerification(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayIntegrationExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.0.insecure_skip_verification", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayIntegrationImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayIntegrationConfig_TlsConfig_InsecureSkipVerification(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayIntegrationExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.0.insecure_skip_verification", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayIntegration_disappears(t *testing.T) {
 	var conf apigateway.Integration
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(7))
@@ -295,6 +337,7 @@ func TestAccAWSAPIGatewayIntegration_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -812,4 +855,49 @@ resource "aws_api_gateway_integration" "test" {
   content_handling        = "CONVERT_TO_TEXT"
 }
 `
+}
+
+func testAccAWSAPIGatewayIntegrationConfig_TlsConfig_InsecureSkipVerification(rName string, insecureSkipVerification bool) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+}
+
+resource "aws_api_gateway_resource" "test" {
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
+  path_part   = "test"
+}
+
+resource "aws_api_gateway_method" "test" {
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_models = {
+    "application/json" = "Error"
+  }
+
+  request_parameters = {
+    "method.request.path.param" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "test" {
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
+
+  type                    = "HTTP"
+  uri                     = "https://www.google.de"
+  integration_http_method = "GET"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  content_handling        = "CONVERT_TO_TEXT"
+
+  tls_config {
+    insecure_skip_verification = %[2]t
+  }
+}
+`, rName, insecureSkipVerification)
 }

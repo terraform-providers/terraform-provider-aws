@@ -93,7 +93,12 @@ func TestAccAWSGameliftGameSessionQueue_basic(t *testing.T) {
 	uTimeoutInSeconds := int64(600)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftGameSessionQueueDestroy,
 		Steps: []resource.TestStep{
@@ -152,7 +157,12 @@ func TestAccAWSGameliftGameSessionQueue_tags(t *testing.T) {
 	queueName := testAccGameliftGameSessionQueuePrefix + acctest.RandString(8)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftGameSessionQueueDestroy,
 		Steps: []resource.TestStep{
@@ -208,7 +218,12 @@ func TestAccAWSGameliftGameSessionQueue_disappears(t *testing.T) {
 	timeoutInSeconds := int64(124)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftGameSessionQueueDestroy,
 		Steps: []resource.TestStep{

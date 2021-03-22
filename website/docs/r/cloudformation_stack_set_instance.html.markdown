@@ -16,7 +16,7 @@ Manages a CloudFormation StackSet Instance. Instances are managed in the account
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudformation_stack_set_instance" "example" {
   account_id     = "123456789012"
   region         = "us-east-1"
@@ -26,7 +26,7 @@ resource "aws_cloudformation_stack_set_instance" "example" {
 
 ### Example IAM Setup in Target Account
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "AWSCloudFormationStackSetExecutionRole_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -85,7 +85,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_cloudformation_stack_set_instance` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_cloudformation_stack_set_instance` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `30m`) How long to wait for a Stack to be created.
 * `update` - (Default `30m`) How long to wait for a Stack to be updated.

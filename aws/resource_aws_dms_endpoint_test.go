@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,6 +18,7 @@ func TestAccAwsDmsEndpoint_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +58,7 @@ func TestAccAwsDmsEndpoint_S3(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -82,7 +85,7 @@ func TestAccAwsDmsEndpoint_S3(t *testing.T) {
 				Config: dmsEndpointS3ConfigUpdate(randId),
 				Check: resource.ComposeTestCheckFunc(
 					checkDmsEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "extra_connection_attributes", "key=value;"),
+					resource.TestMatchResourceAttr(resourceName, "extra_connection_attributes", regexp.MustCompile(`key=value;`)),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.external_table_definition", "new-external_table_definition"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_row_delimiter", "\\r"),
@@ -96,12 +99,41 @@ func TestAccAwsDmsEndpoint_S3(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/8009
+func TestAccAwsDmsEndpoint_S3_ExtraConnectionAttributes(t *testing.T) {
+	resourceName := "aws_dms_endpoint.dms_endpoint"
+	randId := acctest.RandString(8) + "-s3"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: dmsEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dmsEndpointS3ExtraConnectionAttributesConfig(randId),
+				Check: resource.ComposeTestCheckFunc(
+					checkDmsEndpointExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "extra_connection_attributes", regexp.MustCompile(`dataFormat=parquet;`)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+		},
+	})
+}
+
 func TestAccAwsDmsEndpoint_DynamoDb(t *testing.T) {
 	resourceName := "aws_dms_endpoint.dms_endpoint"
 	randId := acctest.RandString(8) + "-dynamodb"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -134,6 +166,7 @@ func TestAccAwsDmsEndpoint_Elasticsearch(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -157,12 +190,44 @@ func TestAccAwsDmsEndpoint_Elasticsearch(t *testing.T) {
 	})
 }
 
+// TestAccAwsDmsEndpoint_Elasticsearch_ExtraConnectionAttributes validates
+// extra_connection_attributes handling for "elasticsearch" engine not affected
+// by changes made specific to suppressing diffs in the case of "s3"/"mongodb" engine
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/8009
+func TestAccAwsDmsEndpoint_Elasticsearch_ExtraConnectionAttributes(t *testing.T) {
+	resourceName := "aws_dms_endpoint.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: dmsEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dmsEndpointElasticsearchExtraConnectionAttributesConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					checkDmsEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "extra_connection_attributes", "errorRetryDuration=400;"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+		},
+	})
+}
+
 func TestAccAwsDmsEndpoint_Elasticsearch_ErrorRetryDuration(t *testing.T) {
 	resourceName := "aws_dms_endpoint.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -200,6 +265,7 @@ func TestAccAwsDmsEndpoint_Elasticsearch_FullLoadErrorPercentage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -241,6 +307,7 @@ func TestAccAwsDmsEndpoint_Kafka_Broker(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -278,6 +345,7 @@ func TestAccAwsDmsEndpoint_Kafka_Topic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -313,6 +381,7 @@ func TestAccAwsDmsEndpoint_Kinesis(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -350,6 +419,7 @@ func TestAccAwsDmsEndpoint_MongoDb(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -366,6 +436,30 @@ func TestAccAwsDmsEndpoint_MongoDb(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
 			},
+		},
+	})
+}
+
+// TestAccAwsDmsEndpoint_MongoDb_Update validates engine-specific
+// configured fields and extra_connection_attributes now set in the resource
+// per https://github.com/hashicorp/terraform-provider-aws/issues/8009
+func TestAccAwsDmsEndpoint_MongoDb_Update(t *testing.T) {
+	resourceName := "aws_dms_endpoint.dms_endpoint"
+	randId := acctest.RandString(8) + "-mongodb"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: dmsEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dmsEndpointMongoDbConfig(randId),
+				Check: resource.ComposeTestCheckFunc(
+					checkDmsEndpointExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint_arn"),
+				),
+			},
 			{
 				Config: dmsEndpointMongoDbConfigUpdate(randId),
 				Check: resource.ComposeTestCheckFunc(
@@ -376,13 +470,19 @@ func TestAccAwsDmsEndpoint_MongoDb(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", "tftest-new-password"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "tftest-new-database_name"),
 					resource.TestCheckResourceAttr(resourceName, "ssl_mode", "require"),
-					resource.TestCheckResourceAttr(resourceName, "extra_connection_attributes", "key=value;"),
+					resource.TestMatchResourceAttr(resourceName, "extra_connection_attributes", regexp.MustCompile(`key=value;`)),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_settings.0.auth_mechanism", "scram-sha-1"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_settings.0.nesting_level", "one"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_settings.0.extract_doc_id", "true"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_settings.0.docs_to_investigate", "1001"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
 			},
 		},
 	})
@@ -394,6 +494,7 @@ func TestAccAwsDmsEndpoint_DocDB(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -433,6 +534,7 @@ func TestAccAwsDmsEndpoint_Db2(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -768,6 +870,84 @@ EOF
 `, randId)
 }
 
+func dmsEndpointS3ExtraConnectionAttributesConfig(randId string) string {
+	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+resource "aws_dms_endpoint" "dms_endpoint" {
+  endpoint_id                 = "tf-test-dms-endpoint-%[1]s"
+  endpoint_type               = "target"
+  engine_name                 = "s3"
+  ssl_mode                    = "none"
+  extra_connection_attributes = "dataFormat=parquet;"
+
+  s3_settings {
+    service_access_role_arn = aws_iam_role.iam_role.arn
+    bucket_name             = "bucket_name"
+    bucket_folder           = "bucket_folder"
+    compression_type        = "GZIP"
+  }
+
+  tags = {
+    Name   = "tf-test-s3-endpoint-%[1]s"
+    Update = "to-update"
+    Remove = "to-remove"
+  }
+
+  depends_on = [aws_iam_role_policy.dms_s3_access]
+}
+
+resource "aws_iam_role" "iam_role" {
+  name = "tf-test-iam-s3-role-%[1]s"
+
+  assume_role_policy = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": "sts:AssumeRole",
+			"Principal": {
+				"Service": "dms.${data.aws_partition.current.dns_suffix}"
+			},
+			"Effect": "Allow"
+		}
+	]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "dms_s3_access" {
+  name = "tf-test-iam-s3-role-policy-%[1]s"
+  role = aws_iam_role.iam_role.name
+
+  policy = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:CreateBucket",
+				"s3:ListBucket",
+				"s3:DeleteBucket",
+				"s3:GetBucketLocation",
+				"s3:GetObject",
+				"s3:PutObject",
+				"s3:DeleteObject",
+				"s3:GetObjectVersion",
+				"s3:GetBucketPolicy",
+				"s3:PutBucketPolicy",
+				"s3:DeleteBucketPolicy"
+			],
+			"Resource": "*"
+		}
+	]
+}
+EOF
+}
+`, randId)
+}
+
 func dmsEndpointS3ConfigUpdate(randId string) string {
 	return fmt.Sprintf(`
 data "aws_partition" "current" {}
@@ -910,6 +1090,26 @@ resource "aws_dms_endpoint" "test" {
   elasticsearch_settings {
     endpoint_uri            = "search-estest.es.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
     service_access_role_arn = aws_iam_role.test.arn
+  }
+
+  depends_on = [aws_iam_role_policy.test]
+}
+`, rName))
+}
+
+func dmsEndpointElasticsearchExtraConnectionAttributesConfig(rName string) string {
+	return composeConfig(
+		dmsEndpointElasticsearchConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_dms_endpoint" "test" {
+  endpoint_id                 = %[1]q
+  endpoint_type               = "target"
+  engine_name                 = "elasticsearch"
+  extra_connection_attributes = "errorRetryDuration=400;"
+  elasticsearch_settings {
+    endpoint_uri               = "search-estest.es.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
+    service_access_role_arn    = aws_iam_role.test.arn
+    full_load_error_percentage = 20
   }
 
   depends_on = [aws_iam_role_policy.test]

@@ -1,0 +1,3 @@
+``release-note:bug
+resource/aws_cloudwatch_event_archive: Fix retention_days type conversion on creation
+```

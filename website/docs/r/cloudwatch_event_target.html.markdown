@@ -14,7 +14,7 @@ Provides an EventBridge Target resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_target" "yada" {
   target_id = "Yada"
   rule      = aws_cloudwatch_event_rule.console.name
@@ -58,7 +58,7 @@ resource "aws_kinesis_stream" "test_stream" {
 
 ## Example SSM Document Usage
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "ssm_lifecycle_trust" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -146,7 +146,7 @@ resource "aws_cloudwatch_event_target" "stop_instances" {
 
 ## Example RunCommand Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_rule" "stop_instances" {
   name                = "StopInstance"
   description         = "Stop instances nightly"
@@ -169,7 +169,7 @@ resource "aws_cloudwatch_event_target" "stop_instances" {
 
 ## Example ECS Run Task with Role and Task Override Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "ecs_events" {
   name = "ecs_events"
 
@@ -288,8 +288,8 @@ resource "aws_cloudwatch_event_rule" "example" {
 
 -> **Note:** In order to be able to have your AWS Lambda function or
    SNS topic invoked by an EventBridge rule, you must setup the right permissions
-   using [`aws_lambda_permission`](https://www.terraform.io/docs/providers/aws/r/lambda_permission.html)
-   or [`aws_sns_topic.policy`](https://www.terraform.io/docs/providers/aws/r/sns_topic.html#policy).
+   using [`aws_lambda_permission`](/docs/providers/aws/r/lambda_permission.html)
+   or [`aws_sns_topic.policy`](/docs/providers/aws/r/sns_topic.html#policy).
    More info [here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/resource-based-policies-cwe.html).
 
 The following arguments are supported:
@@ -307,6 +307,8 @@ The following arguments are supported:
 * `kinesis_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Kinesis Stream. Documented below. A maximum of 1 are allowed.
 * `sqs_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon SQS Queue. Documented below. A maximum of 1 are allowed.
 * `input_transformer` - (Optional) Parameters used when you are providing a custom input to a target based on certain event data. Conflicts with `input` and `input_path`.
+* `retry_policy` - (Optional)  Parameters used when you are providing retry policies. Documented below. A maximum of 1 are allowed.
+* `dead_letter_config` - (Optional)  Parameters used when you are providing a dead letter conifg. Documented below. A maximum of 1 are allowed.
 
 `run_command_targets` support the following:
 
@@ -353,6 +355,19 @@ For more information, see [Task Networking](https://docs.aws.amazon.com/AmazonEC
     * The keys can't start with "AWS".
 
 * `input_template` - (Required) Template to customize data sent to the target. Must be valid JSON. To send a string value, the string value must include double quotes. Values must be escaped for both JSON and Terraform, e.g. `"\"Your string goes here.\\nA new line.\""`
+
+`retry_policy` support the following:
+
+* `maximum_event_age_in_seconds` - (Optional) The age in seconds to continue to make retry attempts.
+* `maximum_retry_attempts` - (Optional) maximum number of retry attempts to make before the request fails
+
+`dead_letter_config` support the following:
+
+* `arn` - (Optional) - ARN of the SQS queue specified as the target for the dead-letter queue.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

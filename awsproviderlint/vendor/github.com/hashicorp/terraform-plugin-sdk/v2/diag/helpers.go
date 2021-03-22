@@ -10,6 +10,9 @@ import "fmt"
 //     return diag.FromErr(err)
 //   }
 func FromErr(err error) Diagnostics {
+	if err == nil {
+		return nil
+	}
 	return Diagnostics{
 		Diagnostic{
 			Severity: Error,

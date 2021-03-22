@@ -14,7 +14,7 @@ Provides a Direct Connect LAG. Connections can be added to the LAG via the [`aws
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_lag" "hoge" {
   name                  = "tf-dx-lag"
   connections_bandwidth = "1Gbps"

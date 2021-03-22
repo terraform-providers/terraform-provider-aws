@@ -14,7 +14,7 @@ Provides a S3 bucket [inventory configuration](https://docs.aws.amazon.com/Amazo
 
 ### Add inventory configuration
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "test" {
   bucket = "my-tf-test-bucket"
 }
@@ -44,7 +44,7 @@ resource "aws_s3_bucket_inventory" "test" {
 
 ### Add inventory configuration with S3 bucket object prefix
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "test" {
   bucket = "my-tf-test-bucket"
 }
@@ -119,6 +119,10 @@ The `encryption` configuration supports the following:
 The `sse_kms` configuration supports the following:
 
 * `key_id` - (Required) The ARN of the KMS customer master key (CMK) used to encrypt the inventory file.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

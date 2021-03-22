@@ -15,7 +15,7 @@ See the [`aws_db_cluster_snapshot` data source](/docs/providers/aws/d/db_cluster
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_instance" "prod" {
   allocated_storage    = 10
   engine               = "mysql"

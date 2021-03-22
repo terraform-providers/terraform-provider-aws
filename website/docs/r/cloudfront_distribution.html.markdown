@@ -24,7 +24,7 @@ want to wait, you need to use the `retain_on_delete` flag.
 
 The following example below creates a CloudFront distribution with an S3 origin.
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "b" {
   bucket = "mybucket"
   acl    = "private"
@@ -146,7 +146,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
 The following example below creates a Cloudfront distribution with an origin group for failover routing:
 
-```hcl
+```terraform
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin_group {
     origin_id = "groupS3"
@@ -233,7 +233,7 @@ of several sub-resources - these resources are laid out below.
     distribution (multiples allowed).
 
 * `origin_group` (Optional) - One or more [origin_group](#origin-group-arguments) for this
-  distribution (multiples allowed).  
+  distribution (multiples allowed).
 
 * `price_class` (Optional) - The price class for this distribution. One of
     `PriceClass_All`, `PriceClass_200`, `PriceClass_100`
@@ -271,35 +271,43 @@ of several sub-resources - these resources are laid out below.
 * `cached_methods` (Required) - Controls whether CloudFront caches the
     response to requests using the specified HTTP methods.
 
+* `cache_policy_id` (Optional) - The unique identifier of the cache policy that
+    is attached to the cache behavior.
+
 * `compress` (Optional) - Whether you want CloudFront to automatically
     compress content for web requests that include `Accept-Encoding: gzip` in
     the request header (default: `false`).
 
 * `default_ttl` (Optional) - The default amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
-    in the absence of an `Cache-Control max-age` or `Expires` header. Defaults to
-    1 day.
+    in the absence of an `Cache-Control max-age` or `Expires` header.
 
 * `field_level_encryption_id` (Optional) - Field level encryption configuration ID
 
-* `forwarded_values` (Required) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
+* `forwarded_values` (Optional) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
     handles query strings, cookies and headers (maximum one).
 
-* `lambda_function_association` (Optional) - A config block that triggers a lambda function with
-  specific actions. Defined below, maximum 4.
+* `lambda_function_association` (Optional) - A [config block](#lambda-function-association) that triggers a lambda
+    function with specific actions (maximum 4).
 
 * `max_ttl` (Optional) - The maximum amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
     to your origin to determine whether the object has been updated. Only
     effective in the presence of `Cache-Control max-age`, `Cache-Control
-    s-maxage`, and `Expires` headers. Defaults to 365 days.
+    s-maxage`, and `Expires` headers.
 
 * `min_ttl` (Optional) - The minimum amount of time that you want objects to
     stay in CloudFront caches before CloudFront queries your origin to see
     whether the object has been updated. Defaults to 0 seconds.
 
+* `origin_request_policy_id` (Optional) - The unique identifier of the origin request policy
+    that is attached to the behavior.
+
 * `path_pattern` (Required) - The pattern (for example, `images/*.jpg)` that
     specifies which requests you want this cache behavior to apply to.
+
+* `realtime_log_config_arn` (Optional) - The ARN of the [real-time log configuration](cloudfront_realtime_log_config.html)
+    that is attached to this cache behavior.
 
 * `smooth_streaming` (Optional) - Indicates whether you want to distribute
     media files in Microsoft Smooth Streaming format using the origin that is
@@ -343,7 +351,7 @@ for more information.
 
 Example configuration:
 
-```hcl
+```terraform
 resource "aws_cloudfront_distribution" "example" {
   # ... other configuration ...
 

@@ -12,7 +12,7 @@ Provides information about an Elastic File System Mount Target (EFS).
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "mount_target_id" {
   type    = string
   default = ""

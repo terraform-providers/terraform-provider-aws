@@ -12,7 +12,7 @@ Provides a CodeArtifact Repository Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_key" "example" {
   description = "domain key"
 }
@@ -30,7 +30,7 @@ resource "aws_codeartifact_repository" "test" {
 
 ## Example Usage with upstream repository
 
-```hcl
+```terraform
 resource "aws_codeartifact_repository" "upstream" {
   repository = "upstream"
   domain     = aws_codeartifact_domain.test.domain
@@ -48,7 +48,7 @@ resource "aws_codeartifact_repository" "test" {
 
 ## Example Usage with external connection
 
-```hcl
+```terraform
 resource "aws_codeartifact_repository" "upstream" {
   repository = "upstream"
   domain     = aws_codeartifact_domain.test.domain

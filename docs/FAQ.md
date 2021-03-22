@@ -10,6 +10,7 @@ The HashiCorp Terraform AWS provider team is :
 * Brian Flad, Engineering Lead - GitHub [@bflad](https://github.com/bflad)
 * Graham Davison, Engineer - GitHub [@gdavison](https://github.com/gdavison)
 * Angie Pinilla, Engineer - GitHub [@angie44](https://github.com/angie44)
+* Dirk Avery (Federal), Engineer - GitHub [@YakDriver](https://github.com/yakdriver)
 * Bill Rich, Engineer - GitHub [@bill-rich](https://github.com/bill-rich)
 * Simon Davis, Engineering Manager - GitHub [@breathingdust](https://github.com/breathingdust)
 * Kerim Satirli,  Developer Advocate - GitHub [@ksatirli](https://github.com/ksatirli)

@@ -16,7 +16,7 @@ propagation not explicitly listed in its value will be removed.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_vpn_gateway_route_propagation" "example" {
   vpn_gateway_id = aws_vpn_gateway.example.id
   route_table_id = aws_route_table.example.id
@@ -32,4 +32,4 @@ The following arguments are required:
 
 ## Attributes Reference
 
-This resource does not export any additional attributes.
+No additional attributes are exported.

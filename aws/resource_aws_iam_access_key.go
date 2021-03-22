@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -20,6 +21,33 @@ func resourceAwsIamAccessKey() *schema.Resource {
 		Read:   resourceAwsIamAccessKeyRead,
 		Update: resourceAwsIamAccessKeyUpdate,
 		Delete: resourceAwsIamAccessKeyDelete,
+
+		Importer: &schema.ResourceImporter{
+			// ListAccessKeys requires UserName field in certain scenarios:
+			//   ValidationError: Must specify userName when calling with non-User credentials
+			// To prevent import from requiring this extra information, use GetAccessKeyLastUsed.
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				conn := meta.(*AWSClient).iamconn
+
+				input := &iam.GetAccessKeyLastUsedInput{
+					AccessKeyId: aws.String(d.Id()),
+				}
+
+				output, err := conn.GetAccessKeyLastUsed(input)
+
+				if err != nil {
+					return nil, fmt.Errorf("error fetching IAM Access Key (%s) username via GetAccessKeyLastUsed: %w", d.Id(), err)
+				}
+
+				if output == nil || output.UserName == nil {
+					return nil, fmt.Errorf("error fetching IAM Access Key (%s) username via GetAccessKeyLastUsed: empty response", d.Id())
+				}
+
+				d.Set("user", output.UserName)
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"user": {
@@ -51,11 +79,15 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				ForceNew: true,
 				Optional: true,
 			},
-			"key_fingerprint": {
+			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"encrypted_secret": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"key_fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -110,6 +142,22 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	d.Set("ses_smtp_password_v4", sesSMTPPasswordV4)
 
+	if v, ok := d.GetOk("status"); ok && v.(string) == iam.StatusTypeInactive {
+		input := &iam.UpdateAccessKeyInput{
+			AccessKeyId: aws.String(d.Id()),
+			Status:      aws.String(iam.StatusTypeInactive),
+			UserName:    aws.String(d.Get("user").(string)),
+		}
+
+		_, err := iamconn.UpdateAccessKey(input)
+
+		if err != nil {
+			return fmt.Errorf("error deactivating IAM Access Key (%s): %w", d.Id(), err)
+		}
+
+		createResp.AccessKey.Status = aws.String(iam.StatusTypeInactive)
+	}
+
 	return resourceAwsIamAccessKeyReadResult(d, &iam.AccessKeyMetadata{
 		AccessKeyId: createResp.AccessKey.AccessKeyId,
 		CreateDate:  createResp.AccessKey.CreateDate,
@@ -148,12 +196,16 @@ func resourceAwsIamAccessKeyRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsIamAccessKeyReadResult(d *schema.ResourceData, key *iam.AccessKeyMetadata) error {
 	d.SetId(aws.StringValue(key.AccessKeyId))
-	if err := d.Set("user", key.UserName); err != nil {
-		return err
+
+	if key.CreateDate != nil {
+		d.Set("create_date", aws.TimeValue(key.CreateDate).Format(time.RFC3339))
+	} else {
+		d.Set("create_date", nil)
 	}
-	if err := d.Set("status", key.Status); err != nil {
-		return err
-	}
+
+	d.Set("status", key.Status)
+	d.Set("user", key.UserName)
+
 	return nil
 }
 

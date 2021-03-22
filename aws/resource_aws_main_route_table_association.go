@@ -47,8 +47,13 @@ func resourceAwsMainRouteTableAssociationCreate(d *schema.ResourceData, meta int
 	log.Printf("[INFO] Creating main route table association: %s => %s", vpcId, routeTableId)
 
 	mainAssociation, err := findMainRouteTableAssociation(conn, vpcId)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error finding EC2 VPC (%s) main route table association for replacement: %w", vpcId, err)
+	}
+
+	if mainAssociation == nil {
+		return fmt.Errorf("error finding EC2 VPC (%s) main route table association for replacement: association not found", vpcId)
 	}
 
 	resp, err := conn.ReplaceRouteTableAssociation(&ec2.ReplaceRouteTableAssociationInput{

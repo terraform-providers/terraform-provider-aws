@@ -12,7 +12,7 @@ Creates and manages an AWS XRay Sampling Rule.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_xray_sampling_rule" "example" {
   rule_name      = "example"
   priority       = 10000

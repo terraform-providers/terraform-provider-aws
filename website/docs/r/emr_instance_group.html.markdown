@@ -17,7 +17,7 @@ Terraform will resize any Instance Group to zero when destroying the resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_emr_instance_group" "task" {
   cluster_id     = aws_emr_cluster.tf-test-cluster.id
   instance_count = 1
@@ -40,7 +40,7 @@ The following arguments are supported:
 * `autoscaling_policy` - (Optional) The autoscaling policy document. This is a JSON formatted string. See [EMR Auto Scaling](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-automatic-scaling.html)
 * `configurations_json` - (Optional) A JSON string for supplying list of configurations specific to the EMR instance group. Note that this can only be changed when using EMR release 5.21 or later.
 
-```hcl
+```terraform
 resource "aws_emr_instance_group" "task" {
   # ... other configuration ...
 

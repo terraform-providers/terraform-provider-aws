@@ -1,10 +1,10 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -15,8 +15,9 @@ func TestAccDataSourceAwsWorkspacesWorkspace_byWorkspaceID(t *testing.T) {
 	resourceName := "aws_workspaces_workspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceWorkspacesWorkspaceConfig_byWorkspaceID(rName),
@@ -47,8 +48,9 @@ func TestAccDataSourceAwsWorkspacesWorkspace_byDirectoryID_userName(t *testing.T
 	resourceName := "aws_workspaces_workspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceWorkspacesWorkspaceConfig_byDirectoryID_userName(rName),
@@ -68,7 +70,6 @@ func TestAccDataSourceAwsWorkspacesWorkspace_byDirectoryID_userName(t *testing.T
 					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_properties.0.user_volume_size_gib", resourceName, "workspace_properties.0.user_volume_size_gib"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "tags.%", resourceName, "tags.%"),
 				),
-				ExpectNonEmptyPlan: true, // Hack to overcome data source with depends_on refresh
 			},
 		},
 	})
@@ -76,8 +77,9 @@ func TestAccDataSourceAwsWorkspacesWorkspace_byDirectoryID_userName(t *testing.T
 
 func TestAccDataSourceAwsWorkspacesWorkspace_workspaceIDAndDirectoryIDConflict(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDataSourceAwsWorkspacesWorkspaceConfig_workspaceIDAndDirectoryIDConflict(),
@@ -90,7 +92,7 @@ func TestAccDataSourceAwsWorkspacesWorkspace_workspaceIDAndDirectoryIDConflict(t
 func testAccDataSourceWorkspacesWorkspaceConfig_byWorkspaceID(rName string) string {
 	return composeConfig(
 		testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName),
-		fmt.Sprintf(`
+		`
 resource "aws_workspaces_workspace" "test" {
   bundle_id    = data.aws_workspaces_bundle.test.id
   directory_id = aws_workspaces_directory.test.id
@@ -112,13 +114,13 @@ resource "aws_workspaces_workspace" "test" {
 data "aws_workspaces_workspace" "test" {
   workspace_id = aws_workspaces_workspace.test.id
 }
-`))
+`)
 }
 
 func testAccDataSourceWorkspacesWorkspaceConfig_byDirectoryID_userName(rName string) string {
 	return composeConfig(
 		testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName),
-		fmt.Sprintf(`
+		`
 resource "aws_workspaces_workspace" "test" {
   bundle_id    = data.aws_workspaces_bundle.test.id
   directory_id = aws_workspaces_directory.test.id
@@ -138,20 +140,18 @@ resource "aws_workspaces_workspace" "test" {
 }
 
 data "aws_workspaces_workspace" "test" {
-  directory_id = aws_workspaces_directory.test.id
-  user_name    = "Administrator"
-
-  depends_on = [aws_workspaces_workspace.test]
+  directory_id = aws_workspaces_workspace.test.directory_id
+  user_name    = aws_workspaces_workspace.test.user_name
 }
-`))
+`)
 }
 
 func testAccDataSourceAwsWorkspacesWorkspaceConfig_workspaceIDAndDirectoryIDConflict() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_workspaces_workspace" "test" {
   workspace_id = "ws-cj5xcxsz5"
   directory_id = "d-9967252f57"
   user_name    = "Administrator"
 }
-`)
+`
 }

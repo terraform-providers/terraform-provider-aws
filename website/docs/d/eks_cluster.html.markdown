@@ -12,7 +12,7 @@ Retrieve information about an EKS Cluster.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_eks_cluster" "example" {
   name = "example"
 }

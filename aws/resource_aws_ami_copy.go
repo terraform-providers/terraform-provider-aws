@@ -26,6 +26,10 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -67,6 +71,11 @@ func resourceAwsAmiCopy() *schema.Resource {
 							Computed: true,
 						},
 
+						"throughput": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -85,6 +94,16 @@ func resourceAwsAmiCopy() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%s-", m["snapshot_id"].(string)))
 					return hashcode.String(buf.String())
 				},
+			},
+			"ena_support": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"encrypted": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
 			},
 			"ephemeral_block_device": {
 				Type:     schema.TypeSet,
@@ -112,17 +131,19 @@ func resourceAwsAmiCopy() *schema.Resource {
 					return hashcode.String(buf.String())
 				},
 			},
-			"ena_support": {
-				Type:     schema.TypeBool,
+			"hypervisor": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"encrypted": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
 			"image_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_owner_alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -149,6 +170,22 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"ramdisk_id": {
 				Type:     schema.TypeString,
@@ -181,7 +218,7 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"arn": {
+			"usage_operation": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -199,11 +236,11 @@ func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
 
 	req := &ec2.CopyImageInput{
-		Name:          aws.String(d.Get("name").(string)),
 		Description:   aws.String(d.Get("description").(string)),
+		Encrypted:     aws.Bool(d.Get("encrypted").(bool)),
+		Name:          aws.String(d.Get("name").(string)),
 		SourceImageId: aws.String(d.Get("source_ami_id").(string)),
 		SourceRegion:  aws.String(d.Get("source_ami_region").(string)),
-		Encrypted:     aws.Bool(d.Get("encrypted").(bool)),
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok {
@@ -215,17 +252,16 @@ func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	id := *res.ImageId
-	d.SetId(id)
+	d.SetId(aws.StringValue(res.ImageId))
 	d.Set("manage_ebs_snapshots", true)
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, id, v); err != nil {
+		if err := keyvaluetags.Ec2CreateTags(client, d.Id(), v); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
 
-	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), id, client)
+	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), d.Id(), client)
 	if err != nil {
 		return err
 	}

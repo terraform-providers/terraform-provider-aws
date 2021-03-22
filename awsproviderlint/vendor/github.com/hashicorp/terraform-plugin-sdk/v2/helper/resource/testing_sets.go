@@ -214,7 +214,7 @@ func testCheckTypeSetElemNestedAttrsInState(is *terraform.InstanceState, attrPar
 		// a Set/List item with nested attrs would have a flatmap address of
 		// at least length 3
 		// foo.0.name = "bar"
-		if len(stateKeyParts) < 3 {
+		if len(stateKeyParts) < 3 || len(attrParts) > len(stateKeyParts) {
 			continue
 		}
 		var pathMatch bool

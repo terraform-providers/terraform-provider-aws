@@ -12,7 +12,7 @@ Retrieves the summary of a WAFv2 Rule Group.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_wafv2_rule_group" "example" {
   name  = "some-rule-group"
   scope = "REGIONAL"

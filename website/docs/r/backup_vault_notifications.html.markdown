@@ -12,7 +12,7 @@ Provides an AWS Backup vault notifications resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_topic" "test" {
   name = "backup-vault-events"
 }

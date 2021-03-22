@@ -12,7 +12,7 @@ Provides an AutoScaling Schedule resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_autoscaling_group" "foobar" {
   availability_zones        = ["us-west-2a"]
   name                      = "terraform-test-foobar5"

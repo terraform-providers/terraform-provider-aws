@@ -113,6 +113,7 @@ func TestAccAWSIAMPolicy_basic(t *testing.T) {
 `
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -143,6 +144,7 @@ func TestAccAWSIAMPolicy_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -169,6 +171,7 @@ func TestAccAWSIAMPolicy_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -191,6 +194,7 @@ func TestAccAWSIAMPolicy_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -218,6 +222,7 @@ func TestAccAWSIAMPolicy_path(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -246,6 +251,7 @@ func TestAccAWSIAMPolicy_policy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMPolicyDestroy,
 		Steps: []resource.TestStep{

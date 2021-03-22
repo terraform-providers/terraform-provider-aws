@@ -12,7 +12,7 @@ Provides a WAF Rate Based Rule Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_ipset" "ipset" {
   name = "tfIPSet"
 

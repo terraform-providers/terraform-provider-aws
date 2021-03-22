@@ -12,7 +12,7 @@ Provides a CodeCommit Repository Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_codecommit_repository" "test" {
   repository_name = "MyTestRepository"
   description     = "This is the Sample App Repository"

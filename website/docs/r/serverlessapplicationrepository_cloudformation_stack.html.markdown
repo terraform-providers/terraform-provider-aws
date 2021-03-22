@@ -12,7 +12,7 @@ Deploys an Application CloudFormation Stack from the Serverless Application Repo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_serverlessapplicationrepository_cloudformation_stack" "postgres-rotator" {
   name           = "postgres-rotator"
   application_id = "arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser"

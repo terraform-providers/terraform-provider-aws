@@ -59,11 +59,11 @@ func dataSourceAwsCloudwatchLogGroupRead(d *schema.ResourceData, meta interface{
 	tags, err := keyvaluetags.CloudwatchlogsListTags(conn, name)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for CloudWatch Logs Group (%s): %s", name, err)
+		return fmt.Errorf("error listing tags for CloudWatch Logs Group (%s): %w", name, err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

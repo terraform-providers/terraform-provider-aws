@@ -12,7 +12,7 @@ Manages an AWS DataSync Task, which represents a configuration for synchronizati
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_task" "example" {
   destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = "example"
@@ -60,7 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_datasync_task` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_datasync_task` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `5m`) How long to wait for DataSync Task availability.
 

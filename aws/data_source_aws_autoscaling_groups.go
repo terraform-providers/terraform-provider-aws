@@ -98,7 +98,7 @@ func dataSourceAwsAutoscalingGroupsRead(d *schema.ResourceData, meta interface{}
 		})
 	}
 	if err != nil {
-		return fmt.Errorf("Error fetching Autoscaling Groups: %s", err)
+		return fmt.Errorf("Error fetching Autoscaling Groups: %w", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)
@@ -107,11 +107,11 @@ func dataSourceAwsAutoscalingGroupsRead(d *schema.ResourceData, meta interface{}
 	sort.Strings(rawArn)
 
 	if err := d.Set("names", rawName); err != nil {
-		return fmt.Errorf("[WARN] Error setting Autoscaling Group Names: %s", err)
+		return fmt.Errorf("[WARN] Error setting Autoscaling Group Names: %w", err)
 	}
 
 	if err := d.Set("arns", rawArn); err != nil {
-		return fmt.Errorf("[WARN] Error setting Autoscaling Group Arns: %s", err)
+		return fmt.Errorf("[WARN] Error setting Autoscaling Group ARNs: %w", err)
 	}
 
 	return nil
@@ -122,7 +122,7 @@ func expandAsgTagFilters(in []interface{}) []*autoscaling.Filter {
 	out := make([]*autoscaling.Filter, len(in))
 	for i, filter := range in {
 		m := filter.(map[string]interface{})
-		values := expandStringList(m["values"].(*schema.Set).List())
+		values := expandStringSet(m["values"].(*schema.Set))
 
 		out[i] = &autoscaling.Filter{
 			Name:   aws.String(m["name"].(string)),

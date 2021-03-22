@@ -12,7 +12,7 @@ Provides an OpsWorks stack resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_opsworks_stack" "main" {
   name                         = "awesome-stack"
   region                       = "us-west-1"

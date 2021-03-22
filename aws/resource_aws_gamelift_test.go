@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/gamelift"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -45,20 +46,20 @@ func testAccAWSGameliftSampleGame(region string) (*testAccGameliftGame, error) {
 // Account ID found from CloudTrail event (role ARN) after finishing tutorial in given region
 func testAccGameliftAccountIdByRegion(region string) (string, error) {
 	m := map[string]string{
-		"ap-northeast-1": "120069834884",
-		"ap-northeast-2": "805673136642",
-		"ap-south-1":     "134975661615",
-		"ap-southeast-1": "077577004113",
-		"ap-southeast-2": "112188327105",
-		"ca-central-1":   "800535022691",
-		"eu-central-1":   "797584052317",
-		"eu-west-1":      "319803218673",
-		"eu-west-2":      "937342764187",
-		"sa-east-1":      "028872612690",
-		"us-east-1":      "783764748367",
-		"us-east-2":      "415729564621",
-		"us-west-1":      "715879310420",
-		"us-west-2":      "741061592171",
+		endpoints.ApNortheast1RegionID: "120069834884",
+		endpoints.ApNortheast2RegionID: "805673136642",
+		endpoints.ApSouth1RegionID:     "134975661615",
+		endpoints.ApSoutheast1RegionID: "077577004113",
+		endpoints.ApSoutheast2RegionID: "112188327105",
+		endpoints.CaCentral1RegionID:   "800535022691",
+		endpoints.EuCentral1RegionID:   "797584052317",
+		endpoints.EuWest1RegionID:      "319803218673",
+		endpoints.EuWest2RegionID:      "937342764187",
+		endpoints.SaEast1RegionID:      "028872612690",
+		endpoints.UsEast1RegionID:      "783764748367",
+		endpoints.UsEast2RegionID:      "415729564621",
+		endpoints.UsWest1RegionID:      "715879310420",
+		endpoints.UsWest2RegionID:      "741061592171",
 	}
 
 	if accId, ok := m[region]; ok {

@@ -316,7 +316,7 @@ func flattenAppsyncCachingConfig(c *appsync.CachingConfig) []interface{} {
 		return nil
 	}
 
-	if len(c.CachingKeys) == 0 && *(c.Ttl) == 0 {
+	if len(c.CachingKeys) == 0 && aws.Int64Value(c.Ttl) == 0 {
 		return nil
 	}
 

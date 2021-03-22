@@ -16,7 +16,7 @@ See [ECS Services section in AWS developer guide](https://docs.aws.amazon.com/Am
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ecs_service" "mongo" {
   name            = "mongodb"
   cluster         = aws_ecs_cluster.foo.id
@@ -45,9 +45,9 @@ resource "aws_ecs_service" "mongo" {
 
 ### Ignoring Changes to Desired Count
 
-You can utilize the generic Terraform resource [lifecycle configuration block](/docs/configuration/resources.html#lifecycle) with `ignore_changes` to create an ECS service with an initial count of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
+You can utilize the generic Terraform resource [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` to create an ECS service with an initial count of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
 
-```hcl
+```terraform
 resource "aws_ecs_service" "example" {
   # ... other configurations ...
 
@@ -63,7 +63,7 @@ resource "aws_ecs_service" "example" {
 
 ### Daemon Scheduling Strategy
 
-```hcl
+```terraform
 resource "aws_ecs_service" "bar" {
   name                = "bar"
   cluster             = aws_ecs_cluster.foo.id
@@ -74,7 +74,7 @@ resource "aws_ecs_service" "bar" {
 
 ### External Deployment Controller
 
-```hcl
+```terraform
 resource "aws_ecs_service" "example" {
   name    = "example"
   cluster = aws_ecs_cluster.example.id
@@ -193,7 +193,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_ecs_service` provides the following
-[Timeouts](/docs/configuration/resources.html#operation-timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `delete` - (Default `20 minutes`)
 

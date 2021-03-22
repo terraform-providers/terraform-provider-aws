@@ -12,7 +12,7 @@ Provides a Glue ML Transform resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_ml_transform" "test" {
   name     = "example"
   role_arn = aws_iam_role.test.arn

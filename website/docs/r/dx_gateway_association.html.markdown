@@ -18,7 +18,7 @@ by creating an `aws_dx_gateway_association` resource with the `proposal_id` and 
 
 ### VPN Gateway Association
 
-```hcl
+```terraform
 resource "aws_dx_gateway" "example" {
   name            = "example"
   amazon_side_asn = "64512"
@@ -40,7 +40,7 @@ resource "aws_dx_gateway_association" "example" {
 
 ### Transit Gateway Association
 
-```hcl
+```terraform
 resource "aws_dx_gateway" "example" {
   name            = "example"
   amazon_side_asn = "64512"
@@ -62,7 +62,7 @@ resource "aws_dx_gateway_association" "example" {
 
 ### Allowed Prefixes
 
-```hcl
+```terraform
 resource "aws_dx_gateway" "example" {
   name            = "example"
   amazon_side_asn = "64512"
@@ -116,7 +116,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_gateway_association` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Used for creating the association
 - `update` - (Default `30 minutes`) Used for updating the association

@@ -16,7 +16,7 @@ Manages a S3 Bucket Notification Configuration. For additional information, see 
 
 ### Add notification configuration to SNS Topic
 
-```hcl
+```terraform
 resource "aws_sns_topic" "topic" {
   name = "s3-event-notification-topic"
 
@@ -25,7 +25,7 @@ resource "aws_sns_topic" "topic" {
     "Version":"2012-10-17",
     "Statement":[{
         "Effect": "Allow",
-        "Principal": {"AWS":"*"},
+        "Principal": { "Service": "s3.amazonaws.com" },
         "Action": "SNS:Publish",
         "Resource": "arn:aws:sns:*:*:s3-event-notification-topic",
         "Condition":{
@@ -37,7 +37,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -53,7 +53,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Add notification configuration to SQS Queue
 
-```hcl
+```terraform
 resource "aws_sqs_queue" "queue" {
   name = "s3-event-notification-queue"
 
@@ -76,7 +76,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -92,7 +92,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Add notification configuration to Lambda Function
 
-```hcl
+```terraform
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
@@ -129,7 +129,7 @@ resource "aws_lambda_function" "func" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -148,7 +148,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Trigger multiple Lambda functions
 
-```hcl
+```terraform
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
@@ -200,7 +200,7 @@ resource "aws_lambda_function" "func2" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -229,7 +229,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Add multiple notification configurations to SQS Queue
 
-```hcl
+```terraform
 resource "aws_sqs_queue" "queue" {
   name = "s3-event-notification-queue"
 
@@ -252,7 +252,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -328,6 +328,10 @@ The `lambda_function` notification configuration supports the following:
 * `events` - (Required) Specifies [event](http://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html#notification-how-to-event-types-and-destinations) for which to send notifications.
 * `filter_prefix` - (Optional) Specifies object key name prefix.
 * `filter_suffix` - (Optional) Specifies object key name suffix.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

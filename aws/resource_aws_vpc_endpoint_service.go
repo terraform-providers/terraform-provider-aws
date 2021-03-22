@@ -9,9 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 )
 
 func resourceAwsVpcEndpointService() *schema.Resource {
@@ -79,6 +81,31 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 			"private_dns_name": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
+			},
+			"private_dns_name_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"service_name": {
 				Type:     schema.TypeString,
@@ -103,6 +130,9 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 	req := &ec2.CreateVpcEndpointServiceConfigurationInput{
 		AcceptanceRequired: aws.Bool(d.Get("acceptance_required").(bool)),
 		TagSpecifications:  ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
+	}
+	if v, ok := d.GetOk("private_dns_name"); ok {
+		req.PrivateDnsName = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("gateway_load_balancer_arns"); ok {
@@ -165,7 +195,7 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc-endpoint-service/%s", d.Id()),
@@ -214,15 +244,54 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error setting allowed_principals: %s", err)
 	}
 
+	err = d.Set("private_dns_name_configuration", flattenPrivateDnsNameConfiguration(svcCfg.PrivateDnsNameConfiguration))
+	if err != nil {
+		return fmt.Errorf("error setting private_dns_name_configuration: %w", err)
+	}
+
 	return nil
+}
+
+func flattenPrivateDnsNameConfiguration(privateDnsNameConfiguration *ec2.PrivateDnsNameConfiguration) []interface{} {
+	if privateDnsNameConfiguration == nil {
+		return nil
+	}
+	tfMap := map[string]interface{}{}
+
+	if v := privateDnsNameConfiguration.Name; v != nil {
+		tfMap["name"] = aws.StringValue(v)
+	}
+
+	if v := privateDnsNameConfiguration.State; v != nil {
+		tfMap["state"] = aws.StringValue(v)
+	}
+
+	if v := privateDnsNameConfiguration.Type; v != nil {
+		tfMap["type"] = aws.StringValue(v)
+	}
+
+	if v := privateDnsNameConfiguration.Value; v != nil {
+		tfMap["value"] = aws.StringValue(v)
+	}
+
+	// The EC2 API can return a XML structure with no elements
+	if len(tfMap) == 0 {
+		return nil
+	}
+
+	return []interface{}{tfMap}
 }
 
 func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChanges("acceptance_required", "gateway_load_balancer_arns", "network_load_balancer_arns") {
+	if d.HasChanges("acceptance_required", "gateway_load_balancer_arns", "network_load_balancer_arns", "private_dns_name") {
 		modifyCfgReq := &ec2.ModifyVpcEndpointServiceConfigurationInput{
 			ServiceId: aws.String(d.Id()),
+		}
+
+		if d.HasChange("private_dns_name") {
+			modifyCfgReq.PrivateDnsName = aws.String(d.Get("private_dns_name").(string))
 		}
 
 		if d.HasChange("acceptance_required") {
@@ -273,20 +342,30 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 func resourceAwsVpcEndpointServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf("[DEBUG] Deleting VPC Endpoint Service: %s", d.Id())
-	_, err := conn.DeleteVpcEndpointServiceConfigurations(&ec2.DeleteVpcEndpointServiceConfigurationsInput{
+	input := &ec2.DeleteVpcEndpointServiceConfigurationsInput{
 		ServiceIds: aws.StringSlice([]string{d.Id()}),
-	})
+	}
+
+	output, err := conn.DeleteVpcEndpointServiceConfigurations(input)
+
+	if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointServiceIdNotFound) {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidVpcEndpointServiceId.NotFound", "") {
-			log.Printf("[DEBUG] VPC Endpoint Service %s is already gone", d.Id())
-		} else {
-			return fmt.Errorf("Error deleting VPC Endpoint Service: %s", err.Error())
+		return fmt.Errorf("error deleting EC2 VPC Endpoint Service (%s): %w", d.Id(), err)
+	}
+
+	if output != nil && len(output.Unsuccessful) > 0 {
+		err := tfec2.UnsuccessfulItemsError(output.Unsuccessful)
+
+		if err != nil {
+			return fmt.Errorf("error deleting EC2 VPC Endpoint Service (%s): %w", d.Id(), err)
 		}
 	}
 
 	if err := waitForVpcEndpointServiceDeletion(conn, d.Id()); err != nil {
-		return fmt.Errorf("Error waiting for VPC Endpoint Service %s to delete: %s", d.Id(), err.Error())
+		return fmt.Errorf("error waiting for EC2 VPC Endpoint Service (%s) to delete: %w", d.Id(), err)
 	}
 
 	return nil
@@ -353,12 +432,12 @@ func setVpcEndpointServiceUpdateLists(d *schema.ResourceData, key string, a, r *
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		add := expandStringList(ns.Difference(os).List())
+		add := expandStringSet(ns.Difference(os))
 		if len(add) > 0 {
 			*a = add
 		}
 
-		remove := expandStringList(os.Difference(ns).List())
+		remove := expandStringSet(os.Difference(ns))
 		if len(remove) > 0 {
 			*r = remove
 		}

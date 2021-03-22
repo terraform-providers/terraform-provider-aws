@@ -19,7 +19,7 @@ connection associated with a CIDR value.
 The following example shows how one might use a CIDR value to find a network interface id
 and use this to create a data source of that network interface.
 
-```hcl
+```terraform
 variable "subnet_id" {}
 
 data "aws_route_table" "selected" {

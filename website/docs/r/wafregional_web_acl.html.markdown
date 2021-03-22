@@ -14,7 +14,7 @@ Provides a WAF Regional Web ACL Resource for use with Application Load Balancer.
 
 ### Regular Rule
 
-```hcl
+```terraform
 resource "aws_wafregional_ipset" "ipset" {
   name = "tfIPSet"
 
@@ -57,7 +57,7 @@ resource "aws_wafregional_web_acl" "wafacl" {
 
 ### Group Rule
 
-```hcl
+```terraform
 resource "aws_wafregional_web_acl" "example" {
   name        = "example"
   metric_name = "example"
@@ -82,7 +82,7 @@ resource "aws_wafregional_web_acl" "example" {
 
 ~> *NOTE:* The Kinesis Firehose Delivery Stream name must begin with `aws-waf-logs-`. See the [AWS WAF Developer Guide](https://docs.aws.amazon.com/waf/latest/developerguide/logging.html) for more information about enabling WAF logging.
 
-```hcl
+```terraform
 resource "aws_wafregional_web_acl" "example" {
   # ... other configuration ...
 

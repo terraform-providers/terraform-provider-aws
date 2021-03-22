@@ -14,7 +14,7 @@ Retrieve information about a Secrets Manager secret rotation. To retrieve secret
 
 ### Retrieve Secret Rotation Configuration
 
-```hcl
+```terraform
 data "aws_secretsmanager_secret_rotation" "example" {
   secret_id = data.aws_secretsmanager_secret.example.id
 }

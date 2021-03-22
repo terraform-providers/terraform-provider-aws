@@ -22,6 +22,7 @@ func TestAccAWSSignerSigningProfile_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -46,12 +47,13 @@ func TestAccAWSSignerSigningProfile_basic(t *testing.T) {
 
 func TestAccAWSSignerSigningProfile_GenerateNameWithNamePrefix(t *testing.T) {
 	resourceName := "aws_signer_signing_profile.test_sp"
-	namePrefix := fmt.Sprintf("tf_acc_sp_basic_")
+	namePrefix := "tf_acc_sp_basic_"
 
 	var conf signer.GetSigningProfileOutput
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -73,6 +75,7 @@ func TestAccAWSSignerSigningProfile_GenerateName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -89,12 +92,13 @@ func TestAccAWSSignerSigningProfile_GenerateName(t *testing.T) {
 
 func TestAccAWSSignerSigningProfile_tags(t *testing.T) {
 	resourceName := "aws_signer_signing_profile.test_sp"
-	namePrefix := fmt.Sprintf("tf_acc_sp_basic_")
+	namePrefix := "tf_acc_sp_basic_"
 
 	var conf signer.GetSigningProfileOutput
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -119,12 +123,13 @@ func TestAccAWSSignerSigningProfile_tags(t *testing.T) {
 
 func TestAccAWSSignerSigningProfile_SignatureValidityPeriod(t *testing.T) {
 	resourceName := "aws_signer_signing_profile.test_sp"
-	namePrefix := fmt.Sprintf("tf_acc_sp_basic_")
+	namePrefix := "tf_acc_sp_basic_"
 
 	var conf signer.GetSigningProfileOutput
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -185,10 +190,10 @@ func testAccAWSSignerSigningProfileConfig(namePrefix string) string {
 }
 
 func testAccAWSSignerSigningProfileConfigGenerateName() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_signer_signing_profile" "test_sp" {
   platform_id = "AWSLambda-SHA384-ECDSA"
-}`)
+}`
 }
 
 func testAccAWSSignerSigningProfileConfigProvidedName(profileName string) string {
@@ -226,7 +231,7 @@ resource "aws_signer_signing_profile" "test_sp" {
 }
 
 func testAccAWSSignerSigningProfileUpdateSVP() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_signer_signing_profile" "test_sp" {
   platform_id = "AWSLambda-SHA384-ECDSA"
 
@@ -235,18 +240,18 @@ resource "aws_signer_signing_profile" "test_sp" {
     type  = "MONTHS"
   }
 }
-`)
+`
 }
 
 func testAccAWSSignerSigningProfileUpdateTags() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_signer_signing_profile" "test_sp" {
   platform_id = "AWSLambda-SHA384-ECDSA"
   tags = {
     "tag1" = "prod"
   }
 }
-`)
+`
 }
 
 func baseAccAWSSignerSigningProfileConfig(namePrefix string) string {

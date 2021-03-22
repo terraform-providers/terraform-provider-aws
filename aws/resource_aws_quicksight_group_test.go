@@ -21,6 +21,7 @@ func TestAccAWSQuickSightGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, quicksight.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckQuickSightGroupDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +57,7 @@ func TestAccAWSQuickSightGroup_withDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, quicksight.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckQuickSightGroupDestroy,
 		Steps: []resource.TestStep{
@@ -89,6 +91,7 @@ func TestAccAWSQuickSightGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, quicksight.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckQuickSightGroupDestroy,
 		Steps: []resource.TestStep{

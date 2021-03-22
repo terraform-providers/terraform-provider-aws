@@ -2,6 +2,8 @@
 *.exe
 .DS_Store
 example.tf
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
 terraform.tfplan
 terraform.tfstate
 bin/
@@ -27,6 +29,7 @@ website/node_modules
 *.iml
 log.txt
 markdown-link-check*.txt
+changelog.tmp
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate

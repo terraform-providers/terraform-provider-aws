@@ -168,7 +168,7 @@ func describeConfigAggregateAuthorizations(conn *configservice.ConfigService) ([
 func resourceAwsConfigAggregateAuthorizationParseID(id string) (string, string, error) {
 	idParts := strings.Split(id, ":")
 	if len(idParts) != 2 {
-		return "", "", fmt.Errorf("Please make sure the ID is in the form account_id:region (i.e. 123456789012:us-east-1")
+		return "", "", fmt.Errorf("Please make sure the ID is in the form account_id:region (i.e. 123456789012:us-east-1") // lintignore:AWSAT003
 	}
 	accountId := idParts[0]
 	region := idParts[1]

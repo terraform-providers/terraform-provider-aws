@@ -72,10 +72,14 @@ func dataSourceAwsEcsContainerDefinitionRead(d *schema.ResourceData, meta interf
 	desc, err := conn.DescribeTaskDefinition(params)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading ECS Task Definition: %w", err)
 	}
 
-	taskDefinition := *desc.TaskDefinition
+	if desc == nil || desc.TaskDefinition == nil {
+		return fmt.Errorf("error reading ECS Task Definition: empty response")
+	}
+
+	taskDefinition := desc.TaskDefinition
 	for _, def := range taskDefinition.ContainerDefinitions {
 		if aws.StringValue(def.Name) != d.Get("container_name").(string) {
 			continue

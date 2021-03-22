@@ -21,7 +21,7 @@ Doing so will cause a conflict of associations and will overwrite the associatio
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_vpc_endpoint" "s3" {
   vpc_id       = aws_vpc.main.id
   service_name = "com.amazonaws.us-west-2.s3"
@@ -30,7 +30,7 @@ resource "aws_vpc_endpoint" "s3" {
 
 ### Basic w/ Tags
 
-```hcl
+```terraform
 resource "aws_vpc_endpoint" "s3" {
   vpc_id       = aws_vpc.main.id
   service_name = "com.amazonaws.us-west-2.s3"
@@ -43,7 +43,7 @@ resource "aws_vpc_endpoint" "s3" {
 
 ### Interface Endpoint Type
 
-```hcl
+```terraform
 resource "aws_vpc_endpoint" "ec2" {
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.us-west-2.ec2"
@@ -59,7 +59,7 @@ resource "aws_vpc_endpoint" "ec2" {
 
 ### Gateway Load Balancer Endpoint Type
 
-```hcl
+```terraform
 data "aws_caller_identity" "current" {}
 
 resource "aws_vpc_endpoint_service" "example" {
@@ -78,7 +78,7 @@ resource "aws_vpc_endpoint" "example" {
 
 ### Non-AWS Service
 
-```hcl
+```terraform
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id            = var.vpc_id
   service_name      = var.ptfe_service
@@ -128,7 +128,7 @@ Defaults to `false`.
 ### Timeouts
 
 `aws_vpc_endpoint` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating a VPC endpoint
 - `update` - (Default `10 minutes`) Used for VPC endpoint modifications

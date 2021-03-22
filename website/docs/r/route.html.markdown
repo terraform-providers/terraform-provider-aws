@@ -18,7 +18,7 @@ a conflict of rule settings and will overwrite rules.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route" "r" {
   route_table_id            = "rtb-4fbb3ac4"
   destination_cidr_block    = "10.0.1.0/22"
@@ -29,7 +29,7 @@ resource "aws_route" "r" {
 
 ## Example IPv6 Usage
 
-```hcl
+```terraform
 resource "aws_vpc" "vpc" {
   cidr_block                       = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
@@ -84,7 +84,7 @@ will be exported as an attribute once the resource is created.
 ## Timeouts
 
 `aws_route` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `2 minutes`) Used for route creation
 - `delete` - (Default `5 minutes`) Used for route deletion

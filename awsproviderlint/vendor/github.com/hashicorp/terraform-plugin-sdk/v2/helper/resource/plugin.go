@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugintest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
@@ -35,6 +34,9 @@ func runProviderCommand(t testing.T, f func() error, wd *plugintest.WorkingDir, 
 	// we're skipping the handshake because Terraform didn't launch the
 	// plugins.
 	os.Setenv("PLUGIN_PROTOCOL_VERSIONS", "5")
+
+	// Terraform doesn't need to reach out to Checkpoint during testing.
+	wd.Setenv("CHECKPOINT_DISABLE", "1")
 
 	// Terraform 0.12.X and 0.13.X+ treat namespaceless providers
 	// differently in terms of what namespace they default to. So we're
@@ -83,6 +85,7 @@ func runProviderCommand(t testing.T, f func() error, wd *plugintest.WorkingDir, 
 				Level:  hclog.Trace,
 				Output: ioutil.Discard,
 			}),
+			NoLogOutputOverride: true,
 		}
 
 		// let's actually start the provider server
@@ -99,10 +102,6 @@ func runProviderCommand(t testing.T, f func() error, wd *plugintest.WorkingDir, 
 				String:  config.Addr.String,
 			},
 		}
-
-		// plugin.DebugServe hijacks our log output location, so let's
-		// reset it
-		logging.SetOutput(t)
 
 		// when the provider exits, remove one from the waitgroup
 		// so we can track when everything is done
@@ -162,6 +161,7 @@ func runProviderCommand(t testing.T, f func() error, wd *plugintest.WorkingDir, 
 				Level:  hclog.Trace,
 				Output: ioutil.Discard,
 			}),
+			NoLogOutputOverride: true,
 		}
 
 		// let's actually start the provider server
@@ -178,10 +178,6 @@ func runProviderCommand(t testing.T, f func() error, wd *plugintest.WorkingDir, 
 				String:  config.Addr.String,
 			},
 		}
-
-		// plugin.DebugServe hijacks our log output location, so let's
-		// reset it
-		logging.SetOutput(t)
 
 		// when the provider exits, remove one from the waitgroup
 		// so we can track when everything is done

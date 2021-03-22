@@ -204,7 +204,7 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	output, err := conn.GetFunction(input)
 
 	if err != nil {
-		return fmt.Errorf("error getting Lambda Function (%s): %s", functionName, err)
+		return fmt.Errorf("error getting Lambda Function (%s): %w", functionName, err)
 	}
 
 	if output == nil {
@@ -235,13 +235,13 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 	if err := d.Set("dead_letter_config", deadLetterConfig); err != nil {
-		return fmt.Errorf("error setting dead_letter_config: %s", err)
+		return fmt.Errorf("error setting dead_letter_config: %w", err)
 	}
 
 	d.Set("description", function.Description)
 
 	if err := d.Set("environment", flattenLambdaEnvironment(function.Environment)); err != nil {
-		return fmt.Errorf("error setting environment: %s", err)
+		return fmt.Errorf("error setting environment: %w", err)
 	}
 
 	d.Set("handler", function.Handler)
@@ -250,7 +250,7 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("last_modified", function.LastModified)
 
 	if err := d.Set("layers", flattenLambdaLayers(function.Layers)); err != nil {
-		return fmt.Errorf("Error setting layers for Lambda Function (%s): %s", d.Id(), err)
+		return fmt.Errorf("Error setting layers for Lambda Function (%s): %w", d.Id(), err)
 	}
 
 	d.Set("memory_size", function.MemorySize)
@@ -258,12 +258,12 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 
 	// Add Signing Profile Version ARN
 	if err := d.Set("signing_profile_version_arn", function.SigningProfileVersionArn); err != nil {
-		return fmt.Errorf("Error setting signing profile version arn for Lambda Function: %s", err)
+		return fmt.Errorf("Error setting signing profile version arn for Lambda Function: %w", err)
 	}
 
 	// Add Signing Job ARN
 	if err := d.Set("signing_job_arn", function.SigningJobArn); err != nil {
-		return fmt.Errorf("Error setting signing job arn for Lambda Function: %s", err)
+		return fmt.Errorf("Error setting signing job arn for Lambda Function: %w", err)
 	}
 
 	reservedConcurrentExecutions := int64(-1)
@@ -278,7 +278,7 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("source_code_size", function.CodeSize)
 
 	if err := d.Set("tags", keyvaluetags.LambdaKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	tracingConfig := []map[string]interface{}{
@@ -297,11 +297,11 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", function.Version)
 
 	if err := d.Set("vpc_config", flattenLambdaVpcConfigResponse(function.VpcConfig)); err != nil {
-		return fmt.Errorf("error setting vpc_config: %s", err)
+		return fmt.Errorf("error setting vpc_config: %w", err)
 	}
 
 	if err := d.Set("file_system_config", flattenLambdaFileSystemConfigs(function.FileSystemConfigs)); err != nil {
-		return fmt.Errorf("error setting file_system_config: %s", err)
+		return fmt.Errorf("error setting file_system_config: %w", err)
 	}
 
 	// Currently, this functionality is only enabled in AWS Commercial partition
@@ -313,22 +313,25 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	// Get Code Signing Config Output
-	// If code signing config output exists, set it to that value, otherwise set it empty.
-	codeSigningConfigInput := &lambda.GetFunctionCodeSigningConfigInput{
-		FunctionName: aws.String(d.Get("function_name").(string)),
+	// Get Code Signing Config Output.
+	// Code Signing is only supported on zip packaged lambda functions.
+	var codeSigningConfigArn string
+
+	if aws.StringValue(function.PackageType) == lambda.PackageTypeZip {
+		codeSigningConfigInput := &lambda.GetFunctionCodeSigningConfigInput{
+			FunctionName: function.FunctionName,
+		}
+		getCodeSigningConfigOutput, err := conn.GetFunctionCodeSigningConfig(codeSigningConfigInput)
+		if err != nil {
+			return fmt.Errorf("error getting Lambda Function (%s) Code Signing Config: %w", aws.StringValue(function.FunctionName), err)
+		}
+
+		if getCodeSigningConfigOutput != nil {
+			codeSigningConfigArn = aws.StringValue(getCodeSigningConfigOutput.CodeSigningConfigArn)
+		}
 	}
 
-	getCodeSigningConfigOutput, err := conn.GetFunctionCodeSigningConfig(codeSigningConfigInput)
-	if err != nil {
-		return fmt.Errorf("error getting Lambda Function (%s) Code Signing Config: %w", aws.StringValue(function.FunctionName), err)
-	}
-
-	if getCodeSigningConfigOutput == nil || getCodeSigningConfigOutput.CodeSigningConfigArn == nil {
-		d.Set("code_signing_config_arn", "")
-	} else {
-		d.Set("code_signing_config_arn", getCodeSigningConfigOutput.CodeSigningConfigArn)
-	}
+	d.Set("code_signing_config_arn", codeSigningConfigArn)
 
 	d.SetId(aws.StringValue(function.FunctionName))
 

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 // Base64Encode encodes data if the input isn't already encoded using base64.StdEncoding.EncodeToString.
@@ -44,13 +44,11 @@ func jsonBytesEqual(b1, b2 []byte) bool {
 }
 
 func isResourceNotFoundError(err error) bool {
-	_, ok := err.(*resource.NotFoundError)
-	return ok
+	return tfresource.NotFound(err)
 }
 
 func isResourceTimeoutError(err error) bool {
-	timeoutErr, ok := err.(*resource.TimeoutError)
-	return ok && timeoutErr.LastError == nil
+	return tfresource.TimedOut(err)
 }
 
 func appendUniqueString(slice []string, elem string) []string {

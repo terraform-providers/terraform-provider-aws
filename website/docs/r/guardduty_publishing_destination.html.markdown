@@ -11,7 +11,7 @@ Provides a resource to manage a GuardDuty PublishingDestination. Requires an exi
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}

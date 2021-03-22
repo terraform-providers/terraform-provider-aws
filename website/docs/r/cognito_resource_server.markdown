@@ -15,7 +15,7 @@ Provides a Cognito Resource Server.
 
 ### Create a basic resource server
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "pool" {
   name = "pool"
 }
@@ -30,7 +30,7 @@ resource "aws_cognito_resource_server" "resource" {
 
 ### Create a resource server with sample-scope
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "pool" {
   name = "pool"
 }

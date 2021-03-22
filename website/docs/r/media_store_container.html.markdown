@@ -12,7 +12,7 @@ Provides a MediaStore Container.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_media_store_container" "example" {
   name = "example"
 }

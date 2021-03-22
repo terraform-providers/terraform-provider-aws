@@ -14,7 +14,7 @@ Provides a SageMaker model resource.
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_sagemaker_model" "example" {
   name               = "my-model"
   execution_role_arn = aws_iam_role.example.arn

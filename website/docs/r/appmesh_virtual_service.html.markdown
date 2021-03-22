@@ -14,7 +14,7 @@ Provides an AWS App Mesh virtual service resource.
 
 ### Virtual Node Provider
 
-```hcl
+```terraform
 resource "aws_appmesh_virtual_service" "servicea" {
   name      = "servicea.simpleapp.local"
   mesh_name = aws_appmesh_mesh.simple.id
@@ -31,7 +31,7 @@ resource "aws_appmesh_virtual_service" "servicea" {
 
 ### Virtual Router Provider
 
-```hcl
+```terraform
 resource "aws_appmesh_virtual_service" "servicea" {
   name      = "servicea.simpleapp.local"
   mesh_name = aws_appmesh_mesh.simple.id

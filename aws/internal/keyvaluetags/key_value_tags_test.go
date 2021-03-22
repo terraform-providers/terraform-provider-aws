@@ -4,6 +4,254 @@ import (
 	"testing"
 )
 
+func TestKeyValueTagsDefaultConfigMergeTags(t *testing.T) {
+	testCases := []struct {
+		name          string
+		tags          KeyValueTags
+		defaultConfig *DefaultConfig
+		want          map[string]string
+	}{
+		{
+			name: "empty config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: nil,
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no tags",
+			tags: New(map[string]string{}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys all matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys some matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys some overridden",
+			tags: New(map[string]string{
+				"key1": "value2",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value2",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys none matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key4": "value4",
+					"key5": "value5",
+					"key6": "value6",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+				"key4": "value4",
+				"key5": "value5",
+				"key6": "value6",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.defaultConfig.MergeTags(testCase.tags)
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+		})
+	}
+}
+
+func TestKeyValueTagsDefaultConfigTagsEqual(t *testing.T) {
+	testCases := []struct {
+		name          string
+		tags          KeyValueTags
+		defaultConfig *DefaultConfig
+		want          bool
+	}{
+		{
+			name: "empty config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{},
+			want:          false,
+		},
+		{
+			name: "no config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: nil,
+			want:          false,
+		},
+		{
+			name: "empty tags",
+			tags: New(map[string]string{}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: false,
+		},
+		{
+			name: "no tags",
+			tags: nil,
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: false,
+		},
+		{
+			name:          "empty config and no tags",
+			tags:          nil,
+			defaultConfig: &DefaultConfig{},
+			want:          true,
+		},
+		{
+			name:          "no config and tags",
+			tags:          nil,
+			defaultConfig: nil,
+			want:          true,
+		},
+		{
+			name: "keys and values all matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: true,
+		},
+		{
+			name: "only keys matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value0",
+					"key2": "value1",
+					"key3": "value2",
+				}),
+			},
+			want: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.defaultConfig.TagsEqual(testCase.tags)
+
+			if got != testCase.want {
+				t.Errorf("got %t; want %t", got, testCase.want)
+			}
+		})
+	}
+}
+
 func TestKeyValueTagsIgnoreAws(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -1574,6 +1822,135 @@ func TestKeyValueTagsHash(t *testing.T) {
 			if (got == 0 && !testCase.zero) || (got != 0 && testCase.zero) {
 				t.Errorf("unexpected hash code: %d", got)
 			}
+		})
+	}
+}
+
+func TestKeyValueTagsRemoveDefaultConfig(t *testing.T) {
+	testCases := []struct {
+		name          string
+		tags          KeyValueTags
+		defaultConfig *DefaultConfig
+		want          map[string]string
+	}{
+		{
+			name: "empty config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: nil,
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no tags",
+			tags: New(map[string]string{}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "keys all matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "keys some matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+				}),
+			},
+			want: map[string]string{
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys some overridden",
+			tags: New(map[string]string{
+				"key1": "value2",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key1": "value1",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value2",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys none matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			defaultConfig: &DefaultConfig{
+				Tags: New(map[string]string{
+					"key4": "value4",
+					"key5": "value5",
+					"key6": "value6",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.RemoveDefaultConfig(testCase.defaultConfig)
+
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
 		})
 	}
 }

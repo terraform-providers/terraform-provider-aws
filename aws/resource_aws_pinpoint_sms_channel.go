@@ -55,16 +55,16 @@ func resourceAwsPinpointSMSChannelUpsert(d *schema.ResourceData, meta interface{
 
 	applicationId := d.Get("application_id").(string)
 
-	params := &pinpoint.SMSChannelRequest{}
-
-	params.Enabled = aws.Bool(d.Get("enabled").(bool))
-
-	if d.HasChange("sender_id") {
-		params.SenderId = aws.String(d.Get("sender_id").(string))
+	params := &pinpoint.SMSChannelRequest{
+		Enabled: aws.Bool(d.Get("enabled").(bool)),
 	}
 
-	if d.HasChange("short_code") {
-		params.ShortCode = aws.String(d.Get("short_code").(string))
+	if v, ok := d.GetOk("sender_id"); ok {
+		params.SenderId = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("short_code"); ok {
+		params.ShortCode = aws.String(v.(string))
 	}
 
 	req := pinpoint.UpdateSmsChannelInput{
@@ -74,7 +74,7 @@ func resourceAwsPinpointSMSChannelUpsert(d *schema.ResourceData, meta interface{
 
 	_, err := conn.UpdateSmsChannel(&req)
 	if err != nil {
-		return fmt.Errorf("error putting Pinpoint SMS Channel for application %s: %s", applicationId, err)
+		return fmt.Errorf("error putting Pinpoint SMS Channel for application %s: %w", applicationId, err)
 	}
 
 	d.SetId(applicationId)
@@ -97,15 +97,16 @@ func resourceAwsPinpointSMSChannelRead(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("error getting Pinpoint SMS Channel for application %s: %s", d.Id(), err)
+		return fmt.Errorf("error getting Pinpoint SMS Channel for application %s: %w", d.Id(), err)
 	}
 
-	d.Set("application_id", output.SMSChannelResponse.ApplicationId)
-	d.Set("enabled", output.SMSChannelResponse.Enabled)
-	d.Set("sender_id", output.SMSChannelResponse.SenderId)
-	d.Set("short_code", output.SMSChannelResponse.ShortCode)
-	d.Set("promotional_messages_per_second", aws.Int64Value(output.SMSChannelResponse.PromotionalMessagesPerSecond))
-	d.Set("transactional_messages_per_second", aws.Int64Value(output.SMSChannelResponse.TransactionalMessagesPerSecond))
+	res := output.SMSChannelResponse
+	d.Set("application_id", res.ApplicationId)
+	d.Set("enabled", res.Enabled)
+	d.Set("sender_id", res.SenderId)
+	d.Set("short_code", res.ShortCode)
+	d.Set("promotional_messages_per_second", aws.Int64Value(res.PromotionalMessagesPerSecond))
+	d.Set("transactional_messages_per_second", aws.Int64Value(res.TransactionalMessagesPerSecond))
 	return nil
 }
 
@@ -122,7 +123,7 @@ func resourceAwsPinpointSMSChannelDelete(d *schema.ResourceData, meta interface{
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Pinpoint SMS Channel for application %s: %s", d.Id(), err)
+		return fmt.Errorf("error deleting Pinpoint SMS Channel for application %s: %w", d.Id(), err)
 	}
 	return nil
 }

@@ -16,7 +16,7 @@ Associates an AWS account with Amazon Macie as a member account.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_macie_member_account_association" "example" {
   member_account_id = "123456789012"
 }

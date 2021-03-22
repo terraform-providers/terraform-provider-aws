@@ -13,7 +13,7 @@ Provides an AWS Client VPN endpoint for OpenVPN clients. For more information on
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_client_vpn_endpoint" "example" {
   description            = "terraform-clientvpn-example"
   server_certificate_arn = aws_acm_certificate.cert.arn

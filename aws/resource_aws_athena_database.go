@@ -177,7 +177,11 @@ func executeAndExpectMatchingRow(qeid string, dbName string, conn *athena.Athena
 	}
 	for _, row := range rs.Rows {
 		for _, datum := range row.Data {
-			if *datum.VarCharValue == dbName {
+			if datum == nil {
+				continue
+			}
+
+			if aws.StringValue(datum.VarCharValue) == dbName {
 				return nil
 			}
 		}
@@ -229,12 +233,18 @@ func queryExecutionStateRefreshFunc(qeid string, conn *athena.Athena) resource.S
 		if err != nil {
 			return nil, "failed", err
 		}
-		status := out.QueryExecution.Status
-		if *status.State == athena.QueryExecutionStateFailed &&
-			status.StateChangeReason != nil {
-			err = fmt.Errorf("reason: %s", *status.StateChangeReason)
+
+		if out == nil || out.QueryExecution == nil || out.QueryExecution.Status == nil {
+			return nil, "", nil
 		}
-		return out, *out.QueryExecution.Status.State, err
+
+		status := out.QueryExecution.Status
+
+		if aws.StringValue(status.State) == athena.QueryExecutionStateFailed && status.StateChangeReason != nil {
+			err = fmt.Errorf("reason: %s", aws.StringValue(status.StateChangeReason))
+		}
+
+		return out, aws.StringValue(out.QueryExecution.Status.State), err
 	}
 }
 
@@ -242,7 +252,7 @@ func flattenAthenaResultSet(rs *athena.ResultSet) string {
 	ss := make([]string, 0)
 	for _, row := range rs.Rows {
 		for _, datum := range row.Data {
-			ss = append(ss, *datum.VarCharValue)
+			ss = append(ss, aws.StringValue(datum.VarCharValue))
 		}
 	}
 	return strings.Join(ss, "\n")

@@ -85,7 +85,12 @@ func TestAccAWSGameliftBuild_basic(t *testing.T) {
 	key := *loc.Key
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftBuildDestroy,
 		Steps: []resource.TestStep{
@@ -145,7 +150,12 @@ func TestAccAWSGameliftBuild_tags(t *testing.T) {
 	key := *loc.Key
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftBuildDestroy,
 		Steps: []resource.TestStep{
@@ -203,7 +213,12 @@ func TestAccAWSGameliftBuild_disappears(t *testing.T) {
 	key := *loc.Key
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftBuildDestroy,
 		Steps: []resource.TestStep{

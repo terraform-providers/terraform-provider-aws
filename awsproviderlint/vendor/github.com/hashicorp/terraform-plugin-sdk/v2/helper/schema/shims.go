@@ -77,14 +77,24 @@ func ApplyDiff(base cty.Value, d *terraform.InstanceDiff, schema *configschema.B
 // StateValueToJSONMap converts a cty.Value to generic JSON map via the cty JSON
 // encoding.
 func StateValueToJSONMap(val cty.Value, ty cty.Type) (map[string]interface{}, error) {
+	return stateValueToJSONMap(val, ty, false)
+}
+
+func stateValueToJSONMap(val cty.Value, ty cty.Type, useJSONNumber bool) (map[string]interface{}, error) {
 	js, err := ctyjson.Marshal(val, ty)
 	if err != nil {
 		return nil, err
 	}
 
 	var m map[string]interface{}
-	if err := json.Unmarshal(js, &m); err != nil {
-		return nil, err
+	if useJSONNumber {
+		if err := unmarshalJSON(js, &m); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := json.Unmarshal(js, &m); err != nil {
+			return nil, err
+		}
 	}
 
 	return m, nil

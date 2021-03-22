@@ -12,7 +12,7 @@ Provides a resource to manage a GuardDuty filter.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_filter" "MyFilter" {
   name        = "MyFilter"
   action      = "ARCHIVE"

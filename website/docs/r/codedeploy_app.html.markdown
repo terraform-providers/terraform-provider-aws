@@ -14,7 +14,7 @@ Provides a CodeDeploy application to be used as a basis for deployments
 
 ### ECS Application
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   compute_platform = "ECS"
   name             = "example"
@@ -23,7 +23,7 @@ resource "aws_codedeploy_app" "example" {
 
 ### Lambda Application
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   compute_platform = "Lambda"
   name             = "example"
@@ -32,7 +32,7 @@ resource "aws_codedeploy_app" "example" {
 
 ### Server Application
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   compute_platform = "Server"
   name             = "example"
