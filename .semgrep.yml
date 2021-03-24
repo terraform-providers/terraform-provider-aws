@@ -415,3 +415,20 @@ rules:
           metavariable: '$Z'
           regex: '.*Pages$'
     severity: WARNING
+
+  - id: calling-SetId-with-empty-string-in-resource-create-update-or-delete
+    languages: [go]
+    message: Do not call `d.SetId("")` inside a resource create, update or delete function
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern: |
+          func $FUNC(...) {
+            ...
+            d.SetId("")
+          }
+      - metavariable-regex:
+          metavariable: "$FUNC"
+          regex: "^resourceAws\\w*(Create|Update|Delete|Put|Set|Upsert|Enable|Disable)$"
+    severity: WARNING
