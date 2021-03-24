@@ -771,6 +771,13 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	})
 
+	client.rdsconn.Handlers.Retry.PushBack(func(r *request.Request) {
+		// Sometimes Terraform ops restart the DB while applying config during a multi-step update process
+		if isAWSErr(r.Error, rds.ErrCodeInvalidDBInstanceStateFault, "Instance cannot currently reboot due to an in-progress management operation") {
+			r.Retryable = aws.Bool(true)
+		}
+	})
+
 	client.storagegatewayconn.Handlers.Retry.PushBack(func(r *request.Request) {
 		// InvalidGatewayRequestException: The specified gateway proxy network connection is busy.
 		if isAWSErr(r.Error, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified gateway proxy network connection is busy") {
