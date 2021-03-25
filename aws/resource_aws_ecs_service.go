@@ -91,6 +91,7 @@ func resourceAwsEcsService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"force_new_deployment": {
