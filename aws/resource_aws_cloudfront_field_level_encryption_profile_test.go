@@ -19,6 +19,7 @@ func TestAccAWSCloudfrontFieldLevelEncryptionProfile_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudfrontFieldLevelEncryptionProfileDestroy,
 		Steps: []resource.TestStep{
@@ -64,6 +65,7 @@ func TestAccAWSCloudfrontFieldLevelEncryptionProfile_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudfrontFieldLevelEncryptionProfileDestroy,
 		Steps: []resource.TestStep{
