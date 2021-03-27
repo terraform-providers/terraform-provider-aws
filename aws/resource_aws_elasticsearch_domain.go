@@ -446,17 +446,18 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
-	domainName := d.Get("domain_name").(string)
 	// The API doesn't check for duplicate names
 	// so w/out this check Create would act as upsert
 	// and might cause duplicate domain to appear in state
-	resp, err := finder.DomainByName(conn, domainName)
+	resp, err := conn.DescribeElasticsearchDomain(&elasticsearch.DescribeElasticsearchDomainInput{
+		DomainName: aws.String(d.Get("domain_name").(string)),
+	})
 	if err == nil {
-		return fmt.Errorf("ElasticSearch domain %s already exists", aws.StringValue(resp.DomainName))
+		return fmt.Errorf("ElasticSearch domain %s already exists", aws.StringValue(resp.DomainStatus.DomainName))
 	}
 
 	input := elasticsearch.CreateElasticsearchDomainInput{
-		DomainName:           aws.String(domainName),
+		DomainName:           aws.String(d.Get("domain_name").(string)),
 		ElasticsearchVersion: aws.String(d.Get("elasticsearch_version").(string)),
 		TagList:              tags.ElasticsearchserviceTags(),
 	}
@@ -544,7 +545,15 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("log_publishing_options"); ok {
-		input.LogPublishingOptions = expandElasticsearchLogPublishingOption(v.(*schema.Set).List())
+		input.LogPublishingOptions = make(map[string]*elasticsearch.LogPublishingOption)
+		options := v.(*schema.Set).List()
+		for _, vv := range options {
+			lo := vv.(map[string]interface{})
+			input.LogPublishingOptions[lo["log_type"].(string)] = &elasticsearch.LogPublishingOption{
+				CloudWatchLogsLogGroupArn: aws.String(lo["cloudwatch_log_group_arn"].(string)),
+				Enabled:                   aws.Bool(lo["enabled"].(bool)),
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("domain_endpoint_options"); ok {
@@ -603,7 +612,7 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 	d.SetId(aws.StringValue(out.DomainStatus.ARN))
 
 	log.Printf("[DEBUG] Waiting for ElasticSearch domain %q to be created", d.Id())
-	err = waitForElasticSearchDomainCreation(conn, domainName, d.Id())
+	err = waitForElasticSearchDomainCreation(conn, d.Get("domain_name").(string), d.Id())
 	if err != nil {
 		return err
 	}
@@ -744,9 +753,17 @@ func resourceAwsElasticSearchDomainRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if ds.LogPublishingOptions != nil {
-		if err := d.Set("log_publishing_options", flattenElasticsearchLogPublishingOption(ds.LogPublishingOptions)); err != nil {
-			return fmt.Errorf("error setting log_publishing_options: %w", err)
+		m := make([]map[string]interface{}, 0)
+		for k, val := range ds.LogPublishingOptions {
+			mm := map[string]interface{}{}
+			mm["log_type"] = k
+			if val.CloudWatchLogsLogGroupArn != nil {
+				mm["cloudwatch_log_group_arn"] = aws.StringValue(val.CloudWatchLogsLogGroupArn)
+			}
+			mm["enabled"] = aws.BoolValue(val.Enabled)
+			m = append(m, mm)
 		}
+		d.Set("log_publishing_options", m)
 	}
 
 	if err := d.Set("domain_endpoint_options", flattenESDomainEndpointOptions(ds.DomainEndpointOptions)); err != nil {
@@ -867,7 +884,15 @@ func resourceAwsElasticSearchDomainUpdate(d *schema.ResourceData, meta interface
 		}
 
 		if d.HasChange("log_publishing_options") {
-			input.LogPublishingOptions = expandElasticsearchLogPublishingOption(d.Get("log_publishing_options").(*schema.Set).List())
+			input.LogPublishingOptions = make(map[string]*elasticsearch.LogPublishingOption)
+			options := d.Get("log_publishing_options").(*schema.Set).List()
+			for _, vv := range options {
+				lo := vv.(map[string]interface{})
+				input.LogPublishingOptions[lo["log_type"].(string)] = &elasticsearch.LogPublishingOption{
+					CloudWatchLogsLogGroupArn: aws.String(lo["cloudwatch_log_group_arn"].(string)),
+					Enabled:                   aws.Bool(lo["enabled"].(bool)),
+				}
+			}
 		}
 
 		_, err := conn.UpdateElasticsearchDomainConfig(&input)
@@ -1108,24 +1133,6 @@ func expandElasticsearchZoneAwarenessConfig(l []interface{}) *elasticsearch.Zone
 	return zoneAwarenessConfig
 }
 
-func expandElasticsearchLogPublishingOption(l []interface{}) map[string]*elasticsearch.LogPublishingOption {
-	options := make(map[string]*elasticsearch.LogPublishingOption)
-
-	if len(l) == 0 || l[0] == nil {
-		return options
-	}
-
-	for _, vv := range l {
-		lo := vv.(map[string]interface{})
-		options[lo["log_type"].(string)] = &elasticsearch.LogPublishingOption{
-			CloudWatchLogsLogGroupArn: aws.String(lo["cloudwatch_log_group_arn"].(string)),
-			Enabled:                   aws.Bool(lo["enabled"].(bool)),
-		}
-	}
-
-	return options
-}
-
 func flattenESClusterConfig(c *elasticsearch.ElasticsearchClusterConfig) []map[string]interface{} {
 	m := map[string]interface{}{
 		"zone_awareness_config":  flattenElasticsearchZoneAwarenessConfig(c.ZoneAwarenessConfig),
@@ -1170,23 +1177,4 @@ func flattenElasticsearchZoneAwarenessConfig(zoneAwarenessConfig *elasticsearch.
 	}
 
 	return []interface{}{m}
-}
-
-func flattenElasticsearchLogPublishingOption(lpo map[string]*elasticsearch.LogPublishingOption) []interface{} {
-	options := []interface{}{}
-
-	for k, option := range lpo {
-		vMap := map[string]interface{}{
-			"log_type": k,
-			"enabled":  aws.BoolValue(option.Enabled),
-		}
-
-		if option.CloudWatchLogsLogGroupArn != nil {
-			vMap["cloudwatch_log_group_arn"] = aws.StringValue(option.CloudWatchLogsLogGroupArn)
-
-			options = append(options, vMap)
-		}
-	}
-
-	return options
 }
