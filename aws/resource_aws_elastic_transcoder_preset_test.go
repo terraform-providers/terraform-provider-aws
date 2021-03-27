@@ -70,6 +70,7 @@ func TestAccAWSElasticTranscoderPreset_audio_noBitRate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:   testAccErrorCheck(t, elastictranscoder.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckElasticTranscoderPresetDestroy,
 		Steps: []resource.TestStep{
