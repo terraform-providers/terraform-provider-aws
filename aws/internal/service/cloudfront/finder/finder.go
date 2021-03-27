@@ -54,3 +54,22 @@ func RealtimeLogConfigByARN(conn *cloudfront.CloudFront, arn string) (*cloudfron
 
 	return output.RealtimeLogConfig, nil
 }
+
+// FieldLevelEncryptionProfileByID returns the field level encryption profile corresponding to the specified ID.
+// Returns nil if no configuration is found.
+func FieldLevelEncryptionProfileByID(conn *cloudfront.CloudFront, id string) (*cloudfront.GetFieldLevelEncryptionProfileOutput, error) {
+	input := &cloudfront.GetFieldLevelEncryptionProfileInput{
+		Id: aws.String(id),
+	}
+
+	output, err := conn.GetFieldLevelEncryptionProfile(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return nil, nil
+	}
+
+	return output, nil
+}
