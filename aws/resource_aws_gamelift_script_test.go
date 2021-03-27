@@ -82,6 +82,7 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
@@ -144,6 +145,7 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
@@ -205,6 +207,7 @@ func TestAccAWSGameliftScript_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
