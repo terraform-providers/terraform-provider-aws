@@ -39,7 +39,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition the the arguments listed above the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the environment membership.
 * `user_id` - he user ID in AWS Identity and Access Management (AWS IAM) of the environment member.
