@@ -12,7 +12,7 @@ Provides an Gamelift Script resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_script" "test" {
   name = "example-script"
 
