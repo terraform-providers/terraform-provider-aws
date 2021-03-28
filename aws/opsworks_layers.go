@@ -408,7 +408,7 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, meta interface{}) erro
 	d.Set("use_ebs_optimized_instances", layer.UseEbsOptimizedInstances)
 
 	if err := d.Set("cloudwatch_configuration", flattenOpsworksCloudWatchConfig(layer.CloudWatchLogsConfiguration)); err != nil {
-		return fmt.Errorf("error setting cloudwatch_configuration: %s", err)
+		return fmt.Errorf("error setting cloudwatch_configuration: %w", err)
 	}
 
 	if lt.CustomShortName {
@@ -420,7 +420,7 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, meta interface{}) erro
 	} else {
 		policy, err := structure.NormalizeJsonString(*layer.CustomJson)
 		if err != nil {
-			return fmt.Errorf("policy contains an invalid JSON: %s", err)
+			return fmt.Errorf("policy contains an invalid JSON: %w", err)
 		}
 		d.Set("custom_json", policy)
 	}
@@ -458,7 +458,7 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, meta interface{}) erro
 	tags, err := keyvaluetags.OpsworksListTags(conn, arn)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for Opsworks Layer (%s): %s", arn, err)
+		return fmt.Errorf("error listing tags for Opsworks Layer (%s): %w", arn, err)
 	}
 
 	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
@@ -546,7 +546,7 @@ func (lt *opsworksLayerType) Create(d *schema.ResourceData, meta interface{}) er
 
 	if len(tags) > 0 {
 		if err := keyvaluetags.OpsworksUpdateTags(conn, arn, nil, tags); err != nil {
-			return fmt.Errorf("error updating Opsworks stack (%s) tags: %s", arn, err)
+			return fmt.Errorf("error updating Opsworks stack (%s) tags: %w", arn, err)
 		}
 	}
 
@@ -629,8 +629,8 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, meta interface{}) er
 		o, n := d.GetChange("tags_all")
 
 		arn := d.Get("arn").(string)
-		if err := keyvaluetags.OpsworksUpdateTags(conn, arn, o, n); err != nil {
-			return fmt.Errorf("error updating Opsworks Layer (%s) tags: %s", arn, err)
+		if err := keyvaluetags.OpsworksUpdateTags(client, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Opsworks Layer (%s) tags: %w", arn, err)
 		}
 	}
 
@@ -672,7 +672,7 @@ func (lt *opsworksLayerType) AttributeMap(d *schema.ResourceData) (map[string]*s
 			}
 		default:
 			// should never happen
-			return nil, fmt.Errorf("Unsupported OpsWorks layer attribute type: %s", def.Type)
+			return nil, fmt.Errorf("Unsupported OpsWorks layer attribute type: %w", def.Type)
 		}
 	}
 
@@ -709,7 +709,7 @@ func (lt *opsworksLayerType) SetAttributeMap(d *schema.ResourceData, attrs map[s
 				d.Set(key, boolValue)
 			default:
 				// should never happen
-				return fmt.Errorf("Unsupported OpsWorks layer attribute type: %s", def.Type)
+				return fmt.Errorf("Unsupported OpsWorks layer attribute type: %w", def.Type)
 			}
 			return nil
 
