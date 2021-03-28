@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -349,27 +350,35 @@ func testAccCheckAWSOpsworksCreateLayerAttributes(
 }
 
 func testAccCheckAwsOpsworksLayerDestroy(resourceType string, s *terraform.State) error {
-	opsworksconn := testAccProvider.Meta().(*AWSClient).opsworksconn
+	conn := testAccProvider.Meta().(*AWSClient).opsworksconn
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != resourceType {
 			continue
 		}
+
 		req := &opsworks.DescribeLayersInput{
 			LayerIds: []*string{
 				aws.String(rs.Primary.ID),
 			},
 		}
 
-		_, err := opsworksconn.DescribeLayers(req)
+		output, err := conn.DescribeLayers(req)
+		if tfawserr.ErrCodeEquals(err, opsworks.ErrCodeResourceNotFoundException) {
+			continue
+		}
 		if err != nil {
-			if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
-				return nil
-			}
 			return err
 		}
+
+		if output == nil || len(output.Layers) == 0 {
+			return nil
+		}
+
+		return fmt.Errorf("OpsWorks layer %q still exists", rs.Primary.ID)
 	}
 
-	return fmt.Errorf("Fall through error on OpsWorks layer test")
+	return nil
 }
 
 func testAccCheckAwsOpsworksCustomLayerDestroy(s *terraform.State) error {
