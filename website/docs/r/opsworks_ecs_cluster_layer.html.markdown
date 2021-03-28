@@ -12,7 +12,7 @@ Provides an OpsWorks ECS Cluster layer resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_opsworks_ecs_cluster_layer" "example" {
   stack_id        = aws_opsworks_stack.example.id
   ecs_cluster_arn = aws_ecs_cluster.example.arn
