@@ -672,7 +672,7 @@ func (lt *opsworksLayerType) AttributeMap(d *schema.ResourceData) (map[string]*s
 			}
 		default:
 			// should never happen
-			return nil, fmt.Errorf("Unsupported OpsWorks layer attribute type: %w", def.Type)
+			return nil, fmt.Errorf("Unsupported OpsWorks layer attribute type: %s", def.Type)
 		}
 	}
 
@@ -709,7 +709,7 @@ func (lt *opsworksLayerType) SetAttributeMap(d *schema.ResourceData, attrs map[s
 				d.Set(key, boolValue)
 			default:
 				// should never happen
-				return fmt.Errorf("Unsupported OpsWorks layer attribute type: %w", def.Type)
+				return fmt.Errorf("Unsupported OpsWorks layer attribute type: %s", def.Type)
 			}
 			return nil
 
