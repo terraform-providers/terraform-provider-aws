@@ -86,7 +86,7 @@ func resourceAwsCloudfrontFieldLevelEncryptionProfileCreate(d *schema.ResourceDa
 		return fmt.Errorf("error creating Cloudfront Field Level Encryption Profile (%s): %w", d.Id(), err)
 	}
 
-	d.SetId(*resp.FieldLevelEncryptionProfile.Id)
+	d.SetId(aws.StringValue(resp.FieldLevelEncryptionProfile.Id))
 
 	return resourceAwsCloudfrontFieldLevelEncryptionProfileRead(d, meta)
 }
