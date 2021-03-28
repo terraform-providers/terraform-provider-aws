@@ -306,19 +306,21 @@ func resourceAwsOpsworksStackRead(d *schema.ResourceData, meta interface{}) erro
 	for {
 		resp, dErr = client.DescribeStacks(req)
 		if dErr != nil {
-			if isAWSErr(dErr, opsworks.ErrCodeResourceNotFoundException, "") {
-				if notFound < 1 {
-					// If we haven't already, try us-east-1, legacy connection
-					notFound++
-					var connErr error
-					client, connErr = opsworksConnForRegion("us-east-1", meta) //lintignore:AWSAT003
-					if connErr != nil {
-						return connErr
-										}
-					// start again from the top of the FOR loop, but with a client
-					// configured to talk to us-east-1
-					continue
-				}
+			if awserr, ok := dErr.(awserr.Error); ok {
+				if awserr.Code() == "ResourceNotFoundException" {
+					if notFound < 1 {
+						// If we haven't already, try us-east-1, legacy connection
+						notFound++
+						var connErr error
+						client, connErr = opsworksConnForRegion("us-east-1", meta) //lintignore:AWSAT003
+						if connErr != nil {
+							return connErr
+						}
+						// start again from the top of the FOR loop, but with a client
+						// configured to talk to us-east-1
+						continue
+					}
+
 					// We've tried both the original and us-east-1 endpoint, and the stack
 					// is still not found
 					log.Printf("[DEBUG] OpsWorks stack (%s) not found", d.Id())

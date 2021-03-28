@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -611,7 +612,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -631,7 +632,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -667,7 +668,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -687,7 +688,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -712,7 +713,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -732,7 +733,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -768,7 +769,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -788,7 +789,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -813,7 +814,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -833,7 +834,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -865,7 +866,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -885,7 +886,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_service_new" {
-  name = "%s_opsworks_service_new"
+  name = "%[1]s_opsworks_service_new"
 
   assume_role_policy = <<EOT
 {
@@ -905,7 +906,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service_new" {
-  name = "%s_opsworks_service_new"
+  name = "%[1]s_opsworks_service_new"
   role = aws_iam_role.opsworks_service_new.id
 
   policy = <<EOT
@@ -930,7 +931,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -955,7 +956,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -975,7 +976,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -1030,7 +1031,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -1050,7 +1051,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -1075,7 +1076,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -1095,7 +1096,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -1154,7 +1155,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -1174,7 +1175,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -1199,7 +1200,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -1219,7 +1220,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -1285,7 +1286,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -1305,7 +1306,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%s_opsworks_service"
+  name = "%[1]s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -1330,7 +1331,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -1350,7 +1351,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%s_opsworks_instance"
+  name = "%[1]s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name, sshKey))
