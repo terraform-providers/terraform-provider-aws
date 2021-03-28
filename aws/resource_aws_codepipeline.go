@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -45,11 +46,16 @@ func resourceAwsCodePipeline() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 100),
+					validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9.@\-_]+`), ""),
+				),
 			},
 
 			"role_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"artifact_store": {
 				Type:     schema.TypeSet,
@@ -100,6 +106,10 @@ func resourceAwsCodePipeline() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 100),
+								validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9.@\-_]+`), ""),
+							),
 						},
 						"action": {
 							Type:     schema.TypeList,
@@ -144,15 +154,21 @@ func resourceAwsCodePipeline() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.All(
+											validation.StringLenBetween(1, 100),
+											validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9.@\-_]+`), ""),
+										),
 									},
 									"role_arn": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validateArn,
 									},
 									"run_order": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										Computed: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IntBetween(1, 999),
 									},
 									"region": {
 										Type:     schema.TypeString,
@@ -162,6 +178,10 @@ func resourceAwsCodePipeline() *schema.Resource {
 									"namespace": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateFunc: validation.All(
+											validation.StringLenBetween(1, 100),
+											validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9@\-_]+`), ""),
+										),
 									},
 								},
 							},
@@ -560,17 +580,19 @@ func resourceAwsCodePipelineRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsCodePipelineUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
 
-	pipeline, err := expandAwsCodePipeline(d)
-	if err != nil {
-		return err
-	}
-	params := &codepipeline.UpdatePipelineInput{
-		Pipeline: pipeline,
-	}
-	_, err = conn.UpdatePipeline(params)
+	if d.HasChangeExcept("tags") {
+		pipeline, err := expandAwsCodePipeline(d)
+		if err != nil {
+			return err
+		}
+		params := &codepipeline.UpdatePipelineInput{
+			Pipeline: pipeline,
+		}
+		_, err = conn.UpdatePipeline(params)
 
-	if err != nil {
-		return fmt.Errorf("[ERROR] Error updating CodePipeline (%s): %w", d.Id(), err)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Error updating CodePipeline (%s): %w", d.Id(), err)
+		}
 	}
 
 	arn := d.Get("arn").(string)
