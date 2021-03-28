@@ -567,6 +567,7 @@ EOF
 
 resource "aws_iam_role" "opsworks_service" {
   name = "%[1]s_opsworks_service2"
+  
   assume_role_policy = <<EOT
 {
   "Version": "2008-10-17",

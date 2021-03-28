@@ -405,9 +405,9 @@ func testAccAwsOpsworksCustomLayerConfigNoVpcCreate(name string) string {
 		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_custom_layer" "test" {
-  stack_id               = aws_opsworks_stack.tf-acc.id
-  name                   = %[1]q
-  short_name             = "tf-ops-acc-custom-layer"
+  stack_id   = aws_opsworks_stack.tf-acc.id
+  name       = %[1]q
+  short_name = "tf-ops-acc-custom-layer"
 
   auto_assign_public_ips = true
   custom_security_group_ids = [
