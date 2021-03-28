@@ -179,7 +179,8 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 	logGroupResourceName := "aws_cloudwatch_log_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
 		Steps: []resource.TestStep{
@@ -237,7 +238,8 @@ func TestAccAWSOpsworksCustomLayer_disappears(t *testing.T) {
 	resourceName := "aws_opsworks_custom_layer.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
 		Steps: []resource.TestStep{
