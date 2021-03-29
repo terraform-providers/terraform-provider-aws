@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_codepipeline: Add plan time validation to `name`, `role_arn`, `stage.name`, `stage.action.name`, `stage.action.name`, `stage.action.run_order`, `stage.action.namespace`
+```
