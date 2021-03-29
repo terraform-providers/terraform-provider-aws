@@ -780,7 +780,6 @@ behavior "pull_request_path_labeler" "service_labels" {
     "service/codepipeline" = [
       "aws/internal/service/codepipeline/**/*",
       "**/*_codepipeline_*",
-      "**/*_codepipeline",
       "**/codepipeline_*"
     ]
     "service/codestar" = [
