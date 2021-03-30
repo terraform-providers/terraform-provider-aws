@@ -466,6 +466,17 @@ func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
+				// Set to non-default first
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "least_outstanding_requests"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
+					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "least_outstanding_requests"),
+				),
+			},
+			{
+				// Verify default is restored
 				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, false, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
@@ -475,21 +486,13 @@ func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
 				),
 			},
 			{
+				// Explicitly set default
 				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "round_robin"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
 					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
 					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
 					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "round_robin"),
-				),
-			},
-			{
-				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "least_outstanding_requests"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "least_outstanding_requests"),
 				),
 			},
 		},
