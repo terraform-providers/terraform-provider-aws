@@ -35,6 +35,17 @@ func TestAccDataSourceAwsWafv2WebACL_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "scope", resourceName, "scope"),
 				),
 			},
+			{
+				Config: testAccDataSourceAwsWafv2WebACL_NameRegex(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(datasourceName, "arn", resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(datasourceName, "arn", "wafv2", regexp.MustCompile(fmt.Sprintf("regional/webacl/%v/.+$", name))),
+					resource.TestCheckResourceAttrPair(datasourceName, "description", resourceName, "description"),
+					resource.TestCheckResourceAttrPair(datasourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(datasourceName, "scope", resourceName, "scope"),
+				),
+			},
 		},
 	})
 }
@@ -57,8 +68,34 @@ resource "aws_wafv2_web_acl" "test" {
 }
 
 data "aws_wafv2_web_acl" "test" {
-  name  = aws_wafv2_web_acl.test.name
+  name       = aws_wafv2_web_acl.test.name
+  scope      = "REGIONAL"
+  depends_on = [aws_wafv2_web_acl.test]
+}
+`, name)
+}
+
+func testAccDataSourceAwsWafv2WebACL_NameRegex(name string) string {
+	return fmt.Sprintf(`
+resource "aws_wafv2_web_acl" "test" {
+  name  = "%s"
   scope = "REGIONAL"
+
+  default_action {
+    block {}
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = false
+    metric_name                = "friendly-rule-metric-name"
+    sampled_requests_enabled   = false
+  }
+}
+
+data "aws_wafv2_web_acl" "test" {
+  name_regex = "^tf-acc-test-[0-9]+$"
+  scope      = "REGIONAL"
+  depends_on = [aws_wafv2_web_acl.test]
 }
 `, name)
 }

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
@@ -24,7 +25,12 @@ func dataSourceAwsWafv2WebACL() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+			},
+			"name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsValidRegExp,
 			},
 			"scope": {
 				Type:     schema.TypeString,
@@ -40,7 +46,12 @@ func dataSourceAwsWafv2WebACL() *schema.Resource {
 
 func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
-	name := d.Get("name").(string)
+	name, nameOk := d.GetOk("name")
+	nameRegex, nameRegexOk := d.GetOk("name_regex")
+
+	if !nameOk && !nameRegexOk {
+		return fmt.Errorf("One of name or name_regex must be assigned")
+	}
 
 	var foundWebACL *wafv2.WebACLSummary
 	input := &wafv2.ListWebACLsInput{
@@ -58,10 +69,20 @@ func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error reading WAFv2 WebACLs")
 		}
 
-		for _, webACL := range resp.WebACLs {
-			if aws.StringValue(webACL.Name) == name {
-				foundWebACL = webACL
-				break
+		if nameRegexOk {
+			r := regexp.MustCompile(nameRegex.(string))
+			for _, webACL := range resp.WebACLs {
+				if r.MatchString(aws.StringValue(webACL.Name)) {
+					foundWebACL = webACL
+					break
+				}
+			}
+		} else {
+			for _, webACL := range resp.WebACLs {
+				if aws.StringValue(webACL.Name) == name.(string) {
+					foundWebACL = webACL
+					break
+				}
 			}
 		}
 
@@ -76,6 +97,7 @@ func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(aws.StringValue(foundWebACL.Id))
+	d.Set("name", aws.StringValue(foundWebACL.Name))
 	d.Set("arn", aws.StringValue(foundWebACL.ARN))
 	d.Set("description", aws.StringValue(foundWebACL.Description))
 
