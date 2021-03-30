@@ -78,7 +78,7 @@ Each of the `index` entities represents an index field of the domain.
 * `analysis_scheme` - (Optional) Only needed with type `text`. [AWS's Docs - supported languages](http://docs.aws.amazon.com/cloudsearch/latest/developerguide/text-processing.html)
 * `default_value` - (Optional) The default value.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
