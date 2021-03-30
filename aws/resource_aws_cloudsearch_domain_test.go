@@ -55,6 +55,7 @@ func TestAccAWSCloudSearchDomain_basic(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		ErrorCheck:   func(err error) error {return err},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCloudSearchDomainConfig_basic(domainName),
@@ -93,6 +94,7 @@ func TestAccAWSCloudSearchDomain_textAnalysisScheme(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		ErrorCheck:   func(err error) error {return err},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCloudSearchDomainConfig_textAnalysisScheme(domainName, "_en_default_"),
@@ -122,6 +124,7 @@ func TestAccAWSCloudSearchDomain_badName(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		ErrorCheck:   func(err error) error {return err},
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_basic("-this-is-a-bad-name"),
@@ -138,6 +141,7 @@ func TestAccAWSCloudSearchDomain_badInstanceType(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		ErrorCheck:   func(err error) error {return err},
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_withInstanceType(domainName, "nope.small"),
@@ -154,6 +158,7 @@ func TestAccAWSCloudSearchDomain_badIndexFieldNames(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		ErrorCheck:   func(err error) error {return err},
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "HELLO", "text"),
@@ -182,6 +187,7 @@ func TestAccAWSCloudSearchDomain_badIndexFieldType(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		ErrorCheck:   func(err error) error {return err},
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "directory", "not-a-type"),
