@@ -12,7 +12,7 @@ Provides an CloudSearch domain resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudsearch_domain" "my_domain" {
   domain_name   = "test-domain"
   instance_type = "search.medium"
@@ -49,21 +49,6 @@ data "aws_iam_policy_document" "cloudsearch_access_policy" {
       "cloudsearch:suggest"
     ]
   }
-}
-```
-
-
-## Using aws_cloudsearch_domain with API gateway
-
-When you are using a cloudsearch domain with an aws_api_gateway_integration you need to set uri of the AWS cloudsearch service, to a specially formatted uri, that includes the first part of the search endpoint that is returned from this provider.  The below will help.
-
-```
-data "aws_region" "current" {}
-resource "aws_api_gateway_integration" "sample" {
-  ...
-  type        = "AWS"
-  uri         = "arn:aws:apigateway:${data.aws_region.current.name}:${replace(aws_cloudsearch_domain.my_domain.search_endpoint, ".${data.aws_region.current.name}.cloudsearch.amazonaws.com", "")}.cloudsearch:path/2013-01-01/search"
-  ...
 }
 ```
 
