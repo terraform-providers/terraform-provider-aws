@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
@@ -169,7 +168,7 @@ func TestAccAWSCloud9EnvironmentEc2_disappears(t *testing.T) {
 				Config: testAccAWSCloud9EnvironmentEc2Config(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
-					testAccCheckAWSCloud9EnvironmentEc2Disappears(&conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloud9EnvironmentEc2(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -207,43 +206,6 @@ func testAccCheckAWSCloud9EnvironmentEc2Exists(n string, res *cloud9.Environment
 		*res = *env
 
 		return nil
-	}
-}
-
-func testAccCheckAWSCloud9EnvironmentEc2Disappears(res *cloud9.Environment) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).cloud9conn
-
-		_, err := conn.DeleteEnvironment(&cloud9.DeleteEnvironmentInput{
-			EnvironmentId: res.Id,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		input := &cloud9.DescribeEnvironmentsInput{
-			EnvironmentIds: []*string{res.Id},
-		}
-		var out *cloud9.DescribeEnvironmentsOutput
-		err = resource.Retry(20*time.Minute, func() *resource.RetryError { // Deleting instances can take a long time
-			out, err = conn.DescribeEnvironments(input)
-			if err != nil {
-				if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
-					return nil
-				}
-				if isAWSErr(err, "AccessDeniedException", "is not authorized to access this resource") {
-					return nil
-				}
-				return resource.NonRetryableError(err)
-			}
-			if len(out.Environments) == 0 {
-				return nil
-			}
-			return resource.RetryableError(fmt.Errorf("Cloud9 EC2 Environment %q still exists", aws.StringValue(res.Id)))
-		})
-
-		return err
 	}
 }
 
