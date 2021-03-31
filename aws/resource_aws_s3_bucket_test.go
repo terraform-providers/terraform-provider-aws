@@ -199,6 +199,43 @@ func TestAccAWSS3Bucket_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3Bucket_SkipConfig(t *testing.T) {
+	bucketName := acctest.RandomWithPrefix("tf-test-bucket")
+	region := testAccGetRegion()
+	hostedZoneID, _ := HostedZoneIDForRegion(region)
+	resourceName := "aws_s3_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfig_SkipConfig(bucketName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "hosted_zone_id", hostedZoneID),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckNoResourceAttr(resourceName, "website_endpoint"),
+					testAccCheckResourceAttrGlobalARNNoAccount(resourceName, "arn", "s3", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
+					testAccCheckS3BucketDomainName(resourceName, "bucket_domain_name", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "bucket_regional_domain_name", testAccBucketRegionalDomainName(bucketName, region)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_destroy", "acl",
+					"skip_acceleration_config", "skip_payer_config", "skip_lock_config",
+				},
+			},
+		},
+	})
+}
+
 // Support for common Terraform 0.11 pattern
 // Reference: https://github.com/hashicorp/terraform-provider-aws/issues/7868
 func TestAccAWSS3Bucket_Bucket_EmptyString(t *testing.T) {
@@ -4727,6 +4764,18 @@ resource "aws_iam_role" "test" {
 POLICY
 }
 `, rName)
+}
+
+func testAccAWSS3BucketConfig_SkipConfig(bucketName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = %[1]q
+
+  skip_acceleration_config = true
+  skip_payer_config        = true
+  skip_lock_config         = true
+}
+`, bucketName)
 }
 
 const testAccAWSS3BucketConfigBucketEmptyString = `

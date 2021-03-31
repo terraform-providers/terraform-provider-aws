@@ -620,6 +620,24 @@ func resourceAwsS3Bucket() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"skip_acceleration_config": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"skip_payer_config": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"skip_lock_config": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -762,15 +780,21 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("acceleration_status") {
-		if err := resourceAwsS3BucketAccelerationUpdate(s3conn, d); err != nil {
-			return err
+	skipAccConfig, skipAccConfigOk := d.GetOk("skip_acceleration_config")
+	if !skipAccConfigOk || !skipAccConfig.(bool) {
+		if d.HasChange("acceleration_status") {
+			if err := resourceAwsS3BucketAccelerationUpdate(s3conn, d); err != nil {
+				return err
+			}
 		}
 	}
 
-	if d.HasChange("request_payer") {
-		if err := resourceAwsS3BucketRequestPayerUpdate(s3conn, d); err != nil {
-			return err
+	skipPayerConfig, skipPayerConfigOk := d.GetOk("skip_payer_config")
+	if !skipPayerConfigOk || !skipPayerConfig.(bool) {
+		if d.HasChange("request_payer") {
+			if err := resourceAwsS3BucketRequestPayerUpdate(s3conn, d); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -786,9 +810,12 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("object_lock_configuration") {
-		if err := resourceAwsS3BucketObjectLockConfigurationUpdate(s3conn, d); err != nil {
-			return err
+	skipLockConfig, skipLockConfigOk := d.GetOk("skip_lock_config")
+	if !skipLockConfigOk || !skipLockConfig.(bool) {
+		if d.HasChange("object_lock_configuration") {
+			if err := resourceAwsS3BucketObjectLockConfigurationUpdate(s3conn, d); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1022,34 +1049,43 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Read the acceleration status
 
-	accelerateResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return s3conn.GetBucketAccelerateConfiguration(&s3.GetBucketAccelerateConfigurationInput{
-			Bucket: aws.String(d.Id()),
+	skipAccConfig, skipAccConfigOk := d.GetOk("skip_acceleration_config")
+	if !skipAccConfigOk || !skipAccConfig.(bool) {
+		accelerateResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+			return s3conn.GetBucketAccelerateConfiguration(&s3.GetBucketAccelerateConfigurationInput{
+				Bucket: aws.String(d.Id()),
+			})
 		})
-	})
 
-	// Amazon S3 Transfer Acceleration might not be supported in the region
-	if err != nil && !isAWSErr(err, "MethodNotAllowed", "") && !isAWSErr(err, "UnsupportedArgument", "") {
-		return fmt.Errorf("error getting S3 Bucket acceleration configuration: %s", err)
-	}
-	if accelerate, ok := accelerateResponse.(*s3.GetBucketAccelerateConfigurationOutput); ok {
-		d.Set("acceleration_status", accelerate.Status)
+		// Amazon S3 Transfer Acceleration might not be supported in the region
+		if err != nil && !isAWSErr(err, "MethodNotAllowed", "") && !isAWSErr(err, "UnsupportedArgument", "") {
+			return fmt.Errorf("error getting S3 Bucket acceleration configuration: %s", err)
+		}
+		if accelerate, ok := accelerateResponse.(*s3.GetBucketAccelerateConfigurationOutput); ok {
+			d.Set("acceleration_status", accelerate.Status)
+		}
+	} else {
+		d.Set("acceleration_status", "")
 	}
 
 	// Read the request payer configuration.
-
-	payerResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return s3conn.GetBucketRequestPayment(&s3.GetBucketRequestPaymentInput{
-			Bucket: aws.String(d.Id()),
+	skipPayerConfig, skipPayerConfigOk := d.GetOk("skip_payer_config")
+	if !skipPayerConfigOk || !skipPayerConfig.(bool) {
+		payerResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+			return s3conn.GetBucketRequestPayment(&s3.GetBucketRequestPaymentInput{
+				Bucket: aws.String(d.Id()),
+			})
 		})
-	})
 
-	if err != nil {
-		return fmt.Errorf("error getting S3 Bucket request payment: %s", err)
-	}
+		if err != nil {
+			return fmt.Errorf("error getting S3 Bucket request payment: %s", err)
+		}
 
-	if payer, ok := payerResponse.(*s3.GetBucketRequestPaymentOutput); ok {
-		d.Set("request_payer", payer.Payer)
+		if payer, ok := payerResponse.(*s3.GetBucketRequestPaymentOutput); ok {
+			d.Set("request_payer", payer.Payer)
+		}
+	} else {
+		d.Set("request_payer", "BucketOwner")
 	}
 
 	// Read the logging configuration
@@ -1247,11 +1283,14 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Object Lock configuration.
-	if conf, err := readS3ObjectLockConfiguration(s3conn, d.Id()); err != nil {
-		return fmt.Errorf("error getting S3 Bucket Object Lock configuration: %s", err)
-	} else {
-		if err := d.Set("object_lock_configuration", conf); err != nil {
-			return fmt.Errorf("error setting object_lock_configuration: %s", err)
+	skipLockConfig, skipLockConfigOk := d.GetOk("skip_lock_config")
+	if !skipLockConfigOk || !skipLockConfig.(bool) {
+		if conf, err := readS3ObjectLockConfiguration(s3conn, d.Id()); err != nil {
+			return fmt.Errorf("error getting S3 Bucket Object Lock configuration: %s", err)
+		} else {
+			if err := d.Set("object_lock_configuration", conf); err != nil {
+				return fmt.Errorf("error setting object_lock_configuration: %s", err)
+			}
 		}
 	}
 

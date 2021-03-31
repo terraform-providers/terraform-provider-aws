@@ -331,6 +331,20 @@ resource "aws_s3_bucket" "bucket" {
 }
 ```
 
+### Skipping acceleration, payer and lock configuration
+
+This can be used with third party S3 implementations that do not support such features.
+
+```hcl
+resource "aws_s3_bucket" "bucket" {
+  bucket                   = "mybucket"
+  skip_acceleration_config = true
+  skip_payer_config        = true
+  skip_lock_config         = true
+
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -356,6 +370,9 @@ developer guide for more information.
 * `replication_configuration` - (Optional) A configuration of [replication configuration](http://docs.aws.amazon.com/AmazonS3/latest/dev/crr.html) (documented below).
 * `server_side_encryption_configuration` - (Optional) A configuration of [server-side encryption configuration](http://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-encryption.html) (documented below)
 * `object_lock_configuration` - (Optional) A configuration of [S3 object locking](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock.html) (documented below)
+* `skip_acceleration_config` - (Optional, Default:`false`) A boolean that indicates acceleration configuration should not be performed; useful with different S3 implementations that do not support acceleration
+* `skip_payer_config` - (Optional, Default:`false`) A boolean that indicates payer configuration should not be performed; useful with different S3 implementations that do not support payer configuration
+* `skip_lock_config` - (Optional, Default:`false`) A boolean that indicates lock configuration should not be performed; useful with different S3 implementations that do not support lock configuration
 
 ~> **NOTE:** You cannot use `acceleration_status` in `cn-north-1` or `us-gov-west-1`
 
