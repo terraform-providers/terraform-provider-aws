@@ -40,7 +40,7 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id"},
+				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id", "connection_type"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2Config(rNameUpdated),
@@ -88,7 +88,7 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id"},
+				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id", "connection_type"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(rNameUpdated, uDescription, userName),
@@ -129,7 +129,7 @@ func TestAccAWSCloud9EnvironmentEc2_tags(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id"},
+				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id", "connection_type"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2ConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
