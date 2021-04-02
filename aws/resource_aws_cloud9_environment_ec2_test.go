@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloud9/finder"
 )
 
 func init() {
@@ -39,7 +40,7 @@ func testSweepCloud9EnvironmentEC2s(region string) error {
 			id := aws.StringValue(envID)
 
 			log.Printf("[INFO] Deleting Cloud9 Environment EC2: %s", id)
-			r := resourceAwsGlueMLTransform()
+			r := resourceAwsCloud9EnvironmentEc2()
 			d := r.Data(nil)
 			d.SetId(id)
 			err := r.Delete(d, client)
@@ -241,21 +242,18 @@ func testAccCheckAWSCloud9EnvironmentEc2Exists(n string, res *cloud9.Environment
 
 		conn := testAccProvider.Meta().(*AWSClient).cloud9conn
 
-		out, err := conn.DescribeEnvironments(&cloud9.DescribeEnvironmentsInput{
-			EnvironmentIds: []*string{aws.String(rs.Primary.ID)},
-		})
+		out, err := finder.EnvironmentByID(conn, rs.Primary.ID)
 		if err != nil {
 			if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
 				return fmt.Errorf("Cloud9 Environment EC2 (%q) not found", rs.Primary.ID)
 			}
 			return err
 		}
-		if len(out.Environments) == 0 {
+		if out == nil {
 			return fmt.Errorf("Cloud9 Environment EC2 (%q) not found", rs.Primary.ID)
 		}
-		env := out.Environments[0]
 
-		*res = *env
+		*res = *out
 
 		return nil
 	}
@@ -269,9 +267,7 @@ func testAccCheckAWSCloud9EnvironmentEc2Destroy(s *terraform.State) error {
 			continue
 		}
 
-		out, err := conn.DescribeEnvironments(&cloud9.DescribeEnvironmentsInput{
-			EnvironmentIds: []*string{aws.String(rs.Primary.ID)},
-		})
+		out, err := finder.EnvironmentByID(conn, rs.Primary.ID)
 		if err != nil {
 			if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
 				return nil
@@ -282,7 +278,7 @@ func testAccCheckAWSCloud9EnvironmentEc2Destroy(s *terraform.State) error {
 			}
 			return err
 		}
-		if len(out.Environments) == 0 {
+		if out == nil {
 			return nil
 		}
 
