@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloud9/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloud9/waiter"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
@@ -137,9 +138,7 @@ func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{
 
 	log.Printf("[INFO] Reading Cloud9 Environment EC2 %s", d.Id())
 
-	out, err := conn.DescribeEnvironments(&cloud9.DescribeEnvironmentsInput{
-		EnvironmentIds: []*string{aws.String(d.Id())},
-	})
+	env, err := finder.EnvironmentByID(conn, d.Id())
 	if err != nil {
 		if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] Cloud9 Environment EC2 (%s) not found, removing from state", d.Id())
@@ -148,12 +147,11 @@ func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{
 		}
 		return err
 	}
-	if len(out.Environments) == 0 {
+	if env == nil {
 		log.Printf("[WARN] Cloud9 Environment EC2 (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
-	env := out.Environments[0]
 
 	arn := aws.StringValue(env.Arn)
 	d.Set("arn", arn)
