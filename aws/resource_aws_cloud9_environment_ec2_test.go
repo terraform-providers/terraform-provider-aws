@@ -2,15 +2,67 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_cloud9_environment_ec2", &resource.Sweeper{
+		Name: "aws_cloud9_environment_ec2",
+		F:    testSweepCloud9EnvironmentEC2s,
+	})
+}
+
+func testSweepCloud9EnvironmentEC2s(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).cloud9conn
+	var sweeperErrs *multierror.Error
+
+	input := &cloud9.ListEnvironmentsInput{}
+	err = conn.ListEnvironmentsPages(input, func(page *cloud9.ListEnvironmentsOutput, lastPage bool) bool {
+		if len(page.EnvironmentIds) == 0 {
+			log.Printf("[INFO] No Cloud9 Environment EC2s to sweep")
+			return false
+		}
+		for _, envID := range page.EnvironmentIds {
+			id := aws.StringValue(envID)
+
+			log.Printf("[INFO] Deleting Cloud9 Environment EC2: %s", id)
+			r := resourceAwsGlueMLTransform()
+			d := r.Data(nil)
+			d.SetId(id)
+			err := r.Delete(d, client)
+
+			if err != nil {
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
+				continue
+			}
+		}
+		return !lastPage
+	})
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Cloud9 Environment EC2s sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Cloud9 Environment EC2s: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 	var conf cloud9.Environment
@@ -40,7 +92,7 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id", "connection_type"},
+				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2Config(rNameUpdated),
@@ -61,10 +113,8 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 	var conf cloud9.Environment
 
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test-updated")
 	description := acctest.RandomWithPrefix("Tf Acc Test")
 	uDescription := acctest.RandomWithPrefix("Tf Acc Test Updated")
-	userName := acctest.RandomWithPrefix("tf_acc_cloud9_env")
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,31 +124,33 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(rName, description, userName),
+				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(rName, description, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "instance_type", "t2.micro"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "cloud9", regexp.MustCompile(`environment:.+$`)),
-					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_iam_user.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_cloud9_user.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "type", "ec2"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id", "connection_type"},
+				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id"},
 			},
 			{
-				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(rNameUpdated, uDescription, userName),
+				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(rName, uDescription, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "instance_type", "t2.micro"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "cloud9", regexp.MustCompile(`environment:.+$`)),
-					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_iam_user.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_cloud9_user.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "type", "ec2"),
+					resource.TestCheckResourceAttr(resourceName, "description", uDescription),
 				),
 			},
 		},
@@ -129,7 +181,7 @@ func TestAccAWSCloud9EnvironmentEc2_tags(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id", "connection_type"},
+				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2ConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
@@ -310,11 +362,11 @@ resource "aws_cloud9_environment_ec2" "test" {
   description                 = %[2]q
   instance_type               = "t2.micro"
   name                        = %[1]q
-  owner_arn                   = aws_iam_user.test.arn
+  owner_arn                   = aws_cloud9_user.test.arn
   subnet_id                   = aws_subnet.test.id
 }
 
-resource "aws_iam_user" "test" {
+resource "aws_cloud9_user" "test" {
   name = %[3]q
 }
 `, name, description, userName)

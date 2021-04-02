@@ -26,12 +26,6 @@ func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"connection_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(cloud9.ConnectionType_Values(), false),
-				Default:      cloud9.ConnectionTypeConnectSsh,
-			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -87,7 +81,6 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &cloud9.CreateEnvironmentEC2Input{
-		ConnectionType:     aws.String(d.Get("connection_type").(string)),
 		InstanceType:       aws.String(d.Get("instance_type").(string)),
 		Name:               aws.String(d.Get("name").(string)),
 		ClientRequestToken: aws.String(resource.UniqueId()),
@@ -168,7 +161,6 @@ func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{
 	d.Set("name", env.Name)
 	d.Set("owner_arn", env.OwnerArn)
 	d.Set("type", env.Type)
-	d.Set("connection_type", env.ConnectionType)
 
 	tags, err := keyvaluetags.Cloud9ListTags(conn, arn)
 
