@@ -622,9 +622,9 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
 }
 
 resource "aws_api_gateway_stage" "test" {
-  rest_api_id           = aws_api_gateway_rest_api.test.id
-  stage_name            = "prod"
-  deployment_id         = aws_api_gateway_deployment.dev.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  stage_name    = "prod"
+  deployment_id = aws_api_gateway_deployment.dev.id
 
   access_log_settings {
     destination_arn = aws_kinesis_firehose_delivery_stream.test.arn
