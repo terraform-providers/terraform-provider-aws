@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/apigateway/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/apigateway/waiter"
 )
 
 func resourceAwsApiGatewayStage() *schema.Resource {
@@ -172,22 +172,9 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 	d.SetId(fmt.Sprintf("ags-%s-%s", restApiId, stageName))
 
 	if waitForCache && out != nil && aws.StringValue(out.CacheClusterStatus) != apigateway.CacheClusterStatusNotAvailable {
-		stateConf := &resource.StateChangeConf{
-			Pending: []string{
-				apigateway.CacheClusterStatusCreateInProgress,
-				apigateway.CacheClusterStatusDeleteInProgress,
-				apigateway.CacheClusterStatusFlushInProgress,
-			},
-			Target: []string{apigateway.CacheClusterStatusAvailable},
-			Refresh: apiGatewayStageCacheRefreshFunc(conn,
-				restApiId,
-				stageName),
-			Timeout: 90 * time.Minute,
-		}
-
-		_, err := stateConf.WaitForState()
+		_, err = waiter.StageCacheAvailable(conn, restApiId, stageName)
 		if err != nil {
-			return err
+			return fmt.Errorf("error waiting for API Gateway Stage (%s) to be available: %w", d.Id(), err)
 		}
 	}
 
@@ -208,11 +195,7 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[DEBUG] Reading API Gateway Stage %s", d.Id())
 	restApiId := d.Get("rest_api_id").(string)
 	stageName := d.Get("stage_name").(string)
-	input := apigateway.GetStageInput{
-		RestApiId: aws.String(restApiId),
-		StageName: aws.String(stageName),
-	}
-	stage, err := conn.GetStage(&input)
+	stage, err := finder.StageByName(conn, restApiId, stageName)
 
 	if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 		log.Printf("[WARN] API Gateway Stage (%s) not found, removing from state", d.Id())
@@ -389,26 +372,9 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if waitForCache && out != nil && aws.StringValue(out.CacheClusterStatus) != apigateway.CacheClusterStatusNotAvailable {
-			stateConf := &resource.StateChangeConf{
-				Pending: []string{
-					apigateway.CacheClusterStatusCreateInProgress,
-					apigateway.CacheClusterStatusFlushInProgress,
-				},
-				Target: []string{
-					apigateway.CacheClusterStatusAvailable,
-					// There's an AWS API bug (raised & confirmed in Sep 2016 by support)
-					// which causes the stage to remain in deletion state forever
-					apigateway.CacheClusterStatusDeleteInProgress,
-				},
-				Refresh: apiGatewayStageCacheRefreshFunc(conn,
-					restApiId,
-					stageName),
-				Timeout: 30 * time.Minute,
-			}
-
-			_, err := stateConf.WaitForState()
+			_, err = waiter.StageCacheUpdated(conn, restApiId, stageName)
 			if err != nil {
-				return err
+				return fmt.Errorf("error waiting for API Gateway Stage (%s) to be updated: %w", d.Id(), err)
 			}
 		}
 	}
@@ -446,21 +412,6 @@ func diffVariablesOps(oldVars, newVars map[string]interface{}) []*apigateway.Pat
 	}
 
 	return ops
-}
-
-func apiGatewayStageCacheRefreshFunc(conn *apigateway.APIGateway, apiId, stageName string) func() (interface{}, string, error) {
-	return func() (interface{}, string, error) {
-		input := apigateway.GetStageInput{
-			RestApiId: aws.String(apiId),
-			StageName: aws.String(stageName),
-		}
-		out, err := conn.GetStage(&input)
-		if err != nil {
-			return 42, "", err
-		}
-
-		return out, aws.StringValue(out.CacheClusterStatus), nil
-	}
 }
 
 func resourceAwsApiGatewayStageDelete(d *schema.ResourceData, meta interface{}) error {

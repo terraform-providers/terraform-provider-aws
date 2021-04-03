@@ -5,12 +5,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/apigateway/finder"
 )
 
 func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
@@ -361,11 +361,7 @@ func testAccCheckAWSAPIGatewayStageExists(n string, res *apigateway.Stage) resou
 
 		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
-		req := &apigateway.GetStageInput{
-			RestApiId: aws.String(rs.Primary.Attributes["rest_api_id"]),
-			StageName: aws.String(rs.Primary.Attributes["stage_name"]),
-		}
-		out, err := conn.GetStage(req)
+		out, err := finder.StageByName(conn, rs.Primary.Attributes["rest_api_id"], rs.Primary.Attributes["stage_name"])
 		if err != nil {
 			return err
 		}
@@ -384,11 +380,7 @@ func testAccCheckAWSAPIGatewayStageDestroy(s *terraform.State) error {
 			continue
 		}
 
-		req := &apigateway.GetStageInput{
-			RestApiId: aws.String(rs.Primary.Attributes["rest_api_id"]),
-			StageName: aws.String(rs.Primary.Attributes["stage_name"]),
-		}
-		out, err := conn.GetStage(req)
+		out, err := finder.StageByName(conn, rs.Primary.Attributes["rest_api_id"], rs.Primary.Attributes["stage_name"])
 		if err == nil {
 			return fmt.Errorf("API Gateway Stage still exists: %s", out)
 		}
