@@ -136,6 +136,7 @@ In addition to all arguments above, the following attributes are exported:
   when allowing API Gateway to invoke a Lambda function,
   e.g. `arn:aws:execute-api:eu-west-2:123456789012:z4675bid1j/prod`
 * `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
+* `web_acl_arn` - The ARN of the WebAcl associated with the Stage.
 
 ## Import
 
