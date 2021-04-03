@@ -131,7 +131,7 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "instance_type", "t2.micro"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "cloud9", regexp.MustCompile(`environment:.+$`)),
-					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_cloud9_user.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_iam_user.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "type", "ec2"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
@@ -149,7 +149,7 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "instance_type", "t2.micro"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "cloud9", regexp.MustCompile(`environment:.+$`)),
-					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_cloud9_user.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_iam_user.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "type", "ec2"),
 					resource.TestCheckResourceAttr(resourceName, "description", uDescription),
 				),
@@ -358,11 +358,11 @@ resource "aws_cloud9_environment_ec2" "test" {
   description                 = %[2]q
   instance_type               = "t2.micro"
   name                        = %[1]q
-  owner_arn                   = aws_cloud9_user.test.arn
+  owner_arn                   = aws_iam_user.test.arn
   subnet_id                   = aws_subnet.test.id
 }
 
-resource "aws_cloud9_user" "test" {
+resource "aws_iam_user" "test" {
   name = %[3]q
 }
 `, name, description, userName)
