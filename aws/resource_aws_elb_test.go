@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -38,18 +38,18 @@ func testSweepELBs(region string) error {
 		}
 
 		for _, lb := range out.LoadBalancerDescriptions {
-			log.Printf("[INFO] Deleting ELB: %s", *lb.LoadBalancerName)
+			log.Printf("[INFO] Deleting ELB: %s", aws.StringValue(lb.LoadBalancerName))
 
 			_, err := conn.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{
 				LoadBalancerName: lb.LoadBalancerName,
 			})
 			if err != nil {
-				log.Printf("[ERROR] Failed to delete ELB %s: %s", *lb.LoadBalancerName, err)
+				log.Printf("[ERROR] Failed to delete ELB %s: %s", aws.StringValue(lb.LoadBalancerName), err)
 				continue
 			}
-			err = cleanupELBNetworkInterfaces(client.(*AWSClient).ec2conn, *lb.LoadBalancerName)
+			err = cleanupELBNetworkInterfaces(client.(*AWSClient).ec2conn, aws.StringValue(lb.LoadBalancerName))
 			if err != nil {
-				log.Printf("[WARN] Failed to cleanup ENIs for ELB %q: %s", *lb.LoadBalancerName, err)
+				log.Printf("[WARN] Failed to cleanup ENIs for ELB %q: %s", aws.StringValue(lb.LoadBalancerName), err)
 			}
 		}
 		return !isLast
@@ -80,7 +80,7 @@ func TestAccAWSELB_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					testAccCheckAWSELBAttributes(&conf),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "elasticloadbalancing", regexp.MustCompile(`loadbalancer/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "availability_zones.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "subnets.#", "3"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
@@ -116,7 +116,7 @@ func TestAccAWSELB_disappears(t *testing.T) {
 				Config: testAccAWSELBConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &loadBalancer),
-					testAccCheckAWSELBDisappears(&loadBalancer),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsElb(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -143,6 +143,11 @@ func TestAccAWSELB_fullCharacterRange(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", lbName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -165,7 +170,11 @@ func TestAccAWSELB_AccessLogs_enabled(t *testing.T) {
 					testAccCheckAWSELBExists(resourceName, &conf),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAWSELBAccessLogsOn(rName),
 				Check: resource.ComposeTestCheckFunc(
@@ -176,7 +185,11 @@ func TestAccAWSELB_AccessLogs_enabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "access_logs.0.enabled", "true"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAWSELBAccessLogs,
 				Check: resource.ComposeTestCheckFunc(
@@ -220,8 +233,7 @@ func TestAccAWSELB_AccessLogs_disabled(t *testing.T) {
 				Config: testAccAWSELBAccessLogs,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(
-						resourceName, "access_logs.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "access_logs.#", "0"),
 				),
 			},
 		},
@@ -247,6 +259,12 @@ func TestAccAWSELB_namePrefix(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "name", nameRegex),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"name_prefix"},
+			},
 		},
 	})
 }
@@ -269,6 +287,11 @@ func TestAccAWSELB_generatedName(t *testing.T) {
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestMatchResourceAttr(resourceName, "name", generatedNameRegexp),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -293,6 +316,11 @@ func TestAccAWSELB_generatesNameForZeroValue(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "name", generatedNameRegexp),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -315,7 +343,11 @@ func TestAccAWSELB_availabilityZones(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "availability_zones.#", "3"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAWSELBConfig_AvailabilityZonesUpdate,
 				Check: resource.ComposeTestCheckFunc(
@@ -409,6 +441,11 @@ func TestAccAWSELB_Listener_SSLCertificateID_IAMServerCertificate(t *testing.T) 
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config:      testAccELBConfig_Listener_IAMServerCertificate_AddInvalidListener(rName, certificate, key),
 				ExpectError: regexp.MustCompile(`ssl_certificate_id may be set only when protocol is 'https' or 'ssl'`),
 			},
@@ -434,7 +471,11 @@ func TestAccAWSELB_swap_subnets(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "subnets.#", "2"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAWSELBConfig_subnet_swap,
 				Check: resource.ComposeTestCheckFunc(
@@ -473,7 +514,11 @@ func TestAccAWSELB_InstanceAttaching(t *testing.T) {
 					testAccCheckAWSELBAttributes(&conf),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAWSELBConfigNewInstance,
 				Check: resource.ComposeTestCheckFunc(
@@ -510,6 +555,11 @@ func TestAccAWSELB_listener(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAWSELBConfigListener_multipleListeners,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
@@ -527,6 +577,11 @@ func TestAccAWSELB_listener(t *testing.T) {
 						"lb_protocol":       "tcp",
 					}),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSELBConfig,
@@ -636,6 +691,11 @@ func TestAccAWSELB_HealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "60"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -656,6 +716,11 @@ func TestAccAWSELBUpdate_HealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "health_check.0.healthy_threshold", "5"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSELBConfigHealthCheck_update,
@@ -685,6 +750,11 @@ func TestAccAWSELB_Timeout(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "idle_timeout", "200"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -704,6 +774,11 @@ func TestAccAWSELBUpdate_Timeout(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "idle_timeout", "200"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSELBConfigIdleTimeout_update,
@@ -728,11 +803,14 @@ func TestAccAWSELB_ConnectionDraining(t *testing.T) {
 			{
 				Config: testAccAWSELBConfigConnectionDraining,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						resourceName, "connection_draining", "true",
-					),
+					resource.TestCheckResourceAttr(resourceName, "connection_draining", "true"),
 					resource.TestCheckResourceAttr(resourceName, "connection_draining_timeout", "400"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -754,6 +832,11 @@ func TestAccAWSELBUpdate_ConnectionDraining(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "connection_draining", "true"),
 					resource.TestCheckResourceAttr(resourceName, "connection_draining_timeout", "400"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSELBConfigConnectionDraining_update_timeout,
@@ -788,6 +871,11 @@ func TestAccAWSELB_SecurityGroups(t *testing.T) {
 					// ELBs get a default security group
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSELBConfigSecurityGroups,
@@ -900,12 +988,11 @@ func TestResourceAWSELB_validateAccessLogsInterval(t *testing.T) {
 	}
 
 	for _, tc := range invalidCases {
-		_, errors := validateAccessLogsInterval(tc.Value, "interval")
+		_, errors := validation.IntInSlice([]int{5, 60})(tc.Value, "interval")
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected %q to trigger a validation error.", tc.Value)
 		}
 	}
-
 }
 
 func TestResourceAWSELB_validateHealthCheckTarget(t *testing.T) {
@@ -1025,30 +1112,12 @@ func testAccCheckAWSELBDestroy(s *terraform.State) error {
 		}
 
 		// Verify the error
-		providerErr, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-
-		if providerErr.Code() != elb.ErrCodeAccessPointNotFoundException {
+		if !isAWSErr(err, elb.ErrCodeAccessPointNotFoundException, "") {
 			return fmt.Errorf("Unexpected error: %s", err)
 		}
 	}
 
 	return nil
-}
-
-func testAccCheckAWSELBDisappears(loadBalancer *elb.LoadBalancerDescription) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).elbconn
-
-		input := elb.DeleteLoadBalancerInput{
-			LoadBalancerName: loadBalancer.LoadBalancerName,
-		}
-		_, err := conn.DeleteLoadBalancer(&input)
-
-		return err
-	}
 }
 
 func testAccCheckAWSELBAttributes(conf *elb.LoadBalancerDescription) resource.TestCheckFunc {

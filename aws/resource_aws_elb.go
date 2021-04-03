@@ -11,7 +11,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -71,7 +70,6 @@ func resourceAwsElb() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 				Computed: true,
-				Set:      schema.HashString,
 			},
 
 			"instances": {
@@ -79,7 +77,6 @@ func resourceAwsElb() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 				Computed: true,
-				Set:      schema.HashString,
 			},
 
 			"security_groups": {
@@ -87,7 +84,6 @@ func resourceAwsElb() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 				Computed: true,
-				Set:      schema.HashString,
 			},
 
 			"source_security_group": {
@@ -106,7 +102,6 @@ func resourceAwsElb() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 				Computed: true,
-				Set:      schema.HashString,
 			},
 
 			"idle_timeout": {
@@ -123,9 +118,10 @@ func resourceAwsElb() *schema.Resource {
 			},
 
 			"connection_draining_timeout": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  300,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      300,
+				ValidateFunc: validation.IntBetween(1, 3600),
 			},
 
 			"access_logs": {
@@ -138,7 +134,7 @@ func resourceAwsElb() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      60,
-							ValidateFunc: validateAccessLogsInterval,
+							ValidateFunc: validation.IntInSlice([]int{5, 60}),
 						},
 						"bucket": {
 							Type:     schema.TypeString,
@@ -165,7 +161,7 @@ func resourceAwsElb() *schema.Resource {
 						"instance_port": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 65535),
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"instance_protocol": {
@@ -177,7 +173,7 @@ func resourceAwsElb() *schema.Resource {
 						"lb_port": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 65535),
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"lb_protocol": {
@@ -252,7 +248,7 @@ func resourceAwsElb() *schema.Resource {
 }
 
 func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbconn
+	conn := meta.(*AWSClient).elbconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	// Expand the "listener" set to aws-sdk-go compat []*elb.Listener
@@ -303,22 +299,20 @@ func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] ELB create configuration: %#v", elbOpts)
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := elbconn.CreateLoadBalancer(elbOpts)
+		_, err := conn.CreateLoadBalancer(elbOpts)
 
 		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok {
-				// Check for IAM SSL Cert error, eventual consistancy issue
-				if awsErr.Code() == elb.ErrCodeCertificateNotFoundException {
-					return resource.RetryableError(
-						fmt.Errorf("Error creating ELB Listener with SSL Cert, retrying: %s", err))
-				}
+			// Check for IAM SSL Cert error, eventual consistancy issue
+			if isAWSErr(err, elb.ErrCodeCertificateNotFoundException, "") {
+				return resource.RetryableError(
+					fmt.Errorf("Error creating ELB Listener with SSL Cert, retrying: %s", err))
 			}
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
 	if isResourceTimeoutError(err) {
-		_, err = elbconn.CreateLoadBalancer(elbOpts)
+		_, err = conn.CreateLoadBalancer(elbOpts)
 	}
 	if err != nil {
 		return fmt.Errorf("Error creating ELB: %s", err)
@@ -336,7 +330,7 @@ func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbconn
+	conn := meta.(*AWSClient).elbconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	elbName := d.Id()
@@ -355,10 +349,10 @@ func resourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 		LoadBalancerNames: []*string{aws.String(elbName)},
 	}
 
-	describeResp, err := elbconn.DescribeLoadBalancers(describeElbOpts)
+	describeResp, err := conn.DescribeLoadBalancers(describeElbOpts)
 	if err != nil {
 		if isLoadBalancerNotFound(err) {
-			// The ELB is gone now, so just remove it from the state
+			log.Printf("[WARN] ELB (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -369,7 +363,7 @@ func resourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Unable to find ELB: %#v", describeResp.LoadBalancerDescriptions)
 	}
 
-	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, describeResp.LoadBalancerDescriptions[0], ignoreTagsConfig)
+	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, conn, describeResp.LoadBalancerDescriptions[0], ignoreTagsConfig)
 }
 
 // flattenAwsELbResource takes a *elbv2.LoadBalancer and populates all respective resource fields.
@@ -390,7 +384,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 
 	var scheme bool
 	if lb.Scheme != nil {
-		scheme = *lb.Scheme == "internal"
+		scheme = aws.StringValue(lb.Scheme) == "internal"
 	}
 	d.Set("internal", scheme)
 	d.Set("availability_zones", flattenStringList(lb.AvailabilityZones))
@@ -399,7 +393,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 	d.Set("security_groups", flattenStringList(lb.SecurityGroups))
 	if lb.SourceSecurityGroup != nil {
 		group := lb.SourceSecurityGroup.GroupName
-		if lb.SourceSecurityGroup.OwnerAlias != nil && *lb.SourceSecurityGroup.OwnerAlias != "" {
+		if lb.SourceSecurityGroup.OwnerAlias != nil && aws.StringValue(lb.SourceSecurityGroup.OwnerAlias) != "" {
 			group = aws.String(*lb.SourceSecurityGroup.OwnerAlias + "/" + *lb.SourceSecurityGroup.GroupName)
 		}
 		d.Set("source_security_group", group)
@@ -407,8 +401,8 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 		// Manually look up the ELB Security Group ID, since it's not provided
 		var elbVpc string
 		if lb.VPCId != nil {
-			elbVpc = *lb.VPCId
-			sgId, err := sourceSGIdByName(ec2conn, *lb.SourceSecurityGroup.GroupName, elbVpc)
+			elbVpc = aws.StringValue(lb.VPCId)
+			sgId, err := sourceSGIdByName(ec2conn, aws.StringValue(lb.SourceSecurityGroup.GroupName), elbVpc)
 			if err != nil {
 				return fmt.Errorf("Error looking up ELB Security Group ID: %s", err)
 			} else {
@@ -416,7 +410,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 			}
 		}
 	}
-	d.Set("subnets", flattenStringList(lb.Subnets))
+	d.Set("subnets", flattenStringSet(lb.Subnets))
 	if lbAttrs.ConnectionSettings != nil {
 		d.Set("idle_timeout", lbAttrs.ConnectionSettings.IdleTimeout)
 	}
@@ -440,7 +434,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 		_, n := d.GetChange("access_logs")
 		elbal := lbAttrs.AccessLog
 		nl := n.([]interface{})
-		if len(nl) == 0 && !*elbal.Enabled {
+		if len(nl) == 0 && !aws.BoolValue(elbal.Enabled) {
 			elbal = nil
 		}
 		if err := d.Set("access_logs", flattenAccessLog(elbal)); err != nil {
@@ -460,7 +454,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 
 	// There's only one health check, so save that to state as we
 	// currently can
-	if *lb.HealthCheck.Target != "" {
+	if aws.StringValue(lb.HealthCheck.Target) != "" {
 		d.Set("health_check", flattenHealthCheck(lb.HealthCheck))
 	}
 
@@ -468,7 +462,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 }
 
 func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbconn
+	conn := meta.(*AWSClient).elbconn
 
 	if d.HasChange("listener") {
 		o, n := d.GetChange("listener")
@@ -493,7 +487,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			log.Printf("[DEBUG] ELB Delete Listeners opts: %s", deleteListenersOpts)
-			_, err := elbconn.DeleteLoadBalancerListeners(deleteListenersOpts)
+			_, err := conn.DeleteLoadBalancerListeners(deleteListenersOpts)
 			if err != nil {
 				return fmt.Errorf("Failure removing outdated ELB listeners: %s", err)
 			}
@@ -509,7 +503,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			// other listeners on the ELB. Retry here to eliminate that.
 			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 				log.Printf("[DEBUG] ELB Create Listeners opts: %s", createListenersOpts)
-				_, err := elbconn.CreateLoadBalancerListeners(createListenersOpts)
+				_, err := conn.CreateLoadBalancerListeners(createListenersOpts)
 				if err != nil {
 					if isAWSErr(err, elb.ErrCodeDuplicateListenerException, "") {
 						log.Printf("[DEBUG] Duplicate listener found for ELB (%s), retrying", d.Id())
@@ -527,7 +521,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				return nil
 			})
 			if isResourceTimeoutError(err) {
-				_, err = elbconn.CreateLoadBalancerListeners(createListenersOpts)
+				_, err = conn.CreateLoadBalancerListeners(createListenersOpts)
 			}
 			if err != nil {
 				return fmt.Errorf("Failure adding new or updated ELB listeners: %s", err)
@@ -551,7 +545,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				Instances:        add,
 			}
 
-			_, err := elbconn.RegisterInstancesWithLoadBalancer(&registerInstancesOpts)
+			_, err := conn.RegisterInstancesWithLoadBalancer(&registerInstancesOpts)
 			if err != nil {
 				return fmt.Errorf("Failure registering instances with ELB: %s", err)
 			}
@@ -562,7 +556,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				Instances:        remove,
 			}
 
-			_, err := elbconn.DeregisterInstancesFromLoadBalancer(&deRegisterInstancesOpts)
+			_, err := conn.DeregisterInstancesFromLoadBalancer(&deRegisterInstancesOpts)
 			if err != nil {
 				return fmt.Errorf("Failure deregistering instances from ELB: %s", err)
 			}
@@ -599,7 +593,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		log.Printf("[DEBUG] ELB Modify Load Balancer Attributes Request: %#v", attrs)
-		_, err := elbconn.ModifyLoadBalancerAttributes(&attrs)
+		_, err := conn.ModifyLoadBalancerAttributes(&attrs)
 		if err != nil {
 			return fmt.Errorf("Failure configuring ELB attributes: %s", err)
 		}
@@ -623,7 +617,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				},
 			}
 
-			_, err := elbconn.ModifyLoadBalancerAttributes(&attrs)
+			_, err := conn.ModifyLoadBalancerAttributes(&attrs)
 			if err != nil {
 				return fmt.Errorf("Failure configuring ELB attributes: %s", err)
 			}
@@ -641,7 +635,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			},
 		}
 
-		_, err := elbconn.ModifyLoadBalancerAttributes(&attrs)
+		_, err := conn.ModifyLoadBalancerAttributes(&attrs)
 		if err != nil {
 			return fmt.Errorf("Failure configuring ELB attributes: %s", err)
 		}
@@ -661,7 +655,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 					Timeout:            aws.Int64(int64(check["timeout"].(int))),
 				},
 			}
-			_, err := elbconn.ConfigureHealthCheck(&configureHealthCheckOpts)
+			_, err := conn.ConfigureHealthCheck(&configureHealthCheckOpts)
 			if err != nil {
 				return fmt.Errorf("Failure configuring health check for ELB: %s", err)
 			}
@@ -674,7 +668,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			SecurityGroups:   expandStringSet(d.Get("security_groups").(*schema.Set)),
 		}
 
-		_, err := elbconn.ApplySecurityGroupsToLoadBalancer(&applySecurityGroupsOpts)
+		_, err := conn.ApplySecurityGroupsToLoadBalancer(&applySecurityGroupsOpts)
 		if err != nil {
 			return fmt.Errorf("Failure applying security groups to ELB: %s", err)
 		}
@@ -695,7 +689,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			log.Printf("[DEBUG] ELB enable availability zones opts: %s", enableOpts)
-			_, err := elbconn.EnableAvailabilityZonesForLoadBalancer(enableOpts)
+			_, err := conn.EnableAvailabilityZonesForLoadBalancer(enableOpts)
 			if err != nil {
 				return fmt.Errorf("Failure enabling ELB availability zones: %s", err)
 			}
@@ -708,7 +702,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			log.Printf("[DEBUG] ELB disable availability zones opts: %s", disableOpts)
-			_, err := elbconn.DisableAvailabilityZonesForLoadBalancer(disableOpts)
+			_, err := conn.DisableAvailabilityZonesForLoadBalancer(disableOpts)
 			if err != nil {
 				return fmt.Errorf("Failure disabling ELB availability zones: %s", err)
 			}
@@ -730,7 +724,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			log.Printf("[DEBUG] ELB detach subnets opts: %s", detachOpts)
-			_, err := elbconn.DetachLoadBalancerFromSubnets(detachOpts)
+			_, err := conn.DetachLoadBalancerFromSubnets(detachOpts)
 			if err != nil {
 				return fmt.Errorf("Failure removing ELB subnets: %s", err)
 			}
@@ -744,7 +738,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 
 			log.Printf("[DEBUG] ELB attach subnets opts: %s", attachOpts)
 			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-				_, err := elbconn.AttachLoadBalancerToSubnets(attachOpts)
+				_, err := conn.AttachLoadBalancerToSubnets(attachOpts)
 				if err != nil {
 					if isAWSErr(err, elb.ErrCodeInvalidConfigurationRequestException, "cannot be attached to multiple subnets in the same AZ") {
 						// eventually consistent issue with removing a subnet in AZ1 and
@@ -757,7 +751,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				return nil
 			})
 			if isResourceTimeoutError(err) {
-				_, err = elbconn.AttachLoadBalancerToSubnets(attachOpts)
+				_, err = conn.AttachLoadBalancerToSubnets(attachOpts)
 			}
 			if err != nil {
 				return fmt.Errorf("Failure adding ELB subnets: %s", err)
@@ -768,7 +762,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
-		if err := keyvaluetags.ElbUpdateTags(elbconn, d.Id(), o, n); err != nil {
+		if err := keyvaluetags.ElbUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating ELB(%s) tags: %s", d.Id(), err)
 		}
 	}
@@ -777,7 +771,7 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceAwsElbDelete(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbconn
+	conn := meta.(*AWSClient).elbconn
 
 	log.Printf("[INFO] Deleting ELB: %s", d.Id())
 
@@ -785,7 +779,7 @@ func resourceAwsElbDelete(d *schema.ResourceData, meta interface{}) error {
 	deleteElbOpts := elb.DeleteLoadBalancerInput{
 		LoadBalancerName: aws.String(d.Id()),
 	}
-	if _, err := elbconn.DeleteLoadBalancer(&deleteElbOpts); err != nil {
+	if _, err := conn.DeleteLoadBalancer(&deleteElbOpts); err != nil {
 		return fmt.Errorf("Error deleting ELB: %s", err)
 	}
 
@@ -817,8 +811,7 @@ func resourceAwsElbListenerHash(v interface{}) int {
 }
 
 func isLoadBalancerNotFound(err error) bool {
-	elberr, ok := err.(awserr.Error)
-	return ok && elberr.Code() == elb.ErrCodeAccessPointNotFoundException
+	return isAWSErr(err, elb.ErrCodeAccessPointNotFoundException, "")
 }
 
 func sourceSGIdByName(conn *ec2.EC2, sg, vpcId string) (string, error) {
@@ -847,12 +840,10 @@ func sourceSGIdByName(conn *ec2.EC2, sg, vpcId string) (string, error) {
 	}
 	resp, err := conn.DescribeSecurityGroups(req)
 	if err != nil {
-		if ec2err, ok := err.(awserr.Error); ok {
-			if ec2err.Code() == "InvalidSecurityGroupID.NotFound" ||
-				ec2err.Code() == "InvalidGroup.NotFound" {
-				resp = nil
-				err = nil
-			}
+		if isAWSErr(err, "InvalidSecurityGroupID.NotFound", "") ||
+			isAWSErr(err, "InvalidGroup.NotFound", "") {
+			resp = nil
+			err = nil
 		}
 
 		if err != nil {
@@ -866,20 +857,7 @@ func sourceSGIdByName(conn *ec2.EC2, sg, vpcId string) (string, error) {
 	}
 
 	group := resp.SecurityGroups[0]
-	return *group.GroupId, nil
-}
-
-func validateAccessLogsInterval(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	// Check if the value is either 5 or 60 (minutes).
-	if value != 5 && value != 60 {
-		errors = append(errors, fmt.Errorf(
-			"%q contains an invalid Access Logs interval \"%d\". "+
-				"Valid intervals are either 5 or 60 (minutes).",
-			k, value))
-	}
-	return
+	return aws.StringValue(group.GroupId), nil
 }
 
 func validateHeathCheckTarget(v interface{}, k string) (ws []string, errors []error) {
@@ -1017,7 +995,7 @@ func detachNetworkInterfaces(conn *ec2.EC2, nis []*ec2.NetworkInterface) error {
 	log.Printf("[DEBUG] Trying to detach %d leftover ENIs", len(nis))
 	for _, ni := range nis {
 		if ni.Attachment == nil {
-			log.Printf("[DEBUG] ENI %s is already detached", *ni.NetworkInterfaceId)
+			log.Printf("[DEBUG] ENI %s is already detached", aws.StringValue(ni.NetworkInterfaceId))
 			continue
 		}
 		_, err := conn.DetachNetworkInterface(&ec2.DetachNetworkInterfaceInput{
@@ -1025,29 +1003,27 @@ func detachNetworkInterfaces(conn *ec2.EC2, nis []*ec2.NetworkInterface) error {
 			Force:        aws.Bool(true),
 		})
 		if err != nil {
-			awsErr, ok := err.(awserr.Error)
-			if ok && awsErr.Code() == "InvalidAttachmentID.NotFound" {
-				log.Printf("[DEBUG] ENI %s is already detached", *ni.NetworkInterfaceId)
+			if isAWSErr(err, "InvalidAttachmentID.NotFound", "") {
+				log.Printf("[DEBUG] ENI %s is already detached", aws.StringValue(ni.NetworkInterfaceId))
 				continue
 			}
 			return err
 		}
 
-		log.Printf("[DEBUG] Waiting for ENI (%s) to become detached", *ni.NetworkInterfaceId)
+		log.Printf("[DEBUG] Waiting for ENI (%s) to become detached", aws.StringValue(ni.NetworkInterfaceId))
 		stateConf := &resource.StateChangeConf{
 			Pending: []string{"true"},
 			Target:  []string{"false"},
-			Refresh: networkInterfaceAttachmentRefreshFunc(conn, *ni.NetworkInterfaceId),
+			Refresh: networkInterfaceAttachmentRefreshFunc(conn, aws.StringValue(ni.NetworkInterfaceId)),
 			Timeout: 10 * time.Minute,
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			awsErr, ok := err.(awserr.Error)
-			if ok && awsErr.Code() == "InvalidNetworkInterfaceID.NotFound" {
+			if isAWSErr(err, "InvalidNetworkInterfaceID.NotFound", "") {
 				continue
 			}
-			return fmt.Errorf(
-				"Error waiting for ENI (%s) to become detached: %s", *ni.NetworkInterfaceId, err)
+			return fmt.Errorf("Error waiting for ENI (%s) to become detached: %s",
+				aws.StringValue(ni.NetworkInterfaceId), err)
 		}
 	}
 	return nil
@@ -1060,9 +1036,8 @@ func deleteNetworkInterfaces(conn *ec2.EC2, nis []*ec2.NetworkInterface) error {
 			NetworkInterfaceId: ni.NetworkInterfaceId,
 		})
 		if err != nil {
-			awsErr, ok := err.(awserr.Error)
-			if ok && awsErr.Code() == "InvalidNetworkInterfaceID.NotFound" {
-				log.Printf("[DEBUG] ENI %s is already deleted", *ni.NetworkInterfaceId)
+			if isAWSErr(err, "InvalidNetworkInterfaceID.NotFound", "") {
+				log.Printf("[DEBUG] ENI %s is already deleted", aws.StringValue(ni.NetworkInterfaceId))
 				continue
 			}
 			return err

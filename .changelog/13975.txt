@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_elb: Add plan time validation to `connection_draining_timeout`
+```

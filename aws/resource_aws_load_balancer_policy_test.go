@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -64,7 +63,7 @@ func TestAccAWSLoadBalancerPolicy_disappears(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(loadBalancerResourceName, &loadBalancer),
 					testAccCheckAWSLoadBalancerPolicyExists(resourceName, &policy),
-					testAccCheckAWSELBDisappears(&loadBalancer),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsElb(), loadBalancerResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -153,7 +152,8 @@ func testAccCheckAWSLoadBalancerPolicyDestroy(s *terraform.State) error {
 				PolicyNames:      []*string{aws.String(policyName)},
 			})
 		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && (ec2err.Code() == "PolicyNotFound" || ec2err.Code() == "LoadBalancerNotFound") {
+			if isAWSErr(err, elb.ErrCodePolicyNotFoundException, "") ||
+				isAWSErr(err, elb.ErrCodeAccessPointNotFoundException, "") {
 				continue
 			}
 			return err
@@ -208,8 +208,8 @@ func testAccCheckAWSLoadBalancerPolicyState(elbResource string, policyResource s
 		}
 
 		for _, loadBalancerPolicy := range loadBalancerPolicies.PolicyDescriptions {
-			if *loadBalancerPolicy.PolicyName == policyName {
-				if *loadBalancerPolicy.PolicyTypeName != policy.Primary.Attributes["policy_type_name"] {
+			if aws.StringValue(loadBalancerPolicy.PolicyName) == policyName {
+				if aws.StringValue(loadBalancerPolicy.PolicyTypeName) != policy.Primary.Attributes["policy_type_name"] {
 					return fmt.Errorf("PolicyTypeName does not match")
 				}
 				policyAttributeCount, err := strconv.Atoi(policy.Primary.Attributes["policy_attribute.#"])
@@ -228,7 +228,8 @@ func testAccCheckAWSLoadBalancerPolicyState(elbResource string, policyResource s
 					}
 				}
 				for _, policyAttribute := range loadBalancerPolicy.PolicyAttributeDescriptions {
-					if *policyAttribute.AttributeValue != policyAttributes[*policyAttribute.AttributeName] {
+					if aws.StringValue(policyAttribute.AttributeValue) !=
+						policyAttributes[aws.StringValue(policyAttribute.AttributeName)] {
 						return fmt.Errorf("PollicyAttribute Value mismatch %s != %s: %s", *policyAttribute.AttributeValue, policyAttributes[*policyAttribute.AttributeName], policyAttributes)
 					}
 				}
