@@ -546,9 +546,9 @@ resource "aws_api_gateway_deployment" "test2" {
 func testAccAWSAPIGatewayStageConfigBasic(rName string) string {
 	return testAccAWSAPIGatewayStageConfigBase(rName) + `
 resource "aws_api_gateway_stage" "test" {
-  rest_api_id           = aws_api_gateway_rest_api.test.id
-  stage_name            = "prod"
-  deployment_id         = aws_api_gateway_deployment.dev.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  stage_name    = "prod"
+  deployment_id = aws_api_gateway_deployment.dev.id
 }
 `
 }
@@ -572,9 +572,9 @@ resource "aws_cloudwatch_log_group" "test" {
 }
 
 resource "aws_api_gateway_stage" "test" {
-  rest_api_id           = aws_api_gateway_rest_api.test.id
-  stage_name            = "prod"
-  deployment_id         = aws_api_gateway_deployment.dev.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  stage_name    = "prod"
+  deployment_id = aws_api_gateway_deployment.dev.id
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.test.arn
