@@ -45,8 +45,7 @@ func TestAccDataSourceAwsSubnets_filter(t *testing.T) {
 			{
 				Config: testAccDataSourceAwsSubnets_filter(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_subnets.test_vpc_id", "ids.#", "2"),
-					testCheckResourceAttrGreaterThanValue("data.aws_subnets.test_no_vpc_id", "ids.#", "0"),
+					resource.TestCheckResourceAttr("data.aws_subnets.test", "ids.#", "2"),
 				),
 			},
 		},
@@ -202,7 +201,7 @@ resource "aws_subnet" "test_b" {
   availability_zone = data.aws_availability_zones.available.names[1]
 }
 
-data "aws_subnets" "test_vpc_id" {
+data "aws_subnets" "test" {
   filter {
     name   = "availabilityZone"
     values = [aws_subnet.test_a_one.availability_zone]
@@ -211,13 +210,6 @@ data "aws_subnets" "test_vpc_id" {
   filter {
     name   = "vpc-id"
     values = [aws_subnet.test_a_two.vpc_id]
-  }
-}
-
-data "aws_subnets" "test_no_vpc_id" {
-  filter {
-    name   = "availabilityZone"
-    values = [aws_subnet.test_b.availability_zone]
   }
 }
 `, rInt))
