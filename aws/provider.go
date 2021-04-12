@@ -395,6 +395,7 @@ func Provider() *schema.Provider {
 			"aws_ssoadmin_permission_set":                    dataSourceAwsSsoAdminPermissionSet(),
 			"aws_storagegateway_local_disk":                  dataSourceAwsStorageGatewayLocalDisk(),
 			"aws_subnet":                                     dataSourceAwsSubnet(),
+			"aws_subnets":                                    dataSourceAwsSubnets(),
 			"aws_subnet_ids":                                 dataSourceAwsSubnetIDs(),
 			"aws_transfer_server":                            dataSourceAwsTransferServer(),
 			"aws_vpcs":                                       dataSourceAwsVpcs(),
