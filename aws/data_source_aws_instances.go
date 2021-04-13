@@ -44,7 +44,17 @@ func dataSourceAwsInstances() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"private_dns": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"public_ips": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"public_dns": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -88,7 +98,7 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[DEBUG] Reading EC2 instances: %s", params)
 
-	var instanceIds, privateIps, publicIps []string
+	var instanceIds, privateIps, privateDns, publicIps, publicDns []string
 	err := conn.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, isLast bool) bool {
 		for _, res := range resp.Reservations {
 			for _, instance := range res.Instances {
@@ -96,8 +106,14 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 				if instance.PrivateIpAddress != nil {
 					privateIps = append(privateIps, *instance.PrivateIpAddress)
 				}
+				if instance.PrivateDnsName != nil {
+					privateDns = append(privateDns, *instance.PrivateDnsName)
+				}
 				if instance.PublicIpAddress != nil {
 					publicIps = append(publicIps, *instance.PublicIpAddress)
+				}
+				if instance.PublicDnsName != nil {
+					publicDns = append(privateDns, *instance.PublicDnsName)
 				}
 			}
 		}
@@ -125,6 +141,16 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	err = d.Set("private_dns", privateDns)
+	if err != nil {
+		return err
+	}
+
 	err = d.Set("public_ips", publicIps)
+	if err != nil {
+		return err
+	}
+
+	err = d.Set("public_dns", publicDns)
 	return err
 }

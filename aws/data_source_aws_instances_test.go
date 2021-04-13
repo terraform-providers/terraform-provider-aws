@@ -22,8 +22,10 @@ func TestAccAWSInstancesDataSource_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.aws_instances.test", "ids.#", "3"),
 					resource.TestCheckResourceAttr("data.aws_instances.test", "private_ips.#", "3"),
+					resource.TestCheckResourceAttr("data.aws_instances.test", "private_dns.#", "3"),
 					// Public IP values are flakey for new EC2 instances due to eventual consistency
 					resource.TestCheckResourceAttrSet("data.aws_instances.test", "public_ips.#"),
+					resource.TestCheckResourceAttrSet("data.aws_instances.test", "public_dns.#"),
 				),
 			},
 		},

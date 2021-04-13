@@ -59,7 +59,9 @@ several valid keys, for a full reference, check out
 * `id` - AWS Region.
 * `ids` - IDs of instances found through the filter
 * `private_ips` - Private IP addresses of instances found through the filter
+* `private_dns` - Private DNS addresses of instances found through the filter
 * `public_ips` - Public IP addresses of instances found through the filter
+* `public_dns` - Public DNS addresses of instances found through the filter
 
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html
