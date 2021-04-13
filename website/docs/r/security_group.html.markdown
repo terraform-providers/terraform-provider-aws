@@ -94,6 +94,11 @@ The `ingress` block supports:
 * `to_port` - (Required) The end range port (or ICMP code if protocol is "icmp").
 * `description` - (Optional) Description of this ingress rule.
 
+~> **NOTE on Ingress rules:** Both the `cidr_blocks` attribute and the `security_groups` attribute 
+will result in an independent ingress rule. If both attributes are specified, then two ingress rules will be
+created. The presence of both attributes does not have the effect of further restricting a single ingress rule; specifying
+both attributes has the effect of widening access, rather than constraining it it.
+
 The `egress` block supports:
 
 * `cidr_blocks` - (Optional) List of CIDR blocks.
