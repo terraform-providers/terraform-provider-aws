@@ -117,6 +117,12 @@ func resourceAwsRDSCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"db_instance_parameter_group_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"deletion_protection": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -1175,6 +1181,11 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("db_cluster_parameter_group_name") {
 		req.DBClusterParameterGroupName = aws.String(d.Get("db_cluster_parameter_group_name").(string))
+		requestUpdate = true
+	}
+
+	if d.HasChange("db_instance_parameter_group_name") {
+		req.DBInstanceParameterGroupName = aws.String(d.Get("db_instance_parameter_group_name").(string))
 		requestUpdate = true
 	}
 

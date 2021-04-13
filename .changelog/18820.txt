@@ -1,0 +1,7 @@
+```release-notes:bug
+resource/aws_rds_cluster_instance: Remove `force new resource` on the `engine_version` parameter to allow upgrade without remove instances.
+```
+
+```release-notes:enhancement
+resource/aws_rds_cluster: Add `db_instance_parameter_group_name` attribute to allow major version upgrade when use custom parameter groups.
+```
