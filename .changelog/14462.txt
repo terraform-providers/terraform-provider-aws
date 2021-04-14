@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_lb_listener: Add `alpn_policy` argument
+```
+
+```release-note:enhancement
+data-source/aws_lb_listener: Add `alpn_policy` argument
+```

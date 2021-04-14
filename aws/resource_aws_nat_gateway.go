@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -75,7 +75,7 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Get the ID and store it
 	ng := natResp.NatGateway
-	d.SetId(*ng.NatGatewayId)
+	d.SetId(aws.StringValue(ng.NatGatewayId))
 	log.Printf("[INFO] NAT Gateway ID: %s", d.Id())
 
 	// Wait for the NAT Gateway to become available

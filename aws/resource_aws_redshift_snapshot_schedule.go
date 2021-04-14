@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -152,7 +152,7 @@ func resourceAwsRedshiftSnapshotScheduleUpdate(d *schema.ResourceData, meta inte
 	if d.HasChange("definitions") {
 		modifyOpts := &redshift.ModifySnapshotScheduleInput{
 			ScheduleIdentifier:  aws.String(d.Id()),
-			ScheduleDefinitions: expandStringList(d.Get("definitions").(*schema.Set).List()),
+			ScheduleDefinitions: expandStringSet(d.Get("definitions").(*schema.Set)),
 		}
 		_, err := conn.ModifySnapshotSchedule(modifyOpts)
 		if isAWSErr(err, redshift.ErrCodeSnapshotScheduleNotFoundFault, "") {

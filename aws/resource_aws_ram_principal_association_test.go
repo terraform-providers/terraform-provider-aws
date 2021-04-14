@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ram"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsRamPrincipalAssociation_basic(t *testing.T) {
@@ -19,6 +18,7 @@ func TestAccAwsRamPrincipalAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ram.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsRamPrincipalAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -44,6 +44,7 @@ func TestAccAwsRamPrincipalAssociation_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ram.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsRamResourceAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -153,7 +154,7 @@ resource "aws_ram_resource_share" "test" {
 
 resource "aws_ram_principal_association" "test" {
   principal          = "111111111111"
-  resource_share_arn = "${aws_ram_resource_share.test.id}"
+  resource_share_arn = aws_ram_resource_share.test.id
 }
 `, rName)
 }

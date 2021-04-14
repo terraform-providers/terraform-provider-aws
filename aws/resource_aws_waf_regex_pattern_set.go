@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsWafRegexPatternSet() *schema.Resource {
@@ -57,7 +57,7 @@ func resourceAwsWafRegexPatternSetCreate(d *schema.ResourceData, meta interface{
 	}
 	resp := out.(*waf.CreateRegexPatternSetOutput)
 
-	d.SetId(*resp.RegexPatternSet.RegexPatternSetId)
+	d.SetId(aws.StringValue(resp.RegexPatternSet.RegexPatternSetId))
 
 	return resourceAwsWafRegexPatternSetUpdate(d, meta)
 }

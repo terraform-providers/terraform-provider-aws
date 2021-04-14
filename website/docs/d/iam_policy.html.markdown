@@ -13,7 +13,7 @@ IAM policy.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iam_policy" "example" {
   arn = "arn:aws:iam::123456789012:policy/UsersManageOwnCredentials"
 }
@@ -30,4 +30,6 @@ data "aws_iam_policy" "example" {
 * `path` - The path to the policy.
 * `description` - The description of the policy.
 * `policy` - The policy document of the policy.
+* `policy_id` - The policy's ID.
+* `tags` - Key-value mapping of tags for the IAM Policy
 

@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -81,6 +81,7 @@ func TestAccAWSDataSyncAgent_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncAgentDestroy,
 		Steps: []resource.TestStep{
@@ -109,6 +110,7 @@ func TestAccAWSDataSyncAgent_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncAgentDestroy,
 		Steps: []resource.TestStep{
@@ -132,6 +134,7 @@ func TestAccAWSDataSyncAgent_AgentName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncAgentDestroy,
 		Steps: []resource.TestStep{
@@ -165,6 +168,7 @@ func TestAccAWSDataSyncAgent_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncAgentDestroy,
 		Steps: []resource.TestStep{
@@ -275,7 +279,7 @@ func testAccCheckAWSDataSyncAgentDisappears(agent *datasync.DescribeAgentOutput)
 
 func testAccCheckAWSDataSyncAgentNotRecreated(i, j *datasync.DescribeAgentOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if aws.TimeValue(i.CreationTime) != aws.TimeValue(j.CreationTime) {
+		if !aws.TimeValue(i.CreationTime).Equal(aws.TimeValue(j.CreationTime)) {
 			return errors.New("DataSync Agent was recreated")
 		}
 
@@ -285,7 +289,7 @@ func testAccCheckAWSDataSyncAgentNotRecreated(i, j *datasync.DescribeAgentOutput
 
 // testAccAWSDataSyncAgentConfigAgentBase uses the "thinstaller" AMI
 func testAccAWSDataSyncAgentConfigAgentBase() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ami" "aws-thinstaller" {
   most_recent = true
   owners      = ["amazon"]
@@ -306,7 +310,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-agent"
@@ -314,7 +318,7 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-agent"
@@ -322,11 +326,11 @@ resource "aws_internet_gateway" "test" {
 }
 
 resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.test.id}"
+    gateway_id = aws_internet_gateway.test.id
   }
 
   tags = {
@@ -335,12 +339,12 @@ resource "aws_route_table" "test" {
 }
 
 resource "aws_route_table_association" "test" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
+  subnet_id      = aws_subnet.test.id
+  route_table_id = aws_route_table.test.id
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   egress {
     from_port   = 0
@@ -362,35 +366,35 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_instance" "test" {
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 
-  ami                         = "${data.aws_ami.aws-thinstaller.id}"
+  ami                         = data.aws_ami.aws-thinstaller.id
   associate_public_ip_address = true
 
   # Default instance type from sync.sh
   instance_type          = "c5.2xlarge"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
+  vpc_security_group_ids = [aws_security_group.test.id]
+  subnet_id              = aws_subnet.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-agent"
   }
 }
-`)
+`
 }
 
 func testAccAWSDataSyncAgentConfig() string {
-	return testAccAWSDataSyncAgentConfigAgentBase() + fmt.Sprintf(`
+	return testAccAWSDataSyncAgentConfigAgentBase() + `
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test.public_ip}"
+  ip_address = aws_instance.test.public_ip
 }
-`)
+`
 }
 
 func testAccAWSDataSyncAgentConfigName(rName string) string {
 	return testAccAWSDataSyncAgentConfigAgentBase() + fmt.Sprintf(`
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test.public_ip}"
+  ip_address = aws_instance.test.public_ip
   name       = %q
 }
 `, rName)
@@ -399,7 +403,7 @@ resource "aws_datasync_agent" "test" {
 func testAccAWSDataSyncAgentConfigTags1(key1, value1 string) string {
 	return testAccAWSDataSyncAgentConfigAgentBase() + fmt.Sprintf(`
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test.public_ip}"
+  ip_address = aws_instance.test.public_ip
 
   tags = {
     %q = %q
@@ -411,7 +415,7 @@ resource "aws_datasync_agent" "test" {
 func testAccAWSDataSyncAgentConfigTags2(key1, value1, key2, value2 string) string {
 	return testAccAWSDataSyncAgentConfigAgentBase() + fmt.Sprintf(`
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test.public_ip}"
+  ip_address = aws_instance.test.public_ip
 
   tags = {
     %q = %q

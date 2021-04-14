@@ -8,9 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsAppmeshVirtualService() *schema.Resource {
@@ -36,6 +40,14 @@ func resourceAwsAppmeshVirtualService() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 255),
+			},
+
+			"mesh_owner": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAwsAccountId,
 			},
 
 			"spec": {
@@ -107,6 +119,11 @@ func resourceAwsAppmeshVirtualService() *schema.Resource {
 				Computed: true,
 			},
 
+			"resource_owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -120,6 +137,9 @@ func resourceAwsAppmeshVirtualServiceCreate(d *schema.ResourceData, meta interfa
 		VirtualServiceName: aws.String(d.Get("name").(string)),
 		Spec:               expandAppmeshVirtualServiceSpec(d.Get("spec").([]interface{})),
 		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh virtual service: %#v", req)
@@ -137,20 +157,56 @@ func resourceAwsAppmeshVirtualServiceRead(d *schema.ResourceData, meta interface
 	conn := meta.(*AWSClient).appmeshconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeVirtualService(&appmesh.DescribeVirtualServiceInput{
+	req := &appmesh.DescribeVirtualServiceInput{
 		MeshName:           aws.String(d.Get("mesh_name").(string)),
 		VirtualServiceName: aws.String(d.Get("name").(string)),
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
+	}
+
+	var resp *appmesh.DescribeVirtualServiceOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = conn.DescribeVirtualService(req)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh virtual service (%s) not found, removing from state", d.Id())
+
+	if tfresource.TimedOut(err) {
+		resp, err = conn.DescribeVirtualService(req)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+		log.Printf("[WARN] App Mesh Virtual Service (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
+
 	if err != nil {
-		return fmt.Errorf("error reading App Mesh virtual service: %s", err)
+		return fmt.Errorf("error reading App Mesh Virtual Service: %w", err)
 	}
+
+	if resp == nil || resp.VirtualService == nil {
+		return fmt.Errorf("error reading App Mesh Virtual Service: empty response")
+	}
+
 	if aws.StringValue(resp.VirtualService.Status.Status) == appmesh.VirtualServiceStatusCodeDeleted {
-		log.Printf("[WARN] App Mesh virtual service (%s) not found, removing from state", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Virtual Service: %s after creation", aws.StringValue(resp.VirtualService.Status.Status))
+		}
+
+		log.Printf("[WARN] App Mesh Virtual Service (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -158,9 +214,11 @@ func resourceAwsAppmeshVirtualServiceRead(d *schema.ResourceData, meta interface
 	arn := aws.StringValue(resp.VirtualService.Metadata.Arn)
 	d.Set("name", resp.VirtualService.VirtualServiceName)
 	d.Set("mesh_name", resp.VirtualService.MeshName)
+	d.Set("mesh_owner", resp.VirtualService.Metadata.MeshOwner)
 	d.Set("arn", arn)
 	d.Set("created_date", resp.VirtualService.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.VirtualService.Metadata.LastUpdatedAt.Format(time.RFC3339))
+	d.Set("resource_owner", resp.VirtualService.Metadata.ResourceOwner)
 	err = d.Set("spec", flattenAppmeshVirtualServiceSpec(resp.VirtualService.Spec))
 	if err != nil {
 		return fmt.Errorf("error setting spec: %s", err)
@@ -188,6 +246,9 @@ func resourceAwsAppmeshVirtualServiceUpdate(d *schema.ResourceData, meta interfa
 			MeshName:           aws.String(d.Get("mesh_name").(string)),
 			VirtualServiceName: aws.String(d.Get("name").(string)),
 			Spec:               expandAppmeshVirtualServiceSpec(v.([]interface{})),
+		}
+		if v, ok := d.GetOk("mesh_owner"); ok {
+			req.MeshOwner = aws.String(v.(string))
 		}
 
 		log.Printf("[DEBUG] Updating App Mesh virtual service: %#v", req)

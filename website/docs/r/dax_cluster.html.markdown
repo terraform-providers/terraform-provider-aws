@@ -12,10 +12,10 @@ Provides a DAX Cluster resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dax_cluster" "bar" {
   cluster_name       = "cluster-example"
-  iam_role_arn       = "${data.aws_iam_role.example.arn}"
+  iam_role_arn       = data.aws_iam_role.example.arn
   node_type          = "dax.r4.large"
   replication_factor = 1
 }
@@ -90,7 +90,7 @@ consisting of a DNS name and a port number
 ## Timeouts
 
 `aws_dax_cluster` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `45 minutes`) Used for creating a DAX cluster
 - `update` - (Default `45 minutes`) Used for cluster modifications
@@ -98,7 +98,7 @@ consisting of a DNS name and a port number
 
 ## Import
 
-DAX Clusters can be imported using the `cluster_id`, e.g.
+DAX Clusters can be imported using the `cluster_name`, e.g.
 
 ```
 $ terraform import aws_dax_cluster.my_cluster my_cluster

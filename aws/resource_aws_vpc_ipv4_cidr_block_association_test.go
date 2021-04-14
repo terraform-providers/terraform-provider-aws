@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsVpcIpv4CidrBlockAssociation_basic(t *testing.T) {
@@ -16,6 +16,7 @@ func TestAccAwsVpcIpv4CidrBlockAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsVpcIpv4CidrBlockAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -134,18 +135,19 @@ func testAccCheckAwsVpcIpv4CidrBlockAssociationExists(n string, association *ec2
 const testAccAwsVpcIpv4CidrBlockAssociationConfig = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
+
   tags = {
     Name = "terraform-testacc-vpc-ipv4-cidr-block-association"
   }
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
-  vpc_id = "${aws_vpc.foo.id}"
+  vpc_id     = aws_vpc.foo.id
   cidr_block = "172.2.0.0/16"
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "tertiary_cidr" {
-  vpc_id = "${aws_vpc.foo.id}"
+  vpc_id     = aws_vpc.foo.id
   cidr_block = "170.2.0.0/16"
 }
 `

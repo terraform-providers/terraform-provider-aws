@@ -12,7 +12,7 @@ Provides a DB event subscription resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_instance" "default" {
   allocated_storage    = 10
   engine               = "mysql"
@@ -31,10 +31,10 @@ resource "aws_sns_topic" "default" {
 
 resource "aws_db_event_subscription" "default" {
   name      = "rds-event-sub"
-  sns_topic = "${aws_sns_topic.default.arn}"
+  sns_topic = aws_sns_topic.default.arn
 
   source_type = "db-instance"
-  source_ids  = ["${aws_db_instance.default.id}"]
+  source_ids  = [aws_db_instance.default.id]
 
   event_categories = [
     "availability",
@@ -64,9 +64,9 @@ The following arguments are supported:
 * `enabled` - (Optional) A boolean flag to enable/disable the subscription. Defaults to true.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
-## Attributes
+## Attributes Reference
 
-The following additional atttributes are provided:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the RDS event notification subscription
 * `arn` - The Amazon Resource Name of the RDS event notification subscription
@@ -74,7 +74,7 @@ The following additional atttributes are provided:
 
 ## Timeouts
 
-`aws_db_event_subscription` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_db_event_subscription` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `40m`) How long to wait for an RDS event notification subscription to be ready.

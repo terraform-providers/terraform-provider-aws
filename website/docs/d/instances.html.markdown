@@ -23,7 +23,7 @@ and you'd need to re-run `apply` every time an instance comes up or dies.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_instances" "test" {
   instance_tags = {
     Role = "HardWorker"
@@ -38,8 +38,8 @@ data "aws_instances" "test" {
 }
 
 resource "aws_eip" "test" {
-  count    = "${length(data.aws_instances.test.ids)}"
-  instance = "${data.aws_instances.test.ids[count.index]}"
+  count    = length(data.aws_instances.test.ids)
+  instance = data.aws_instances.test.ids[count.index]
 }
 ```
 
@@ -56,6 +56,7 @@ several valid keys, for a full reference, check out
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - IDs of instances found through the filter
 * `private_ips` - Private IP addresses of instances found through the filter
 * `public_ips` - Public IP addresses of instances found through the filter

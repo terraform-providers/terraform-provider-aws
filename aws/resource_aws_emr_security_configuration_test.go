@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEmrSecurityConfiguration_basic(t *testing.T) {
@@ -15,6 +15,7 @@ func TestAccAWSEmrSecurityConfiguration_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, emr.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEmrSecurityConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -96,8 +97,14 @@ func testAccCheckEmrSecurityConfigurationExists(n string) resource.TestCheckFunc
 }
 
 const testAccEmrSecurityConfigurationConfig = `
+data "aws_partition" "current" {}
+
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
+
 resource "aws_emr_security_configuration" "test" {
-	configuration = <<EOF
+  configuration = <<EOF
 {
   "EncryptionConfiguration": {
     "AtRestEncryptionConfiguration": {
@@ -106,7 +113,7 @@ resource "aws_emr_security_configuration" "test" {
       },
       "LocalDiskEncryptionConfiguration": {
         "EncryptionKeyProviderType": "AwsKms",
-        "AwsKmsKey": "arn:aws:kms:us-west-2:187416307283:alias/tf_emr_test_key"
+        "AwsKmsKey": "arn:${data.aws_partition.current.partition}:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:alias/tf_emr_test_key"
       }
     },
     "EnableInTransitEncryption": false,

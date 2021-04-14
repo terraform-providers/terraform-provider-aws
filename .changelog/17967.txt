@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_iam_server_certificate: Add tagging support
+```
+
+```release-note:enhancement
+resource/aws_iam_server_certificate: Add `expiration` and `upload_date` attributes
+```

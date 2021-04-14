@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamUser() *schema.Resource {
@@ -47,7 +48,7 @@ func resourceAwsIamUser() *schema.Resource {
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[0-9A-Za-z=,.@\-_+]+$`),
-					fmt.Sprintf("must only contain alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs"),
+					"must only contain alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs",
 				),
 			},
 			"path": {
@@ -81,7 +82,7 @@ func resourceAwsIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 		UserName: aws.String(name),
 	}
 
-	if v, ok := d.GetOk("permissions_boundary"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("permissions_boundary"); ok {
 		request.PermissionsBoundary = aws.String(v.(string))
 	}
 
@@ -108,20 +109,40 @@ func resourceAwsIamUserRead(d *schema.ResourceData, meta interface{}) error {
 		UserName: aws.String(d.Id()),
 	}
 
-	output, err := iamconn.GetUser(request)
-	if err != nil {
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			log.Printf("[WARN] No IAM user by name (%s) found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+	var output *iam.GetUserOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		output, err = iamconn.GetUser(request)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("Error reading IAM User %s: %s", d.Id(), err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = iamconn.GetUser(request)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM User (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM User (%s): %w", d.Id(), err)
 	}
 
 	if output == nil || output.User == nil {
-		log.Printf("[WARN] No IAM user by name (%s) found, removing from state", d.Id())
-		d.SetId("")
-		return nil
+		return fmt.Errorf("error reading IAM User (%s): empty response", d.Id())
 	}
 
 	d.Set("arn", output.User.Arn)
@@ -382,7 +403,7 @@ func deleteAwsIamUserLoginProfile(svc *iam.IAM, username string) error {
 	input := &iam.DeleteLoginProfileInput{
 		UserName: aws.String(username),
 	}
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		_, err = svc.DeleteLoginProfile(input)
 		if err != nil {
 			if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {

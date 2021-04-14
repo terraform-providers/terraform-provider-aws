@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/servicequotas"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // This resource is different than many since quotas are pre-existing
@@ -19,6 +19,7 @@ func TestAccAwsServiceQuotasServiceQuota_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceQuotas(t) },
+		ErrorCheck:   testAccErrorCheck(t, servicequotas.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -70,6 +71,7 @@ func TestAccAwsServiceQuotasServiceQuota_Value_IncreaseOnCreate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceQuotas(t) },
+		ErrorCheck:   testAccErrorCheck(t, servicequotas.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -112,6 +114,7 @@ func TestAccAwsServiceQuotasServiceQuota_Value_IncreaseOnUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceQuotas(t) },
+		ErrorCheck:   testAccErrorCheck(t, servicequotas.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -159,9 +162,9 @@ data "aws_servicequotas_service_quota" "test" {
 }
 
 resource "aws_servicequotas_service_quota" "test" {
-  quota_code   = "${data.aws_servicequotas_service_quota.test.quota_code}"
-  service_code = "${data.aws_servicequotas_service_quota.test.service_code}"
-  value        = "${data.aws_servicequotas_service_quota.test.value}"
+  quota_code   = data.aws_servicequotas_service_quota.test.quota_code
+  service_code = data.aws_servicequotas_service_quota.test.service_code
+  value        = data.aws_servicequotas_service_quota.test.value
 }
 `, quotaCode, serviceCode)
 }

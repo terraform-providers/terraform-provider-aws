@@ -12,7 +12,7 @@ Resource for managing QuickSight Group
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_quicksight_group" "example" {
   group_name = "tf-example"
 }

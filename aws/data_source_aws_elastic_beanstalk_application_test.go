@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAwsElasticBeanstalkApplicationDataSource_basic(t *testing.T) {
@@ -15,6 +16,7 @@ func TestAccAwsElasticBeanstalkApplicationDataSource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEksClusterDestroy,
 		Steps: []resource.TestStep{
@@ -39,7 +41,7 @@ func testAccAwsElasticBeanstalkApplicationDataSourceConfig_Basic(rName string) s
 %s
 
 data "aws_elastic_beanstalk_application" "test" {
-  name = "${aws_elastic_beanstalk_application.tftest.name}"
+  name = aws_elastic_beanstalk_application.tftest.name
 }
 `, testAccBeanstalkAppConfigWithMaxAge(rName))
 }

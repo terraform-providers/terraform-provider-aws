@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAWSLambdaAlias_basic(t *testing.T) {
@@ -15,8 +16,9 @@ func TestAccDataSourceAWSLambdaAlias_basic(t *testing.T) {
 	resourceName := "aws_lambda_alias.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, lambda.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAWSLambdaAliasConfigBasic(rName),
@@ -57,21 +59,21 @@ EOF
 
 resource "aws_iam_role_policy" "lambda" {
   name = %[1]q
-  role = "${aws_iam_role.lambda.id}"
+  role = aws_iam_role.lambda.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:${data.aws_partition.current.partition}:logs:*:*:*"
-        },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:${data.aws_partition.current.partition}:logs:*:*:*"
+    },
     {
       "Effect": "Allow",
       "Action": [
@@ -106,10 +108,10 @@ resource "aws_lambda_alias" "test" {
 }
 
 func testAccDataSourceAWSLambdaAliasConfigBasic(rName string) string {
-	return testAccDataSourceAWSLambdaAliasConfigBase(rName) + fmt.Sprintf(`
+	return testAccDataSourceAWSLambdaAliasConfigBase(rName) + `
 data "aws_lambda_alias" "test" {
   name          = aws_lambda_alias.test.name
   function_name = aws_lambda_alias.test.function_name
 }
-  `)
+`
 }

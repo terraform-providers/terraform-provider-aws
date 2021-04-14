@@ -12,26 +12,26 @@ Provides a Route 53 Resolver endpoint resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route53_resolver_endpoint" "foo" {
   name      = "foo"
   direction = "INBOUND"
 
   security_group_ids = [
-    "${aws_security_group.sg1.id}",
-    "${aws_security_group.sg2.id}",
+    aws_security_group.sg1.id,
+    aws_security_group.sg2.id,
   ]
 
   ip_address {
-    subnet_id = "${aws_subnet.sn1.id}"
+    subnet_id = aws_subnet.sn1.id
   }
 
   ip_address {
-    subnet_id = "${aws_subnet.sn2.id}"
+    subnet_id = aws_subnet.sn2.id
     ip        = "10.0.64.4"
   }
 
-  tags {
+  tags = {
     Environment = "Prod"
   }
 }
@@ -66,7 +66,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_route53_resolver_endpoint` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating Route 53 Resolver endpoint
 - `update` - (Default `10 minutes`) Used for updating Route 53 Resolver endpoint

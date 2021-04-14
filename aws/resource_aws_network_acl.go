@@ -11,11 +11,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsNetworkAcl() *schema.Resource {
@@ -38,12 +42,6 @@ func resourceAwsNetworkAcl() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"subnet_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Removed:  "Use `subnet_ids` argument instead",
 			},
 			"subnet_ids": {
 				Type:     schema.TypeSet,
@@ -196,50 +194,125 @@ func resourceAwsNetworkAclCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Create the Network Acl
 	createOpts := &ec2.CreateNetworkAclInput{
-		VpcId: aws.String(d.Get("vpc_id").(string)),
+		VpcId:             aws.String(d.Get("vpc_id").(string)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeNetworkAcl),
 	}
 
 	log.Printf("[DEBUG] Network Acl create config: %#v", createOpts)
 	resp, err := conn.CreateNetworkAcl(createOpts)
+
 	if err != nil {
-		return fmt.Errorf("Error creating network acl: %s", err)
+		return fmt.Errorf("error creating EC2 Network ACL: %w", err)
 	}
 
-	// Get the ID and store it
-	networkAcl := resp.NetworkAcl
-	d.SetId(aws.StringValue(networkAcl.NetworkAclId))
+	if resp == nil || resp.NetworkAcl == nil {
+		return fmt.Errorf("error creating EC2 Network ACL: empty response")
+	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding EC2 VPN Gateway (%s) tags: %s", d.Id(), err)
+	d.SetId(aws.StringValue(resp.NetworkAcl.NetworkAclId))
+
+	if v, ok := d.GetOk("egress"); ok && v.(*schema.Set).Len() > 0 {
+		err := updateNetworkAclEntries(d, "egress", conn)
+
+		if err != nil {
+			return fmt.Errorf("error updating EC2 Network ACL (%s) Egress Entries: %w", d.Id(), err)
 		}
 	}
 
-	// Update rules and subnet association once acl is created
-	return resourceAwsNetworkAclUpdate(d, meta)
+	if v, ok := d.GetOk("ingress"); ok && v.(*schema.Set).Len() > 0 {
+		err := updateNetworkAclEntries(d, "ingress", conn)
+
+		if err != nil {
+			return fmt.Errorf("error updating EC2 Network ACL (%s) Ingress Entries: %w", d.Id(), err)
+		}
+	}
+
+	if v, ok := d.GetOk("subnet_ids"); ok && v.(*schema.Set).Len() > 0 {
+		for _, subnetIDRaw := range v.(*schema.Set).List() {
+			subnetID, ok := subnetIDRaw.(string)
+
+			if !ok {
+				continue
+			}
+
+			association, err := findNetworkAclAssociation(subnetID, conn)
+
+			if err != nil {
+				return fmt.Errorf("error finding existing EC2 Network ACL association for Subnet (%s): %w", subnetID, err)
+			}
+
+			if association == nil {
+				return fmt.Errorf("error finding existing EC2 Network ACL association for Subnet (%s): empty response", subnetID)
+			}
+
+			input := &ec2.ReplaceNetworkAclAssociationInput{
+				AssociationId: association.NetworkAclAssociationId,
+				NetworkAclId:  aws.String(d.Id()),
+			}
+
+			_, err = conn.ReplaceNetworkAclAssociation(input)
+
+			if err != nil {
+				return fmt.Errorf("error replacing existing EC2 Network ACL association for Subnet (%s): %w", subnetID, err)
+			}
+		}
+	}
+
+	return resourceAwsNetworkAclRead(d, meta)
 }
 
 func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeNetworkAcls(&ec2.DescribeNetworkAclsInput{
-		NetworkAclIds: []*string{aws.String(d.Id())},
+	var networkAcl *ec2.NetworkAcl
+
+	err := resource.Retry(waiter.NetworkAclPropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		networkAcl, err = finder.NetworkAclByID(conn, d.Id())
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, "InvalidNetworkAclID.NotFound") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && networkAcl == nil {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("EC2 Network ACL (%s) not found", d.Id()),
+			})
+		}
+
+		return nil
 	})
 
-	if err != nil {
-		if isAWSErr(err, "InvalidNetworkAclID.NotFound", "") {
-			log.Printf("[WARN] Network ACL (%s) not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return err
+	if tfresource.TimedOut(err) {
+		networkAcl, err = finder.NetworkAclByID(conn, d.Id())
 	}
-	if resp == nil {
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, "InvalidNetworkAclID.NotFound") {
+		log.Printf("[WARN] EC2 Network ACL (%s) not found, removing from state", d.Id())
+		d.SetId("")
 		return nil
 	}
 
-	networkAcl := resp.NetworkAcls[0]
+	if err != nil {
+		return fmt.Errorf("error reading EC2 Network ACL (%s): %w", d.Id(), err)
+	}
+
+	if networkAcl == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 Network ACL (%s): not found after creation", d.Id())
+		}
+
+		log.Printf("[WARN] EC2 Network ACL (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	var ingressEntries []*ec2.NetworkAclEntry
 	var egressEntries []*ec2.NetworkAclEntry
 
@@ -284,9 +357,9 @@ func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
+		AccountID: aws.StringValue(networkAcl.OwnerId),
 		Resource:  fmt.Sprintf("network-acl/%s", d.Id()),
 	}.String()
 

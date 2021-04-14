@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsDxPublicVirtualInterface_basic(t *testing.T) {
@@ -30,11 +30,12 @@ func TestAccAwsDxPublicVirtualInterface_basic(t *testing.T) {
 	// DirectConnectClientException: Amazon Address is the broadcast address on its subnet.
 	amazonAddress := "175.45.176.1/28"
 	customerAddress := "175.45.176.2/28"
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxPublicVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -53,8 +54,8 @@ func TestAccAwsDxPublicVirtualInterface_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "customer_address", customerAddress),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.1752038751", "210.52.109.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.4290081960", "175.45.176.0/22"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "vlan", strconv.Itoa(vlan)),
 				),
@@ -81,11 +82,12 @@ func TestAccAwsDxPublicVirtualInterface_Tags(t *testing.T) {
 	rName := fmt.Sprintf("tf-testacc-public-vif-%s", acctest.RandString(10))
 	amazonAddress := "175.45.176.3/28"
 	customerAddress := "175.45.176.4/28"
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxPublicVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -104,8 +106,8 @@ func TestAccAwsDxPublicVirtualInterface_Tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "customer_address", customerAddress),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.1752038751", "210.52.109.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.4290081960", "175.45.176.0/22"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value1"),
@@ -128,8 +130,8 @@ func TestAccAwsDxPublicVirtualInterface_Tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "customer_address", customerAddress),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.1752038751", "210.52.109.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.4290081960", "175.45.176.0/22"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value2b"),

@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_pinpoint_event_stream: Retry on eventual consistency error
+```
+
+```release-note:enhancement
+resource/aws_pinpoint_event_stream: Plan time validations for `destination_stream_arn` and `role_arn`
+```

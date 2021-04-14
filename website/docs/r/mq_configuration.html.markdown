@@ -8,13 +8,13 @@ description: |-
 
 # Resource: aws_mq_configuration
 
-Provides an MQ Configuration Resource. 
+Provides an MQ Configuration Resource.
 
 For more information on Amazon MQ, see [Amazon MQ documentation](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_mq_configuration" "example" {
   description    = "Example Configuration"
   name           = "example"
@@ -36,24 +36,26 @@ DATA
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are required:
 
-* `data` - (Required) The broker configuration in XML format.
-  See [official docs](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/amazon-mq-broker-configuration-parameters.html)
-  for supported parameters and format of the XML.
-* `description` - (Optional) The description of the configuration.
-* `engine_type` - (Required) The type of broker engine.
-* `engine_version` - (Required) The version of the broker engine.
-* `name` - (Required) The name of the configuration
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `data` - (Required) Broker configuration in XML format. See [official docs](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/amazon-mq-broker-configuration-parameters.html) for supported parameters and format of the XML.
+* `engine_type` - (Required) Type of broker engine. Valid values are `ActiveMQ` and `RabbitMQ`.
+* `engine_version` - (Required) Version of the broker engine.
+* `name` - (Required) Name of the configuration.
+
+The following arguments are optional:
+
+* `authentication_strategy` - (Optional) Authentication strategy associated with the configuration. Valid values are `simple` and `ldap`. `ldap` is not supported for `engine_type` `RabbitMQ`.
+* `description` - (Optional) Description of the configuration.
+* `tags` - (Optional) Map of tags to assign to the resource.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The unique ID that Amazon MQ generates for the configuration.
-* `arn` - The ARN of the configuration.
-* `latest_revision` - The latest revision of the configuration.
+* `arn` - ARN of the configuration.
+* `id` - Unique ID that Amazon MQ generates for the configuration.
+* `latest_revision` - Latest revision of the configuration.
 
 ## Import
 

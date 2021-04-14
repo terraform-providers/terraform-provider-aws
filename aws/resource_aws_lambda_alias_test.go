@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLambdaAlias_basic(t *testing.T) {
@@ -26,6 +26,7 @@ func TestAccAWSLambdaAlias_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsLambdaAliasDestroy,
 		Steps: []resource.TestStep{
@@ -42,12 +43,44 @@ func TestAccAWSLambdaAlias_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     fmt.Sprintf("%s/%s", funcName, aliasName),
+				ImportStateIdFunc: testAccAwsLambdaAliasImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 			{
 				Config:   testAccAwsLambdaAliasConfigUsingFunctionName(roleName, policyName, attachmentName, funcName, aliasName),
 				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSLambdaAlias_FunctionName_Name(t *testing.T) {
+	var conf lambda.AliasConfiguration
+
+	resourceName := "aws_lambda_alias.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsLambdaAliasDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsLambdaAliasConfigUsingFunctionName(rName, rName, rName, rName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaAliasExists(resourceName, &conf),
+					testAccCheckAwsLambdaAliasAttributes(&conf),
+					testAccCheckAwsLambdaAliasRoutingConfigDoesNotExist(&conf),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s:%s", rName, rName)),
+					testAccCheckAwsLambdaAliasInvokeArn(resourceName, &conf),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAwsLambdaAliasImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -70,6 +103,7 @@ func TestAccAWSLambdaAlias_nameupdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsLambdaAliasDestroy,
 		Steps: []resource.TestStep{
@@ -80,6 +114,12 @@ func TestAccAWSLambdaAlias_nameupdate(t *testing.T) {
 					testAccCheckAwsLambdaAliasAttributes(&conf),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", functionArnResourcePart),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAwsLambdaAliasImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAwsLambdaAliasConfig(roleName, policyName, attachmentName, funcName, aliasNameUpdate),
@@ -108,6 +148,7 @@ func TestAccAWSLambdaAlias_routingconfig(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsLambdaAliasDestroy,
 		Steps: []resource.TestStep{
@@ -118,6 +159,12 @@ func TestAccAWSLambdaAlias_routingconfig(t *testing.T) {
 					testAccCheckAwsLambdaAliasAttributes(&conf),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", functionArnResourcePart),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAwsLambdaAliasImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAwsLambdaAliasConfigWithRoutingConfig(roleName, policyName, attachmentName, funcName, aliasName),
@@ -237,6 +284,17 @@ func testAccCheckAwsLambdaAliasRoutingConfigDoesNotExist(mapping *lambda.AliasCo
 	}
 }
 
+func testAccAwsLambdaAliasImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["function_name"], rs.Primary.Attributes["name"]), nil
+	}
+}
+
 func testAccAwsLambdaAliasBaseConfig(roleName, policyName, attachmentName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "iam_for_lambda" {
@@ -268,13 +326,13 @@ resource "aws_iam_policy" "policy_for_role" {
 {
   "Version": "2012-10-17",
   "Statement": [
-      {
-          "Effect": "Allow",
-          "Action": [
-            "lambda:*"
-          ],
-          "Resource": "*"
-      }
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:*"
+      ],
+      "Resource": "*"
+    }
   ]
 }
 EOF
@@ -282,8 +340,8 @@ EOF
 
 resource "aws_iam_policy_attachment" "policy_attachment_for_role" {
   name       = "%s"
-  roles      = ["${aws_iam_role.iam_for_lambda.name}"]
-  policy_arn = "${aws_iam_policy.policy_for_role.arn}"
+  roles      = [aws_iam_role.iam_for_lambda.name]
+  policy_arn = aws_iam_policy.policy_for_role.arn
 }
 `, roleName, policyName, attachmentName)
 }
@@ -295,17 +353,17 @@ func testAccAwsLambdaAliasConfig(roleName, policyName, attachmentName, funcName,
 resource "aws_lambda_function" "test" {
   filename         = "test-fixtures/lambdatest.zip"
   function_name    = "%s"
-  role             = "${aws_iam_role.iam_for_lambda.arn}"
+  role             = aws_iam_role.iam_for_lambda.arn
   handler          = "exports.example"
   runtime          = "nodejs12.x"
-  source_code_hash = "${filebase64sha256("test-fixtures/lambdatest.zip")}"
+  source_code_hash = filebase64sha256("test-fixtures/lambdatest.zip")
   publish          = "true"
 }
 
 resource "aws_lambda_alias" "test" {
   name             = "%s"
   description      = "a sample description"
-  function_name    = "${aws_lambda_function.test.arn}"
+  function_name    = aws_lambda_function.test.arn
   function_version = "1"
 }
 `, funcName, aliasName))
@@ -318,17 +376,17 @@ func testAccAwsLambdaAliasConfigUsingFunctionName(roleName, policyName, attachme
 resource "aws_lambda_function" "test" {
   filename         = "test-fixtures/lambdatest.zip"
   function_name    = "%s"
-  role             = "${aws_iam_role.iam_for_lambda.arn}"
+  role             = aws_iam_role.iam_for_lambda.arn
   handler          = "exports.example"
   runtime          = "nodejs12.x"
-  source_code_hash = "${filebase64sha256("test-fixtures/lambdatest.zip")}"
+  source_code_hash = filebase64sha256("test-fixtures/lambdatest.zip")
   publish          = "true"
 }
 
 resource "aws_lambda_alias" "test" {
   name             = "%s"
   description      = "a sample description"
-  function_name    = "${aws_lambda_function.test.function_name}"
+  function_name    = aws_lambda_function.test.function_name
   function_version = "1"
 }
 `, funcName, aliasName))
@@ -341,17 +399,17 @@ func testAccAwsLambdaAliasConfigWithRoutingConfig(roleName, policyName, attachme
 resource "aws_lambda_function" "test" {
   filename         = "test-fixtures/lambdatest_modified.zip"
   function_name    = "%s"
-  role             = "${aws_iam_role.iam_for_lambda.arn}"
+  role             = aws_iam_role.iam_for_lambda.arn
   handler          = "exports.example"
   runtime          = "nodejs12.x"
-  source_code_hash = "${filebase64sha256("test-fixtures/lambdatest_modified.zip")}"
+  source_code_hash = filebase64sha256("test-fixtures/lambdatest_modified.zip")
   publish          = "true"
 }
 
 resource "aws_lambda_alias" "test" {
   name             = "%s"
   description      = "a sample description"
-  function_name    = "${aws_lambda_function.test.arn}"
+  function_name    = aws_lambda_function.test.arn
   function_version = "1"
 
   routing_config {

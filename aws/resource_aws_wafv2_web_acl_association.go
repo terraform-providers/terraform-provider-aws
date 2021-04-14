@@ -8,12 +8,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
-	Wafv2WebACLAssociationCreateTimeout = 2 * time.Minute
+	Wafv2WebACLAssociationCreateTimeout = 5 * time.Minute
 )
 
 func resourceAwsWafv2WebACLAssociation() *schema.Resource {

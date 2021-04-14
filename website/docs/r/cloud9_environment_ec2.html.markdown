@@ -12,7 +12,7 @@ Provides a Cloud9 EC2 Development Environment.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloud9_environment_ec2" "example" {
   instance_type = "t2.micro"
   name          = "example-env"
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition the the arguments listed above the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the environment.
 * `arn` - The ARN of the environment.

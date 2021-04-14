@@ -1,9 +1,17 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
 data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
 resource "aws_elasticsearch_domain" "test" {
-  domain_name           = "${var.domain}"
+  domain_name           = var.domain
   elasticsearch_version = "7.1"
   cluster_config {
     instance_type = "r5.large.elasticsearch"

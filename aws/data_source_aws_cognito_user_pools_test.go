@@ -5,15 +5,17 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsCognitoUserPools_basic(t *testing.T) {
 	rName := fmt.Sprintf("tf_acc_ds_cognito_user_pools_%s", acctest.RandString(7))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentityProvider(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentityProvider(t) },
+		ErrorCheck: testAccErrorCheck(t, cognitoidentityprovider.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsCognitoUserPoolsConfig_basic(rName),
@@ -38,7 +40,7 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 data "aws_cognito_user_pools" "selected" {
-  name = "${aws_cognito_user_pool.main.*.name[0]}"
+  name = aws_cognito_user_pool.main.*.name[0]
 }
 `, rName)
 }

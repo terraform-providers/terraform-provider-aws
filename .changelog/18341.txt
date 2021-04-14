@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_securityhub_organization_admin_account: Retry on `ResourceConflictException` error during creation
+```

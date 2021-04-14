@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsAutoscalingLifecycleHook() *schema.Resource {
@@ -195,7 +195,11 @@ func getAwsAutoscalingLifecycleHook(d *schema.ResourceData, meta interface{}) (*
 	// find lifecycle hooks
 	name := d.Get("name")
 	for idx, sp := range resp.LifecycleHooks {
-		if *sp.LifecycleHookName == name {
+		if sp == nil {
+			continue
+		}
+
+		if aws.StringValue(sp.LifecycleHookName) == name {
 			return resp.LifecycleHooks[idx], nil
 		}
 	}

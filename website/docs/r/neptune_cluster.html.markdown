@@ -20,7 +20,7 @@ phase because a modification has not yet taken place. You can use the
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_neptune_cluster" "default" {
   cluster_identifier                  = "neptune-cluster-demo"
   engine                              = "neptune"
@@ -80,7 +80,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_neptune_cluster` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `120 minutes`) Used for Cluster creation
 - `update` - (Default `120 minutes`) Used for Cluster modifications

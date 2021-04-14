@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEBSSnapshot_basic(t *testing.T) {
@@ -19,6 +19,7 @@ func TestAccAWSEBSSnapshot_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -47,6 +48,7 @@ func TestAccAWSEBSSnapshot_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -91,6 +93,7 @@ func TestAccAWSEBSSnapshot_withDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -118,6 +121,7 @@ func TestAccAWSEBSSnapshot_withKms(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -144,6 +148,7 @@ func TestAccAWSEBSSnapshot_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -225,7 +230,7 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
 
   tags = {
@@ -234,11 +239,11 @@ resource "aws_ebs_volume" "test" {
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id = "${aws_ebs_volume.test.id}"
+  volume_id = aws_ebs_volume.test.id
 
   timeouts {
-	create = "10m"
-	delete = "10m"
+    create = "10m"
+    delete = "10m"
   }
 }
 `, rName)
@@ -256,12 +261,12 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id = "${aws_ebs_volume.test.id}"
+  volume_id = aws_ebs_volume.test.id
 
   tags = {
     Name = "%s"
@@ -269,8 +274,8 @@ resource "aws_ebs_snapshot" "test" {
   }
 
   timeouts {
-	create = "10m"
-	delete = "10m"
+    create = "10m"
+    delete = "10m"
   }
 }
 `, rName, tagKey1, tagValue1)
@@ -288,12 +293,12 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id = "${aws_ebs_volume.test.id}"
+  volume_id = aws_ebs_volume.test.id
 
   tags = {
     Name = "%s"
@@ -302,8 +307,8 @@ resource "aws_ebs_snapshot" "test" {
   }
 
   timeouts {
-	create = "10m"
-	delete = "10m"
+    create = "10m"
+    delete = "10m"
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
@@ -321,12 +326,12 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "description_test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id   = "${aws_ebs_volume.description_test.id}"
+  volume_id   = aws_ebs_volume.description_test.id
   description = %[1]q
 }
 `, rName)
@@ -352,10 +357,10 @@ resource "aws_kms_key" "test" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
   encrypted         = true
-  kms_key_id        = "${aws_kms_key.test.arn}"
+  kms_key_id        = aws_kms_key.test.arn
 
   tags = {
     Name = %[1]q
@@ -363,7 +368,7 @@ resource "aws_ebs_volume" "test" {
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id = "${aws_ebs_volume.test.id}"
+  volume_id = aws_ebs_volume.test.id
 }
 `, rName)
 }

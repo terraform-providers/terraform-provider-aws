@@ -13,7 +13,7 @@ A hosted virtual interface is a virtual interface that is owned by another AWS a
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_hosted_public_virtual_interface" "foo" {
   connection_id = "dxcon-zzzzzzzz"
 
@@ -58,7 +58,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_hosted_public_virtual_interface` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating virtual interface
 - `delete` - (Default `10 minutes`) Used for destroying virtual interface

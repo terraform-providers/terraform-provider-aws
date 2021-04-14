@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsCloudwatchLogSubscriptionFilter() *schema.Resource {
@@ -175,11 +175,11 @@ func resourceAwsCloudwatchLogSubscriptionFilterRead(d *schema.ResourceData, meta
 	for _, subscriptionFilter := range resp.SubscriptionFilters {
 		if aws.StringValue(subscriptionFilter.LogGroupName) == log_group_name {
 			d.SetId(cloudwatchLogsSubscriptionFilterId(log_group_name))
-			d.Set("destination_arn", aws.StringValue(subscriptionFilter.DestinationArn))
-			d.Set("distribution", aws.StringValue(subscriptionFilter.Distribution))
-			d.Set("filter_pattern", aws.StringValue(subscriptionFilter.FilterPattern))
-			d.Set("log_group_name", aws.StringValue(subscriptionFilter.LogGroupName))
-			d.Set("role_arn", aws.StringValue(subscriptionFilter.RoleArn))
+			d.Set("destination_arn", subscriptionFilter.DestinationArn)
+			d.Set("distribution", subscriptionFilter.Distribution)
+			d.Set("filter_pattern", subscriptionFilter.FilterPattern)
+			d.Set("log_group_name", subscriptionFilter.LogGroupName)
+			d.Set("role_arn", subscriptionFilter.RoleArn)
 			return nil // OK, matching subscription filter found
 		}
 	}

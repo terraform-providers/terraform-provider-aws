@@ -4,16 +4,40 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
+
+var routeTableValidDestinations = []string{
+	"cidr_block",
+	"ipv6_cidr_block",
+	"destination_prefix_list_id",
+}
+
+var routeTableValidTargets = []string{
+	"carrier_gateway_id",
+	"egress_only_gateway_id",
+	"gateway_id",
+	"instance_id",
+	"nat_gateway_id",
+	"local_gateway_id",
+	"transit_gateway_id",
+	"vpc_endpoint_id",
+	"vpc_peering_connection_id",
+	"network_interface_id",
+}
 
 func resourceAwsRouteTable() *schema.Resource {
 	return &schema.Resource{
@@ -26,14 +50,14 @@ func resourceAwsRouteTable() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"vpc_id": {
+			"arn": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
-
-			"tags": tagsSchema(),
-
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"propagating_vgws": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -41,7 +65,6 @@ func resourceAwsRouteTable() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-
 			"route": {
 				Type:       schema.TypeSet,
 				Computed:   true,
@@ -49,6 +72,9 @@ func resourceAwsRouteTable() *schema.Resource {
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						///
+						// Destinations.
+						///
 						"cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -57,7 +83,10 @@ func resourceAwsRouteTable() *schema.Resource {
 								validateIpv4CIDRNetworkAddress,
 							),
 						},
-
+						"destination_prefix_list_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"ipv6_cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -67,37 +96,46 @@ func resourceAwsRouteTable() *schema.Resource {
 							),
 						},
 
+						//
+						// Targets.
+						//
+						"carrier_gateway_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"egress_only_gateway_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
 						"gateway_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
 						"instance_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
+						"local_gateway_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"nat_gateway_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
+						"network_interface_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"transit_gateway_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
-						"vpc_peering_connection_id": {
+						"vpc_endpoint_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
-						"network_interface_id": {
+						"vpc_peering_connection_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -105,10 +143,11 @@ func resourceAwsRouteTable() *schema.Resource {
 				},
 				Set: resourceAwsRouteTableHash,
 			},
-
-			"owner_id": {
+			"tags": tagsSchema(),
+			"vpc_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -119,41 +158,25 @@ func resourceAwsRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Create the routing table
 	createOpts := &ec2.CreateRouteTableInput{
-		VpcId: aws.String(d.Get("vpc_id").(string)),
+		VpcId:             aws.String(d.Get("vpc_id").(string)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeRouteTable),
 	}
 	log.Printf("[DEBUG] RouteTable create config: %#v", createOpts)
 
 	resp, err := conn.CreateRouteTable(createOpts)
 	if err != nil {
-		return fmt.Errorf("Error creating route table: %s", err)
+		return fmt.Errorf("error creating route table: %w", err)
 	}
 
 	// Get the ID and store it
 	rt := resp.RouteTable
-	d.SetId(*rt.RouteTableId)
+	d.SetId(aws.StringValue(rt.RouteTableId))
 	log.Printf("[INFO] Route Table ID: %s", d.Id())
 
 	// Wait for the route table to become available
-	log.Printf(
-		"[DEBUG] Waiting for route table (%s) to become available",
-		d.Id())
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"pending"},
-		Target:         []string{"ready"},
-		Refresh:        resourceAwsRouteTableStateRefreshFunc(conn, d.Id()),
-		Timeout:        10 * time.Minute,
-		NotFoundChecks: 40,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf(
-			"Error waiting for route table (%s) to become available: %s",
-			d.Id(), err)
-	}
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding tags: %s", err)
-		}
+	log.Printf("[DEBUG] Waiting for route table (%s) to become available", d.Id())
+	if _, err := waiter.RouteTableReady(conn, d.Id()); err != nil {
+		return fmt.Errorf("error waiting for route table (%s) to become available: %w", d.Id(), err)
 	}
 
 	return resourceAwsRouteTableUpdate(d, meta)
@@ -163,21 +186,23 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	rtRaw, _, err := resourceAwsRouteTableStateRefreshFunc(conn, d.Id())()
-	if err != nil {
-		return err
-	}
-	if rtRaw == nil {
+	routeTable, err := finder.RouteTableByID(conn, d.Id())
+
+	if !d.IsNewResource() && tfresource.NotFound(err) {
+		log.Printf("[WARN] Route table (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	rt := rtRaw.(*ec2.RouteTable)
-	d.Set("vpc_id", rt.VpcId)
+	if err != nil {
+		return fmt.Errorf("error reading route table (%s): %w", d.Id(), err)
+	}
 
-	propagatingVGWs := make([]string, 0, len(rt.PropagatingVgws))
-	for _, vgw := range rt.PropagatingVgws {
-		propagatingVGWs = append(propagatingVGWs, *vgw.GatewayId)
+	d.Set("vpc_id", routeTable.VpcId)
+
+	propagatingVGWs := make([]string, 0, len(routeTable.PropagatingVgws))
+	for _, vgw := range routeTable.PropagatingVgws {
+		propagatingVGWs = append(propagatingVGWs, aws.StringValue(vgw.GatewayId))
 	}
 	d.Set("propagating_vgws", propagatingVGWs)
 
@@ -185,16 +210,16 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	route := &schema.Set{F: resourceAwsRouteTableHash}
 
 	// Loop through the routes and add them to the set
-	for _, r := range rt.Routes {
-		if r.GatewayId != nil && *r.GatewayId == "local" {
+	for _, r := range routeTable.Routes {
+		if aws.StringValue(r.GatewayId) == "local" {
 			continue
 		}
 
-		if r.Origin != nil && *r.Origin == ec2.RouteOriginEnableVgwRoutePropagation {
+		if aws.StringValue(r.Origin) == ec2.RouteOriginEnableVgwRoutePropagation {
 			continue
 		}
 
-		if r.DestinationPrefixListId != nil {
+		if r.DestinationPrefixListId != nil && strings.HasPrefix(aws.StringValue(r.GatewayId), "vpce-") {
 			// Skipping because VPC endpoint routes are handled separately
 			// See aws_vpc_endpoint
 			continue
@@ -203,31 +228,44 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 		m := make(map[string]interface{})
 
 		if r.DestinationCidrBlock != nil {
-			m["cidr_block"] = *r.DestinationCidrBlock
+			m["cidr_block"] = aws.StringValue(r.DestinationCidrBlock)
 		}
 		if r.DestinationIpv6CidrBlock != nil {
-			m["ipv6_cidr_block"] = *r.DestinationIpv6CidrBlock
+			m["ipv6_cidr_block"] = aws.StringValue(r.DestinationIpv6CidrBlock)
+		}
+		if r.DestinationPrefixListId != nil {
+			m["destination_prefix_list_id"] = aws.StringValue(r.DestinationPrefixListId)
+		}
+		if r.CarrierGatewayId != nil {
+			m["carrier_gateway_id"] = aws.StringValue(r.CarrierGatewayId)
 		}
 		if r.EgressOnlyInternetGatewayId != nil {
-			m["egress_only_gateway_id"] = *r.EgressOnlyInternetGatewayId
+			m["egress_only_gateway_id"] = aws.StringValue(r.EgressOnlyInternetGatewayId)
 		}
 		if r.GatewayId != nil {
-			m["gateway_id"] = *r.GatewayId
+			if strings.HasPrefix(aws.StringValue(r.GatewayId), "vpce-") {
+				m["vpc_endpoint_id"] = aws.StringValue(r.GatewayId)
+			} else {
+				m["gateway_id"] = aws.StringValue(r.GatewayId)
+			}
 		}
 		if r.NatGatewayId != nil {
-			m["nat_gateway_id"] = *r.NatGatewayId
+			m["nat_gateway_id"] = aws.StringValue(r.NatGatewayId)
+		}
+		if r.LocalGatewayId != nil {
+			m["local_gateway_id"] = aws.StringValue(r.LocalGatewayId)
 		}
 		if r.InstanceId != nil {
-			m["instance_id"] = *r.InstanceId
+			m["instance_id"] = aws.StringValue(r.InstanceId)
 		}
 		if r.TransitGatewayId != nil {
-			m["transit_gateway_id"] = *r.TransitGatewayId
+			m["transit_gateway_id"] = aws.StringValue(r.TransitGatewayId)
 		}
 		if r.VpcPeeringConnectionId != nil {
-			m["vpc_peering_connection_id"] = *r.VpcPeeringConnectionId
+			m["vpc_peering_connection_id"] = aws.StringValue(r.VpcPeeringConnectionId)
 		}
 		if r.NetworkInterfaceId != nil {
-			m["network_interface_id"] = *r.NetworkInterfaceId
+			m["network_interface_id"] = aws.StringValue(r.NetworkInterfaceId)
 		}
 
 		route.Add(m)
@@ -235,11 +273,20 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("route", route)
 
 	// Tags
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(rt.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(routeTable.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
-	d.Set("owner_id", rt.OwnerId)
+	ownerID := aws.StringValue(routeTable.OwnerId)
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   ec2.ServiceName,
+		Region:    meta.(*AWSClient).region,
+		AccountID: ownerID,
+		Resource:  fmt.Sprintf("route-table/%s", d.Id()),
+	}.String()
+	d.Set("arn", arn)
+	d.Set("owner_id", ownerID)
 
 	return nil
 }
@@ -259,9 +306,7 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 			id := vgw.(string)
 
 			// Disable the propagation as it no longer exists in the config
-			log.Printf(
-				"[INFO] Deleting VGW propagation from %s: %s",
-				d.Id(), id)
+			log.Printf("[INFO] Deleting VGW propagation from %s: %s", d.Id(), id)
 			_, err := conn.DisableVgwRoutePropagation(&ec2.DisableVgwRoutePropagationInput{
 				RouteTableId: aws.String(d.Id()),
 				GatewayId:    aws.String(id),
@@ -321,20 +366,22 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 				RouteTableId: aws.String(d.Id()),
 			}
 
-			if s := m["ipv6_cidr_block"].(string); s != "" {
+			if s, ok := m["ipv6_cidr_block"].(string); ok && s != "" {
 				deleteOpts.DestinationIpv6CidrBlock = aws.String(s)
 
-				log.Printf(
-					"[INFO] Deleting route from %s: %s",
-					d.Id(), m["ipv6_cidr_block"].(string))
+				log.Printf("[INFO] Deleting route from %s: %s", d.Id(), m["ipv6_cidr_block"].(string))
 			}
 
-			if s := m["cidr_block"].(string); s != "" {
+			if s, ok := m["cidr_block"].(string); ok && s != "" {
 				deleteOpts.DestinationCidrBlock = aws.String(s)
 
-				log.Printf(
-					"[INFO] Deleting route from %s: %s",
-					d.Id(), m["cidr_block"].(string))
+				log.Printf("[INFO] Deleting route from %s: %s", d.Id(), m["cidr_block"].(string))
+			}
+
+			if s, ok := m["destination_prefix_list_id"].(string); ok && s != "" {
+				deleteOpts.DestinationPrefixListId = aws.String(s)
+
+				log.Printf("[INFO] Deleting route from %s: %s", d.Id(), m["destination_prefix_list_id"].(string))
 			}
 
 			_, err := conn.DeleteRoute(deleteOpts)
@@ -351,48 +398,71 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 		for _, route := range nrs.List() {
 			m := route.(map[string]interface{})
 
+			if err := validateNestedExactlyOneOf(m, routeTableValidDestinations); err != nil {
+				return fmt.Errorf("error creating route: %w", err)
+			}
+			if err := validateNestedExactlyOneOf(m, routeTableValidTargets); err != nil {
+				return fmt.Errorf("error creating route: %w", err)
+			}
+
 			opts := ec2.CreateRouteInput{
 				RouteTableId: aws.String(d.Id()),
 			}
 
-			if s := m["transit_gateway_id"].(string); s != "" {
+			if s, ok := m["transit_gateway_id"].(string); ok && s != "" {
 				opts.TransitGatewayId = aws.String(s)
 			}
 
-			if s := m["vpc_peering_connection_id"].(string); s != "" {
+			if s, ok := m["vpc_endpoint_id"].(string); ok && s != "" {
+				opts.VpcEndpointId = aws.String(s)
+			}
+
+			if s, ok := m["vpc_peering_connection_id"].(string); ok && s != "" {
 				opts.VpcPeeringConnectionId = aws.String(s)
 			}
 
-			if s := m["network_interface_id"].(string); s != "" {
+			if s, ok := m["network_interface_id"].(string); ok && s != "" {
 				opts.NetworkInterfaceId = aws.String(s)
 			}
 
-			if s := m["instance_id"].(string); s != "" {
+			if s, ok := m["instance_id"].(string); ok && s != "" {
 				opts.InstanceId = aws.String(s)
 			}
 
-			if s := m["ipv6_cidr_block"].(string); s != "" {
+			if s, ok := m["ipv6_cidr_block"].(string); ok && s != "" {
 				opts.DestinationIpv6CidrBlock = aws.String(s)
 			}
 
-			if s := m["cidr_block"].(string); s != "" {
+			if s, ok := m["cidr_block"].(string); ok && s != "" {
 				opts.DestinationCidrBlock = aws.String(s)
 			}
 
-			if s := m["gateway_id"].(string); s != "" {
+			if s, ok := m["destination_prefix_list_id"].(string); ok && s != "" {
+				opts.DestinationPrefixListId = aws.String(s)
+			}
+
+			if s, ok := m["gateway_id"].(string); ok && s != "" {
 				opts.GatewayId = aws.String(s)
 			}
 
-			if s := m["egress_only_gateway_id"].(string); s != "" {
+			if s, ok := m["carrier_gateway_id"].(string); ok && s != "" {
+				opts.CarrierGatewayId = aws.String(s)
+			}
+
+			if s, ok := m["egress_only_gateway_id"].(string); ok && s != "" {
 				opts.EgressOnlyInternetGatewayId = aws.String(s)
 			}
 
-			if s := m["nat_gateway_id"].(string); s != "" {
+			if s, ok := m["nat_gateway_id"].(string); ok && s != "" {
 				opts.NatGatewayId = aws.String(s)
 			}
 
+			if s, ok := m["local_gateway_id"].(string); ok && s != "" {
+				opts.LocalGatewayId = aws.String(s)
+			}
+
 			log.Printf("[INFO] Creating route for %s: %#v", d.Id(), opts)
-			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+			err := resource.Retry(waiter.RouteTableUpdateTimeout, func() *resource.RetryError {
 				_, err := conn.CreateRoute(&opts)
 
 				if isAWSErr(err, "InvalidRouteTableID.NotFound", "") {
@@ -412,7 +482,7 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 				_, err = conn.CreateRoute(&opts)
 			}
 			if err != nil {
-				return fmt.Errorf("Error creating route: %s", err)
+				return fmt.Errorf("error creating route: %w", err)
 			}
 
 			routes.Add(route)
@@ -424,7 +494,7 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating EC2 Route Table (%s) tags: %s", d.Id(), err)
+			return fmt.Errorf("error updating EC2 Route Table (%s) tags: %w", d.Id(), err)
 		}
 	}
 
@@ -436,18 +506,15 @@ func resourceAwsRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 
 	// First request the routing table since we'll have to disassociate
 	// all the subnets first.
-	rtRaw, _, err := resourceAwsRouteTableStateRefreshFunc(conn, d.Id())()
+	rt, err := waiter.RouteTableReady(conn, d.Id())
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting route table (%s) prior to disassociating associations: %w", d.Id(), err)
 	}
-	if rtRaw == nil {
-		return nil
-	}
-	rt := rtRaw.(*ec2.RouteTable)
 
 	// Do all the disassociations
 	for _, a := range rt.Associations {
-		log.Printf("[INFO] Disassociating association: %s", *a.RouteTableAssociationId)
+		log.Printf("[INFO] Disassociating association: %s", aws.StringValue(a.RouteTableAssociationId))
 		_, err := conn.DisassociateRouteTable(&ec2.DisassociateRouteTableInput{
 			AssociationId: a.RouteTableAssociationId,
 		})
@@ -474,24 +541,13 @@ func resourceAwsRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting route table: %s", err)
+		return fmt.Errorf("error deleting route table: %w", err)
 	}
 
 	// Wait for the route table to really destroy
-	log.Printf(
-		"[DEBUG] Waiting for route table (%s) to become destroyed",
-		d.Id())
-
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"ready"},
-		Target:  []string{},
-		Refresh: resourceAwsRouteTableStateRefreshFunc(conn, d.Id()),
-		Timeout: 5 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf(
-			"Error waiting for route table (%s) to become destroyed: %s",
-			d.Id(), err)
+	log.Printf("[DEBUG] Waiting for route table (%s) deletion", d.Id())
+	if _, err := waiter.RouteTableDeleted(conn, d.Id()); err != nil {
+		return fmt.Errorf("error waiting for route table (%s) deletion: %w", d.Id(), err)
 	}
 
 	return nil
@@ -505,14 +561,22 @@ func resourceAwsRouteTableHash(v interface{}) int {
 	}
 
 	if v, ok := m["ipv6_cidr_block"]; ok {
-		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		buf.WriteString(fmt.Sprintf("%s-", canonicalCidrBlock(v.(string))))
 	}
 
 	if v, ok := m["cidr_block"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 
+	if v, ok := m["destination_prefix_list_id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
 	if v, ok := m["gateway_id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["carrier_gateway_id"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 
@@ -536,6 +600,14 @@ func resourceAwsRouteTableHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 
+	if v, ok := m["local_gateway_id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["vpc_endpoint_id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
 	if v, ok := m["vpc_peering_connection_id"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
@@ -545,31 +617,4 @@ func resourceAwsRouteTableHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
-}
-
-// resourceAwsRouteTableStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
-// a RouteTable.
-func resourceAwsRouteTableStateRefreshFunc(conn *ec2.EC2, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-			RouteTableIds: []*string{aws.String(id)},
-		})
-		if err != nil {
-			if isAWSErr(err, "InvalidRouteTableID.NotFound", "") {
-				resp = nil
-			} else {
-				log.Printf("Error on RouteTableStateRefresh: %s", err)
-				return nil, "", err
-			}
-		}
-
-		if resp == nil {
-			// Sometimes AWS just has consistency issues and doesn't see
-			// our instance yet. Return an empty state.
-			return nil, "", nil
-		}
-
-		rt := resp.RouteTables[0]
-		return rt, "ready", nil
-	}
 }

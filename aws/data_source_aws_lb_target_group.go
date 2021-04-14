@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsLbTargetGroup() *schema.Resource {
@@ -18,84 +18,14 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-
 			"arn_suffix": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"port": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"protocol": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"vpc_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"deregistration_delay": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-
-			"slow_start": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"proxy_protocol_v2": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"lambda_multi_value_headers_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"load_balancing_algorithm_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"target_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"stickiness": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"cookie_duration": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"health_check": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -105,42 +35,34 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-
-						"interval": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"path": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"port": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"protocol": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"timeout": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
 						"healthy_threshold": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-
+						"interval": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 						"matcher": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-
+						"path": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"port": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"protocol": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"timeout": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 						"unhealthy_threshold": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -148,8 +70,72 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 					},
 				},
 			},
-
+			"lambda_multi_value_headers_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"load_balancing_algorithm_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"preserve_client_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"protocol": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"protocol_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"proxy_protocol_v2": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"slow_start": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"stickiness": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cookie_duration": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"target_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"tags": tagsSchemaComputed(),
+			"vpc_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -170,7 +156,7 @@ func dataSourceAwsLbTargetGroupRead(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[DEBUG] Reading Load Balancer Target Group: %s", describeTgOpts)
 	describeResp, err := elbconn.DescribeTargetGroups(describeTgOpts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving LB Target Group: %s", err)
+		return fmt.Errorf("Error retrieving LB Target Group: %w", err)
 	}
 	if len(describeResp.TargetGroups) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(describeResp.TargetGroups))

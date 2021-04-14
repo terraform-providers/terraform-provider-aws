@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_cloudfront_realtime_log_config
+```
+
+```release-note:enhancement
+resource/aws_cloudfront_distribution: Add `realtime_log_config_arn` attribute to `default_cache_behavior` and `ordered_cache_behavior` configuration blocks
+```

@@ -3,20 +3,26 @@ subcategory: "WorkSpaces"
 layout: "aws"
 page_title: "AWS: aws_workspaces_bundle"
 description: |-
-  Get information on a WorkSpaces Bundle.
+  Retrieve information about an AWS WorkSpaces bundle.
 ---
 
 # Data Source: aws_workspaces_bundle
 
-Use this data source to get information about a WorkSpaces Bundle.
+Retrieve information about an AWS WorkSpaces bundle.
 
 ## Example Usage
 
-```hcl
+### By ID
+
+```terraform
 data "aws_workspaces_bundle" "example" {
   bundle_id = "wsb-b0s22j3d7"
 }
+```
 
+### By Owner & Name
+
+```terraform
 data "aws_workspaces_bundle" "example" {
   owner = "AMAZON"
   name  = "Value with Windows 10 and Office 2016"
@@ -32,8 +38,6 @@ The following arguments are supported:
 * `name` – (Optional) The name of the bundle. You cannot combine this parameter with `bundle_id`.
 
 ## Attributes Reference
-
-The following attributes are exported:
 
 * `description` – The description of the bundle.
 * `bundle_id` – The ID of the bundle.

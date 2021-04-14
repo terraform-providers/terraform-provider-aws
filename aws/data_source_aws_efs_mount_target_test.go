@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/efs"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsEfsMountTargetByMountTargetId(t *testing.T) {
+func TestAccDataSourceAwsEfsMountTarget_basic(t *testing.T) {
 	rName := acctest.RandString(10)
 	dataSourceName := "data.aws_efs_mount_target.test"
 	resourceName := "aws_efs_mount_target.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, efs.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEfsMountTargetConfigByMountTargetId(rName),
@@ -37,16 +39,7 @@ func TestAccDataSourceAwsEfsMountTargetByMountTargetId(t *testing.T) {
 }
 
 func testAccAwsEfsMountTargetConfigByMountTargetId(ct string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
   creation_token = "%s"
 
@@ -56,8 +49,8 @@ resource "aws_efs_file_system" "test" {
 }
 
 resource "aws_efs_mount_target" "test" {
-  file_system_id = "${aws_efs_file_system.test.id}"
-  subnet_id      = "${aws_subnet.test.id}"
+  file_system_id = aws_efs_file_system.test.id
+  subnet_id      = aws_subnet.test.id
 }
 
 resource "aws_vpc" "test" {
@@ -69,8 +62,8 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "10.0.1.0/24"
 
   tags = {
@@ -79,7 +72,7 @@ resource "aws_subnet" "test" {
 }
 
 data "aws_efs_mount_target" "test" {
-  mount_target_id = "${aws_efs_mount_target.test.id}"
+  mount_target_id = aws_efs_mount_target.test.id
 }
 `, ct)
 }

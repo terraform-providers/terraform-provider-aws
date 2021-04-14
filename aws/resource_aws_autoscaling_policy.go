@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsAutoscalingPolicy() *schema.Resource {
@@ -70,11 +70,6 @@ func resourceAwsAutoscalingPolicy() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"min_adjustment_step": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Removed:  "Use `min_adjustment_magnitude` argument instead",
 			},
 			"scaling_adjustment": {
 				Type:          schema.TypeInt,
@@ -409,7 +404,11 @@ func getAwsAutoscalingPolicy(d *schema.ResourceData, meta interface{}) (*autosca
 	// find scaling policy
 	name := d.Get("name")
 	for idx, sp := range resp.ScalingPolicies {
-		if *sp.PolicyName == name {
+		if sp == nil {
+			continue
+		}
+
+		if aws.StringValue(sp.PolicyName) == name {
 			return resp.ScalingPolicies[idx], nil
 		}
 	}
@@ -462,7 +461,7 @@ func expandTargetTrackingConfiguration(configs []interface{}) *autoscaling.Targe
 			MetricName: aws.String(spec["metric_name"].(string)),
 			Statistic:  aws.String(spec["statistic"].(string)),
 		}
-		if val, ok := spec["unit"]; ok {
+		if val, ok := spec["unit"]; ok && len(val.(string)) > 0 {
 			customSpec.Unit = aws.String(val.(string))
 		}
 		if val, ok := spec["metric_dimension"]; ok {
@@ -489,31 +488,31 @@ func flattenTargetTrackingConfiguration(config *autoscaling.TargetTrackingConfig
 	}
 
 	result := map[string]interface{}{}
-	result["disable_scale_in"] = *config.DisableScaleIn
-	result["target_value"] = *config.TargetValue
+	result["disable_scale_in"] = aws.BoolValue(config.DisableScaleIn)
+	result["target_value"] = aws.Float64Value(config.TargetValue)
 	if config.PredefinedMetricSpecification != nil {
 		spec := map[string]interface{}{}
-		spec["predefined_metric_type"] = *config.PredefinedMetricSpecification.PredefinedMetricType
+		spec["predefined_metric_type"] = aws.StringValue(config.PredefinedMetricSpecification.PredefinedMetricType)
 		if config.PredefinedMetricSpecification.ResourceLabel != nil {
-			spec["resource_label"] = *config.PredefinedMetricSpecification.ResourceLabel
+			spec["resource_label"] = aws.StringValue(config.PredefinedMetricSpecification.ResourceLabel)
 		}
 		result["predefined_metric_specification"] = []map[string]interface{}{spec}
 	}
 	if config.CustomizedMetricSpecification != nil {
 		spec := map[string]interface{}{}
-		spec["metric_name"] = *config.CustomizedMetricSpecification.MetricName
-		spec["namespace"] = *config.CustomizedMetricSpecification.Namespace
-		spec["statistic"] = *config.CustomizedMetricSpecification.Statistic
+		spec["metric_name"] = aws.StringValue(config.CustomizedMetricSpecification.MetricName)
+		spec["namespace"] = aws.StringValue(config.CustomizedMetricSpecification.Namespace)
+		spec["statistic"] = aws.StringValue(config.CustomizedMetricSpecification.Statistic)
 		if config.CustomizedMetricSpecification.Unit != nil {
-			spec["unit"] = *config.CustomizedMetricSpecification.Unit
+			spec["unit"] = aws.StringValue(config.CustomizedMetricSpecification.Unit)
 		}
 		if config.CustomizedMetricSpecification.Dimensions != nil {
 			dimSpec := make([]interface{}, len(config.CustomizedMetricSpecification.Dimensions))
 			for i := range dimSpec {
 				dim := map[string]interface{}{}
 				rawDim := config.CustomizedMetricSpecification.Dimensions[i]
-				dim["name"] = *rawDim.Name
-				dim["value"] = *rawDim.Value
+				dim["name"] = aws.StringValue(rawDim.Name)
+				dim["value"] = aws.StringValue(rawDim.Value)
 				dimSpec[i] = dim
 			}
 			spec["metric_dimension"] = dimSpec

@@ -17,7 +17,7 @@ Provides an RDS DB option group resource. Documentation of the available options
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_option_group" "example" {
   name                     = "option-group-test-terraform"
   option_group_description = "Terraform Option Group"
@@ -38,7 +38,7 @@ resource "aws_db_option_group" "example" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = "${aws_iam_role.example.arn}"
+      value = aws_iam_role.example.arn
     }
   }
 
@@ -86,7 +86,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_db_option_group` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `delete` - (Default `15 minutes`)
 

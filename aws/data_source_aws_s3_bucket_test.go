@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceS3Bucket_basic(t *testing.T) {
@@ -14,8 +15,9 @@ func TestAccDataSourceS3Bucket_basic(t *testing.T) {
 	hostedZoneID, _ := HostedZoneIDForRegion(region)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, s3.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDataSourceS3BucketConfig_basic(bucketName),
@@ -38,8 +40,9 @@ func TestAccDataSourceS3Bucket_website(t *testing.T) {
 	region := testAccGetRegion()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, s3.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDataSourceS3BucketWebsiteConfig(bucketName),
@@ -60,7 +63,7 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 data "aws_s3_bucket" "bucket" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 }
 `, bucketName)
 }
@@ -78,7 +81,7 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 data "aws_s3_bucket" "bucket" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 }
 `, bucketName)
 }

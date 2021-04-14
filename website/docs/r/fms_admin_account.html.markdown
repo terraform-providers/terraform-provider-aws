@@ -12,7 +12,7 @@ Provides a resource to associate/disassociate an AWS Firewall Manager administra
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_fms_admin_account" "example" {}
 ```
 
@@ -22,7 +22,7 @@ The following arguments are supported:
 
 * `account_id` - (Optional) The AWS account ID to associate with AWS Firewall Manager as the AWS Firewall Manager administrator account. This can be an AWS Organizations master account or a member account. Defaults to the current account. Must be configured to perform drift detection.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

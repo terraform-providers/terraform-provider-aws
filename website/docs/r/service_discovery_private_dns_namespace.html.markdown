@@ -12,7 +12,7 @@ Provides a Service Discovery Private DNS Namespace resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_vpc" "example" {
   cidr_block = "10.0.0.0/16"
 }
@@ -20,7 +20,7 @@ resource "aws_vpc" "example" {
 resource "aws_service_discovery_private_dns_namespace" "example" {
   name        = "hoge.example.local"
   description = "example"
-  vpc         = "${aws_vpc.example.id}"
+  vpc         = aws_vpc.example.id
 }
 ```
 

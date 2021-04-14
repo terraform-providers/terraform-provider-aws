@@ -14,7 +14,7 @@ Attaches a Managed IAM Policy to an IAM user
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_user" "user" {
   name = "test-user"
 }
@@ -22,12 +22,12 @@ resource "aws_iam_user" "user" {
 resource "aws_iam_policy" "policy" {
   name        = "test-policy"
   description = "A test policy"
-  policy      = "" # insert policy here
+  policy      = "{ ... policy JSON ... }"
 }
 
 resource "aws_iam_user_policy_attachment" "test-attach" {
-  user       = "${aws_iam_user.user.name}"
-  policy_arn = "${aws_iam_policy.policy.arn}"
+  user       = aws_iam_user.user.name
+  policy_arn = aws_iam_policy.policy.arn
 }
 ```
 
@@ -37,6 +37,10 @@ The following arguments are supported:
 
 * `user`        (Required) - The user the policy should be applied to
 * `policy_arn`  (Required) - The ARN of the policy you want to apply
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

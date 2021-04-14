@@ -14,7 +14,7 @@ Provides an SWF Domain resource.
 
 To register a basic SWF domain:
 
-```hcl
+```terraform
 resource "aws_swf_domain" "foo" {
   name                                        = "foo"
   description                                 = "Terraform SWF Domain"

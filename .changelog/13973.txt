@@ -1,0 +1,5 @@
+```release-note:enhancement
+resource/aws_elastictranscoder_pipeline: Add plan time validations to `content_config.storage_class`, `content_config_permissions.access`, `content_config_permissions.grantee_type`,
+`notifications.completed`, `notifications.error`, `notifications.progressing`, `notifications.warning`,
+`thumbnail_config.storage_class`, `thumbnail_config_permissions.access`, `thumbnail_config_permissions.grantee_type`
+```

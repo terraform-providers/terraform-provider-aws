@@ -14,7 +14,7 @@ Note that the grant must exist in the destination region, and not in the region 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_redshift_snapshot_copy_grant" "test" {
   snapshot_copy_grant_name = "my-grant"
 }
@@ -23,7 +23,7 @@ resource "aws_redshift_cluster" "test" {
   # ... other configuration ...
   snapshot_copy {
     destination_region = "us-east-2"
-    grant_name         = "${aws_redshift_snapshot_copy_grant.test.snapshot_copy_grant_name}"
+    grant_name         = aws_redshift_snapshot_copy_grant.test.snapshot_copy_grant_name
   }
 }
 ```
@@ -37,6 +37,8 @@ The following arguments are supported:
 * `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of snapshot copy grant
 

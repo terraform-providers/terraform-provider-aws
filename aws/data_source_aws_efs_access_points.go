@@ -2,12 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsEfsAccessPoints() *schema.Resource {
@@ -62,7 +61,7 @@ func dataSourceAwsEfsAccessPointsRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("no matching EFS Access Points for File System (%s) found", fileSystemId)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(fileSystemId)
 
 	var arns, ids []string
 

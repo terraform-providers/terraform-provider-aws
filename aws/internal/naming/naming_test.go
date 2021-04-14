@@ -53,40 +53,6 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
-func TestHasResourceUniqueIdPrefix(t *testing.T) {
-	testCases := []struct {
-		TestName string
-		Input    string
-		Expected bool
-	}{
-		{
-			TestName: "empty",
-			Input:    "",
-			Expected: false,
-		},
-		{
-			TestName: "incorrect prefix",
-			Input:    "test-20060102150405000000000001",
-			Expected: false,
-		},
-		{
-			TestName: "correct prefix",
-			Input:    "terraform-20060102150405000000000001",
-			Expected: true,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.TestName, func(t *testing.T) {
-			got := HasResourceUniqueIdPrefix(testCase.Input)
-
-			if got != testCase.Expected {
-				t.Errorf("got %t, expected %t", got, testCase.Expected)
-			}
-		})
-	}
-}
-
 func TestHasResourceUniqueIdSuffix(t *testing.T) {
 	testCases := []struct {
 		TestName string
@@ -104,13 +70,13 @@ func TestHasResourceUniqueIdSuffix(t *testing.T) {
 			Expected: false,
 		},
 		{
-			TestName: "correct suffix, incorrect prefix",
+			TestName: "correct suffix with numbers",
 			Input:    "test-20060102150405000000000001",
 			Expected: true,
 		},
 		{
-			TestName: "correct suffix, correct prefix",
-			Input:    "terraform-20060102150405000000000001",
+			TestName: "correct suffix with hex",
+			Input:    "test-200601021504050000000000a1",
 			Expected: true,
 		},
 	}
@@ -138,24 +104,30 @@ func TestNamePrefixFromName(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			TestName: "correct prefix, incorrect suffix",
+			TestName: "incorrect suffix",
 			Input:    "test-123",
 			Expected: nil,
 		},
 		{
-			TestName: "correct prefix without hyphen, correct suffix",
+			TestName: "prefix without hyphen, correct suffix",
 			Input:    "test20060102150405000000000001",
 			Expected: strPtr("test"),
 		},
 		{
-			TestName: "correct prefix with hyphen, correct suffix",
+			TestName: "prefix with hyphen, correct suffix",
 			Input:    "test-20060102150405000000000001",
 			Expected: strPtr("test-"),
 		},
 		{
-			TestName: "incorrect prefix, correct suffix",
+			TestName: "prefix with hyphen, correct suffix with hex",
+			Input:    "test-200601021504050000000000f1",
+			Expected: strPtr("test-"),
+		},
+		// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/17017
+		{
+			TestName: "terraform prefix, correct suffix",
 			Input:    "terraform-20060102150405000000000001",
-			Expected: nil,
+			Expected: strPtr("terraform-"),
 		},
 	}
 
@@ -177,4 +149,20 @@ func TestNamePrefixFromName(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("extracting prefix from generated name", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			prefix := "test-"
+			input := Generate("", prefix)
+			got := NamePrefixFromName(input)
+
+			if got == nil {
+				t.Errorf("run%d: got nil, expected %s for input %s", i, prefix, input)
+			}
+
+			if got != nil && prefix != *got {
+				t.Errorf("run%d: got %s, expected %s for input %s", i, *got, prefix, input)
+			}
+		}
+	})
 }

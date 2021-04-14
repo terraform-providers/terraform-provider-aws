@@ -7,18 +7,20 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSOpsworksInstance_basic(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 	var opsinst opsworks.Instance
 	resourceName := "aws_opsworks_instance.tf-acc"
+	dataSourceName := "data.aws_availability_zones.available"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -34,9 +36,9 @@ func TestAccAWSOpsworksInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "install_updates_on_boot", "true"),
 					resource.TestCheckResourceAttr(resourceName, "architecture", "x86_64"),
 					resource.TestCheckResourceAttr(resourceName, "tenancy", "default"),
-					resource.TestCheckResourceAttr(resourceName, "os", "Amazon Linux 2016.09"),      // inherited from opsworks_stack_test
-					resource.TestCheckResourceAttr(resourceName, "root_device_type", "ebs"),         // inherited from opsworks_stack_test
-					resource.TestCheckResourceAttr(resourceName, "availability_zone", "us-west-2a"), // inherited from opsworks_stack_test
+					resource.TestCheckResourceAttr(resourceName, "os", "Amazon Linux 2016.09"),                       // inherited from opsworks_stack_test
+					resource.TestCheckResourceAttr(resourceName, "root_device_type", "ebs"),                          // inherited from opsworks_stack_test
+					resource.TestCheckResourceAttrPair(resourceName, "availability_zone", dataSourceName, "names.0"), // inherited from opsworks_stack_test
 				),
 			},
 			{
@@ -67,7 +69,8 @@ func TestAccAWSOpsworksInstance_UpdateHostNameForceNew(t *testing.T) {
 	var before, after opsworks.Instance
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -146,9 +149,6 @@ func testAccCheckAWSOpsworksInstanceAttributes(
 		if *opsinst.Status != "stopped" && *opsinst.Status != "requested" {
 			return fmt.Errorf("Unexpected request status: %s", *opsinst.Status)
 		}
-		if *opsinst.AvailabilityZone != "us-west-2a" {
-			return fmt.Errorf("Unexpected availability zone: %s", *opsinst.AvailabilityZone)
-		}
 		if *opsinst.Architecture != "x86_64" {
 			return fmt.Errorf("Unexpected architecture: %s", *opsinst.Architecture)
 		}
@@ -220,26 +220,26 @@ resource "aws_security_group" "tf-ops-acc-php" {
 }
 
 resource "aws_opsworks_static_web_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-web.id}",
+    aws_security_group.tf-ops-acc-web.id,
   ]
 }
 
 resource "aws_opsworks_php_app_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-php.id}",
+    aws_security_group.tf-ops-acc-php.id,
   ]
 }
 
 resource "aws_opsworks_instance" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   layer_ids = [
-    "${aws_opsworks_static_web_layer.tf-acc.id}",
+    aws_opsworks_static_web_layer.tf-acc.id,
   ]
 
   instance_type = "t2.micro"
@@ -248,7 +248,6 @@ resource "aws_opsworks_instance" "tf-acc" {
 }
 
 %s
-
 `, name, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }
 
@@ -277,26 +276,26 @@ resource "aws_security_group" "tf-ops-acc-php" {
 }
 
 resource "aws_opsworks_static_web_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-web.id}",
+    aws_security_group.tf-ops-acc-web.id,
   ]
 }
 
 resource "aws_opsworks_php_app_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-php.id}",
+    aws_security_group.tf-ops-acc-php.id,
   ]
 }
 
 resource "aws_opsworks_instance" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   layer_ids = [
-    "${aws_opsworks_static_web_layer.tf-acc.id}",
+    aws_opsworks_static_web_layer.tf-acc.id,
   ]
 
   instance_type = "t2.micro"
@@ -305,7 +304,6 @@ resource "aws_opsworks_instance" "tf-acc" {
 }
 
 %s
-
 `, name, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }
 
@@ -334,27 +332,27 @@ resource "aws_security_group" "tf-ops-acc-php" {
 }
 
 resource "aws_opsworks_static_web_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-web.id}",
+    aws_security_group.tf-ops-acc-web.id,
   ]
 }
 
 resource "aws_opsworks_php_app_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-php.id}",
+    aws_security_group.tf-ops-acc-php.id,
   ]
 }
 
 resource "aws_opsworks_instance" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   layer_ids = [
-    "${aws_opsworks_static_web_layer.tf-acc.id}",
-    "${aws_opsworks_php_app_layer.tf-acc.id}",
+    aws_opsworks_static_web_layer.tf-acc.id,
+    aws_opsworks_php_app_layer.tf-acc.id,
   ]
 
   instance_type = "t2.small"
@@ -368,6 +366,5 @@ resource "aws_opsworks_instance" "tf-acc" {
 }
 
 %s
-
 `, name, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }

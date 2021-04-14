@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/s3/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsS3BucketNotification() *schema.Resource {
@@ -309,26 +309,26 @@ func resourceAwsS3BucketNotificationPut(d *schema.ResourceData, meta interface{}
 	}
 
 	log.Printf("[DEBUG] S3 bucket: %s, Putting notification: %v", bucket, i)
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := s3conn.PutBucketNotificationConfiguration(i)
+
+		if tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if awserr, ok := err.(awserr.Error); ok {
-				switch awserr.Message() {
-				case "Unable to validate the following destination configurations":
-					return resource.RetryableError(awserr)
-				}
-			}
-			// Didn't recognize the error, so shouldn't retry.
 			return resource.NonRetryableError(err)
 		}
-		// Successful put configuration
+
 		return nil
 	})
-	if isResourceTimeoutError(err) {
+
+	if tfresource.TimedOut(err) {
 		_, err = s3conn.PutBucketNotificationConfiguration(i)
 	}
+
 	if err != nil {
-		return fmt.Errorf("Error putting S3 notification configuration: %s", err)
+		return fmt.Errorf("error putting S3 Bucket Notification Configuration: %w", err)
 	}
 
 	d.SetId(bucket)
@@ -346,8 +346,9 @@ func resourceAwsS3BucketNotificationDelete(d *schema.ResourceData, meta interfac
 
 	log.Printf("[DEBUG] S3 bucket: %s, Deleting notification: %v", d.Id(), i)
 	_, err := s3conn.PutBucketNotificationConfiguration(i)
+
 	if err != nil {
-		return fmt.Errorf("Error deleting S3 notification configuration: %s", err)
+		return fmt.Errorf("error deleting S3 Bucket Notification Configuration (%s): %w", d.Id(), err)
 	}
 
 	return nil
@@ -356,29 +357,24 @@ func resourceAwsS3BucketNotificationDelete(d *schema.ResourceData, meta interfac
 func resourceAwsS3BucketNotificationRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
 
-	var err error
-	_, err = s3conn.HeadBucket(&s3.HeadBucketInput{
-		Bucket: aws.String(d.Id()),
-	})
-	if err != nil {
-		if awsError, ok := err.(awserr.RequestFailure); ok && awsError.StatusCode() == 404 {
-			log.Printf("[WARN] S3 Bucket (%s) not found, error code (404)", d.Id())
-			d.SetId("")
-			return nil
-		} else {
-			// some of the AWS SDK's errors can be empty strings, so let's add
-			// some additional context.
-			return fmt.Errorf("error reading S3 bucket \"%s\": %s", d.Id(), err)
-		}
-	}
-
-	// Read the notification configuration
 	notificationConfigs, err := s3conn.GetBucketNotificationConfiguration(&s3.GetBucketNotificationConfigurationRequest{
 		Bucket: aws.String(d.Id()),
 	})
-	if err != nil {
-		return err
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+		log.Printf("[WARN] S3 Bucket Notification Configuration (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
+
+	if err != nil {
+		return fmt.Errorf("error reading S3 Bucket Notification Configuration (%s): %w", d.Id(), err)
+	}
+
+	if notificationConfigs == nil {
+		return fmt.Errorf("error reading S3 Bucket Notification Configuration (%s): empty response", d.Id())
+	}
+
 	log.Printf("[DEBUG] S3 Bucket: %s, get notification: %v", d.Id(), notificationConfigs)
 
 	d.Set("bucket", d.Id())
@@ -429,7 +425,7 @@ func flattenTopicConfigurations(configs []*s3.TopicConfiguration) []map[string]i
 		}
 
 		conf["id"] = *notification.Id
-		conf["events"] = schema.NewSet(schema.HashString, flattenStringList(notification.Events))
+		conf["events"] = flattenStringSet(notification.Events)
 		conf["topic_arn"] = *notification.TopicArn
 		topicNotifications = append(topicNotifications, conf)
 	}
@@ -448,7 +444,7 @@ func flattenQueueConfigurations(configs []*s3.QueueConfiguration) []map[string]i
 		}
 
 		conf["id"] = *notification.Id
-		conf["events"] = schema.NewSet(schema.HashString, flattenStringList(notification.Events))
+		conf["events"] = flattenStringSet(notification.Events)
 		conf["queue_arn"] = *notification.QueueArn
 		queueNotifications = append(queueNotifications, conf)
 	}
@@ -467,7 +463,7 @@ func flattenLambdaFunctionConfigurations(configs []*s3.LambdaFunctionConfigurati
 		}
 
 		conf["id"] = *notification.Id
-		conf["events"] = schema.NewSet(schema.HashString, flattenStringList(notification.Events))
+		conf["events"] = flattenStringSet(notification.Events)
 		conf["lambda_function_arn"] = *notification.LambdaFunctionArn
 		lambdaFunctionNotifications = append(lambdaFunctionNotifications, conf)
 	}

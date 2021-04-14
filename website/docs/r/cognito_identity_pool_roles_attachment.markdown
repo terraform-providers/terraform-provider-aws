@@ -12,7 +12,7 @@ Provides an AWS Cognito Identity Pool Roles Attachment.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "identity pool"
   allow_unauthenticated_identities = false
@@ -51,7 +51,7 @@ EOF
 
 resource "aws_iam_role_policy" "authenticated" {
   name = "authenticated_policy"
-  role = "${aws_iam_role.authenticated.id}"
+  role = aws_iam_role.authenticated.id
 
   policy = <<EOF
 {
@@ -74,7 +74,7 @@ EOF
 }
 
 resource "aws_cognito_identity_pool_roles_attachment" "main" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   role_mapping {
     identity_provider         = "graph.facebook.com"
@@ -84,13 +84,13 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
     mapping_rule {
       claim      = "isAdmin"
       match_type = "Equals"
-      role_arn   = "${aws_iam_role.authenticated.arn}"
+      role_arn   = aws_iam_role.authenticated.arn
       value      = "paid"
     }
   }
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 ```
@@ -119,7 +119,7 @@ The Cognito Identity Pool Roles Attachment argument layout is a structure compos
 
 ## Attributes Reference
 
-In addition to the arguments, which are exported, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The identity pool ID.
 * `identity_pool_id` (Required) - An identity pool ID in the format REGION:GUID.

@@ -16,9 +16,9 @@ Provides a resource to manage AWS Secrets Manager secret version including its s
 
 ### Simple String Value
 
-```hcl
+```terraform
 resource "aws_secretsmanager_secret_version" "example" {
-  secret_id     = "${aws_secretsmanager_secret.example.id}"
+  secret_id     = aws_secretsmanager_secret.example.id
   secret_string = "example-string-to-protect"
 }
 ```
@@ -27,7 +27,7 @@ resource "aws_secretsmanager_secret_version" "example" {
 
 Secrets Manager also accepts key-value pairs in JSON.
 
-```hcl
+```terraform
 # The map here can come from other supported configurations
 # like locals, resource attribute, map() built-in, etc.
 variable "example" {
@@ -36,18 +36,18 @@ variable "example" {
     key2 = "value2"
   }
 
-  type = "map"
+  type = map(string)
 }
 
 resource "aws_secretsmanager_secret_version" "example" {
-  secret_id     = "${aws_secretsmanager_secret.example.id}"
-  secret_string = "${jsonencode(var.example)}"
+  secret_id     = aws_secretsmanager_secret.example.id
+  secret_string = jsonencode(var.example)
 }
 ```
 
 Reading key-value pairs from JSON back into a native Terraform map can be accomplished in Terraform 0.12 and later with the [`jsondecode()` function](https://www.terraform.io/docs/configuration/functions/jsondecode.html):
 
-```hcl
+```terraform
 output "example" {
   value = jsondecode(aws_secretsmanager_secret_version.example.secret_string)["key1"]
 }
@@ -64,7 +64,9 @@ The following arguments are supported:
 
 ~> **NOTE:** If `version_stages` is configured, you must include the `AWSCURRENT` staging label if this secret version is the only version or if the label is currently present on this secret version, otherwise Terraform will show a perpetual difference.
 
-## Attribute Reference
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the secret.
 * `id` - A pipe delimited combination of secret ID and version ID.
@@ -75,5 +77,5 @@ The following arguments are supported:
 `aws_secretsmanager_secret_version` can be imported by using the secret ID and version ID, e.g.
 
 ```
-$ terraform import aws_secretsmanager_secret_version.example arn:aws:secretsmanager:us-east-1:123456789012:secret:example-123456|xxxxx-xxxxxxx-xxxxxxx-xxxxx
+$ terraform import aws_secretsmanager_secret_version.example 'arn:aws:secretsmanager:us-east-1:123456789012:secret:example-123456|xxxxx-xxxxxxx-xxxxxxx-xxxxx'
 ```

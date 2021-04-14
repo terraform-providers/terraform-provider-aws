@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -10,12 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	elasticsearch "github.com/aws/aws-sdk-go/service/elasticsearchservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsElasticSearchDomain() *schema.Resource {
@@ -33,7 +35,7 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 		},
 
 		CustomizeDiff: customdiff.Sequence(
-			customdiff.ForceNewIf("elasticsearch_version", func(d *schema.ResourceDiff, meta interface{}) bool {
+			customdiff.ForceNewIf("elasticsearch_version", func(_ context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				newVersion := d.Get("elasticsearch_version").(string)
 				domainName := d.Get("domain_name").(string)
 
@@ -139,7 +141,8 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enforce_https": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
+							Default:  true,
 						},
 						"tls_security_policy": {
 							Type:     schema.TypeString,
@@ -149,6 +152,22 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 								elasticsearch.TLSSecurityPolicyPolicyMinTls10201907,
 								elasticsearch.TLSSecurityPolicyPolicyMinTls12201907,
 							}, false),
+						},
+						"custom_endpoint_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"custom_endpoint": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: isCustomEndpointDisabled,
+						},
+						"custom_endpoint_certificate_arn": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateFunc:     validateArn,
+							DiffSuppressFunc: isCustomEndpointDisabled,
 						},
 					},
 				},
@@ -363,13 +382,9 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"log_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								elasticsearch.LogTypeIndexSlowLogs,
-								elasticsearch.LogTypeSearchSlowLogs,
-								elasticsearch.LogTypeEsApplicationLogs,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(elasticsearch.LogType_Values(), false),
 						},
 						"cloudwatch_log_group_arn": {
 							Type:         schema.TypeString,
@@ -554,7 +569,7 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 
 	// IAM Roles can take some time to propagate if set in AccessPolicies and created in the same terraform
 	var out *elasticsearch.CreateElasticsearchDomainOutput
-	err = resource.Retry(30*time.Second, func() *resource.RetryError {
+	err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		out, err = conn.CreateElasticsearchDomain(&input)
 		if err != nil {
@@ -709,16 +724,19 @@ func resourceAwsElasticSearchDomainRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	// Use AdvancedSecurityOptions from resource if possible
-	// because DescribeElasticsearchDomainConfig does not return MasterUserOptions
+	// Populate AdvancedSecurityOptions with values returned from
+	// DescribeElasticsearchDomainConfig, if enabled, else use
+	// values from resource; additionally, append MasterUserOptions
+	// from resource as they are not returned from the API
 	if ds.AdvancedSecurityOptions != nil {
-		if _, ok := d.GetOk("advanced_security_options"); ok {
-			d.Set("advanced_security_options.0.enabled", ds.AdvancedSecurityOptions.Enabled)
-			d.Set("advanced_security_options.0.internal_user_database_enabled", ds.AdvancedSecurityOptions.InternalUserDatabaseEnabled)
-		} else {
-			if err := d.Set("advanced_security_options", flattenAdvancedSecurityOptions(ds.AdvancedSecurityOptions)); err != nil {
-				return fmt.Errorf("error setting advanced_security_options: %w", err)
-			}
+		advSecOpts := flattenAdvancedSecurityOptions(ds.AdvancedSecurityOptions)
+		if !aws.BoolValue(ds.AdvancedSecurityOptions.Enabled) {
+			advSecOpts[0]["internal_user_database_enabled"] = getUserDBEnabled(d)
+		}
+		advSecOpts[0]["master_user_options"] = getMasterUserOptions(d)
+
+		if err := d.Set("advanced_security_options", advSecOpts); err != nil {
+			return fmt.Errorf("error setting advanced_security_options: %w", err)
 		}
 	}
 
@@ -742,7 +760,7 @@ func resourceAwsElasticSearchDomainRead(d *schema.ResourceData, meta interface{}
 		}
 	} else {
 		if ds.Endpoint != nil {
-			d.Set("endpoint", aws.StringValue(ds.Endpoint))
+			d.Set("endpoint", ds.Endpoint)
 			d.Set("kibana_endpoint", getKibanaEndpoint(d))
 		}
 		if ds.Endpoints != nil {
@@ -1033,6 +1051,15 @@ func isDedicatedMasterDisabled(k, old, new string, d *schema.ResourceData) bool 
 	if ok {
 		clusterConfig := v.([]interface{})[0].(map[string]interface{})
 		return !clusterConfig["dedicated_master_enabled"].(bool)
+	}
+	return false
+}
+
+func isCustomEndpointDisabled(k, old, new string, d *schema.ResourceData) bool {
+	v, ok := d.GetOk("domain_endpoint_options")
+	if ok {
+		domainEndpointOptions := v.([]interface{})[0].(map[string]interface{})
+		return !domainEndpointOptions["custom_endpoint_enabled"].(bool)
 	}
 	return false
 }

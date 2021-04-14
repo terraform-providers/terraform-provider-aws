@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -62,51 +62,27 @@ func testSweepElasticBeanstalkApplications(region string) error {
 	return errors
 }
 
-func TestAccAWSElasticBeanstalkApplication_basic(t *testing.T) {
-	resourceName := "aws_elastic_beanstalk_application.tftest"
-	config := fmt.Sprintf("tf-test-name-%d", acctest.RandInt())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBeanstalkAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBeanstalkAppImportConfig(config),
-			},
-
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func testAccBeanstalkAppImportConfig(name string) string {
-	return fmt.Sprintf(`
-resource "aws_elastic_beanstalk_application" "tftest" {
-  name        = "%s"
-  description = "tf-test-desc"
-}
-`, name)
-}
-
 func TestAccAWSBeanstalkApp_basic(t *testing.T) {
 	var app elasticbeanstalk.ApplicationDescription
 	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_elastic_beanstalk_application.tftest"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBeanstalkAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBeanstalkAppConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBeanstalkAppExists("aws_elastic_beanstalk_application.tftest", &app),
+					testAccCheckBeanstalkAppExists(resourceName, &app),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -118,6 +94,7 @@ func TestAccAWSBeanstalkApp_appversionlifecycle(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBeanstalkAppDestroy,
 		Steps: []resource.TestStep{
@@ -178,6 +155,7 @@ func TestAccAWSBeanstalkApp_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBeanstalkAppDestroy,
 		Steps: []resource.TestStep{
@@ -322,7 +300,7 @@ EOF
 
 resource "aws_iam_role_policy" "beanstalk_service" {
   name = "%[1]s"
-  role = "${aws_iam_role.beanstalk_service.id}"
+  role = aws_iam_role.beanstalk_service.id
 
   policy = <<EOF
 {
@@ -348,13 +326,14 @@ EOF
 func testAccBeanstalkAppConfigWithMaxAge(rName string) string {
 	return testAccBeanstalkAppServiceRole(rName) + fmt.Sprintf(`
 resource "aws_elastic_beanstalk_application" "tftest" {
-  name = "%s"
+  name        = "%s"
   description = "tf-test-desc"
-	appversion_lifecycle {
-		service_role = "${aws_iam_role.beanstalk_service.arn}"
-		max_age_in_days = 90
-		delete_source_from_s3 = true
-	}
+
+  appversion_lifecycle {
+    service_role          = aws_iam_role.beanstalk_service.arn
+    max_age_in_days       = 90
+    delete_source_from_s3 = true
+  }
 }
 `, rName)
 }
@@ -362,13 +341,14 @@ resource "aws_elastic_beanstalk_application" "tftest" {
 func testAccBeanstalkAppConfigWithMaxCount(rName string) string {
 	return testAccBeanstalkAppServiceRole(rName) + fmt.Sprintf(`
 resource "aws_elastic_beanstalk_application" "tftest" {
-  name = "%s"
+  name        = "%s"
   description = "tf-test-desc"
-	appversion_lifecycle {
-		service_role = "${aws_iam_role.beanstalk_service.arn}"
-		max_count = 10
-		delete_source_from_s3 = false
-	}
+
+  appversion_lifecycle {
+    service_role          = aws_iam_role.beanstalk_service.arn
+    max_count             = 10
+    delete_source_from_s3 = false
+  }
 }
 `, rName)
 }

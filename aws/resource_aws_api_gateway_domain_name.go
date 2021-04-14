@@ -7,10 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -120,6 +119,25 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 				},
 			},
 
+			"mutual_tls_authentication": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"truststore_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"truststore_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"regional_certificate_arn": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -155,7 +173,8 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 	log.Printf("[DEBUG] Creating API Gateway Domain Name")
 
 	params := &apigateway.CreateDomainNameInput{
-		DomainName: aws.String(d.Get("domain_name").(string)),
+		DomainName:              aws.String(d.Get("domain_name").(string)),
+		MutualTlsAuthentication: expandApiGatewayMutualTlsAuthentication(d.Get("mutual_tls_authentication").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("certificate_arn"); ok {
@@ -182,15 +201,15 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 		params.EndpointConfiguration = expandApiGatewayEndpointConfiguration(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("regional_certificate_arn"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("regional_certificate_arn"); ok {
 		params.RegionalCertificateArn = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("regional_certificate_name"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("regional_certificate_name"); ok {
 		params.RegionalCertificateName = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("security_policy"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("security_policy"); ok {
 		params.SecurityPolicy = aws.String(v.(string))
 	}
 
@@ -203,7 +222,7 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating API Gateway Domain Name: %s", err)
 	}
 
-	d.SetId(*domainName.DomainName)
+	d.SetId(aws.StringValue(domainName.DomainName))
 
 	return resourceAwsApiGatewayDomainNameRead(d, meta)
 }
@@ -218,7 +237,7 @@ func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{
 		DomainName: aws.String(d.Id()),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == apigateway.ErrCodeNotFoundException {
+		if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] API Gateway Domain Name (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -251,6 +270,10 @@ func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{
 	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(domainName.EndpointConfiguration)); err != nil {
 		return fmt.Errorf("error setting endpoint_configuration: %s", err)
 	}
+	err = d.Set("mutual_tls_authentication", flattenApiGatewayMutualTlsAuthentication(domainName.MutualTlsAuthentication))
+	if err != nil {
+		return fmt.Errorf("error setting mutual_tls_authentication: %s", err)
+	}
 
 	d.Set("regional_certificate_arn", domainName.RegionalCertificateArn)
 	d.Set("regional_certificate_name", domainName.RegionalCertificateName)
@@ -265,7 +288,7 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 
 	if d.HasChange("certificate_name") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/certificateName"),
 			Value: aws.String(d.Get("certificate_name").(string)),
 		})
@@ -273,7 +296,7 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 
 	if d.HasChange("certificate_arn") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/certificateArn"),
 			Value: aws.String(d.Get("certificate_arn").(string)),
 		})
@@ -281,7 +304,7 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 
 	if d.HasChange("regional_certificate_name") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/regionalCertificateName"),
 			Value: aws.String(d.Get("regional_certificate_name").(string)),
 		})
@@ -289,7 +312,7 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 
 	if d.HasChange("regional_certificate_arn") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/regionalCertificateArn"),
 			Value: aws.String(d.Get("regional_certificate_arn").(string)),
 		})
@@ -297,7 +320,7 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 
 	if d.HasChange("security_policy") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/securityPolicy"),
 			Value: aws.String(d.Get("security_policy").(string)),
 		})
@@ -310,9 +333,28 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 			m := v.([]interface{})[0].(map[string]interface{})
 
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:    aws.String("replace"),
+				Op:    aws.String(apigateway.OpReplace),
 				Path:  aws.String("/endpointConfiguration/types/0"),
 				Value: aws.String(m["types"].([]interface{})[0].(string)),
+			})
+		}
+	}
+
+	if d.HasChange("mutual_tls_authentication") {
+		vMutualTlsAuthentication := d.Get("mutual_tls_authentication").([]interface{})
+
+		if len(vMutualTlsAuthentication) == 0 || vMutualTlsAuthentication[0] == nil {
+			// To disable mutual TLS for a custom domain name, remove the truststore from your custom domain name.
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/mutualTlsAuthentication/truststoreUri"),
+				Value: aws.String(""),
+			})
+		} else {
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/mutualTlsAuthentication/truststoreVersion"),
+				Value: aws.String(vMutualTlsAuthentication[0].(map[string]interface{})["truststore_version"].(string)),
 			})
 		}
 	}
@@ -351,7 +393,7 @@ func resourceAwsApiGatewayDomainNameDelete(d *schema.ResourceData, meta interfac
 		DomainName: aws.String(d.Id()),
 	})
 
-	if isAWSErr(err, "NotFoundException", "") {
+	if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 		return nil
 	}
 
@@ -360,4 +402,32 @@ func resourceAwsApiGatewayDomainNameDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func expandApiGatewayMutualTlsAuthentication(vMutualTlsAuthentication []interface{}) *apigateway.MutualTlsAuthenticationInput {
+	if len(vMutualTlsAuthentication) == 0 || vMutualTlsAuthentication[0] == nil {
+		return nil
+	}
+	mMutualTlsAuthentication := vMutualTlsAuthentication[0].(map[string]interface{})
+
+	mutualTlsAuthentication := &apigateway.MutualTlsAuthenticationInput{
+		TruststoreUri: aws.String(mMutualTlsAuthentication["truststore_uri"].(string)),
+	}
+
+	if vTruststoreVersion, ok := mMutualTlsAuthentication["truststore_version"].(string); ok && vTruststoreVersion != "" {
+		mutualTlsAuthentication.TruststoreVersion = aws.String(vTruststoreVersion)
+	}
+
+	return mutualTlsAuthentication
+}
+
+func flattenApiGatewayMutualTlsAuthentication(mutualTlsAuthentication *apigateway.MutualTlsAuthentication) []interface{} {
+	if mutualTlsAuthentication == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"truststore_uri":     aws.StringValue(mutualTlsAuthentication.TruststoreUri),
+		"truststore_version": aws.StringValue(mutualTlsAuthentication.TruststoreVersion),
+	}}
 }

@@ -41,9 +41,10 @@ func main() {
 		"TagInputCustomValue":               keyvaluetags.ServiceTagInputCustomValue,
 		"TagInputIdentifierField":           keyvaluetags.ServiceTagInputIdentifierField,
 		"TagInputIdentifierRequiresSlice":   keyvaluetags.ServiceTagInputIdentifierRequiresSlice,
-		"TagInputResourceTypeField":         keyvaluetags.ServiceTagInputResourceTypeField,
 		"TagInputTagsField":                 keyvaluetags.ServiceTagInputTagsField,
 		"TagPackage":                        keyvaluetags.ServiceTagPackage,
+		"TagResourceTypeField":              keyvaluetags.ServiceTagResourceTypeField,
+		"TagTypeIdentifierField":            keyvaluetags.ServiceTagTypeIdentifierField,
 		"Title":                             strings.Title,
 	}
 
@@ -87,71 +88,46 @@ var templateBody = `
 package keyvaluetags
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 {{- range .ServiceNames }}
 	"github.com/aws/aws-sdk-go/service/{{ . }}"
 {{- end }}
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const EventualConsistencyTimeout = 5 * time.Minute
-
-// Similar to isAWSErr from aws/awserr.go
-// TODO: Add and export in shared package
-func isAWSErrCode(err error, code string) bool {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		return awsErr.Code() == code
-	}
-	return false
-}
-
-// TODO: Add and export in shared package
-func isAWSErrCodeContains(err error, code string) bool {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		return strings.Contains(awsErr.Code(), code)
-	}
-	return false
-}
-
-// Copied from aws/utils.go
-// TODO: Export in shared package or add to Terraform Plugin SDK
-func isResourceTimeoutError(err error) bool {
-	timeoutErr, ok := err.(*resource.TimeoutError)
-	return ok && timeoutErr.LastError == nil
-}
 
 {{- range .ServiceNames }}
 
 // {{ . | Title }}CreateTags creates {{ . }} service tags for new resources.
 // The identifier is typically the Amazon Resource Name (ARN), although
 // it may also be a different identifier depending on the service.
-func {{ . | Title }}CreateTags(conn {{ . | ClientType }}, identifier string{{ if . | TagInputResourceTypeField }}, resourceType string{{ end }}, tagsMap interface{}) error {
+func {{ . | Title }}CreateTags(conn {{ . | ClientType }}, identifier string{{ if . | TagResourceTypeField }}, resourceType string{{ end }}, tagsMap interface{}) error {
 	tags := New(tagsMap)
 
 	{{- if . | TagFunctionBatchSize }}
 	for _, tags := range tags.Chunks({{ . | TagFunctionBatchSize }}) {
 	{{- end }}
 	input := &{{ . | TagPackage }}.{{ . | TagFunction }}Input{
+		{{- if not ( . | TagTypeIdentifierField ) }}
 		{{- if . | TagInputIdentifierRequiresSlice }}
-		{{ . | TagInputIdentifierField }}:   aws.StringSlice([]string{identifier}),
+		{{ . | TagInputIdentifierField }}: aws.StringSlice([]string{identifier}),
 		{{- else }}
-		{{ . | TagInputIdentifierField }}:   aws.String(identifier),
+		{{ . | TagInputIdentifierField }}: aws.String(identifier),
 		{{- end }}
-		{{- if . | TagInputResourceTypeField }}
-		{{ . | TagInputResourceTypeField }}: aws.String(resourceType),
+		{{- if . | TagResourceTypeField }}
+		{{ . | TagResourceTypeField }}:    aws.String(resourceType),
+		{{- end }}
 		{{- end }}
 		{{- if . | TagInputCustomValue }}
-		{{ . | TagInputTagsField }}:         {{ . | TagInputCustomValue }},
+		{{ . | TagInputTagsField }}:       {{ . | TagInputCustomValue }},
 		{{- else }}
-		{{ . | TagInputTagsField }}:         tags.IgnoreAws().{{ . | Title }}Tags(),
+		{{ . | TagInputTagsField }}:       tags.IgnoreAws().{{ . | Title }}Tags(),
 		{{- end }}
 	}
 
@@ -162,11 +138,11 @@ func {{ . | Title }}CreateTags(conn {{ . | ClientType }}, identifier string{{ if
 
 		{{- if . | ResourceNotFoundErrorCodeContains }}
 
-		if isAWSErrCodeContains(err, "{{ . | ResourceNotFoundErrorCodeContains }}") {
+		if tfawserr.ErrCodeContains(err, "{{ . | ResourceNotFoundErrorCodeContains }}") {
 
 		{{- else }}
 
-		if isAWSErrCode(err, {{ . | ResourceNotFoundErrorCode }}) {
+		if tfawserr.ErrCodeEquals(err, {{ . | ResourceNotFoundErrorCode }}) {
 
 		{{- end }}
 			return resource.RetryableError(err)
@@ -179,7 +155,7 @@ func {{ . | Title }}CreateTags(conn {{ . | ClientType }}, identifier string{{ if
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
+	if tfresource.TimedOut(err) {
 		_, err = conn.{{ . | TagFunction }}(input)
 	}
 	{{- else }}

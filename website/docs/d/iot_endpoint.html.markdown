@@ -12,7 +12,7 @@ Returns a unique endpoint specific to the AWS account making the call.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iot_endpoint" "example" {}
 
 resource "kubernetes_pod" "agent" {
@@ -25,12 +25,10 @@ resource "kubernetes_pod" "agent" {
       image = "gcr.io/my-project/image-name"
       name  = "image-name"
 
-      env = [
-        {
-          name  = "IOT_ENDPOINT"
-          value = "${data.aws_iot_endpoint.example.endpoint_address}"
-        },
-      ]
+      env {
+        name  = "IOT_ENDPOINT"
+        value = data.aws_iot_endpoint.example.endpoint_address
+      }
     }
   }
 }

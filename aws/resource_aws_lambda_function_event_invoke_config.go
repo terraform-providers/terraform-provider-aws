@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsLambdaFunctionEventInvokeConfig() *schema.Resource {
@@ -182,8 +182,8 @@ func resourceAwsLambdaFunctionEventInvokeConfigRead(d *schema.ResourceData, meta
 	}
 
 	d.Set("function_name", functionName)
-	d.Set("maximum_event_age_in_seconds", aws.Int64Value(output.MaximumEventAgeInSeconds))
-	d.Set("maximum_retry_attempts", aws.Int64Value(output.MaximumRetryAttempts))
+	d.Set("maximum_event_age_in_seconds", output.MaximumEventAgeInSeconds)
+	d.Set("maximum_retry_attempts", output.MaximumRetryAttempts)
 	d.Set("qualifier", qualifier)
 
 	return nil
@@ -289,7 +289,7 @@ func resourceAwsLambdaFunctionEventInvokeConfigParseId(id string) (string, strin
 			return id, "", nil
 		}
 
-		functionParts := strings.Split(id, ":")
+		functionParts := strings.Split(function, ":")
 
 		if len(functionParts) != 2 || functionParts[0] == "" || functionParts[1] == "" {
 			return "", "", fmt.Errorf("unexpected format of function resource (%s), expected name:qualifier", id)

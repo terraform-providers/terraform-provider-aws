@@ -3,11 +3,10 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAWSSsmAssociationRuleMigrateState(t *testing.T) {
-
 	cases := map[string]struct {
 		StateVersion int
 		ID           string

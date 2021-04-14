@@ -12,7 +12,7 @@ Provides an SES receipt filter resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ses_receipt_filter" "filter" {
   name   = "block-spammer"
   cidr   = "10.10.10.10"
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the arguments, which are exported, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The SES receipt filter name.
 * `arn` - The SES receipt filter ARN.

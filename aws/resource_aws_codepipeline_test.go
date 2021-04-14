@@ -2,25 +2,87 @@ package aws
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/codestarconnections"
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/envvar"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_codepipeline", &resource.Sweeper{
+		Name: "aws_codepipeline",
+		F:    testSweepCodepipelinePipelines,
+	})
+}
+
+func testSweepCodepipelinePipelines(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).codepipelineconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
+	input := &codepipeline.ListPipelinesInput{}
+
+	err = conn.ListPipelinesPages(input, func(page *codepipeline.ListPipelinesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, pipeline := range page.Pipelines {
+			r := resourceAwsCodePipeline()
+			d := r.Data(nil)
+
+			d.SetId(aws.StringValue(pipeline.Name))
+
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error listing Codepipeline Pipeline for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping Codepipeline Pipeline for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping Codepipeline Pipeline sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
+}
 
 func TestAccAWSCodePipeline_basic(t *testing.T) {
 	var p1, p2 codepipeline.PipelineDeclaration
 	name := acctest.RandString(10)
 	resourceName := "aws_codepipeline.test"
+	codestarConnectionResourceName := "aws_codestarconnections_connection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -38,16 +100,16 @@ func TestAccAWSCodePipeline_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.name", "Source"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.category", "Source"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.owner", "ThirdParty"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.provider", "GitHub"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.owner", "AWS"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.provider", "CodeStarSourceConnection"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.version", "1"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.input_artifacts.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.output_artifacts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.output_artifacts.0", "test"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Owner", "lifesum-terraform"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Repo", "test"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Branch", "master"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.FullRepositoryId", "lifesum-terraform/test"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.BranchName", "main"),
+					resource.TestCheckResourceAttrPair(resourceName, "stage.0.action.0.configuration.ConnectionArn", codestarConnectionResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.role_arn", ""),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.run_order", "1"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.region", ""),
@@ -88,9 +150,9 @@ func TestAccAWSCodePipeline_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.output_artifacts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.output_artifacts.0", "artifacts"),
 					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Owner", "test-terraform"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Repo", "test-repo"),
-					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Branch", "stable"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.FullRepositoryId", "test-terraform/test-repo"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.BranchName", "stable"),
+					resource.TestCheckResourceAttrPair(resourceName, "stage.0.action.0.configuration.ConnectionArn", codestarConnectionResourceName, "arn"),
 
 					resource.TestCheckResourceAttr(resourceName, "stage.1.name", "Build"),
 					resource.TestCheckResourceAttr(resourceName, "stage.1.action.#", "1"),
@@ -105,6 +167,37 @@ func TestAccAWSCodePipeline_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"stage.0.action.0.configuration.%",
+					"stage.0.action.0.configuration.OAuthToken",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSCodePipeline_disappears(t *testing.T) {
+	var p codepipeline.PipelineDeclaration
+	name := acctest.RandString(10)
+	resourceName := "aws_codepipeline.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodePipelineConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodePipelineExists(resourceName, &p),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCodePipeline(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -116,7 +209,12 @@ func TestAccAWSCodePipeline_emptyStageArtifacts(t *testing.T) {
 	resourceName := "aws_codepipeline.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -153,7 +251,12 @@ func TestAccAWSCodePipeline_deployWithServiceRole(t *testing.T) {
 	resourceName := "aws_codepipeline.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -181,7 +284,12 @@ func TestAccAWSCodePipeline_tags(t *testing.T) {
 	resourceName := "aws_codepipeline.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -236,11 +344,12 @@ func TestAccAWSCodePipeline_multiregion_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
-			testAccPreCheckAWSCodePipeline(t)
+			testAccMultipleRegionPreCheck(t, 2)
+			testAccPreCheckAWSCodePipelineSupported(t, testAccGetAlternateRegion())
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheck(t, codepipeline.EndpointsID),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -277,11 +386,12 @@ func TestAccAWSCodePipeline_multiregion_Update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
-			testAccPreCheckAWSCodePipeline(t)
+			testAccMultipleRegionPreCheck(t, 2)
+			testAccPreCheckAWSCodePipelineSupported(t, testAccGetAlternateRegion())
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheck(t, codepipeline.EndpointsID),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -332,11 +442,12 @@ func TestAccAWSCodePipeline_multiregion_ConvertSingleRegion(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
-			testAccPreCheckAWSCodePipeline(t)
+			testAccMultipleRegionPreCheck(t, 2)
+			testAccPreCheckAWSCodePipelineSupported(t, testAccGetAlternateRegion())
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheck(t, codepipeline.EndpointsID),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -387,17 +498,18 @@ func TestAccAWSCodePipeline_multiregion_ConvertSingleRegion(t *testing.T) {
 	})
 }
 
-func TestAccAWSCodePipelineWithNamespace(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
-
+func TestAccAWSCodePipeline_WithNamespace(t *testing.T) {
 	var p1 codepipeline.PipelineDeclaration
 	name := acctest.RandString(10)
 	resourceName := "aws_codepipeline.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -413,6 +525,82 @@ func TestAccAWSCodePipelineWithNamespace(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSCodePipeline_WithGitHubv1SourceAction(t *testing.T) {
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, "token with GitHub permissions to repository for CodePipeline source configuration")
+
+	var v codepipeline.PipelineDeclaration
+	name := acctest.RandString(10)
+	resourceName := "aws_codepipeline.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCodePipelineSupported(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodePipelineConfig_WithGitHubv1SourceAction(name, githubToken),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodePipelineExists(resourceName, &v),
+
+					resource.TestCheckResourceAttr(resourceName, "stage.#", "2"),
+
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.name", "Source"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.category", "Source"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.owner", "ThirdParty"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.provider", "GitHub"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.version", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.%", "4"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Owner", "lifesum-terraform"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Repo", "test"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Branch", "main"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.OAuthToken", githubToken),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"stage.0.action.0.configuration.%",
+					"stage.0.action.0.configuration.OAuthToken",
+				},
+			},
+			{
+				Config: testAccAWSCodePipelineConfig_WithGitHubv1SourceAction_Updated(name, githubToken),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodePipelineExists(resourceName, &v),
+
+					resource.TestCheckResourceAttr(resourceName, "stage.#", "2"),
+
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.name", "Source"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.category", "Source"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.owner", "ThirdParty"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.provider", "GitHub"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.version", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.%", "4"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Owner", "test-terraform"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Repo", "test-repo"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.Branch", "stable"),
+					resource.TestCheckResourceAttr(resourceName, "stage.0.action.0.configuration.OAuthToken", githubToken),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"stage.0.action.0.configuration.%",
+					"stage.0.action.0.configuration.OAuthToken",
+				},
 			},
 		},
 	})
@@ -468,30 +656,35 @@ func testAccCheckAWSCodePipelineDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccPreCheckAWSCodePipeline(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
+func testAccPreCheckAWSCodePipelineSupported(t *testing.T, regions ...string) {
+	regions = append(regions, testAccGetRegion())
+	for _, region := range regions {
+		conf := &Config{
+			Region: region,
+		}
+		client, err := conf.Client()
+		if err != nil {
+			t.Fatalf("error getting AWS client for region %s", region)
+		}
+		conn := client.(*AWSClient).codepipelineconn
 
-	conn := testAccProvider.Meta().(*AWSClient).codepipelineconn
+		input := &codepipeline.ListPipelinesInput{}
+		_, err = conn.ListPipelines(input)
 
-	input := &codepipeline.ListPipelinesInput{}
+		if testAccPreCheckSkipError(err) {
+			t.Skipf("skipping acceptance testing: %s", err)
+		}
 
-	_, err := conn.ListPipelines(input)
-
-	if testAccPreCheckSkipError(err) {
-		t.Skipf("skipping acceptance testing: %s", err)
-	}
-
-	if err != nil {
-		t.Fatalf("unexpected PreCheck error: %s", err)
+		if err != nil {
+			t.Fatalf("unexpected PreCheck error: %s", err)
+		}
 	}
 }
 
 func testAccAWSCodePipelineServiceIAMRole(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline-role-%s"
+  name = "codepipeline-role-%[1]s"
 
   assume_role_policy = <<EOF
 {
@@ -511,14 +704,14 @@ EOF
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
   name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
+  role = aws_iam_role.codepipeline_role.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Effect":"Allow",
+      "Effect": "Allow",
       "Action": [
         "s3:GetObject",
         "s3:GetObjectVersion",
@@ -547,7 +740,7 @@ EOF
 func testAccAWSCodePipelineServiceIAMRoleWithAssumeRole(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline-role-%s"
+  name = "codepipeline-role-%[1]s"
 
   assume_role_policy = <<EOF
 {
@@ -567,7 +760,7 @@ EOF
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
   name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
+  role = aws_iam_role.codepipeline_role.id
 
   policy = <<EOF
 {
@@ -613,11 +806,11 @@ func testAccAWSCodePipelineConfig_basic(rName string) string {
 		testAccAWSCodePipelineServiceIAMRole(rName),
 		fmt.Sprintf(`
 resource "aws_codepipeline" "test" {
-  name     = "test-pipeline-%s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  name     = "test-pipeline-%[1]s"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.test.bucket}"
+    location = aws_s3_bucket.test.bucket
     type     = "S3"
 
     encryption_key {
@@ -632,15 +825,15 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["test"]
 
       configuration = {
-        Owner  = "lifesum-terraform"
-        Repo   = "test"
-        Branch = "master"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
@@ -662,6 +855,11 @@ resource "aws_codepipeline" "test" {
     }
   }
 }
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
 `, rName))
 }
 
@@ -673,10 +871,10 @@ func testAccAWSCodePipelineConfig_basicUpdated(rName string) string {
 		fmt.Sprintf(`
 resource "aws_codepipeline" "test" {
   name     = "test-pipeline-%s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.updated.bucket}"
+    location = aws_s3_bucket.updated.bucket
     type     = "S3"
 
     encryption_key {
@@ -691,15 +889,15 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["artifacts"]
 
       configuration = {
-        Owner  = "test-terraform"
-        Repo   = "test-repo"
-        Branch = "stable"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "test-terraform/test-repo"
+        BranchName       = "stable"
       }
     }
   }
@@ -721,6 +919,11 @@ resource "aws_codepipeline" "test" {
     }
   }
 }
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
 `, rName))
 }
 
@@ -730,11 +933,11 @@ func testAccAWSCodePipelineConfig_emptyStageArtifacts(rName string) string {
 		testAccAWSCodePipelineServiceIAMRole(rName),
 		fmt.Sprintf(`
 resource "aws_codepipeline" "test" {
-  name     = "test-pipeline-%s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  name     = "test-pipeline-%[1]s"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.test.bucket}"
+    location = aws_s3_bucket.test.bucket
     type     = "S3"
   }
 
@@ -744,15 +947,15 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["test"]
 
       configuration = {
-        Owner  = "lifesum-terraform"
-        Repo   = "test"
-        Branch = "master"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
@@ -775,12 +978,18 @@ resource "aws_codepipeline" "test" {
     }
   }
 }
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
 `, rName))
 }
 
 func testAccAWSCodePipelineDeployActionIAMRole(rName string) string {
 	return fmt.Sprintf(`
 data "aws_caller_identity" "current" {}
+data "aws_partition" "current" {}
 
 resource "aws_iam_role" "codepipeline_action_role" {
   name = "codepipeline-action-role-%s"
@@ -792,7 +1001,7 @@ resource "aws_iam_role" "codepipeline_action_role" {
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        "AWS": "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"
       },
       "Action": "sts:AssumeRole"
     }
@@ -803,14 +1012,14 @@ EOF
 
 resource "aws_iam_role_policy" "codepipeline_action_policy" {
   name = "codepipeline_action_policy"
-  role = "${aws_iam_role.codepipeline_action_role.id}"
+  role = aws_iam_role.codepipeline_action_role.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Effect":"Allow",
+      "Effect": "Allow",
       "Action": [
         "s3:GetObject",
         "s3:GetObjectVersion",
@@ -836,10 +1045,10 @@ func testAccAWSCodePipelineConfig_deployWithServiceRole(rName string) string {
 		fmt.Sprintf(`
 resource "aws_codepipeline" "test" {
   name     = "test-pipeline-%s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.test.bucket}"
+    location = aws_s3_bucket.test.bucket
     type     = "S3"
 
     encryption_key {
@@ -854,15 +1063,15 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["artifacts"]
 
       configuration = {
-        Owner  = "test-terraform"
-        Repo   = "test-repo"
-        Branch = "stable"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
@@ -894,7 +1103,7 @@ resource "aws_codepipeline" "test" {
       owner           = "AWS"
       provider        = "CloudFormation"
       input_artifacts = ["artifacts2"]
-      role_arn        = "${aws_iam_role.codepipeline_action_role.arn}"
+      role_arn        = aws_iam_role.codepipeline_action_role.arn
       version         = "1"
 
       configuration = {
@@ -906,6 +1115,11 @@ resource "aws_codepipeline" "test" {
     }
   }
 }
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
 `, rName))
 }
 
@@ -916,10 +1130,10 @@ func testAccAWSCodePipelineConfigWithTags(rName, tag1, tag2 string) string {
 		fmt.Sprintf(`
 resource "aws_codepipeline" "test" {
   name     = "test-pipeline-%[1]s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.test.bucket}"
+    location = aws_s3_bucket.test.bucket
     type     = "S3"
 
     encryption_key {
@@ -934,15 +1148,15 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["test"]
 
       configuration = {
-        Owner  = "lifesum-terraform"
-        Repo   = "test"
-        Branch = "master"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
@@ -970,6 +1184,11 @@ resource "aws_codepipeline" "test" {
     tag2 = %[3]q
   }
 }
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
 `, rName, tag1, tag2))
 }
 
@@ -977,84 +1196,36 @@ func testAccAWSCodePipelineConfig_multiregion(rName string) string {
 	return composeConfig(
 		testAccAlternateRegionProviderConfig(),
 		testAccAWSCodePipelineS3DefaultBucket(rName),
-		testAccAWSCodePipelineS3BucketWithProvider("alternate", rName, "aws.alternate"),
+		testAccAWSCodePipelineServiceIAMRole(rName),
+		testAccAWSCodePipelineS3BucketWithProvider("alternate", rName, "awsalternate"),
 		fmt.Sprintf(`
-resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline-role-%[1]s"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codepipeline.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "codepipeline_policy" {
-  name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect":"Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:GetBucketVersioning"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.test.arn}",
-        "${aws_s3_bucket.test.arn}/*",
-        "${aws_s3_bucket.alternate.arn}",
-        "${aws_s3_bucket.alternate.arn}/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
-
 resource "aws_codepipeline" "test" {
   name     = "test-pipeline-%[1]s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-		location = "${aws_s3_bucket.test.bucket}"
-		type     = "S3"
+    location = aws_s3_bucket.test.bucket
+    type     = "S3"
+
     encryption_key {
       id   = "1234"
       type = "KMS"
     }
+
     region = "%[2]s"
-	}
+  }
+
   artifact_store {
-		location = "${aws_s3_bucket.alternate.bucket}"
-		type     = "S3"
+    location = aws_s3_bucket.alternate.bucket
+    type     = "S3"
+
     encryption_key {
       id   = "5678"
       type = "KMS"
     }
-    region   = "%[3]s"
-	}
+
+    region = "%[3]s"
+  }
 
   stage {
     name = "Source"
@@ -1062,23 +1233,24 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["test"]
 
       configuration = {
-        Owner  = "lifesum-terraform"
-        Repo   = "test"
-        Branch = "master"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
+
   stage {
     name = "Build"
 
     action {
-		  region          = "%[2]s"
+      region          = "%[2]s"
       name            = "Build"
       category        = "Build"
       owner           = "AWS"
@@ -1090,8 +1262,9 @@ resource "aws_codepipeline" "test" {
         ProjectName = "Test"
       }
     }
+
     action {
-		  region          = "%[3]s"
+      region          = "%[3]s"
       name            = "%[3]s-Build"
       category        = "Build"
       owner           = "AWS"
@@ -1105,6 +1278,11 @@ resource "aws_codepipeline" "test" {
     }
   }
 }
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
 `, rName, testAccGetRegion(), testAccGetAlternateRegion()))
 }
 
@@ -1112,84 +1290,36 @@ func testAccAWSCodePipelineConfig_multiregionUpdated(rName string) string {
 	return composeConfig(
 		testAccAlternateRegionProviderConfig(),
 		testAccAWSCodePipelineS3DefaultBucket(rName),
-		testAccAWSCodePipelineS3BucketWithProvider("alternate", rName, "aws.alternate"),
+		testAccAWSCodePipelineServiceIAMRole(rName),
+		testAccAWSCodePipelineS3BucketWithProvider("alternate", rName, "awsalternate"),
 		fmt.Sprintf(`
-resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline-role-%[1]s"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codepipeline.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "codepipeline_policy" {
-  name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect":"Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:GetBucketVersioning"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.test.arn}",
-        "${aws_s3_bucket.test.arn}/*",
-        "${aws_s3_bucket.alternate.arn}",
-        "${aws_s3_bucket.alternate.arn}/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
-
 resource "aws_codepipeline" "test" {
   name     = "test-pipeline-%[1]s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-		location = "${aws_s3_bucket.test.bucket}"
-		type     = "S3"
+    location = aws_s3_bucket.test.bucket
+    type     = "S3"
+
     encryption_key {
       id   = "4321"
       type = "KMS"
     }
+
     region = "%[2]s"
-	}
+  }
+
   artifact_store {
-		location = "${aws_s3_bucket.alternate.bucket}"
-		type     = "S3"
+    location = aws_s3_bucket.alternate.bucket
+    type     = "S3"
+
     encryption_key {
       id   = "8765"
       type = "KMS"
     }
-    region   = "%[3]s"
-	}
+
+    region = "%[3]s"
+  }
 
   stage {
     name = "Source"
@@ -1197,23 +1327,24 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["test"]
 
       configuration = {
-        Owner  = "lifesum-terraform"
-        Repo   = "test"
-        Branch = "master"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
+
   stage {
     name = "Build"
 
     action {
-		  region          = "%[2]s"
+      region          = "%[2]s"
       name            = "BuildUpdated"
       category        = "Build"
       owner           = "AWS"
@@ -1225,8 +1356,9 @@ resource "aws_codepipeline" "test" {
         ProjectName = "Test"
       }
     }
+
     action {
-		  region          = "%[3]s"
+      region          = "%[3]s"
       name            = "%[3]s-BuildUpdated"
       category        = "Build"
       owner           = "AWS"
@@ -1239,6 +1371,11 @@ resource "aws_codepipeline" "test" {
       }
     }
   }
+}
+
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
 }
 `, rName, testAccGetRegion(), testAccGetAlternateRegion()))
 }
@@ -1266,21 +1403,24 @@ resource "aws_s3_bucket" "%[1]s" {
 func testAccAWSCodePipelineS3BucketWithProvider(bucket, rName, provider string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "%[1]s" {
-  bucket = "tf-test-pipeline-%[1]s-%[2]s"
-  acl    = "private"
+  bucket   = "tf-test-pipeline-%[1]s-%[2]s"
+  acl      = "private"
   provider = %[3]s
 }
 `, bucket, rName, provider)
 }
 
 func testAccAWSCodePipelineConfigWithNamespace(rName string) string {
-	return fmt.Sprintf(`
+	return composeConfig(
+		testAccAWSCodePipelineS3DefaultBucket(rName),
+		testAccAWSCodePipelineServiceIAMRole(rName),
+		fmt.Sprintf(`
 resource "aws_codepipeline" "test" {
   name     = "test-pipeline-%[1]s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.foo.bucket}"
+    location = aws_s3_bucket.foo.bucket
     type     = "S3"
 
     encryption_key {
@@ -1295,16 +1435,16 @@ resource "aws_codepipeline" "test" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["test"]
       namespace        = "SourceVariables"
 
       configuration = {
-        Owner  = "lifesum-terraform"
-        Repo   = "test"
-        Branch = "master"
+        ConnectionArn    = aws_codestarconnections_connection.test.arn
+        FullRepositoryId = "lifesum-terraform/test"
+        BranchName       = "main"
       }
     }
   }
@@ -1327,63 +1467,134 @@ resource "aws_codepipeline" "test" {
   }
 }
 
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "GitHub"
+}
+
 resource "aws_s3_bucket" "foo" {
   bucket = "tf-test-pipeline-%[1]s"
   acl    = "private"
 }
+`, rName))
+}
 
-resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline-role-%[1]s"
+func testAccAWSCodePipelineConfig_WithGitHubv1SourceAction(rName, githubToken string) string {
+	return composeConfig(
+		testAccAWSCodePipelineS3DefaultBucket(rName),
+		testAccAWSCodePipelineServiceIAMRole(rName),
+		fmt.Sprintf(`
+resource "aws_codepipeline" "test" {
+  name     = "test-pipeline-%[1]s"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codepipeline.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
+  artifact_store {
+    location = aws_s3_bucket.test.bucket
+    type     = "S3"
+
+    encryption_key {
+      id   = "1234"
+      type = "KMS"
     }
-  ]
-}
-EOF
-}
+  }
 
-resource "aws_iam_role_policy" "codepipeline_policy" {
-  name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
+  stage {
+    name = "Source"
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect":"Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:GetBucketVersioning"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.foo.arn}",
-        "${aws_s3_bucket.foo.arn}/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild"
-      ],
-      "Resource": "*"
+    action {
+      name             = "Source"
+      category         = "Source"
+      owner            = "ThirdParty"
+      provider         = "GitHub"
+      version          = "1"
+      output_artifacts = ["test"]
+
+      configuration = {
+        Owner      = "lifesum-terraform"
+        Repo       = "test"
+        Branch     = "main"
+        OAuthToken = %[2]q
+      }
     }
-  ]
+  }
+
+  stage {
+    name = "Build"
+
+    action {
+      name            = "Build"
+      category        = "Build"
+      owner           = "AWS"
+      provider        = "CodeBuild"
+      input_artifacts = ["test"]
+      version         = "1"
+
+      configuration = {
+        ProjectName = "test"
+      }
+    }
+  }
 }
-EOF
+`, rName, githubToken))
 }
-`, rName)
+
+func testAccAWSCodePipelineConfig_WithGitHubv1SourceAction_Updated(rName, githubToken string) string {
+	return composeConfig(
+		testAccAWSCodePipelineS3DefaultBucket(rName),
+		testAccAWSCodePipelineServiceIAMRole(rName),
+		fmt.Sprintf(`
+resource "aws_codepipeline" "test" {
+  name     = "test-pipeline-%[1]s"
+  role_arn = aws_iam_role.codepipeline_role.arn
+
+  artifact_store {
+    location = aws_s3_bucket.test.bucket
+    type     = "S3"
+
+    encryption_key {
+      id   = "1234"
+      type = "KMS"
+    }
+  }
+
+  stage {
+    name = "Source"
+
+    action {
+      name             = "Source"
+      category         = "Source"
+      owner            = "ThirdParty"
+      provider         = "GitHub"
+      version          = "1"
+      output_artifacts = ["artifacts"]
+
+      configuration = {
+        Owner      = "test-terraform"
+        Repo       = "test-repo"
+        Branch     = "stable"
+        OAuthToken = %[2]q
+      }
+    }
+  }
+
+  stage {
+    name = "Build"
+
+    action {
+      name            = "Build"
+      category        = "Build"
+      owner           = "AWS"
+      provider        = "CodeBuild"
+      input_artifacts = ["artifacts"]
+      version         = "1"
+
+      configuration = {
+        ProjectName = "test"
+      }
+    }
+  }
+}
+`, rName, githubToken))
 }
 
 func TestResourceAWSCodePipelineExpandArtifactStoresValidation(t *testing.T) {
@@ -1410,7 +1621,7 @@ func TestResourceAWSCodePipelineExpandArtifactStoresValidation(t *testing.T) {
 					"location":       "",
 					"type":           "",
 					"encryption_key": []interface{}{},
-					"region":         "us-west-2",
+					"region":         "us-west-2", //lintignore:AWSAT003
 				},
 			},
 			ExpectedError: "region cannot be set for a single-region CodePipeline",
@@ -1422,13 +1633,13 @@ func TestResourceAWSCodePipelineExpandArtifactStoresValidation(t *testing.T) {
 					"location":       "",
 					"type":           "",
 					"encryption_key": []interface{}{},
-					"region":         "us-west-2",
+					"region":         "us-west-2", //lintignore:AWSAT003
 				},
 				map[string]interface{}{
 					"location":       "",
 					"type":           "",
 					"encryption_key": []interface{}{},
-					"region":         "us-east-1",
+					"region":         "us-east-1", //lintignore:AWSAT003
 				},
 			},
 		},
@@ -1457,7 +1668,7 @@ func TestResourceAWSCodePipelineExpandArtifactStoresValidation(t *testing.T) {
 					"location":       "",
 					"type":           "",
 					"encryption_key": []interface{}{},
-					"region":         "us-west-2",
+					"region":         "us-west-2", //lintignore:AWSAT003
 				},
 				map[string]interface{}{
 					"location":       "",
@@ -1475,13 +1686,13 @@ func TestResourceAWSCodePipelineExpandArtifactStoresValidation(t *testing.T) {
 					"location":       "",
 					"type":           "",
 					"encryption_key": []interface{}{},
-					"region":         "us-west-2",
+					"region":         "us-west-2", //lintignore:AWSAT003
 				},
 				map[string]interface{}{
 					"location":       "",
 					"type":           "",
 					"encryption_key": []interface{}{},
-					"region":         "us-west-2",
+					"region":         "us-west-2", //lintignore:AWSAT003
 				},
 			},
 			ExpectedError: "only one Artifact Store can be defined per region for a cross-region CodePipeline",
@@ -1489,17 +1700,18 @@ func TestResourceAWSCodePipelineExpandArtifactStoresValidation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		tc := tc
 		_, err := expandAwsCodePipelineArtifactStores(tc.Input)
 		if tc.ExpectedError == "" {
 			if err != nil {
-				t.Errorf("%s: Did not expect an error, but got: %q", tc.Name, err)
+				t.Errorf("%s: Did not expect an error, but got: %w", tc.Name, err)
 			}
 		} else {
 			if err == nil {
 				t.Errorf("%s: Expected an error, but did not get one", tc.Name)
 			} else {
 				if err.Error() != tc.ExpectedError {
-					t.Errorf("%s: Expected error %q, got %q", tc.Name, tc.ExpectedError, err.Error())
+					t.Errorf("%s: Expected error %q, got %w", tc.Name, tc.ExpectedError, err)
 				}
 			}
 		}

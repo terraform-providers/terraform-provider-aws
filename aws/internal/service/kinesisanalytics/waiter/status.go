@@ -3,36 +3,24 @@ package waiter
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
-const (
-	// ApplicationStatus NotFound
-	ApplicationStatusNotFound = "NotFound"
-
-	// ApplicationStatus Unknown
-	ApplicationStatusUnknown = "Unknown"
-)
-
-// ApplicationStatus fetches the Application and its Status
-func ApplicationStatus(conn *kinesisanalytics.KinesisAnalytics, applicationName string) resource.StateRefreshFunc {
+// ApplicationStatus fetches the ApplicationDetail and its Status
+func ApplicationStatus(conn *kinesisanalytics.KinesisAnalytics, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		input := &kinesisanalytics.DescribeApplicationInput{
-			ApplicationName: aws.String(applicationName),
-		}
+		applicationDetail, err := finder.ApplicationDetailByName(conn, name)
 
-		output, err := conn.DescribeApplication(input)
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
 
 		if err != nil {
-			return nil, ApplicationStatusUnknown, err
+			return nil, "", err
 		}
 
-		application := output.ApplicationDetail
-
-		if application == nil {
-			return application, ApplicationStatusNotFound, nil
-		}
-
-		return application, aws.StringValue(application.ApplicationStatus), nil
+		return applicationDetail, aws.StringValue(applicationDetail.ApplicationStatus), nil
 	}
 }

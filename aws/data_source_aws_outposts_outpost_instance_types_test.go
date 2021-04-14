@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/outposts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSOutpostsOutpostInstanceTypesDataSource_basic(t *testing.T) {
@@ -13,6 +14,7 @@ func TestAccAWSOutpostsOutpostInstanceTypesDataSource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, outposts.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -42,11 +44,11 @@ func testAccCheckOutpostsOutpostInstanceTypesAttributes(dataSourceName string) r
 }
 
 func testAccAWSOutpostsOutpostInstanceTypesDataSourceConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_outposts_outposts" "test" {}
 
 data "aws_outposts_outpost_instance_types" "test" {
   arn = tolist(data.aws_outposts_outposts.test.arns)[0]
 }
-`)
+`
 }

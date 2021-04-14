@@ -10,47 +10,47 @@ description: |-
 
 Provides an IAM role inline policy.
 
+~> **NOTE:** For a given role, this resource is incompatible with using the [`aws_iam_role` resource](/docs/providers/aws/r/iam_role.html) `inline_policy` argument. When using that argument and this resource, both will attempt to manage the role's inline policies and Terraform will show a permanent difference.
+
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role_policy" "test_policy" {
   name = "test_policy"
   role = aws_iam_role.test_role.id
 
-  policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
-        "Action": [
-          "ec2:Describe*"
-        ],
-        "Effect": "Allow",
-        "Resource": "*"
-      }
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
     ]
-  }
-  EOF
+  })
 }
 
 resource "aws_iam_role" "test_role" {
   name = "test_role"
 
-  assume_role_policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
-        "Action": "sts:AssumeRole",
-        "Principal": {
-          "Service": "ec2.amazonaws.com"
-        },
-        "Effect": "Allow",
-        "Sid": ""
-      }
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
     ]
-  }
-  EOF
+  })
 }
 ```
 
@@ -66,6 +66,8 @@ assign a random, unique name.
 * `role` - (Required) The IAM role to attach to the policy.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The role policy ID, in the form of `role_name:role_policy_name`.
 * `name` - The name of the policy.

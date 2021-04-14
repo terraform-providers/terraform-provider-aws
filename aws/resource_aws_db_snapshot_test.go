@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -91,6 +91,7 @@ func TestAccAWSDBSnapshot_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -118,6 +119,7 @@ func TestAccAWSDBSnapshot_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -162,6 +164,7 @@ func TestAccAWSDBSnapshot_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbSnapshotDestroy,
 		Steps: []resource.TestStep{
@@ -255,7 +258,7 @@ func testAccAwsDbSnapshotConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_db_instance" "test" {
   allocated_storage       = 10
-  engine                  = "MySQL"
+  engine                  = "mysql"
   engine_version          = "5.6.35"
   instance_class          = "db.t2.micro"
   name                    = "baz"
@@ -272,7 +275,7 @@ resource "aws_db_instance" "test" {
 func testAccAwsDbSnapshotConfig(rName string) string {
 	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_instance_identifier = aws_db_instance.test.id
   db_snapshot_identifier = %[1]q
 }
 `, rName)
@@ -281,11 +284,11 @@ resource "aws_db_snapshot" "test" {
 func testAccAwsDbSnapshotConfigTags1(rName, tag1Key, tag1Value string) string {
 	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_instance_identifier = aws_db_instance.test.id
   db_snapshot_identifier = %[1]q
 
   tags = {
-  	%[2]q = %[3]q
+    %[2]q = %[3]q
   }
 }
 `, rName, tag1Key, tag1Value)
@@ -294,12 +297,12 @@ resource "aws_db_snapshot" "test" {
 func testAccAwsDbSnapshotConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_instance_identifier = aws_db_instance.test.id
   db_snapshot_identifier = %[1]q
 
   tags = {
-  	%[2]q = %[3]q
-  	%[4]q = %[5]q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
 `, rName, tag1Key, tag1Value, tag2Key, tag2Value)

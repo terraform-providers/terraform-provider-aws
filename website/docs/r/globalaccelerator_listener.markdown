@@ -12,7 +12,7 @@ Provides a Global Accelerator listener.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_globalaccelerator_accelerator" "example" {
   name            = "Example"
   ip_address_type = "IPV4"
@@ -26,7 +26,7 @@ resource "aws_globalaccelerator_accelerator" "example" {
 }
 
 resource "aws_globalaccelerator_listener" "example" {
-  accelerator_arn = "${aws_globalaccelerator_accelerator.example.id}"
+  accelerator_arn = aws_globalaccelerator_accelerator.example.id
   client_affinity = "SOURCE_IP"
   protocol        = "TCP"
 
@@ -56,6 +56,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) of the listener.
+
+## Timeouts
+
+`aws_globalaccelerator_listener` provides the following
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+
+* `create` - (Default `30 minutes`) How long to wait for the Global Accelerator Listener to be created.
+* `update` - (Default `30 minutes`) How long to wait for the Global Accelerator Listener to be updated.
+* `delete` - (Default `30 minutes`) How long to wait for the Global Accelerator Listener to be deleted.
 
 ## Import
 

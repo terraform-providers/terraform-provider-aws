@@ -7,8 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/transfer"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsTransferSshKey() *schema.Resource {
@@ -98,8 +97,8 @@ func resourceAwsTransferSshKeyRead(d *schema.ResourceData, meta interface{}) err
 
 	var body string
 	for _, s := range resp.User.SshPublicKeys {
-		if sshKeyID == *s.SshPublicKeyId {
-			body = *s.SshPublicKeyBody
+		if sshKeyID == aws.StringValue(s.SshPublicKeyId) {
+			body = aws.StringValue(s.SshPublicKeyBody)
 		}
 	}
 

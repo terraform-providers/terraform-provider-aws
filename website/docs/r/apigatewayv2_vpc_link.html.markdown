@@ -15,7 +15,7 @@ To enable private integration for REST APIs, use the Amazon API Gateway Version 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_vpc_link" "example" {
   name               = "example"
   security_group_ids = [data.aws_security_group.example.id]
@@ -31,12 +31,12 @@ resource "aws_apigatewayv2_vpc_link" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the VPC Link.
+* `name` - (Required) The name of the VPC Link. Must be between 1 and 128 characters in length.
 * `security_group_ids` - (Required) Security group IDs for the VPC Link.
 * `subnet_ids` - (Required) Subnet IDs for the VPC Link.
 * `tags` - (Optional) A map of tags to assign to the VPC Link.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

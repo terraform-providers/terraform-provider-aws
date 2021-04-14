@@ -11,11 +11,11 @@ description: |-
 Provides a Redshift Cluster Resource.
 
 ~> **Note:** All arguments including the username and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_redshift_cluster" "default" {
   cluster_identifier = "tf-redshift-cluster"
   database_name      = "mydb"
@@ -76,10 +76,10 @@ string.
 ### Timeouts
 
 `aws_redshift_cluster` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `75 minutes`) Used for creating Clusters.
-- `update` - (Default `40 minutes`) Used for Cluster Argument changes.
+- `update` - (Default `75 minutes`) Used for updating Clusters.
 - `delete` - (Default `40 minutes`) Used for destroying Clusters.
 
 ### Nested Blocks

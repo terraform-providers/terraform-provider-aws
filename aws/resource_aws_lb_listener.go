@@ -12,9 +12,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsLbListener() *schema.Resource {
@@ -32,219 +35,31 @@ func resourceAwsLbListener() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"alpn_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"HTTP1Only",
+					"HTTP2Only",
+					"HTTP2Optional",
+					"HTTP2Preferred",
+					"None",
+				}, true),
+			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"load_balancer_arn": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"port": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 65535),
-			},
-
-			"protocol": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "HTTP",
-				StateFunc: func(v interface{}) string {
-					return strings.ToUpper(v.(string))
-				},
-				ValidateFunc: validation.StringInSlice([]string{
-					elbv2.ProtocolEnumHttp,
-					elbv2.ProtocolEnumHttps,
-					elbv2.ProtocolEnumTcp,
-					elbv2.ProtocolEnumTls,
-					elbv2.ProtocolEnumUdp,
-					elbv2.ProtocolEnumTcpUdp,
-				}, true),
-			},
-
-			"ssl_policy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"certificate_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateArn,
 			},
-
 			"default_action": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								elbv2.ActionTypeEnumAuthenticateCognito,
-								elbv2.ActionTypeEnumAuthenticateOidc,
-								elbv2.ActionTypeEnumFixedResponse,
-								elbv2.ActionTypeEnumForward,
-								elbv2.ActionTypeEnumRedirect,
-							}, true),
-						},
-						"order": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IntBetween(1, 50000),
-						},
-
-						"target_group_arn": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumForward),
-						},
-
-						"forward": {
-							Type:             schema.TypeList,
-							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumForward),
-							MaxItems:         1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"target_group": {
-										Type:     schema.TypeSet,
-										MinItems: 2,
-										MaxItems: 5,
-										Required: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"arn": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"weight": {
-													Type:         schema.TypeInt,
-													ValidateFunc: validation.IntBetween(0, 999),
-													Default:      1,
-													Optional:     true,
-												},
-											},
-										},
-									},
-									"stickiness": {
-										Type:             schema.TypeList,
-										Optional:         true,
-										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
-										MaxItems:         1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"enabled": {
-													Type:     schema.TypeBool,
-													Optional: true,
-													Default:  false,
-												},
-												"duration": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ValidateFunc: validation.IntBetween(1, 604800),
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-
-						"redirect": {
-							Type:             schema.TypeList,
-							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumRedirect),
-							MaxItems:         1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"host": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "#{host}",
-									},
-
-									"path": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "/#{path}",
-									},
-
-									"port": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "#{port}",
-									},
-
-									"protocol": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "#{protocol}",
-										ValidateFunc: validation.StringInSlice([]string{
-											"#{protocol}",
-											"HTTP",
-											"HTTPS",
-										}, false),
-									},
-
-									"query": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "#{query}",
-									},
-
-									"status_code": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"HTTP_301",
-											"HTTP_302",
-										}, false),
-									},
-								},
-							},
-						},
-
-						"fixed_response": {
-							Type:             schema.TypeList,
-							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumFixedResponse),
-							MaxItems:         1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"content_type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"text/plain",
-											"text/css",
-											"text/html",
-											"application/javascript",
-											"application/json",
-										}, false),
-									},
-
-									"message_body": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-
-									"status_code": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Computed:     true,
-										ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[245]\d\d$`), ""),
-									},
-								},
-							},
-						},
-
 						"authenticate_cognito": {
 							Type:             schema.TypeList,
 							Optional:         true,
@@ -283,8 +98,9 @@ func resourceAwsLbListener() *schema.Resource {
 										Computed: true,
 									},
 									"user_pool_arn": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validateArn,
 									},
 									"user_pool_client_id": {
 										Type:     schema.TypeString,
@@ -297,7 +113,6 @@ func resourceAwsLbListener() *schema.Resource {
 								},
 							},
 						},
-
 						"authenticate_oidc": {
 							Type:             schema.TypeList,
 							Optional:         true,
@@ -363,8 +178,186 @@ func resourceAwsLbListener() *schema.Resource {
 								},
 							},
 						},
+						"fixed_response": {
+							Type:             schema.TypeList,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumFixedResponse),
+							MaxItems:         1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"content_type": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"text/plain",
+											"text/css",
+											"text/html",
+											"application/javascript",
+											"application/json",
+										}, false),
+									},
+									"message_body": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"status_code": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[245]\d\d$`), ""),
+									},
+								},
+							},
+						},
+						"forward": {
+							Type:             schema.TypeList,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumForward),
+							MaxItems:         1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"target_group": {
+										Type:     schema.TypeSet,
+										MinItems: 1,
+										MaxItems: 5,
+										Required: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"arn": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validateArn,
+												},
+												"weight": {
+													Type:         schema.TypeInt,
+													ValidateFunc: validation.IntBetween(0, 999),
+													Default:      1,
+													Optional:     true,
+												},
+											},
+										},
+									},
+									"stickiness": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"duration": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(1, 604800),
+												},
+												"enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"order": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(1, 50000),
+						},
+						"redirect": {
+							Type:             schema.TypeList,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumRedirect),
+							MaxItems:         1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"host": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "#{host}",
+									},
+									"path": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "/#{path}",
+									},
+									"port": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "#{port}",
+									},
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "#{protocol}",
+										ValidateFunc: validation.StringInSlice([]string{
+											"#{protocol}",
+											"HTTP",
+											"HTTPS",
+										}, false),
+									},
+									"query": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "#{query}",
+									},
+									"status_code": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											elbv2.RedirectActionStatusCodeEnumHttp301,
+											elbv2.RedirectActionStatusCodeEnumHttp302,
+										}, false),
+									},
+								},
+							},
+						},
+						"target_group_arn": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumForward),
+							ValidateFunc:     validateArn,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								elbv2.ActionTypeEnumAuthenticateCognito,
+								elbv2.ActionTypeEnumAuthenticateOidc,
+								elbv2.ActionTypeEnumFixedResponse,
+								elbv2.ActionTypeEnumForward,
+								elbv2.ActionTypeEnumRedirect,
+							}, true),
+						},
 					},
 				},
+			},
+			"load_balancer_arn": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
+			},
+			"port": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IsPortNumber,
+			},
+			"protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				StateFunc: func(v interface{}) string {
+					return strings.ToUpper(v.(string))
+				},
+				ValidateFunc: validation.StringInSlice(elbv2.ProtocolEnum_Values(), true),
+			},
+			"ssl_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -386,14 +379,23 @@ func suppressIfDefaultActionTypeNot(t string) schema.SchemaDiffSuppressFunc {
 }
 
 func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbv2conn
+	conn := meta.(*AWSClient).elbv2conn
 
 	lbArn := d.Get("load_balancer_arn").(string)
 
 	params := &elbv2.CreateListenerInput{
 		LoadBalancerArn: aws.String(lbArn),
-		Port:            aws.Int64(int64(d.Get("port").(int))),
-		Protocol:        aws.String(d.Get("protocol").(string)),
+	}
+
+	if v, ok := d.GetOk("port"); ok {
+		params.Port = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("protocol"); ok {
+		params.Protocol = aws.String(v.(string))
+	} else if strings.Contains(lbArn, "loadbalancer/app/") {
+		// Keep previous default of HTTP for Application Load Balancers
+		params.Protocol = aws.String(elbv2.ProtocolEnumHttp)
 	}
 
 	if sslPolicy, ok := d.GetOk("ssl_policy"); ok {
@@ -405,6 +407,11 @@ func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error
 		params.Certificates[0] = &elbv2.Certificate{
 			CertificateArn: aws.String(certificateArn.(string)),
 		}
+	}
+
+	if alpnPolicy, ok := d.GetOk("alpn_policy"); ok {
+		params.AlpnPolicy = make([]*string, 1)
+		params.AlpnPolicy[0] = aws.String(alpnPolicy.(string))
 	}
 
 	defaultActions := d.Get("default_action").([]interface{})
@@ -535,79 +542,86 @@ func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error
 		params.DefaultActions[i] = action
 	}
 
-	var resp *elbv2.CreateListenerOutput
+	var output *elbv2.CreateListenerOutput
 
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.LoadBalancerListenerCreateTimeout, func() *resource.RetryError {
 		var err error
+
 		log.Printf("[DEBUG] Creating LB listener for ARN: %s", d.Get("load_balancer_arn").(string))
-		resp, err = elbconn.CreateListener(params)
+		output, err = conn.CreateListener(params)
+
+		if tfawserr.ErrCodeEquals(err, elbv2.ErrCodeCertificateNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, elbv2.ErrCodeCertificateNotFoundException, "") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
-		resp, err = elbconn.CreateListener(params)
+	if tfresource.TimedOut(err) {
+		output, err = conn.CreateListener(params)
 	}
 
 	if err != nil {
-		return fmt.Errorf("error creating ELBv2 Listener: %s", err)
+		return fmt.Errorf("error creating ELBv2 Listener (%s): %w", d.Get("load_balancer_arn").(string), err)
 	}
 
-	if resp == nil || len(resp.Listeners) == 0 {
+	if output == nil || len(output.Listeners) == 0 {
 		return fmt.Errorf("error creating ELBv2 Listener: no listeners returned in response")
 	}
 
-	d.SetId(*resp.Listeners[0].ListenerArn)
+	d.SetId(aws.StringValue(output.Listeners[0].ListenerArn))
 
 	return resourceAwsLbListenerRead(d, meta)
 }
 
 func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbv2conn
+	conn := meta.(*AWSClient).elbv2conn
 
-	var resp *elbv2.DescribeListenersOutput
-	var request = &elbv2.DescribeListenersInput{
+	var output *elbv2.DescribeListenersOutput
+	var input = &elbv2.DescribeListenersInput{
 		ListenerArns: []*string{aws.String(d.Id())},
 	}
 
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.LoadBalancerListenerReadTimeout, func() *resource.RetryError {
 		var err error
-		resp, err = elbconn.DescribeListeners(request)
-		if d.IsNewResource() && isAWSErr(err, elbv2.ErrCodeListenerNotFoundException, "") {
+		output, err = conn.DescribeListeners(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, elbv2.ErrCodeListenerNotFoundException) {
 			return resource.RetryableError(err)
 		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
-		resp, err = elbconn.DescribeListeners(request)
+	if tfresource.TimedOut(err) {
+		output, err = conn.DescribeListeners(input)
 	}
 
-	if isAWSErr(err, elbv2.ErrCodeListenerNotFoundException, "") {
-		log.Printf("[WARN] ELBv2 Listener (%s) not found - removing from state", d.Id())
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, elbv2.ErrCodeListenerNotFoundException) {
+		log.Printf("[WARN] ELBv2 Listener (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error describing ELBv2 Listener (%s): %s", d.Id(), err)
+		return fmt.Errorf("error describing ELBv2 Listener (%s): %w", d.Id(), err)
 	}
 
-	if resp == nil {
+	if output == nil {
 		return fmt.Errorf("error describing ELBv2 Listener (%s): empty response", d.Id())
 	}
 
 	var listener *elbv2.Listener
 
-	for _, l := range resp.Listeners {
+	for _, l := range output.Listeners {
 		if aws.StringValue(l.ListenerArn) == d.Id() {
 			listener = l
 			break
@@ -626,6 +640,10 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 
 	if listener.Certificates != nil && len(listener.Certificates) == 1 && listener.Certificates[0] != nil {
 		d.Set("certificate_arn", listener.Certificates[0].CertificateArn)
+	}
+
+	if listener.AlpnPolicy != nil && len(listener.AlpnPolicy) == 1 && listener.AlpnPolicy[0] != nil {
+		d.Set("alpn_policy", listener.AlpnPolicy[0])
 	}
 
 	sort.Slice(listener.DefaultActions, func(i, j int) bool {
@@ -733,19 +751,25 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 		defaultActions[i] = defaultActionMap
 	}
 	if err := d.Set("default_action", defaultActions); err != nil {
-		return fmt.Errorf("error setting default_action: %s", err)
+		return fmt.Errorf("error setting default_action for ELBv2 listener (%s): %w", d.Id(), err)
 	}
 
 	return nil
 }
 
 func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbv2conn
+	conn := meta.(*AWSClient).elbv2conn
 
 	params := &elbv2.ModifyListenerInput{
 		ListenerArn: aws.String(d.Id()),
-		Port:        aws.Int64(int64(d.Get("port").(int))),
-		Protocol:    aws.String(d.Get("protocol").(string)),
+	}
+
+	if v, ok := d.GetOk("port"); ok {
+		params.Port = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("protocol"); ok {
+		params.Protocol = aws.String(v.(string))
 	}
 
 	if sslPolicy, ok := d.GetOk("ssl_policy"); ok {
@@ -757,6 +781,11 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 		params.Certificates[0] = &elbv2.Certificate{
 			CertificateArn: aws.String(certificateArn.(string)),
 		}
+	}
+
+	if alpnPolicy, ok := d.GetOk("alpn_policy"); ok {
+		params.AlpnPolicy = make([]*string, 1)
+		params.AlpnPolicy[0] = aws.String(alpnPolicy.(string))
 	}
 
 	if d.HasChange("default_action") {
@@ -890,36 +919,39 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := elbconn.ModifyListener(params)
+	err := resource.Retry(waiter.LoadBalancerListenerUpdateTimeout, func() *resource.RetryError {
+		_, err := conn.ModifyListener(params)
+
+		if tfawserr.ErrCodeEquals(err, elbv2.ErrCodeCertificateNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, elbv2.ErrCodeCertificateNotFoundException, "") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
-		_, err = elbconn.ModifyListener(params)
+	if tfresource.TimedOut(err) {
+		_, err = conn.ModifyListener(params)
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error modifying LB Listener: %s", err)
+		return fmt.Errorf("error modifying ELBv2 Listener (%s): %w", d.Id(), err)
 	}
 
 	return resourceAwsLbListenerRead(d, meta)
 }
 
 func resourceAwsLbListenerDelete(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbv2conn
+	conn := meta.(*AWSClient).elbv2conn
 
-	_, err := elbconn.DeleteListener(&elbv2.DeleteListenerInput{
+	_, err := conn.DeleteListener(&elbv2.DeleteListenerInput{
 		ListenerArn: aws.String(d.Id()),
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting Listener: %s", err)
+		return fmt.Errorf("error deleting Listener (%s): %w", d.Id(), err)
 	}
 
 	return nil

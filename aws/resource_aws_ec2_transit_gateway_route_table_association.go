@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsEc2TransitGatewayRouteTableAssociation() *schema.Resource {
@@ -101,9 +101,9 @@ func resourceAwsEc2TransitGatewayRouteTableAssociationRead(d *schema.ResourceDat
 		return nil
 	}
 
-	d.Set("resource_id", aws.StringValue(transitGatewayAssociation.ResourceId))
-	d.Set("resource_type", aws.StringValue(transitGatewayAssociation.ResourceType))
-	d.Set("transit_gateway_attachment_id", aws.StringValue(transitGatewayAssociation.TransitGatewayAttachmentId))
+	d.Set("resource_id", transitGatewayAssociation.ResourceId)
+	d.Set("resource_type", transitGatewayAssociation.ResourceType)
+	d.Set("transit_gateway_attachment_id", transitGatewayAssociation.TransitGatewayAttachmentId)
 	d.Set("transit_gateway_route_table_id", transitGatewayRouteTableID)
 
 	return nil

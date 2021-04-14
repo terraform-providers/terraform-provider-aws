@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appsync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsAppsyncResolver() *schema.Resource {
@@ -316,7 +316,7 @@ func flattenAppsyncCachingConfig(c *appsync.CachingConfig) []interface{} {
 		return nil
 	}
 
-	if len(c.CachingKeys) == 0 && *(c.Ttl) == 0 {
+	if len(c.CachingKeys) == 0 && aws.Int64Value(c.Ttl) == 0 {
 		return nil
 	}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsWafRegionalIPSet() *schema.Resource {
@@ -68,7 +68,7 @@ func resourceAwsWafRegionalIPSetCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	resp := out.(*waf.CreateIPSetOutput)
-	d.SetId(*resp.IPSet.IPSetId)
+	d.SetId(aws.StringValue(resp.IPSet.IPSetId))
 	return resourceAwsWafRegionalIPSetUpdate(d, meta)
 }
 

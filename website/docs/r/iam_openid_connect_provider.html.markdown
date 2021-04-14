@@ -12,7 +12,7 @@ Provides an IAM OpenID Connect provider.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_openid_connect_provider" "default" {
   url = "https://accounts.google.com"
 
@@ -30,7 +30,8 @@ The following arguments are supported:
 
 * `url` - (Required) The URL of the identity provider. Corresponds to the _iss_ claim.
 * `client_id_list` - (Required) A list of client IDs (also known as audiences). When a mobile or web app registers with an OpenID Connect provider, they establish a value that identifies the application. (This is the value that's sent as the client_id parameter on OAuth requests.)
-* `thumbprint_list` - (Required) A list of server certificate thumbprints for the OpenID Connect (OIDC) identity provider's server certificate(s). 
+* `thumbprint_list` - (Required) A list of server certificate thumbprints for the OpenID Connect (OIDC) identity provider's server certificate(s).
+* `tags` - (Optional) Map of resource tags for the IAM OIDC provider.
 
 ## Attributes Reference
 

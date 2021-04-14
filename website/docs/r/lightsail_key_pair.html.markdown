@@ -14,30 +14,32 @@ Lightsail.
 
 ~> **Note:** Lightsail is currently only supported in a limited number of AWS Regions, please see ["Regions and Availability Zones in Amazon Lightsail"](https://lightsail.aws.amazon.com/ls/docs/overview/article/understanding-regions-and-availability-zones-in-amazon-lightsail) for more details
 
-## Example Usage, creating a new Key Pair
+## Example Usage
 
-```hcl
+### Create New Key Pair
+
+```terraform
 # Create a new Lightsail Key Pair
 resource "aws_lightsail_key_pair" "lg_key_pair" {
   name = "lg_key_pair"
 }
 ```
 
-## Create new Key Pair, encrypting the private key with a PGP Key
+### Create New Key Pair with PGP Encrypted Private Key
 
-```hcl
+```terraform
 resource "aws_lightsail_key_pair" "lg_key_pair" {
   name    = "lg_key_pair"
   pgp_key = "keybase:keybaseusername"
 }
 ```
 
-## Import an existing public key
+### Existing Public Key Import
 
-```hcl
+```terraform
 resource "aws_lightsail_key_pair" "lg_key_pair" {
   name       = "importing"
-  public_key = "${file("~/.ssh/id_rsa.pub")}"
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 ```
 
@@ -58,7 +60,7 @@ Without a PGP key, the private key material will be stored in state unencrypted.
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name used for this key pair
 * `arn` - The ARN of the Lightsail key pair

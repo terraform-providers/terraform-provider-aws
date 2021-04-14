@@ -6,19 +6,25 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEc2AvailabilityZoneGroup_OptInStatus(t *testing.T) {
 	resourceName := "aws_ec2_availability_zone_group.test"
 
+	// Filter to one Availability Zone Group per Region as Local Zones become available
+	// e.g. ensure there are not two us-west-2-XXX when adding to this list
+	// (Not including in config to avoid lintignoring entire config.)
+	localZone := "us-west-2-lax-1" // lintignore:AWSAT003 // currently the only generally available local zone
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2AvailabilityZoneGroup(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccEc2AvailabilityZoneGroupConfigOptInStatus(ec2.AvailabilityZoneOptInStatusOptedIn),
+				Config: testAccEc2AvailabilityZoneGroupConfigOptInStatus(localZone, ec2.AvailabilityZoneOptInStatusOptedIn),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "opt_in_status", ec2.AvailabilityZoneOptInStatusOptedIn),
 				),
@@ -78,17 +84,15 @@ func testAccPreCheckAWSEc2AvailabilityZoneGroup(t *testing.T) {
 	}
 }
 
-func testAccEc2AvailabilityZoneGroupConfigOptInStatus(optInStatus string) string {
+func testAccEc2AvailabilityZoneGroupConfigOptInStatus(localZone, optInStatus string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "test" {
   all_availability_zones = true
 
-  # Filter to one Availability Zone Group per Region as Local Zones become available
-  # e.g. ensure there are not two us-west-2-XXX when adding to this list
   filter {
-    name   = "group-name"
+    name = "group-name"
     values = [
-      "us-west-2-lax-1",
+      %[1]q,
     ]
   }
 }
@@ -96,7 +100,7 @@ data "aws_availability_zones" "test" {
 resource "aws_ec2_availability_zone_group" "test" {
   # The above group-name filter should ensure one Availability Zone Group per Region
   group_name    = tolist(data.aws_availability_zones.test.group_names)[0]
-  opt_in_status = %[1]q
+  opt_in_status = %[2]q
 }
-`, optInStatus)
+`, localZone, optInStatus)
 }

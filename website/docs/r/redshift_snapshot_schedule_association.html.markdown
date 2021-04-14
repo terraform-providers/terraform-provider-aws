@@ -10,7 +10,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_redshift_cluster" "default" {
   cluster_identifier = "tf-redshift-cluster"
   database_name      = "mydb"
@@ -28,8 +28,8 @@ resource "aws_redshift_snapshot_schedule" "default" {
 }
 
 resource "aws_redshift_snapshot_schedule_association" "default" {
-  cluster_identifier  = "${aws_redshift_cluster.default.id}"
-  schedule_identifier = "${aws_redshift_snapshot_schedule.default.id}"
+  cluster_identifier  = aws_redshift_cluster.default.id
+  schedule_identifier = aws_redshift_snapshot_schedule.default.id
 }
 ```
 
@@ -39,6 +39,10 @@ The following arguments are supported:
 
 * `cluster_identifier` - (Required, Forces new resource) The cluster identifier.
 * `schedule_identifier` - (Required, Forces new resource) The snapshot schedule identifier.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

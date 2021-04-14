@@ -2,14 +2,89 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_iot_policy_attachment", &resource.Sweeper{
+		Name: "aws_iot_policy_attachment",
+		F:    testSweepIotPolicyAttachments,
+	})
+}
+
+func testSweepIotPolicyAttachments(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).iotconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
+	input := &iot.ListPoliciesInput{}
+
+	err = conn.ListPoliciesPages(input, func(page *iot.ListPoliciesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, policy := range page.Policies {
+			input := &iot.ListTargetsForPolicyInput{
+				PolicyName: policy.PolicyName,
+			}
+
+			err := conn.ListTargetsForPolicyPages(input, func(page *iot.ListTargetsForPolicyOutput, lastPage bool) bool {
+				if page == nil {
+					return !lastPage
+				}
+
+				for _, target := range page.Targets {
+					r := resourceAwsIotPolicyAttachment()
+					d := r.Data(nil)
+
+					d.SetId(fmt.Sprintf("%s|%s", aws.StringValue(policy.PolicyName), aws.StringValue(target)))
+					d.Set("policy", policy.PolicyName)
+					d.Set("target", target)
+
+					sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
+				}
+
+				return !lastPage
+			})
+
+			if err != nil {
+				errs = multierror.Append(errs, fmt.Errorf("error listing IoT Policy Attachment for %s: %w", region, err))
+			}
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error listing IoT Policy Attachment for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping IoT Policy Attachment for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping IoT Policy Attachment sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
+}
 
 func TestAccAWSIotPolicyAttachment_basic(t *testing.T) {
 	policyName := acctest.RandomWithPrefix("PolicyName-")
@@ -17,6 +92,7 @@ func TestAccAWSIotPolicyAttachment_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iot.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIotPolicyAttchmentDestroy,
 		Steps: []resource.TestStep{
@@ -179,7 +255,7 @@ func testAccCheckAWSIotPolicyAttachmentCertStatus(n string, policies []string) r
 func testAccAWSIotPolicyAttachmentConfig(policyName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -189,18 +265,25 @@ resource "aws_iot_policy" "policy" {
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["iot:*"],
-    "Resource": ["*"]
-  }]
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iot_policy_attachment" "att" {
-  policy = "${aws_iot_policy.policy.name}"
-  target = "${aws_iot_certificate.cert.arn}"
+  policy = aws_iot_policy.policy.name
+  target = aws_iot_certificate.cert.arn
 }
 `, policyName)
 }
@@ -208,7 +291,7 @@ resource "aws_iot_policy_attachment" "att" {
 func testAccAWSIotPolicyAttachmentConfigUpdate1(policyName, policyName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -218,13 +301,20 @@ resource "aws_iot_policy" "policy" {
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["iot:*"],
-    "Resource": ["*"]
-  }]
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iot_policy" "policy2" {
@@ -233,23 +323,30 @@ resource "aws_iot_policy" "policy2" {
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["iot:*"],
-    "Resource": ["*"]
-  }]
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iot_policy_attachment" "att" {
-  policy = "${aws_iot_policy.policy.name}"
-  target = "${aws_iot_certificate.cert.arn}"
+  policy = aws_iot_policy.policy.name
+  target = aws_iot_certificate.cert.arn
 }
 
 resource "aws_iot_policy_attachment" "att2" {
-  policy = "${aws_iot_policy.policy2.name}"
-  target = "${aws_iot_certificate.cert.arn}"
+  policy = aws_iot_policy.policy2.name
+  target = aws_iot_certificate.cert.arn
 }
 `, policyName, policyName2)
 }
@@ -257,7 +354,7 @@ resource "aws_iot_policy_attachment" "att2" {
 func testAccAWSIotPolicyAttachmentConfigUpdate2(policyName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -267,18 +364,25 @@ resource "aws_iot_policy" "policy2" {
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["iot:*"],
-    "Resource": ["*"]
-  }]
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iot_policy_attachment" "att2" {
-  policy = "${aws_iot_policy.policy2.name}"
-  target = "${aws_iot_certificate.cert.arn}"
+  policy = aws_iot_policy.policy2.name
+  target = aws_iot_certificate.cert.arn
 }
 `, policyName2)
 }
@@ -286,12 +390,12 @@ resource "aws_iot_policy_attachment" "att2" {
 func testAccAWSIotPolicyAttachmentConfigUpdate3(policyName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
 resource "aws_iot_certificate" "cert2" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -301,23 +405,30 @@ resource "aws_iot_policy" "policy2" {
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["iot:*"],
-    "Resource": ["*"]
-  }]
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iot_policy_attachment" "att2" {
-  policy = "${aws_iot_policy.policy2.name}"
-  target = "${aws_iot_certificate.cert.arn}"
+  policy = aws_iot_policy.policy2.name
+  target = aws_iot_certificate.cert.arn
 }
 
 resource "aws_iot_policy_attachment" "att3" {
-  policy = "${aws_iot_policy.policy2.name}"
-  target = "${aws_iot_certificate.cert2.arn}"
+  policy = aws_iot_policy.policy2.name
+  target = aws_iot_certificate.cert2.arn
 }
 `, policyName2)
 }

@@ -16,7 +16,7 @@ Manages S3 account-level Public Access Block configuration. For more information
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_account_public_access_block" "example" {
   block_public_acls   = true
   block_public_policy = true
@@ -38,7 +38,7 @@ The following arguments are supported:
 * `restrict_public_buckets` - (Optional) Whether Amazon S3 should restrict public bucket policies for buckets in this account. Defaults to `false`. Enabling this setting does not affect previously stored bucket policies, except that public and cross-account access within any public bucket policy, including non-public delegation to specific accounts, is blocked. When set to `true`:
     * Only the bucket owner and AWS Services can access buckets with public policies.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

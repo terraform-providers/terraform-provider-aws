@@ -2,12 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestFindRegionByEc2Endpoint(t *testing.T) {
@@ -24,11 +23,11 @@ func TestFindRegionByEc2Endpoint(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    "us-east-1",
+			Value:    "us-east-1", // lintignore:AWSAT003
 			ErrCount: 1,
 		},
 		{
-			Value:    "ec2.us-east-1.amazonaws.com",
+			Value:    "ec2.us-east-1.amazonaws.com", // lintignore:AWSAT003
 			ErrCount: 0,
 		},
 	}
@@ -54,11 +53,11 @@ func TestFindRegionByName(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    "ec2.us-east-1.amazonaws.com",
+			Value:    "ec2.us-east-1.amazonaws.com", // lintignore:AWSAT003
 			ErrCount: 1,
 		},
 		{
-			Value:    "us-east-1",
+			Value:    "us-east-1", // lintignore:AWSAT003
 			ErrCount: 0,
 		},
 	}
@@ -75,24 +74,19 @@ func TestFindRegionByName(t *testing.T) {
 }
 
 func TestAccDataSourceAwsRegion_basic(t *testing.T) {
-	// Ensure we always get a consistent result
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
-	resourceName := "data.aws_region.test"
+	dataSourceName := "data.aws_region.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRegionConfig_empty,
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", "ec2.us-east-1.amazonaws.com"),
-					resource.TestCheckResourceAttr(resourceName, "name", "us-east-1"),
-					resource.TestCheckResourceAttr(resourceName, "description", "US East (N. Virginia)"),
+					resource.TestMatchResourceAttr(dataSourceName, "description", regexp.MustCompile(`^.+$`)),
+					testAccCheckResourceAttrRegionalHostnameService(dataSourceName, "endpoint", ec2.EndpointsID),
+					resource.TestCheckResourceAttr(dataSourceName, "name", testAccGetRegion()),
 				),
 			},
 		},
@@ -100,186 +94,103 @@ func TestAccDataSourceAwsRegion_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAwsRegion_endpoint(t *testing.T) {
-	// Ensure we always get a consistent result
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
-	endpoint1 := "ec2.us-east-1.amazonaws.com"
-	endpoint2 := "ec2.us-east-2.amazonaws.com"
-	name1 := "us-east-1"
-	name2 := "us-east-2"
-	description1 := "US East (N. Virginia)"
-	description2 := "US East (Ohio)"
-	resourceName := "data.aws_region.test"
+	dataSourceName := "data.aws_region.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsRegionConfig_endpoint(endpoint1),
+				Config: testAccDataSourceAwsRegionConfig_endpoint(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint1),
-					resource.TestCheckResourceAttr(resourceName, "name", name1),
-					resource.TestCheckResourceAttr(resourceName, "description", description1),
+					resource.TestMatchResourceAttr(dataSourceName, "description", regexp.MustCompile(`^.+$`)),
+					resource.TestMatchResourceAttr(dataSourceName, "endpoint", regexp.MustCompile(fmt.Sprintf("^ec2\\.[^.]+\\.%s$", testAccGetPartitionDNSSuffix()))),
+					resource.TestMatchResourceAttr(dataSourceName, "name", regexp.MustCompile(`^.+$`)),
 				),
-			},
-			{
-				Config: testAccDataSourceAwsRegionConfig_endpoint(endpoint2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint2),
-					resource.TestCheckResourceAttr(resourceName, "name", name2),
-					resource.TestCheckResourceAttr(resourceName, "description", description2),
-				),
-			},
-			{
-				Config:      testAccDataSourceAwsRegionConfig_endpoint("does-not-exist"),
-				ExpectError: regexp.MustCompile(`region not found for endpoint: does-not-exist`),
 			},
 		},
 	})
 }
 
 func TestAccDataSourceAwsRegion_endpointAndName(t *testing.T) {
-	// Ensure we always get a consistent result
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
-	endpoint1 := "ec2.us-east-1.amazonaws.com"
-	endpoint2 := "ec2.us-east-2.amazonaws.com"
-	name1 := "us-east-1"
-	name2 := "us-east-2"
-	description1 := "US East (N. Virginia)"
-	description2 := "US East (Ohio)"
-	resourceName := "data.aws_region.test"
+	dataSourceName := "data.aws_region.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsRegionConfig_endpointAndName(endpoint1, name1),
+				Config: testAccDataSourceAwsRegionConfig_endpointAndName(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint1),
-					resource.TestCheckResourceAttr(resourceName, "name", name1),
-					resource.TestCheckResourceAttr(resourceName, "description", description1),
+					resource.TestMatchResourceAttr(dataSourceName, "description", regexp.MustCompile(`^.+$`)),
+					resource.TestMatchResourceAttr(dataSourceName, "endpoint", regexp.MustCompile(fmt.Sprintf("^ec2\\.[^.]+\\.%s$", testAccGetPartitionDNSSuffix()))),
+					resource.TestMatchResourceAttr(dataSourceName, "name", regexp.MustCompile(`^.+$`)),
 				),
-			},
-			{
-				Config: testAccDataSourceAwsRegionConfig_endpointAndName(endpoint2, name2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint2),
-					resource.TestCheckResourceAttr(resourceName, "name", name2),
-					resource.TestCheckResourceAttr(resourceName, "description", description2),
-				),
-			},
-			{
-				Config: testAccDataSourceAwsRegionConfig_endpointAndName(endpoint1, name1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint1),
-					resource.TestCheckResourceAttr(resourceName, "name", name1),
-					resource.TestCheckResourceAttr(resourceName, "description", description1),
-				),
-			},
-			{
-				Config:      testAccDataSourceAwsRegionConfig_endpointAndName(endpoint1, name2),
-				ExpectError: regexp.MustCompile(`multiple regions matched`),
-			},
-			{
-				Config:      testAccDataSourceAwsRegionConfig_endpointAndName(endpoint2, name1),
-				ExpectError: regexp.MustCompile(`multiple regions matched`),
 			},
 		},
 	})
 }
 
 func TestAccDataSourceAwsRegion_name(t *testing.T) {
-	// Ensure we always get a consistent result
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
-	endpoint1 := "ec2.us-east-1.amazonaws.com"
-	endpoint2 := "ec2.us-east-2.amazonaws.com"
-	name1 := "us-east-1"
-	name2 := "us-east-2"
-	description1 := "US East (N. Virginia)"
-	description2 := "US East (Ohio)"
-	resourceName := "data.aws_region.test"
+	dataSourceName := "data.aws_region.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsRegionConfig_name(name1),
+				Config: testAccDataSourceAwsRegionConfig_name(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint1),
-					resource.TestCheckResourceAttr(resourceName, "name", name1),
-					resource.TestCheckResourceAttr(resourceName, "description", description1),
+					resource.TestMatchResourceAttr(dataSourceName, "description", regexp.MustCompile(`^.+$`)),
+					resource.TestMatchResourceAttr(dataSourceName, "endpoint", regexp.MustCompile(fmt.Sprintf("^ec2\\.[^.]+\\.%s$", testAccGetPartitionDNSSuffix()))),
+					resource.TestMatchResourceAttr(dataSourceName, "name", regexp.MustCompile(`^.+$`)),
 				),
-			},
-			{
-				Config: testAccDataSourceAwsRegionConfig_name(name2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsRegionCheck(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", endpoint2),
-					resource.TestCheckResourceAttr(resourceName, "name", name2),
-					resource.TestCheckResourceAttr(resourceName, "description", description2),
-				),
-			},
-			{
-				Config:      testAccDataSourceAwsRegionConfig_name("does-not-exist"),
-				ExpectError: regexp.MustCompile(`region not found for name: does-not-exist`),
 			},
 		},
 	})
-}
-
-func testAccDataSourceAwsRegionCheck(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("root module has no resource called %s", name)
-		}
-
-		return nil
-	}
 }
 
 const testAccDataSourceAwsRegionConfig_empty = `
 data "aws_region" "test" {}
 `
 
-func testAccDataSourceAwsRegionConfig_endpoint(endpoint string) string {
-	return fmt.Sprintf(`
-data "aws_region" "test" {
-  endpoint = "%s"
-}
-`, endpoint)
+func testAccDataSourceAwsRegionConfig_endpoint() string {
+	return `
+data "aws_partition" "test" {}
+
+data "aws_regions" "test" {
 }
 
-func testAccDataSourceAwsRegionConfig_endpointAndName(endpoint, name string) string {
-	return fmt.Sprintf(`
 data "aws_region" "test" {
-  endpoint = "%s"
-  name     = "%s"
+  endpoint = "ec2.${tolist(data.aws_regions.test.names)[0]}.${data.aws_partition.test.dns_suffix}"
 }
-`, endpoint, name)
+`
 }
 
-func testAccDataSourceAwsRegionConfig_name(name string) string {
-	return fmt.Sprintf(`
-data "aws_region" "test" {
-  name = "%s"
+func testAccDataSourceAwsRegionConfig_endpointAndName() string {
+	return `
+data "aws_partition" "test" {}
+
+data "aws_regions" "test" {
 }
-`, name)
+
+data "aws_region" "test" {
+  endpoint = "ec2.${tolist(data.aws_regions.test.names)[0]}.${data.aws_partition.test.dns_suffix}"
+  name     = tolist(data.aws_regions.test.names)[0]
+}
+`
+}
+
+func testAccDataSourceAwsRegionConfig_name() string {
+	return `
+data "aws_regions" "test" {
+}
+
+data "aws_region" "test" {
+  name = tolist(data.aws_regions.test.names)[0]
+}
+`
 }

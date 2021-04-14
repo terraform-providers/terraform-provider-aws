@@ -14,7 +14,7 @@ Provides a License Manager license configuration resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_licensemanager_license_configuration" "example" {
   name                     = "Example"
   description              = "Example"
@@ -60,7 +60,9 @@ License rules should be in the format of `#RuleType=RuleValue`. Supported rule t
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The license configuration ARN.
 * `id` - The license configuration ARN.
+* `owner_account_id` - Account ID of the owner of the license configuration.
 
 ## Import
 

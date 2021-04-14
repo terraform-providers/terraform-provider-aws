@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -68,7 +68,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 						"metric_timestamp": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIoTTopicRuleCloudWatchMetricTimestamp,
+							ValidateFunc: validateUTCTimestamp,
 						},
 						"metric_unit": {
 							Type:     schema.TypeString,
@@ -489,7 +489,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 									"metric_timestamp": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validateIoTTopicRuleCloudWatchMetricTimestamp,
+										ValidateFunc: validateUTCTimestamp,
 									},
 									"metric_unit": {
 										Type:     schema.TypeString,

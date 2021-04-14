@@ -3,12 +3,13 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/licensemanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -65,6 +66,7 @@ func TestAccAWSLicenseManagerLicenseConfiguration_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, licensemanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLicenseManagerLicenseConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -72,6 +74,7 @@ func TestAccAWSLicenseManagerLicenseConfiguration_basic(t *testing.T) {
 				Config: testAccLicenseManagerLicenseConfigurationConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLicenseManagerLicenseConfigurationExists(resourceName, &licenseConfiguration),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "license-manager", regexp.MustCompile(`license-configuration:lic-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "license_count", "10"),
@@ -79,6 +82,7 @@ func TestAccAWSLicenseManagerLicenseConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "license_counting_type", "Socket"),
 					resource.TestCheckResourceAttr(resourceName, "license_rules.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "license_rules.0", "#minimumSockets=3"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.foo", "barr"),
 				),
@@ -98,6 +102,7 @@ func TestAccAWSLicenseManagerLicenseConfiguration_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, licensemanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLicenseManagerLicenseConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -203,9 +208,9 @@ resource "aws_licensemanager_license_configuration" "example" {
 
 const testAccLicenseManagerLicenseConfigurationConfig_update = `
 resource "aws_licensemanager_license_configuration" "example" {
-  name                     = "NewName"
-  license_count            = 123
-  license_counting_type    = "Socket"
+  name                  = "NewName"
+  license_count         = 123
+  license_counting_type = "Socket"
 
   license_rules = [
     "#minimumSockets=3"
@@ -213,7 +218,7 @@ resource "aws_licensemanager_license_configuration" "example" {
 
   tags = {
     test = "test"
-    abc = "def"
+    abc  = "def"
   }
 }
 `

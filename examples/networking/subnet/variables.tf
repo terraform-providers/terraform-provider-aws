@@ -1,13 +1,15 @@
-variable "vpc_id" {}
+variable "vpc_id" {
+}
 
-variable "availability_zone" {}
+variable "availability_zone" {
+}
 
 data "aws_availability_zone" "target" {
-  name = "${var.availability_zone}"
+  name = var.availability_zone
 }
 
 data "aws_vpc" "target" {
-  id = "${var.vpc_id}"
+  id = var.vpc_id
 }
 
 variable "az_numbers" {

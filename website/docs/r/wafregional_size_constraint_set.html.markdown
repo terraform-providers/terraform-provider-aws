@@ -12,7 +12,7 @@ Provides a WAF Regional Size Constraint Set Resource for use with Application Lo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_size_constraint_set" "size_constraint_set" {
   name = "tfsize_constraints"
 

@@ -13,7 +13,7 @@ which Terraform is working.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_partition" "current" {}
 
 data "aws_iam_policy_document" "s3_policy" {
@@ -37,5 +37,7 @@ There are no arguments available for this data source.
 
 ## Attributes Reference
 
-* `partition` is set to the identifier of the current partition.
-* `dns_suffix` is set to the base DNS domain name for the current partition (e.g. `amazonaws.com` in AWS Commercial, `amazonaws.com.cn` in AWS China).
+* `dns_suffix` - Base DNS domain name for the current partition (e.g. `amazonaws.com` in AWS Commercial, `amazonaws.com.cn` in AWS China).
+* `id` - Identifier of the current partition (e.g. `aws` in AWS Commercial, `aws-cn` in AWS China).
+* `partition` - Identifier of the current partition (e.g. `aws` in AWS Commercial, `aws-cn` in AWS China).
+* `reverse_dns_prefix` - Prefix of service names (e.g. `com.amazonaws` in AWS Commercial, `cn.com.amazonaws` in AWS China).

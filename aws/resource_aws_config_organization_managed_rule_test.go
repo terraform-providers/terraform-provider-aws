@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccConfigOrganizationManagedRule_basic(t *testing.T) {
@@ -20,6 +18,7 @@ func testAccConfigOrganizationManagedRule_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +55,7 @@ func testAccConfigOrganizationManagedRule_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func testAccConfigOrganizationManagedRule_disappears(t *testing.T) {
 				Config: testAccConfigOrganizationManagedRuleConfigRuleIdentifier(rName, "IAM_PASSWORD_POLICY"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckConfigOrganizationManagedRuleExists(resourceName, &rule),
-					testAccCheckConfigOrganizationManagedRuleDisappears(&rule),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsConfigOrganizationManagedRule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -76,6 +76,7 @@ func testAccConfigOrganizationManagedRule_errorHandling(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -94,6 +95,7 @@ func testAccConfigOrganizationManagedRule_Description(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -127,6 +129,7 @@ func testAccConfigOrganizationManagedRule_ExcludedAccounts(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -163,6 +166,7 @@ func testAccConfigOrganizationManagedRule_InputParameters(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -196,6 +200,7 @@ func testAccConfigOrganizationManagedRule_MaximumExecutionFrequency(t *testing.T
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -229,6 +234,7 @@ func testAccConfigOrganizationManagedRule_ResourceIdScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -262,6 +268,7 @@ func testAccConfigOrganizationManagedRule_ResourceTypesScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -295,6 +302,7 @@ func testAccConfigOrganizationManagedRule_RuleIdentifier(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -328,6 +336,7 @@ func testAccConfigOrganizationManagedRule_TagKeyScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -361,6 +370,7 @@ func testAccConfigOrganizationManagedRule_TagValueScope(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigOrganizationManagedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -438,33 +448,16 @@ func testAccCheckConfigOrganizationManagedRuleDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testAccCheckConfigOrganizationManagedRuleDisappears(rule *configservice.OrganizationConfigRule) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).configconn
-
-		input := &configservice.DeleteOrganizationConfigRuleInput{
-			OrganizationConfigRuleName: rule.OrganizationConfigRuleName,
-		}
-
-		_, err := conn.DeleteOrganizationConfigRule(input)
-
-		if err != nil {
-			return err
-		}
-
-		return configWaitForOrganizationRuleStatusDeleteSuccessful(conn, aws.StringValue(rule.OrganizationConfigRuleName), 5*time.Minute)
-	}
-}
-
 func testAccConfigOrganizationManagedRuleConfigBase(rName string) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_config_configuration_recorder" "test" {
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 
   name     = %[1]q
-  role_arn = "${aws_iam_role.test.arn}"
+  role_arn = aws_iam_role.test.arn
 }
 
 resource "aws_iam_role" "test" {
@@ -489,7 +482,7 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "test" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRole"
-  role       = "${aws_iam_role.test.name}"
+  role       = aws_iam_role.test.name
 }
 
 resource "aws_organizations_organization" "test" {
@@ -502,11 +495,11 @@ resource "aws_organizations_organization" "test" {
 func testAccConfigOrganizationManagedRuleConfigDescription(rName, description string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
-  description       = %[2]q
-  name              = %[1]q
-  rule_identifier   = "IAM_PASSWORD_POLICY"
+  description     = %[2]q
+  name            = %[1]q
+  rule_identifier = "IAM_PASSWORD_POLICY"
 }
 `, rName, description)
 }
@@ -519,7 +512,7 @@ resource "aws_organizations_organization" "test" {
 }
 
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_organizations_organization.test"]
+  depends_on = [aws_organizations_organization.test]
 
   name            = %[1]q
   rule_identifier = "IAM_PASSWORD_POLICY"
@@ -530,7 +523,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigExcludedAccounts1(rName string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   excluded_accounts = ["111111111111"]
   name              = %[1]q
@@ -542,7 +535,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigExcludedAccounts2(rName string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   excluded_accounts = ["111111111111", "222222222222"]
   name              = %[1]q
@@ -554,7 +547,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigInputParameters(rName, inputParameters string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   input_parameters = <<PARAMS
 %[2]s
@@ -569,7 +562,7 @@ PARAMS
 func testAccConfigOrganizationManagedRuleConfigMaximumExecutionFrequency(rName, maximumExecutionFrequency string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   maximum_execution_frequency = %[2]q
   name                        = %[1]q
@@ -581,7 +574,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigResourceIdScope(rName, resourceIdScope string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   name                 = %[1]q
   resource_id_scope    = %[2]q
@@ -594,9 +587,15 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigResourceTypesScope1(rName string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
-  input_parameters     = "{\"tag1Key\":\"CostCenter\", \"tag2Key\":\"Owner\"}"
+  input_parameters = <<EOF
+{
+  "tag1Key": "CostCenter",
+  "tag2Key": "Owner"
+}
+EOF
+
   name                 = %[1]q
   resource_types_scope = ["AWS::EC2::Instance"]
   rule_identifier      = "REQUIRED_TAGS"
@@ -607,9 +606,15 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigResourceTypesScope2(rName string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
-  input_parameters     = "{\"tag1Key\":\"CostCenter\", \"tag2Key\":\"Owner\"}"
+  input_parameters = <<EOF
+{
+  "tag1Key": "CostCenter",
+  "tag2Key": "Owner"
+}
+EOF
+
   name                 = %[1]q
   resource_types_scope = ["AWS::EC2::Instance", "AWS::EC2::VPC"]
   rule_identifier      = "REQUIRED_TAGS"
@@ -620,7 +625,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigRuleIdentifier(rName, ruleIdentifier string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   name            = %[1]q
   rule_identifier = %[2]q
@@ -631,7 +636,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigTagKeyScope(rName, tagKeyScope string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   name            = %[1]q
   rule_identifier = "EC2_INSTANCE_DETAILED_MONITORING_ENABLED"
@@ -643,7 +648,7 @@ resource "aws_config_organization_managed_rule" "test" {
 func testAccConfigOrganizationManagedRuleConfigTagValueScope(rName, tagValueScope string) string {
 	return testAccConfigOrganizationManagedRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_managed_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_organizations_organization.test]
 
   name            = %[1]q
   rule_identifier = "EC2_INSTANCE_DETAILED_MONITORING_ENABLED"

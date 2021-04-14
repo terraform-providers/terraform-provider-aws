@@ -12,18 +12,18 @@ Provides an Gamelift Build resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_build" "test" {
   name             = "example-build"
   operating_system = "WINDOWS_2012"
 
   storage_location {
-    bucket   = "${aws_s3_bucket.test.bucket}"
-    key      = "${aws_s3_bucket_object.test.key}"
-    role_arn = "${aws_iam_role.test.arn}"
+    bucket   = aws_s3_bucket.test.bucket
+    key      = aws_s3_bucket_object.test.key
+    role_arn = aws_iam_role.test.arn
   }
 
-  depends_on = ["aws_iam_role_policy.test"]
+  depends_on = [aws_iam_role_policy.test]
 }
 ```
 
@@ -32,7 +32,7 @@ resource "aws_gamelift_build" "test" {
 The following arguments are supported:
 
 * `name` - (Required) Name of the build
-* `operating_system` - (Required) Operating system that the game server binaries are built to run on. e.g. `WINDOWS_2012` or `AMAZON_LINUX`.
+* `operating_system` - (Required) Operating system that the game server binaries are built to run on. e.g. `WINDOWS_2012`, `AMAZON_LINUX` or `AMAZON_LINUX_2`.
 * `storage_location` - (Required) Information indicating where your game build files are stored. See below.
 * `version` - (Optional) Version that is associated with this build.
 * `tags` - (Optional) Key-value map of resource tags

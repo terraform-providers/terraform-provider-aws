@@ -5,14 +5,14 @@ import (
 	"log"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
+	multierror "github.com/hashicorp/go-multierror"
 	gversion "github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -24,60 +24,45 @@ func init() {
 
 func testSweepDmsReplicationInstances(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).dmsconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
 	err = conn.DescribeReplicationInstancesPages(&dms.DescribeReplicationInstancesInput{}, func(page *dms.DescribeReplicationInstancesOutput, lastPage bool) bool {
 		for _, instance := range page.ReplicationInstances {
-			arn := aws.StringValue(instance.ReplicationInstanceArn)
-			input := &dms.DeleteReplicationInstanceInput{
-				ReplicationInstanceArn: instance.ReplicationInstanceArn,
-			}
+			r := resourceAwsDmsReplicationInstance()
+			d := r.Data(nil)
+			d.Set("replication_instance_arn", instance.ReplicationInstanceArn)
+			d.SetId(aws.StringValue(instance.ReplicationInstanceIdentifier))
 
-			log.Printf("[INFO] Deleting DMS Replication Instance: %s", arn)
-			_, err := conn.DeleteReplicationInstance(input)
-
-			if isAWSErr(err, dms.ErrCodeResourceNotFoundFault, "") {
-				continue
-			}
-
-			if err != nil {
-				log.Printf("[ERROR] Error deleting DMS Replication Instance (%s): %s", arn, err)
-				continue
-			}
-
-			stateConf := &resource.StateChangeConf{
-				Pending:    []string{"deleting"},
-				Target:     []string{},
-				Refresh:    resourceAwsDmsReplicationInstanceStateRefreshFunc(conn, aws.StringValue(instance.ReplicationInstanceIdentifier)),
-				Timeout:    30 * time.Minute,
-				MinTimeout: 10 * time.Second,
-				Delay:      30 * time.Second,
-			}
-
-			if _, err := stateConf.WaitForState(); err != nil {
-				log.Printf("[ERROR] Error waiting for DMS Replication Instance (%s) deletion: %s", arn, err)
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error describing DMS Replication Instances: %w", err))
+	}
+
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping DMS Replication Instances for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
 		log.Printf("[WARN] Skipping DMS Replication Instance sweep for %s: %s", region, err)
 		return nil
 	}
 
-	if err != nil {
-		return fmt.Errorf("Error retrieving DMS Replication Instances: %s", err)
-	}
-
-	return nil
+	return errs.ErrorOrNil()
 }
 
-func TestAccAWSDmsReplicationInstance_Basic(t *testing.T) {
+func TestAccAWSDmsReplicationInstance_basic(t *testing.T) {
 	// NOTE: Using larger dms.c4.large here for AWS GovCloud (US) support
 	replicationInstanceClass := "dms.c4.large"
 	resourceName := "aws_dms_replication_instance.test"
@@ -85,6 +70,7 @@ func TestAccAWSDmsReplicationInstance_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -123,6 +109,7 @@ func TestAccAWSDmsReplicationInstance_AllocatedStorage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -156,6 +143,7 @@ func TestAccAWSDmsReplicationInstance_AutoMinorVersionUpgrade(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -197,6 +185,7 @@ func TestAccAWSDmsReplicationInstance_AvailabilityZone(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -236,7 +225,7 @@ func TestAccAWSDmsReplicationInstance_EngineVersion(t *testing.T) {
 			ResourceName:            resourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"apply_immediately"},
+			ImportStateVerifyIgnore: []string{"allow_major_version_upgrade", "apply_immediately"},
 		},
 	}
 
@@ -261,6 +250,7 @@ func TestAccAWSDmsReplicationInstance_EngineVersion(t *testing.T) {
 				),
 			}
 		},
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps:        testSteps,
@@ -274,6 +264,7 @@ func TestAccAWSDmsReplicationInstance_KmsKeyArn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -300,6 +291,7 @@ func TestAccAWSDmsReplicationInstance_MultiAz(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -340,6 +332,7 @@ func TestAccAWSDmsReplicationInstance_PreferredMaintenanceWindow(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -373,6 +366,7 @@ func TestAccAWSDmsReplicationInstance_PubliclyAccessible(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -403,6 +397,7 @@ func TestAccAWSDmsReplicationInstance_ReplicationInstanceClass(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -437,6 +432,7 @@ func TestAccAWSDmsReplicationInstance_ReplicationSubnetGroupId(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -463,6 +459,7 @@ func TestAccAWSDmsReplicationInstance_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -507,6 +504,7 @@ func TestAccAWSDmsReplicationInstance_VpcSecurityGroupIds(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -658,12 +656,13 @@ func testAccAWSDmsReplicationInstanceEngineVersionsPreCheck(t *testing.T) []stri
 
 func testAccAWSDmsReplicationInstanceConfig_AllocatedStorage(rName string, allocatedStorage int) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
   allocated_storage          = %d
   apply_immediately          = true
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 }
 `, allocatedStorage, rName)
@@ -671,12 +670,13 @@ resource "aws_dms_replication_instance" "test" {
 
 func testAccAWSDmsReplicationInstanceConfig_AutoMinorVersionUpgrade(rName string, autoMinorVersionUpgrade bool) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
   auto_minor_version_upgrade = %t
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 }
 `, autoMinorVersionUpgrade, rName)
@@ -693,12 +693,13 @@ data "aws_availability_zones" "available" {
   }
 }
 
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
-  availability_zone          = "${data.aws_availability_zones.available.names[0]}"
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  availability_zone          = data.aws_availability_zones.available.names[0]
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 }
 `, rName)
@@ -706,20 +707,23 @@ resource "aws_dms_replication_instance" "test" {
 
 func testAccAWSDmsReplicationInstanceConfig_EngineVersion(rName, engineVersion string) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
-  apply_immediately          = true
-  engine_version             = %q
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
-  replication_instance_id    = %q
+  apply_immediately           = true
+  allow_major_version_upgrade = true
+  engine_version              = %q
+  replication_instance_class  = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
+  replication_instance_id     = %q
 }
 `, engineVersion, rName)
 }
 
 func testAccAWSDmsReplicationInstanceConfig_KmsKeyArn(rName string) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
@@ -727,8 +731,8 @@ resource "aws_kms_key" "test" {
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
-  kms_key_arn                = "${aws_kms_key.test.arn}"
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  kms_key_arn                = aws_kms_key.test.arn
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 }
 `, rName)
@@ -736,12 +740,13 @@ resource "aws_dms_replication_instance" "test" {
 
 func testAccAWSDmsReplicationInstanceConfig_MultiAz(rName string, multiAz bool) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
   multi_az                   = %t
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 }
 `, multiAz, rName)
@@ -749,12 +754,13 @@ resource "aws_dms_replication_instance" "test" {
 
 func testAccAWSDmsReplicationInstanceConfig_PreferredMaintenanceWindow(rName, preferredMaintenanceWindow string) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately            = true
   preferred_maintenance_window = %q
-  replication_instance_class   = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class   = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id      = %q
 }
 `, preferredMaintenanceWindow, rName)
@@ -762,12 +768,13 @@ resource "aws_dms_replication_instance" "test" {
 
 func testAccAWSDmsReplicationInstanceConfig_PubliclyAccessible(rName string, publiclyAccessible bool) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
   publicly_accessible        = %t
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 }
 `, publiclyAccessible, rName)
@@ -794,7 +801,8 @@ data "aws_availability_zones" "available" {
   }
 }
 
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
@@ -807,26 +815,26 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "10.1.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
-    Name = "${aws_vpc.test.tags["Name"]}"
+    Name = aws_vpc.test.tags["Name"]
   }
 }
 
 resource "aws_dms_replication_subnet_group" "test" {
   replication_subnet_group_description = %q
   replication_subnet_group_id          = %q
-  subnet_ids                           = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  subnet_ids                           = aws_subnet.test[*].id
 }
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately           = true
-  replication_instance_class  = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class  = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id     = %q
-  replication_subnet_group_id = "${aws_dms_replication_subnet_group.test.replication_subnet_group_id}"
+  replication_subnet_group_id = aws_dms_replication_subnet_group.test.replication_subnet_group_id
 }
 `, rName, rName, rName, rName)
 }
@@ -837,7 +845,7 @@ data "aws_partition" "current" {}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 
   tags = {
@@ -853,7 +861,7 @@ data "aws_partition" "current" {}
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately          = true
-  replication_instance_class = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id    = %q
 
   tags = {
@@ -875,7 +883,8 @@ data "aws_availability_zones" "available" {
   }
 }
 
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
@@ -886,34 +895,34 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_security_group" "test" {
-  name   = "${aws_vpc.test.tags["Name"]}"
-  vpc_id = "${aws_vpc.test.id}"
+  name   = aws_vpc.test.tags["Name"]
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "10.1.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
-    Name = "${aws_vpc.test.tags["Name"]}"
+    Name = aws_vpc.test.tags["Name"]
   }
 }
 
 resource "aws_dms_replication_subnet_group" "test" {
   replication_subnet_group_description = %q
   replication_subnet_group_id          = %q
-  subnet_ids                           = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  subnet_ids                           = aws_subnet.test[*].id
 }
 
 resource "aws_dms_replication_instance" "test" {
   apply_immediately           = true
-  replication_instance_class  = "${data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"}"
+  replication_instance_class  = data.aws_partition.current.partition == "aws" ? "dms.t2.micro" : "dms.c4.large"
   replication_instance_id     = %q
-  replication_subnet_group_id = "${aws_dms_replication_subnet_group.test.replication_subnet_group_id}"
-  vpc_security_group_ids      = ["${aws_security_group.test.id}"]
+  replication_subnet_group_id = aws_dms_replication_subnet_group.test.replication_subnet_group_id
+  vpc_security_group_ids      = [aws_security_group.test.id]
 }
 `, rName, rName, rName, rName)
 }

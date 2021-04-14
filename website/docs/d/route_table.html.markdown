@@ -10,24 +10,21 @@ description: |-
 
 `aws_route_table` provides details about a specific Route Table.
 
-This resource can prove useful when a module accepts a Subnet id as
-an input variable and needs to, for example, add a route in
-the Route Table.
+This resource can prove useful when a module accepts a Subnet ID as an input variable and needs to, for example, add a route in the Route Table.
 
 ## Example Usage
 
-The following example shows how one might accept a Route Table id as a variable
-and use this data source to obtain the data necessary to create a route.
+The following example shows how one might accept a Route Table ID as a variable and use this data source to obtain the data necessary to create a route.
 
-```hcl
+```terraform
 variable "subnet_id" {}
 
 data "aws_route_table" "selected" {
-  subnet_id = "${var.subnet_id}"
+  subnet_id = var.subnet_id
 }
 
 resource "aws_route" "route" {
-  route_table_id            = "${data.aws_route_table.selected.id}"
+  route_table_id            = data.aws_route_table.selected.id
   destination_cidr_block    = "10.0.1.0/22"
   vpc_peering_connection_id = "pcx-45ff3dc1"
 }
@@ -35,58 +32,64 @@ resource "aws_route" "route" {
 
 ## Argument Reference
 
-The arguments of this data source act as filters for querying the available
-Route Table in the current region. The given filters must match exactly one
-Route Table whose data will be exported as attributes.
+The arguments of this data source act as filters for querying the available Route Table in the current region. The given filters must match exactly one Route Table whose data will be exported as attributes.
 
-* `filter` - (Optional) Custom filter block as described below.
+The following arguments are optional:
 
-* `route_table_id` - (Optional) The id of the specific Route Table to retrieve.
+* `filter` - (Optional) Configuration block. Detailed below.
+* `gateway_id` - (Optional) ID of an Internet Gateway or Virtual Private Gateway which is connected to the Route Table (not exported if not passed as a parameter).
+* `route_table_id` - (Optional) ID of the specific Route Table to retrieve.
+* `subnet_id` - (Optional) ID of a Subnet which is connected to the Route Table (not exported if not passed as a parameter).
+* `tags` - (Optional) Map of tags, each pair of which must exactly match a pair on the desired Route Table.
+* `vpc_id` - (Optional) ID of the VPC that the desired Route Table belongs to.
 
-* `tags` - (Optional) A map of tags, each pair of which must exactly match
-  a pair on the desired Route Table.
+### filter
 
-* `vpc_id` - (Optional) The id of the VPC that the desired Route Table belongs to.
+Complex filters can be expressed using one or more `filter` blocks.
 
-* `subnet_id` - (Optional) The id of a Subnet which is connected to the Route Table (not exported if not passed as a parameter).
+The following arguments are required:
 
-* `gateway_id` - (Optional) The id of an Internet Gateway or Virtual Private Gateway which is connected to the Route Table (not exported if not passed as a parameter).
-
-More complex filters can be expressed using one or more `filter` sub-blocks,
-which take the following arguments:
-
-* `name` - (Required) The name of the field to filter by, as defined by
-  [the underlying AWS API](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeRouteTables.html).
-
-* `values` - (Required) Set of values that are accepted for the given field.
-  A Route Table will be selected if any one of the given values matches.
+* `name` - (Required) Name of the field to filter by, as defined by [the underlying AWS API](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeRouteTables.html).
+* `values` - (Required) Set of values that are accepted for the given field. A Route Table will be selected if any one of the given values matches.
 
 ## Attributes Reference
 
-All of the argument attributes except the `filter` block are also exported as
-result attributes. This data source will complete the data by populating
-any fields that are not included in the configuration with the data for
-the selected Route Table. In addition the following attributes are exported:
+In addition to the arguments above, the following attributes are exported:
 
-* `owner_id` - The ID of the AWS account that owns the route table
+* `arn` - ARN of the route table.
+* `associations` - List of associations with attributes detailed below.
+* `owner_id` - ID of the AWS account that owns the route table.
+* `routes` - List of routes with attributes detailed below.
 
-`routes` are also exported with the following attributes, when there are relevants:
-Each route supports the following:
+### routes
 
-* `cidr_block` - The CIDR block of the route.
-* `ipv6_cidr_block` - The IPv6 CIDR block of the route.
-* `egress_only_gateway_id` - The ID of the Egress Only Internet Gateway.
-* `gateway_id` - The Internet Gateway ID.
-* `nat_gateway_id` - The NAT Gateway ID.
-* `instance_id` - The EC2 instance ID.
-* `transit_gateway_id` - The EC2 Transit Gateway ID.
-* `vpc_peering_connection_id` - The VPC Peering ID.
-* `network_interface_id` - The ID of the elastic network interface (eni) to use.
+When relevant, routes are also exported with the following attributes:
 
-`associations` are also exported with the following attributes:
+For destinations:
 
-* `route_table_association_id` - The Association ID.
-* `route_table_id` - The Route Table ID.
-* `subnet_id` - The Subnet ID. Only set when associated with a Subnet.
-* `gateway_id` - The Gateway ID. Only set when associated with an Internet Gateway or Virtual Private Gateway.
-* `main` - If the Association due to the Main Route Table.
+* `cidr_block` - CIDR block of the route.
+* `destination_prefix_list_id` - The ID of a [managed prefix list](ec2_managed_prefix_list.html) destination of the route.
+* `ipv6_cidr_block` - IPv6 CIDR block of the route.
+
+For targets:
+
+* `carrier_gateway_id` - ID of the Carrier Gateway.
+* `egress_only_gateway_id` - ID of the Egress Only Internet Gateway.
+* `gateway_id` - Internet Gateway ID.
+* `instance_id` - EC2 instance ID.
+* `local_gateway_id` - Local Gateway ID.
+* `nat_gateway_id` - NAT Gateway ID.
+* `network_interface_id` - ID of the elastic network interface (eni) to use.
+* `transit_gateway_id` - EC2 Transit Gateway ID.
+* `vpc_endpoint_id` - VPC Endpoint ID.
+* `vpc_peering_connection_id` - VPC Peering ID.
+
+### associations
+
+Associations are also exported with the following attributes:
+
+* `gateway_id` - Gateway ID. Only set when associated with an Internet Gateway or Virtual Private Gateway.
+* `main` - Whether the association is due to the main route table.
+* `route_table_association_id` - Association ID.
+* `route_table_id` - Route Table ID.
+* `subnet_id` - Subnet ID. Only set when associated with a subnet.

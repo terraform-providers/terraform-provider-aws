@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsIAMServerCertificate() *schema.Resource {
@@ -119,7 +119,7 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing certificates: %s", err)
+		return fmt.Errorf("Error describing certificates: %w", err)
 	}
 
 	if len(metadatas) == 0 {
@@ -134,7 +134,7 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 	}
 
 	metadata := metadatas[0]
-	d.SetId(*metadata.ServerCertificateId)
+	d.SetId(aws.StringValue(metadata.ServerCertificateId))
 	d.Set("arn", metadata.Arn)
 	d.Set("path", metadata.Path)
 	d.Set("name", metadata.ServerCertificateName)
@@ -150,8 +150,8 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	d.Set("upload_date", serverCertificateResp.ServerCertificate.ServerCertificateMetadata.UploadDate.Format(time.RFC3339))
-	d.Set("certificate_body", aws.StringValue(serverCertificateResp.ServerCertificate.CertificateBody))
-	d.Set("certificate_chain", aws.StringValue(serverCertificateResp.ServerCertificate.CertificateChain))
+	d.Set("certificate_body", serverCertificateResp.ServerCertificate.CertificateBody)
+	d.Set("certificate_chain", serverCertificateResp.ServerCertificate.CertificateChain)
 
 	return nil
 }

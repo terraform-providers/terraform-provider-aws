@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceIAMGroup_basic(t *testing.T) {
 	groupName := fmt.Sprintf("test-datasource-user-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsIAMGroupConfig(groupName),
@@ -35,8 +37,9 @@ func TestAccAWSDataSourceIAMGroup_users(t *testing.T) {
 	userCount := 101
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsIAMGroupConfigWithUser(groupName, userName, groupMemberShipName, userCount),
@@ -64,7 +67,7 @@ resource "aws_iam_group" "group" {
 }
 
 data "aws_iam_group" "test" {
-  group_name = "${aws_iam_group.group.name}"
+  group_name = aws_iam_group.group.name
 }
 `, name)
 }
@@ -72,23 +75,23 @@ data "aws_iam_group" "test" {
 func testAccAwsIAMGroupConfigWithUser(groupName, userName, membershipName string, userCount int) string {
 	return fmt.Sprintf(`
 resource "aws_iam_group" "group" {
-	name = "%s"
-	path = "/"
+  name = "%s"
+  path = "/"
 }
 
 resource "aws_iam_user" "user" {
-	name = "%s-${count.index}"
-	count = %d
+  name  = "%s-${count.index}"
+  count = %d
 }
 
 resource "aws_iam_group_membership" "team" {
-	name = "%s"
-	users = "${aws_iam_user.user.*.name}"
-	group = "${aws_iam_group.group.name}"
+  name  = "%s"
+  users = aws_iam_user.user.*.name
+  group = aws_iam_group.group.name
 }
 
 data "aws_iam_group" "test" {
-	group_name = "${aws_iam_group_membership.team.group}"	
+  group_name = aws_iam_group_membership.team.group
 }
 `, groupName, userName, userCount, membershipName)
 }

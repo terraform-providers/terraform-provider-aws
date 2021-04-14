@@ -8,10 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	awspolicy "github.com/jen20/awspolicyequivalence"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
 )
 
@@ -65,13 +64,14 @@ func testSweepSecretsManagerSecrets(region string) error {
 	return nil
 }
 
-func TestAccAwsSecretsManagerSecret_Basic(t *testing.T) {
+func TestAccAwsSecretsManagerSecret_basic(t *testing.T) {
 	var secret secretsmanager.DescribeSecretOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -107,6 +107,7 @@ func TestAccAwsSecretsManagerSecret_withNamePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -135,6 +136,7 @@ func TestAccAwsSecretsManagerSecret_Description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -169,6 +171,7 @@ func TestAccAwsSecretsManagerSecret_KmsKeyID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -203,6 +206,7 @@ func TestAccAwsSecretsManagerSecret_RecoveryWindowInDays_Recreate(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -239,6 +243,7 @@ func TestAccAwsSecretsManagerSecret_RotationLambdaARN(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -290,6 +295,7 @@ func TestAccAwsSecretsManagerSecret_RotationRules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -343,6 +349,7 @@ func TestAccAwsSecretsManagerSecret_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -393,10 +400,10 @@ func TestAccAwsSecretsManagerSecret_policy(t *testing.T) {
 	var secret secretsmanager.DescribeSecretOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_secretsmanager_secret.test"
-	expectedPolicyText := `{"Version":"2012-10-17","Statement":[{"Sid":"EnableAllPermissions","Effect":"Allow","Principal":{"AWS":"*"},"Action":"secretsmanager:GetSecretValue","Resource":"*"}]}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -404,7 +411,23 @@ func TestAccAwsSecretsManagerSecret_policy(t *testing.T) {
 				Config: testAccAwsSecretsManagerSecretConfig_Policy(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSecretsManagerSecretExists(resourceName, &secret),
-					testAccCheckAwsSecretsManagerSecretHasPolicy(resourceName, expectedPolicyText),
+					resource.TestMatchResourceAttr(resourceName, "policy",
+						regexp.MustCompile(`{"Action":"secretsmanager:GetSecretValue".+`)),
+				),
+			},
+			{
+				Config: testAccAwsSecretsManagerSecretConfig_Name(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretExists(resourceName, &secret),
+					resource.TestCheckResourceAttr(resourceName, "policy", ""),
+				),
+			},
+			{
+				Config: testAccAwsSecretsManagerSecretConfig_Policy(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretExists(resourceName, &secret),
+					resource.TestMatchResourceAttr(resourceName, "policy",
+						regexp.MustCompile(`{"Action":"secretsmanager:GetSecretValue".+`)),
 				),
 			},
 		},
@@ -425,7 +448,7 @@ func testAccCheckAwsSecretsManagerSecretDestroy(s *terraform.State) error {
 
 		var output *secretsmanager.DescribeSecretOutput
 
-		err := resource.Retry(waiter.DeletionPropagationTimeout, func() *resource.RetryError {
+		err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 			var err error
 			output, err = conn.DescribeSecret(input)
 
@@ -489,39 +512,6 @@ func testAccCheckAwsSecretsManagerSecretExists(resourceName string, secret *secr
 	}
 }
 
-func testAccCheckAwsSecretsManagerSecretHasPolicy(name string, expectedPolicyText string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		conn := testAccProvider.Meta().(*AWSClient).secretsmanagerconn
-		input := &secretsmanager.GetResourcePolicyInput{
-			SecretId: aws.String(rs.Primary.ID),
-		}
-
-		out, err := conn.GetResourcePolicy(input)
-
-		if err != nil {
-			return err
-		}
-
-		actualPolicyText := *out.ResourcePolicy
-
-		equivalent, err := awspolicy.PoliciesAreEquivalent(actualPolicyText, expectedPolicyText)
-		if err != nil {
-			return fmt.Errorf("error testing policy equivalence: %w", err)
-		}
-		if !equivalent {
-			return fmt.Errorf("non-equivalent policy error:\n\nexpected: %s\n\n     got: %s",
-				expectedPolicyText, actualPolicyText)
-		}
-
-		return nil
-	}
-}
-
 func testAccPreCheckAWSSecretsManager(t *testing.T) {
 	conn := testAccProvider.Meta().(*AWSClient).secretsmanagerconn
 
@@ -574,7 +564,7 @@ resource "aws_kms_key" "test2" {
 }
 
 resource "aws_secretsmanager_secret" "test" {
-  kms_key_id = "${aws_kms_key.test1.id}"
+  kms_key_id = aws_kms_key.test1.id
   name       = "%s"
 }
 `, rName)
@@ -591,7 +581,7 @@ resource "aws_kms_key" "test2" {
 }
 
 resource "aws_secretsmanager_secret" "test" {
-  kms_key_id = "${aws_kms_key.test2.id}"
+  kms_key_id = aws_kms_key.test2.id
   name       = "%s"
 }
 `, rName)
@@ -610,9 +600,9 @@ func testAccAwsSecretsManagerSecretConfig_RotationLambdaARN(rName string) string
 	return baseAccAWSLambdaConfig(rName, rName, rName) + fmt.Sprintf(`
 resource "aws_secretsmanager_secret" "test" {
   name                = "%[1]s"
-  rotation_lambda_arn = "${aws_lambda_function.test1.arn}"
+  rotation_lambda_arn = aws_lambda_function.test1.arn
 
-  depends_on = ["aws_lambda_permission.test1"]
+  depends_on = [aws_lambda_permission.test1]
 }
 
 # Not a real rotation function
@@ -620,15 +610,15 @@ resource "aws_lambda_function" "test1" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%[1]s-1"
   handler       = "exports.example"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test1" {
-  action         = "lambda:InvokeFunction"
-  function_name  = "${aws_lambda_function.test1.function_name}"
-  principal      = "secretsmanager.amazonaws.com"
-  statement_id   = "AllowExecutionFromSecretsManager1"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test1.function_name
+  principal     = "secretsmanager.amazonaws.com"
+  statement_id  = "AllowExecutionFromSecretsManager1"
 }
 
 # Not a real rotation function
@@ -636,15 +626,15 @@ resource "aws_lambda_function" "test2" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%[1]s-2"
   handler       = "exports.example"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test2" {
-  action         = "lambda:InvokeFunction"
-  function_name  = "${aws_lambda_function.test2.function_name}"
-  principal      = "secretsmanager.amazonaws.com"
-  statement_id   = "AllowExecutionFromSecretsManager2"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test2.function_name
+  principal     = "secretsmanager.amazonaws.com"
+  statement_id  = "AllowExecutionFromSecretsManager2"
 }
 `, rName)
 }
@@ -656,26 +646,26 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%[1]s"
   handler       = "exports.example"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test" {
-  action         = "lambda:InvokeFunction"
-  function_name  = "${aws_lambda_function.test.function_name}"
-  principal      = "secretsmanager.amazonaws.com"
-  statement_id   = "AllowExecutionFromSecretsManager1"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test.function_name
+  principal     = "secretsmanager.amazonaws.com"
+  statement_id  = "AllowExecutionFromSecretsManager1"
 }
 
 resource "aws_secretsmanager_secret" "test" {
   name                = "%[1]s"
-  rotation_lambda_arn = "${aws_lambda_function.test.arn}"
+  rotation_lambda_arn = aws_lambda_function.test.arn
 
   rotation_rules {
     automatically_after_days = %[2]d
   }
 
-  depends_on = ["aws_lambda_permission.test"]
+  depends_on = [aws_lambda_permission.test]
 }
 `, rName, automaticallyAfterDays)
 }
@@ -719,22 +709,42 @@ resource "aws_secretsmanager_secret" "test" {
 
 func testAccAwsSecretsManagerSecretConfig_Policy(rName string) string {
 	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_secretsmanager_secret" "test" {
-  name = "%s"
+  name = %[1]q
 
   policy = <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
-	{
-	  "Sid": "EnableAllPermissions",
-	  "Effect": "Allow",
-	  "Principal": {
-		"AWS": "*"
-	  },
-	  "Action": "secretsmanager:GetSecretValue",
-	  "Resource": "*"
-	}
+    {
+      "Sid": "EnableAllPermissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${aws_iam_role.test.arn}"
+      },
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "*"
+    }
   ]
 }
 POLICY

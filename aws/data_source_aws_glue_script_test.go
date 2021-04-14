@@ -1,19 +1,20 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAWSGlueScript_Language_Python(t *testing.T) {
 	dataSourceName := "data.aws_glue_script.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, glue.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAWSGlueScriptConfigPython(),
@@ -29,8 +30,9 @@ func TestAccDataSourceAWSGlueScript_Language_Scala(t *testing.T) {
 	dataSourceName := "data.aws_glue_script.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, glue.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAWSGlueScriptConfigScala(),
@@ -43,7 +45,7 @@ func TestAccDataSourceAWSGlueScript_Language_Scala(t *testing.T) {
 }
 
 func testAccDataSourceAWSGlueScriptConfigPython() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_glue_script" "test" {
   language = "PYTHON"
 
@@ -137,11 +139,11 @@ data "aws_glue_script" "test" {
     }
   }
 }
-`)
+`
 }
 
 func testAccDataSourceAWSGlueScriptConfigScala() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_glue_script" "test" {
   language = "SCALA"
 
@@ -235,5 +237,5 @@ data "aws_glue_script" "test" {
     }
   }
 }
-`)
+`
 }

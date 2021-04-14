@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_globalaccelerator_accelerator: Allow update of flow log attribute for active flow logs
+```
+
+```release-note:enhancement
+resource/aws_globalaccelerator_accelerator: Add plan time validation to `name`, `flow_logs_s3_bucket` and `flow_logs_s3_prefix` attributes
+```

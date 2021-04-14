@@ -12,10 +12,10 @@ Provides an IAM instance profile.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_instance_profile" "test_profile" {
   name = "test_profile"
-  role = "${aws_iam_role.role.name}"
+  role = aws_iam_role.role.name
 }
 
 resource "aws_iam_role" "role" {
@@ -42,26 +42,22 @@ EOF
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are optional:
 
-* `name` - (Optional, Forces new resource) The profile's name. If omitted, Terraform will assign a random, unique name.
+* `name` - (Optional, Forces new resource) Name of the instance profile. If omitted, Terraform will assign a random, unique name. Conflicts with `name_prefix`. Can be a string of characters consisting of upper and lowercase alphanumeric characters and these special characters: `_`, `+`, `=`, `,`, `.`, `@`, `-`. Spaces are not allowed.
 * `name_prefix` - (Optional, Forces new resource) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
-* `path` - (Optional, default "/") Path in which to create the profile.
-* `roles` - (**Deprecated**)
-A list of role names to include in the profile.  The current default is 1.  If you see an error message similar to `Cannot exceed quota for InstanceSessionsPerInstanceProfile: 1`, then you must contact AWS support and ask for a limit increase.
- WARNING: This is deprecated since [version 0.9.3 (April 12, 2017)](https://github.com/hashicorp/terraform/blob/master/CHANGELOG.md#093-april-12-2017), as >= 2 roles are not possible. See [issue #11575](https://github.com/hashicorp/terraform/issues/11575).
-* `role` - (Optional) The role name to include in the profile.
+* `path` - (Optional, default "/") Path to the instance profile. For more information about paths, see [IAM Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html) in the IAM User Guide. Can be a string of characters consisting of either a forward slash (`/`) by itself or a string that must begin and end with forward slashes. Can include any ASCII character from the ! (\u0021) through the DEL character (\u007F), including most punctuation characters, digits, and upper and lowercase letters.
+* `role` - (Optional) Name of the role to add to the profile.
+* `tags` - (Optional) Map of resource tags for the IAM Instance Profile.
 
-## Attribute Reference
+## Attributes Reference
 
-* `id` - The instance profile's ID.
-* `arn` - The ARN assigned by AWS to the instance profile.
-* `create_date` - The creation timestamp of the instance profile.
-* `name` - The instance profile's name.
-* `path` - The path of the instance profile in IAM.
-* `role` - The role assigned to the instance profile.
-* `roles` - The list of roles assigned to the instance profile. (**Deprecated**)
-* `unique_id` - The [unique ID][1] assigned by AWS.
+In addition to all arguments above, the following attributes are exported:
+
+* `arn` - ARN assigned by AWS to the instance profile.
+* `create_date` - Creation timestamp of the instance profile.
+* `id` - Instance profile's ID.
+* `unique_id` - [Unique ID][1] assigned by AWS.
 
   [1]: https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html#GUIDs
 

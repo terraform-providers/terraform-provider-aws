@@ -9,15 +9,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const (
-	emrInstanceGroupCreateTimeout = 10 * time.Minute
-	emrInstanceGroupUpdateTimeout = 10 * time.Minute
+	emrInstanceGroupCreateTimeout = 30 * time.Minute
+	emrInstanceGroupUpdateTimeout = 30 * time.Minute
 )
 
 func resourceAwsEMRInstanceGroup() *schema.Resource {
@@ -185,7 +185,7 @@ func resourceAwsEMRInstanceGroupCreate(d *schema.ResourceData, meta interface{})
 	if resp == nil || len(resp.InstanceGroupIds) == 0 {
 		return fmt.Errorf("Error creating instance groups: no instance group returned")
 	}
-	d.SetId(*resp.InstanceGroupIds[0])
+	d.SetId(aws.StringValue(resp.InstanceGroupIds[0]))
 
 	if err := waitForEmrInstanceGroupStateRunning(conn, d.Get("cluster_id").(string), d.Id(), emrInstanceGroupCreateTimeout); err != nil {
 		return fmt.Errorf("error waiting for EMR Instance Group (%s) creation: %s", d.Id(), err)

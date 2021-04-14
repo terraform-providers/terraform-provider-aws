@@ -8,9 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsAppmeshVirtualRouter() *schema.Resource {
@@ -42,6 +46,14 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 
+			"mesh_owner": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAwsAccountId,
+			},
+
 			"spec": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -49,14 +61,6 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"service_names": {
-							Type:     schema.TypeSet,
-							Removed:  "Use `aws_appmesh_virtual_service` resources instead",
-							Optional: true,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-
 						"listener": {
 							Type:     schema.TypeList,
 							Required: true,
@@ -74,16 +78,13 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 												"port": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validation.IntBetween(1, 65535),
+													ValidateFunc: validation.IsPortNumber,
 												},
 
 												"protocol": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														appmesh.PortProtocolHttp,
-														appmesh.PortProtocolTcp,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(appmesh.PortProtocol_Values(), false),
 												},
 											},
 										},
@@ -110,6 +111,11 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 				Computed: true,
 			},
 
+			"resource_owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -123,6 +129,9 @@ func resourceAwsAppmeshVirtualRouterCreate(d *schema.ResourceData, meta interfac
 		VirtualRouterName: aws.String(d.Get("name").(string)),
 		Spec:              expandAppmeshVirtualRouterSpec(d.Get("spec").([]interface{})),
 		Tags:              keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh virtual router: %#v", req)
@@ -140,20 +149,56 @@ func resourceAwsAppmeshVirtualRouterRead(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).appmeshconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeVirtualRouter(&appmesh.DescribeVirtualRouterInput{
+	req := &appmesh.DescribeVirtualRouterInput{
 		MeshName:          aws.String(d.Get("mesh_name").(string)),
 		VirtualRouterName: aws.String(d.Get("name").(string)),
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
+	}
+
+	var resp *appmesh.DescribeVirtualRouterOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = conn.DescribeVirtualRouter(req)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh virtual router (%s) not found, removing from state", d.Id())
+
+	if tfresource.TimedOut(err) {
+		resp, err = conn.DescribeVirtualRouter(req)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+		log.Printf("[WARN] App Mesh Virtual Router (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
+
 	if err != nil {
-		return fmt.Errorf("error reading App Mesh virtual router: %s", err)
+		return fmt.Errorf("error reading App Mesh Virtual Router: %w", err)
 	}
+
+	if resp == nil || resp.VirtualRouter == nil {
+		return fmt.Errorf("error reading App Mesh Virtual Router: empty response")
+	}
+
 	if aws.StringValue(resp.VirtualRouter.Status.Status) == appmesh.VirtualRouterStatusCodeDeleted {
-		log.Printf("[WARN] App Mesh virtual router (%s) not found, removing from state", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Virtual Router: %s after creation", aws.StringValue(resp.VirtualRouter.Status.Status))
+		}
+
+		log.Printf("[WARN] App Mesh Virtual Router (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -161,9 +206,11 @@ func resourceAwsAppmeshVirtualRouterRead(d *schema.ResourceData, meta interface{
 	arn := aws.StringValue(resp.VirtualRouter.Metadata.Arn)
 	d.Set("name", resp.VirtualRouter.VirtualRouterName)
 	d.Set("mesh_name", resp.VirtualRouter.MeshName)
+	d.Set("mesh_owner", resp.VirtualRouter.Metadata.MeshOwner)
 	d.Set("arn", arn)
 	d.Set("created_date", resp.VirtualRouter.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.VirtualRouter.Metadata.LastUpdatedAt.Format(time.RFC3339))
+	d.Set("resource_owner", resp.VirtualRouter.Metadata.ResourceOwner)
 	err = d.Set("spec", flattenAppmeshVirtualRouterSpec(resp.VirtualRouter.Spec))
 	if err != nil {
 		return fmt.Errorf("error setting spec: %s", err)
@@ -191,6 +238,9 @@ func resourceAwsAppmeshVirtualRouterUpdate(d *schema.ResourceData, meta interfac
 			MeshName:          aws.String(d.Get("mesh_name").(string)),
 			VirtualRouterName: aws.String(d.Get("name").(string)),
 			Spec:              expandAppmeshVirtualRouterSpec(v.([]interface{})),
+		}
+		if v, ok := d.GetOk("mesh_owner"); ok {
+			req.MeshOwner = aws.String(v.(string))
 		}
 
 		log.Printf("[DEBUG] Updating App Mesh virtual router: %#v", req)

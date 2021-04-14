@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsDynamoDbTable_basic(t *testing.T) {
 	datasourceName := "data.aws_dynamodb_table.test"
-	tableName := fmt.Sprintf("testaccawsdynamodbtable-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	tableName := fmt.Sprintf("testaccawsdynamodbtable-basic-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, dynamodb.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsDynamoDbTableConfigBasic(tableName),
@@ -81,7 +83,7 @@ resource "aws_dynamodb_table" "test" {
 }
 
 data "aws_dynamodb_table" "test" {
-  name = "${aws_dynamodb_table.test.name}"
+  name = aws_dynamodb_table.test.name
 }
 `, tableName)
 }

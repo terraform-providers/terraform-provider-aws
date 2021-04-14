@@ -1,0 +1,19 @@
+```release-notes:enhancement
+resource/aws_default_route_table: Add `destination_prefix_list_id` attribute
+```
+
+```release-notes:enhancement
+resource/aws_route_table: Add `destination_prefix_list_id` attribute
+```
+
+```release-note:bug
+resource/aws_vpn_gateway_route_propagation: Improve eventual consistency handling and handling of out-of-band resource removal
+```
+
+```release-note:bug
+resource/aws_route_table: Improve eventual consistency handling and handling of out-of-band resource removal
+```
+
+```release-note:bug
+resource/aws_route_table_association: Improve eventual consistency handling and handling of out-of-band resource removal
+```

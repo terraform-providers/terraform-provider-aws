@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_mq_broker: Add RabbitMQ as option for `engine_type`, and new arguments `authentication_strategy`, `ldap_server_metadata`, and `storage_type`. Improve handling of eventual consistency.
+```

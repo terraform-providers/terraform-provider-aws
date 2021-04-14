@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lightsail"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLightsailStaticIpAttachment_basic(t *testing.T) {
@@ -21,6 +21,7 @@ func TestAccAWSLightsailStaticIpAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailStaticIpAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +57,7 @@ func TestAccAWSLightsailStaticIpAttachment_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailStaticIpAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -146,8 +148,8 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_lightsail_static_ip_attachment" "test" {
-  static_ip_name = "${aws_lightsail_static_ip.test.name}"
-  instance_name  = "${aws_lightsail_instance.test.name}"
+  static_ip_name = aws_lightsail_static_ip.test.name
+  instance_name  = aws_lightsail_instance.test.name
 }
 
 resource "aws_lightsail_static_ip" "test" {
@@ -156,10 +158,10 @@ resource "aws_lightsail_static_ip" "test" {
 
 resource "aws_lightsail_instance" "test" {
   name              = "%s"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   blueprint_id      = "amazon_linux"
   bundle_id         = "micro_1_0"
-  key_pair_name     = "${aws_lightsail_key_pair.test.name}"
+  key_pair_name     = aws_lightsail_key_pair.test.name
 }
 
 resource "aws_lightsail_key_pair" "test" {

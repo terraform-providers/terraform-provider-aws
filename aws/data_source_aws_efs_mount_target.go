@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsEfsMountTarget() *schema.Resource {
@@ -78,7 +78,7 @@ func dataSourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] Reading EFS Mount Target: %s", describeEfsOpts)
 	resp, err := conn.DescribeMountTargets(describeEfsOpts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving EFS Mount Target: %s", err)
+		return fmt.Errorf("Error retrieving EFS Mount Target: %w", err)
 	}
 	if len(resp.MountTargets) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(resp.MountTargets))

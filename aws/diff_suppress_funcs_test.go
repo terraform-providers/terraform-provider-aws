@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestSuppressEquivalentJsonDiffsWhitespaceAndNoWhitespace(t *testing.T) {
@@ -71,7 +71,7 @@ func TestSuppressEquivalentTypeStringBoolean(t *testing.T) {
 	}
 }
 
-func TestSuppressCloudFormationTemplateBodyDiffs(t *testing.T) {
+func TestSuppressEquivalentJsonOrYamlDiffs(t *testing.T) {
 	testCases := []struct {
 		description string
 		equivalent  bool
@@ -253,7 +253,7 @@ Outputs:
 	}
 
 	for _, tc := range testCases {
-		value := suppressCloudFormationTemplateBodyDiffs("test_property", tc.old, tc.new, nil)
+		value := suppressEquivalentJsonOrYamlDiffs("test_property", tc.old, tc.new, nil)
 
 		if tc.equivalent && !value {
 			t.Fatalf("expected test case (%s) to be equivalent", tc.description)
@@ -261,62 +261,6 @@ Outputs:
 
 		if !tc.equivalent && value {
 			t.Fatalf("expected test case (%s) to not be equivalent", tc.description)
-		}
-	}
-}
-
-func TestSuppressRoute53ZoneNameWithTrailingDot(t *testing.T) {
-	testCases := []struct {
-		old        string
-		new        string
-		equivalent bool
-	}{
-		{
-			old:        "example.com",
-			new:        "example.com",
-			equivalent: true,
-		},
-		{
-			old:        "example.com.",
-			new:        "example.com.",
-			equivalent: true,
-		},
-		{
-			old:        "example.com.",
-			new:        "example.com",
-			equivalent: true,
-		},
-		{
-			old:        "example.com",
-			new:        "example.com.",
-			equivalent: true,
-		},
-		{
-			old:        ".",
-			new:        "",
-			equivalent: false,
-		},
-		{
-			old:        "",
-			new:        ".",
-			equivalent: false,
-		},
-		{
-			old:        ".",
-			new:        ".",
-			equivalent: true,
-		},
-	}
-
-	for i, tc := range testCases {
-		value := suppressRoute53ZoneNameWithTrailingDot("test_property", tc.old, tc.new, nil)
-
-		if tc.equivalent && !value {
-			t.Fatalf("expected test case %d to be equivalent", i)
-		}
-
-		if !tc.equivalent && value {
-			t.Fatalf("expected test case %d to not be equivalent", i)
 		}
 	}
 }

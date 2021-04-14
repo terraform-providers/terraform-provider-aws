@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsWafv2RuleGroup() *schema.Resource {
@@ -51,7 +51,7 @@ func dataSourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) e
 	for {
 		resp, err := conn.ListRuleGroups(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAFv2 RuleGroups: %s", err)
+			return fmt.Errorf("Error reading WAFv2 RuleGroups: %w", err)
 		}
 
 		if resp == nil || resp.RuleGroups == nil {
@@ -76,8 +76,8 @@ func dataSourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(aws.StringValue(foundRuleGroup.Id))
-	d.Set("arn", aws.StringValue(foundRuleGroup.ARN))
-	d.Set("description", aws.StringValue(foundRuleGroup.Description))
+	d.Set("arn", foundRuleGroup.ARN)
+	d.Set("description", foundRuleGroup.Description)
 
 	return nil
 }

@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -130,6 +130,18 @@ func dataSourceAwsAmi() *schema.Resource {
 			},
 			"virtualization_type": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"usage_operation": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ena_support": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 			// Complex computed values
@@ -287,6 +299,10 @@ func amiDescriptionAttributes(d *schema.ResourceData, image *ec2.Image, meta int
 	}
 	d.Set("state", image.State)
 	d.Set("virtualization_type", image.VirtualizationType)
+	d.Set("usage_operation", image.UsageOperation)
+	d.Set("platform_details", image.PlatformDetails)
+	d.Set("ena_support", image.EnaSupport)
+
 	// Complex types get their own functions
 	if err := d.Set("block_device_mappings", amiBlockDeviceMappings(image.BlockDeviceMappings)); err != nil {
 		return err
@@ -298,14 +314,14 @@ func amiDescriptionAttributes(d *schema.ResourceData, image *ec2.Image, meta int
 		return err
 	}
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	imageArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
 		Resource:  fmt.Sprintf("image/%s", d.Id()),
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 	}.String()
 
 	d.Set("arn", imageArn)
@@ -329,6 +345,7 @@ func amiBlockDeviceMappings(m []*ec2.BlockDeviceMapping) *schema.Set {
 				"delete_on_termination": fmt.Sprintf("%t", aws.BoolValue(v.Ebs.DeleteOnTermination)),
 				"encrypted":             fmt.Sprintf("%t", aws.BoolValue(v.Ebs.Encrypted)),
 				"iops":                  fmt.Sprintf("%d", aws.Int64Value(v.Ebs.Iops)),
+				"throughput":            fmt.Sprintf("%d", aws.Int64Value(v.Ebs.Throughput)),
 				"volume_size":           fmt.Sprintf("%d", aws.Int64Value(v.Ebs.VolumeSize)),
 				"snapshot_id":           aws.StringValue(v.Ebs.SnapshotId),
 				"volume_type":           aws.StringValue(v.Ebs.VolumeType),

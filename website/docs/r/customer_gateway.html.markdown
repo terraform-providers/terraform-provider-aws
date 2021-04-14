@@ -14,7 +14,7 @@ Provides a customer gateway inside a VPC. These objects can be connected to VPN 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_customer_gateway" "main" {
   bgp_asn    = 65000
   ip_address = "172.83.124.10"
@@ -31,18 +31,20 @@ resource "aws_customer_gateway" "main" {
 The following arguments are supported:
 
 * `bgp_asn` - (Required) The gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).
+* `device_name` - (Optional) A name for the customer gateway device.
 * `ip_address` - (Required) The IP address of the gateway's Internet-routable external interface.
 * `type` - (Required) The type of customer gateway. The only type AWS
   supports at this time is "ipsec.1".
 * `tags` - (Optional) Tags to apply to the gateway.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The amazon-assigned ID of the gateway.
 * `arn` - The ARN of the customer gateway.
 * `bgp_asn` - The gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).
+* `device_name` - A name for the customer gateway device.
 * `ip_address` - The IP address of the gateway's Internet-routable external interface.
 * `type` - The type of customer gateway.
 * `tags` - Tags applied to the gateway.

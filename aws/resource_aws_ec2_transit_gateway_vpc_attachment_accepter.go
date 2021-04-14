@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -21,6 +21,10 @@ func resourceAwsEc2TransitGatewayVpcAttachmentAccepter() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"appliance_mode_support": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"dns_support": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -166,6 +170,7 @@ func resourceAwsEc2TransitGatewayVpcAttachmentAccepterRead(d *schema.ResourceDat
 		return fmt.Errorf("error reading EC2 Transit Gateway VPC Attachment (%s): missing options", d.Id())
 	}
 
+	d.Set("appliance_mode_support", transitGatewayVpcAttachment.Options.ApplianceModeSupport)
 	d.Set("dns_support", transitGatewayVpcAttachment.Options.DnsSupport)
 	d.Set("ipv6_support", transitGatewayVpcAttachment.Options.Ipv6Support)
 
@@ -177,12 +182,12 @@ func resourceAwsEc2TransitGatewayVpcAttachmentAccepterRead(d *schema.ResourceDat
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
-	d.Set("transit_gateway_attachment_id", aws.StringValue(transitGatewayVpcAttachment.TransitGatewayAttachmentId))
+	d.Set("transit_gateway_attachment_id", transitGatewayVpcAttachment.TransitGatewayAttachmentId)
 	d.Set("transit_gateway_default_route_table_association", (transitGatewayDefaultRouteTableAssociation != nil))
 	d.Set("transit_gateway_default_route_table_propagation", (transitGatewayDefaultRouteTablePropagation != nil))
-	d.Set("transit_gateway_id", aws.StringValue(transitGatewayVpcAttachment.TransitGatewayId))
-	d.Set("vpc_id", aws.StringValue(transitGatewayVpcAttachment.VpcId))
-	d.Set("vpc_owner_id", aws.StringValue(transitGatewayVpcAttachment.VpcOwnerId))
+	d.Set("transit_gateway_id", transitGatewayVpcAttachment.TransitGatewayId)
+	d.Set("vpc_id", transitGatewayVpcAttachment.VpcId)
+	d.Set("vpc_owner_id", transitGatewayVpcAttachment.VpcOwnerId)
 
 	return nil
 }

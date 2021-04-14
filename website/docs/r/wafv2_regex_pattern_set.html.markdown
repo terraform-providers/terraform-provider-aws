@@ -12,7 +12,7 @@ Provides an AWS WAFv2 Regex Pattern Set Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafv2_regex_pattern_set" "example" {
   name        = "example"
   description = "Example regex pattern set"

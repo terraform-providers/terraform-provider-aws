@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const awsAutoscalingScheduleTimeLayout = "2006-01-02T15:04:05Z"
@@ -236,7 +236,7 @@ func resourceAwsASGScheduledActionRetrieve(d *schema.ResourceData, meta interfac
 	}
 
 	if len(actions.ScheduledUpdateGroupActions) != 1 ||
-		*actions.ScheduledUpdateGroupActions[0].ScheduledActionName != d.Id() {
+		aws.StringValue(actions.ScheduledUpdateGroupActions[0].ScheduledActionName) != d.Id() {
 		return nil, false, nil
 	}
 

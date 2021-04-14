@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -98,7 +98,7 @@ func resourceAwsWafRuleGroupCreate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 	resp := out.(*waf.CreateRuleGroupOutput)
-	d.SetId(*resp.RuleGroup.RuleGroupId)
+	d.SetId(aws.StringValue(resp.RuleGroup.RuleGroupId))
 
 	activatedRules := d.Get("activated_rule").(*schema.Set).List()
 	if len(activatedRules) > 0 {

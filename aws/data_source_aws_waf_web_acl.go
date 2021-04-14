@@ -2,9 +2,10 @@ package aws
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsWafWebAcl() *schema.Resource {
@@ -30,7 +31,7 @@ func dataSourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error 
 	for {
 		output, err := conn.ListWebACLs(input)
 		if err != nil {
-			return fmt.Errorf("error reading web ACLs: %s", err)
+			return fmt.Errorf("error reading web ACLs: %w", err)
 		}
 		for _, acl := range output.WebACLs {
 			if aws.StringValue(acl.Name) == name {

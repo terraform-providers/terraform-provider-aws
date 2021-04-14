@@ -12,7 +12,7 @@ Provides an API Gateway Client Certificate.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_api_gateway_client_certificate" "demo" {
   description = "My client certificate"
 }
@@ -26,7 +26,7 @@ The following arguments are supported:
 * `tags` - (Optional) Key-value map of resource tags
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

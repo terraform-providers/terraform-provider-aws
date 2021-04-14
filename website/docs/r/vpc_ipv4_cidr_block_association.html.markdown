@@ -15,13 +15,13 @@ The `aws_vpc_ipv4_cidr_block_association` resource allows further IPv4 CIDR bloc
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = aws_vpc.main.id
   cidr_block = "172.2.0.0/16"
 }
 ```
@@ -36,7 +36,7 @@ The following arguments are supported:
 ## Timeouts
 
 `aws_vpc_ipv4_cidr_block_association` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating the association
 - `delete` - (Default `10 minutes`) Used for destroying the association

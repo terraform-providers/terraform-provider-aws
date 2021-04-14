@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsAppCookieStickinessPolicy() *schema.Resource {
@@ -132,7 +132,7 @@ func resourceAwsAppCookieStickinessPolicyRead(d *schema.ResourceData, meta inter
 	// cookie expiration, in these descriptions.
 	policyDesc := getResp.PolicyDescriptions[0]
 	cookieAttr := policyDesc.PolicyAttributeDescriptions[0]
-	if *cookieAttr.AttributeName != "CookieName" {
+	if aws.StringValue(cookieAttr.AttributeName) != "CookieName" {
 		return fmt.Errorf("Unable to find cookie Name.")
 	}
 
@@ -168,12 +168,12 @@ func resourceAwsELBSticknessPolicyAssigned(policyName, lbName, lbPort string, el
 	lb := describeResp.LoadBalancerDescriptions[0]
 	assigned := false
 	for _, listener := range lb.ListenerDescriptions {
-		if lbPort != strconv.Itoa(int(*listener.Listener.LoadBalancerPort)) {
+		if listener == nil || listener.Listener == nil || lbPort != strconv.Itoa(int(aws.Int64Value(listener.Listener.LoadBalancerPort))) {
 			continue
 		}
 
 		for _, name := range listener.PolicyNames {
-			if policyName == *name {
+			if policyName == aws.StringValue(name) {
 				assigned = true
 				break
 			}

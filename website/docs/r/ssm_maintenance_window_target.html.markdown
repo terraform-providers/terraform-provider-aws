@@ -10,9 +10,11 @@ description: |-
 
 Provides an SSM Maintenance Window Target resource
 
-## Instance Target Example Usage
+## Example Usage
 
-```hcl
+### Instance Target
+
+```terraform
 resource "aws_ssm_maintenance_window" "window" {
   name     = "maintenance-window-webapp"
   schedule = "cron(0 16 ? * TUE *)"
@@ -21,7 +23,7 @@ resource "aws_ssm_maintenance_window" "window" {
 }
 
 resource "aws_ssm_maintenance_window_target" "target1" {
-  window_id     = "${aws_ssm_maintenance_window.window.id}"
+  window_id     = aws_ssm_maintenance_window.window.id
   name          = "maintenance-window-target"
   description   = "This is a maintenance window target"
   resource_type = "INSTANCE"
@@ -33,9 +35,9 @@ resource "aws_ssm_maintenance_window_target" "target1" {
 }
 ```
 
-## Resource Group Target Example Usage
+### Resource Group Target
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window" "window" {
   name     = "maintenance-window-webapp"
   schedule = "cron(0 16 ? * TUE *)"
@@ -44,14 +46,14 @@ resource "aws_ssm_maintenance_window" "window" {
 }
 
 resource "aws_ssm_maintenance_window_target" "target1" {
-  window_id     = "${aws_ssm_maintenance_window.window.id}"
+  window_id     = aws_ssm_maintenance_window.window.id
   name          = "maintenance-window-target"
   description   = "This is a maintenance window target"
   resource_type = "RESOURCE_GROUP"
 
   targets {
     key    = "resource-groups:ResourceTypeFilters"
-    values = ["AWS::EC2::INSTANCE", "AWS::EC2::VPC"]
+    values = ["AWS::EC2::Instance"]
   }
 }
 ```

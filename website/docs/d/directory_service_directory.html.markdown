@@ -8,13 +8,13 @@ description: |-
 
 # Data Source: aws_directory_service_directory
 
-Get attributes of AWS Directory Service directory (SimpleAD, Managed AD, AD Connector). It's especially useful to refer AWS Managed AD or on-premise AD in AD Connector configuration. 
+Get attributes of AWS Directory Service directory (SimpleAD, Managed AD, AD Connector). It's especially useful to refer AWS Managed AD or on-premise AD in AD Connector configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_directory_service_directory" "example" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 }
 ```
 
@@ -37,14 +37,14 @@ data "aws_directory_service_directory" "example" {
 * `dns_ip_addresses` - A list of IP addresses of the DNS servers for the directory/connector.
 * `security_group_id` - The ID of the security group created by the directory/connector.
 * `tags` – A map of tags assigned to the directory/connector.
- 
+
  `vpc_settings` (for `SimpleAD` and `MicrosoftAD`) is also exported with the following attributes:
- 
+
 * `subnet_ids` - The identifiers of the subnets for the directory servers (2 subnets in 2 different AZs).
 * `vpc_id` - The ID of the VPC that the directory is in.
- 
+
 `connect_settings` (for `ADConnector`) is also exported with the following attributes:
- 
+
 * `connect_ips` - The IP addresses of the AD Connector servers.
 * `customer_username` - The username corresponding to the password provided.
 * `customer_dns_ips` - The DNS IP addresses of the domain to connect to.

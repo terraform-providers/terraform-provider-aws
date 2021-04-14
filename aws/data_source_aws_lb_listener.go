@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsLbListener() *schema.Resource {
@@ -14,41 +14,20 @@ func dataSourceAwsLbListener() *schema.Resource {
 		Read: dataSourceAwsLbListenerRead,
 
 		Schema: map[string]*schema.Schema{
+			"alpn_policy": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"arn": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"load_balancer_arn", "port"},
 			},
-
-			"load_balancer_arn": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"arn"},
-			},
-			"port": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"arn"},
-			},
-
-			"protocol": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"ssl_policy": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"certificate_arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"default_action": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -169,6 +148,46 @@ func dataSourceAwsLbListener() *schema.Resource {
 								},
 							},
 						},
+						"forward": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"stickiness": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"duration": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+												"enabled": {
+													Type:     schema.TypeBool,
+													Computed: true,
+												},
+											},
+										},
+									},
+									"target_group": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"arn": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"weight": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 						"order": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -216,6 +235,26 @@ func dataSourceAwsLbListener() *schema.Resource {
 					},
 				},
 			},
+			"load_balancer_arn": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"arn"},
+			},
+			"port": {
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"arn"},
+			},
+			"protocol": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ssl_policy": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -243,9 +282,9 @@ func dataSourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("no listener exists for load balancer: %s", lbArn)
 	}
 	for _, listener := range resp.Listeners {
-		if *listener.Port == int64(port.(int)) {
+		if aws.Int64Value(listener.Port) == int64(port.(int)) {
 			//log.Printf("[DEBUG] get listener arn for %s:%s: %s", lbArn, port, *listener.Port)
-			d.SetId(*listener.ListenerArn)
+			d.SetId(aws.StringValue(listener.ListenerArn))
 			return resourceAwsLbListenerRead(d, meta)
 		}
 	}

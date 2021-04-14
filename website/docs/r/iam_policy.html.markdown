@@ -12,26 +12,26 @@ Provides an IAM policy.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_policy" "policy" {
   name        = "test_policy"
   path        = "/"
   description = "My test policy"
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "ec2:Describe*"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
 ```
 
@@ -45,17 +45,19 @@ The following arguments are supported:
 * `path` - (Optional, default "/") Path in which to create the policy.
   See [IAM Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html) for more information.
 * `policy` - (Required) The policy document. This is a JSON formatted string. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy)
+* `tags` - (Optional) Map of resource tags for the IAM Policy
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The policy's ID.
+* `id` - The ARN assigned by AWS to this policy.
 * `arn` - The ARN assigned by AWS to this policy.
 * `description` - The description of the policy.
 * `name` - The name of the policy.
 * `path` - The path of the policy in IAM.
 * `policy` - The policy document.
+* `policy_id` - The policy's ID.
 
 ## Import
 

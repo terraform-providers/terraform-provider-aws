@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsFmsAdminAccount() *schema.Resource {
@@ -56,7 +56,7 @@ func resourceAwsFmsAdminAccountCreate(d *schema.ResourceData, meta interface{}) 
 	stateConf := &resource.StateChangeConf{
 		Target:  []string{accountID},
 		Refresh: associateFmsAdminAccountRefreshFunc(conn, accountID),
-		Timeout: 1 * time.Minute,
+		Timeout: 10 * time.Minute,
 		Delay:   10 * time.Second,
 	}
 

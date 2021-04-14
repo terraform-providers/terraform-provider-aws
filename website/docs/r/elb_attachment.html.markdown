@@ -19,11 +19,11 @@ conflict and will overwrite attachments.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new load balancer attachment
 resource "aws_elb_attachment" "baz" {
-  elb      = "${aws_elb.bar.id}"
-  instance = "${aws_instance.foo.id}"
+  elb      = aws_elb.bar.id
+  instance = aws_instance.foo.id
 }
 ```
 
@@ -33,3 +33,7 @@ The following arguments are supported:
 
 * `elb` - (Required) The name of the ELB.
 * `instance` - (Required) Instance ID to place in the ELB pool.
+
+## Attributes Reference
+
+No additional attributes are exported.

@@ -22,22 +22,52 @@ behavior "deprecated_import_commenter" "hashicorp_terraform" {
 
     This pull request appears to include the Go import path `${var.import_path}`, which was from the older SDK. The newer SDK uses import paths beginning with `github.com/hashicorp/terraform-plugin-sdk/`.
 
-    To resolve this situation without losing any existing work, you may be able to Git rebase your branch against the current master branch (example below); replacing any remaining old import paths with the newer ones.
+    To resolve this situation without losing any existing work, you may be able to Git rebase your branch against the current default (main) branch (example below); replacing any remaining old import paths with the newer ones.
 
     ```console
     $ git fetch --all
-    $ git rebase origin/master
+    $ git rebase origin/main
     ```
 
-    Another option is to create a new branch from the current master with the same code changes (replacing the import paths), submit a new pull request, and close this existing pull request.
+    Another option is to create a new branch from the current default (main) with the same code changes (replacing the import paths), submit a new pull request, and close this existing pull request.
 
     We apologize for this inconvenience and appreciate your effort. Thank you for contributing and helping make the Terraform AWS Provider better for everyone.
   EOF
 }
 
-behavior "opened_pull_request_labeler" "triage" {
-  labels             = ["needs-triage"]
-  skip_collaborators = true
+behavior "deprecated_import_commenter" "sdkv1" {
+  import_regexp = "github.com/hashicorp/terraform-plugin-sdk/(helper/(acctest|customdiff|logging|resource|schema|structure|validation)|terraform)"
+  marker_label  = "terraform-plugin-sdk-v1"
+
+  message = <<-EOF
+    Hello, and thank you for your contribution!
+
+    This project recently upgraded to [V2 of the Terraform Plugin SDK](https://www.terraform.io/docs/extend/guides/v2-upgrade-guide.html)
+
+    This pull request appears to include at least one V1 import path of the SDK (`${var.import_path}`). Please import the V2 path `github.com/hashicorp/terraform-plugin-sdk/v2/helper/PACKAGE`
+
+    To resolve this situation without losing any existing work, you may be able to Git rebase your branch against the current default (main) branch (example below); replacing any remaining old import paths with the newer ones.
+
+    ```console
+    $ git fetch --all
+    $ git rebase origin/main
+    ```
+
+    Another option is to create a new branch from the current default (main) with the same code changes (replacing the import paths), submit a new pull request, and close this existing pull request.
+
+    We apologize for this inconvenience and appreciate your effort. Thank you for contributing and helping make the Terraform AWS Provider better for everyone.
+  EOF
+}
+
+behavior "deprecated_import_commenter" "sdkv1_deprecated" {
+  import_regexp = "github.com/hashicorp/terraform-plugin-sdk/helper/(hashcode|mutexkv|encryption)"
+  marker_label  = "terraform-plugin-sdk-v1"
+
+  message = <<-EOF
+    Hello, and thank you for your contribution!
+    This pull request appears to include the Go import path `${var.import_path}`, which was deprecated after upgrading to [V2 of the Terraform Plugin SDK](https://www.terraform.io/docs/extend/guides/v2-upgrade-guide.html).
+    You may use a now internalized version of the package found in `github.com/terraform-providers/terraform-provider-aws/aws/internal/PACKAGE`.
+  EOF
 }
 
 queued_behavior "release_commenter" "releases" {
@@ -46,7 +76,7 @@ queued_behavior "release_commenter" "releases" {
   message = <<-EOF
     This has been released in [version ${var.release_version} of the Terraform AWS provider](${var.changelog_link}). Please see the [Terraform documentation on provider versioning](https://www.terraform.io/docs/configuration/providers.html#provider-versions) or reach out if you need any assistance upgrading.
 
-    For further feature requests or bug reports with this functionality, please create a [new GitHub issue](https://github.com/terraform-providers/terraform-provider-aws/issues/new/choose) following the template for triage. Thanks!
+    For further feature requests or bug reports with this functionality, please create a [new GitHub issue](https://github.com/hashicorp/terraform-provider-aws/issues/new/choose) following the template for triage. Thanks!
   EOF
 }
 
@@ -108,6 +138,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/athena" = [
       "aws_athena_",
     ],
+    "service/auditmanager" = [
+      "aws_auditmanager_",
+    ],
     "service/autoscaling" = [
       "aws_autoscaling_",
       "aws_launch_configuration",
@@ -153,6 +186,7 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/cloudwatchlogs" = [
       "aws_cloudwatch_log_",
+      "aws_cloudwatch_query_definition",
     ],
     "service/codeartifact" = [
       "aws_codeartifact_",
@@ -172,6 +206,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/codestar" = [
       "aws_codestar_",
     ],
+    "service/codestarconnections" = [
+      "aws_codestarconnections_",
+    ],
     "service/codestarnotifications" = [
       "aws_codestarnotifications_",
     ],
@@ -180,6 +217,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/configservice" = [
       "aws_config_",
+    ],
+    "service/connect" = [
+      "aws_connect_",
     ],
     "service/databasemigrationservice" = [
       "aws_dms_",
@@ -240,6 +280,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/ecr" = [
       "aws_ecr_",
     ],
+    "service/ecrpublic" = [
+      "aws_ecrpublic_",
+    ],
     "service/ecs" = [
       "aws_ecs_",
     ],
@@ -250,7 +293,7 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
       "aws_eks_",
     ],
     "service/elastic-transcoder" = [
-      "aws_elastic_transcoder_",
+      "aws_elastictranscoder_",
     ],
     "service/elasticache" = [
       "aws_elasticache_",
@@ -276,6 +319,13 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/emr" = [
       "aws_emr_",
+    ],
+    "service/emrcontainers" = [
+      "aws_emrcontainers_",
+    ],
+    "service/eventbridge" = [
+      # EventBridge is rebranded CloudWatch Events
+      "aws_cloudwatch_event_",
     ],
     "service/firehose" = [
       "aws_kinesis_firehose_",
@@ -310,6 +360,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/iam" = [
       "aws_iam_",
     ],
+    "service/identitystore" = [
+      "aws_identitystore_",
+    ],
     "service/imagebuilder" = [
       "aws_imagebuilder_",
     ],
@@ -341,6 +394,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/kms" = [
       "aws_kms_",
     ],
+    "service/lakeformation" = [
+      "aws_lakeformation_",
+    ],
     "service/lambda" = [
       "aws_lambda_",
     ],
@@ -358,6 +414,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/macie" = [
       "aws_macie_",
+    ],
+    "service/macie2" = [
+      "aws_macie2_",
     ],
     "service/marketplacecatalog" = [
       "aws_marketplace_catalog_",
@@ -386,8 +445,14 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/mq" = [
       "aws_mq_",
     ],
+    "service/mwaa" = [
+      "aws_mwaa_",
+    ],
     "service/neptune" = [
       "aws_neptune_",
+    ],
+    "service/networkfirewall" = [
+      "aws_networkfirewall_",
     ],
     "service/networkmanager" = [
       "aws_networkmanager_",
@@ -412,6 +477,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/pricing" = [
       "aws_pricing_",
+    ],
+    "service/prometheusservice" = [
+      "aws_prometheus_",
     ],
     "service/qldb" = [
       "aws_qldb_",
@@ -451,9 +519,14 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/s3" = [
       "aws_canonical_user_id",
       "aws_s3_bucket",
+      "aws_s3_object",
     ],
     "service/s3control" = [
       "aws_s3_account_",
+      "aws_s3control_",
+    ],
+    "service/s3outposts" = [
+      "aws_s3outposts_",
     ],
     "service/sagemaker" = [
       "aws_sagemaker_",
@@ -463,6 +536,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/securityhub" = [
       "aws_securityhub_",
+    ],
+    "service/serverlessapplicationrepository" = [
+      "aws_serverlessapplicationrepository_",
     ],
     "service/servicecatalog" = [
       "aws_servicecatalog_",
@@ -482,6 +558,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/shield" = [
       "aws_shield_",
     ],
+    "service/signer" = [
+      "aws_signer_",
+    ],
     "service/simpledb" = [
       "aws_simpledb_",
     ],
@@ -497,6 +576,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/ssm" = [
       "aws_ssm_",
     ],
+    "service/ssoadmin" = [
+      "aws_ssoadmin_",
+    ],
     "service/storagegateway" = [
       "aws_storagegateway_",
     ],
@@ -508,6 +590,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/synthetics" = [
       "aws_synthetics_",
+    ],
+    "service/timestreamwrite" = [
+      "aws_timestreamwrite_",
     ],
     "service/transfer" = [
       "aws_transfer_",
@@ -563,15 +648,18 @@ behavior "pull_request_path_labeler" "service_labels" {
       "GNUmakefile",
       "infrastructure/**/*",
       "main.go",
-      "renovate.json",
       "website/docs/index.html.markdown",
       "website/**/arn*",
       "website/**/ip_ranges*",
       "website/**/partition*",
       "website/**/region*"
     ]
+    "dependencies" = [
+      ".github/dependabot.yml",
+    ]
     "documentation" = [
       "docs/**/*",
+      "website/**/*",
       "*.md",
     ]
     "examples" = [
@@ -589,219 +677,284 @@ behavior "pull_request_path_labeler" "service_labels" {
     ]
     # label services
     "service/accessanalyzer" = [
+      "aws/internal/service/accessanalyzer/**/*",
       "**/*_accessanalyzer_*",
       "**/accessanalyzer_*"
     ]
     "service/acm" = [
+      "aws/internal/service/acm/**/*",
       "**/*_acm_*",
       "**/acm_*"
     ]
     "service/acmpca" = [
+      "aws/internal/service/acmpca/**/*",
       "**/*_acmpca_*",
       "**/acmpca_*"
     ]
     "service/alexaforbusiness" = [
+      "aws/internal/service/alexaforbusiness/**/*",
       "**/*_alexaforbusiness_*",
       "**/alexaforbusiness_*"
     ]
     "service/amplify" = [
+      "aws/internal/service/amplify/**/*",
       "**/*_amplify_*",
       "**/amplify_*"
     ]
     "service/apigateway" = [
+      "aws/internal/service/apigateway/**/*",
       "**/*_api_gateway_[^v][^2][^_]*",
       "**/*_api_gateway_vpc_link*",
       "**/api_gateway_[^v][^2][^_]*",
       "**/api_gateway_vpc_link*"
     ]
     "service/apigatewayv2" = [
+      "aws/internal/service/apigatewayv2/**/*",
       "**/*_api_gateway_v2_*",
       "**/*_apigatewayv2_*",
       "**/api_gateway_v2_*",
       "**/apigatewayv2_*"
     ]
     "service/applicationautoscaling" = [
+      "aws/internal/service/applicationautoscaling/**/*",
       "**/*_appautoscaling_*",
       "**/appautoscaling_*"
     ]
-    # "service/applicationdiscoveryservice" = [
-    # 	"**/*_applicationdiscoveryservice_*",
-    # 	"**/applicationdiscoveryservice_*"
-    # ]
     "service/applicationinsights" = [
+      "aws/internal/service/applicationinsights/**/*",
       "**/*_applicationinsights_*",
       "**/applicationinsights_*"
     ]
     "service/appmesh" = [
+      "aws/internal/service/appmesh/**/*",
       "**/*_appmesh_*",
       "**/appmesh_*"
     ]
     "service/appstream" = [
+      "aws/internal/service/appstream/**/*",
       "**/*_appstream_*",
       "**/appstream_*"
     ]
     "service/appsync" = [
+      "aws/internal/service/appsync/**/*",
       "**/*_appsync_*",
       "**/appsync_*"
     ]
     "service/athena" = [
+      "aws/internal/service/athena/**/*",
       "**/*_athena_*",
       "**/athena_*"
     ]
+    "service/auditmanager" = [
+      "aws/internal/service/auditmanager/**/*",
+      "**/*_auditmanager_*",
+      "**/auditmanager_*"
+    ]
     "service/autoscaling" = [
+      "aws/internal/service/autoscaling/**/*",
       "**/*_autoscaling_*",
       "**/autoscaling_*",
       "aws/*_aws_launch_configuration*",
       "website/**/launch_configuration*"
     ]
     "service/autoscalingplans" = [
+      "aws/internal/service/autoscalingplans/**/*",
       "**/*_autoscalingplans_*",
       "**/autoscalingplans_*"
     ]
     "service/backup" = [
+      "aws/internal/service/backup/**/*",
       "**/*backup_*",
       "**/backup_*"
     ]
     "service/batch" = [
+      "aws/internal/service/batch/**/*",
       "**/*_batch_*",
       "**/batch_*"
     ]
     "service/budgets" = [
+      "aws/internal/service/budgets/**/*",
       "**/*_budgets_*",
       "**/budgets_*"
     ]
     "service/cloud9" = [
+      "aws/internal/service/cloud9/**/*",
       "**/*_cloud9_*",
       "**/cloud9_*"
     ]
     "service/clouddirectory" = [
+      "aws/internal/service/clouddirectory/**/*",
       "**/*_clouddirectory_*",
       "**/clouddirectory_*"
     ]
     "service/cloudformation" = [
+      "aws/internal/service/cloudformation/**/*",
       "**/*_cloudformation_*",
       "**/cloudformation_*"
     ]
     "service/cloudfront" = [
+      "aws/internal/service/cloudfront/**/*",
       "**/*_cloudfront_*",
       "**/cloudfront_*"
     ]
     "service/cloudhsmv2" = [
+      "aws/internal/service/cloudhsmv2/**/*",
       "**/*_cloudhsm_v2_*",
       "**/cloudhsm_v2_*"
     ]
     "service/cloudsearch" = [
+      "aws/internal/service/cloudsearch/**/*",
       "**/*_cloudsearch_*",
       "**/cloudsearch_*"
     ]
     "service/cloudtrail" = [
+      "aws/internal/service/cloudtrail/**/*",
       "**/*_cloudtrail*",
       "**/cloudtrail*"
     ]
     "service/cloudwatch" = [
+      "aws/internal/service/cloudwatch/**/*",
       "**/*_cloudwatch_dashboard*",
       "**/*_cloudwatch_metric_alarm*",
       "**/cloudwatch_dashboard*",
       "**/cloudwatch_metric_alarm*"
     ]
     "service/cloudwatchevents" = [
+      "aws/internal/service/cloudwatchevents/**/*",
       "**/*_cloudwatch_event_*",
       "**/cloudwatch_event_*"
     ]
     "service/cloudwatchlogs" = [
+      "aws/internal/service/cloudwatchlogs/**/*",
       "**/*_cloudwatch_log_*",
-      "**/cloudwatch_log_*"
+      "**/cloudwatch_log_*",
+      "**/*_cloudwatch_query_definition*",
+      "**/cloudwatch_query_definition*"
     ]
     "service/codeartifact" = [
+      "aws/internal/service/codeartifact/**/*",
       "**/*_codeartifact_*",
       "**/codeartifact_*"
     ]
     "service/codebuild" = [
+      "aws/internal/service/codebuild/**/*",
       "**/*_codebuild_*",
       "**/codebuild_*"
     ]
     "service/codecommit" = [
+      "aws/internal/service/codecommit/**/*",
       "**/*_codecommit_*",
       "**/codecommit_*"
     ]
     "service/codedeploy" = [
+      "aws/internal/service/codedeploy/**/*",
       "**/*_codedeploy_*",
       "**/codedeploy_*"
     ]
     "service/codepipeline" = [
+      "aws/internal/service/codepipeline/**/*",
       "**/*_codepipeline_*",
       "**/codepipeline_*"
     ]
     "service/codestar" = [
+      "aws/internal/service/codestar/**/*",
       "**/*_codestar_*",
       "**/codestar_*"
     ]
+    "service/codestarconnections" = [
+      "aws/internal/service/codestarconnections/**/*",
+      "**/*_codestarconnections_*",
+      "**/codestarconnections_*"
+    ]
     "service/codestarnotifications" = [
+      "aws/internal/service/codestarnotifications/**/*",
       "**/*_codestarnotifications_*",
       "**/codestarnotifications_*"
     ]
     "service/cognito" = [
+      "aws/internal/service/cognitoidentity/**/*",
+      "aws/internal/service/cognitoidentityprovider/**/*",
       "**/*_cognito_*",
       "**/cognito_*"
     ]
     "service/comprehend" = [
+      "aws/internal/service/comprehend/**/*",
       "**/*_comprehend_*",
       "**/comprehend_*"
     ]
     "service/configservice" = [
+      "aws/internal/service/configservice/**/*",
       "aws/*_aws_config_*",
       "website/**/config_*"
     ]
+    "service/connect" = [
+      "aws/internal/service/connect/**/*",
+      "aws/*_aws_connect_*",
+      "website/**/connect_*"
+    ]
     "service/costandusagereportservice" = [
+      "aws/internal/service/costandusagereportservice/**/*",
       "aws/*_aws_cur_*",
       "website/**/cur_*"
     ]
     "service/databasemigrationservice" = [
+      "aws/internal/service/databasemigrationservice/**/*",
       "**/*_dms_*",
       "**/dms_*"
     ]
     "service/dataexchange" = [
+      "aws/internal/service/dataexchange/**/*",
       "**/*_dataexchange_*",
       "**/dataexchange_*",
     ]
     "service/datapipeline" = [
+      "aws/internal/service/datapipeline/**/*",
       "**/*_datapipeline_*",
       "**/datapipeline_*",
     ]
     "service/datasync" = [
+      "aws/internal/service/datasync/**/*",
       "**/*_datasync_*",
       "**/datasync_*",
     ]
     "service/dax" = [
+      "aws/internal/service/dax/**/*",
       "**/*_dax_*",
       "**/dax_*"
     ]
     "service/devicefarm" = [
+      "aws/internal/service/devicefarm/**/*",
       "**/*_devicefarm_*",
       "**/devicefarm_*"
     ]
     "service/directconnect" = [
+      "aws/internal/service/directconnect/**/*",
       "**/*_dx_*",
       "**/dx_*"
     ]
     "service/directoryservice" = [
+      "aws/internal/service/directoryservice/**/*",
       "**/*_directory_service_*",
       "**/directory_service_*"
     ]
     "service/dlm" = [
+      "aws/internal/service/dlm/**/*",
       "**/*_dlm_*",
       "**/dlm_*"
     ]
     "service/docdb" = [
+      "aws/internal/service/docdb/**/*",
       "**/*_docdb_*",
       "**/docdb_*"
     ]
     "service/dynamodb" = [
+      "aws/internal/service/dynamodb/**/*",
       "**/*_dynamodb_*",
       "**/dynamodb_*"
     ]
     # Special casing this one because the files aren't _ec2_
     "service/ec2" = [
+      "aws/internal/service/ec2/**/*",
       "**/*_ec2_*",
       "**/ec2_*",
       "aws/*_aws_ami*",
@@ -867,41 +1020,55 @@ behavior "pull_request_path_labeler" "service_labels" {
       "website/**/volume_attachment*"
     ]
     "service/ecr" = [
+      "aws/internal/service/ecr/**/*",
       "**/*_ecr_*",
       "**/ecr_*"
     ]
+    "service/ecrpublic" = [
+      "aws/internal/service/ecrpublic/**/*",
+      "**/*_ecrpublic_*",
+      "**/ecrpublic_*"
+    ]
     "service/ecs" = [
+      "aws/internal/service/ecs/**/*",
       "**/*_ecs_*",
       "**/ecs_*"
     ]
     "service/efs" = [
+      "aws/internal/service/efs/**/*",
       "**/*_efs_*",
       "**/efs_*"
     ]
     "service/eks" = [
+      "aws/internal/service/eks/**/*",
       "**/*_eks_*",
       "**/eks_*"
     ]
     "service/elastic-transcoder" = [
+      "aws/internal/service/elastictranscoder/**/*",
       "**/*_elastictranscoder_*",
       "**/elastictranscoder_*",
       "**/*_elastic_transcoder_*",
       "**/elastic_transcoder_*"
     ]
     "service/elasticache" = [
+      "aws/internal/service/elasticache/**/*",
       "**/*_elasticache_*",
       "**/elasticache_*"
     ]
     "service/elasticbeanstalk" = [
+      "aws/internal/service/elasticbeanstalk/**/*",
       "**/*_elastic_beanstalk_*",
       "**/elastic_beanstalk_*"
     ]
     "service/elasticsearch" = [
+      "aws/internal/service/elasticsearchservice/**/*",
       "**/*_elasticsearch_*",
       "**/elasticsearch_*",
       "**/*_elasticsearchservice*"
     ]
     "service/elb" = [
+      "aws/internal/service/elb/**/*",
       "aws/*_aws_app_cookie_stickiness_policy*",
       "aws/*_aws_elb*",
       "aws/*_aws_lb_cookie_stickiness_policy*",
@@ -916,6 +1083,7 @@ behavior "pull_request_path_labeler" "service_labels" {
       "website/**/proxy_protocol_policy*"
     ]
     "service/elbv2" = [
+      "aws/internal/service/elbv2/**/*",
       "aws/*_lb.*",
       "aws/*_lb_listener*",
       "aws/*_lb_target_group*",
@@ -924,350 +1092,540 @@ behavior "pull_request_path_labeler" "service_labels" {
       "website/**/lb_target_group*"
     ]
     "service/emr" = [
+      "aws/internal/service/emr/**/*",
       "**/*_emr_*",
       "**/emr_*"
     ]
+    "service/emrcontainers" = [
+      "aws/internal/service/emrcontainers/**/*",
+      "**/*_emrcontainers_*",
+      "**/emrcontainers_*"
+    ]
+    "service/eventbridge" = [
+      # EventBridge is rebranded CloudWatch Events
+      "aws/internal/service/cloudwatchevents/**/*",
+      "**/*_cloudwatch_event_*",
+      "**/cloudwatch_event_*"
+    ]
     "service/firehose" = [
+      "aws/internal/service/firehose/**/*",
       "**/*_firehose_*",
       "**/firehose_*"
     ]
     "service/fms" = [
+      "aws/internal/service/fms/**/*",
       "**/*_fms_*",
       "**/fms_*"
     ]
     "service/fsx" = [
+      "aws/internal/service/fsx/**/*",
       "**/*_fsx_*",
       "**/fsx_*"
     ]
     "service/gamelift" = [
+      "aws/internal/service/gamelift/**/*",
       "**/*_gamelift_*",
       "**/gamelift_*"
     ]
     "service/glacier" = [
+      "aws/internal/service/glacier/**/*",
       "**/*_glacier_*",
       "**/glacier_*"
     ]
     "service/globalaccelerator" = [
+      "aws/internal/service/globalaccelerator/**/*",
       "**/*_globalaccelerator_*",
       "**/globalaccelerator_*"
     ]
     "service/glue" = [
+      "aws/internal/service/glue/**/*",
       "**/*_glue_*",
       "**/glue_*"
     ]
     "service/greengrass" = [
+      "aws/internal/service/greengrass/**/*",
       "**/*_greengrass_*",
       "**/greengrass_*"
     ]
     "service/guardduty" = [
+      "aws/internal/service/guardduty/**/*",
       "**/*_guardduty_*",
       "**/guardduty_*"
     ]
     "service/iam" = [
+      "aws/internal/service/iam/**/*",
       "**/*_iam_*",
       "**/iam_*"
     ]
+    "service/identitystore" = [
+      "aws/internal/service/identitystore/**/*",
+      "**/*_identitystore_*",
+      "**/identitystore_*"
+    ]
     "service/imagebuilder" = [
+      "aws/internal/service/imagebuilder/**/*",
       "**/*_imagebuilder_*",
       "**/imagebuilder_*"
     ]
     "service/inspector" = [
+      "aws/internal/service/inspector/**/*",
       "**/*_inspector_*",
       "**/inspector_*"
     ]
     "service/iot" = [
+      "aws/internal/service/iot/**/*",
       "**/*_iot_*",
       "**/iot_*"
     ]
     "service/iotanalytics" = [
+      "aws/internal/service/iotanalytics/**/*",
       "**/*_iotanalytics_*",
       "**/iotanalytics_*"
     ]
     "service/iotevents" = [
+      "aws/internal/service/iotevents/**/*",
       "**/*_iotevents_*",
       "**/iotevents_*"
     ]
     "service/kafka" = [
+      "aws/internal/service/kafka/**/*",
       "**/*_msk_*",
       "**/msk_*",
     ]
     "service/kinesis" = [
+      "aws/internal/service/kinesis/**/*",
       "aws/*_aws_kinesis_stream*",
       "website/kinesis_stream*"
     ]
     "service/kinesisanalytics" = [
+      "aws/internal/service/kinesisanalytics/**/*",
       "**/*_kinesis_analytics_*",
       "**/kinesis_analytics_*"
     ]
     "service/kinesisanalyticsv2" = [
+      "aws/internal/service/kinesisanalyticsv2/**/*",
       "**/*_kinesisanalyticsv2_*",
       "**/kinesisanalyticsv2_*"
     ]
     "service/kms" = [
+      "aws/internal/service/kms/**/*",
       "**/*_kms_*",
       "**/kms_*"
     ]
+    "service/lakeformation" = [
+      "aws/internal/service/lakeformation/**/*",
+      "**/*_lakeformation_*",
+      "**/lakeformation_*"
+    ]
     "service/lambda" = [
+      "aws/internal/service/lambda/**/*",
       "**/*_lambda_*",
       "**/lambda_*"
     ]
     "service/lexmodelbuildingservice" = [
+      "aws/internal/service/lexmodelbuildingservice/**/*",
       "**/*_lex_*",
       "**/lex_*"
     ]
     "service/licensemanager" = [
+      "aws/internal/service/licensemanager/**/*",
       "**/*_licensemanager_*",
       "**/licensemanager_*"
     ]
     "service/lightsail" = [
+      "aws/internal/service/lightsail/**/*",
       "**/*_lightsail_*",
       "**/lightsail_*"
     ]
     "service/machinelearning" = [
+      "aws/internal/service/machinelearning/**/*",
       "**/*_machinelearning_*",
       "**/machinelearning_*"
     ]
     "service/macie" = [
+      "aws/internal/service/macie/**/*",
       "**/*_macie_*",
       "**/macie_*"
     ]
+    "service/macie2" = [
+      "aws/internal/service/macie2/**/*",
+      "**/*_macie2_*",
+      "**/macie2_*"
+    ]
     "service/marketplacecatalog" = [
+      "aws/internal/service/marketplacecatalog/**/*",
       "**/*_marketplace_catalog_*",
       "**/marketplace_catalog_*"
     ]
     "service/mediaconnect" = [
+      "aws/internal/service/mediaconnect/**/*",
       "**/*_media_connect_*",
       "**/media_connect_*"
     ]
     "service/mediaconvert" = [
+      "aws/internal/service/mediaconvert/**/*",
       "**/*_media_convert_*",
       "**/media_convert_*"
     ]
     "service/medialive" = [
+      "aws/internal/service/medialive/**/*",
       "**/*_media_live_*",
       "**/media_live_*"
     ]
     "service/mediapackage" = [
+      "aws/internal/service/mediapackage/**/*",
       "**/*_media_package_*",
       "**/media_package_*"
     ]
     "service/mediastore" = [
+      "aws/internal/service/mediastore/**/*",
       "**/*_media_store_*",
       "**/media_store_*"
     ]
     "service/mediatailor" = [
+      "aws/internal/service/mediatailor/**/*",
       "**/*_media_tailor_*",
       "**/media_tailor_*",
     ]
     "service/mobile" = [
+      "aws/internal/service/mobile/**/*",
       "**/*_mobile_*",
       "**/mobile_*"
     ],
     "service/mq" = [
+      "aws/internal/service/mq/**/*",
       "**/*_mq_*",
       "**/mq_*"
     ]
+    "service/mwaa" = [
+      "aws/internal/service/mwaa/**/*",
+      "**/*_mwaa_*",
+      "**/mwaa_*"
+    ]
     "service/neptune" = [
+      "aws/internal/service/neptune/**/*",
       "**/*_neptune_*",
       "**/neptune_*"
     ]
+    "service/networkfirewall" = [
+      "aws/internal/service/networkfirewall/**/*",
+      "**/*_networkfirewall_*",
+      "**/networkfirewall_*",
+    ]
     "service/networkmanager" = [
+      "aws/internal/service/networkmanager/**/*",
       "**/*_networkmanager_*",
       "**/networkmanager_*"
     ]
     "service/opsworks" = [
+      "aws/internal/service/opsworks/**/*",
       "**/*_opsworks_*",
       "**/opsworks_*"
     ]
     "service/organizations" = [
+      "aws/internal/service/organizations/**/*",
       "**/*_organizations_*",
       "**/organizations_*"
     ]
     "service/outposts" = [
+      "aws/internal/service/outposts/**/*",
       "**/*_outposts_*",
       "**/outposts_*"
     ]
     "service/pinpoint" = [
+      "aws/internal/service/pinpoint/**/*",
       "**/*_pinpoint_*",
       "**/pinpoint_*"
     ]
     "service/polly" = [
+      "aws/internal/service/polly/**/*",
       "**/*_polly_*",
       "**/polly_*"
     ]
     "service/pricing" = [
+      "aws/internal/service/pricing/**/*",
       "**/*_pricing_*",
       "**/pricing_*"
     ]
+    "service/prometheusservice" = [
+      "aws/internal/service/prometheus/**/*",
+      "**/*_prometheus_*",
+      "**/prometheus_*",
+    ]
     "service/qldb" = [
+      "aws/internal/service/qldb/**/*",
       "**/*_qldb_*",
       "**/qldb_*"
     ]
     "service/quicksight" = [
+      "aws/internal/service/quicksight/**/*",
       "**/*_quicksight_*",
       "**/quicksight_*"
     ]
     "service/ram" = [
+      "aws/internal/service/ram/**/*",
       "**/*_ram_*",
       "**/ram_*"
     ]
     "service/rds" = [
+      "aws/internal/service/rds/**/*",
       "aws/*_aws_db_*",
       "aws/*_aws_rds_*",
       "website/**/db_*",
       "website/**/rds_*"
     ]
     "service/redshift" = [
+      "aws/internal/service/redshift/**/*",
       "**/*_redshift_*",
       "**/redshift_*"
     ]
     "service/resourcegroups" = [
+      "aws/internal/service/resourcegroups/**/*",
       "**/*_resourcegroups_*",
       "**/resourcegroups_*"
     ]
     "service/resourcegroupstaggingapi" = [
+      "aws/internal/service/resourcegroupstaggingapi/**/*",
       "**/*_resourcegroupstaggingapi_*",
       "**/resourcegroupstaggingapi_*"
     ]
     "service/robomaker" = [
+      "aws/internal/service/robomaker/**/*",
       "**/*_robomaker_*",
       "**/robomaker_*",
     ]
     "service/route53" = [
+      "aws/internal/service/route53/**/*",
       "**/*_route53_delegation_set*",
       "**/*_route53_health_check*",
       "**/*_route53_query_log*",
       "**/*_route53_record*",
+      "**/*_route53_vpc_association_authorization*",
       "**/*_route53_zone*",
       "**/route53_delegation_set*",
       "**/route53_health_check*",
       "**/route53_query_log*",
       "**/route53_record*",
+      "**/route53_vpc_association_authorization*",
       "**/route53_zone*"
     ]
     "service/route53domains" = [
+      "aws/internal/service/route53domains/**/*",
       "**/*_route53domains_*",
       "**/route53domains_*"
     ]
     "service/route53resolver" = [
+      "aws/internal/service/route53resolver/**/*",
       "**/*_route53_resolver_*",
       "**/route53_resolver_*"
     ]
     "service/s3" = [
+      "aws/internal/service/s3/**/*",
       "**/*_s3_bucket*",
       "**/s3_bucket*",
+      "**/*_s3_object*",
+      "**/s3_object*",
       "aws/*_aws_canonical_user_id*",
       "website/**/canonical_user_id*"
     ]
     "service/s3control" = [
+      "aws/internal/service/s3control/**/*",
       "**/*_s3_account_*",
-      "**/s3_account_*"
+      "**/s3_account_*",
+      "**/*_s3control_*",
+      "**/s3control_*"
+    ]
+    "service/s3outposts" = [
+      "aws/internal/service/s3outposts/**/*",
+      "**/*_s3outposts_*",
+      "**/s3outposts_*"
     ]
     "service/sagemaker" = [
+      "aws/internal/service/sagemaker/**/*",
       "**/*_sagemaker_*",
       "**/sagemaker_*"
     ]
     "service/secretsmanager" = [
+      "aws/internal/service/secretsmanager/**/*",
       "**/*_secretsmanager_*",
       "**/secretsmanager_*"
     ]
     "service/securityhub" = [
+      "aws/internal/service/securityhub/**/*",
       "**/*_securityhub_*",
       "**/securityhub_*"
     ]
+    "service/serverlessapplicationrepository" = [
+      "aws/internal/service/serverlessapplicationrepository/**/*",
+      "**/*_serverlessapplicationrepository_*",
+      "**/serverlessapplicationrepository_*"
+    ]
     "service/servicecatalog" = [
+      "aws/internal/service/servicecatalog/**/*",
       "**/*_servicecatalog_*",
       "**/servicecatalog_*"
     ]
     "service/servicediscovery" = [
+      "aws/internal/service/servicediscovery/**/*",
       "**/*_service_discovery_*",
       "**/service_discovery_*"
     ]
     "service/servicequotas" = [
+      "aws/internal/service/servicequotas/**/*",
       "**/*_servicequotas_*",
       "**/servicequotas_*"
     ]
     "service/ses" = [
+      "aws/internal/service/ses/**/*",
       "**/*_ses_*",
       "**/ses_*"
     ]
     "service/sfn" = [
+      "aws/internal/service/sfn/**/*",
       "**/*_sfn_*",
       "**/sfn_*"
     ]
     "service/shield" = [
+      "aws/internal/service/shield/**/*",
       "**/*_shield_*",
       "**/shield_*",
     ],
+    "service/signer" = [
+      "**/*_signer_*",
+      "**/signer_*"
+    ]
     "service/simpledb" = [
+      "aws/internal/service/simpledb/**/*",
       "**/*_simpledb_*",
       "**/simpledb_*"
     ]
     "service/snowball" = [
+      "aws/internal/service/snowball/**/*",
       "**/*_snowball_*",
       "**/snowball_*"
     ]
     "service/sns" = [
+      "aws/internal/service/sns/**/*",
       "**/*_sns_*",
       "**/sns_*"
     ]
     "service/sqs" = [
+      "aws/internal/service/sqs/**/*",
       "**/*_sqs_*",
       "**/sqs_*"
     ]
     "service/ssm" = [
+      "aws/internal/service/ssm/**/*",
       "**/*_ssm_*",
       "**/ssm_*"
     ]
+    "service/ssoadmin" = [
+      "aws/internal/service/ssoadmin/**/*",
+      "**/*_ssoadmin_*",
+      "**/ssoadmin_*"
+    ]
     "service/storagegateway" = [
+      "aws/internal/service/storagegateway/**/*",
       "**/*_storagegateway_*",
       "**/storagegateway_*"
     ]
     "service/sts" = [
+      "aws/internal/service/sts/**/*",
       "aws/*_aws_caller_identity*",
       "website/**/caller_identity*"
     ]
     "service/swf" = [
+      "aws/internal/service/swf/**/*",
       "**/*_swf_*",
       "**/swf_*"
     ]
     "service/synthetics" = [
+      "aws/internal/service/synthetics/**/*",
       "**/*_synthetics_*",
       "**/synthetics_*"
     ]
+    "service/timestreamwrite" = [
+      "aws/internal/service/timestreamwrite/**/*",
+      "**/*_timestreamwrite_*",
+      "**/timestreamwrite_*"
+    ]
     "service/transfer" = [
+      "aws/internal/service/transfer/**/*",
       "**/*_transfer_*",
       "**/transfer_*"
     ]
     "service/waf" = [
+      "aws/internal/service/waf/**/*",
+      "aws/internal/service/wafregional/**/*",
       "**/*_waf_*",
       "**/waf_*",
       "**/*_wafregional_*",
       "**/wafregional_*"
     ]
     "service/wafv2" = [
+      "aws/internal/service/wafv2/**/*",
       "**/*_wafv2_*",
       "**/wafv2_*",
     ]
     "service/workdocs" = [
+      "aws/internal/service/workdocs/**/*",
       "**/*_workdocs_*",
       "**/workdocs_*"
     ]
     "service/worklink" = [
+      "aws/internal/service/worklink/**/*",
       "**/*_worklink_*",
       "**/worklink_*"
     ]
     "service/workmail" = [
+      "aws/internal/service/workmail/**/*",
       "**/*_workmail_*",
       "**/workmail_*"
     ]
     "service/workspaces" = [
+      "aws/internal/service/workspaces/**/*",
       "**/*_workspaces_*",
       "**/workspaces_*"
     ]
     "service/xray" = [
+      "aws/internal/service/xray/**/*",
       "**/*_xray_*",
       "**/xray_*"
     ]
   }
+}
+
+behavior "remove_labels_on_reply" "remove_stale" {
+    labels = ["waiting-response", "stale"]
+    only_non_maintainers = true
+}
+
+behavior "pull_request_size_labeler" "size" {
+    label_prefix = "size/"
+    label_map = {
+        "size/XS" = {
+            from = 0
+            to = 30
+        }
+        "size/S" = {
+            from = 31
+            to = 60
+        }
+        "size/M" = {
+            from = 61
+            to = 150
+        }
+        "size/L" = {
+            from = 151
+            to = 300
+        }
+        "size/XL" = {
+            from = 301
+            to = 1000
+        }
+        "size/XXL" = {
+            from = 1001
+            to = 0
+        }
+    }
 }

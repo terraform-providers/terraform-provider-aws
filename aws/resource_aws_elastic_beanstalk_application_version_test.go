@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSBeanstalkAppVersion_basic(t *testing.T) {
@@ -18,6 +18,7 @@ func TestAccAWSBeanstalkAppVersion_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckApplicationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -37,6 +38,7 @@ func TestAccAWSBeanstalkAppVersion_duplicateLabels(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckApplicationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -57,6 +59,7 @@ func TestAccAWSBeanstalkAppVersion_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckApplicationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -173,7 +176,7 @@ resource "aws_s3_bucket" "default" {
 }
 
 resource "aws_s3_bucket_object" "default" {
-  bucket = "${aws_s3_bucket.default.id}"
+  bucket = aws_s3_bucket.default.id
   key    = "beanstalk/python-v1.zip"
   source = "test-fixtures/python-v1.zip"
 }
@@ -184,10 +187,10 @@ resource "aws_elastic_beanstalk_application" "default" {
 }
 
 resource "aws_elastic_beanstalk_application_version" "default" {
-  application = "${aws_elastic_beanstalk_application.default.name}"
+  application = aws_elastic_beanstalk_application.default.name
   name        = "tf-test-version-label-%d"
-  bucket      = "${aws_s3_bucket.default.id}"
-  key         = "${aws_s3_bucket_object.default.id}"
+  bucket      = aws_s3_bucket.default.id
+  key         = aws_s3_bucket_object.default.id
 }
 `, randInt, randInt, randInt)
 }
@@ -199,7 +202,7 @@ resource "aws_s3_bucket" "default" {
 }
 
 resource "aws_s3_bucket_object" "default" {
-  bucket = "${aws_s3_bucket.default.id}"
+  bucket = aws_s3_bucket.default.id
   key    = "beanstalk/python-v1.zip"
   source = "test-fixtures/python-v1.zip"
 }
@@ -210,10 +213,10 @@ resource "aws_elastic_beanstalk_application" "first" {
 }
 
 resource "aws_elastic_beanstalk_application_version" "first" {
-  application = "${aws_elastic_beanstalk_application.first.name}"
+  application = aws_elastic_beanstalk_application.first.name
   name        = "tf-test-version-label-%d"
-  bucket      = "${aws_s3_bucket.default.id}"
-  key         = "${aws_s3_bucket_object.default.id}"
+  bucket      = aws_s3_bucket.default.id
+  key         = aws_s3_bucket_object.default.id
 }
 
 resource "aws_elastic_beanstalk_application" "second" {
@@ -222,10 +225,10 @@ resource "aws_elastic_beanstalk_application" "second" {
 }
 
 resource "aws_elastic_beanstalk_application_version" "second" {
-  application = "${aws_elastic_beanstalk_application.second.name}"
+  application = aws_elastic_beanstalk_application.second.name
   name        = "tf-test-version-label-%d"
-  bucket      = "${aws_s3_bucket.default.id}"
-  key         = "${aws_s3_bucket_object.default.id}"
+  bucket      = aws_s3_bucket.default.id
+  key         = aws_s3_bucket_object.default.id
 }
 `, randInt, randInt, randInt, randInt, randInt)
 }
@@ -237,7 +240,7 @@ resource "aws_s3_bucket" "default" {
 }
 
 resource "aws_s3_bucket_object" "default" {
-  bucket = "${aws_s3_bucket.default.id}"
+  bucket = aws_s3_bucket.default.id
   key    = "beanstalk/python-v1.zip"
   source = "test-fixtures/python-v1.zip"
 }
@@ -248,10 +251,10 @@ resource "aws_elastic_beanstalk_application" "default" {
 }
 
 resource "aws_elastic_beanstalk_application_version" "default" {
-  application = "${aws_elastic_beanstalk_application.default.name}"
+  application = aws_elastic_beanstalk_application.default.name
   name        = "tf-test-version-label-%[1]d"
-  bucket      = "${aws_s3_bucket.default.id}"
-  key         = "${aws_s3_bucket_object.default.id}"
+  bucket      = aws_s3_bucket.default.id
+  key         = aws_s3_bucket_object.default.id
 
   tags = {
     firstTag  = "%[2]s"
@@ -268,7 +271,7 @@ resource "aws_s3_bucket" "default" {
 }
 
 resource "aws_s3_bucket_object" "default" {
-  bucket = "${aws_s3_bucket.default.id}"
+  bucket = aws_s3_bucket.default.id
   key    = "beanstalk/python-v1.zip"
   source = "test-fixtures/python-v1.zip"
 }
@@ -279,10 +282,10 @@ resource "aws_elastic_beanstalk_application" "default" {
 }
 
 resource "aws_elastic_beanstalk_application_version" "default" {
-  application = "${aws_elastic_beanstalk_application.default.name}"
+  application = aws_elastic_beanstalk_application.default.name
   name        = "tf-test-version-label-%[1]d"
-  bucket      = "${aws_s3_bucket.default.id}"
-  key         = "${aws_s3_bucket_object.default.id}"
+  bucket      = aws_s3_bucket.default.id
+  key         = aws_s3_bucket_object.default.id
 
   tags = {
     firstTag  = "%[2]s"

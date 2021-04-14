@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
 )
 
@@ -86,6 +86,7 @@ func TestAccAWSS3AccessPoint_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
 		Steps: []resource.TestStep{
@@ -126,6 +127,7 @@ func TestAccAWSS3AccessPoint_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
 		Steps: []resource.TestStep{
@@ -141,7 +143,7 @@ func TestAccAWSS3AccessPoint_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAWSS3AccessPoint_bucketDisappears(t *testing.T) {
+func TestAccAWSS3AccessPoint_disappears_Bucket(t *testing.T) {
 	var v s3control.GetAccessPointOutput
 	bucketName := acctest.RandomWithPrefix("tf-acc-test")
 	accessPointName := acctest.RandomWithPrefix("tf-acc-test")
@@ -150,6 +152,7 @@ func TestAccAWSS3AccessPoint_bucketDisappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
 		Steps: []resource.TestStep{
@@ -165,42 +168,95 @@ func TestAccAWSS3AccessPoint_bucketDisappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3AccessPoint_Bucket_Arn(t *testing.T) {
+	var v s3control.GetAccessPointOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_s3_access_point.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3AccessPointConfig_Bucket_Arn(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3AccessPointExists(resourceName, &v),
+					testAccCheckResourceAttrAccountID(resourceName, "account_id"),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "s3-outposts", fmt.Sprintf("outpost/[^/]+/accesspoint/%s", rName)),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", "aws_s3control_bucket.test", "arn"),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "domain_name", "s3-accesspoint", regexp.MustCompile(fmt.Sprintf("^%s-\\d{12}", rName))),
+					resource.TestCheckResourceAttr(resourceName, "has_public_access_policy", "false"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "network_origin", "Vpc"),
+					resource.TestCheckResourceAttr(resourceName, "policy", ""),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.block_public_acls", "true"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.block_public_policy", "true"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.ignore_public_acls", "true"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.restrict_public_buckets", "true"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "vpc_configuration.0.vpc_id", "aws_vpc.test", "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSS3AccessPoint_Policy(t *testing.T) {
 	var v s3control.GetAccessPointOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_s3_access_point.test"
 
 	expectedPolicyText1 := func() string {
-		return fmt.Sprintf(`
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [{
-			"Sid": "",
-			"Effect": "Allow",
-			"Principal": {"AWS":"*"},
-			"Action": "s3:GetObjectTagging",
-			"Resource": ["arn:%s:s3:%s:%s:accesspoint/%s/object/*"]
-		  }]
-		}
-		`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
+		return fmt.Sprintf(`{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "s3:GetObjectTagging",
+      "Resource": [
+        "arn:%s:s3:%s:%s:accesspoint/%s/object/*"
+      ]
+    }
+  ]
+}`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
 	}
 	expectedPolicyText2 := func() string {
-		return fmt.Sprintf(`
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [{
-			"Sid": "",
-			"Effect": "Allow",
-			"Principal": {"AWS":"*"},
-			"Action": ["s3:GetObjectLegalHold","s3:GetObjectRetention"],
-			"Resource": ["arn:%s:s3:%s:%s:accesspoint/%s/object/*"]
-		  }]
-		}
-		`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
+		return fmt.Sprintf(`{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "s3:GetObjectLegalHold",
+        "s3:GetObjectRetention"
+      ],
+      "Resource": [
+        "arn:%s:s3:%s:%s:accesspoint/%s/object/*"
+      ]
+    }
+  ]
+}`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
 		Steps: []resource.TestStep{
@@ -254,6 +310,7 @@ func TestAccAWSS3AccessPoint_PublicAccessBlockConfiguration(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
 		Steps: []resource.TestStep{
@@ -293,6 +350,7 @@ func TestAccAWSS3AccessPoint_VpcConfiguration(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
 		Steps: []resource.TestStep{
@@ -460,10 +518,42 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[2]q
 }
 `, bucketName, accessPointName)
+}
+
+func testAccAWSS3AccessPointConfig_Bucket_Arn(rName string) string {
+	return fmt.Sprintf(`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+resource "aws_s3control_bucket" "test" {
+  bucket     = %[1]q
+  outpost_id = data.aws_outposts_outpost.test.id
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_s3_access_point" "test" {
+  bucket = aws_s3control_bucket.test.arn
+  name   = %[1]q
+
+  vpc_configuration {
+    vpc_id = aws_vpc.test.id
+  }
+}
+`, rName)
 }
 
 func testAccAWSS3AccessPointConfig_policy(rName string) string {
@@ -473,9 +563,9 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
-  policy = "${data.aws_iam_policy_document.test.json}"
+  policy = data.aws_iam_policy_document.test.json
 
   public_access_block_configuration {
     block_public_acls       = true
@@ -517,9 +607,9 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
-  policy = "${data.aws_iam_policy_document.test.json}"
+  policy = data.aws_iam_policy_document.test.json
 
   public_access_block_configuration {
     block_public_acls       = true
@@ -562,7 +652,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
 
   public_access_block_configuration {
@@ -582,7 +672,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
 
   public_access_block_configuration {
@@ -610,11 +700,11 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
 
   vpc_configuration {
-    vpc_id = "${aws_vpc.test.id}"
+    vpc_id = aws_vpc.test.id
   }
 }
 `, rName)

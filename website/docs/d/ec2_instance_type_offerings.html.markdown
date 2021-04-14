@@ -12,7 +12,7 @@ Information about EC2 Instance Type Offerings.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_instance_type_offerings" "example" {
   filter {
     name   = "instance-type"
@@ -44,4 +44,5 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - AWS Region.
 * `instance_types` - Set of EC2 Instance Types.

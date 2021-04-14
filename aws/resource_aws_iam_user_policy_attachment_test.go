@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
@@ -21,6 +21,7 @@ func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -62,6 +63,7 @@ func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
 		},
 	})
 }
+
 func testAccCheckAWSUserPolicyAttachmentDestroy(s *terraform.State) error {
 	return nil
 }
@@ -94,6 +96,7 @@ func testAccCheckAWSUserPolicyAttachmentExists(n string, c int, out *iam.ListAtt
 		return nil
 	}
 }
+
 func testAccCheckAWSUserPolicyAttachmentAttributes(policies []string, out *iam.ListAttachedUserPoliciesOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		matched := 0
@@ -152,8 +155,8 @@ EOF
 }
 
 resource "aws_iam_user_policy_attachment" "test-attach" {
-  user       = "${aws_iam_user.user.name}"
-  policy_arn = "${aws_iam_policy.policy.arn}"
+  user       = aws_iam_user.user.name
+  policy_arn = aws_iam_policy.policy.arn
 }
 `, rName, policyName)
 }
@@ -225,13 +228,13 @@ EOF
 }
 
 resource "aws_iam_user_policy_attachment" "test-attach" {
-  user       = "${aws_iam_user.user.name}"
-  policy_arn = "${aws_iam_policy.policy2.arn}"
+  user       = aws_iam_user.user.name
+  policy_arn = aws_iam_policy.policy2.arn
 }
 
 resource "aws_iam_user_policy_attachment" "test-attach2" {
-  user       = "${aws_iam_user.user.name}"
-  policy_arn = "${aws_iam_policy.policy3.arn}"
+  user       = aws_iam_user.user.name
+  policy_arn = aws_iam_policy.policy3.arn
 }
 `, rName, policyName1, policyName2, policyName3)
 }

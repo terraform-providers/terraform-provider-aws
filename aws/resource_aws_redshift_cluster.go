@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -28,7 +28,7 @@ func resourceAwsRedshiftCluster() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(75 * time.Minute),
-			Update: schema.DefaultTimeout(40 * time.Minute),
+			Update: schema.DefaultTimeout(75 * time.Minute),
 			Delete: schema.DefaultTimeout(40 * time.Minute),
 		},
 
@@ -303,27 +303,6 @@ func resourceAwsRedshiftCluster() *schema.Resource {
 				},
 			},
 
-			"enable_logging": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-				Removed:  "Use `logging` configuration block `enable` argument instead",
-			},
-
-			"bucket_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				Removed:  "Use `logging` configuration block `bucket_name` argument instead",
-			},
-
-			"s3_key_prefix": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				Removed:  "Use `logging` configuration block `s3_key_prefix` argument instead",
-			},
-
 			"snapshot_identifier": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -391,11 +370,11 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v := d.Get("cluster_security_groups").(*schema.Set); v.Len() > 0 {
-			restoreOpts.ClusterSecurityGroups = expandStringList(v.List())
+			restoreOpts.ClusterSecurityGroups = expandStringSet(v)
 		}
 
 		if v := d.Get("vpc_security_group_ids").(*schema.Set); v.Len() > 0 {
-			restoreOpts.VpcSecurityGroupIds = expandStringList(v.List())
+			restoreOpts.VpcSecurityGroupIds = expandStringSet(v)
 		}
 
 		if v, ok := d.GetOk("preferred_maintenance_window"); ok {
@@ -415,7 +394,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v, ok := d.GetOk("iam_roles"); ok {
-			restoreOpts.IamRoles = expandStringList(v.(*schema.Set).List())
+			restoreOpts.IamRoles = expandStringSet(v.(*schema.Set))
 		}
 
 		log.Printf("[DEBUG] Redshift Cluster restore cluster options: %s", restoreOpts)
@@ -426,7 +405,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 			return err
 		}
 
-		d.SetId(*resp.Cluster.ClusterIdentifier)
+		d.SetId(aws.StringValue(resp.Cluster.ClusterIdentifier))
 
 	} else {
 		if _, ok := d.GetOk("master_password"); !ok {
@@ -459,11 +438,11 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v := d.Get("cluster_security_groups").(*schema.Set); v.Len() > 0 {
-			createOpts.ClusterSecurityGroups = expandStringList(v.List())
+			createOpts.ClusterSecurityGroups = expandStringSet(v)
 		}
 
 		if v := d.Get("vpc_security_group_ids").(*schema.Set); v.Len() > 0 {
-			createOpts.VpcSecurityGroupIds = expandStringList(v.List())
+			createOpts.VpcSecurityGroupIds = expandStringSet(v)
 		}
 
 		if v, ok := d.GetOk("cluster_subnet_group_name"); ok {
@@ -499,7 +478,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v, ok := d.GetOk("iam_roles"); ok {
-			createOpts.IamRoles = expandStringList(v.(*schema.Set).List())
+			createOpts.IamRoles = expandStringSet(v.(*schema.Set))
 		}
 
 		log.Printf("[DEBUG] Redshift Cluster create options: %s", createOpts)
@@ -510,7 +489,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		log.Printf("[DEBUG]: Cluster create response: %s", resp)
-		d.SetId(*resp.Cluster.ClusterIdentifier)
+		d.SetId(aws.StringValue(resp.Cluster.ClusterIdentifier))
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -533,7 +512,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if logging, ok := d.GetOk("logging.0.enable"); ok && logging.(bool) {
+	if _, ok := d.GetOk("logging.0.enable"); ok {
 		if err := enableRedshiftClusterLogging(d, conn); err != nil {
 			return fmt.Errorf("error enabling Redshift Cluster (%s) logging: %s", d.Id(), err)
 		}
@@ -696,12 +675,12 @@ func resourceAwsRedshiftClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("cluster_security_groups") {
-		req.ClusterSecurityGroups = expandStringList(d.Get("cluster_security_groups").(*schema.Set).List())
+		req.ClusterSecurityGroups = expandStringSet(d.Get("cluster_security_groups").(*schema.Set))
 		requestUpdate = true
 	}
 
 	if d.HasChange("vpc_security_group_ids") {
-		req.VpcSecurityGroupIds = expandStringList(d.Get("vpc_security_group_ids").(*schema.Set).List())
+		req.VpcSecurityGroupIds = expandStringSet(d.Get("vpc_security_group_ids").(*schema.Set))
 		requestUpdate = true
 	}
 
@@ -776,14 +755,14 @@ func resourceAwsRedshiftClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		removeIams := os.Difference(ns).List()
-		addIams := ns.Difference(os).List()
+		removeIams := os.Difference(ns)
+		addIams := ns.Difference(os)
 
 		log.Printf("[INFO] Building Redshift Modify Cluster IAM Role Options")
 		req := &redshift.ModifyClusterIamRolesInput{
 			ClusterIdentifier: aws.String(d.Id()),
-			AddIamRoles:       expandStringList(addIams),
-			RemoveIamRoles:    expandStringList(removeIams),
+			AddIamRoles:       expandStringSet(addIams),
+			RemoveIamRoles:    expandStringSet(removeIams),
 		}
 
 		log.Printf("[INFO] Modifying Redshift Cluster IAM Roles: %s", d.Id())
@@ -931,7 +910,10 @@ func deleteAwsRedshiftCluster(opts *redshift.DeleteClusterInput, conn *redshift.
 			return resource.RetryableError(err)
 		}
 
-		return resource.NonRetryableError(err)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 	if isResourceTimeoutError(err) {
 		_, err = conn.DeleteCluster(opts)

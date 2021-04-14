@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // WAF requires UpdateIPSet operations be split into batches of 1000 Updates
@@ -74,7 +74,7 @@ func resourceAwsWafIPSetCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resp := out.(*waf.CreateIPSetOutput)
-	d.SetId(*resp.IPSet.IPSetId)
+	d.SetId(aws.StringValue(resp.IPSet.IPSetId))
 
 	if v, ok := d.GetOk("ip_set_descriptors"); ok && v.(*schema.Set).Len() > 0 {
 

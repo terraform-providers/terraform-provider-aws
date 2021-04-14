@@ -12,14 +12,14 @@ Allows setting policy to an Elasticsearch domain while referencing domain attrib
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_elasticsearch_domain" "example" {
   domain_name           = "tf-test"
   elasticsearch_version = "2.3"
 }
 
 resource "aws_elasticsearch_domain_policy" "main" {
-  domain_name = "${aws_elasticsearch_domain.example.domain_name}"
+  domain_name = aws_elasticsearch_domain.example.domain_name
 
   access_policies = <<POLICIES
 {
@@ -46,3 +46,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) Name of the domain.
 * `access_policies` - (Optional) IAM policy document specifying the access policies for the domain
+
+## Attributes Reference
+
+No additional attributes are exported.

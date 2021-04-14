@@ -7,9 +7,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
@@ -91,7 +92,7 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 	}
 
 	var out *cloud9.CreateEnvironmentEC2Output
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		out, err = conn.CreateEnvironmentEC2(params)
 		if err != nil {
@@ -110,7 +111,7 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("Error creating Cloud9 EC2 Environment: %s", err)
 	}
-	d.SetId(*out.EnvironmentId)
+	d.SetId(aws.StringValue(out.EnvironmentId))
 
 	stateConf := resource.StateChangeConf{
 		Pending: []string{
@@ -129,13 +130,13 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 				return 42, "", err
 			}
 
-			status := *out.Status
-			var sErr error
+			status := aws.StringValue(out.Status)
+
 			if status == cloud9.EnvironmentStatusError && out.Message != nil {
-				sErr = fmt.Errorf("Reason: %s", *out.Message)
+				return out, status, fmt.Errorf("Reason: %s", aws.StringValue(out.Message))
 			}
 
-			return out, status, sErr
+			return out, status, nil
 		},
 	}
 	_, err = stateConf.WaitForState()

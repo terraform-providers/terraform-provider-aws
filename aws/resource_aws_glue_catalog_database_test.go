@@ -2,15 +2,64 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_glue_catalog_database", &resource.Sweeper{
+		Name: "aws_glue_catalog_database",
+		F:    testSweepGlueCatalogDatabases,
+	})
+}
+
+func testSweepGlueCatalogDatabases(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).glueconn
+
+	input := &glue.GetDatabasesInput{}
+	err = conn.GetDatabasesPages(input, func(page *glue.GetDatabasesOutput, lastPage bool) bool {
+		if len(page.DatabaseList) == 0 {
+			log.Printf("[INFO] No Glue Catalog Databases to sweep")
+			return false
+		}
+		for _, database := range page.DatabaseList {
+			name := aws.StringValue(database.Name)
+
+			log.Printf("[INFO] Deleting Glue Catalog Database: %s", name)
+
+			r := resourceAwsGlueCatalogDatabase()
+			d := r.Data(nil)
+			d.SetId("???")
+			d.Set("name", name)
+			d.Set("catalog_id", database.CatalogId)
+
+			err := r.Delete(d, client)
+			if err != nil {
+				log.Printf("[ERROR] Failed to delete Glue Catalog Database %s: %s", name, err)
+			}
+		}
+		return !lastPage
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Glue Catalog Database sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Glue Catalog Databases: %s", err)
+	}
+
+	return nil
+}
 
 func TestAccAWSGlueCatalogDatabase_full(t *testing.T) {
 	resourceName := "aws_glue_catalog_database.test"
@@ -18,6 +67,7 @@ func TestAccAWSGlueCatalogDatabase_full(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlueDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -70,6 +120,7 @@ func TestAccAWSGlueCatalogDatabase_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlueDatabaseDestroy,
 		Steps: []resource.TestStep{

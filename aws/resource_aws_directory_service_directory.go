@@ -7,9 +7,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -617,9 +618,9 @@ func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta inter
 	}
 
 	if aws.StringValue(dir.Type) == directoryservice.DirectoryTypeAdconnector {
-		d.Set("security_group_id", aws.StringValue(dir.ConnectSettings.SecurityGroupId))
+		d.Set("security_group_id", dir.ConnectSettings.SecurityGroupId)
 	} else {
-		d.Set("security_group_id", aws.StringValue(dir.VpcSettings.SecurityGroupId))
+		d.Set("security_group_id", dir.VpcSettings.SecurityGroupId)
 	}
 
 	tags, err := keyvaluetags.DirectoryserviceListTags(dsconn, d.Id())
@@ -636,22 +637,26 @@ func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta inter
 }
 
 func resourceAwsDirectoryServiceDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
-	dsconn := meta.(*AWSClient).dsconn
+	conn := meta.(*AWSClient).dsconn
 
-	input := directoryservice.DeleteDirectoryInput{
+	input := &directoryservice.DeleteDirectoryInput{
 		DirectoryId: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Deleting Directory Service Directory: %s", input)
-	_, err := dsconn.DeleteDirectory(&input)
-	if err != nil {
-		return fmt.Errorf("error deleting Directory Service Directory (%s): %s", d.Id(), err)
+	_, err := conn.DeleteDirectory(input)
+
+	if tfawserr.ErrCodeEquals(err, directoryservice.ErrCodeEntityDoesNotExistException) {
+		return nil
 	}
 
-	log.Printf("[DEBUG] Waiting for Directory Service Directory (%q) to be deleted", d.Id())
-	err = waitForDirectoryServiceDirectoryDeletion(dsconn, d.Id())
 	if err != nil {
-		return fmt.Errorf("error waiting for Directory Service (%s) to be deleted: %s", d.Id(), err)
+		return fmt.Errorf("error deleting Directory Service Directory (%s): %w", d.Id(), err)
+	}
+
+	err = waitForDirectoryServiceDirectoryDeletion(conn, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error waiting for Directory Service (%s) to be deleted: %w", d.Id(), err)
 	}
 
 	return nil

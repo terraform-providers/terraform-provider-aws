@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -88,6 +88,7 @@ func TestAccAWSDataSyncLocationS3_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
 		Steps: []resource.TestStep{
@@ -121,6 +122,7 @@ func TestAccAWSDataSyncLocationS3_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
 		Steps: []resource.TestStep{
@@ -143,6 +145,7 @@ func TestAccAWSDataSyncLocationS3_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
 		Steps: []resource.TestStep{
@@ -253,7 +256,7 @@ func testAccCheckAWSDataSyncLocationS3Disappears(location *datasync.DescribeLoca
 
 func testAccCheckAWSDataSyncLocationS3NotRecreated(i, j *datasync.DescribeLocationS3Output) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if aws.TimeValue(i.CreationTime) != aws.TimeValue(j.CreationTime) {
+		if !aws.TimeValue(i.CreationTime).Equal(aws.TimeValue(j.CreationTime)) {
 			return errors.New("DataSync Location S3 was recreated")
 		}
 
@@ -309,28 +312,28 @@ resource "aws_s3_bucket" "test" {
 }
 
 func testAccAWSDataSyncLocationS3Config(rName string) string {
-	return testAccAWSDataSyncLocationS3ConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSDataSyncLocationS3ConfigBase(rName) + `
 resource "aws_datasync_location_s3" "test" {
-  s3_bucket_arn = "${aws_s3_bucket.test.arn}"
+  s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.test.arn}"
+    bucket_access_role_arn = aws_iam_role.test.arn
   }
 
   depends_on = [aws_iam_role_policy.test]
 }
-`)
+`
 }
 
 func testAccAWSDataSyncLocationS3ConfigTags1(rName, key1, value1 string) string {
 	return testAccAWSDataSyncLocationS3ConfigBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_location_s3" "test" {
-  s3_bucket_arn = "${aws_s3_bucket.test.arn}"
+  s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.test.arn}"
+    bucket_access_role_arn = aws_iam_role.test.arn
   }
 
   tags = {
@@ -345,11 +348,11 @@ resource "aws_datasync_location_s3" "test" {
 func testAccAWSDataSyncLocationS3ConfigTags2(rName, key1, value1, key2, value2 string) string {
 	return testAccAWSDataSyncLocationS3ConfigBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_location_s3" "test" {
-  s3_bucket_arn = "${aws_s3_bucket.test.arn}"
+  s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.test.arn}"
+    bucket_access_role_arn = aws_iam_role.test.arn
   }
 
   tags = {

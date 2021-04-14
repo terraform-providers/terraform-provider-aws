@@ -8,12 +8,13 @@ import (
 
 // AccessAnalyzer is limited to one per region, so run serially
 // locally and in TeamCity.
-func TestAccAWSAccessAnalyzer(t *testing.T) {
+func TestAccAWSAccessAnalyzer_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Analyzer": {
-			"basic":      testAccAWSAccessAnalyzerAnalyzer_basic,
-			"disappears": testAccAWSAccessAnalyzerAnalyzer_disappears,
-			"Tags":       testAccAWSAccessAnalyzerAnalyzer_Tags,
+			"basic":             testAccAWSAccessAnalyzerAnalyzer_basic,
+			"disappears":        testAccAWSAccessAnalyzerAnalyzer_disappears,
+			"Tags":              testAccAWSAccessAnalyzerAnalyzer_Tags,
+			"Type_Organization": testAccAWSAccessAnalyzerAnalyzer_Type_Organization,
 		},
 	}
 

@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_ecr_lifecycle_policy: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_ecr_repository: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_ecr_repository_policy: Handle read-after-create eventual consistency
+```

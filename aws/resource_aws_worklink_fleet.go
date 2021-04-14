@@ -8,10 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/worklink"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsWorkLinkFleet() *schema.Resource {
@@ -174,10 +173,10 @@ func resourceAwsWorkLinkFleetRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("arn", d.Id())
-	d.Set("name", aws.StringValue(resp.FleetName))
-	d.Set("display_name", aws.StringValue(resp.DisplayName))
-	d.Set("optimize_for_end_user_location", aws.BoolValue(resp.OptimizeForEndUserLocation))
-	d.Set("company_code", aws.StringValue(resp.CompanyCode))
+	d.Set("name", resp.FleetName)
+	d.Set("display_name", resp.DisplayName)
+	d.Set("optimize_for_end_user_location", resp.OptimizeForEndUserLocation)
+	d.Set("company_code", resp.CompanyCode)
 	d.Set("created_time", resp.CreatedTime.Format(time.RFC3339))
 	if resp.LastUpdatedTime != nil {
 		d.Set("last_updated_time", resp.LastUpdatedTime.Format(time.RFC3339))

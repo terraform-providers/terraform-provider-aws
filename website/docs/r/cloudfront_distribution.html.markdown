@@ -24,7 +24,7 @@ want to wait, you need to use the `retain_on_delete` flag.
 
 The following example below creates a CloudFront distribution with an S3 origin.
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "b" {
   bucket = "mybucket"
   acl    = "private"
@@ -40,8 +40,8 @@ locals {
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
-    domain_name = "${aws_s3_bucket.b.bucket_regional_domain_name}"
-    origin_id   = "${local.s3_origin_id}"
+    domain_name = aws_s3_bucket.b.bucket_regional_domain_name
+    origin_id   = local.s3_origin_id
 
     s3_origin_config {
       origin_access_identity = "origin-access-identity/cloudfront/ABCDEFG1234567"
@@ -64,7 +64,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "${local.s3_origin_id}"
+    target_origin_id = local.s3_origin_id
 
     forwarded_values {
       query_string = false
@@ -85,7 +85,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     path_pattern     = "/content/immutable/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id = "${local.s3_origin_id}"
+    target_origin_id = local.s3_origin_id
 
     forwarded_values {
       query_string = false
@@ -108,7 +108,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     path_pattern     = "/content/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "${local.s3_origin_id}"
+    target_origin_id = local.s3_origin_id
 
     forwarded_values {
       query_string = false
@@ -146,7 +146,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
 The following example below creates a Cloudfront distribution with an origin group for failover routing:
 
-```hcl
+```terraform
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin_group {
     origin_id = "groupS3"
@@ -165,20 +165,20 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   origin {
-    domain_name = "${aws_s3_bucket.primary.bucket_regional_domain_name}"
+    domain_name = aws_s3_bucket.primary.bucket_regional_domain_name
     origin_id   = "primaryS3"
 
     s3_origin_config {
-      origin_access_identity = "${aws_cloudfront_origin_access_identity.default.cloudfront_access_identity_path}"
+      origin_access_identity = aws_cloudfront_origin_access_identity.default.cloudfront_access_identity_path
     }
   }
 
   origin {
-    domain_name = "${aws_s3_bucket.failover.bucket_regional_domain_name}"
+    domain_name = aws_s3_bucket.failover.bucket_regional_domain_name
     origin_id   = "failoverS3"
 
     s3_origin_config {
-      origin_access_identity = "${aws_cloudfront_origin_access_identity.default.cloudfront_access_identity_path}"
+      origin_access_identity = aws_cloudfront_origin_access_identity.default.cloudfront_access_identity_path
     }
   }
 
@@ -233,7 +233,7 @@ of several sub-resources - these resources are laid out below.
     distribution (multiples allowed).
 
 * `origin_group` (Optional) - One or more [origin_group](#origin-group-arguments) for this
-  distribution (multiples allowed).  
+  distribution (multiples allowed).
 
 * `price_class` (Optional) - The price class for this distribution. One of
     `PriceClass_All`, `PriceClass_200`, `PriceClass_100`
@@ -247,11 +247,13 @@ of several sub-resources - these resources are laid out below.
     configuration](#viewer-certificate-arguments) for this distribution (maximum
     one).
 
-* `web_acl_id` (Optional) - If you're using AWS WAF to filter CloudFront
-    requests, the Id of the AWS WAF web ACL that is associated with the
-    distribution. The WAF Web ACL must exist in the WAF Global (CloudFront)
-    region and the credentials configuring this argument must have
-    `waf:GetWebACL` permissions assigned. If using WAFv2, provide the ARN of the web ACL.
+* `web_acl_id` (Optional) - A unique identifier that specifies the AWS WAF web ACL,
+    if any, to associate with this distribution.  
+    To specify a web ACL created using the latest version of AWS WAF (WAFv2), use the ACL ARN,
+    for example `aws_wafv2_web_acl.example.arn`. To specify a web
+    ACL created using AWS WAF Classic, use the ACL ID, for example `aws_waf_web_acl.example.id`.
+    The WAF Web ACL must exist in the WAF Global (CloudFront) region and the
+    credentials configuring this argument must have `waf:GetWebACL` permissions assigned.
 
 * `retain_on_delete` (Optional) - Disables the distribution instead of
     deleting it when destroying the resource through Terraform. If this is set,
@@ -269,35 +271,43 @@ of several sub-resources - these resources are laid out below.
 * `cached_methods` (Required) - Controls whether CloudFront caches the
     response to requests using the specified HTTP methods.
 
+* `cache_policy_id` (Optional) - The unique identifier of the cache policy that
+    is attached to the cache behavior.
+
 * `compress` (Optional) - Whether you want CloudFront to automatically
     compress content for web requests that include `Accept-Encoding: gzip` in
     the request header (default: `false`).
 
 * `default_ttl` (Optional) - The default amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
-    in the absence of an `Cache-Control max-age` or `Expires` header. Defaults to
-    1 day.
+    in the absence of an `Cache-Control max-age` or `Expires` header.
 
 * `field_level_encryption_id` (Optional) - Field level encryption configuration ID
 
-* `forwarded_values` (Required) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
+* `forwarded_values` (Optional) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
     handles query strings, cookies and headers (maximum one).
 
-* `lambda_function_association` (Optional) - A config block that triggers a lambda function with
-  specific actions. Defined below, maximum 4.
+* `lambda_function_association` (Optional) - A [config block](#lambda-function-association) that triggers a lambda
+    function with specific actions (maximum 4).
 
 * `max_ttl` (Optional) - The maximum amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
     to your origin to determine whether the object has been updated. Only
     effective in the presence of `Cache-Control max-age`, `Cache-Control
-    s-maxage`, and `Expires` headers. Defaults to 365 days.
+    s-maxage`, and `Expires` headers.
 
 * `min_ttl` (Optional) - The minimum amount of time that you want objects to
     stay in CloudFront caches before CloudFront queries your origin to see
     whether the object has been updated. Defaults to 0 seconds.
 
+* `origin_request_policy_id` (Optional) - The unique identifier of the origin request policy
+    that is attached to the behavior.
+
 * `path_pattern` (Required) - The pattern (for example, `images/*.jpg)` that
     specifies which requests you want this cache behavior to apply to.
+
+* `realtime_log_config_arn` (Optional) - The ARN of the [real-time log configuration](cloudfront_realtime_log_config.html)
+    that is attached to this cache behavior.
 
 * `smooth_streaming` (Optional) - Indicates whether you want to distribute
     media files in Microsoft Smooth Streaming format using the origin that is
@@ -307,8 +317,8 @@ of several sub-resources - these resources are laid out below.
     CloudFront to route requests to when a request matches the path pattern
     either for a cache behavior or for the default cache behavior.
 
-* `trusted_signers` (Optional) - The AWS accounts, if any, that you want to
-    allow to create signed URLs for private content.
+* `trusted_signers` (Optional) - List of AWS account IDs (or `self`) that you want to allow to create signed URLs for private content.
+See the [CloudFront User Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html) for more information about this feature.
 
 * `viewer_protocol_policy` (Required) - Use this element to specify the
     protocol that users can use to access the files in the origin specified by
@@ -341,7 +351,7 @@ for more information.
 
 Example configuration:
 
-```hcl
+```terraform
 resource "aws_cloudfront_distribution" "example" {
   # ... other configuration ...
 
@@ -351,7 +361,7 @@ resource "aws_cloudfront_distribution" "example" {
 
     lambda_function_association {
       event_type   = "viewer-request"
-      lambda_arn   = "${aws_lambda_function.example.qualified_arn}"
+      lambda_arn   = aws_lambda_function.example.qualified_arn
       include_body = false
     }
   }
@@ -394,7 +404,7 @@ resource "aws_cloudfront_distribution" "example" {
 
 The arguments for `default_cache_behavior` are the same as for
 [`ordered_cache_behavior`](#cache-behavior-arguments), except for the `path_pattern`
-argument is not required.
+argument should not be specified.
 
 #### Logging Config Arguments
 
@@ -428,7 +438,7 @@ argument is not required.
 
 * `s3_origin_config` - The [CloudFront S3 origin](#s3-origin-config-arguments)
     configuration information. If a custom origin is required, use
-    `custom_origin_config` instead.    
+    `custom_origin_config` instead.
 
 ##### Custom Origin Config Arguments
 
@@ -499,9 +509,9 @@ The arguments of `geo_restriction` are:
     this, `acm_certificate_arn`, or `cloudfront_default_certificate`.
 
 * `minimum_protocol_version` - The minimum version of the SSL protocol that
-    you want CloudFront to use for HTTPS connections. Can only be set if 
+    you want CloudFront to use for HTTPS connections. Can only be set if
     `cloudfront_default_certificate = false`. One of `SSLv3`, `TLSv1`,
-    `TLSv1_2016`, `TLSv1.1_2016` or `TLSv1.2_2018`. Default: `TLSv1`. **NOTE**:
+    `TLSv1_2016`, `TLSv1.1_2016`, `TLSv1.2_2018` or `TLSv1.2_2019`. Default: `TLSv1`. **NOTE**:
     If you are using a custom certificate (specified with `acm_certificate_arn`
     or `iam_certificate_id`), and have specified `sni-only` in
     `ssl_support_method`, `TLSv1` or later must be specified. If you have
@@ -514,7 +524,7 @@ The arguments of `geo_restriction` are:
     `acm_certificate_arn` or `iam_certificate_id`. **NOTE:** `vip` causes
     CloudFront to use a dedicated IP address and may incur extra charges.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -529,9 +539,11 @@ In addition to all arguments above, the following attributes are exported:
     distribution's information is fully propagated throughout the Amazon
     CloudFront system.
 
-* `active_trusted_signers` - The key pair IDs that CloudFront is aware of for
-    each trusted signer, if the distribution is set up to serve private content
-    with signed URLs.
+* `trusted_signers` - List of nested attributes for active trusted signers, if the distribution is set up to serve private content with signed URLs
+    * `enabled` - `true` if any of the AWS accounts listed as trusted signers have active CloudFront key pairs
+    * `items` - List of nested attributes for each trusted signer
+        * `aws_account_number` - AWS account ID or `self`
+        * `key_pair_ids` - Set of active CloudFront key pairs associated with the signer account
 
 * `domain_name` - The domain name corresponding to the distribution. For
     example: `d604721fxaaqy9.cloudfront.net`.

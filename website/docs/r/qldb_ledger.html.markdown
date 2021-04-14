@@ -14,7 +14,7 @@ Provides an AWS Quantum Ledger Database (QLDB) resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_qldb_ledger" "sample-ledger" {
   name = "sample-ledger"
 }

@@ -30,7 +30,7 @@ by `instance`) in the default security group, creating a security group
 primary network interface via the `aws_network_interface_sg_attachment` resource,
 named `sg_attachment`:
 
-```hcl
+```terraform
 data "aws_ami" "ami" {
   most_recent = true
 
@@ -44,22 +44,22 @@ data "aws_ami" "ami" {
 
 resource "aws_instance" "instance" {
   instance_type = "t2.micro"
-  ami           = "${data.aws_ami.ami.id}"
+  ami           = data.aws_ami.ami.id
 
   tags = {
-    "type" = "terraform-test-instance"
+    type = "terraform-test-instance"
   }
 }
 
 resource "aws_security_group" "sg" {
   tags = {
-    "type" = "terraform-test-security-group"
+    type = "terraform-test-security-group"
   }
 }
 
 resource "aws_network_interface_sg_attachment" "sg_attachment" {
-  security_group_id    = "${aws_security_group.sg.id}"
-  network_interface_id = "${aws_instance.instance.primary_network_interface_id}"
+  security_group_id    = aws_security_group.sg.id
+  network_interface_id = aws_instance.instance.primary_network_interface_id
 }
 ```
 
@@ -67,20 +67,20 @@ In this example, `instance` is provided by the `aws_instance` data source,
 fetching an external instance, possibly not managed by Terraform.
 `sg_attachment` then attaches to the output instance's `network_interface_id`:
 
-```hcl
+```terraform
 data "aws_instance" "instance" {
   instance_id = "i-1234567890abcdef0"
 }
 
 resource "aws_security_group" "sg" {
   tags = {
-    "type" = "terraform-test-security-group"
+    type = "terraform-test-security-group"
   }
 }
 
 resource "aws_network_interface_sg_attachment" "sg_attachment" {
-  security_group_id    = "${aws_security_group.sg.id}"
-  network_interface_id = "${data.aws_instance.instance.network_interface_id}"
+  security_group_id    = aws_security_group.sg.id
+  network_interface_id = data.aws_instance.instance.network_interface_id
 }
 ```
 
@@ -89,6 +89,6 @@ resource "aws_network_interface_sg_attachment" "sg_attachment" {
 * `security_group_id` - (Required) The ID of the security group.
 * `network_interface_id` - (Required) The ID of the network interface to attach to.
 
-## Output Reference
+## Attributes Reference
 
-There are no outputs for this resource.
+No additional attributes are exported.

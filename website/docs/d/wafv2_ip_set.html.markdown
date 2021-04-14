@@ -12,7 +12,7 @@ Retrieves the summary of a WAFv2 IP Set.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_wafv2_ip_set" "example" {
   name  = "some-ip-set"
   scope = "REGIONAL"

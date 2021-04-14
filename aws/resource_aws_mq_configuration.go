@@ -1,14 +1,15 @@
 package aws
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/mq"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -21,7 +22,7 @@ func resourceAwsMqConfiguration() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			if diff.HasChange("description") {
 				return diff.SetNewComputed("latest_revision")
 			}
@@ -41,6 +42,12 @@ func resourceAwsMqConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"authentication_strategy": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(mq.AuthenticationStrategy_Values(), true),
+			},
 			"data": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -51,12 +58,10 @@ func resourceAwsMqConfiguration() *schema.Resource {
 				Optional: true,
 			},
 			"engine_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					mq.EngineTypeActivemq,
-				}, true),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(mq.EngineType_Values(), true),
 			},
 			"engine_version": {
 				Type:     schema.TypeString,
@@ -86,6 +91,9 @@ func resourceAwsMqConfigurationCreate(d *schema.ResourceData, meta interface{}) 
 		Name:          aws.String(d.Get("name").(string)),
 	}
 
+	if v, ok := d.GetOk("authentication_strategy"); ok {
+		input.AuthenticationStrategy = aws.String(v.(string))
+	}
 	if v, ok := d.GetOk("tags"); ok {
 		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().MqTags()
 	}
@@ -96,7 +104,7 @@ func resourceAwsMqConfigurationCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	d.SetId(*out.Id)
+	d.SetId(aws.StringValue(out.Id))
 	d.Set("arn", out.Arn)
 
 	return resourceAwsMqConfigurationUpdate(d, meta)
@@ -120,11 +128,12 @@ func resourceAwsMqConfigurationRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("arn", out.Arn)
+	d.Set("authentication_strategy", out.AuthenticationStrategy)
 	d.Set("description", out.LatestRevision.Description)
 	d.Set("engine_type", out.EngineType)
 	d.Set("engine_version", out.EngineVersion)
-	d.Set("name", out.Name)
 	d.Set("latest_revision", out.LatestRevision.Revision)
+	d.Set("name", out.Name)
 
 	rOut, err := conn.DescribeConfigurationRevision(&mq.DescribeConfigurationRevisionInput{
 		ConfigurationId:       aws.String(d.Id()),
@@ -151,21 +160,23 @@ func resourceAwsMqConfigurationRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsMqConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mqconn
 
-	rawData := d.Get("data").(string)
-	data := base64.StdEncoding.EncodeToString([]byte(rawData))
+	if d.HasChanges("data", "description") {
+		rawData := d.Get("data").(string)
+		data := base64.StdEncoding.EncodeToString([]byte(rawData))
 
-	input := mq.UpdateConfigurationRequest{
-		ConfigurationId: aws.String(d.Id()),
-		Data:            aws.String(data),
-	}
-	if v, ok := d.GetOk("description"); ok {
-		input.Description = aws.String(v.(string))
-	}
+		input := mq.UpdateConfigurationRequest{
+			ConfigurationId: aws.String(d.Id()),
+			Data:            aws.String(data),
+		}
+		if v, ok := d.GetOk("description"); ok {
+			input.Description = aws.String(v.(string))
+		}
 
-	log.Printf("[INFO] Updating MQ Configuration %s: %s", d.Id(), input)
-	_, err := conn.UpdateConfiguration(&input)
-	if err != nil {
-		return err
+		log.Printf("[INFO] Updating MQ Configuration %s: %s", d.Id(), input)
+		_, err := conn.UpdateConfiguration(&input)
+		if err != nil {
+			return err
+		}
 	}
 
 	if d.HasChange("tags") {

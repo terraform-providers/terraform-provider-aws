@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSCloudFormationStack_dataSource_basic(t *testing.T) {
@@ -14,8 +15,9 @@ func TestAccAWSCloudFormationStack_dataSource_basic(t *testing.T) {
 	resourceName := "data.aws_cloudformation_stack.network"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, cloudformation.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsCloudFormationStackDataSourceConfig_basic(stackName),
@@ -55,21 +57,28 @@ resource "aws_cloudformation_stack" "cfs" {
       "Type": "String"
     }
   },
-  "Resources" : {
+  "Resources": {
     "myvpc": {
-      "Type" : "AWS::EC2::VPC",
-      "Properties" : {
-        "CidrBlock" : { "Ref" : "CIDR" },
-        "Tags" : [
-          {"Key": "Name", "Value": "Primary_CF_VPC"}
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Ref": "CIDR"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Primary_CF_VPC"
+          }
         ]
       }
     }
   },
-  "Outputs" : {
-    "VPCId" : {
-      "Value" : { "Ref" : "myvpc" },
-      "Description" : "VPC ID"
+  "Outputs": {
+    "VPCId": {
+      "Value": {
+        "Ref": "myvpc"
+      },
+      "Description": "VPC ID"
     }
   }
 }
@@ -82,7 +91,7 @@ STACK
 }
 
 data "aws_cloudformation_stack" "network" {
-  name = "${aws_cloudformation_stack.cfs.name}"
+  name = aws_cloudformation_stack.cfs.name
 }
 `, stackName)
 }
@@ -92,8 +101,9 @@ func TestAccAWSCloudFormationStack_dataSource_yaml(t *testing.T) {
 	resourceName := "data.aws_cloudformation_stack.yaml"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, cloudformation.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsCloudFormationStackDataSourceConfig_yaml(stackName),
@@ -154,7 +164,7 @@ STACK
 }
 
 data "aws_cloudformation_stack" "yaml" {
-  name = "${aws_cloudformation_stack.yaml.name}"
+  name = aws_cloudformation_stack.yaml.name
 }
 `, stackName)
 }

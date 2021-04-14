@@ -7,8 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/apigatewayv2/finder"
 )
 
 func resourceAwsApiGatewayV2Authorizer() *schema.Resource {
@@ -32,23 +33,34 @@ func resourceAwsApiGatewayV2Authorizer() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validateArn,
 			},
+			"authorizer_payload_format_version": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"1.0", "2.0"}, false),
+			},
+			"authorizer_result_ttl_in_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 3600),
+			},
 			"authorizer_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.AuthorizerTypeJwt,
-					apigatewayv2.AuthorizerTypeRequest,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.AuthorizerType_Values(), false),
 			},
 			"authorizer_uri": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 2048),
 			},
+			"enable_simple_responses": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"identity_sources": {
 				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
+				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"jwt_configuration": {
@@ -82,17 +94,41 @@ func resourceAwsApiGatewayV2Authorizer() *schema.Resource {
 func resourceAwsApiGatewayV2AuthorizerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
 
+	apiId := d.Get("api_id").(string)
+	authorizerType := d.Get("authorizer_type").(string)
+
+	apiOutput, err := finder.ApiByID(conn, apiId)
+
+	if err != nil {
+		return fmt.Errorf("error reading API Gateway v2 API (%s): %s", apiId, err)
+	}
+
+	protocolType := aws.StringValue(apiOutput.ProtocolType)
+
 	req := &apigatewayv2.CreateAuthorizerInput{
-		ApiId:          aws.String(d.Get("api_id").(string)),
-		AuthorizerType: aws.String(d.Get("authorizer_type").(string)),
+		ApiId:          aws.String(apiId),
+		AuthorizerType: aws.String(authorizerType),
 		IdentitySource: expandStringSet(d.Get("identity_sources").(*schema.Set)),
 		Name:           aws.String(d.Get("name").(string)),
 	}
 	if v, ok := d.GetOk("authorizer_credentials_arn"); ok {
 		req.AuthorizerCredentialsArn = aws.String(v.(string))
 	}
+	if v, ok := d.GetOk("authorizer_payload_format_version"); ok {
+		req.AuthorizerPayloadFormatVersion = aws.String(v.(string))
+	}
+	if v, ok := d.GetOkExists("authorizer_result_ttl_in_seconds"); ok {
+		req.AuthorizerResultTtlInSeconds = aws.Int64(int64(v.(int)))
+	} else if protocolType == apigatewayv2.ProtocolTypeHttp && authorizerType == apigatewayv2.AuthorizerTypeRequest {
+		// Default in the AWS Console is 300 seconds.
+		// Explicitly set on creation so that we can correctly detect changes to the 0 value.
+		req.AuthorizerResultTtlInSeconds = aws.Int64(300)
+	}
 	if v, ok := d.GetOk("authorizer_uri"); ok {
 		req.AuthorizerUri = aws.String(v.(string))
+	}
+	if v, ok := d.GetOk("enable_simple_responses"); ok {
+		req.EnableSimpleResponses = aws.Bool(v.(bool))
 	}
 	if v, ok := d.GetOk("jwt_configuration"); ok {
 		req.JwtConfiguration = expandApiGateway2JwtConfiguration(v.([]interface{}))
@@ -126,8 +162,11 @@ func resourceAwsApiGatewayV2AuthorizerRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.Set("authorizer_credentials_arn", resp.AuthorizerCredentialsArn)
+	d.Set("authorizer_payload_format_version", resp.AuthorizerPayloadFormatVersion)
+	d.Set("authorizer_result_ttl_in_seconds", resp.AuthorizerResultTtlInSeconds)
 	d.Set("authorizer_type", resp.AuthorizerType)
 	d.Set("authorizer_uri", resp.AuthorizerUri)
+	d.Set("enable_simple_responses", resp.EnableSimpleResponses)
 	if err := d.Set("identity_sources", flattenStringSet(resp.IdentitySource)); err != nil {
 		return fmt.Errorf("error setting identity_sources: %s", err)
 	}
@@ -149,11 +188,20 @@ func resourceAwsApiGatewayV2AuthorizerUpdate(d *schema.ResourceData, meta interf
 	if d.HasChange("authorizer_credentials_arn") {
 		req.AuthorizerCredentialsArn = aws.String(d.Get("authorizer_credentials_arn").(string))
 	}
+	if d.HasChange("authorizer_payload_format_version") {
+		req.AuthorizerPayloadFormatVersion = aws.String(d.Get("authorizer_payload_format_version").(string))
+	}
+	if d.HasChange("authorizer_result_ttl_in_seconds") {
+		req.AuthorizerResultTtlInSeconds = aws.Int64(int64(d.Get("authorizer_result_ttl_in_seconds").(int)))
+	}
 	if d.HasChange("authorizer_type") {
 		req.AuthorizerType = aws.String(d.Get("authorizer_type").(string))
 	}
 	if d.HasChange("authorizer_uri") {
 		req.AuthorizerUri = aws.String(d.Get("authorizer_uri").(string))
+	}
+	if d.HasChange("enable_simple_responses") {
+		req.EnableSimpleResponses = aws.Bool(d.Get("enable_simple_responses").(bool))
 	}
 	if d.HasChange("identity_sources") {
 		req.IdentitySource = expandStringSet(d.Get("identity_sources").(*schema.Set))

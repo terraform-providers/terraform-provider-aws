@@ -18,7 +18,7 @@ meta-parameter to make multiple instances and join them all to the same Neptune 
 
 The following example will create a neptune cluster with two neptune instances(one writer and one reader).
 
-```hcl
+```terraform
 resource "aws_neptune_cluster" "default" {
   cluster_identifier                  = "neptune-cluster-demo"
   engine                              = "neptune"
@@ -31,7 +31,7 @@ resource "aws_neptune_cluster" "default" {
 
 resource "aws_neptune_cluster_instance" "example" {
   count              = 2
-  cluster_identifier = "${aws_neptune_cluster.default.id}"
+  cluster_identifier = aws_neptune_cluster.default.id
   engine             = "neptune"
   instance_class     = "db.r4.large"
   apply_immediately  = true
@@ -49,7 +49,7 @@ The following arguments are supported:
 * `cluster_identifier` - (Required) The identifier of the [`aws_neptune_cluster`](/docs/providers/aws/r/neptune_cluster.html) in which to launch this instance.
 * `engine` - (Optional) The name of the database engine to be used for the neptune instance. Defaults to `neptune`. Valid Values: `neptune`.
 * `engine_version` - (Optional) The neptune engine version.
-* `identifier` - (Optional, Forces new resource) The indentifier for the neptune instance, if omitted, Terraform will assign a random, unique identifier.
+* `identifier` - (Optional, Forces new resource) The identifier for the neptune instance, if omitted, Terraform will assign a random, unique identifier.
 * `identifier_prefix` - (Optional, Forces new resource) Creates a unique identifier beginning with the specified prefix. Conflicts with `identifier`.
 * `instance_class` - (Required) The instance class to use.
 * `neptune_subnet_group_name` - (Required if `publicly_accessible = false`, Optional otherwise) A subnet group to associate with this neptune instance. **NOTE:** This must match the `neptune_subnet_group_name` of the attached [`aws_neptune_cluster`](/docs/providers/aws/r/neptune_cluster.html).
@@ -75,12 +75,12 @@ In addition to all arguments above, the following attributes are exported:
 * `storage_encrypted` - Specifies whether the neptune cluster is encrypted.
 * `writer` – Boolean indicating if this instance is writable. `False` indicates this instance is a read replica.
 
-[1]: /docs/configuration/resources.html#count
+[1]: https://www.terraform.io/docs/configuration/meta-arguments/count.html
 
 ## Timeouts
 
 `aws_neptune_cluster_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `90 minutes`) How long to wait for creating instances to become available.
 - `update` - (Default `90 minutes`) How long to wait for updating instances to complete updates.

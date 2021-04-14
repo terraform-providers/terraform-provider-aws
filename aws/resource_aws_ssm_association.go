@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsSsmAssociation() *schema.Resource {
@@ -26,6 +26,11 @@ func resourceAwsSsmAssociation() *schema.Resource {
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
+			"apply_only_at_cron_interval": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
+			},
 			"association_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -133,6 +138,10 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 		Name: aws.String(d.Get("name").(string)),
 	}
 
+	if v, ok := d.GetOk("apply_only_at_cron_interval"); ok {
+		associationInput.ApplyOnlyAtCronInterval = aws.Bool(v.(bool))
+	}
+
 	if v, ok := d.GetOk("association_name"); ok {
 		associationInput.AssociationName = aws.String(v.(string))
 	}
@@ -186,7 +195,7 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("AssociationDescription was nil")
 	}
 
-	d.SetId(*resp.AssociationDescription.AssociationId)
+	d.SetId(aws.StringValue(resp.AssociationDescription.AssociationId))
 	d.Set("association_id", resp.AssociationDescription.AssociationId)
 
 	return resourceAwsSsmAssociationRead(d, meta)
@@ -215,10 +224,10 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	association := resp.AssociationDescription
+	d.Set("apply_only_at_cron_interval", association.ApplyOnlyAtCronInterval)
 	d.Set("association_name", association.AssociationName)
 	d.Set("instance_id", association.InstanceId)
 	d.Set("name", association.Name)
-	d.Set("parameters", association.Parameters)
 	d.Set("association_id", association.AssociationId)
 	d.Set("schedule_expression", association.ScheduleExpression)
 	d.Set("document_version", association.DocumentVersion)
@@ -226,6 +235,10 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("max_concurrency", association.MaxConcurrency)
 	d.Set("max_errors", association.MaxErrors)
 	d.Set("automation_target_parameter_name", association.AutomationTargetParameterName)
+
+	if err := d.Set("parameters", flattenAwsSsmParameters(association.Parameters)); err != nil {
+		return err
+	}
 
 	if err := d.Set("targets", flattenAwsSsmTargets(association.Targets)); err != nil {
 		return fmt.Errorf("Error setting targets error: %#v", err)
@@ -245,6 +258,10 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 
 	associationInput := &ssm.UpdateAssociationInput{
 		AssociationId: aws.String(d.Get("association_id").(string)),
+	}
+
+	if v, ok := d.GetOk("apply_only_at_cron_interval"); ok {
+		associationInput.ApplyOnlyAtCronInterval = aws.Bool(v.(bool))
 	}
 
 	// AWS creates a new version every time the association is updated, so everything should be passed in the update.

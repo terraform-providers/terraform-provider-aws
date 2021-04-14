@@ -16,7 +16,7 @@ Manages [DynamoDB Global Tables V1 (version 2017.11.29)](https://docs.aws.amazon
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   alias  = "us-east-1"
   region = "us-east-1"
@@ -28,7 +28,7 @@ provider "aws" {
 }
 
 resource "aws_dynamodb_table" "us-east-1" {
-  provider = "aws.us-east-1"
+  provider = aws.us-east-1
 
   hash_key         = "myAttribute"
   name             = "myTable"
@@ -44,7 +44,7 @@ resource "aws_dynamodb_table" "us-east-1" {
 }
 
 resource "aws_dynamodb_table" "us-west-2" {
-  provider = "aws.us-west-2"
+  provider = aws.us-west-2
 
   hash_key         = "myAttribute"
   name             = "myTable"
@@ -60,8 +60,11 @@ resource "aws_dynamodb_table" "us-west-2" {
 }
 
 resource "aws_dynamodb_global_table" "myTable" {
-  depends_on = ["aws_dynamodb_table.us-east-1", "aws_dynamodb_table.us-west-2"]
-  provider   = "aws.us-east-1"
+  depends_on = [
+    aws_dynamodb_table.us-east-1,
+    aws_dynamodb_table.us-west-2,
+  ]
+  provider = aws.us-east-1
 
   name = "myTable"
 

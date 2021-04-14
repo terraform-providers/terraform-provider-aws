@@ -8,14 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/codedeploy"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
@@ -505,7 +504,7 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 	}
 
 	if attr, ok := d.GetOk("autoscaling_groups"); ok {
-		input.AutoScalingGroups = expandStringList(attr.(*schema.Set).List())
+		input.AutoScalingGroups = expandStringSet(attr.(*schema.Set))
 	}
 
 	if attr, ok := d.GetOk("on_premises_instance_tag_filter"); ok {
@@ -575,7 +574,7 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error creating CodeDeploy deployment group: %s", err)
 	}
 
-	d.SetId(*resp.DeploymentGroupId)
+	d.SetId(aws.StringValue(resp.DeploymentGroupId))
 
 	return resourceAwsCodeDeployDeploymentGroupRead(d, meta)
 }
@@ -688,7 +687,7 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 	// include (original or new) autoscaling groups when blue_green_deployment_config changes except for ECS
 	if _, isEcs := d.GetOk("ecs_service"); d.HasChange("autoscaling_groups") || (d.HasChange("blue_green_deployment_config") && !isEcs) {
 		_, n := d.GetChange("autoscaling_groups")
-		input.AutoScalingGroups = expandStringList(n.(*schema.Set).List())
+		input.AutoScalingGroups = expandStringSet(n.(*schema.Set))
 	}
 
 	// TagFilters aren't like tags. They don't append. They simply replace.
@@ -1108,14 +1107,14 @@ func ec2TagFiltersToMap(list []*codedeploy.EC2TagFilter) []map[string]interface{
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, tf := range list {
 		l := make(map[string]interface{})
-		if tf.Key != nil && *tf.Key != "" {
-			l["key"] = *tf.Key
+		if v := tf.Key; aws.StringValue(v) != "" {
+			l["key"] = aws.StringValue(v)
 		}
-		if tf.Value != nil && *tf.Value != "" {
-			l["value"] = *tf.Value
+		if v := tf.Value; aws.StringValue(v) != "" {
+			l["value"] = aws.StringValue(v)
 		}
-		if tf.Type != nil && *tf.Type != "" {
-			l["type"] = *tf.Type
+		if v := tf.Type; aws.StringValue(v) != "" {
+			l["type"] = aws.StringValue(v)
 		}
 		result = append(result, l)
 	}
@@ -1127,14 +1126,14 @@ func onPremisesTagFiltersToMap(list []*codedeploy.TagFilter) []map[string]string
 	result := make([]map[string]string, 0, len(list))
 	for _, tf := range list {
 		l := make(map[string]string)
-		if tf.Key != nil && *tf.Key != "" {
-			l["key"] = *tf.Key
+		if v := tf.Key; aws.StringValue(v) != "" {
+			l["key"] = aws.StringValue(v)
 		}
-		if tf.Value != nil && *tf.Value != "" {
-			l["value"] = *tf.Value
+		if v := tf.Value; aws.StringValue(v) != "" {
+			l["value"] = aws.StringValue(v)
 		}
-		if tf.Type != nil && *tf.Type != "" {
-			l["type"] = *tf.Type
+		if v := tf.Type; aws.StringValue(v) != "" {
+			l["type"] = aws.StringValue(v)
 		}
 		result = append(result, l)
 	}
@@ -1168,9 +1167,9 @@ func triggerConfigsToMap(list []*codedeploy.TriggerConfig) []map[string]interfac
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, tc := range list {
 		item := make(map[string]interface{})
-		item["trigger_events"] = schema.NewSet(schema.HashString, flattenStringList(tc.TriggerEvents))
-		item["trigger_name"] = *tc.TriggerName
-		item["trigger_target_arn"] = *tc.TriggerTargetArn
+		item["trigger_events"] = flattenStringSet(tc.TriggerEvents)
+		item["trigger_name"] = aws.StringValue(tc.TriggerName)
+		item["trigger_target_arn"] = aws.StringValue(tc.TriggerTargetArn)
 		result = append(result, item)
 	}
 	return result
@@ -1185,8 +1184,8 @@ func autoRollbackConfigToMap(config *codedeploy.AutoRollbackConfiguration) []map
 	// otherwise empty configurations will be created
 	if config != nil && (*config.Enabled || len(config.Events) > 0) {
 		item := make(map[string]interface{})
-		item["enabled"] = *config.Enabled
-		item["events"] = schema.NewSet(schema.HashString, flattenStringList(config.Events))
+		item["enabled"] = aws.BoolValue(config.Enabled)
+		item["events"] = flattenStringSet(config.Events)
 		result = append(result, item)
 	}
 
@@ -1207,9 +1206,9 @@ func alarmConfigToMap(config *codedeploy.AlarmConfiguration) []map[string]interf
 		}
 
 		item := make(map[string]interface{})
-		item["alarms"] = schema.NewSet(schema.HashString, flattenStringList(names))
-		item["enabled"] = *config.Enabled
-		item["ignore_poll_alarm_failure"] = *config.IgnorePollAlarmFailure
+		item["alarms"] = flattenStringSet(names)
+		item["enabled"] = aws.BoolValue(config.Enabled)
+		item["ignore_poll_alarm_failure"] = aws.BoolValue(config.IgnorePollAlarmFailure)
 
 		result = append(result, item)
 	}
@@ -1298,7 +1297,7 @@ func flattenCodeDeployTrafficRoute(trafficRoute *codedeploy.TrafficRoute) []inte
 	}
 
 	m := map[string]interface{}{
-		"listener_arns": schema.NewSet(schema.HashString, flattenStringList(trafficRoute.ListenerArns)),
+		"listener_arns": flattenStringSet(trafficRoute.ListenerArns),
 	}
 
 	return []interface{}{m}
@@ -1312,11 +1311,11 @@ func flattenDeploymentStyle(style *codedeploy.DeploymentStyle) []map[string]inte
 	}
 
 	item := make(map[string]interface{})
-	if style.DeploymentOption != nil {
-		item["deployment_option"] = *style.DeploymentOption
+	if v := style.DeploymentOption; v != nil {
+		item["deployment_option"] = aws.StringValue(v)
 	}
-	if style.DeploymentType != nil {
-		item["deployment_type"] = *style.DeploymentType
+	if v := style.DeploymentType; v != nil {
+		item["deployment_type"] = aws.StringValue(v)
 	}
 
 	result := make([]map[string]interface{}, 0, 1)
@@ -1352,11 +1351,11 @@ func flattenBlueGreenDeploymentConfig(config *codedeploy.BlueGreenDeploymentConf
 		a := make([]map[string]interface{}, 0)
 		deploymentReadyOption := make(map[string]interface{})
 
-		if config.DeploymentReadyOption.ActionOnTimeout != nil {
-			deploymentReadyOption["action_on_timeout"] = *config.DeploymentReadyOption.ActionOnTimeout
+		if v := config.DeploymentReadyOption.ActionOnTimeout; v != nil {
+			deploymentReadyOption["action_on_timeout"] = aws.StringValue(v)
 		}
-		if config.DeploymentReadyOption.WaitTimeInMinutes != nil {
-			deploymentReadyOption["wait_time_in_minutes"] = *config.DeploymentReadyOption.WaitTimeInMinutes
+		if v := config.DeploymentReadyOption.WaitTimeInMinutes; v != nil {
+			deploymentReadyOption["wait_time_in_minutes"] = aws.Int64Value(v)
 		}
 
 		m["deployment_ready_option"] = append(a, deploymentReadyOption)
@@ -1366,8 +1365,8 @@ func flattenBlueGreenDeploymentConfig(config *codedeploy.BlueGreenDeploymentConf
 		b := make([]map[string]interface{}, 0)
 		greenFleetProvisioningOption := make(map[string]interface{})
 
-		if config.GreenFleetProvisioningOption.Action != nil {
-			greenFleetProvisioningOption["action"] = *config.GreenFleetProvisioningOption.Action
+		if v := config.GreenFleetProvisioningOption.Action; v != nil {
+			greenFleetProvisioningOption["action"] = aws.StringValue(v)
 		}
 
 		m["green_fleet_provisioning_option"] = append(b, greenFleetProvisioningOption)
@@ -1377,11 +1376,11 @@ func flattenBlueGreenDeploymentConfig(config *codedeploy.BlueGreenDeploymentConf
 		c := make([]map[string]interface{}, 0)
 		blueInstanceTerminationOption := make(map[string]interface{})
 
-		if config.TerminateBlueInstancesOnDeploymentSuccess.Action != nil {
-			blueInstanceTerminationOption["action"] = *config.TerminateBlueInstancesOnDeploymentSuccess.Action
+		if v := config.TerminateBlueInstancesOnDeploymentSuccess.Action; v != nil {
+			blueInstanceTerminationOption["action"] = aws.StringValue(v)
 		}
-		if config.TerminateBlueInstancesOnDeploymentSuccess.TerminationWaitTimeInMinutes != nil {
-			blueInstanceTerminationOption["termination_wait_time_in_minutes"] = *config.TerminateBlueInstancesOnDeploymentSuccess.TerminationWaitTimeInMinutes
+		if v := config.TerminateBlueInstancesOnDeploymentSuccess.TerminationWaitTimeInMinutes; v != nil {
+			blueInstanceTerminationOption["termination_wait_time_in_minutes"] = aws.Int64Value(v)
 		}
 
 		m["terminate_blue_instances_on_deployment_success"] = append(c, blueInstanceTerminationOption)

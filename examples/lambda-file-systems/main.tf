@@ -1,6 +1,9 @@
-# Specify the provider and access details
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
 }
 
 provider "archive" {}
@@ -36,17 +39,17 @@ data "aws_iam_policy" "AmazonElasticFileSystemClientFullAccess" {
 }
 
 resource "aws_iam_role" "iam_role_for_lambda" {
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "AWSLambdaVPCAccessExecutionRole-attach" {
-  role       = "${aws_iam_role.iam_role_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn}"
+  role       = aws_iam_role.iam_role_for_lambda.name
+  policy_arn = data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonElasticFileSystemClientFullAccess-attach" {
-  role       = "${aws_iam_role.iam_role_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.AmazonElasticFileSystemClientFullAccess.arn}"
+  role       = aws_iam_role.iam_role_for_lambda.name
+  policy_arn = data.aws_iam_policy.AmazonElasticFileSystemClientFullAccess.arn
 }
 
 # Default VPC
@@ -59,16 +62,16 @@ data "aws_availability_zones" "available" {
 
 # Two default subnets in the Default VPC
 resource "aws_default_subnet" "default_az1" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
 }
 
 resource "aws_default_subnet" "default_az2" {
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  availability_zone = data.aws_availability_zones.available.names[1]
 }
 
 # Default security group
 resource "aws_default_security_group" "default" {
-  vpc_id = "${aws_default_vpc.default.id}"
+  vpc_id = aws_default_vpc.default.id
 
   ingress {
     protocol  = -1
@@ -94,20 +97,20 @@ resource "aws_efs_file_system" "efs_for_lambda" {
 
 # Two mount targets connect the file system to the subnets
 resource "aws_efs_mount_target" "mount_target_az1" {
-  file_system_id  = "${aws_efs_file_system.efs_for_lambda.id}"
-  subnet_id       = "${aws_default_subnet.default_az1.id}"
-  security_groups = ["${aws_default_security_group.default.id}"]
+  file_system_id  = aws_efs_file_system.efs_for_lambda.id
+  subnet_id       = aws_default_subnet.default_az1.id
+  security_groups = [aws_default_security_group.default.id]
 }
 
 resource "aws_efs_mount_target" "mount_target_az2" {
-  file_system_id  = "${aws_efs_file_system.efs_for_lambda.id}"
-  subnet_id       = "${aws_default_subnet.default_az2.id}"
-  security_groups = ["${aws_default_security_group.default.id}"]
+  file_system_id  = aws_efs_file_system.efs_for_lambda.id
+  subnet_id       = aws_default_subnet.default_az2.id
+  security_groups = [aws_default_security_group.default.id]
 }
 
 # EFS access point used by lambda file system
 resource "aws_efs_access_point" "access_point_lambda" {
-  file_system_id = "${aws_efs_file_system.efs_for_lambda.id}"
+  file_system_id = aws_efs_file_system.efs_for_lambda.id
 
   root_directory {
     path = "/lambda"
@@ -127,10 +130,10 @@ resource "aws_efs_access_point" "access_point_lambda" {
 resource "aws_lambda_function" "example_lambda" {
   function_name = "hello_lambda"
 
-  filename         = "${data.archive_file.zip.output_path}"
-  source_code_hash = "${data.archive_file.zip.output_base64sha256}"
+  filename         = data.archive_file.zip.output_path
+  source_code_hash = data.archive_file.zip.output_base64sha256
 
-  role    = "${aws_iam_role.iam_role_for_lambda.arn}"
+  role    = aws_iam_role.iam_role_for_lambda.arn
   handler = "hello_lambda.lambda_handler"
   runtime = "python3.7"
 
@@ -143,18 +146,19 @@ resource "aws_lambda_function" "example_lambda" {
   }
 
   vpc_config {
-    subnet_ids         = ["${aws_default_subnet.default_az1.id}", "${aws_default_subnet.default_az2.id}"]
-    security_group_ids = ["${aws_default_security_group.default.id}"]
+    subnet_ids         = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id]
+    security_group_ids = [aws_default_security_group.default.id]
   }
 
   file_system_config {
-    arn              = "${aws_efs_access_point.access_point_lambda.arn}"
+    arn              = aws_efs_access_point.access_point_lambda.arn
     local_mount_path = "/mnt/efs"
   }
 
   # Explicitly declare dependency on EFS mount target.
   # When creating or updating Lambda functions, mount target must be in 'available' lifecycle state.
-  depends_on = ["aws_efs_mount_target.mount_target_az1", "aws_efs_mount_target.mount_target_az2"]
-
+  depends_on = [
+    aws_efs_mount_target.mount_target_az1,
+    aws_efs_mount_target.mount_target_az2,
+  ]
 }
-

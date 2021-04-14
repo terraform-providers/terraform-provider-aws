@@ -7,16 +7,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSOpsworksRdsDbInstance(t *testing.T) {
+func TestAccAWSOpsworksRdsDbInstance_basic(t *testing.T) {
 	sName := fmt.Sprintf("test-db-instance-%d", acctest.RandInt())
 	var opsdb opsworks.RdsDbInstance
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksRdsDbDestroy,
 		Steps: []resource.TestStep{
@@ -149,36 +150,31 @@ func testAccCheckAwsOpsworksRdsDbDestroy(s *terraform.State) error {
 func testAccAwsOpsworksRdsDbInstance(name, userName, password string) string {
 	return fmt.Sprintf(`
 resource "aws_opsworks_rds_db_instance" "tf-acc-opsworks-db" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
-  rds_db_instance_arn = "${aws_db_instance.bar.arn}"
+  rds_db_instance_arn = aws_db_instance.bar.arn
   db_user             = "%s"
   db_password         = "%s"
 }
-
 %s
-
-
 %s
-
-`, userName, password, testAccAwsOpsworksStackConfigVpcCreate(name), testAccAWSDBInstanceConfig)
+`, userName, password, testAccAwsOpsworksStackConfigVpcCreate(name), testAccAWSDBInstanceConfig_basic())
 }
 
 func testAccAwsOpsworksRdsDbInstanceForceNew(name string) string {
 	return fmt.Sprintf(`
 resource "aws_opsworks_rds_db_instance" "tf-acc-opsworks-db" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
-  rds_db_instance_arn = "${aws_db_instance.foo.arn}"
+  rds_db_instance_arn = aws_db_instance.foo.arn
   db_user             = "foo"
   db_password         = "foofoofoofoo"
 }
-
 %s
 
 resource "aws_db_instance" "foo" {
   allocated_storage    = 10
-  engine               = "MySQL"
+  engine               = "mysql"
   engine_version       = "5.6.35"
   instance_class       = "db.t2.micro"
   name                 = "baz"

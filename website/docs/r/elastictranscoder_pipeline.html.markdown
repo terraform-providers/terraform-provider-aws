@@ -12,19 +12,19 @@ Provides an Elastic Transcoder pipeline resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_elastictranscoder_pipeline" "bar" {
-  input_bucket = "${aws_s3_bucket.input_bucket.bucket}"
+  input_bucket = aws_s3_bucket.input_bucket.bucket
   name         = "aws_elastictranscoder_pipeline_tf_test_"
-  role         = "${aws_iam_role.test_role.arn}"
+  role         = aws_iam_role.test_role.arn
 
   content_config {
-    bucket        = "${aws_s3_bucket.content_bucket.bucket}"
+    bucket        = aws_s3_bucket.content_bucket.bucket
     storage_class = "Standard"
   }
 
   thumbnail_config {
-    bucket        = "${aws_s3_bucket.thumb_bucket.bucket}"
+    bucket        = aws_s3_bucket.thumb_bucket.bucket
     storage_class = "Standard"
   }
 }
@@ -57,11 +57,11 @@ you specify values for `content_config`, you must also specify values for
 The `content_config` object supports the following:
 
 * `bucket` - The Amazon S3 bucket in which you want Elastic Transcoder to save transcoded files and playlists.
-* `storage_class` - The Amazon S3 storage class, Standard or ReducedRedundancy, that you want Elastic Transcoder to assign to the files and playlists that it stores in your Amazon S3 bucket.
+* `storage_class` - The Amazon S3 storage class, `Standard` or `ReducedRedundancy`, that you want Elastic Transcoder to assign to the files and playlists that it stores in your Amazon S3 bucket.
 
 The `content_config_permissions` object supports the following:
 
-* `access` - The permission that you want to give to the AWS user that you specified in `content_config_permissions.grantee`
+* `access` - The permission that you want to give to the AWS user that you specified in `content_config_permissions.grantee`. Valid values are `Read`, `ReadAcp`, `WriteAcp` or `FullControl`.
 * `grantee` - The AWS user or group that you want to have access to transcoded files and playlists.
 * `grantee_type` - Specify the type of value that appears in the `content_config_permissions.grantee` object. Valid values are `Canonical`, `Email` or `Group`.
 
@@ -90,9 +90,16 @@ The `thumbnail_config` object supports the following:
 
 The `thumbnail_config_permissions` object supports the following:
 
-* `access` - The permission that you want to give to the AWS user that you specified in `thumbnail_config_permissions.grantee`.
+* `access` - The permission that you want to give to the AWS user that you specified in `thumbnail_config_permissions.grantee`. Valid values are `Read`, `ReadAcp`, `WriteAcp` or `FullControl`.
 * `grantee` - The AWS user or group that you want to have access to thumbnail files.
-* `grantee_type` - Specify the type of value that appears in the `thumbnail_config_permissions.grantee` object.
+* `grantee_type` - Specify the type of value that appears in the `thumbnail_config_permissions.grantee` object. Valid values are `Canonical`, `Email` or `Group`.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - The ID of the Elastictranscoder pipeline.
+* `arn` - The ARN of the Elastictranscoder pipeline.
 
 ## Import
 

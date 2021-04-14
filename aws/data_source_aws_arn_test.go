@@ -4,26 +4,37 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsArn_basic(t *testing.T) {
 	resourceName := "data.aws_arn.test"
 
+	testARN := arn.ARN{
+		AccountID: "123456789012",
+		Partition: endpoints.AwsPartitionID,
+		Region:    endpoints.EuWest1RegionID,
+		Resource:  "db:mysql-db",
+		Service:   "rds",
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsArnConfig,
+				Config: testAccDataSourceAwsArnConfig(testARN.String()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccDataSourceAwsArn(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "partition", "aws"),
-					resource.TestCheckResourceAttr(resourceName, "service", "rds"),
-					resource.TestCheckResourceAttr(resourceName, "region", "eu-west-1"),
-					resource.TestCheckResourceAttr(resourceName, "account", "123456789012"),
-					resource.TestCheckResourceAttr(resourceName, "resource", "db:mysql-db"),
+					resource.TestCheckResourceAttr(resourceName, "account", testARN.AccountID),
+					resource.TestCheckResourceAttr(resourceName, "partition", testARN.Partition),
+					resource.TestCheckResourceAttr(resourceName, "region", testARN.Region),
+					resource.TestCheckResourceAttr(resourceName, "resource", testARN.Resource),
+					resource.TestCheckResourceAttr(resourceName, "service", testARN.Service),
 				),
 			},
 		},
@@ -41,8 +52,10 @@ func testAccDataSourceAwsArn(name string) resource.TestCheckFunc {
 	}
 }
 
-const testAccDataSourceAwsArnConfig = `
+func testAccDataSourceAwsArnConfig(arn string) string {
+	return fmt.Sprintf(`
 data "aws_arn" "test" {
-  arn = "arn:aws:rds:eu-west-1:123456789012:db:mysql-db"
+  arn = %q
 }
-`
+`, arn)
+}

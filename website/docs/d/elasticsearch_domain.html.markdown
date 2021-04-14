@@ -12,7 +12,7 @@ Use this data source to get information about an Elasticsearch Domain
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_elasticsearch_domain" "my_domain" {
   domain_name = "my-domain-name"
 }
@@ -46,7 +46,7 @@ The following attributes are exported:
         * `availability_zone_count` - Number of availability zones used.
     * `warm_enabled` - Indicates warm storage is enabled.
     * `warm_count` - The number of warm nodes in the cluster.
-    * `warm_type` - The instance type for the Elasticsearch cluster's warm nodes.   
+    * `warm_type` - The instance type for the Elasticsearch cluster's warm nodes.
 * `cognito_options` - Domain Amazon Cognito Authentication options for Kibana.
     * `enabled` - Whether Amazon Cognito Authentication is enabled.
     * `user_pool_id` - The Cognito User pool used by the domain.
@@ -59,8 +59,7 @@ The following attributes are exported:
     * `ebs_enabled` - Whether EBS volumes are attached to data nodes in the domain.
     * `volume_type` - The type of EBS volumes attached to data nodes.
     * `volume_size` - The size of EBS volumes attached to data nodes (in GB).
-    * `iops` - The baseline input/output (I/O) performance of EBS volumes
-	attached to data nodes.
+    * `iops` - The baseline input/output (I/O) performance of EBS volumes attached to data nodes.
 * `elasticsearch_version` – ElasticSearch version for the domain.
 * `encryption_at_rest` - Domain encryption at rest related options.
     * `enabled` - Whether encryption at rest is enabled in the domain.
@@ -75,8 +74,7 @@ The following attributes are exported:
     * `enabled` - Whether node to node encryption is enabled.
 * `processing` – Status of a configuration change in the domain.
 * `snapshot_options` – Domain snapshot related options.
-    * `automated_snapshot_start_hour` - Hour during which the service takes an automated daily
-	snapshot of the indices in the domain.
+    * `automated_snapshot_start_hour` - Hour during which the service takes an automated daily snapshot of the indices in the domain.
 * `tags` - The tags assigned to the domain.
 * `vpc_options` - VPC Options for private Elasticsearch domains.
     * `availability_zones` - The availability zones used by the domain.

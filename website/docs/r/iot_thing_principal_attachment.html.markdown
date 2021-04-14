@@ -12,19 +12,19 @@ Attaches Principal to AWS IoT Thing.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iot_thing" "example" {
   name = "example"
 }
 
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("csr.pem")}"
+  csr    = file("csr.pem")
   active = true
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  principal = "${aws_iot_certificate.cert.arn}"
-  thing     = "${aws_iot_thing.example.name}"
+  principal = aws_iot_certificate.cert.arn
+  thing     = aws_iot_thing.example.name
 }
 ```
 
@@ -32,3 +32,7 @@ resource "aws_iot_thing_principal_attachment" "att" {
 
 * `principal` - (Required) The AWS IoT Certificate ARN or Amazon Cognito Identity ID.
 * `thing` - (Required) The name of the thing.
+
+## Attributes Reference
+
+No additional attributes are exported.

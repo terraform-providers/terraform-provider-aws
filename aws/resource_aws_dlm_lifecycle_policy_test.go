@@ -7,17 +7,18 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dlm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSDlmLifecyclePolicy_Basic(t *testing.T) {
+func TestAccAWSDlmLifecyclePolicy_basic(t *testing.T) {
 	resourceName := "aws_dlm_lifecycle_policy.basic"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDlm(t) },
+		ErrorCheck:   testAccErrorCheck(t, dlm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dlmLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -54,6 +55,7 @@ func TestAccAWSDlmLifecyclePolicy_Full(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDlm(t) },
+		ErrorCheck:   testAccErrorCheck(t, dlm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dlmLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -103,6 +105,7 @@ func TestAccAWSDlmLifecyclePolicy_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDlm(t) },
+		ErrorCheck:   testAccErrorCheck(t, dlm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dlmLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -233,7 +236,7 @@ EOF
 
 resource "aws_dlm_lifecycle_policy" "basic" {
   description        = "tf-acc-basic"
-  execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}"
+  execution_role_arn = aws_iam_role.dlm_lifecycle_role.arn
 
   policy_details {
     resource_types = ["VOLUME"]
@@ -282,7 +285,7 @@ EOF
 
 resource "aws_dlm_lifecycle_policy" "full" {
   description        = "tf-acc-full"
-  execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}"
+  execution_role_arn = aws_iam_role.dlm_lifecycle_role.arn
   state              = "ENABLED"
 
   policy_details {

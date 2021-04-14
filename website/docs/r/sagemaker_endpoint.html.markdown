@@ -14,10 +14,10 @@ Provides a SageMaker Endpoint resource.
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_sagemaker_endpoint" "e" {
   name                 = "my-endpoint"
-  endpoint_config_name = "${aws_sagemaker_endpoint_configuration.ec.name}"
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.ec.name
 
   tags = {
     Name = "foo"
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS to this endpoint.
 * `name` - The name of the endpoint.

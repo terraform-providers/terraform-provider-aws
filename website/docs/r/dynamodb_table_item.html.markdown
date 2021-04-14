@@ -15,10 +15,10 @@ Provides a DynamoDB table item resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dynamodb_table_item" "example" {
-  table_name = "${aws_dynamodb_table.example.name}"
-  hash_key   = "${aws_dynamodb_table.example.hash_key}"
+  table_name = aws_dynamodb_table.example.name
+  hash_key   = aws_dynamodb_table.example.hash_key
 
   item = <<ITEM
 {
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-All of the arguments above are exported as attributes.
+In addition to all arguments above, the following attributes are exported:
 
 ## Import
 

@@ -2,14 +2,89 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_iot_thing_principal_attachment", &resource.Sweeper{
+		Name: "aws_iot_thing_principal_attachment",
+		F:    testSweepIotThingPrincipalAttachments,
+	})
+}
+
+func testSweepIotThingPrincipalAttachments(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).iotconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
+	input := &iot.ListThingsInput{}
+
+	err = conn.ListThingsPages(input, func(page *iot.ListThingsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, thing := range page.Things {
+			input := &iot.ListThingPrincipalsInput{
+				ThingName: thing.ThingName,
+			}
+
+			err := conn.ListThingPrincipalsPages(input, func(page *iot.ListThingPrincipalsOutput, lastPage bool) bool {
+				if page == nil {
+					return !lastPage
+				}
+
+				for _, principal := range page.Principals {
+					r := resourceAwsIotThingPrincipalAttachment()
+					d := r.Data(nil)
+
+					d.SetId(fmt.Sprintf("%s|%s", aws.StringValue(thing.ThingName), aws.StringValue(principal)))
+					d.Set("principal", principal)
+					d.Set("thing", thing.ThingName)
+
+					sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
+				}
+
+				return !lastPage
+			})
+
+			if err != nil {
+				errs = multierror.Append(errs, fmt.Errorf("error listing IoT Thing Principal Attachment for %s: %w", region, err))
+			}
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error listing IoT Thing Principal Attachment for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping IoT Thing Principal Attachment for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping IoT Thing Principal Attachment sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
+}
 
 func TestAccAWSIotThingPrincipalAttachment_basic(t *testing.T) {
 	thingName := acctest.RandomWithPrefix("tf-acc")
@@ -17,6 +92,7 @@ func TestAccAWSIotThingPrincipalAttachment_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iot.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIotThingPrincipalAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -175,7 +251,7 @@ func testAccCheckAWSIotThingPrincipalAttachmentStatus(thingName string, exists b
 func testAccAWSIotThingPrincipalAttachmentConfig(thingName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -184,8 +260,8 @@ resource "aws_iot_thing" "thing" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 `, thingName)
 }
@@ -193,7 +269,7 @@ resource "aws_iot_thing_principal_attachment" "att" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate1(thingName, thingName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -206,13 +282,13 @@ resource "aws_iot_thing" "thing2" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 
 resource "aws_iot_thing_principal_attachment" "att2" {
-  thing     = "${aws_iot_thing.thing2.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing2.name
+  principal = aws_iot_certificate.cert.arn
 }
 `, thingName, thingName2)
 }
@@ -220,7 +296,7 @@ resource "aws_iot_thing_principal_attachment" "att2" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate2(thingName, thingName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -233,8 +309,8 @@ resource "aws_iot_thing" "thing2" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 `, thingName, thingName2)
 }
@@ -242,12 +318,12 @@ resource "aws_iot_thing_principal_attachment" "att" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate3(thingName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
 resource "aws_iot_certificate" "cert2" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -256,13 +332,13 @@ resource "aws_iot_thing" "thing" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 
 resource "aws_iot_thing_principal_attachment" "att2" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert2.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert2.arn
 }
 `, thingName)
 }
@@ -270,7 +346,7 @@ resource "aws_iot_thing_principal_attachment" "att2" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate4(thingName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert2" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -279,8 +355,8 @@ resource "aws_iot_thing" "thing" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att2" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert2.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert2.arn
 }
 `, thingName)
 }

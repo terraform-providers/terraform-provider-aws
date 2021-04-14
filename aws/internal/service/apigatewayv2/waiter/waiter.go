@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const (
@@ -30,6 +30,23 @@ func DeploymentDeployed(conn *apigatewayv2.ApiGatewayV2, apiId, deploymentId str
 	outputRaw, err := stateConf.WaitForState()
 
 	if v, ok := outputRaw.(*apigatewayv2.GetDeploymentOutput); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+func DomainNameAvailable(conn *apigatewayv2.ApiGatewayV2, name string, timeout time.Duration) (*apigatewayv2.GetDomainNameOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{apigatewayv2.DomainNameStatusUpdating},
+		Target:  []string{apigatewayv2.DomainNameStatusAvailable},
+		Refresh: DomainNameStatus(conn, name),
+		Timeout: timeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*apigatewayv2.GetDomainNameOutput); ok {
 		return v, err
 	}
 

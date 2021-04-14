@@ -14,7 +14,7 @@ without having to hard code the ARNs as input.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_sns_topic" "example" {
   name = "an_example_topic"
 }
@@ -26,4 +26,7 @@ data "aws_sns_topic" "example" {
 
 ## Attributes Reference
 
-* `arn` - Set to the ARN of the found topic, suitable for referencing in other resources that support SNS topics.
+In addition to all arguments above, the following attributes are exported:
+
+* `arn` - Amazon Resource Name (ARN) of the found topic, suitable for referencing in other resources that support SNS topics.
+* `id` - Amazon Resource Name (ARN) of the found topic, suitable for referencing in other resources that support SNS topics.

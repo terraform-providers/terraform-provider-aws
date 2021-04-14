@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAWSInspectorAssessmentTarget() *schema.Resource {
@@ -55,7 +55,7 @@ func resourceAwsInspectorAssessmentTargetCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("error creating Inspector Assessment Target: %s", err)
 	}
 
-	d.SetId(*resp.AssessmentTargetArn)
+	d.SetId(aws.StringValue(resp.AssessmentTargetArn))
 
 	return resourceAwsInspectorAssessmentTargetRead(d, meta)
 }

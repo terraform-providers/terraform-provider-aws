@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSSMMaintenanceWindowTarget_basic(t *testing.T) {
@@ -18,6 +18,7 @@ func TestAccAWSSSMMaintenanceWindowTarget_basic(t *testing.T) {
 	resourceName := "aws_ssm_maintenance_window_target.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
 		Steps: []resource.TestStep{
@@ -53,6 +54,7 @@ func TestAccAWSSSMMaintenanceWindowTarget_noNameOrDescription(t *testing.T) {
 	resourceName := "aws_ssm_maintenance_window_target.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
 		Steps: []resource.TestStep{
@@ -83,6 +85,7 @@ func TestAccAWSSSMMaintenanceWindowTarget_validation(t *testing.T) {
 	name := acctest.RandString(10)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
 		Steps: []resource.TestStep{
@@ -108,6 +111,7 @@ func TestAccAWSSSMMaintenanceWindowTarget_update(t *testing.T) {
 	resourceName := "aws_ssm_maintenance_window_target.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
 		Steps: []resource.TestStep{
@@ -163,6 +167,7 @@ func TestAccAWSSSMMaintenanceWindowTarget_resourceGroup(t *testing.T) {
 	resourceName := "aws_ssm_maintenance_window_target.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
 		Steps: []resource.TestStep{
@@ -171,9 +176,8 @@ func TestAccAWSSSMMaintenanceWindowTarget_resourceGroup(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMMaintenanceWindowTargetExists(resourceName, &maint),
 					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "resource-groups:ResourceTypeFilters"),
-					resource.TestCheckResourceAttr(resourceName, "targets.0.values.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "targets.0.values.0", "AWS::EC2::INSTANCE"),
-					resource.TestCheckResourceAttr(resourceName, "targets.0.values.1", "AWS::EC2::VPC"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.0", "AWS::EC2::Instance"),
 					resource.TestCheckResourceAttr(resourceName, "targets.1.key", "resource-groups:Name"),
 					resource.TestCheckResourceAttr(resourceName, "targets.1.values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "targets.1.values.0", "resource-group-name"),
@@ -198,6 +202,7 @@ func TestAccAWSSSMMaintenanceWindowTarget_disappears(t *testing.T) {
 	resourceName := "aws_ssm_maintenance_window_target.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
 		Steps: []resource.TestStep{
@@ -205,7 +210,29 @@ func TestAccAWSSSMMaintenanceWindowTarget_disappears(t *testing.T) {
 				Config: testAccAWSSSMMaintenanceWindowTargetBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMMaintenanceWindowTargetExists(resourceName, &maint),
-					testAccCheckAWSSSMMaintenanceWindowTargetDisappears(&maint),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSsmMaintenanceWindowTarget(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSSMMaintenanceWindowTarget_disappears_window(t *testing.T) {
+	var maint ssm.MaintenanceWindowTarget
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ssm_maintenance_window_target.test"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMMaintenanceWindowTargetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMMaintenanceWindowTargetBasicConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMMaintenanceWindowTargetExists(resourceName, &maint),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSsmMaintenanceWindow(), "aws_ssm_maintenance_window.test"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -240,27 +267,13 @@ func testAccCheckAWSSSMMaintenanceWindowTargetExists(n string, mWindTarget *ssm.
 		}
 
 		for _, i := range resp.Targets {
-			if *i.WindowTargetId == rs.Primary.ID {
+			if aws.StringValue(i.WindowTargetId) == rs.Primary.ID {
 				*mWindTarget = *resp.Targets[0]
 				return nil
 			}
 		}
 
 		return fmt.Errorf("No AWS SSM Maintenance window target found")
-	}
-}
-
-func testAccCheckAWSSSMMaintenanceWindowTargetDisappears(mWindTarget *ssm.MaintenanceWindowTarget) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ssmconn
-		input := &ssm.DeregisterTargetFromMaintenanceWindowInput{
-			WindowId:       mWindTarget.WindowId,
-			WindowTargetId: mWindTarget.WindowTargetId,
-		}
-
-		_, err := conn.DeregisterTargetFromMaintenanceWindow(input)
-
-		return err
 	}
 }
 
@@ -312,7 +325,7 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name          = %[1]q
   description   = "This resource is for test purpose only"
-  window_id     = "${aws_ssm_maintenance_window.test.id}"
+  window_id     = aws_ssm_maintenance_window.test.id
   resource_type = "INSTANCE"
 
   targets {
@@ -340,12 +353,12 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name          = %[1]q
   description   = "This resource is for test purpose only"
-  window_id     = "${aws_ssm_maintenance_window.test.id}"
+  window_id     = aws_ssm_maintenance_window.test.id
   resource_type = "RESOURCE_GROUP"
 
   targets {
     key    = "resource-groups:ResourceTypeFilters"
-    values = ["AWS::EC2::INSTANCE","AWS::EC2::VPC"]
+    values = ["AWS::EC2::Instance"]
   }
 
   targets {
@@ -366,7 +379,7 @@ resource "aws_ssm_maintenance_window" "test" {
 }
 
 resource "aws_ssm_maintenance_window_target" "test" {
-  window_id     = "${aws_ssm_maintenance_window.test.id}"
+  window_id     = aws_ssm_maintenance_window.test.id
   resource_type = "INSTANCE"
 
   targets {
@@ -394,7 +407,7 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name              = %[1]q
   description       = "This resource is for test purpose only - updated"
-  window_id         = "${aws_ssm_maintenance_window.test.id}"
+  window_id         = aws_ssm_maintenance_window.test.id
   resource_type     = "INSTANCE"
   owner_information = "something"
 
@@ -423,7 +436,7 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name              = %[2]q
   description       = %[3]q
-  window_id         = "${aws_ssm_maintenance_window.test.id}"
+  window_id         = aws_ssm_maintenance_window.test.id
   resource_type     = "INSTANCE"
   owner_information = "something"
 

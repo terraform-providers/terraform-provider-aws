@@ -12,9 +12,9 @@ Provides a Direct Connect BGP peer resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_bgp_peer" "peer" {
-  virtual_interface_id = "${aws_dx_private_virtual_interface.foo.id}"
+  virtual_interface_id = aws_dx_private_virtual_interface.foo.id
   address_family       = "ipv6"
   bgp_asn              = 65351
 }
@@ -45,7 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_bgp_peer` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating BGP peer
 - `delete` - (Default `10 minutes`) Used for destroying BGP peer

@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/rds/waiter"
 )
 
@@ -86,6 +86,7 @@ func TestAccAWSDBEventSubscription_basicUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -128,6 +129,7 @@ func TestAccAWSDBEventSubscription_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -151,6 +153,7 @@ func TestAccAWSDBEventSubscription_withPrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -176,6 +179,7 @@ func TestAccAWSDBEventSubscription_withSourceIds(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -217,6 +221,7 @@ func TestAccAWSDBEventSubscription_categoryUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -328,7 +333,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_db_event_subscription" "test" {
   name        = "tf-acc-test-rds-event-subs-%[1]d"
-  sns_topic   = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic   = aws_sns_topic.aws_sns_topic.arn
   source_type = "db-instance"
 
   event_categories = [
@@ -354,7 +359,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_db_event_subscription" "test" {
   name_prefix = "tf-acc-test-rds-event-subs-"
-  sns_topic   = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic   = aws_sns_topic.aws_sns_topic.arn
   source_type = "db-instance"
 
   event_categories = [
@@ -380,7 +385,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_db_event_subscription" "test" {
   name        = "tf-acc-test-rds-event-subs-%[1]d"
-  sns_topic   = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic   = aws_sns_topic.aws_sns_topic.arn
   enabled     = false
   source_type = "db-parameter-group"
 
@@ -409,9 +414,9 @@ resource "aws_db_parameter_group" "test" {
 
 resource "aws_db_event_subscription" "test" {
   name        = "tf-acc-test-rds-event-subs-with-ids-%[1]d"
-  sns_topic   = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic   = aws_sns_topic.aws_sns_topic.arn
   source_type = "db-parameter-group"
-  source_ids  = ["${aws_db_parameter_group.test.id}"]
+  source_ids  = [aws_db_parameter_group.test.id]
 
   event_categories = [
     "configuration change",
@@ -444,9 +449,9 @@ resource "aws_db_parameter_group" "test2" {
 
 resource "aws_db_event_subscription" "test" {
   name        = "tf-acc-test-rds-event-subs-with-ids-%[1]d"
-  sns_topic   = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic   = aws_sns_topic.aws_sns_topic.arn
   source_type = "db-parameter-group"
-  source_ids  = ["${aws_db_parameter_group.test.id}", "${aws_db_parameter_group.test2.id}"]
+  source_ids  = [aws_db_parameter_group.test.id, aws_db_parameter_group.test2.id]
 
   event_categories = [
     "configuration change",
@@ -467,7 +472,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_db_event_subscription" "test" {
   name        = "tf-acc-test-rds-event-subs-%[1]d"
-  sns_topic   = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic   = aws_sns_topic.aws_sns_topic.arn
   source_type = "db-instance"
 
   event_categories = [

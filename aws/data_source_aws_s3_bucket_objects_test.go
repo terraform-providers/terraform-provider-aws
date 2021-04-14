@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAWSS3BucketObjects_basic(t *testing.T) {
@@ -14,6 +15,7 @@ func TestAccDataSourceAWSS3BucketObjects_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -39,6 +41,7 @@ func TestAccDataSourceAWSS3BucketObjects_basicViaAccessPoint(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -64,6 +67,7 @@ func TestAccDataSourceAWSS3BucketObjects_all(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -94,6 +98,7 @@ func TestAccDataSourceAWSS3BucketObjects_prefixes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -123,6 +128,7 @@ func TestAccDataSourceAWSS3BucketObjects_encoded(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -148,6 +154,7 @@ func TestAccDataSourceAWSS3BucketObjects_maxKeys(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -173,6 +180,7 @@ func TestAccDataSourceAWSS3BucketObjects_startAfter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -197,6 +205,7 @@ func TestAccDataSourceAWSS3BucketObjects_fetchOwner(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -238,43 +247,43 @@ resource "aws_s3_bucket" "objects_bucket" {
 }
 
 resource "aws_s3_bucket_object" "object1" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/three_gossips/turret"
   content = "Delicate"
 }
 
 resource "aws_s3_bucket_object" "object2" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/three_gossips/broken"
   content = "Dark Angel"
 }
 
 resource "aws_s3_bucket_object" "object3" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/navajo/north_window"
   content = "Balanced Rock"
 }
 
 resource "aws_s3_bucket_object" "object4" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/navajo/sand_dune"
   content = "Queen Victoria Rock"
 }
 
 resource "aws_s3_bucket_object" "object5" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/partition/park_avenue"
   content = "Double-O"
 }
 
 resource "aws_s3_bucket_object" "object6" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/courthouse_towers/landscape"
   content = "Fiery Furnace"
 }
 
 resource "aws_s3_bucket_object" "object7" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/rubicon"
   content = "Devils Garden"
 }
@@ -284,7 +293,7 @@ resource "aws_s3_bucket_object" "object7" {
 func testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt int) string {
 	return testAccAWSDataSourceS3ObjectsConfigResources(randInt) + fmt.Sprintf(`
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.objects_bucket.bucket}"
+  bucket = aws_s3_bucket.objects_bucket.bucket
   name   = "tf-objects-test-access-point-%[1]d"
 }
 `, randInt)
@@ -295,7 +304,7 @@ func testAccAWSDataSourceS3ObjectsConfigBasic(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_bucket.objects_bucket.id}"
+  bucket    = aws_s3_bucket.objects_bucket.id
   prefix    = "arch/navajo/"
   delimiter = "/"
 }
@@ -303,13 +312,13 @@ data "aws_s3_bucket_objects" "yesh" {
 }
 
 func testAccAWSDataSourceS3ObjectsConfigBasicViaAccessPoint(randInt int) string {
-	return testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt) + fmt.Sprintf(`
+	return testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt) + `
 data "aws_s3_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_access_point.test.arn}"
+  bucket    = aws_s3_access_point.test.arn
   prefix    = "arch/navajo/"
   delimiter = "/"
 }
-`)
+`
 }
 
 func testAccAWSDataSourceS3ObjectsConfigAll(randInt int) string {
@@ -317,7 +326,7 @@ func testAccAWSDataSourceS3ObjectsConfigAll(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_bucket.objects_bucket.id}"
+  bucket = aws_s3_bucket.objects_bucket.id
 }
 `, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
 }
@@ -327,7 +336,7 @@ func testAccAWSDataSourceS3ObjectsConfigPrefixes(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_bucket.objects_bucket.id}"
+  bucket    = aws_s3_bucket.objects_bucket.id
   prefix    = "arch/"
   delimiter = "/"
 }
@@ -339,7 +348,7 @@ func testAccAWSDataSourceS3ObjectsConfigExtraResource(randInt int) string {
 %s
 
 resource "aws_s3_bucket_object" "object8" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = aws_s3_bucket.objects_bucket.id
   key     = "arch/ru b ic on"
   content = "Goose Island"
 }
@@ -351,7 +360,7 @@ func testAccAWSDataSourceS3ObjectsConfigEncoded(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket        = "${aws_s3_bucket.objects_bucket.id}"
+  bucket        = aws_s3_bucket.objects_bucket.id
   encoding_type = "url"
   prefix        = "arch/ru"
 }
@@ -363,7 +372,7 @@ func testAccAWSDataSourceS3ObjectsConfigMaxKeys(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket   = "${aws_s3_bucket.objects_bucket.id}"
+  bucket   = aws_s3_bucket.objects_bucket.id
   max_keys = 2
 }
 `, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
@@ -374,7 +383,7 @@ func testAccAWSDataSourceS3ObjectsConfigStartAfter(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket      = "${aws_s3_bucket.objects_bucket.id}"
+  bucket      = aws_s3_bucket.objects_bucket.id
   start_after = "arch/three_gossips/broken"
 }
 `, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
@@ -385,7 +394,7 @@ func testAccAWSDataSourceS3ObjectsConfigOwners(randInt int) string {
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
-  bucket      = "${aws_s3_bucket.objects_bucket.id}"
+  bucket      = aws_s3_bucket.objects_bucket.id
   prefix      = "arch/three_gossips/"
   fetch_owner = true
 }

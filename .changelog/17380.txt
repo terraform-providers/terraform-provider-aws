@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_instance: Fix use of `throughput` and `iops` for `gp3` volumes at the same time
+```

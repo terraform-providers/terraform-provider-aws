@@ -11,8 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 var LambdaFunctionRegexp = `^(arn:[\w-]+:lambda:)?([a-z]{2}-(?:[a-z]+-){1,2}\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?$`
@@ -252,8 +253,8 @@ func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		// Missing permission inside valid policy
-		if nfErr, ok := err.(*resource.NotFoundError); ok {
-			log.Printf("[WARN] %s", nfErr)
+		if tfresource.NotFound(err) {
+			log.Printf("[WARN] %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -362,8 +363,12 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 
 	statement, err := getLambdaPolicyStatement(resp, d.Id())
 
-	if err != nil {
+	if tfresource.NotFound(err) {
 		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error getting Lambda Permission (%s) statement after deletion: %w", d.Id(), err)
 	}
 
 	if statement != nil {

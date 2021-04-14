@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -142,10 +142,10 @@ func resourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error getting WAFv2 RegexPatternSet")
 	}
 
-	d.Set("name", aws.StringValue(resp.RegexPatternSet.Name))
-	d.Set("description", aws.StringValue(resp.RegexPatternSet.Description))
-	d.Set("arn", aws.StringValue(resp.RegexPatternSet.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.RegexPatternSet.Name)
+	d.Set("description", resp.RegexPatternSet.Description)
+	d.Set("arn", resp.RegexPatternSet.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("regular_expression", flattenWafv2RegexPatternSet(resp.RegexPatternSet.RegularExpressionList)); err != nil {
 		return fmt.Errorf("Error setting regular_expression: %s", err)

@@ -12,9 +12,9 @@ Provides a Gamelift Fleet resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_fleet" "example" {
-  build_id          = "${aws_gamelift_build.example.id}"
+  build_id          = aws_gamelift_build.example.id
   ec2_instance_type = "t2.micro"
   fleet_type        = "ON_DEMAND"
   name              = "example-fleet-name"
@@ -62,7 +62,7 @@ The following arguments are supported:
 #### `runtime_configuration`
 
 * `game_session_activation_timeout_seconds` - (Optional) Maximum amount of time (in seconds) that a game session can remain in status `ACTIVATING`.
-* `max_concurrent_game_session_activations` - (Optional) Maximum number of game sessions with status `ACTIVATING` to allow on an instance simultaneously. 
+* `max_concurrent_game_session_activations` - (Optional) Maximum number of game sessions with status `ACTIVATING` to allow on an instance simultaneously.
 * `server_process` - (Optional) Collection of server process configurations that describe which server processes to run on each instance in a fleet. See below.
 
 #### `server_process`
@@ -81,7 +81,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_gamelift_fleet` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_gamelift_fleet` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `70m`) How long to wait for a fleet to be created.
 * `delete` - (Default `20m`) How long to wait for a fleet to be deleted.

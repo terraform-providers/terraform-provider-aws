@@ -14,7 +14,7 @@ properties without having to hard code ARNs as input.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iam_group" "example" {
   group_name = "an_example_group_name"
 }

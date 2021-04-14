@@ -12,7 +12,7 @@ Provides an WAF Regional Rule Resource for use with Application Load Balancer.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_ipset" "ipset" {
   name = "tfIPSet"
 
@@ -28,7 +28,7 @@ resource "aws_wafregional_rule" "wafrule" {
 
   predicate {
     type    = "IPMatch"
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
   }
 }

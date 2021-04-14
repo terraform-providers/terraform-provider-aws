@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/guardduty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func testAccAwsGuardDutyOrganizationConfiguration_basic(t *testing.T) {
@@ -16,7 +17,8 @@ func testAccAwsGuardDutyOrganizationConfiguration_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccOrganizationsAccountPreCheck(t)
 		},
-		Providers: testAccProviders,
+		ErrorCheck: testAccErrorCheck(t, guardduty.EndpointsID),
+		Providers:  testAccProviders,
 		// GuardDuty Organization Configuration cannot be deleted separately.
 		// Ensure parent resource is destroyed instead.
 		CheckDestroy: testAccCheckAwsGuardDutyDetectorDestroy,

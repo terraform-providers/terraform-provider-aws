@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/eks"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -86,6 +87,7 @@ func TestAccAWSEksFargateProfile_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t); testAccPreCheckAWSEksFargateProfile(t) },
+		ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEksFargateProfileDestroy,
 		Steps: []resource.TestStep{
@@ -119,6 +121,7 @@ func TestAccAWSEksFargateProfile_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t); testAccPreCheckAWSEksFargateProfile(t) },
+		ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEksFargateProfileDestroy,
 		Steps: []resource.TestStep{
@@ -134,6 +137,29 @@ func TestAccAWSEksFargateProfile_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSEksFargateProfile_Multi_Profile(t *testing.T) {
+	var fargateProfile eks.FargateProfile
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName1 := "aws_eks_fargate_profile.test.0"
+	resourceName2 := "aws_eks_fargate_profile.test.1"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t); testAccPreCheckAWSEksFargateProfile(t) },
+		ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksFargateProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksFargateProfileConfigFargateProfileMultiple(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksFargateProfileExists(resourceName1, &fargateProfile),
+					testAccCheckAWSEksFargateProfileExists(resourceName2, &fargateProfile),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSEksFargateProfile_Selector_Labels(t *testing.T) {
 	var fargateProfile1 eks.FargateProfile
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -141,6 +167,7 @@ func TestAccAWSEksFargateProfile_Selector_Labels(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t); testAccPreCheckAWSEksFargateProfile(t) },
+		ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEksFargateProfileDestroy,
 		Steps: []resource.TestStep{
@@ -166,6 +193,7 @@ func TestAccAWSEksFargateProfile_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t); testAccPreCheckAWSEksFargateProfile(t) },
+		ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEksFargateProfileDestroy,
 		Steps: []resource.TestStep{
@@ -316,10 +344,24 @@ func testAccPreCheckAWSEksFargateProfile(t *testing.T) {
 	// create and destroy an EKS Cluster just to find the real error, instead
 	// we take the least desirable approach of hardcoding allowed regions.
 	allowedRegions := []string{
-		"ap-northeast-1",
-		"eu-west-1",
-		"us-east-1",
-		"us-east-2",
+		endpoints.ApEast1RegionID,
+		endpoints.ApNortheast1RegionID,
+		endpoints.ApNortheast2RegionID,
+		endpoints.ApSouth1RegionID,
+		endpoints.ApSoutheast1RegionID,
+		endpoints.ApSoutheast2RegionID,
+		endpoints.CaCentral1RegionID,
+		endpoints.EuCentral1RegionID,
+		endpoints.EuNorth1RegionID,
+		endpoints.EuWest1RegionID,
+		endpoints.EuWest2RegionID,
+		endpoints.EuWest3RegionID,
+		endpoints.MeSouth1RegionID,
+		endpoints.SaEast1RegionID,
+		endpoints.UsEast1RegionID,
+		endpoints.UsEast2RegionID,
+		endpoints.UsWest1RegionID,
+		endpoints.UsWest2RegionID,
 	}
 	region := testAccProvider.Meta().(*AWSClient).region
 
@@ -334,7 +376,7 @@ func testAccPreCheckAWSEksFargateProfile(t *testing.T) {
 The allowed regions are hardcoded in the acceptance testing since dynamically determining the
 functionality requires creating and destroying a real EKS Cluster, which is a lengthy process.
 If this check is out of date, please create an issue in the Terraform AWS Provider
-repository (https://github.com/terraform-providers/terraform-provider-aws) or submit a PR to update the
+repository (https://github.com/hashicorp/terraform-provider-aws) or submit a PR to update the
 check itself (testAccPreCheckAWSEksFargateProfile).
 
 For the most up to date supported region information, see the EKS User Guide:
@@ -362,8 +404,8 @@ resource "aws_iam_role" "cluster" {
 
   assume_role_policy = jsonencode({
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "eks.${data.aws_partition.current.dns_suffix}"
       }
@@ -377,18 +419,13 @@ resource "aws_iam_role_policy_attachment" "cluster-AmazonEKSClusterPolicy" {
   role       = aws_iam_role.cluster.name
 }
 
-resource "aws_iam_role_policy_attachment" "cluster-AmazonEKSServicePolicy" {
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.cluster.name
-}
-
 resource "aws_iam_role" "pod" {
   name = "%[1]s-pod"
-  
+
   assume_role_policy = jsonencode({
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "eks-fargate-pods.${data.aws_partition.current.dns_suffix}"
       }
@@ -435,7 +472,7 @@ resource "aws_subnet" "private" {
   count = 2
 
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index+2)
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index + 2)
   vpc_id            = aws_vpc.test.id
 
   tags = {
@@ -499,7 +536,6 @@ resource "aws_eks_cluster" "test" {
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster-AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.cluster-AmazonEKSServicePolicy,
     aws_main_route_table_association.test,
   ]
 }
@@ -524,6 +560,30 @@ resource "aws_eks_fargate_profile" "test" {
   ]
 }
 `, rName)
+}
+
+func testAccAWSEksFargateProfileConfigFargateProfileMultiple(rName string) string {
+	return composeConfig(
+		testAccAWSEksFargateProfileConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_eks_fargate_profile" "test" {
+  count = 2
+
+  cluster_name           = aws_eks_cluster.test.name
+  fargate_profile_name   = "%[1]s-${count.index}"
+  pod_execution_role_arn = aws_iam_role.pod.arn
+  subnet_ids             = aws_subnet.private[*].id
+
+  selector {
+    namespace = "test"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.pod-AmazonEKSFargatePodExecutionRolePolicy,
+    aws_route_table_association.private,
+  ]
+}
+`, rName))
 }
 
 func testAccAWSEksFargateProfileConfigSelectorLabels1(rName, labelKey1, labelValue1 string) string {

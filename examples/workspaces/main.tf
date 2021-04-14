@@ -1,10 +1,14 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
 }
 
 resource "aws_workspaces_directory" "example" {
-  directory_id = "${aws_directory_service_directory.example.id}"
-  subnet_ids   = ["${aws_subnet.private-a.id}", "${aws_subnet.private-b.id}"]
+  directory_id = aws_directory_service_directory.example.id
+  subnet_ids   = [aws_subnet.private-a.id, aws_subnet.private-b.id]
 
   # Uncomment this meta-argument if you are creating the IAM resources required by the AWS WorkSpaces service.
   # depends_on = [
@@ -17,15 +21,15 @@ data "aws_workspaces_bundle" "value_windows" {
 }
 
 resource "aws_workspaces_workspace" "example" {
-  directory_id = "${aws_workspaces_directory.example.id}"
-  bundle_id    = "${data.aws_workspaces_bundle.value_windows.id}"
+  directory_id = aws_workspaces_directory.example.id
+  bundle_id    = data.aws_workspaces_bundle.value_windows.id
 
   # Administrator is always present in a new directory.
   user_name = "Administrator"
 
   root_volume_encryption_enabled = true
   user_volume_encryption_enabled = true
-  volume_encryption_key          = "${aws_kms_key.example.arn}"
+  volume_encryption_key          = aws_kms_key.example.arn
 
   workspace_properties {
     compute_type_name                         = "VALUE"
@@ -76,11 +80,15 @@ locals {
   # Workspace instances are not supported in all AZs in some regions
   # We use joined and split string values here instead of lists for Terraform 0.11 compatibility
   region_workspaces_az_id_strings = {
-    "us-east-1" = "${join(",", formatlist("use1-az%d", list("2", "4", "6")))}"
+    "us-east-1" = join(",", formatlist("use1-az%d", ["2", "4", "6"]))
   }
 
-  workspaces_az_id_strings = "${lookup(local.region_workspaces_az_id_strings, data.aws_region.current.name, join(",", data.aws_availability_zones.available.zone_ids))}"
-  workspaces_az_ids        = "${split(",", local.workspaces_az_id_strings)}"
+  workspaces_az_id_strings = lookup(
+    local.region_workspaces_az_id_strings,
+    data.aws_region.current.name,
+    join(",", data.aws_availability_zones.available.zone_ids),
+  )
+  workspaces_az_ids = split(",", local.workspaces_az_id_strings)
 }
 
 resource "aws_vpc" "main" {
@@ -88,14 +96,14 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "private-a" {
-  vpc_id               = "${aws_vpc.main.id}"
-  availability_zone_id = "${local.workspaces_az_ids[0]}"
+  vpc_id               = aws_vpc.main.id
+  availability_zone_id = local.workspaces_az_ids[0]
   cidr_block           = "10.0.1.0/24"
 }
 
 resource "aws_subnet" "private-b" {
-  vpc_id               = "${aws_vpc.main.id}"
-  availability_zone_id = "${local.workspaces_az_ids[1]}"
+  vpc_id               = aws_vpc.main.id
+  availability_zone_id = local.workspaces_az_ids[1]
   cidr_block           = "10.0.2.0/24"
 }
 
@@ -104,8 +112,8 @@ resource "aws_directory_service_directory" "example" {
   password = "#S1ncerely"
   size     = "Small"
   vpc_settings {
-    vpc_id     = "${aws_vpc.main.id}"
-    subnet_ids = ["${aws_subnet.private-a.id}", "${aws_subnet.private-b.id}"]
+    vpc_id     = aws_vpc.main.id
+    subnet_ids = [aws_subnet.private-a.id, aws_subnet.private-b.id]
   }
 }
 

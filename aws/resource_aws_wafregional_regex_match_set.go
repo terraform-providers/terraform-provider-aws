@@ -8,7 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/wafregional/finder"
 )
 
 func resourceAwsWafRegionalRegexMatchSet() *schema.Resource {
@@ -94,13 +96,10 @@ func resourceAwsWafRegionalRegexMatchSetCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsWafRegionalRegexMatchSetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
-	log.Printf("[INFO] Reading WAF Regional Regex Match Set: %s", d.Get("name").(string))
-	params := &waf.GetRegexMatchSetInput{
-		RegexMatchSetId: aws.String(d.Id()),
-	}
 
-	resp, err := conn.GetRegexMatchSet(params)
-	if isAWSErr(err, wafregional.ErrCodeWAFNonexistentItemException, "") {
+	log.Printf("[INFO] Reading WAF Regional Regex Match Set: %s", d.Get("name").(string))
+	set, err := finder.RegexMatchSetByID(conn, d.Id())
+	if tfawserr.ErrCodeEquals(err, wafregional.ErrCodeWAFNonexistentItemException) {
 		log.Printf("[WARN] WAF Regional Regex Match Set (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -109,8 +108,8 @@ func resourceAwsWafRegionalRegexMatchSetRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error getting WAF Regional Regex Match Set (%s): %s", d.Id(), err)
 	}
 
-	d.Set("name", resp.RegexMatchSet.Name)
-	d.Set("regex_match_tuple", flattenWafRegexMatchTuples(resp.RegexMatchSet.RegexMatchTuples))
+	d.Set("name", set.Name)
+	d.Set("regex_match_tuple", flattenWafRegexMatchTuples(set.RegexMatchTuples))
 
 	return nil
 }
@@ -125,7 +124,7 @@ func resourceAwsWafRegionalRegexMatchSetUpdate(d *schema.ResourceData, meta inte
 		o, n := d.GetChange("regex_match_tuple")
 		oldT, newT := o.(*schema.Set).List(), n.(*schema.Set).List()
 		err := updateRegexMatchSetResourceWR(d.Id(), oldT, newT, conn, region)
-		if isAWSErr(err, wafregional.ErrCodeWAFNonexistentItemException, "") {
+		if tfawserr.ErrCodeEquals(err, wafregional.ErrCodeWAFNonexistentItemException) {
 			log.Printf("[WARN] WAF Regional Rate Based Rule (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -142,37 +141,81 @@ func resourceAwsWafRegionalRegexMatchSetDelete(d *schema.ResourceData, meta inte
 	conn := meta.(*AWSClient).wafregionalconn
 	region := meta.(*AWSClient).region
 
-	oldTuples := d.Get("regex_match_tuple").(*schema.Set).List()
-	if len(oldTuples) > 0 {
-		noTuples := []interface{}{}
-		err := updateRegexMatchSetResourceWR(d.Id(), oldTuples, noTuples, conn, region)
-		if isAWSErr(err, wafregional.ErrCodeWAFNonexistentItemException, "") {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("Failed updating WAF Regional Regex Match Set(%s): %s", d.Id(), err)
-		}
-	}
-
-	wr := newWafRegionalRetryer(conn, "global")
-	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
-		req := &waf.DeleteRegexMatchSetInput{
-			ChangeToken:     token,
-			RegexMatchSetId: aws.String(d.Id()),
-		}
-		log.Printf("[INFO] Deleting WAF Regional Regex Match Set: %s", req)
-		return conn.DeleteRegexMatchSet(req)
-	})
-	if isAWSErr(err, wafregional.ErrCodeWAFNonexistentItemException, "") {
+	err := deleteRegexMatchSetResource(conn, region, "global", d.Id(), getRegexMatchTuplesFromResourceData(d))
+	if tfawserr.ErrCodeEquals(err, wafregional.ErrCodeWAFNonexistentItemException) {
 		log.Printf("[WARN] WAF Regional Regex Match Set (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("Failed deleting WAF Regional Regex Match Set: %s", err)
+		return err
 	}
 
 	return nil
+}
+
+func getRegexMatchTuplesFromResourceData(d *schema.ResourceData) []*waf.RegexMatchTuple {
+	result := []*waf.RegexMatchTuple{}
+
+	for _, t := range d.Get("regex_match_tuple").(*schema.Set).List() {
+		result = append(result, expandWafRegexMatchTuple(t.(map[string]interface{})))
+	}
+
+	return result
+}
+
+func getRegexMatchTuplesFromAPIResource(r *waf.RegexMatchSet) []*waf.RegexMatchTuple {
+	return r.RegexMatchTuples
+}
+
+func clearRegexMatchTuples(conn *wafregional.WAFRegional, region string, id string, tuples []*waf.RegexMatchTuple) error {
+	if len(tuples) > 0 {
+		input := &waf.UpdateRegexMatchSetInput{
+			RegexMatchSetId: aws.String(id),
+		}
+		for _, tuple := range tuples {
+			input.Updates = append(input.Updates, &waf.RegexMatchSetUpdate{
+				Action:          aws.String(waf.ChangeActionDelete),
+				RegexMatchTuple: tuple,
+			})
+		}
+
+		log.Printf("[INFO] Clearing WAF Regional Regex Match Set: %s", id)
+		wr := newWafRegionalRetryer(conn, region)
+		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
+			input.ChangeToken = token
+			return conn.UpdateRegexMatchSet(input)
+		})
+		if err != nil {
+			return fmt.Errorf("error clearing WAF Regional Regex Match Set (%s): %w", id, err)
+		}
+	}
+	return nil
+}
+
+func deleteRegexMatchSet(conn *wafregional.WAFRegional, region, id string) error {
+	log.Printf("[INFO] Deleting WAF Regional Regex Match Set: %s", id)
+	wr := newWafRegionalRetryer(conn, region)
+	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
+		req := &waf.DeleteRegexMatchSetInput{
+			ChangeToken:     token,
+			RegexMatchSetId: aws.String(id),
+		}
+		return conn.DeleteRegexMatchSet(req)
+	})
+	if err != nil {
+		return fmt.Errorf("error deleting WAF Regional Regex Match Set (%s): %w", id, err)
+	}
+	return nil
+}
+
+func deleteRegexMatchSetResource(conn *wafregional.WAFRegional, region, tokenRegion, id string, tuples []*waf.RegexMatchTuple) error {
+	err := clearRegexMatchTuples(conn, region, id, tuples)
+	if err != nil {
+		return err
+	}
+
+	return deleteRegexMatchSet(conn, tokenRegion, id)
 }
 
 func updateRegexMatchSetResourceWR(id string, oldT, newT []interface{}, conn *wafregional.WAFRegional, region string) error {

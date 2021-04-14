@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsCognitoUserPools() *schema.Resource {
@@ -39,7 +39,7 @@ func dataSourceAwsCognitoUserPoolsRead(d *schema.ResourceData, meta interface{})
 
 	pools, err := getAllCognitoUserPools(conn)
 	if err != nil {
-		return fmt.Errorf("Error listing cognito user pools: %s", err)
+		return fmt.Errorf("Error listing cognito user pools: %w", err)
 	}
 	for _, pool := range pools {
 		if name == aws.StringValue(pool.Name) {

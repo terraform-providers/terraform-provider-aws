@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/transfer"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsTransferServer() *schema.Resource {
@@ -57,7 +57,7 @@ func dataSourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := conn.DescribeServer(input)
 	if err != nil {
-		return fmt.Errorf("error describing Transfer Server (%s): %s", serverID, err)
+		return fmt.Errorf("error describing Transfer Server (%s): %w", serverID, err)
 	}
 
 	endpoint := meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.server.transfer", serverID))
@@ -66,8 +66,8 @@ func dataSourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("arn", resp.Server.Arn)
 	d.Set("endpoint", endpoint)
 	if resp.Server.IdentityProviderDetails != nil {
-		d.Set("invocation_role", aws.StringValue(resp.Server.IdentityProviderDetails.InvocationRole))
-		d.Set("url", aws.StringValue(resp.Server.IdentityProviderDetails.Url))
+		d.Set("invocation_role", resp.Server.IdentityProviderDetails.InvocationRole)
+		d.Set("url", resp.Server.IdentityProviderDetails.Url)
 	}
 	d.Set("identity_provider_type", resp.Server.IdentityProviderType)
 	d.Set("logging_role", resp.Server.LoggingRole)

@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/apigatewayv2/waiter"
 )
 
@@ -85,6 +85,7 @@ func TestAccAWSAPIGatewayV2VpcLink_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2VpcLinkDestroy,
 		Steps: []resource.TestStep{
@@ -126,6 +127,7 @@ func TestAccAWSAPIGatewayV2VpcLink_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2VpcLinkDestroy,
 		Steps: []resource.TestStep{
@@ -148,6 +150,7 @@ func TestAccAWSAPIGatewayV2VpcLink_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2VpcLinkDestroy,
 		Steps: []resource.TestStep{
@@ -275,9 +278,9 @@ data "aws_availability_zones" "available" {
 resource "aws_subnet" "test" {
   count = 2
 
-  vpc_id            = "${aws_vpc.test.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.test.cidr_block, 2, count.index)}"
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 2, count.index)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
     Name = %[1]q
@@ -285,7 +288,7 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -298,8 +301,8 @@ func testAccAWSAPIGatewayV2VpcLinkConfig_basic(rName string) string {
 	return testAccAWSAPIGatewayV2VpcLinkConfig_base(rName) + fmt.Sprintf(`
 resource "aws_apigatewayv2_vpc_link" "test" {
   name               = %[1]q
-  security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_ids         = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  security_group_ids = [aws_security_group.test.id]
+  subnet_ids         = aws_subnet.test.*.id
 }
 `, rName)
 }
@@ -308,8 +311,8 @@ func testAccAWSAPIGatewayV2VpcLinkConfig_tags(rName string) string {
 	return testAccAWSAPIGatewayV2VpcLinkConfig_base(rName) + fmt.Sprintf(`
 resource "aws_apigatewayv2_vpc_link" "test" {
   name               = %[1]q
-  security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_ids         = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  security_group_ids = [aws_security_group.test.id]
+  subnet_ids         = aws_subnet.test.*.id
 
   tags = {
     Key1 = "Value1"

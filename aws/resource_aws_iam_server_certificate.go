@@ -13,15 +13,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsIAMServerCertificate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsIAMServerCertificateCreate,
 		Read:   resourceAwsIAMServerCertificateRead,
+		Update: resourceAwsIAMServerCertificateUpdate,
 		Delete: resourceAwsIAMServerCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAwsIAMServerCertificateImport,
@@ -29,17 +31,19 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"certificate_body": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: normalizeCert,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppressNormalizeCertRemoval,
+				StateFunc:        StateTrimSpace,
 			},
 
 			"certificate_chain": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				ForceNew:  true,
-				StateFunc: normalizeCert,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppressNormalizeCertRemoval,
+				StateFunc:        StateTrimSpace,
 			},
 
 			"path": {
@@ -50,11 +54,12 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 			},
 
 			"private_key": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: normalizeCert,
-				Sensitive: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				Sensitive:        true,
+				DiffSuppressFunc: suppressNormalizeCertRemoval,
+				StateFunc:        StateTrimSpace,
 			},
 
 			"name": {
@@ -76,9 +81,17 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 
 			"arn": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
+			"expiration": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"upload_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -99,6 +112,7 @@ func resourceAwsIAMServerCertificateCreate(d *schema.ResourceData, meta interfac
 		CertificateBody:       aws.String(d.Get("certificate_body").(string)),
 		PrivateKey:            aws.String(d.Get("private_key").(string)),
 		ServerCertificateName: aws.String(sslCertName),
+		Tags:                  keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IamTags(),
 	}
 
 	if v, ok := d.GetOk("certificate_chain"); ok {
@@ -112,13 +126,10 @@ func resourceAwsIAMServerCertificateCreate(d *schema.ResourceData, meta interfac
 	log.Printf("[DEBUG] Creating IAM Server Certificate with opts: %s", createOpts)
 	resp, err := conn.UploadServerCertificate(createOpts)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			return fmt.Errorf("Error uploading server certificate, error: %s: %s", awsErr.Code(), awsErr.Message())
-		}
-		return fmt.Errorf("Error uploading server certificate, error: %s", err)
+		return fmt.Errorf("error uploading server certificate: %w", err)
 	}
 
-	d.SetId(*resp.ServerCertificateMetadata.ServerCertificateId)
+	d.SetId(aws.StringValue(resp.ServerCertificateMetadata.ServerCertificateId))
 	d.Set("name", sslCertName)
 
 	return resourceAwsIAMServerCertificateRead(d, meta)
@@ -126,37 +137,61 @@ func resourceAwsIAMServerCertificateCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	resp, err := conn.GetServerCertificate(&iam.GetServerCertificateInput{
 		ServerCertificateName: aws.String(d.Get("name").(string)),
 	})
 
+	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		log.Printf("[WARN] IAM Server Certificate (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "NoSuchEntity" {
-				log.Printf("[WARN] IAM Server Cert (%s) not found, removing from state", d.Id())
-				d.SetId("")
-				return nil
-			}
-			return fmt.Errorf("Error reading IAM Server Certificate: %s: %s", awsErr.Code(), awsErr.Message())
-		}
-		return fmt.Errorf("Error reading IAM Server Certificate: %s", err)
+		return fmt.Errorf("error reading IAM Server Certificate (%s): %w", d.Id(), err)
 	}
 
-	d.SetId(*resp.ServerCertificate.ServerCertificateMetadata.ServerCertificateId)
+	cert := resp.ServerCertificate
+	metadata := cert.ServerCertificateMetadata
+	d.SetId(aws.StringValue(metadata.ServerCertificateId))
 
-	// these values should always be present, and have a default if not set in
-	// configuration, and so safe to reference with nil checks
-	d.Set("certificate_body", normalizeCert(resp.ServerCertificate.CertificateBody))
-
-	c := normalizeCert(resp.ServerCertificate.CertificateChain)
-	if c != "" {
-		d.Set("certificate_chain", c)
+	d.Set("certificate_body", cert.CertificateBody)
+	d.Set("certificate_chain", cert.CertificateChain)
+	d.Set("path", metadata.Path)
+	d.Set("arn", metadata.Arn)
+	if metadata.Expiration != nil {
+		d.Set("expiration", aws.TimeValue(metadata.Expiration).Format(time.RFC3339))
+	} else {
+		d.Set("expiration", nil)
 	}
 
-	d.Set("path", resp.ServerCertificate.ServerCertificateMetadata.Path)
-	d.Set("arn", resp.ServerCertificate.ServerCertificateMetadata.Arn)
+	if metadata.UploadDate != nil {
+		d.Set("upload_date", aws.TimeValue(metadata.UploadDate).Format(time.RFC3339))
+	} else {
+		d.Set("upload_date", nil)
+	}
+
+	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(cert.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
 
 	return nil
+}
+
+func resourceAwsIAMServerCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).iamconn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.IamServerCertificateUpdateTags(conn, d.Get("name").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags for IAM Server Certificate (%s): %w", d.Get("name").(string), err)
+		}
+	}
+
+	return resourceAwsIAMServerCertificateRead(d, meta)
 }
 
 func resourceAwsIAMServerCertificateDelete(d *schema.ResourceData, meta interface{}) error {
@@ -169,12 +204,12 @@ func resourceAwsIAMServerCertificateDelete(d *schema.ResourceData, meta interfac
 
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
-				if awsErr.Code() == "DeleteConflict" && strings.Contains(awsErr.Message(), "currently in use by arn") {
+				if awsErr.Code() == iam.ErrCodeDeleteConflictException && strings.Contains(awsErr.Message(), "currently in use by arn") {
 					currentlyInUseBy(awsErr.Message(), meta.(*AWSClient).elbconn)
 					log.Printf("[WARN] Conflict deleting server certificate: %s, retrying", awsErr.Message())
 					return resource.RetryableError(err)
 				}
-				if awsErr.Code() == "NoSuchEntity" {
+				if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
 					return nil
 				}
 			}
@@ -246,4 +281,10 @@ func stripCR(b []byte) []byte {
 		}
 	}
 	return c[:i]
+}
+
+// Terraform AWS Provider version 3.0.0 removed state hash storage.
+// This DiffSuppressFunc prevents the resource from triggering needless recreation.
+func suppressNormalizeCertRemoval(k, old, new string, d *schema.ResourceData) bool {
+	return normalizeCert(new) == old
 }

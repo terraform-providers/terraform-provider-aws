@@ -3,11 +3,9 @@ package aws
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsEbsEncryptionByDefault() *schema.Resource {
@@ -35,6 +33,7 @@ func resourceAwsEbsEncryptionByDefaultCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error creating EBS encryption by default (%t): %s", enabled, err)
 	}
 
+	//lintignore:R015 // Allow legacy unstable ID usage in managed resource
 	d.SetId(resource.UniqueId())
 
 	return resourceAwsEbsEncryptionByDefaultRead(d, meta)
@@ -48,7 +47,7 @@ func resourceAwsEbsEncryptionByDefaultRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error reading EBS encryption by default: %s", err)
 	}
 
-	d.Set("enabled", aws.BoolValue(resp.EbsEncryptionByDefault))
+	d.Set("enabled", resp.EbsEncryptionByDefault)
 
 	return nil
 }

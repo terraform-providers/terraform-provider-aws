@@ -12,10 +12,10 @@ Provides a Inspector assessment template
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_inspector_assessment_template" "example" {
   name       = "example"
-  target_arn = "${aws_inspector_assessment_target.example.arn}"
+  target_arn = aws_inspector_assessment_target.example.arn
   duration   = 3600
 
   rules_package_arns = [

@@ -12,7 +12,7 @@ Provides a Data Pipeline resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datapipeline_pipeline" "default" {
   name = "tf-pipeline-default"
 }
@@ -26,7 +26,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of Pipeline.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

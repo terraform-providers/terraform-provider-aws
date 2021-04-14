@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -70,11 +70,17 @@ func resourceAwsDbParameterGroup() *schema.Resource {
 						"value": {
 							Type:     schema.TypeString,
 							Required: true,
+							StateFunc: func(v interface{}) string {
+								return strings.ToLower(v.(string))
+							},
 						},
 						"apply_method": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "immediate",
+							StateFunc: func(v interface{}) string {
+								return strings.ToLower(v.(string))
+							},
+							Default: "immediate",
 						},
 					},
 				},
@@ -277,8 +283,25 @@ func resourceAwsDbParameterGroupUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 
+		toRemove := map[string]*rds.Parameter{}
+
+		for _, p := range expandParameters(os.List()) {
+			if p.ParameterName != nil {
+				toRemove[*p.ParameterName] = p
+			}
+		}
+
+		for _, p := range expandParameters(ns.List()) {
+			if p.ParameterName != nil {
+				delete(toRemove, *p.ParameterName)
+			}
+		}
+
 		// Reset parameters that have been removed
-		resetParameters := expandParameters(os.Difference(ns).List())
+		var resetParameters []*rds.Parameter
+		for _, v := range toRemove {
+			resetParameters = append(resetParameters, v)
+		}
 		if len(resetParameters) > 0 {
 			maxParams := 20
 			for resetParameters != nil {

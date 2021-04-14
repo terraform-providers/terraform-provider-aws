@@ -1,5 +1,5 @@
 ---
-subcategory: "Kinesis"
+subcategory: "Kinesis Data Analytics (SQL Applications)"
 layout: "aws"
 page_title: "AWS: aws_kinesis_analytics_application"
 description: |-
@@ -13,9 +13,13 @@ allows processing and analyzing streaming data using standard SQL.
 
 For more details, see the [Amazon Kinesis Analytics Documentation][1].
 
+-> **Note:** To manage Amazon Kinesis Data Analytics for Apache Flink applications, use the [`aws_kinesisanalyticsv2_application`](/docs/providers/aws/r/kinesisanalyticsv2_application.html) resource.
+
 ## Example Usage
 
-```hcl
+### Kinesis Stream Input
+
+```terraform
 resource "aws_kinesis_stream" "test_stream" {
   name        = "terraform-kinesis-test"
   shard_count = 1
@@ -28,8 +32,8 @@ resource "aws_kinesis_analytics_application" "test_application" {
     name_prefix = "test_prefix"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test_stream.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test_stream.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     parallelism {
@@ -57,6 +61,87 @@ resource "aws_kinesis_analytics_application" "test_application" {
 }
 ```
 
+### Starting An Application
+
+```terraform
+resource "aws_cloudwatch_log_group" "example" {
+  name = "analytics"
+}
+
+resource "aws_cloudwatch_log_stream" "example" {
+  name           = "example-kinesis-application"
+  log_group_name = aws_cloudwatch_log_group.example.name
+}
+
+resource "aws_kinesis_stream" "example" {
+  name        = "example-kinesis-stream"
+  shard_count = 1
+}
+
+resource "aws_kinesis_firehose_delivery_stream" "example" {
+  name        = "example-kinesis-delivery-stream"
+  destination = "extended_s3"
+
+  extended_s3_configuration {
+    bucket_arn = aws_s3_bucket.example.arn
+    role_arn   = aws_iam_role.example.arn
+  }
+}
+
+resource "aws_kinesis_analytics_application" "test" {
+  name = "example-application"
+
+  cloudwatch_logging_options {
+    log_stream_arn = aws_cloudwatch_log_stream.example.arn
+    role_arn       = aws_iam_role.example.arn
+  }
+
+  inputs {
+    name_prefix = "example_prefix"
+
+    schema {
+      record_columns {
+        name     = "COLUMN_1"
+        sql_type = "INTEGER"
+      }
+
+      record_format {
+        mapping_parameters {
+          csv {
+            record_column_delimiter = ","
+            record_row_delimiter    = "|"
+          }
+        }
+      }
+    }
+
+    kinesis_stream {
+      resource_arn = aws_kinesis_stream.example.arn
+      role_arn     = aws_iam_role.example.arn
+    }
+
+    starting_position_configuration {
+      starting_position = "NOW"
+    }
+  }
+
+  outputs {
+    name = "OUTPUT_1"
+
+    schema {
+      record_format_type = "CSV"
+    }
+
+    kinesis_firehose {
+      resource_arn = aws_kinesis_firehose_delivery_stream.example.arn
+      role_arn     = aws_iam_role.example.arn
+    }
+  }
+
+  start_application = true
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -70,6 +155,8 @@ See [CloudWatch Logging Options](#cloudwatch-logging-options) below for more det
 * `outputs` - (Optional) Output destination configuration of the application. See [Outputs](#outputs) below for more details.
 * `reference_data_sources` - (Optional) An S3 Reference Data Source for the application.
 See [Reference Data Sources](#reference-data-sources) below for more details.
+* `start_application` - (Optional) Whether to start or stop the Kinesis Analytics Application. To start an application, an input with a defined `starting_position` must be configured.
+To modify an application's starting position, first stop the application by setting `start_application = false`, then update `starting_position` and set `start_application = true`.
 * `tags` - Key-value map of tags for the Kinesis Analytics Application.
 
 ### CloudWatch Logging Options
@@ -97,6 +184,8 @@ See [Kinesis Stream](#kinesis-stream) below for more details.
 See [Parallelism](#parallelism) below for more details.
 * `processing_configuration` - (Optional) The Processing Configuration to transform records as they are received from the stream.
 See [Processing Configuration](#processing-configuration) below for more details.
+* `starting_position_configuration` (Optional) The point at which the application starts processing records from the streaming source.
+See [Starting Position Configuration](#starting-position-configuration) below for more details.
 
 ### Outputs
 
@@ -185,6 +274,14 @@ The `lambda` block supports the following:
 * `resource_arn` - (Required) The ARN of the Lambda function.
 * `role_arn` - (Required) The ARN of the IAM Role used to access the Lambda function.
 
+#### Starting Position Configuration
+
+The point at which the application reads from the streaming source.
+
+The `starting_position_configuration` block supports the following:
+
+* `starting_position` - (Required) The starting position on the stream. Valid values: `LAST_STOPPED_POINT`, `NOW`, `TRIM_HORIZON`.
+
 #### Record Columns
 
 The Column mapping of each data element in the streaming source to the corresponding column in the in-application stream.
@@ -245,7 +342,7 @@ The `s3` blcok supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported along with all argument references:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the Kinesis Analytics Application.
 * `arn` - The ARN of the Kinesis Analytics Appliation.

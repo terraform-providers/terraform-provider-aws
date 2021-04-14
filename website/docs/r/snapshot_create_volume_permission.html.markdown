@@ -12,9 +12,9 @@ Adds permission to create volumes off of a given EBS Snapshot.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_snapshot_create_volume_permission" "example_perm" {
-  snapshot_id = "${aws_ebs_snapshot.example_snapshot.id}"
+  snapshot_id = aws_ebs_snapshot.example_snapshot.id
   account_id  = "12345678"
 }
 
@@ -24,7 +24,7 @@ resource "aws_ebs_volume" "example" {
 }
 
 resource "aws_ebs_snapshot" "example_snapshot" {
-  volume_id = "${aws_ebs_volume.example.id}"
+  volume_id = aws_ebs_volume.example.id
 }
 ```
 

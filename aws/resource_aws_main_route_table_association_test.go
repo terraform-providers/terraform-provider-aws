@@ -5,13 +5,15 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSMainRouteTableAssociation_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMainRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -92,79 +94,86 @@ func testAccCheckMainRouteTableAssociation(mainRouteTableAssociationResource str
 
 const testAccMainRouteTableAssociationConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-main-route-table-association"
-	}
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-main-route-table-association"
+  }
 }
 
 resource "aws_subnet" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	cidr_block = "10.1.1.0/24"
-	tags = {
-		Name = "tf-acc-main-route-table-association"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.1.0/24"
+
+  tags = {
+    Name = "tf-acc-main-route-table-association"
+  }
 }
 
 resource "aws_internet_gateway" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block = "10.0.0.0/8"
-		gateway_id = "${aws_internet_gateway.foo.id}"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    gateway_id = aws_internet_gateway.foo.id
+  }
 }
 
 resource "aws_main_route_table_association" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route_table_id = "${aws_route_table.foo.id}"
+  vpc_id         = aws_vpc.foo.id
+  route_table_id = aws_route_table.foo.id
 }
 `
 
 const testAccMainRouteTableAssociationConfigUpdate = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-main-route-table-association-update"
-	}
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-main-route-table-association-update"
+  }
 }
 
 resource "aws_subnet" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	cidr_block = "10.1.1.0/24"
-	tags = {
-		Name = "tf-acc-main-route-table-association-update"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.1.0/24"
+
+  tags = {
+    Name = "tf-acc-main-route-table-association-update"
+  }
 }
 
 resource "aws_internet_gateway" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 
-// Need to keep the old route table around when we update the
-// main_route_table_association, otherwise Terraform will try to destroy the
-// route table too early, and will fail because it's still the main one
+# Need to keep the old route table around when we update the
+# main_route_table_association, otherwise Terraform will try to destroy the
+# route table too early, and will fail because it's still the main one
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block = "10.0.0.0/8"
-		gateway_id = "${aws_internet_gateway.foo.id}"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    gateway_id = aws_internet_gateway.foo.id
+  }
 }
 
 resource "aws_route_table" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block = "10.0.0.0/8"
-		gateway_id = "${aws_internet_gateway.foo.id}"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    gateway_id = aws_internet_gateway.foo.id
+  }
 }
 
 resource "aws_main_route_table_association" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route_table_id = "${aws_route_table.bar.id}"
+  vpc_id         = aws_vpc.foo.id
+  route_table_id = aws_route_table.bar.id
 }
 `

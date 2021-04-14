@@ -2,17 +2,19 @@ package aws
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsEBSDefaultKmsKey_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsEBSDefaultKmsKeyConfig,
@@ -44,8 +46,8 @@ func testAccCheckDataSourceAwsEBSDefaultKmsKey(n string) resource.TestCheckFunc 
 
 		attr := rs.Primary.Attributes["key_arn"]
 
-		if attr != *actual.KmsKeyId {
-			return fmt.Errorf("EBS default KMS key is not the expected value (%v)", actual.KmsKeyId)
+		if attr != aws.StringValue(actual.KmsKeyId) {
+			return fmt.Errorf("EBS default KMS key is not the expected value (%s)", aws.StringValue(actual.KmsKeyId))
 		}
 
 		return nil
@@ -53,5 +55,5 @@ func testAccCheckDataSourceAwsEBSDefaultKmsKey(n string) resource.TestCheckFunc 
 }
 
 const testAccDataSourceAwsEBSDefaultKmsKeyConfig = `
-data "aws_ebs_default_kms_key" "current" { }
+data "aws_ebs_default_kms_key" "current" {}
 `

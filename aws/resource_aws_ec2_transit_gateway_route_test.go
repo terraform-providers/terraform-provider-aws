@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2TransitGatewayRoute_basic(t *testing.T) {
@@ -17,6 +17,7 @@ func TestAccAWSEc2TransitGatewayRoute_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2TransitGateway(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TransitGatewayRouteDestroy,
 		Steps: []resource.TestStep{
@@ -39,6 +40,37 @@ func TestAccAWSEc2TransitGatewayRoute_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSEc2TransitGatewayRoute_basic_ipv6(t *testing.T) {
+	var transitGatewayRoute1 ec2.TransitGatewayRoute
+	resourceName := "aws_ec2_transit_gateway_route.test_ipv6"
+	transitGatewayResourceName := "aws_ec2_transit_gateway.test"
+	transitGatewayVpcAttachmentResourceName := "aws_ec2_transit_gateway_vpc_attachment.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2TransitGateway(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEc2TransitGatewayRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEc2TransitGatewayRouteConfigDestinationCidrBlock(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEc2TransitGatewayRouteExists(resourceName, &transitGatewayRoute1),
+					resource.TestCheckResourceAttr(resourceName, "destination_cidr_block", "2001:db8::/56"),
+					resource.TestCheckResourceAttr(resourceName, "blackhole", "false"),
+					resource.TestCheckResourceAttrPair(resourceName, "transit_gateway_attachment_id", transitGatewayVpcAttachmentResourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "transit_gateway_route_table_id", transitGatewayResourceName, "association_default_route_table_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSEc2TransitGatewayRoute_blackhole(t *testing.T) {
 	var transitGatewayRoute1 ec2.TransitGatewayRoute
 	resourceName := "aws_ec2_transit_gateway_route.test_blackhole"
@@ -46,6 +78,7 @@ func TestAccAWSEc2TransitGatewayRoute_blackhole(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2TransitGateway(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TransitGatewayRouteDestroy,
 		Steps: []resource.TestStep{
@@ -76,6 +109,7 @@ func TestAccAWSEc2TransitGatewayRoute_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2TransitGateway(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TransitGatewayRouteDestroy,
 		Steps: []resource.TestStep{
@@ -102,6 +136,7 @@ func TestAccAWSEc2TransitGatewayRoute_disappears_TransitGatewayAttachment(t *tes
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2TransitGateway(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TransitGatewayRouteDestroy,
 		Steps: []resource.TestStep{
@@ -204,18 +239,7 @@ func testAccCheckAWSEc2TransitGatewayRouteDisappears(transitGateway *ec2.Transit
 }
 
 func testAccAWSEc2TransitGatewayRouteConfigDestinationCidrBlock() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  # IncorrectState: Transit Gateway is not available in availability zone us-west-2d
-  exclude_zone_ids = ["usw2-az4"]
-  state            = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
@@ -225,9 +249,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "10.0.0.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-ec2-transit-gateway-route"
@@ -237,21 +261,27 @@ resource "aws_subnet" "test" {
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
-  subnet_ids         = ["${aws_subnet.test.id}"]
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
-  vpc_id             = "${aws_vpc.test.id}"
+  subnet_ids         = [aws_subnet.test.id]
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
+  vpc_id             = aws_vpc.test.id
 }
 
 resource "aws_ec2_transit_gateway_route" "test" {
   destination_cidr_block         = "0.0.0.0/0"
-  transit_gateway_attachment_id  = "${aws_ec2_transit_gateway_vpc_attachment.test.id}"
-  transit_gateway_route_table_id = "${aws_ec2_transit_gateway.test.association_default_route_table_id}"
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.test.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway.test.association_default_route_table_id
+}
+
+resource "aws_ec2_transit_gateway_route" "test_ipv6" {
+  destination_cidr_block         = "2001:db8::/56"
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.test.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway.test.association_default_route_table_id
 }
 
 resource "aws_ec2_transit_gateway_route" "test_blackhole" {
   destination_cidr_block         = "10.1.0.0/16"
   blackhole                      = true
-  transit_gateway_route_table_id = "${aws_ec2_transit_gateway.test.association_default_route_table_id}"
+  transit_gateway_route_table_id = aws_ec2_transit_gateway.test.association_default_route_table_id
 }
 `)
 }

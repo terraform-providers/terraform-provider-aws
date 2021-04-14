@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -70,6 +70,7 @@ func TestAccAWSPinpointApp_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -96,6 +97,7 @@ func TestAccAWSPinpointApp_CampaignHookLambda(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -124,6 +126,7 @@ func TestAccAWSPinpointApp_Limits(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -152,6 +155,7 @@ func TestAccAWSPinpointApp_QuietTime(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -180,6 +184,7 @@ func TestAccAWSPinpointApp_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsRamResourceShareDestroy,
 		Steps: []resource.TestStep{
@@ -272,21 +277,23 @@ resource "aws_pinpoint_app" "test" {
   name = %[1]q
 
   campaign_hook {
-    lambda_function_name = "${aws_lambda_function.test.arn}"
+    lambda_function_name = aws_lambda_function.test.arn
     mode                 = "DELIVERY"
   }
 
-  depends_on = ["aws_lambda_permission.test"]
+  depends_on = [aws_lambda_permission.test]
 }
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdapinpoint.zip"
   function_name = %[1]q
-  role          = "${aws_iam_role.test.arn}"
+  role          = aws_iam_role.test.arn
   handler       = "lambdapinpoint.handler"
   runtime       = "nodejs12.x"
   publish       = true
 }
+
+data "aws_partition" "current" {}
 
 resource "aws_iam_role" "test" {
   name = %[1]q
@@ -298,7 +305,7 @@ resource "aws_iam_role" "test" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "lambda.amazonaws.com"
+        "Service": "lambda.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -309,14 +316,15 @@ EOF
 }
 
 data "aws_caller_identity" "aws" {}
+
 data "aws_region" "current" {}
 
 resource "aws_lambda_permission" "test" {
   statement_id  = "AllowExecutionFromPinpoint"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.test.function_name}"
-  principal     = "pinpoint.${data.aws_region.current.name}.amazonaws.com"
-  source_arn    = "arn:aws:mobiletargeting:${data.aws_region.current.name}:${data.aws_caller_identity.aws.account_id}:/apps/*"
+  function_name = aws_lambda_function.test.function_name
+  principal     = "pinpoint.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
+  source_arn    = "arn:${data.aws_partition.current.partition}:mobiletargeting:${data.aws_region.current.name}:${data.aws_caller_identity.aws.account_id}:/apps/*"
 }
 `, rName)
 }

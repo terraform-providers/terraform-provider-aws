@@ -24,21 +24,21 @@ connection and use the `aws_vpc_peering_connection_accepter` resource to manage 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
 }
 ```
 
 Basic usage with connection options:
 
-```hcl
+```terraform
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
 
   accepter {
     allow_remote_vpc_dns_resolution = true
@@ -52,11 +52,11 @@ resource "aws_vpc_peering_connection" "foo" {
 
 Basic usage with tags:
 
-```hcl
+```terraform
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
   auto_accept   = true
 
   tags = {
@@ -76,21 +76,21 @@ resource "aws_vpc" "bar" {
 Basic usage with region:
 
 
-```hcl
+```terraform
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
   peer_region   = "us-east-1"
 }
 
 resource "aws_vpc" "foo" {
-  provider   = "aws.us-west-2"
+  provider   = aws.us-west-2
   cidr_block = "10.1.0.0/16"
 }
 
 resource "aws_vpc" "bar" {
-  provider   = "aws.us-east-1"
+  provider   = aws.us-east-1
   cidr_block = "10.2.0.0/16"
 }
 ```
@@ -109,22 +109,18 @@ The following arguments are supported:
 * `peer_vpc_id` - (Required) The ID of the VPC with which you are creating the VPC Peering Connection.
 * `vpc_id` - (Required) The ID of the requester VPC.
 * `auto_accept` - (Optional) Accept the peering (both VPCs need to be in the same AWS account).
-* `peer_region` - (Optional) The region of the accepter VPC of the [VPC Peering Connection]. `auto_accept` must be `false`,
+* `peer_region` - (Optional) The region of the accepter VPC of the VPC Peering Connection. `auto_accept` must be `false`,
 and use the `aws_vpc_peering_connection_accepter` to manage the accepter side.
-* `accepter` (Optional) - An optional configuration block that allows for [VPC Peering Connection]
-(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that accepts
+* `accepter` (Optional) - An optional configuration block that allows for [VPC Peering Connection](https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that accepts
 the peering connection (a maximum of one).
-* `requester` (Optional) - A optional configuration block that allows for [VPC Peering Connection]
-(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that requests
+* `requester` (Optional) - A optional configuration block that allows for [VPC Peering Connection](https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that requests
 the peering connection (a maximum of one).
 * `tags` - (Optional) A map of tags to assign to the resource.
 
 #### Accepter and Requester Arguments
 
 -> **Note:** When enabled, the DNS resolution feature requires that VPCs participating in the peering
-must have support for the DNS hostnames enabled. This can be done using the [`enable_dns_hostnames`]
-(vpc.html#enable_dns_hostnames) attribute in the [`aws_vpc`](vpc.html) resource. See [Using DNS with Your VPC]
-(http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-dns.html) user guide for more information.
+must have support for the DNS hostnames enabled. This can be done using the [`enable_dns_hostnames`](vpc.html#enable_dns_hostnames) attribute in the [`aws_vpc`](vpc.html) resource. See [Using DNS with Your VPC](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-dns.html) user guide for more information.
 
 * `allow_remote_vpc_dns_resolution` - (Optional) Allow a local VPC to resolve public DNS hostnames to
 private IP addresses when queried from instances in the peer VPC. This is
@@ -140,7 +136,7 @@ connection.
 ### Timeouts
 
 `aws_vpc_peering_connection` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `1 minute`) Used for creating a peering connection
 - `update` - (Default `1 minute`) Used for peering connection modifications

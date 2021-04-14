@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsSsmDocument() *schema.Resource {
@@ -66,7 +66,7 @@ func dataAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := ssmconn.GetDocument(docInput)
 
 	if err != nil {
-		return fmt.Errorf("Error reading SSM Document: %s", err)
+		return fmt.Errorf("Error reading SSM Document: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.Name))

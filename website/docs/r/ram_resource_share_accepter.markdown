@@ -16,7 +16,7 @@ Manage accepting a Resource Access Manager (RAM) Resource Share invitation. From
 
 This configuration provides an example of using multiple Terraform AWS providers to configure two different AWS accounts. In the _sender_ account, the configuration creates a `aws_ram_resource_share` and uses a data source in the _receiver_ account to create a `aws_ram_principal_association` resource with the _receiver's_ account ID. In the _receiver_ account, the configuration accepts the invitation to share resources with the `aws_ram_resource_share_accepter`.
 
-```hcl
+```terraform
 provider "aws" {
   profile = "profile2"
 }
@@ -27,7 +27,7 @@ provider "aws" {
 }
 
 resource "aws_ram_resource_share" "sender_share" {
-  provider = "aws.alternate"
+  provider = aws.alternate
 
   name                      = "tf-test-resource-share"
   allow_external_principals = true
@@ -38,16 +38,16 @@ resource "aws_ram_resource_share" "sender_share" {
 }
 
 resource "aws_ram_principal_association" "sender_invite" {
-  provider = "aws.alternate"
+  provider = aws.alternate
 
-  principal          = "${data.aws_caller_identity.receiver.account_id}"
-  resource_share_arn = "${aws_ram_resource_share.sender_share.arn}"
+  principal          = data.aws_caller_identity.receiver.account_id
+  resource_share_arn = aws_ram_resource_share.sender_share.arn
 }
 
 data "aws_caller_identity" "receiver" {}
 
 resource "aws_ram_resource_share_accepter" "receiver_accept" {
-  share_arn = "${aws_ram_principal_association.sender_invite.resource_share_arn}"
+  share_arn = aws_ram_principal_association.sender_invite.resource_share_arn
 }
 ```
 

@@ -7,10 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecr/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsEcrRepository() *schema.Resource {
@@ -28,19 +31,35 @@ func resourceAwsEcrRepository() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"arn": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
-			"image_tag_mutability": {
-				Type:     schema.TypeString,
+			"encryption_configuration": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Default:  ecr.ImageTagMutabilityMutable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ecr.ImageTagMutabilityMutable,
-					ecr.ImageTagMutabilityImmutable,
-				}, false),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"encryption_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								ecr.EncryptionTypeAes256,
+								ecr.EncryptionTypeKms,
+							}, false),
+							Default:  ecr.EncryptionTypeAes256,
+							ForceNew: true,
+						},
+						"kms_key": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+					},
+				},
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				ForceNew:         true,
 			},
 			"image_scanning_configuration": {
 				Type:     schema.TypeList,
@@ -56,10 +75,19 @@ func resourceAwsEcrRepository() *schema.Resource {
 				},
 				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			},
-			"tags": tagsSchema(),
-			"arn": {
+			"image_tag_mutability": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
+				Default:  ecr.ImageTagMutabilityMutable,
+				ValidateFunc: validation.StringInSlice([]string{
+					ecr.ImageTagMutabilityMutable,
+					ecr.ImageTagMutabilityImmutable,
+				}, false),
+			},
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"registry_id": {
 				Type:     schema.TypeString,
@@ -69,6 +97,7 @@ func resourceAwsEcrRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -77,9 +106,10 @@ func resourceAwsEcrRepositoryCreate(d *schema.ResourceData, meta interface{}) er
 	conn := meta.(*AWSClient).ecrconn
 
 	input := ecr.CreateRepositoryInput{
-		ImageTagMutability: aws.String(d.Get("image_tag_mutability").(string)),
-		RepositoryName:     aws.String(d.Get("name").(string)),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcrTags(),
+		ImageTagMutability:      aws.String(d.Get("image_tag_mutability").(string)),
+		RepositoryName:          aws.String(d.Get("name").(string)),
+		Tags:                    keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcrTags(),
+		EncryptionConfiguration: expandEcrRepositoryEncryptionConfiguration(d.Get("encryption_configuration").([]interface{})),
 	}
 
 	imageScanningConfigs := d.Get("image_scanning_configuration").([]interface{})
@@ -118,30 +148,38 @@ func resourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) erro
 		RepositoryNames: aws.StringSlice([]string{d.Id()}),
 	}
 
-	var err error
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
 		out, err = conn.DescribeRepositories(input)
-		if d.IsNewResource() && isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
 			return resource.RetryableError(err)
 		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
+	if tfresource.TimedOut(err) {
 		out, err = conn.DescribeRepositories(input)
 	}
 
-	if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
 		log.Printf("[WARN] ECR Repository (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading ECR repository: %s", err)
+		return fmt.Errorf("error reading ECR Repository (%s): %w", d.Id(), err)
+	}
+
+	if out == nil || len(out.Repositories) == 0 || out.Repositories[0] == nil {
+		return fmt.Errorf("error reading ECR Repository (%s): empty response", d.Id())
 	}
 
 	repository := out.Repositories[0]
@@ -153,18 +191,20 @@ func resourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("repository_url", repository.RepositoryUri)
 	d.Set("image_tag_mutability", repository.ImageTagMutability)
 
-	if err := d.Set("image_scanning_configuration", flattenImageScanningConfiguration(repository.ImageScanningConfiguration)); err != nil {
-		return fmt.Errorf("error setting image_scanning_configuration: %s", err)
-	}
-
 	tags, err := keyvaluetags.EcrListTags(conn, arn)
-
 	if err != nil {
-		return fmt.Errorf("error listing tags for ECR Repository (%s): %s", arn, err)
+		return fmt.Errorf("error listing tags for ECR Repository (%s): %w", arn, err)
+	}
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags for ECR Repository (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	if err := d.Set("image_scanning_configuration", flattenImageScanningConfiguration(repository.ImageScanningConfiguration)); err != nil {
+		return fmt.Errorf("error setting image_scanning_configuration for ECR Repository (%s): %w", arn, err)
+	}
+
+	if err := d.Set("encryption_configuration", flattenEcrRepositoryEncryptionConfiguration(repository.EncryptionConfiguration)); err != nil {
+		return fmt.Errorf("error setting encryption_configuration for ECR Repository (%s): %w", arn, err)
 	}
 
 	return nil
@@ -177,6 +217,38 @@ func flattenImageScanningConfiguration(isc *ecr.ImageScanningConfiguration) []ma
 
 	config := make(map[string]interface{})
 	config["scan_on_push"] = aws.BoolValue(isc.ScanOnPush)
+
+	return []map[string]interface{}{
+		config,
+	}
+}
+
+func expandEcrRepositoryEncryptionConfiguration(data []interface{}) *ecr.EncryptionConfiguration {
+	if len(data) == 0 || data[0] == nil {
+		return nil
+	}
+
+	ec := data[0].(map[string]interface{})
+	config := &ecr.EncryptionConfiguration{
+		EncryptionType: aws.String(ec["encryption_type"].(string)),
+	}
+	if v, ok := ec["kms_key"]; ok {
+		if s := v.(string); s != "" {
+			config.KmsKey = aws.String(v.(string))
+		}
+	}
+	return config
+}
+
+func flattenEcrRepositoryEncryptionConfiguration(ec *ecr.EncryptionConfiguration) []map[string]interface{} {
+	if ec == nil {
+		return nil
+	}
+
+	config := map[string]interface{}{
+		"encryption_type": aws.StringValue(ec.EncryptionType),
+		"kms_key":         aws.StringValue(ec.KmsKey),
+	}
 
 	return []map[string]interface{}{
 		config,

@@ -8,10 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 const (
@@ -114,25 +116,46 @@ func resourceAwsEcsClusterCreate(d *schema.ResourceData, meta interface{}) error
 	clusterName := d.Get("name").(string)
 	log.Printf("[DEBUG] Creating ECS cluster %s", clusterName)
 
-	input := ecs.CreateClusterInput{
-		ClusterName: aws.String(clusterName),
-		Tags:        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcsTags(),
-	}
-
-	if v, ok := d.GetOk("setting"); ok {
-		input.Settings = expandEcsSettings(v.(*schema.Set))
+	input := &ecs.CreateClusterInput{
+		ClusterName:                     aws.String(clusterName),
+		DefaultCapacityProviderStrategy: expandEcsCapacityProviderStrategy(d.Get("default_capacity_provider_strategy").(*schema.Set)),
+		Tags:                            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcsTags(),
 	}
 
 	if v, ok := d.GetOk("capacity_providers"); ok {
 		input.CapacityProviders = expandStringSet(v.(*schema.Set))
 	}
 
-	input.DefaultCapacityProviderStrategy = expandEcsCapacityProviderStrategy(d.Get("default_capacity_provider_strategy").(*schema.Set))
-
-	out, err := conn.CreateCluster(&input)
-	if err != nil {
-		return err
+	if v, ok := d.GetOk("setting"); ok {
+		input.Settings = expandEcsSettings(v.(*schema.Set))
 	}
+
+	// CreateCluster will create the ECS IAM Service Linked Role on first ECS provision
+	// This process does not complete before the initial API call finishes.
+	var out *ecs.CreateClusterOutput
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+		out, err = conn.CreateCluster(input)
+
+		if tfawserr.ErrMessageContains(err, ecs.ErrCodeInvalidParameterException, "Unable to assume the service linked role") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		out, err = conn.CreateCluster(input)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error creating ECS Cluster (%s): %w", clusterName, err)
+	}
+
 	log.Printf("[DEBUG] ECS cluster %s created", aws.StringValue(out.Cluster.ClusterArn))
 
 	d.SetId(aws.StringValue(out.Cluster.ClusterArn))

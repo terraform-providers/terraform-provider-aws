@@ -4,7 +4,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSSNSTopicPolicy_basic(t *testing.T) {
@@ -13,6 +14,7 @@ func TestAccAWSSNSTopicPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sns.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSNSTopicDestroy,
 		Steps: []resource.TestStep{
@@ -35,22 +37,33 @@ func TestAccAWSSNSTopicPolicy_basic(t *testing.T) {
 
 const testAccAWSSNSTopicConfig_withPolicy = `
 resource "aws_sns_topic" "test" {
-    name = "tf-acc-test-topic-with-policy"
+  name = "tf-acc-test-topic-with-policy"
 }
 
 resource "aws_sns_topic_policy" "custom" {
-	arn = "${aws_sns_topic.test.arn}"
-	policy = <<POLICY
+  arn = aws_sns_topic.test.arn
+
+  policy = <<POLICY
 {
-   "Version":"2012-10-17",
-   "Id": "default",
-   "Statement":[{
-   	"Sid":"default",
-   	"Effect":"Allow",
-   	"Principal":{"AWS":"*"},
-   	"Action":["SNS:GetTopicAttributes","SNS:SetTopicAttributes","SNS:AddPermission","SNS:RemovePermission","SNS:DeleteTopic"],
-   	"Resource":"${aws_sns_topic.test.arn}"
-  }]
+  "Version": "2012-10-17",
+  "Id": "default",
+  "Statement": [
+    {
+      "Sid": "default",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "SNS:GetTopicAttributes",
+        "SNS:SetTopicAttributes",
+        "SNS:AddPermission",
+        "SNS:RemovePermission",
+        "SNS:DeleteTopic"
+      ],
+      "Resource": "${aws_sns_topic.test.arn}"
+    }
+  ]
 }
 POLICY
 }

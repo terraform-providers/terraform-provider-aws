@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/sfn"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsSfnStateMachine(t *testing.T) {
+func TestAccDataSourceAwsSfnStateMachine_basic(t *testing.T) {
 	rName := acctest.RandString(5)
 	dataSourceName := "data.aws_sfn_state_machine.test"
 	resourceName := "aws_sfn_state_machine.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, sfn.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSfnStateMachineConfig(rName),
@@ -57,7 +59,7 @@ EOF
 
 resource "aws_sfn_state_machine" "test" {
   name     = "test_sfn_%s"
-  role_arn = "${aws_iam_role.iam_for_sfn.arn}"
+  role_arn = aws_iam_role.iam_for_sfn.arn
 
   definition = <<EOF
 {
@@ -72,7 +74,7 @@ EOF
 }
 
 data "aws_sfn_state_machine" "test" {
-  name = "${aws_sfn_state_machine.test.name}"
+  name = aws_sfn_state_machine.test.name
 }
 `, rName, rName)
 }

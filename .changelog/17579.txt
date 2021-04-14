@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_msk_cluster: Orders `bootstrap_brokers`, `bootstrap_brokers_sasl_scram`, `bootstrap_brokers_tls`, and `zookeeper_connect_string`
+```
+
+```release-note:enhancement
+data-source/aws_msk_cluster: Orders `bootstrap_brokers`, `bootstrap_brokers_sasl_scram`, `bootstrap_brokers_tls`, and `zookeeper_connect_string`
+```

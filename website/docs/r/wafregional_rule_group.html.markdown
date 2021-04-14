@@ -12,7 +12,7 @@ Provides a WAF Regional Rule Group Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_rule" "example" {
   name        = "example"
   metric_name = "example"
@@ -28,7 +28,7 @@ resource "aws_wafregional_rule_group" "example" {
     }
 
     priority = 50
-    rule_id  = "${aws_wafregional_rule.example.id}"
+    rule_id  = aws_wafregional_rule.example.id
   }
 }
 ```

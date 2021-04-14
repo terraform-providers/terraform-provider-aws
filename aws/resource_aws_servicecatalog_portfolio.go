@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/servicecatalog"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -82,7 +82,7 @@ func resourceAwsServiceCatalogPortfolioCreate(d *schema.ResourceData, meta inter
 	if err != nil {
 		return fmt.Errorf("Creating Service Catalog Portfolio failed: %s", err.Error())
 	}
-	d.SetId(*resp.PortfolioDetail.Id)
+	d.SetId(aws.StringValue(resp.PortfolioDetail.Id))
 
 	return resourceAwsServiceCatalogPortfolioRead(d, meta)
 }

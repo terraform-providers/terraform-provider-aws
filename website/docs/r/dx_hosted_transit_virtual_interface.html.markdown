@@ -14,9 +14,9 @@ A hosted virtual interface is a virtual interface that is owned by another AWS a
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_hosted_transit_virtual_interface" "example" {
-  connection_id = "${aws_dx_connection.example.id}"
+  connection_id = aws_dx_connection.example.id
 
   name           = "tf-transit-vif-example"
   vlan           = 4094
@@ -52,7 +52,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_hosted_transit_virtual_interface` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating virtual interface
 - `update` - (Default `10 minutes`) Used for virtual interface modifications

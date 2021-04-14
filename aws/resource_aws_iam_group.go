@@ -2,14 +2,17 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamGroup() *schema.Resource {
@@ -36,7 +39,7 @@ func resourceAwsIamGroup() *schema.Resource {
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[0-9A-Za-z=,.@\-_+]+$`),
-					fmt.Sprintf("must only contain alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs"),
+					"must only contain alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs",
 				),
 			},
 			"path": {
@@ -62,9 +65,9 @@ func resourceAwsIamGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error creating IAM Group %s: %s", name, err)
 	}
-	d.SetId(*createResp.Group.GroupName)
+	d.SetId(aws.StringValue(createResp.Group.GroupName))
 
-	return resourceAwsIamGroupReadResult(d, createResp.Group)
+	return resourceAwsIamGroupRead(d, meta)
 }
 
 func resourceAwsIamGroupRead(d *schema.ResourceData, meta interface{}) error {
@@ -74,18 +77,44 @@ func resourceAwsIamGroupRead(d *schema.ResourceData, meta interface{}) error {
 		GroupName: aws.String(d.Id()),
 	}
 
-	getResp, err := iamconn.GetGroup(request)
-	if err != nil {
-		if iamerr, ok := err.(awserr.Error); ok && iamerr.Code() == "NoSuchEntity" {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error reading IAM Group %s: %s", d.Id(), err)
-	}
-	return resourceAwsIamGroupReadResult(d, getResp.Group)
-}
+	var getResp *iam.GetGroupOutput
 
-func resourceAwsIamGroupReadResult(d *schema.ResourceData, group *iam.Group) error {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		getResp, err = iamconn.GetGroup(request)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		getResp, err = iamconn.GetGroup(request)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM Group (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM Group (%s): %w", d.Id(), err)
+	}
+
+	if getResp == nil || getResp.Group == nil {
+		return fmt.Errorf("error reading IAM Group (%s): empty response", d.Id())
+	}
+
+	group := getResp.Group
+
 	if err := d.Set("name", group.GroupName); err != nil {
 		return err
 	}

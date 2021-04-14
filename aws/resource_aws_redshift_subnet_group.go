@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -81,7 +81,7 @@ func resourceAwsRedshiftSubnetGroupCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error creating Redshift Subnet Group: %s", err)
 	}
 
-	d.SetId(*createOpts.ClusterSubnetGroupName)
+	d.SetId(aws.StringValue(createOpts.ClusterSubnetGroupName))
 	log.Printf("[INFO] Redshift Subnet Group ID: %s", d.Id())
 	return resourceAwsRedshiftSubnetGroupRead(d, meta)
 }

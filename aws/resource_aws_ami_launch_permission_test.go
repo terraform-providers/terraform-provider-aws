@@ -6,17 +6,18 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSAMILaunchPermission_Basic(t *testing.T) {
+func TestAccAWSAMILaunchPermission_basic(t *testing.T) {
 	resourceName := "aws_ami_launch_permission.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAMILaunchPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -42,6 +43,7 @@ func TestAccAWSAMILaunchPermission_Disappears_LaunchPermission(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAMILaunchPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +59,7 @@ func TestAccAWSAMILaunchPermission_Disappears_LaunchPermission(t *testing.T) {
 	})
 }
 
-// Bug reference: https://github.com/terraform-providers/terraform-provider-aws/issues/6222
+// Bug reference: https://github.com/hashicorp/terraform-provider-aws/issues/6222
 // Images with <group>all</group> will not have <userId> and can cause a panic
 func TestAccAWSAMILaunchPermission_Disappears_LaunchPermission_Public(t *testing.T) {
 	resourceName := "aws_ami_launch_permission.test"
@@ -65,6 +67,7 @@ func TestAccAWSAMILaunchPermission_Disappears_LaunchPermission_Public(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAMILaunchPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -88,6 +91,7 @@ func TestAccAWSAMILaunchPermission_Disappears_AMI(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAMILaunchPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -280,13 +284,13 @@ data "aws_region" "current" {}
 resource "aws_ami_copy" "test" {
   description       = %q
   name              = %q
-  source_ami_id     = "${data.aws_ami.amzn-ami-minimal-hvm.id}"
-  source_ami_region = "${data.aws_region.current.name}"
+  source_ami_id     = data.aws_ami.amzn-ami-minimal-hvm.id
+  source_ami_region = data.aws_region.current.name
 }
 
 resource "aws_ami_launch_permission" "test" {
-  account_id = "${data.aws_caller_identity.current.account_id}"
-  image_id   = "${aws_ami_copy.test.id}"
+  account_id = data.aws_caller_identity.current.account_id
+  image_id   = aws_ami_copy.test.id
 }
 `, rName, rName)
 }

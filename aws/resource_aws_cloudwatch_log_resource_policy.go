@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsCloudWatchLogResourcePolicy() *schema.Resource {
@@ -104,7 +104,7 @@ func lookupCloudWatchLogResourcePolicy(conn *cloudwatchlogs.CloudWatchLogs,
 	}
 
 	for _, resourcePolicy := range resp.ResourcePolicies {
-		if *resourcePolicy.PolicyName == name {
+		if aws.StringValue(resourcePolicy.PolicyName) == name {
 			return resourcePolicy, true, nil
 		}
 	}

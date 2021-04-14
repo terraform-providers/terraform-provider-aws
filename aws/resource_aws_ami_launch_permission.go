@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsAmiLaunchPermission() *schema.Resource {
@@ -77,6 +77,10 @@ func resourceAwsAmiLaunchPermissionRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error reading AMI launch permission (%s): %w", d.Id(), err)
 	}
 	if !exists {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 AMI Launch Permission (%s): not found", d.Id())
+		}
+
 		log.Printf("[WARN] AMI launch permission (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil

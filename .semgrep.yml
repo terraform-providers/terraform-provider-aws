@@ -1,0 +1,376 @@
+rules:
+  - id: acceptance-test-naming-parent-disappears
+    languages: [go]
+    message: Prefer naming acceptance tests with _disappears_Parent suffix
+    paths:
+      include:
+        - 'aws/*_test.go'
+    patterns:
+      - pattern: func $FUNCNAME(t *testing.T) { ... }
+      - metavariable-regex:
+          metavariable: "$FUNCNAME"
+          regex: "^TestAcc[^_]+_([a-zA-Z]+[dD]isappears|[^_]+_disappears)$"
+    severity: WARNING
+
+  - id: aws-sdk-go-multiple-service-imports
+    languages: [go]
+    message: Resources should not implement multiple AWS service functionality
+    paths:
+      exclude:
+        - aws/config.go
+        - aws/structure.go
+        - aws/validators.go
+        - aws/*wafregional*.go
+        - aws/resource_aws_serverlessapplicationrepository_cloudformation_stack.go
+        - aws/*_test.go
+        - aws/internal/keyvaluetags/
+        - aws/internal/service/wafregional/
+        # Legacy resource handling
+        - aws/resource_aws_autoscaling_group.go
+        - aws/resource_aws_efs_mount_target.go
+        - aws/resource_aws_elastic_beanstalk_environment.go
+        - aws/resource_aws_elb.go
+        - aws/resource_aws_iam_server_certificate.go
+        - aws/resource_aws_lambda_event_source_mapping.go
+        - aws/resource_aws_launch_configuration.go
+        - aws/resource_aws_lb.go
+        - aws/resource_aws_s3_bucket_object.go
+      include:
+        - aws/
+    patterns:
+      - pattern: |
+          import ("$X")
+          import ("$Y")
+      - metavariable-regex:
+          metavariable: '$X'
+          regex: '^"github.com/aws/aws-sdk-go/service/[^/]+"$'
+      - metavariable-regex:
+          metavariable: '$Y'
+          regex: '^"github.com/aws/aws-sdk-go/service/[^/]+"$'
+    severity: WARNING
+
+  - id: prefer-aws-go-sdk-pointer-conversion-assignment
+    languages: [go]
+    message: Prefer AWS Go SDK pointer conversion functions for dereferencing during assignment, e.g. aws.StringValue()
+    paths:
+      exclude:
+        - aws/cloudfront_distribution_configuration_structure.go
+        - aws/data_source_aws_route_table.go
+        - aws/opsworks_layers.go
+        - aws/resource_aws_d*
+        - aws/resource_aws_e*
+        - aws/resource_aws_g*
+        - aws/resource_aws_i*
+        - aws/resource_aws_k*
+        - aws/resource_aws_l*
+        - aws/resource_aws_mq_broker.go
+        - aws/resource_aws_o*
+        - aws/resource_aws_r*
+        - aws/resource_aws_s*
+        - aws/structure.go
+        - aws/waf_helpers.go
+        - aws/internal/generators/
+        - aws/internal/keyvaluetags/
+        - awsproviderlint/vendor/
+      include:
+        - aws/
+    patterns:
+      - pattern: '$LHS = *$RHS'
+      - pattern-not: '*$LHS2 = *$RHS'
+    severity: WARNING
+
+  - id: prefer-aws-go-sdk-pointer-conversion-conditional
+    languages: [go]
+    message: Prefer AWS Go SDK pointer conversion functions for dereferencing during conditionals, e.g. aws.StringValue()
+    paths:
+      exclude:
+        - aws/cloudfront_distribution_configuration_structure.go
+        - aws/cloudfront_distribution_configuration_structure_test.go
+        - aws/config.go
+        - aws/data_source_aws_route*
+        - aws/ecs_task_definition_equivalency.go
+        - aws/opsworks_layers.go
+        - aws/resource_aws_d*.go
+        - aws/resource_aws_e*.go
+        - aws/resource_aws_g*.go
+        - aws/resource_aws_i*.go
+        - aws/resource_aws_k*.go
+        - aws/resource_aws_l*.go
+        - aws/resource_aws_main_route_table_association.go
+        - aws/resource_aws_n*.go
+        - aws/resource_aws_o*.go
+        - aws/resource_aws_r*.go
+        - aws/resource_aws_s*.go
+        - aws/resource*_test.go
+        - aws/structure.go
+        - aws/internal/generators/
+        - aws/internal/keyvaluetags/
+        - aws/internal/naming/
+        - awsproviderlint/vendor/
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: '$LHS == *$RHS'
+        - pattern: '$LHS != *$RHS'
+        - pattern: '$LHS > *$RHS'
+        - pattern: '$LHS < *$RHS'
+        - pattern: '$LHS >= *$RHS'
+        - pattern: '$LHS <= *$RHS'
+        - pattern: '*$LHS == $RHS'
+        - pattern: '*$LHS != $RHS'
+        - pattern: '*$LHS > $RHS'
+        - pattern: '*$LHS < $RHS'
+        - pattern: '*$LHS >= $RHS'
+        - pattern: '*$LHS <= $RHS'
+    severity: WARNING
+
+  - id: aws-go-sdk-pointer-conversion-ResourceData-SetId
+    fix: d.SetId(aws.StringValue($VALUE))
+    languages: [go]
+    message: Prefer AWS Go SDK pointer conversion aws.StringValue() function for dereferencing during d.SetId()
+    paths:
+      include:
+        - aws/
+    pattern: 'd.SetId(*$VALUE)'
+    severity: WARNING
+
+  - id: aws-go-sdk-pointer-conversion-immediate-dereference
+    fix: $VALUE
+    languages: [go]
+    message: Using AWS Go SDK pointer conversion, e.g. aws.String(), with immediate dereferencing is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: '*aws.Bool($VALUE)'
+        - pattern: '*aws.Float64($VALUE)'
+        - pattern: '*aws.Int64($VALUE)'
+        - pattern: '*aws.String($VALUE)'
+        - pattern: '*aws.Time($VALUE)'
+    severity: WARNING
+
+  - id: helper-acctest-RandInt-compiled
+    languages: [go]
+    message: Using `acctest.RandInt()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: const $CONST = fmt.Sprintf(..., <... acctest.RandInt() ...>, ...)
+        - pattern: var $VAR = fmt.Sprintf(..., <... acctest.RandInt() ...>, ...)
+    severity: WARNING
+
+  - id: helper-acctest-RandString-compiled
+    languages: [go]
+    message: Using `acctest.RandString()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: const $CONST = fmt.Sprintf(..., <... acctest.RandString(...) ...>, ...)
+        - pattern: var $VAR = fmt.Sprintf(..., <... acctest.RandString(...) ...>, ...)
+    severity: WARNING
+
+  - id: helper-acctest-RandomWithPrefix-compiled
+    languages: [go]
+    message: Using `acctest.RandomWithPrefix()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: const $CONST = fmt.Sprintf(..., <... acctest.RandomWithPrefix(...) ...>, ...)
+        - pattern: var $VAR = fmt.Sprintf(..., <... acctest.RandomWithPrefix(...) ...>, ...)
+    severity: WARNING
+
+  - id: helper-schema-Set-extraneous-NewSet-with-flattenStringList
+    languages: [go]
+    message: Prefer `flattenStringSet()` function for casting a list of string pointers to a set
+    paths:
+      include:
+        - aws/
+    pattern: schema.NewSet(schema.HashString, flattenStringList($APIOBJECT))
+    severity: WARNING
+
+  - id: helper-schema-Set-extraneous-expandStringList-with-List
+    languages: [go]
+    message: Prefer `expandStringSet()` function for casting a set to a list of string pointers
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: expandStringList($SET.List())
+        - pattern: |
+            $LIST := $SET.List()
+            ...
+            expandStringList($LIST)
+    severity: WARNING
+
+
+  - id: helper-schema-ResourceData-GetOk-with-extraneous-conditional
+    languages: [go]
+    message: Zero value conditional check after `d.GetOk()` is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(bool) { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(int) != 0 { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(int) > 0 { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(string) != "" { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && len($VALUE.(string)) > 0 { $BODY }
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-Set-extraneous-value-pointer-conversion
+    fix: d.Set($ATTRIBUTE, $APIOBJECT)
+    languages: [go]
+    message: AWS Go SDK pointer conversion function for `d.Set()` value is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+          - pattern: d.Set($ATTRIBUTE, aws.BoolValue($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, aws.Float64Value($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, aws.IntValue($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, aws.Int64Value($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, int(aws.Int64Value($APIOBJECT)))
+          - pattern: d.Set($ATTRIBUTE, aws.StringValue($APIOBJECT))
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-SetId-empty-without-IsNewResource-check
+    languages: [go]
+    message: Calling `d.SetId("")` should ensure `!d.IsNewResource()` is checked first
+    paths:
+      exclude:
+        - aws/resource_aws_api_gateway_*.go
+        - aws/resource_aws_apigatewayv2_*.go
+        - aws/resource_aws_app_cookie_stickiness_policy.go
+        - aws/resource_aws_appautoscaling_*.go
+        - aws/resource_aws_appsync_*.go
+        - aws/resource_aws_athena_*.go
+        - aws/resource_aws_autoscaling_*.go
+        - aws/resource_aws_autoscalingplans_scaling_plan.go
+        - aws/resource_aws_[b-g]*.go
+        - aws/resource_aws_i*.go
+        - aws/resource_aws_[k-t]*.go
+        - aws/resource_aws_[v-x]*.go
+      include:
+        - aws/resource*.go
+    patterns:
+      - pattern-either:
+        - pattern: |
+            d.SetId("")
+            ...
+            return nil
+      - pattern-not-inside: |
+          if ... {
+            if <... d.IsNewResource() ...> { ... }
+            ...
+            d.SetId("")
+            ...
+            return nil
+          }
+      - pattern-not-inside: |
+          if <... d.IsNewResource() ...> { ... }
+    severity: WARNING
+
+  - id: helper-schema-resource-Retry-without-TimeoutError-check
+    languages: [go]
+    message: Check resource.Retry() errors with tfresource.TimedOut()
+    paths:
+      exclude:
+        - "*_test.go"
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            $ERR := resource.Retry(...)
+            ...
+            return ...
+        - pattern: |
+            $ERR = resource.Retry(...)
+            ...
+            return ...
+      - pattern-not: |
+          $ERR := resource.Retry(...)
+          ...
+          if isResourceTimeoutError($ERR) { ... }
+          ...
+          return ...
+      - pattern-not: |
+          $ERR = resource.Retry(...)
+          ...
+          if isResourceTimeoutError($ERR) { ... }
+          ...
+          return ...
+      - pattern-not: |
+          $ERR := resource.Retry(...)
+          ...
+          if tfresource.TimedOut($ERR) { ... }
+          ...
+          return ...
+      - pattern-not: |
+          $ERR = resource.Retry(...)
+          ...
+          if tfresource.TimedOut($ERR) { ... }
+          ...
+          return ...
+    severity: WARNING
+
+  - id: is-not-found-error
+    languages: [go]
+    message: Check for resource.NotFoundError errors with tfresource.NotFound()
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - patterns:
+          - pattern: |
+              var $CAST *resource.NotFoundError
+              ...
+              errors.As($ERR, &$CAST)
+          - pattern-not-inside: |
+              var $CAST *resource.NotFoundError
+              ...
+              errors.As($ERR, &$CAST)
+              ...
+              $CAST.$FIELD
+        - patterns:
+          - pattern: |
+              $X, $Y := $ERR.(*resource.NotFoundError)
+    severity: WARNING
+
+  - id: time-equality
+    languages: [go]
+    message: Use time.Equal() instead of ==
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            aws.TimeValue($X) == $Y
+        - pattern: |
+            aws.TimeValue($X) != $Y
+        - pattern: |
+            ($X : time.Time) == $Y
+        - pattern: |
+            ($X : time.Time) != $Y
+        - pattern: |
+            $X == aws.TimeValue($Y)
+        - pattern: |
+            $X != aws.TimeValue($Y)
+        - pattern: |
+            $X == ($Y : time.Time)
+        - pattern: |
+            $X != ($Y : time.Time)
+    severity: WARNING

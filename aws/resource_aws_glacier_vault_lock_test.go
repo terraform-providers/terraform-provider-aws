@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glacier"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSGlacierVaultLock_basic(t *testing.T) {
@@ -19,6 +19,7 @@ func TestAccAWSGlacierVaultLock_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glacier.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlacierVaultLockDestroy,
 		Steps: []resource.TestStep{
@@ -50,6 +51,7 @@ func TestAccAWSGlacierVaultLock_CompleteLock(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glacier.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlacierVaultLockDestroy,
 		Steps: []resource.TestStep{
@@ -148,7 +150,7 @@ data "aws_iam_policy_document" "test" {
     # Allow for testing purposes
     actions   = ["glacier:DeleteArchive"]
     effect    = "Allow"
-    resources = ["${aws_glacier_vault.test.arn}"]
+    resources = [aws_glacier_vault.test.arn]
 
     condition {
       test     = "NumericLessThanEquals"
@@ -166,8 +168,8 @@ data "aws_iam_policy_document" "test" {
 resource "aws_glacier_vault_lock" "test" {
   complete_lock         = %t
   ignore_deletion_error = %t
-  policy                = "${data.aws_iam_policy_document.test.json}"
-  vault_name            = "${aws_glacier_vault.test.name}"
+  policy                = data.aws_iam_policy_document.test.json
+  vault_name            = aws_glacier_vault.test.name
 }
 `, rName, completeLock, completeLock)
 }

@@ -4,20 +4,22 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSPartition_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsPartitionConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsPartition("data.aws_partition.current"),
 					testAccCheckAwsDnsSuffix("data.aws_partition.current"),
+					resource.TestCheckResourceAttr("data.aws_partition.current", "reverse_dns_prefix", testAccGetPartitionReverseDNSPrefix()),
 				),
 			},
 		},
@@ -61,5 +63,5 @@ func testAccCheckAwsDnsSuffix(n string) resource.TestCheckFunc {
 }
 
 const testAccCheckAwsPartitionConfig_basic = `
-data "aws_partition" "current" { }
+data "aws_partition" "current" {}
 `

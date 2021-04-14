@@ -9,10 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsLaunchConfiguration() *schema.Resource {
@@ -247,6 +248,39 @@ func resourceAwsLaunchConfiguration() *schema.Resource {
 				},
 			},
 
+			"metadata_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_endpoint": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice([]string{autoscaling.InstanceMetadataEndpointStateEnabled, autoscaling.InstanceMetadataEndpointStateDisabled}, false),
+						},
+						"http_tokens": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice([]string{autoscaling.InstanceMetadataHttpTokensStateOptional, autoscaling.InstanceMetadataHttpTokensStateRequired}, false),
+						},
+						"http_put_response_hop_limit": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IntBetween(1, 64),
+						},
+					},
+				},
+			},
+
 			"root_block_device": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -340,19 +374,19 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("security_groups"); ok {
-		createLaunchConfigurationOpts.SecurityGroups = expandStringList(
-			v.(*schema.Set).List(),
-		)
+		createLaunchConfigurationOpts.SecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("vpc_classic_link_id"); ok {
 		createLaunchConfigurationOpts.ClassicLinkVPCId = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("metadata_options"); ok {
+		createLaunchConfigurationOpts.MetadataOptions = expandLaunchConfigInstanceMetadataOptions(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("vpc_classic_link_security_groups"); ok {
-		createLaunchConfigurationOpts.ClassicLinkVPCSecurityGroups = expandStringList(
-			v.(*schema.Set).List(),
-		)
+		createLaunchConfigurationOpts.ClassicLinkVPCSecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	var blockDevices []*autoscaling.BlockDeviceMapping
@@ -401,7 +435,7 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 				ebs.Iops = aws.Int64(int64(v))
 			}
 
-			if *aws.String(bd["device_name"].(string)) == *rootDeviceName {
+			if bd["device_name"].(string) == aws.StringValue(rootDeviceName) {
 				return fmt.Errorf("Root device (%s) declared as an 'ebs_block_device'.  Use 'root_block_device' keyword.", *rootDeviceName)
 			}
 
@@ -482,7 +516,7 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 
 	// IAM profiles can take ~10 seconds to propagate in AWS:
 	// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
-	err = resource.Retry(90*time.Second, func() *resource.RetryError {
+	err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := autoscalingconn.CreateLaunchConfiguration(&createLaunchConfigurationOpts)
 		if err != nil {
 			if isAWSErr(err, "ValidationError", "Invalid IamInstanceProfile") {
@@ -503,24 +537,8 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(lcName)
-	log.Printf("[INFO] launch configuration ID: %s", d.Id())
 
-	// We put a Retry here since sometimes eventual consistency bites
-	// us and we need to retry a few times to get the LC to load properly
-	err = resource.Retry(30*time.Second, func() *resource.RetryError {
-		err := resourceAwsLaunchConfigurationRead(d, meta)
-		if err != nil {
-			return resource.RetryableError(err)
-		}
-		return nil
-	})
-	if isResourceTimeoutError(err) {
-		err = resourceAwsLaunchConfigurationRead(d, meta)
-	}
-	if err != nil {
-		return fmt.Errorf("Error reading launch configuration: %s", err)
-	}
-	return nil
+	return resourceAwsLaunchConfigurationRead(d, meta)
 }
 
 func resourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface{}) error {
@@ -578,6 +596,10 @@ func resourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface{}
 	d.Set("vpc_classic_link_id", lc.ClassicLinkVPCId)
 	if err := d.Set("vpc_classic_link_security_groups", flattenStringList(lc.ClassicLinkVPCSecurityGroups)); err != nil {
 		return fmt.Errorf("error setting vpc_classic_link_security_groups: %s", err)
+	}
+
+	if err := d.Set("metadata_options", flattenLaunchConfigInstanceMetadataOptions(lc.MetadataOptions)); err != nil {
+		return fmt.Errorf("error setting metadata_options: %s", err)
 	}
 
 	if err := readLCBlockDevices(d, lc, ec2conn); err != nil {
@@ -645,6 +667,46 @@ func readLCBlockDevices(d *schema.ResourceData, lc *autoscaling.LaunchConfigurat
 	}
 
 	return nil
+}
+
+func expandLaunchConfigInstanceMetadataOptions(l []interface{}) *autoscaling.InstanceMetadataOptions {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	opts := &autoscaling.InstanceMetadataOptions{
+		HttpEndpoint: aws.String(m["http_endpoint"].(string)),
+	}
+
+	if m["http_endpoint"].(string) == autoscaling.InstanceMetadataEndpointStateEnabled {
+		// These parameters are not allowed unless HttpEndpoint is enabled
+
+		if v, ok := m["http_tokens"].(string); ok && v != "" {
+			opts.HttpTokens = aws.String(v)
+		}
+
+		if v, ok := m["http_put_response_hop_limit"].(int); ok && v != 0 {
+			opts.HttpPutResponseHopLimit = aws.Int64(int64(v))
+		}
+	}
+
+	return opts
+}
+
+func flattenLaunchConfigInstanceMetadataOptions(opts *autoscaling.InstanceMetadataOptions) []interface{} {
+	if opts == nil {
+		return nil
+	}
+
+	m := map[string]interface{}{
+		"http_endpoint":               aws.StringValue(opts.HttpEndpoint),
+		"http_put_response_hop_limit": aws.Int64Value(opts.HttpPutResponseHopLimit),
+		"http_tokens":                 aws.StringValue(opts.HttpTokens),
+	}
+
+	return []interface{}{m}
 }
 
 func readBlockDevicesFromLaunchConfiguration(d *schema.ResourceData, lc *autoscaling.LaunchConfiguration, ec2conn *ec2.EC2) (

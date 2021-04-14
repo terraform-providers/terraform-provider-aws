@@ -6,9 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -114,7 +113,8 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[DEBUG] Found %d instances via given filter", len(instanceIds))
 
-	d.SetId(resource.UniqueId())
+	d.SetId(meta.(*AWSClient).region)
+
 	err = d.Set("ids", instanceIds)
 	if err != nil {
 		return err

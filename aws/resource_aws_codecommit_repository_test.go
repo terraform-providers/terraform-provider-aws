@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCodeCommitRepository_basic(t *testing.T) {
@@ -18,6 +18,7 @@ func TestAccAWSCodeCommitRepository_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -42,6 +43,7 @@ func TestAccAWSCodeCommitRepository_withChanges(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -76,6 +78,7 @@ func TestAccAWSCodeCommitRepository_create_default_branch(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -103,6 +106,7 @@ func TestAccAWSCodeCommitRepository_create_and_update_default_branch(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -137,6 +141,7 @@ func TestAccAWSCodeCommitRepository_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, codecommit.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckCodeCommitRepositoryDestroy,
@@ -263,20 +268,24 @@ resource "aws_codecommit_repository" "test" {
 func testAccAWSCodeCommitRepositoryConfigTags1(r, tag1Key, tag1Value string) string {
 	return fmt.Sprintf(`
 resource "aws_codecommit_repository" "test" {
-	repository_name = "terraform-test-%s"
-	tags = {
-		%q = %q
-	}
-	}`, r, tag1Key, tag1Value)
+  repository_name = "terraform-test-%s"
+
+  tags = {
+    %q = %q
+  }
+}
+`, r, tag1Key, tag1Value)
 }
 
 func testAccAWSCodeCommitRepositoryConfigTags2(r, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return fmt.Sprintf(`
 resource "aws_codecommit_repository" "test" {
-	repository_name = "terraform-test-%s"
-	tags = {
-		%q = %q
-		%q = %q
-	  }
-	}`, r, tag1Key, tag1Value, tag2Key, tag2Value)
+  repository_name = "terraform-test-%s"
+
+  tags = {
+    %q = %q
+    %q = %q
+  }
+}
+`, r, tag1Key, tag1Value, tag2Key, tag2Value)
 }

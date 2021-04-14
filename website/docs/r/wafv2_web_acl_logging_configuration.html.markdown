@@ -11,17 +11,17 @@ description: |-
 Creates a WAFv2 Web ACL Logging Configuration resource.
 
 -> **Note:** To start logging from a WAFv2 Web ACL, an Amazon Kinesis Data Firehose (e.g. [`aws_kinesis_firehose_delivery_stream` resource](/docs/providers/aws/r/kinesis_firehose_delivery_stream.html) must also be created with a PUT source (not a stream) and in the region that you are operating.
-If you are capturing logs for Amazon CloudFront, always create the firehose in US East (N. Virginia). 
+If you are capturing logs for Amazon CloudFront, always create the firehose in US East (N. Virginia).
 Be sure to give the data firehose a name that starts with the prefix `aws-waf-logs-`.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafv2_web_acl_logging_configuration" "example" {
-  log_destination_configs = ["${aws_kinesis_firehose_delivery_stream.example.arn}"]
-  resource_arn            = "${aws_wafv2_web_acl.example.arn}"
+  log_destination_configs = [aws_kinesis_firehose_delivery_stream.example.arn]
+  resource_arn            = aws_wafv2_web_acl.example.arn
   redacted_fields {
-    single_query {
+    single_header {
       name = "user-agent"
     }
   }
@@ -32,35 +32,37 @@ resource "aws_wafv2_web_acl_logging_configuration" "example" {
 
 The following arguments are supported:
 
-* `log_destination_configs` - (Required) The Amazon Kinesis Data Firehose Amazon Resource Name (ARNs) that you want to associate with the web ACL. Currently, only 1 ARN is supported. 
+* `log_destination_configs` - (Required) The Amazon Kinesis Data Firehose Amazon Resource Name (ARNs) that you want to associate with the web ACL. Currently, only 1 ARN is supported.
 * `resource_arn` - (Required) The Amazon Resource Name (ARN) of the web ACL that you want to associate with `log_destination_configs`.
-* `redacted_fields` - (Optional) The parts of the request that you want to keep out of the logs. Up to 100 `redacted_fields` blocks are supported. 
+* `redacted_fields` - (Optional) The parts of the request that you want to keep out of the logs. Up to 100 `redacted_fields` blocks are supported.
 
 The `redacted_fields` block supports the following arguments:
 
-* `all_query_arguments` - (Optional) Inspect all query arguments.
-* `body` - (Optional) Inspect the request body, which immediately follows the request headers.
-* `method` - (Optional) Inspect the HTTP method. The method indicates the type of operation that the request is asking the origin to perform.
-* `query_string` - (Optional) Inspect the query string. This is the part of a URL that appears after a `?` character, if any.
-* `single_header` - (Optional) Inspect a single header. See [Single Header](#single-header) below for details.
-* `single_query_argument` - (Optional) Inspect a single query argument. See [Single Query Argument](#single-query-argument) below for details.
-* `uri_path` - (Optional) Inspect the request URI path. This is the part of a web request that identifies a resource, for example, `/images/daily-ad.jpg`.
+~> **NOTE:** Only one of `method`, `query_string`, `single_header` or `uri_path` can be specified.
+
+* `all_query_arguments` - (Optional, **DEPRECATED**) Redact all query arguments.
+* `body` - (Optional, **DEPRECATED**) Redact the request body, which immediately follows the request headers.
+* `method` - (Optional) Redact the HTTP method. Must be specified as an empty configuration block `{}`. The method indicates the type of operation that the request is asking the origin to perform.
+* `query_string` - (Optional) Redact the query string. Must be specified as an empty configuration block `{}`. This is the part of a URL that appears after a `?` character, if any.
+* `single_header` - (Optional) Redact a single header. See [Single Header](#single-header) below for details.
+* `single_query_argument` - (Optional, **DEPRECATED**) Redact a single query argument. See [Single Query Argument](#single-query-argument) below for details.
+* `uri_path` - (Optional) Redact the request URI path. Must be specified as an empty configuration block `{}`. This is the part of a web request that identifies a resource, for example, `/images/daily-ad.jpg`.
 
 ### Single Header
 
-Inspect a single header. Provide the name of the header to inspect, for example, `User-Agent` or `Referer` (provided as lowercase strings).
+Redact a single header. Provide the name of the header to redact, for example, `User-Agent` or `Referer` (provided as lowercase strings).
 
 The `single_header` block supports the following arguments:
 
-* `name` - (Optional) The name of the query header to inspect. This setting must be provided as lower case characters.
+* `name` - (Optional) The name of the query header to redact. This setting must be provided as lower case characters.
 
-### Single Query Argument
+### Single Query Argument (**DEPRECATED**)
 
-Inspect a single query argument. Provide the name of the query argument to inspect, such as `UserName` or `SalesRegion` (provided as lowercase strings).
+Redact a single query argument. Provide the name of the query argument to redact, such as `UserName` or `SalesRegion` (provided as lowercase strings).
 
 The `single_query_argument` block supports the following arguments:
 
-* `name` - (Optional) The name of the query header to inspect. This setting must be provided as lower case characters.
+* `name` - (Optional) The name of the query header to redact. This setting must be provided as lower case characters.
 
 ## Attributes Reference
 
@@ -74,3 +76,4 @@ WAFv2 Web ACL Logging Configurations can be imported using the WAFv2 Web ACL ARN
 
 ```
 $ terraform import aws_wafv2_web_acl_logging_configuration.example arn:aws:wafv2:us-west-2:123456789012:regional/webacl/test-logs/a1b2c3d4-5678-90ab-cdef
+```

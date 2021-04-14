@@ -15,11 +15,11 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_api_mapping" "example" {
-  api_id      = "${aws_apigatewayv2_api.example.id}"
-  domain_name = "${aws_apigatewayv2_domain_name.example.id}"
-  stage       = "${aws_apigatewayv2_stage.example.id}"
+  api_id      = aws_apigatewayv2_api.example.id
+  domain_name = aws_apigatewayv2_domain_name.example.id
+  stage       = aws_apigatewayv2_stage.example.id
 }
 ```
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 * `stage` - (Required) The API stage. Use the [`aws_apigatewayv2_stage`](/docs/providers/aws/r/apigatewayv2_stage.html) resource to configure an API stage.
 * `api_mapping_key` - (Optional) The [API mapping key](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-mapping-template-reference.html).
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

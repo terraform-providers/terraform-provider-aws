@@ -13,7 +13,7 @@ in a given region for the purpose of permitting in S3 bucket policy.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_elb_service_account" "main" {}
 
 resource "aws_s3_bucket" "elb_logs" {
@@ -47,7 +47,7 @@ resource "aws_elb" "bar" {
   availability_zones = ["us-west-2a"]
 
   access_logs {
-    bucket   = "${aws_s3_bucket.elb_logs.bucket}"
+    bucket   = aws_s3_bucket.elb_logs.bucket
     interval = 5
   }
 

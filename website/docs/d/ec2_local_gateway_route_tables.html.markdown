@@ -14,10 +14,11 @@ Provides information for multiple EC2 Local Gateway Route Tables, such as their 
 
 The following shows outputing all Local Gateway Route Table Ids.
 
-```hcl
+```terraform
 data "aws_ec2_local_gateway_route_table" "foo" {}
+
 output "foo" {
-  value = "${data.aws_ec2_local_gateway_route_table.foo.ids}"
+  value = data.aws_ec2_local_gateway_route_table.foo.ids
 }
 ```
 
@@ -39,4 +40,5 @@ which take the following arguments:
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - Set of Local Gateway Route Table identifiers

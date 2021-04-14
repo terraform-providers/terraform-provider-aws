@@ -17,6 +17,8 @@ import (
 const filename = `get_tag_gen.go`
 
 var serviceNames = []string{
+	"autoscaling",
+	"batch",
 	"dynamodb",
 	"ec2",
 	"ecs",
@@ -38,9 +40,11 @@ func main() {
 		"ClientType":                        keyvaluetags.ServiceClientType,
 		"ListTagsFunction":                  keyvaluetags.ServiceListTagsFunction,
 		"ListTagsInputFilterIdentifierName": keyvaluetags.ServiceListTagsInputFilterIdentifierName,
-		"ListTagsInputResourceTypeField":    keyvaluetags.ServiceListTagsInputResourceTypeField,
 		"ListTagsOutputTagsField":           keyvaluetags.ServiceListTagsOutputTagsField,
 		"TagPackage":                        keyvaluetags.ServiceTagPackage,
+		"TagResourceTypeField":              keyvaluetags.ServiceTagResourceTypeField,
+		"TagTypeAdditionalBoolFields":       keyvaluetags.ServiceTagTypeAdditionalBoolFields,
+		"TagTypeIdentifierField":            keyvaluetags.ServiceTagTypeIdentifierField,
 		"Title":                             strings.Title,
 	}
 
@@ -97,7 +101,11 @@ import (
 // This function will optimise the handling over {{ . | Title }}ListTags, if possible.
 // The identifier is typically the Amazon Resource Name (ARN), although
 // it may also be a different identifier depending on the service.
-func {{ . | Title }}GetTag(conn {{ . | ClientType }}, identifier string{{ if . | ListTagsInputResourceTypeField }}, resourceType string{{ end }}, key string) (bool, *string, error) {
+{{- if or ( . | TagTypeIdentifierField ) ( . | TagTypeAdditionalBoolFields) }}
+func {{ . | Title }}GetTag(conn {{ . | ClientType }}, identifier string{{ if . | TagResourceTypeField }}, resourceType string{{ end }}, key string) (bool, *TagData, error) {
+{{- else }}
+func {{ . | Title }}GetTag(conn {{ . | ClientType }}, identifier string{{ if . | TagResourceTypeField }}, resourceType string{{ end }}, key string) (bool, *string, error) {
+{{- end }}
 	{{- if . | ListTagsInputFilterIdentifierName }}
 	input := &{{ . | TagPackage  }}.{{ . | ListTagsFunction }}Input{
 		Filters: []*{{ . | TagPackage  }}.Filter{
@@ -118,16 +126,20 @@ func {{ . | Title }}GetTag(conn {{ . | ClientType }}, identifier string{{ if . |
 		return false, nil, err
 	}
 
-	listTags := {{ . | Title }}KeyValueTags(output.{{ . | ListTagsOutputTagsField }})
+	listTags := {{ . | Title }}KeyValueTags(output.{{ . | ListTagsOutputTagsField }}{{ if . | TagTypeIdentifierField }}, identifier{{ if . | TagResourceTypeField }}, resourceType{{ end }}{{ end }})
 	{{- else }}
-	listTags, err := {{ . | Title }}ListTags(conn, identifier{{ if . | ListTagsInputResourceTypeField }}, resourceType{{ end }})
+	listTags, err := {{ . | Title }}ListTags(conn, identifier{{ if . | TagResourceTypeField }}, resourceType{{ end }})
 
 	if err != nil {
 		return false, nil, err
 	}
 	{{- end }}
 
+	{{ if or ( . | TagTypeIdentifierField ) ( . | TagTypeAdditionalBoolFields) }}
+	return listTags.KeyExists(key), listTags.KeyTagData(key), nil
+	{{- else }}
 	return listTags.KeyExists(key), listTags.KeyValue(key), nil
+	{{- end }}
 }
 {{- end }}
 `

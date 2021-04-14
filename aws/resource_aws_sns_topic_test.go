@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
 )
 
@@ -21,6 +21,7 @@ func init() {
 		F:    testSweepSnsTopics,
 		Dependencies: []string{
 			"aws_autoscaling_group",
+			"aws_backup_vault_notifications",
 			"aws_budgets_budget",
 			"aws_config_delivery_channel",
 			"aws_dax_cluster",
@@ -91,6 +92,7 @@ func TestAccAWSSNSTopic_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -117,6 +119,7 @@ func TestAccAWSSNSTopic_name(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -143,6 +146,7 @@ func TestAccAWSSNSTopic_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -168,10 +172,11 @@ func TestAccAWSSNSTopic_policy(t *testing.T) {
 	attributes := make(map[string]string)
 	resourceName := "aws_sns_topic.test"
 	rName := acctest.RandString(10)
-	expectedPolicy := `{"Statement":[{"Sid":"Stmt1445931846145","Effect":"Allow","Principal":{"AWS":"*"},"Action":"sns:Publish","Resource":"arn:aws:sns:us-west-2::example"}],"Version":"2012-10-17","Id":"Policy1445931846145"}`
+	expectedPolicy := fmt.Sprintf(`{"Statement":[{"Sid":"Stmt1445931846145","Effect":"Allow","Principal":{"AWS":"*"},"Action":"sns:Publish","Resource":"arn:%s:sns:%s::example"}],"Version":"2012-10-17","Id":"Policy1445931846145"}`, testAccGetPartition(), testAccGetRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -199,6 +204,7 @@ func TestAccAWSSNSTopic_withIAMRole(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -217,6 +223,7 @@ func TestAccAWSSNSTopic_withFakeIAMRole(t *testing.T) {
 	rName := acctest.RandString(10)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: "aws_sns_topic.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -237,6 +244,7 @@ func TestAccAWSSNSTopic_withDeliveryPolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -266,6 +274,7 @@ func TestAccAWSSNSTopic_deliveryStatus(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -299,6 +308,7 @@ func TestAccAWSSNSTopic_encryption(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -333,6 +343,7 @@ func TestAccAWSSNSTopic_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
@@ -531,13 +542,17 @@ resource "aws_sns_topic" "test" {
 func testAccAWSSNSTopicConfig_withNamePrefix() string {
 	return `
 resource "aws_sns_topic" "test" {
-    name_prefix = "terraform-test-topic-"
+  name_prefix = "terraform-test-topic-"
 }
 `
 }
 
 func testAccAWSSNSTopicWithPolicy(r string) string {
 	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+data "aws_region" "current" {}
+
 resource "aws_sns_topic" "test" {
   name = "example-%s"
 
@@ -549,9 +564,9 @@ resource "aws_sns_topic" "test" {
       "Effect": "Allow",
       "Principal": {
         "AWS": "*"
-       },
+      },
       "Action": "sns:Publish",
-      "Resource": "arn:aws:sns:us-west-2::example"
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:${data.aws_region.current.name}::example"
     }
   ],
   "Version": "2012-10-17",
@@ -565,8 +580,10 @@ EOF
 // Test for https://github.com/hashicorp/terraform/issues/3660
 func testAccAWSSNSTopicConfig_withIAMRole(r string) string {
 	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "example" {
-  name = "tf_acc_test_%s"
+  name = "tf_acc_test_%[1]s"
   path = "/test/"
 
   assume_role_policy = <<EOF
@@ -576,7 +593,7 @@ resource "aws_iam_role" "example" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -586,8 +603,10 @@ resource "aws_iam_role" "example" {
 EOF
 }
 
+data "aws_region" "current" {}
+
 resource "aws_sns_topic" "test" {
-  name = "tf-acc-test-with-iam-role-%s"
+  name = "tf-acc-test-with-iam-role-%[1]s"
 
   policy = <<EOF
 {
@@ -597,9 +616,9 @@ resource "aws_sns_topic" "test" {
       "Effect": "Allow",
       "Principal": {
         "AWS": "${aws_iam_role.example.arn}"
-			},
+      },
       "Action": "sns:Publish",
-      "Resource": "arn:aws:sns:us-west-2::example"
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:${data.aws_region.current.name}::example"
     }
   ],
   "Version": "2012-10-17",
@@ -607,7 +626,7 @@ resource "aws_sns_topic" "test" {
 }
 EOF
 }
-`, r, r)
+`, r)
 }
 
 // Test for https://github.com/hashicorp/terraform/issues/14024
@@ -639,6 +658,10 @@ EOF
 // Test for https://github.com/hashicorp/terraform/issues/3660
 func testAccAWSSNSTopicConfig_withFakeIAMRole(r string) string {
 	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+data "aws_region" "current" {}
+
 resource "aws_sns_topic" "test" {
   name = "tf_acc_test_fake_iam_role_%s"
 
@@ -649,10 +672,10 @@ resource "aws_sns_topic" "test" {
       "Sid": "Stmt1445931846145",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::012345678901:role/wooo"
-			},
+        "AWS": "arn:${data.aws_partition.current.partition}:iam::012345678901:role/wooo"
+      },
       "Action": "sns:Publish",
-      "Resource": "arn:aws:sns:us-west-2::example"
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:${data.aws_region.current.name}::example"
     }
   ],
   "Version": "2012-10-17",
@@ -666,24 +689,26 @@ EOF
 func testAccAWSSNSTopicConfig_deliveryStatus(r string) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
-  depends_on                               = ["aws_iam_role_policy.example"]
-  name                                     = "sns-delivery-status-topic-%s"
-  application_success_feedback_role_arn    = "${aws_iam_role.example.arn}"
+  depends_on                               = [aws_iam_role_policy.example]
+  name                                     = "sns-delivery-status-topic-%[1]s"
+  application_success_feedback_role_arn    = aws_iam_role.example.arn
   application_success_feedback_sample_rate = 100
-  application_failure_feedback_role_arn    = "${aws_iam_role.example.arn}"
-  lambda_success_feedback_role_arn         = "${aws_iam_role.example.arn}"
+  application_failure_feedback_role_arn    = aws_iam_role.example.arn
+  lambda_success_feedback_role_arn         = aws_iam_role.example.arn
   lambda_success_feedback_sample_rate      = 90
-  lambda_failure_feedback_role_arn         = "${aws_iam_role.example.arn}"
-  http_success_feedback_role_arn           = "${aws_iam_role.example.arn}"
+  lambda_failure_feedback_role_arn         = aws_iam_role.example.arn
+  http_success_feedback_role_arn           = aws_iam_role.example.arn
   http_success_feedback_sample_rate        = 80
-  http_failure_feedback_role_arn           = "${aws_iam_role.example.arn}"
-  sqs_success_feedback_role_arn            = "${aws_iam_role.example.arn}"
+  http_failure_feedback_role_arn           = aws_iam_role.example.arn
+  sqs_success_feedback_role_arn            = aws_iam_role.example.arn
   sqs_success_feedback_sample_rate         = 70
-  sqs_failure_feedback_role_arn            = "${aws_iam_role.example.arn}"
+  sqs_failure_feedback_role_arn            = aws_iam_role.example.arn
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "example" {
-  name = "sns-delivery-status-role-%s"
+  name = "sns-delivery-status-role-%[1]s"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -693,7 +718,7 @@ resource "aws_iam_role" "example" {
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "sns.amazonaws.com"
+        "Service": "sns.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -703,8 +728,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "example" {
-  name = "sns-delivery-status-role-policy-%s"
-  role = "${aws_iam_role.example.id}"
+  name = "sns-delivery-status-role-policy-%[1]s"
+  role = aws_iam_role.example.id
 
   policy = <<EOF
 {
@@ -727,7 +752,7 @@ resource "aws_iam_role_policy" "example" {
 }
 EOF
 }
-`, r, r, r)
+`, r)
 }
 
 func testAccAWSSNSTopicConfig_withEncryption(r string) string {
@@ -742,22 +767,24 @@ resource "aws_sns_topic" "test" {
 func testAccAWSSNSTopicConfigTags1(r, tag1Key, tag1Value string) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
-	name = "terraform-test-topic-%s"
-	tags = {
-		%q = %q
-	}
-	}
+  name = "terraform-test-topic-%s"
+
+  tags = {
+    %q = %q
+  }
+}
 `, r, tag1Key, tag1Value)
 }
 
 func testAccAWSSNSTopicConfigTags2(r, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
-	name = "terraform-test-topic-%s"
-	tags = {
-		%q = %q
-		%q = %q
-	  }
-	}
+  name = "terraform-test-topic-%s"
+
+  tags = {
+    %q = %q
+    %q = %q
+  }
+}
 `, r, tag1Key, tag1Value, tag2Key, tag2Value)
 }

@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAWSKinesisFirehoseMigrateState(t *testing.T) {
@@ -17,32 +17,32 @@ func TestAWSKinesisFirehoseMigrateState(t *testing.T) {
 			StateVersion: 0,
 			Attributes: map[string]string{
 				// EBS
-				"role_arn":            "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635",
-				"s3_bucket_arn":       "arn:aws:s3:::tf-test-bucket",
+				"role_arn":            "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635", //lintignore:AWSAT005
+				"s3_bucket_arn":       "arn:aws:s3:::tf-test-bucket",                                 //lintignore:AWSAT005
 				"s3_buffer_interval":  "400",
 				"s3_buffer_size":      "10",
 				"s3_data_compression": "GZIP",
 			},
 			Expected: map[string]string{
 				"s3_configuration.#":                    "1",
-				"s3_configuration.0.bucket_arn":         "arn:aws:s3:::tf-test-bucket",
+				"s3_configuration.0.bucket_arn":         "arn:aws:s3:::tf-test-bucket", //lintignore:AWSAT005
 				"s3_configuration.0.buffer_interval":    "400",
 				"s3_configuration.0.buffer_size":        "10",
 				"s3_configuration.0.compression_format": "GZIP",
-				"s3_configuration.0.role_arn":           "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635",
+				"s3_configuration.0.role_arn":           "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635", //lintignore:AWSAT005
 			},
 		},
 		"v0.6.16 and earlier, sparse": {
 			StateVersion: 0,
 			Attributes: map[string]string{
 				// EBS
-				"role_arn":      "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635",
-				"s3_bucket_arn": "arn:aws:s3:::tf-test-bucket",
+				"role_arn":      "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635", //lintignore:AWSAT005
+				"s3_bucket_arn": "arn:aws:s3:::tf-test-bucket",                                 //lintignore:AWSAT005
 			},
 			Expected: map[string]string{
 				"s3_configuration.#":            "1",
-				"s3_configuration.0.bucket_arn": "arn:aws:s3:::tf-test-bucket",
-				"s3_configuration.0.role_arn":   "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635",
+				"s3_configuration.0.bucket_arn": "arn:aws:s3:::tf-test-bucket",                                 //lintignore:AWSAT005
+				"s3_configuration.0.role_arn":   "arn:aws:iam::somenumber:role/tf_acctest_4271506651559170635", //lintignore:AWSAT005
 			},
 		},
 	}

@@ -12,7 +12,7 @@ Provides a [Data Lifecycle Manager (DLM) lifecycle policy](https://docs.aws.amaz
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "dlm_lifecycle_role" {
   name = "dlm-lifecycle-role"
 
@@ -35,7 +35,7 @@ EOF
 
 resource "aws_iam_role_policy" "dlm_lifecycle" {
   name = "dlm-lifecycle-policy"
-  role = "${aws_iam_role.dlm_lifecycle_role.id}"
+  role = aws_iam_role.dlm_lifecycle_role.id
 
   policy = <<EOF
 {
@@ -45,7 +45,9 @@ resource "aws_iam_role_policy" "dlm_lifecycle" {
          "Effect": "Allow",
          "Action": [
             "ec2:CreateSnapshot",
+            "ec2:CreateSnapshots",
             "ec2:DeleteSnapshot",
+            "ec2:DescribeInstances",
             "ec2:DescribeVolumes",
             "ec2:DescribeSnapshots"
          ],
@@ -65,7 +67,7 @@ EOF
 
 resource "aws_dlm_lifecycle_policy" "example" {
   description        = "example DLM lifecycle policy"
-  execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}"
+  execution_role_arn = aws_iam_role.dlm_lifecycle_role.arn
   state              = "ENABLED"
 
   policy_details {

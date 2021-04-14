@@ -6,9 +6,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -67,7 +65,8 @@ func dataSourceAwsEbsVolumesRead(d *schema.ResourceData, meta interface{}) error
 		volumes = append(volumes, *volume.VolumeId)
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(meta.(*AWSClient).region)
+
 	if err := d.Set("ids", volumes); err != nil {
 		return fmt.Errorf("error setting ids: %w", err)
 	}

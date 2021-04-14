@@ -1,11 +1,11 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/outposts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSOutpostsSiteDataSource_Id(t *testing.T) {
@@ -13,6 +13,7 @@ func TestAccAWSOutpostsSiteDataSource_Id(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsSites(t) },
+		ErrorCheck:   testAccErrorCheck(t, outposts.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -35,6 +36,7 @@ func TestAccAWSOutpostsSiteDataSource_Name(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsSites(t) },
+		ErrorCheck:   testAccErrorCheck(t, outposts.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -52,17 +54,17 @@ func TestAccAWSOutpostsSiteDataSource_Name(t *testing.T) {
 }
 
 func testAccAWSOutpostsSiteDataSourceConfigId() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_outposts_sites" "test" {}
 
 data "aws_outposts_site" "test" {
   id = tolist(data.aws_outposts_sites.test.ids)[0]
 }
-`)
+`
 }
 
 func testAccAWSOutpostsSiteDataSourceConfigName() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_outposts_sites" "test" {}
 
 data "aws_outposts_site" "source" {
@@ -72,5 +74,5 @@ data "aws_outposts_site" "source" {
 data "aws_outposts_site" "test" {
   name = data.aws_outposts_site.source.name
 }
-`)
+`
 }

@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/resourcegroups"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -115,8 +115,8 @@ func resourceAwsResourceGroupsGroupRead(d *schema.ResourceData, meta interface{}
 	}
 
 	arn := aws.StringValue(g.Group.GroupArn)
-	d.Set("name", aws.StringValue(g.Group.Name))
-	d.Set("description", aws.StringValue(g.Group.Description))
+	d.Set("name", g.Group.Name)
+	d.Set("description", g.Group.Description)
 	d.Set("arn", arn)
 
 	q, err := conn.GetGroupQuery(&resourcegroups.GetGroupQueryInput{

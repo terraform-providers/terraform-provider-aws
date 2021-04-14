@@ -15,10 +15,10 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_integration_response" "example" {
-  api_id                   = "${aws_apigatewayv2_api.example.id}"
-  integration_id           = "${aws_apigatewayv2_integration.example.id}"
+  api_id                   = aws_apigatewayv2_api.example.id
+  integration_id           = aws_apigatewayv2_integration.example.id
   integration_response_key = "/200/"
 }
 ```
@@ -34,7 +34,7 @@ The following arguments are supported:
 * `response_templates` - (Optional) A map of Velocity templates that are applied on the request payload based on the value of the Content-Type header sent by the client.
 * `template_selection_expression` - (Optional) The [template selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-template-selection-expressions) for the integration response.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

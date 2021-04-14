@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsWafRegionalIpSet() *schema.Resource {
@@ -31,7 +31,7 @@ func dataSourceAWSWafRegionalIpSetRead(d *schema.ResourceData, meta interface{})
 	for {
 		output, err := conn.ListIPSets(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAF Regional IP sets: %s", err)
+			return fmt.Errorf("Error reading WAF Regional IP sets: %w", err)
 		}
 		for _, ipset := range output.IPSets {
 			if aws.StringValue(ipset.Name) == name {

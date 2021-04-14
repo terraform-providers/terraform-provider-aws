@@ -1,11 +1,11 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/outposts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSOutpostsOutpostInstanceTypeDataSource_InstanceType(t *testing.T) {
@@ -13,6 +13,7 @@ func TestAccAWSOutpostsOutpostInstanceTypeDataSource_InstanceType(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, outposts.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -31,6 +32,7 @@ func TestAccAWSOutpostsOutpostInstanceTypeDataSource_PreferredInstanceTypes(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, outposts.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -45,7 +47,7 @@ func TestAccAWSOutpostsOutpostInstanceTypeDataSource_PreferredInstanceTypes(t *t
 }
 
 func testAccAWSOutpostsOutpostInstanceTypeDataSourceConfigInstanceType() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_outposts_outposts" "test" {}
 
 data "aws_outposts_outpost_instance_types" "test" {
@@ -56,11 +58,11 @@ data "aws_outposts_outpost_instance_type" "test" {
   arn           = tolist(data.aws_outposts_outposts.test.arns)[0]
   instance_type = tolist(data.aws_outposts_outpost_instance_types.test.instance_types)[0]
 }
-`)
+`
 }
 
 func testAccAWSOutpostsOutpostInstanceTypeDataSourceConfigPreferredInstanceTypes() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_outposts_outposts" "test" {}
 
 data "aws_outposts_outpost_instance_types" "test" {
@@ -71,5 +73,5 @@ data "aws_outposts_outpost_instance_type" "test" {
   arn                      = tolist(data.aws_outposts_outposts.test.arns)[0]
   preferred_instance_types = data.aws_outposts_outpost_instance_types.test.instance_types
 }
-`)
+`
 }

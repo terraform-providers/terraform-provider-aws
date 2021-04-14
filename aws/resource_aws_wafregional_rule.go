@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -88,7 +88,7 @@ func resourceAwsWafRegionalRuleCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 	resp := out.(*waf.CreateRuleOutput)
-	d.SetId(*resp.Rule.RuleId)
+	d.SetId(aws.StringValue(resp.Rule.RuleId))
 
 	newPredicates := d.Get("predicate").(*schema.Set).List()
 	if len(newPredicates) > 0 {
@@ -225,9 +225,9 @@ func flattenWafPredicates(ts []*waf.Predicate) []interface{} {
 	out := make([]interface{}, len(ts))
 	for i, p := range ts {
 		m := make(map[string]interface{})
-		m["negated"] = *p.Negated
-		m["type"] = *p.Type
-		m["data_id"] = *p.DataId
+		m["negated"] = aws.BoolValue(p.Negated)
+		m["type"] = aws.StringValue(p.Type)
+		m["data_id"] = aws.StringValue(p.DataId)
 		out[i] = m
 	}
 	return out

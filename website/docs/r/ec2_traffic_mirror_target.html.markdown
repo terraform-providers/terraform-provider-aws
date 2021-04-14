@@ -15,17 +15,16 @@ Read [limits and considerations](https://docs.aws.amazon.com/vpc/latest/mirrorin
 
 To create a basic traffic mirror session
 
-```hcl
+```terraform
 resource "aws_ec2_traffic_mirror_target" "nlb" {
   description               = "NLB target"
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  network_load_balancer_arn = aws_lb.lb.arn
 }
 
 resource "aws_ec2_traffic_mirror_target" "eni" {
   description          = "ENI target"
-  network_interface_id = "${aws_instance.test.primary_network_interface_id}"
+  network_interface_id = aws_instance.test.primary_network_interface_id
 }
-
 ```
 
 ## Argument Reference
@@ -45,6 +44,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Traffic Mirror target.
 * `arn` - The ARN of the traffic mirror target.
+* `owner_id` - The ID of the AWS account that owns the traffic mirror target.
 
 ## Import
 

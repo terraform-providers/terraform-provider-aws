@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSRolePolicyAttachment_basic(t *testing.T) {
@@ -21,6 +21,7 @@ func TestAccAWSRolePolicyAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRolePolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -71,6 +72,7 @@ func TestAccAWSRolePolicyAttachment_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRolePolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -96,6 +98,7 @@ func TestAccAWSRolePolicyAttachment_disappears_Role(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRolePolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -171,6 +174,7 @@ func testAccCheckAWSRolePolicyAttachmentExists(n string, c int, out *iam.ListAtt
 		return nil
 	}
 }
+
 func testAccCheckAWSRolePolicyAttachmentAttributes(policies []string, out *iam.ListAttachedRolePoliciesOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		matched := 0
@@ -226,17 +230,17 @@ resource "aws_iam_role" "role" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": "sts:AssumeRole",
-			"Principal": {
-				"Service": "ec2.amazonaws.com"
-			},
-			"Effect": "Allow",
-			"Sid": ""
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
 }
 EOF
 }
@@ -247,23 +251,23 @@ resource "aws_iam_policy" "policy" {
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": [
-				"iam:ChangePassword"
-			],
-			"Resource": "*",
-			"Effect": "Allow"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "iam:ChangePassword"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy_attachment" "test-attach" {
-  role       = "${aws_iam_role.role.name}"
-  policy_arn = "${aws_iam_policy.policy.arn}"
+  role       = aws_iam_role.role.name
+  policy_arn = aws_iam_policy.policy.arn
 }
 `, rInt, rInt)
 }
@@ -275,17 +279,17 @@ resource "aws_iam_role" "role" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": "sts:AssumeRole",
-			"Principal": {
-				"Service": "ec2.amazonaws.com"
-			},
-			"Effect": "Allow",
-			"Sid": ""
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
 }
 EOF
 }
@@ -296,16 +300,16 @@ resource "aws_iam_policy" "policy" {
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": [
-				"iam:ChangePassword"
-			],
-			"Resource": "*",
-			"Effect": "Allow"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "iam:ChangePassword"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
 }
 EOF
 }
@@ -316,16 +320,16 @@ resource "aws_iam_policy" "policy2" {
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": [
-				"iam:ChangePassword"
-			],
-			"Resource": "*",
-			"Effect": "Allow"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "iam:ChangePassword"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
 }
 EOF
 }
@@ -336,28 +340,28 @@ resource "aws_iam_policy" "policy3" {
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": [
-				"iam:ChangePassword"
-			],
-			"Resource": "*",
-			"Effect": "Allow"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "iam:ChangePassword"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy_attachment" "test-attach" {
-  role       = "${aws_iam_role.role.name}"
-  policy_arn = "${aws_iam_policy.policy2.arn}"
+  role       = aws_iam_role.role.name
+  policy_arn = aws_iam_policy.policy2.arn
 }
 
 resource "aws_iam_role_policy_attachment" "test-attach2" {
-  role       = "${aws_iam_role.role.name}"
-  policy_arn = "${aws_iam_policy.policy3.arn}"
+  role       = aws_iam_role.role.name
+  policy_arn = aws_iam_policy.policy3.arn
 }
 `, rInt, rInt, rInt, rInt)
 }
@@ -388,7 +392,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "test" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AdministratorAccess"
-  role       = "${aws_iam_role.test.name}"
+  role       = aws_iam_role.test.name
 }
 `, rName)
 }

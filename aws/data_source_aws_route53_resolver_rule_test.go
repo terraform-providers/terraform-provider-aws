@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/aws/aws-sdk-go/service/route53resolver"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
+func init() {
+	RegisterServiceErrorCheckFunc(route53resolver.EndpointsID, testAccErrorCheckSkipRoute53)
+}
+
+func TestAccAWSRoute53ResolverRuleDataSource_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_rule_id"
@@ -17,8 +22,9 @@ func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
 	ds3ResourceName := "data.aws_route53_resolver_rule.by_name_and_rule_type"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck: testAccErrorCheck(t, route53resolver.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_basic(rName),
@@ -61,14 +67,15 @@ func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_ResolverEndpointIdWithTags(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck: testAccErrorCheck(t, route53resolver.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_resolverEndpointIdWithTags(rName),
@@ -92,7 +99,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testi
 	})
 }
 
-func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_SharedByMe(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
@@ -104,7 +111,8 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSRoute53Resolver(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheck(t, route53resolver.EndpointsID),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_sharedByMe(rName),
@@ -129,7 +137,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsRoute53ResolverRule_SharedWithMe(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleDataSource_SharedWithMe(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
@@ -141,7 +149,8 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedWithMe(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSRoute53Resolver(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ErrorCheck:        testAccErrorCheck(t, route53resolver.EndpointsID),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRule_sharedWithMe(rName),
@@ -173,16 +182,16 @@ resource "aws_route53_resolver_rule" "example" {
 }
 
 data "aws_route53_resolver_rule" "by_resolver_rule_id" {
-  resolver_rule_id = "${aws_route53_resolver_rule.example.id}"
+  resolver_rule_id = aws_route53_resolver_rule.example.id
 }
 
 data "aws_route53_resolver_rule" "by_domain_name" {
-  domain_name = "${aws_route53_resolver_rule.example.domain_name}"
+  domain_name = aws_route53_resolver_rule.example.domain_name
 }
 
 data "aws_route53_resolver_rule" "by_name_and_rule_type" {
-  name      = "${aws_route53_resolver_rule.example.name}"
-  rule_type = "${aws_route53_resolver_rule.example.rule_type}"
+  name      = aws_route53_resolver_rule.example.name
+  rule_type = aws_route53_resolver_rule.example.rule_type
 }
 `, rName)
 }
@@ -194,7 +203,7 @@ resource "aws_route53_resolver_rule" "example" {
   rule_type   = "FORWARD"
   name        = %[1]q
 
-  resolver_endpoint_id = "${aws_route53_resolver_endpoint.bar.id}"
+  resolver_endpoint_id = aws_route53_resolver_endpoint.bar.id
 
   target_ip {
     ip = "192.0.2.7"
@@ -207,7 +216,7 @@ resource "aws_route53_resolver_rule" "example" {
 }
 
 data "aws_route53_resolver_rule" "by_resolver_endpoint_id" {
-  resolver_endpoint_id = "${aws_route53_resolver_rule.example.resolver_endpoint_id}"
+  resolver_endpoint_id = aws_route53_resolver_rule.example.resolver_endpoint_id
 }
 `, rName)
 }
@@ -219,7 +228,7 @@ resource "aws_route53_resolver_rule" "example" {
   rule_type   = "FORWARD"
   name        = %[1]q
 
-  resolver_endpoint_id = "${aws_route53_resolver_endpoint.bar.id}"
+  resolver_endpoint_id = aws_route53_resolver_endpoint.bar.id
 
   target_ip {
     ip = "192.0.2.7"
@@ -237,21 +246,21 @@ resource "aws_ram_resource_share" "test" {
 }
 
 resource "aws_ram_resource_association" "test" {
-  resource_arn       = "${aws_route53_resolver_rule.example.arn}"
-  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+  resource_arn       = aws_route53_resolver_rule.example.arn
+  resource_share_arn = aws_ram_resource_share.test.arn
 }
 
 data "aws_organizations_organization" "test" {}
 
 resource "aws_ram_principal_association" "test" {
-  principal          = "${data.aws_organizations_organization.test.arn}"
-  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+  principal          = data.aws_organizations_organization.test.arn
+  resource_share_arn = aws_ram_resource_share.test.arn
 }
 
 data "aws_route53_resolver_rule" "by_resolver_endpoint_id" {
-  resolver_endpoint_id = "${aws_route53_resolver_rule.example.resolver_endpoint_id}"
+  resolver_endpoint_id = aws_route53_resolver_rule.example.resolver_endpoint_id
 
-  depends_on = ["aws_ram_resource_association.test", "aws_ram_principal_association.test"]
+  depends_on = [aws_ram_resource_association.test, aws_ram_principal_association.test]
 }
 `, rName)
 }
@@ -263,7 +272,7 @@ resource "aws_route53_resolver_rule" "example" {
   rule_type   = "FORWARD"
   name        = %[1]q
 
-  resolver_endpoint_id = "${aws_route53_resolver_endpoint.bar.id}"
+  resolver_endpoint_id = aws_route53_resolver_endpoint.bar.id
 
   target_ip {
     ip = "192.0.2.7"
@@ -281,23 +290,23 @@ resource "aws_ram_resource_share" "test" {
 }
 
 resource "aws_ram_resource_association" "test" {
-  resource_arn       = "${aws_route53_resolver_rule.example.arn}"
-  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+  resource_arn       = aws_route53_resolver_rule.example.arn
+  resource_share_arn = aws_ram_resource_share.test.arn
 }
 
 data "aws_organizations_organization" "test" {}
 
 resource "aws_ram_principal_association" "test" {
-  principal          = "${data.aws_organizations_organization.test.arn}"
-  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+  principal          = data.aws_organizations_organization.test.arn
+  resource_share_arn = aws_ram_resource_share.test.arn
 }
 
 data "aws_route53_resolver_rule" "by_resolver_endpoint_id" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
-  resolver_endpoint_id = "${aws_route53_resolver_rule.example.resolver_endpoint_id}"
+  resolver_endpoint_id = aws_route53_resolver_rule.example.resolver_endpoint_id
 
-  depends_on = ["aws_ram_resource_association.test", "aws_ram_principal_association.test"]
+  depends_on = [aws_ram_resource_association.test, aws_ram_principal_association.test]
 }
 `, rName)
 }

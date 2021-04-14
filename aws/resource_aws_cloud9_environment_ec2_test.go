@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
@@ -21,7 +21,8 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloud9.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -68,7 +69,8 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloud9.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -111,7 +113,8 @@ func TestAccAWSCloud9EnvironmentEc2_tags(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloud9.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -157,7 +160,8 @@ func TestAccAWSCloud9EnvironmentEc2_disappears(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloud9.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -273,24 +277,8 @@ func testAccCheckAWSCloud9EnvironmentEc2Destroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccPreCheckAWSCloud9(t *testing.T) {
-	conn := testAccProvider.Meta().(*AWSClient).cloud9conn
-
-	input := &cloud9.ListEnvironmentsInput{}
-
-	_, err := conn.ListEnvironments(input)
-
-	if testAccPreCheckSkipError(err) {
-		t.Skipf("skipping acceptance testing: %s", err)
-	}
-
-	if err != nil {
-		t.Fatalf("unexpected PreCheck error: %s", err)
-	}
-}
-
 func testAccAWSCloud9EnvironmentEc2ConfigBase() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_availability_zones" "available" {
   # t2.micro instance type is not available in these Availability Zones
   exclude_zone_ids = ["usw2-az4"]
@@ -333,7 +321,7 @@ resource "aws_route" "test" {
   gateway_id             = aws_internet_gateway.test.id
   route_table_id         = aws_vpc.test.main_route_table_id
 }
-`)
+`
 }
 
 func testAccAWSCloud9EnvironmentEc2Config(name string) string {
@@ -346,7 +334,7 @@ resource "aws_cloud9_environment_ec2" "test" {
   subnet_id     = aws_subnet.test.id
 }
 
-// By default, the Cloud9 environment EC2 is owned by the creator
+# By default, the Cloud9 environment EC2 is owned by the creator
 data "aws_caller_identity" "current" {}
 `, name)
 }
@@ -398,7 +386,6 @@ resource "aws_cloud9_environment_ec2" "test" {
   tags = {
     %[2]q = %[3]q
     %[4]q = %[5]q
-
   }
 }
 `, name, tagKey1, tagValue1, tagKey2, tagValue2)

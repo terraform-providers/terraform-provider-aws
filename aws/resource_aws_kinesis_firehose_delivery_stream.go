@@ -3,20 +3,32 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/firehose"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 const (
 	firehoseDeliveryStreamStatusDeleted = "DESTROYED"
+)
+
+const (
+	firehoseDestinationTypeS3            = "s3"
+	firehoseDestinationTypeExtendedS3    = "extended_s3"
+	firehoseDestinationTypeElasticsearch = "elasticsearch"
+	firehoseDestinationTypeRedshift      = "redshift"
+	firehoseDestinationTypeSplunk        = "splunk"
+	firehoseDestinationTypeHttpEndpoint  = "http_endpoint"
 )
 
 func cloudWatchLoggingOptionsSchema() *schema.Schema {
@@ -47,6 +59,42 @@ func cloudWatchLoggingOptionsSchema() *schema.Schema {
 	}
 }
 
+func requestConfigurationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"content_encoding": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Default:      firehose.ContentEncodingNone,
+					ValidateFunc: validation.StringInSlice(firehose.ContentEncoding_Values(), false),
+				},
+
+				"common_attributes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"name": {
+								Type:     schema.TypeString,
+								Required: true,
+							},
+							"value": {
+								Type:     schema.TypeString,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func s3ConfigurationSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -55,26 +103,30 @@ func s3ConfigurationSchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"bucket_arn": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validateArn,
 				},
 
 				"buffer_size": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  5,
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Default:      5,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"buffer_interval": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  300,
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Default:      300,
+					ValidateFunc: validation.IntAtLeast(60),
 				},
 
 				"compression_format": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Default:  firehose.CompressionFormatUncompressed,
+					Type:         schema.TypeString,
+					Optional:     true,
+					Default:      firehose.CompressionFormatUncompressed,
+					ValidateFunc: validation.StringInSlice(firehose.CompressionFormat_Values(), false),
 				},
 
 				"kms_key_arn": {
@@ -84,8 +136,9 @@ func s3ConfigurationSchema() *schema.Schema {
 				},
 
 				"role_arn": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validateArn,
 				},
 
 				"prefix": {
@@ -122,15 +175,9 @@ func processingConfigurationSchema() *schema.Schema {
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"parameter_name": {
-											Type:     schema.TypeString,
-											Required: true,
-											ValidateFunc: validation.StringInSlice([]string{
-												firehose.ProcessorParameterNameLambdaArn,
-												firehose.ProcessorParameterNameNumberOfRetries,
-												firehose.ProcessorParameterNameRoleArn,
-												firehose.ProcessorParameterNameBufferSizeInMbs,
-												firehose.ProcessorParameterNameBufferIntervalInSeconds,
-											}, false),
+											Type:         schema.TypeString,
+											Required:     true,
+											ValidateFunc: validation.StringInSlice(firehose.ProcessorParameterName_Values(), false),
 										},
 										"parameter_value": {
 											Type:         schema.TypeString,
@@ -141,11 +188,9 @@ func processingConfigurationSchema() *schema.Schema {
 								},
 							},
 							"type": {
-								Type:     schema.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									firehose.ProcessorTypeLambda,
-								}, false),
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(firehose.ProcessorType_Values(), false),
 							},
 						},
 					},
@@ -177,13 +222,21 @@ func flattenFirehoseElasticsearchConfiguration(description *firehose.Elasticsear
 
 	m := map[string]interface{}{
 		"cloudwatch_logging_options": flattenCloudwatchLoggingOptions(description.CloudWatchLoggingOptions),
-		"domain_arn":                 aws.StringValue(description.DomainARN),
 		"role_arn":                   aws.StringValue(description.RoleARN),
 		"type_name":                  aws.StringValue(description.TypeName),
 		"index_name":                 aws.StringValue(description.IndexName),
 		"s3_backup_mode":             aws.StringValue(description.S3BackupMode),
 		"index_rotation_period":      aws.StringValue(description.IndexRotationPeriod),
+		"vpc_config":                 flattenVpcConfiguration(description.VpcConfigurationDescription),
 		"processing_configuration":   flattenProcessingConfiguration(description.ProcessingConfiguration, aws.StringValue(description.RoleARN)),
+	}
+
+	if description.DomainARN != nil {
+		m["domain_arn"] = aws.StringValue(description.DomainARN)
+	}
+
+	if description.ClusterEndpoint != nil {
+		m["cluster_endpoint"] = aws.StringValue(description.ClusterEndpoint)
 	}
 
 	if description.BufferingHints != nil {
@@ -193,6 +246,21 @@ func flattenFirehoseElasticsearchConfiguration(description *firehose.Elasticsear
 
 	if description.RetryOptions != nil {
 		m["retry_duration"] = int(aws.Int64Value(description.RetryOptions.DurationInSeconds))
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenVpcConfiguration(description *firehose.VpcConfigurationDescription) []map[string]interface{} {
+	if description == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"vpc_id":             aws.StringValue(description.VpcId),
+		"subnet_ids":         flattenStringSet(description.SubnetIds),
+		"security_group_ids": flattenStringSet(description.SecurityGroupIds),
+		"role_arn":           aws.StringValue(description.RoleARN),
 	}
 
 	return []map[string]interface{}{m}
@@ -520,6 +588,32 @@ func flattenFirehoseSchemaConfiguration(sc *firehose.SchemaConfiguration) []map[
 	return []map[string]interface{}{m}
 }
 
+func flattenRequestConfiguration(rc *firehose.HttpEndpointRequestConfiguration) []map[string]interface{} {
+	if rc == nil {
+		return []map[string]interface{}{}
+	}
+
+	requestConfiguration := make([]map[string]interface{}, 1)
+
+	commonAttributes := make([]interface{}, 0)
+	for _, params := range rc.CommonAttributes {
+		name := aws.StringValue(params.AttributeName)
+		value := aws.StringValue(params.AttributeValue)
+
+		commonAttributes = append(commonAttributes, map[string]interface{}{
+			"name":  name,
+			"value": value,
+		})
+	}
+
+	requestConfiguration[0] = map[string]interface{}{
+		"common_attributes": commonAttributes,
+		"content_encoding":  aws.StringValue(rc.ContentEncoding),
+	}
+
+	return requestConfiguration
+}
+
 func flattenProcessingConfiguration(pc *firehose.ProcessingConfiguration, roleArn string) []map[string]interface{} {
 	if pc == nil {
 		return []map[string]interface{}{}
@@ -590,11 +684,21 @@ func flattenKinesisFirehoseDeliveryStream(d *schema.ResourceData, s *firehose.De
 	d.Set("name", s.DeliveryStreamName)
 
 	sseOptions := map[string]interface{}{
-		"enabled": false,
+		"enabled":  false,
+		"key_type": firehose.KeyTypeAwsOwnedCmk,
 	}
-	if s.DeliveryStreamEncryptionConfiguration != nil && aws.StringValue(s.DeliveryStreamEncryptionConfiguration.Status) == firehose.DeliveryStreamEncryptionStatusEnabled {
+	if s.DeliveryStreamEncryptionConfiguration != nil &&
+		aws.StringValue(s.DeliveryStreamEncryptionConfiguration.Status) == firehose.DeliveryStreamEncryptionStatusEnabled {
 		sseOptions["enabled"] = true
+
+		if v := s.DeliveryStreamEncryptionConfiguration.KeyARN; v != nil {
+			sseOptions["key_arn"] = aws.StringValue(v)
+		}
+		if v := s.DeliveryStreamEncryptionConfiguration.KeyType; v != nil {
+			sseOptions["key_type"] = aws.StringValue(v)
+		}
 	}
+
 	if err := d.Set("server_side_encryption", []map[string]interface{}{sseOptions}); err != nil {
 		return fmt.Errorf("error setting server_side_encryption: %s", err)
 	}
@@ -608,7 +712,7 @@ func flattenKinesisFirehoseDeliveryStream(d *schema.ResourceData, s *firehose.De
 	if len(s.Destinations) > 0 {
 		destination := s.Destinations[0]
 		if destination.RedshiftDestinationDescription != nil {
-			d.Set("destination", "redshift")
+			d.Set("destination", firehoseDestinationTypeRedshift)
 			configuredPassword := d.Get("redshift_configuration.0.password").(string)
 			if err := d.Set("redshift_configuration", flattenFirehoseRedshiftConfiguration(destination.RedshiftDestinationDescription, configuredPassword)); err != nil {
 				return fmt.Errorf("error setting redshift_configuration: %s", err)
@@ -617,7 +721,7 @@ func flattenKinesisFirehoseDeliveryStream(d *schema.ResourceData, s *firehose.De
 				return fmt.Errorf("error setting s3_configuration: %s", err)
 			}
 		} else if destination.ElasticsearchDestinationDescription != nil {
-			d.Set("destination", "elasticsearch")
+			d.Set("destination", firehoseDestinationTypeElasticsearch)
 			if err := d.Set("elasticsearch_configuration", flattenFirehoseElasticsearchConfiguration(destination.ElasticsearchDestinationDescription)); err != nil {
 				return fmt.Errorf("error setting elasticsearch_configuration: %s", err)
 			}
@@ -625,20 +729,29 @@ func flattenKinesisFirehoseDeliveryStream(d *schema.ResourceData, s *firehose.De
 				return fmt.Errorf("error setting s3_configuration: %s", err)
 			}
 		} else if destination.SplunkDestinationDescription != nil {
-			d.Set("destination", "splunk")
+			d.Set("destination", firehoseDestinationTypeSplunk)
 			if err := d.Set("splunk_configuration", flattenFirehoseSplunkConfiguration(destination.SplunkDestinationDescription)); err != nil {
 				return fmt.Errorf("error setting splunk_configuration: %s", err)
 			}
 			if err := d.Set("s3_configuration", flattenFirehoseS3Configuration(destination.SplunkDestinationDescription.S3DestinationDescription)); err != nil {
 				return fmt.Errorf("error setting s3_configuration: %s", err)
 			}
-		} else if d.Get("destination").(string) == "s3" {
-			d.Set("destination", "s3")
+		} else if destination.HttpEndpointDestinationDescription != nil {
+			d.Set("destination", firehoseDestinationTypeHttpEndpoint)
+			configuredAccessKey := d.Get("http_endpoint_configuration.0.access_key").(string)
+			if err := d.Set("http_endpoint_configuration", flattenFirehoseHttpEndpointConfiguration(destination.HttpEndpointDestinationDescription, configuredAccessKey)); err != nil {
+				return fmt.Errorf("error setting http_endpoint_configuration: %s", err)
+			}
+			if err := d.Set("s3_configuration", flattenFirehoseS3Configuration(destination.HttpEndpointDestinationDescription.S3DestinationDescription)); err != nil {
+				return fmt.Errorf("error setting s3_configuration: %s", err)
+			}
+		} else if d.Get("destination").(string) == firehoseDestinationTypeS3 {
+			d.Set("destination", firehoseDestinationTypeS3)
 			if err := d.Set("s3_configuration", flattenFirehoseS3Configuration(destination.S3DestinationDescription)); err != nil {
 				return fmt.Errorf("error setting s3_configuration: %s", err)
 			}
 		} else {
-			d.Set("destination", "extended_s3")
+			d.Set("destination", firehoseDestinationTypeExtendedS3)
 			if err := d.Set("extended_s3_configuration", flattenFirehoseExtendedS3Configuration(destination.ExtendedS3DestinationDescription)); err != nil {
 				return fmt.Errorf("error setting extended_s3_configuration: %s", err)
 			}
@@ -647,6 +760,33 @@ func flattenKinesisFirehoseDeliveryStream(d *schema.ResourceData, s *firehose.De
 	}
 
 	return nil
+}
+
+func flattenFirehoseHttpEndpointConfiguration(description *firehose.HttpEndpointDestinationDescription, configuredAccessKey string) []map[string]interface{} {
+	if description == nil {
+		return []map[string]interface{}{}
+	}
+	m := map[string]interface{}{
+		"access_key":                 configuredAccessKey,
+		"url":                        aws.StringValue(description.EndpointConfiguration.Url),
+		"name":                       aws.StringValue(description.EndpointConfiguration.Name),
+		"role_arn":                   aws.StringValue(description.RoleARN),
+		"s3_backup_mode":             aws.StringValue(description.S3BackupMode),
+		"request_configuration":      flattenRequestConfiguration(description.RequestConfiguration),
+		"cloudwatch_logging_options": flattenCloudwatchLoggingOptions(description.CloudWatchLoggingOptions),
+		"processing_configuration":   flattenProcessingConfiguration(description.ProcessingConfiguration, aws.StringValue(description.RoleARN)),
+	}
+
+	if description.RetryOptions != nil {
+		m["retry_duration"] = int(aws.Int64Value(description.RetryOptions.DurationInSeconds))
+	}
+
+	if description.BufferingHints != nil {
+		m["buffering_interval"] = int(aws.Int64Value(description.BufferingHints.IntervalInSeconds))
+		m["buffering_size"] = int(aws.Int64Value(description.BufferingHints.SizeInMBs))
+	}
+
+	return []map[string]interface{}{m}
 }
 
 func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
@@ -698,6 +838,21 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
+						"key_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.KeyTypeAwsOwnedCmk,
+							ValidateFunc: validation.StringInSlice(firehose.KeyType_Values(), false),
+							RequiredWith: []string{"server_side_encryption.0.enabled"},
+						},
+
+						"key_arn": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
+							RequiredWith: []string{"server_side_encryption.0.enabled", "server_side_encryption.0.key_type"},
+						},
 					},
 				},
 			},
@@ -736,11 +891,12 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 					return strings.ToLower(value)
 				},
 				ValidateFunc: validation.StringInSlice([]string{
-					"elasticsearch",
-					"extended_s3",
-					"redshift",
-					"s3",
-					"splunk",
+					firehoseDestinationTypeS3,
+					firehoseDestinationTypeExtendedS3,
+					firehoseDestinationTypeRedshift,
+					firehoseDestinationTypeElasticsearch,
+					firehoseDestinationTypeSplunk,
+					firehoseDestinationTypeHttpEndpoint,
 				}, false),
 			},
 
@@ -754,8 +910,9 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bucket_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 
 						"buffer_size": {
@@ -771,9 +928,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						},
 
 						"compression_format": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  firehose.CompressionFormatUncompressed,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.CompressionFormatUncompressed,
+							ValidateFunc: validation.StringInSlice(firehose.CompressionFormat_Values(), false),
 						},
 
 						"data_format_conversion_configuration": {
@@ -883,14 +1041,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 																			Default:  0.05,
 																		},
 																		"compression": {
-																			Type:     schema.TypeString,
-																			Optional: true,
-																			Default:  firehose.OrcCompressionSnappy,
-																			ValidateFunc: validation.StringInSlice([]string{
-																				firehose.OrcCompressionNone,
-																				firehose.OrcCompressionSnappy,
-																				firehose.OrcCompressionZlib,
-																			}, false),
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			Default:      firehose.OrcCompressionSnappy,
+																			ValidateFunc: validation.StringInSlice(firehose.OrcCompression_Values(), false),
 																		},
 																		"dictionary_key_threshold": {
 																			Type:     schema.TypeFloat,
@@ -903,13 +1057,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 																			Default:  false,
 																		},
 																		"format_version": {
-																			Type:     schema.TypeString,
-																			Optional: true,
-																			Default:  firehose.OrcFormatVersionV012,
-																			ValidateFunc: validation.StringInSlice([]string{
-																				firehose.OrcFormatVersionV011,
-																				firehose.OrcFormatVersionV012,
-																			}, false),
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			Default:      firehose.OrcFormatVersionV012,
+																			ValidateFunc: validation.StringInSlice(firehose.OrcFormatVersion_Values(), false),
 																		},
 																		"padding_tolerance": {
 																			Type:     schema.TypeFloat,
@@ -949,14 +1100,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 																			ValidateFunc: validation.IntAtLeast(67108864),
 																		},
 																		"compression": {
-																			Type:     schema.TypeString,
-																			Optional: true,
-																			Default:  firehose.ParquetCompressionSnappy,
-																			ValidateFunc: validation.StringInSlice([]string{
-																				firehose.ParquetCompressionGzip,
-																				firehose.ParquetCompressionSnappy,
-																				firehose.ParquetCompressionUncompressed,
-																			}, false),
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			Default:      firehose.ParquetCompressionSnappy,
+																			ValidateFunc: validation.StringInSlice(firehose.ParquetCompression_Values(), false),
 																		},
 																		"enable_dictionary_compression": {
 																			Type:     schema.TypeBool,
@@ -977,13 +1124,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 																			ValidateFunc: validation.IntAtLeast(65536),
 																		},
 																		"writer_version": {
-																			Type:     schema.TypeString,
-																			Optional: true,
-																			Default:  firehose.ParquetWriterVersionV1,
-																			ValidateFunc: validation.StringInSlice([]string{
-																				firehose.ParquetWriterVersionV1,
-																				firehose.ParquetWriterVersionV2,
-																			}, false),
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			Default:      firehose.ParquetWriterVersionV1,
+																			ValidateFunc: validation.StringInSlice(firehose.ParquetWriterVersion_Values(), false),
 																		},
 																	},
 																},
@@ -1015,8 +1159,9 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 													Computed: true,
 												},
 												"role_arn": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validateArn,
 												},
 												"table_name": {
 													Type:     schema.TypeString,
@@ -1046,8 +1191,9 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						},
 
 						"role_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 
 						"prefix": {
@@ -1056,13 +1202,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						},
 
 						"s3_backup_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  firehose.S3BackupModeDisabled,
-							ValidateFunc: validation.StringInSlice([]string{
-								firehose.S3BackupModeDisabled,
-								firehose.S3BackupModeEnabled,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.S3BackupModeDisabled,
+							ValidateFunc: validation.StringInSlice(firehose.S3BackupMode_Values(), false),
 						},
 
 						"s3_backup_configuration": s3ConfigurationSchema(),
@@ -1099,34 +1242,25 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						"processing_configuration": processingConfigurationSchema(),
 
 						"role_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 
 						"s3_backup_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  firehose.S3BackupModeDisabled,
-							ValidateFunc: validation.StringInSlice([]string{
-								firehose.S3BackupModeDisabled,
-								firehose.S3BackupModeEnabled,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.S3BackupModeDisabled,
+							ValidateFunc: validation.StringInSlice(firehose.S3BackupMode_Values(), false),
 						},
 
 						"s3_backup_configuration": s3ConfigurationSchema(),
 
 						"retry_duration": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  3600,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(int)
-								if value < 0 || value > 7200 {
-									errors = append(errors, fmt.Errorf(
-										"%q must be in the range from 0 to 7200 seconds.", k))
-								}
-								return
-							},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      3600,
+							ValidateFunc: validation.IntBetween(0, 7200),
 						},
 
 						"copy_options": {
@@ -1156,36 +1290,24 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"buffering_interval": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  300,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(int)
-								if value < 60 || value > 900 {
-									errors = append(errors, fmt.Errorf(
-										"%q must be in the range from 60 to 900 seconds.", k))
-								}
-								return
-							},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntBetween(60, 900),
 						},
 
 						"buffering_size": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  5,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(int)
-								if value < 1 || value > 100 {
-									errors = append(errors, fmt.Errorf(
-										"%q must be in the range from 1 to 100 MB.", k))
-								}
-								return
-							},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      5,
+							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
 						"domain_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ValidateFunc:  validateArn,
+							ConflictsWith: []string{"elasticsearch_configuration.0.cluster_endpoint"},
 						},
 
 						"index_name": {
@@ -1194,64 +1316,80 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						},
 
 						"index_rotation_period": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  firehose.ElasticsearchIndexRotationPeriodOneDay,
-							ValidateFunc: validation.StringInSlice([]string{
-								firehose.ElasticsearchIndexRotationPeriodNoRotation,
-								firehose.ElasticsearchIndexRotationPeriodOneHour,
-								firehose.ElasticsearchIndexRotationPeriodOneDay,
-								firehose.ElasticsearchIndexRotationPeriodOneWeek,
-								firehose.ElasticsearchIndexRotationPeriodOneMonth,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.ElasticsearchIndexRotationPeriodOneDay,
+							ValidateFunc: validation.StringInSlice(firehose.ElasticsearchIndexRotationPeriod_Values(), false),
 						},
 
 						"retry_duration": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  300,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(int)
-								if value < 0 || value > 7200 {
-									errors = append(errors, fmt.Errorf(
-										"%q must be in the range from 0 to 7200 seconds.", k))
-								}
-								return
-							},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntBetween(0, 7200),
 						},
 
 						"role_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 
 						"s3_backup_mode": {
-							Type:     schema.TypeString,
-							ForceNew: true,
-							Optional: true,
-							Default:  firehose.ElasticsearchS3BackupModeFailedDocumentsOnly,
-							ValidateFunc: validation.StringInSlice([]string{
-								firehose.ElasticsearchS3BackupModeFailedDocumentsOnly,
-								firehose.ElasticsearchS3BackupModeAllDocuments,
-							}, false),
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							Default:      firehose.ElasticsearchS3BackupModeFailedDocumentsOnly,
+							ValidateFunc: validation.StringInSlice(firehose.ElasticsearchS3BackupMode_Values(), false),
 						},
 
 						"type_name": {
-							Type:     schema.TypeString,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 100),
+						},
+
+						"vpc_config": {
+							Type:     schema.TypeList,
 							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if len(value) > 100 {
-									errors = append(errors, fmt.Errorf(
-										"%q cannot be longer than 100 characters", k))
-								}
-								return
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"vpc_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"subnet_ids": {
+										Type:     schema.TypeSet,
+										Required: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"security_group_ids": {
+										Type:     schema.TypeSet,
+										Required: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"role_arn": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validateArn,
+									},
+								},
 							},
 						},
 
 						"cloudwatch_logging_options": cloudWatchLoggingOptionsSchema(),
 
 						"processing_configuration": processingConfigurationSchema(),
+						"cluster_endpoint": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"elasticsearch_configuration.0.domain_arn"},
+						},
 					},
 				},
 			},
@@ -1305,6 +1443,79 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 							Default:      3600,
 							ValidateFunc: validation.IntBetween(0, 7200),
 						},
+
+						"cloudwatch_logging_options": cloudWatchLoggingOptionsSchema(),
+
+						"processing_configuration": processingConfigurationSchema(),
+					},
+				},
+			},
+
+			"http_endpoint_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"url": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 1000),
+								validation.StringMatch(regexp.MustCompile(`^https://.*$`), ""),
+							),
+						},
+
+						"name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 256),
+							),
+						},
+
+						"access_key": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 4096),
+							Sensitive:    true,
+						},
+
+						"role_arn": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
+						},
+
+						"s3_backup_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.HttpEndpointS3BackupModeFailedDataOnly,
+							ValidateFunc: validation.StringInSlice(firehose.HttpEndpointS3BackupMode_Values(), false),
+						},
+
+						"retry_duration": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntBetween(0, 7200),
+						},
+
+						"buffering_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntBetween(60, 900),
+						},
+
+						"buffering_size": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      5,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+
+						"request_configuration": requestConfigurationSchema(),
 
 						"cloudwatch_logging_options": cloudWatchLoggingOptionsSchema(),
 
@@ -1765,7 +1976,7 @@ func extractEncryptionConfiguration(s3 map[string]interface{}) *firehose.Encrypt
 	}
 
 	return &firehose.EncryptionConfiguration{
-		NoEncryptionConfig: aws.String("NoEncryption"),
+		NoEncryptionConfig: aws.String(firehose.NoEncryptionConfigNoEncryption),
 	}
 }
 
@@ -1790,6 +2001,21 @@ func extractCloudWatchLoggingConfiguration(s3 map[string]interface{}) *firehose.
 
 	return loggingOptions
 
+}
+
+func extractVpcConfiguration(es map[string]interface{}) *firehose.VpcConfiguration {
+	config := es["vpc_config"].([]interface{})
+	if len(config) == 0 {
+		return nil
+	}
+
+	vpcConfig := config[0].(map[string]interface{})
+
+	return &firehose.VpcConfiguration{
+		RoleARN:          aws.String(vpcConfig["role_arn"].(string)),
+		SubnetIds:        expandStringSet(vpcConfig["subnet_ids"].(*schema.Set)),
+		SecurityGroupIds: expandStringSet(vpcConfig["security_group_ids"].(*schema.Set)),
+	}
 }
 
 func extractPrefixConfiguration(s3 map[string]interface{}) *string {
@@ -1877,12 +2103,19 @@ func createElasticsearchConfig(d *schema.ResourceData, s3Config *firehose.S3Dest
 
 	config := &firehose.ElasticsearchDestinationConfiguration{
 		BufferingHints:  extractBufferingHints(es),
-		DomainARN:       aws.String(es["domain_arn"].(string)),
 		IndexName:       aws.String(es["index_name"].(string)),
 		RetryOptions:    extractElasticSearchRetryOptions(es),
 		RoleARN:         aws.String(es["role_arn"].(string)),
 		TypeName:        aws.String(es["type_name"].(string)),
 		S3Configuration: s3Config,
+	}
+
+	if v, ok := es["domain_arn"]; ok && v.(string) != "" {
+		config.DomainARN = aws.String(v.(string))
+	}
+
+	if v, ok := es["cluster_endpoint"]; ok && v.(string) != "" {
+		config.ClusterEndpoint = aws.String(v.(string))
 	}
 
 	if _, ok := es["cloudwatch_logging_options"]; ok {
@@ -1900,6 +2133,10 @@ func createElasticsearchConfig(d *schema.ResourceData, s3Config *firehose.S3Dest
 		config.S3BackupMode = aws.String(s3BackupMode.(string))
 	}
 
+	if _, ok := es["vpc_config"]; ok {
+		config.VpcConfiguration = extractVpcConfiguration(es)
+	}
+
 	return config, nil
 }
 
@@ -1914,12 +2151,19 @@ func updateElasticsearchConfig(d *schema.ResourceData, s3Update *firehose.S3Dest
 
 	update := &firehose.ElasticsearchDestinationUpdate{
 		BufferingHints: extractBufferingHints(es),
-		DomainARN:      aws.String(es["domain_arn"].(string)),
 		IndexName:      aws.String(es["index_name"].(string)),
 		RetryOptions:   extractElasticSearchRetryOptions(es),
 		RoleARN:        aws.String(es["role_arn"].(string)),
 		TypeName:       aws.String(es["type_name"].(string)),
 		S3Update:       s3Update,
+	}
+
+	if v, ok := es["domain_arn"]; ok && v.(string) != "" {
+		update.DomainARN = aws.String(v.(string))
+	}
+
+	if v, ok := es["cluster_endpoint"]; ok && v.(string) != "" {
+		update.ClusterEndpoint = aws.String(v.(string))
 	}
 
 	if _, ok := es["cloudwatch_logging_options"]; ok {
@@ -2001,6 +2245,149 @@ func updateSplunkConfig(d *schema.ResourceData, s3Update *firehose.S3Destination
 	return configuration, nil
 }
 
+func createHttpEndpointConfig(d *schema.ResourceData, s3Config *firehose.S3DestinationConfiguration) (*firehose.HttpEndpointDestinationConfiguration, error) {
+	HttpEndpointRaw, ok := d.GetOk("http_endpoint_configuration")
+	if !ok {
+		return nil, fmt.Errorf("Error loading HTTP Endpoint Configuration for Kinesis Firehose: http_endpoint_configuration not found")
+	}
+	sl := HttpEndpointRaw.([]interface{})
+
+	HttpEndpoint := sl[0].(map[string]interface{})
+
+	configuration := &firehose.HttpEndpointDestinationConfiguration{
+		RetryOptions:    extractHttpEndpointRetryOptions(HttpEndpoint),
+		RoleARN:         aws.String(HttpEndpoint["role_arn"].(string)),
+		S3Configuration: s3Config,
+	}
+
+	configuration.EndpointConfiguration = extractHttpEndpointConfiguration(HttpEndpoint)
+
+	bufferingHints := &firehose.HttpEndpointBufferingHints{}
+
+	if bufferingInterval, ok := HttpEndpoint["buffering_interval"].(int); ok {
+		bufferingHints.IntervalInSeconds = aws.Int64(int64(bufferingInterval))
+	}
+	if bufferingSize, ok := HttpEndpoint["buffering_size"].(int); ok {
+		bufferingHints.SizeInMBs = aws.Int64(int64(bufferingSize))
+	}
+	configuration.BufferingHints = bufferingHints
+
+	if _, ok := HttpEndpoint["processing_configuration"]; ok {
+		configuration.ProcessingConfiguration = extractProcessingConfiguration(HttpEndpoint)
+	}
+
+	if _, ok := HttpEndpoint["request_configuration"]; ok {
+		configuration.RequestConfiguration = extractRequestConfiguration(HttpEndpoint)
+	}
+
+	if _, ok := HttpEndpoint["cloudwatch_logging_options"]; ok {
+		configuration.CloudWatchLoggingOptions = extractCloudWatchLoggingConfiguration(HttpEndpoint)
+	}
+	if s3BackupMode, ok := HttpEndpoint["s3_backup_mode"]; ok {
+		configuration.S3BackupMode = aws.String(s3BackupMode.(string))
+	}
+
+	return configuration, nil
+}
+
+func updateHttpEndpointConfig(d *schema.ResourceData, s3Update *firehose.S3DestinationUpdate) (*firehose.HttpEndpointDestinationUpdate, error) {
+	HttpEndpointRaw, ok := d.GetOk("http_endpoint_configuration")
+	if !ok {
+		return nil, fmt.Errorf("Error loading  HTTP Endpoint Configuration for Kinesis Firehose: http_endpoint_configuration not found")
+	}
+	sl := HttpEndpointRaw.([]interface{})
+
+	HttpEndpoint := sl[0].(map[string]interface{})
+
+	configuration := &firehose.HttpEndpointDestinationUpdate{
+		RetryOptions: extractHttpEndpointRetryOptions(HttpEndpoint),
+		RoleARN:      aws.String(HttpEndpoint["role_arn"].(string)),
+		S3Update:     s3Update,
+	}
+
+	configuration.EndpointConfiguration = extractHttpEndpointConfiguration(HttpEndpoint)
+
+	bufferingHints := &firehose.HttpEndpointBufferingHints{}
+
+	if bufferingInterval, ok := HttpEndpoint["buffering_interval"].(int); ok {
+		bufferingHints.IntervalInSeconds = aws.Int64(int64(bufferingInterval))
+	}
+	if bufferingSize, ok := HttpEndpoint["buffering_size"].(int); ok {
+		bufferingHints.SizeInMBs = aws.Int64(int64(bufferingSize))
+	}
+	configuration.BufferingHints = bufferingHints
+
+	if _, ok := HttpEndpoint["processing_configuration"]; ok {
+		configuration.ProcessingConfiguration = extractProcessingConfiguration(HttpEndpoint)
+	}
+
+	if _, ok := HttpEndpoint["request_configuration"]; ok {
+		configuration.RequestConfiguration = extractRequestConfiguration(HttpEndpoint)
+	}
+
+	if _, ok := HttpEndpoint["cloudwatch_logging_options"]; ok {
+		configuration.CloudWatchLoggingOptions = extractCloudWatchLoggingConfiguration(HttpEndpoint)
+	}
+
+	if s3BackupMode, ok := HttpEndpoint["s3_backup_mode"]; ok {
+		configuration.S3BackupMode = aws.String(s3BackupMode.(string))
+	}
+
+	return configuration, nil
+}
+
+func extractCommonAttributes(ca []interface{}) []*firehose.HttpEndpointCommonAttribute {
+	CommonAttributes := make([]*firehose.HttpEndpointCommonAttribute, 0, len(ca))
+
+	for _, raw := range ca {
+		data := raw.(map[string]interface{})
+
+		a := &firehose.HttpEndpointCommonAttribute{
+			AttributeName:  aws.String(data["name"].(string)),
+			AttributeValue: aws.String(data["value"].(string)),
+		}
+		CommonAttributes = append(CommonAttributes, a)
+	}
+
+	return CommonAttributes
+}
+
+func extractRequestConfiguration(rc map[string]interface{}) *firehose.HttpEndpointRequestConfiguration {
+	config := rc["request_configuration"].([]interface{})
+	if len(config) == 0 {
+		return nil
+	}
+
+	requestConfig := config[0].(map[string]interface{})
+	RequestConfiguration := &firehose.HttpEndpointRequestConfiguration{}
+
+	if contentEncoding, ok := requestConfig["content_encoding"]; ok {
+		RequestConfiguration.ContentEncoding = aws.String(contentEncoding.(string))
+	}
+
+	if commonAttributes, ok := requestConfig["common_attributes"]; ok {
+		RequestConfiguration.CommonAttributes = extractCommonAttributes(commonAttributes.([]interface{}))
+	}
+
+	return RequestConfiguration
+}
+
+func extractHttpEndpointConfiguration(ep map[string]interface{}) *firehose.HttpEndpointConfiguration {
+	endpointConfiguration := &firehose.HttpEndpointConfiguration{
+		Url: aws.String(ep["url"].(string)),
+	}
+
+	if Name, ok := ep["name"]; ok {
+		endpointConfiguration.Name = aws.String(Name.(string))
+	}
+
+	if AccessKey, ok := ep["access_key"]; ok {
+		endpointConfiguration.AccessKey = aws.String(AccessKey.(string))
+	}
+
+	return endpointConfiguration
+}
+
 func extractBufferingHints(es map[string]interface{}) *firehose.ElasticsearchBufferingHints {
 	bufferingHints := &firehose.ElasticsearchBufferingHints{}
 
@@ -2018,6 +2405,16 @@ func extractElasticSearchRetryOptions(es map[string]interface{}) *firehose.Elast
 	retryOptions := &firehose.ElasticsearchRetryOptions{}
 
 	if retryDuration, ok := es["retry_duration"].(int); ok {
+		retryOptions.DurationInSeconds = aws.Int64(int64(retryDuration))
+	}
+
+	return retryOptions
+}
+
+func extractHttpEndpointRetryOptions(tfMap map[string]interface{}) *firehose.HttpEndpointRetryOptions {
+	retryOptions := &firehose.HttpEndpointRetryOptions{}
+
+	if retryDuration, ok := tfMap["retry_duration"].(int); ok {
 		retryOptions.DurationInSeconds = aws.Int64(int64(retryDuration))
 	}
 
@@ -2081,32 +2478,38 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 		createInput.DeliveryStreamType = aws.String(firehose.DeliveryStreamTypeDirectPut)
 	}
 
-	if d.Get("destination").(string) == "extended_s3" {
+	if d.Get("destination").(string) == firehoseDestinationTypeExtendedS3 {
 		extendedS3Config := createExtendedS3Config(d)
 		createInput.ExtendedS3DestinationConfiguration = extendedS3Config
 	} else {
 		s3Config := createS3Config(d)
 
-		if d.Get("destination").(string) == "s3" {
+		if d.Get("destination").(string) == firehoseDestinationTypeS3 {
 			createInput.S3DestinationConfiguration = s3Config
-		} else if d.Get("destination").(string) == "elasticsearch" {
+		} else if d.Get("destination").(string) == firehoseDestinationTypeElasticsearch {
 			esConfig, err := createElasticsearchConfig(d, s3Config)
 			if err != nil {
 				return err
 			}
 			createInput.ElasticsearchDestinationConfiguration = esConfig
-		} else if d.Get("destination").(string) == "redshift" {
+		} else if d.Get("destination").(string) == firehoseDestinationTypeRedshift {
 			rc, err := createRedshiftConfig(d, s3Config)
 			if err != nil {
 				return err
 			}
 			createInput.RedshiftDestinationConfiguration = rc
-		} else if d.Get("destination").(string) == "splunk" {
+		} else if d.Get("destination").(string) == firehoseDestinationTypeSplunk {
 			rc, err := createSplunkConfig(d, s3Config)
 			if err != nil {
 				return err
 			}
 			createInput.SplunkDestinationConfiguration = rc
+		} else if d.Get("destination").(string) == firehoseDestinationTypeHttpEndpoint {
+			rc, err := createHttpEndpointConfig(d, s3Config)
+			if err != nil {
+				return err
+			}
+			createInput.HttpEndpointDestinationConfiguration = rc
 		}
 	}
 
@@ -2114,26 +2517,31 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 		createInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().FirehoseTags()
 	}
 
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := conn.CreateDeliveryStream(createInput)
 		if err != nil {
-			log.Printf("[DEBUG] Error creating Firehose Delivery Stream: %s", err)
+			// Access was denied when calling Glue. Please ensure that the role specified in the data format conversion configuration has the necessary permissions.
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Access was denied") {
+				return resource.RetryableError(err)
+			}
 
-			// Retry for IAM eventual consistency
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
 				return resource.RetryableError(err)
 			}
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Please make sure the role specified in VpcConfiguration has permissions") {
+				return resource.RetryableError(err)
+			}
+
 			// InvalidArgumentException: Verify that the IAM role has access to the ElasticSearch domain.
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
 				return resource.RetryableError(err)
 			}
-			// IAM roles can take ~10 seconds to propagate in AWS:
-			// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
-				log.Printf("[DEBUG] Firehose could not assume role referenced, retrying...")
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
 				return resource.RetryableError(err)
 			}
-			// Not retryable
+
 			return resource.NonRetryableError(err)
 		}
 
@@ -2155,9 +2563,12 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 	d.Set("arn", s.DeliveryStreamARN)
 
 	if v, ok := d.GetOk("server_side_encryption"); ok && !isKinesisFirehoseDeliveryStreamOptionDisabled(v) {
-		_, err := conn.StartDeliveryStreamEncryption(&firehose.StartDeliveryStreamEncryptionInput{
-			DeliveryStreamName: aws.String(sn),
-		})
+		startInput := &firehose.StartDeliveryStreamEncryptionInput{
+			DeliveryStreamName:                         aws.String(sn),
+			DeliveryStreamEncryptionConfigurationInput: expandFirehoseDeliveryStreamEncryptionConfigurationInput(v.([]interface{})),
+		}
+
+		_, err := conn.StartDeliveryStreamEncryption(startInput)
 		if err != nil {
 			return fmt.Errorf("error starting Kinesis Firehose Delivery Stream (%s) encryption: %s", sn, err)
 		}
@@ -2175,7 +2586,7 @@ func validateAwsKinesisFirehoseSchema(d *schema.ResourceData) error {
 	_, s3Exists := d.GetOk("s3_configuration")
 	_, extendedS3Exists := d.GetOk("extended_s3_configuration")
 
-	if d.Get("destination").(string) == "extended_s3" {
+	if d.Get("destination").(string) == firehoseDestinationTypeExtendedS3 {
 		if !extendedS3Exists {
 			return fmt.Errorf(
 				"When destination is 'extended_s3', extended_s3_configuration is required",
@@ -2217,55 +2628,66 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 		DestinationId:                  aws.String(d.Get("destination_id").(string)),
 	}
 
-	if d.Get("destination").(string) == "extended_s3" {
+	if d.Get("destination").(string) == firehoseDestinationTypeExtendedS3 {
 		extendedS3Config := updateExtendedS3Config(d)
 		updateInput.ExtendedS3DestinationUpdate = extendedS3Config
 	} else {
 		s3Config := updateS3Config(d)
 
-		if d.Get("destination").(string) == "s3" {
+		if d.Get("destination").(string) == firehoseDestinationTypeS3 {
 			updateInput.S3DestinationUpdate = s3Config
-		} else if d.Get("destination").(string) == "elasticsearch" {
+		} else if d.Get("destination").(string) == firehoseDestinationTypeElasticsearch {
 			esUpdate, err := updateElasticsearchConfig(d, s3Config)
 			if err != nil {
 				return err
 			}
 			updateInput.ElasticsearchDestinationUpdate = esUpdate
-		} else if d.Get("destination").(string) == "redshift" {
+		} else if d.Get("destination").(string) == firehoseDestinationTypeRedshift {
 			rc, err := updateRedshiftConfig(d, s3Config)
 			if err != nil {
 				return err
 			}
 			updateInput.RedshiftDestinationUpdate = rc
-		} else if d.Get("destination").(string) == "splunk" {
+		} else if d.Get("destination").(string) == firehoseDestinationTypeSplunk {
 			rc, err := updateSplunkConfig(d, s3Config)
 			if err != nil {
 				return err
 			}
 			updateInput.SplunkDestinationUpdate = rc
+		} else if d.Get("destination").(string) == firehoseDestinationTypeHttpEndpoint {
+			rc, err := updateHttpEndpointConfig(d, s3Config)
+			if err != nil {
+				return err
+			}
+			updateInput.HttpEndpointDestinationUpdate = rc
 		}
 	}
 
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := conn.UpdateDestination(updateInput)
 		if err != nil {
-			log.Printf("[DEBUG] Error updating Firehose Delivery Stream: %s", err)
+			// Access was denied when calling Glue. Please ensure that the role specified in the data format conversion configuration has the necessary permissions.
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Access was denied") {
+				return resource.RetryableError(err)
+			}
 
-			// Retry for IAM eventual consistency
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
 				return resource.RetryableError(err)
 			}
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Please make sure the role specified in VpcConfiguration has permissions") {
+				return resource.RetryableError(err)
+			}
+
 			// InvalidArgumentException: Verify that the IAM role has access to the ElasticSearch domain.
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
 				return resource.RetryableError(err)
 			}
-			// IAM roles can take ~10 seconds to propagate in AWS:
-			// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
-				log.Printf("[DEBUG] Firehose could not assume role referenced, retrying...")
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
 				return resource.RetryableError(err)
 			}
-			// Not retryable
+
 			return resource.NonRetryableError(err)
 		}
 
@@ -2304,15 +2726,21 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 				return fmt.Errorf("error waiting for Kinesis Firehose Delivery Stream (%s) encryption to be disabled: %s", sn, err)
 			}
 		} else {
-			_, err := conn.StartDeliveryStreamEncryption(&firehose.StartDeliveryStreamEncryptionInput{
-				DeliveryStreamName: aws.String(sn),
-			})
+			startInput := &firehose.StartDeliveryStreamEncryptionInput{
+				DeliveryStreamName:                         aws.String(sn),
+				DeliveryStreamEncryptionConfigurationInput: expandFirehoseDeliveryStreamEncryptionConfigurationInput(n.([]interface{})),
+			}
+
+			_, err := conn.StartDeliveryStreamEncryption(startInput)
+
 			if err != nil {
-				return fmt.Errorf("error starting Kinesis Firehose Delivery Stream (%s) encryption: %s", sn, err)
+				return fmt.Errorf(
+					"error starting Kinesis Firehose Delivery Stream (%s) encryption: %s", sn, err)
 			}
 
 			if err := waitForKinesisFirehoseDeliveryStreamSSEEnabled(conn, sn); err != nil {
-				return fmt.Errorf("error waiting for Kinesis Firehose Delivery Stream (%s) encryption to be enabled: %s", sn, err)
+				return fmt.Errorf("error waiting for Kinesis Firehose Delivery Stream (%s) "+
+					"encryption to be enabled: %s", sn, err)
 			}
 		}
 	}
@@ -2472,13 +2900,37 @@ func isKinesisFirehoseDeliveryStreamOptionDisabled(v interface{}) bool {
 	if len(options) == 0 || options[0] == nil {
 		return true
 	}
-	m := options[0].(map[string]interface{})
+	optionMap := options[0].(map[string]interface{})
 
 	var enabled bool
 
-	if v, ok := m["enabled"]; ok {
+	if v, ok := optionMap["enabled"]; ok {
 		enabled = v.(bool)
 	}
 
 	return !enabled
+}
+
+func expandFirehoseDeliveryStreamEncryptionConfigurationInput(tfList []interface{}) *firehose.DeliveryStreamEncryptionConfigurationInput {
+	if len(tfList) == 0 {
+		return nil
+	}
+
+	tfMap, ok := tfList[0].(map[string]interface{})
+
+	if !ok {
+		return nil
+	}
+
+	apiObject := &firehose.DeliveryStreamEncryptionConfigurationInput{}
+
+	if v, ok := tfMap["key_arn"].(string); ok && v != "" {
+		apiObject.KeyARN = aws.String(v)
+	}
+
+	if v, ok := tfMap["key_type"].(string); ok && v != "" {
+		apiObject.KeyType = aws.String(v)
+	}
+
+	return apiObject
 }

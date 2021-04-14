@@ -12,7 +12,7 @@ The CodeCommit Repository data source allows the ARN, Repository ID, Repository 
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_codecommit_repository" "test" {
   repository_name = "MyTestRepository"
 }

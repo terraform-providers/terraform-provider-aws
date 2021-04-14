@@ -18,13 +18,13 @@ Manages an ECR repository lifecycle policy.
 
 ### Policy on untagged image
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name = "bar"
 }
 
 resource "aws_ecr_lifecycle_policy" "foopolicy" {
-  repository = "${aws_ecr_repository.foo.name}"
+  repository = aws_ecr_repository.foo.name
 
   policy = <<EOF
 {
@@ -50,13 +50,13 @@ EOF
 
 ### Policy on tagged image
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name = "bar"
 }
 
 resource "aws_ecr_lifecycle_policy" "foopolicy" {
-  repository = "${aws_ecr_repository.foo.name}"
+  repository = aws_ecr_repository.foo.name
 
   policy = <<EOF
 {

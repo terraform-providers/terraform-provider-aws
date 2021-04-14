@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSVpc_coreMismatchedDiffs(t *testing.T) {
@@ -12,6 +12,7 @@ func TestAccAWSVpc_coreMismatchedDiffs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
@@ -28,14 +29,15 @@ func TestAccAWSVpc_coreMismatchedDiffs(t *testing.T) {
 	})
 }
 
-const testMatchedDiffs = `resource "aws_vpc" "test" {
-    cidr_block = "10.0.0.0/16"
+const testMatchedDiffs = `
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
 
   tags = {
-        Name = "terraform-testacc-repro-GH-4965"
-    }
+    Name = "terraform-testacc-repro-GH-4965"
+  }
 
-    lifecycle {
-        ignore_changes = ["tags"]
-    }
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }`

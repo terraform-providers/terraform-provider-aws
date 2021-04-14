@@ -6,13 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsOpsworksInstance() *schema.Resource {
@@ -46,22 +45,16 @@ func resourceAwsOpsworksInstance() *schema.Resource {
 			},
 
 			"architecture": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "x86_64",
-				ValidateFunc: validation.StringInSlice([]string{
-					opsworks.ArchitectureX8664,
-					opsworks.ArchitectureI386,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "x86_64",
+				ValidateFunc: validation.StringInSlice(opsworks.Architecture_Values(), false),
 			},
 
 			"auto_scaling_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					opsworks.AutoScalingTypeLoad,
-					opsworks.AutoScalingTypeTimer,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(opsworks.AutoScalingType_Values(), false),
 			},
 
 			"availability_zone": {
@@ -223,14 +216,11 @@ func resourceAwsOpsworksInstance() *schema.Resource {
 			},
 
 			"root_device_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					opsworks.RootDeviceTypeEbs,
-					opsworks.RootDeviceTypeInstanceStore,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(opsworks.RootDeviceType_Values(), false),
 			},
 
 			"root_device_volume_id": {
@@ -305,14 +295,11 @@ func resourceAwsOpsworksInstance() *schema.Resource {
 			},
 
 			"virtualization_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					opsworks.VirtualizationTypeParavirtual,
-					opsworks.VirtualizationTypeHvm,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(opsworks.VirtualizationType_Values(), false),
 			},
 
 			"ebs_block_device": {

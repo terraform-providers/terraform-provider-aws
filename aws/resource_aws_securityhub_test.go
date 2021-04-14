@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestAccAWSSecurityHub(t *testing.T) {
+func TestAccAWSSecurityHub_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Account": {
 			"basic": testAccAWSSecurityHubAccount_basic,
@@ -12,6 +12,20 @@ func TestAccAWSSecurityHub(t *testing.T) {
 		"Member": {
 			"basic":  testAccAWSSecurityHubMember_basic,
 			"invite": testAccAWSSecurityHubMember_invite,
+		},
+		"ActionTarget": {
+			"basic":       testAccAwsSecurityHubActionTarget_basic,
+			"disappears":  testAccAwsSecurityHubActionTarget_disappears,
+			"Description": testAccAwsSecurityHubActionTarget_Description,
+			"Name":        testAccAwsSecurityHubActionTarget_Name,
+		},
+		"InviteAccepter": {
+			"basic": testAccAWSSecurityHubInviteAccepter_basic,
+		},
+		"OrganizationAdminAccount": {
+			"basic":       testAccAwsSecurityHubOrganizationAdminAccount_basic,
+			"disappears":  testAccAwsSecurityHubOrganizationAdminAccount_disappears,
+			"MultiRegion": testAccAwsSecurityHubOrganizationAdminAccount_MultiRegion,
 		},
 		"ProductSubscription": {
 			"basic": testAccAWSSecurityHubProductSubscription_basic,

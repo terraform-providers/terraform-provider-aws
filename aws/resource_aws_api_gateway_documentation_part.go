@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsApiGatewayDocumentationPart() *schema.Resource {
@@ -136,7 +136,7 @@ func resourceAwsApiGatewayDocumentationPartUpdate(d *schema.ResourceData, meta i
 	if d.HasChange("properties") {
 		properties := d.Get("properties").(string)
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/properties"),
 			Value: aws.String(properties),
 		})
@@ -200,18 +200,25 @@ func flattenApiGatewayDocumentationPartLocation(l *apigateway.DocumentationPartL
 	}
 
 	m := make(map[string]interface{})
-	m["type"] = *l.Type
-	if l.Method != nil {
-		m["method"] = *l.Method
+
+	if v := l.Method; v != nil {
+		m["method"] = aws.StringValue(v)
 	}
-	if l.Name != nil {
-		m["name"] = *l.Name
+
+	if v := l.Name; v != nil {
+		m["name"] = aws.StringValue(v)
 	}
-	if l.Path != nil {
-		m["path"] = *l.Path
+
+	if v := l.Path; v != nil {
+		m["path"] = aws.StringValue(v)
 	}
-	if l.StatusCode != nil {
-		m["status_code"] = *l.StatusCode
+
+	if v := l.StatusCode; v != nil {
+		m["status_code"] = aws.StringValue(v)
+	}
+
+	if v := l.Type; v != nil {
+		m["type"] = aws.StringValue(v)
 	}
 
 	return []interface{}{m}

@@ -18,11 +18,11 @@ COIP Pool.
 
 The following example returns a specific coip pool ID
 
-```hcl
+```terraform
 variable "coip_pool_id" {}
 
 data "aws_ec2_coip_pool" "selected" {
-  id = "${var.coip_pool_id}"
+  id = var.coip_pool_id
 }
 ```
 

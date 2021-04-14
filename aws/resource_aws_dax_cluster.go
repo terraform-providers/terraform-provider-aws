@@ -10,10 +10,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dax"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsDaxCluster() *schema.Resource {
@@ -181,7 +182,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 	subnetGroupName := d.Get("subnet_group_name").(string)
 	securityIdSet := d.Get("security_group_ids").(*schema.Set)
 
-	securityIds := expandStringList(securityIdSet.List())
+	securityIds := expandStringSet(securityIdSet)
 	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DaxTags()
 
 	req := &dax.CreateClusterInput{
@@ -211,10 +212,9 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 		req.NotificationTopicArn = aws.String(v.(string))
 	}
 
-	preferred_azs := d.Get("availability_zones").(*schema.Set).List()
-	if len(preferred_azs) > 0 {
-		azs := expandStringList(preferred_azs)
-		req.AvailabilityZones = azs
+	preferredAZs := d.Get("availability_zones").(*schema.Set)
+	if preferredAZs.Len() > 0 {
+		req.AvailabilityZones = expandStringSet(preferredAZs)
 	}
 
 	if v, ok := d.GetOk("server_side_encryption"); ok && len(v.([]interface{})) > 0 {
@@ -225,7 +225,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 	// IAM roles take some time to propagate
 	var resp *dax.CreateClusterOutput
-	err := resource.Retry(30*time.Second, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		resp, err = conn.CreateCluster(req)
 		if err != nil {
@@ -303,9 +303,9 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("replication_factor", c.TotalNodes)
 
 	if c.ClusterDiscoveryEndpoint != nil {
-		d.Set("port", aws.Int64Value(c.ClusterDiscoveryEndpoint.Port))
+		d.Set("port", c.ClusterDiscoveryEndpoint.Port)
 		d.Set("configuration_endpoint", fmt.Sprintf("%s:%d", aws.StringValue(c.ClusterDiscoveryEndpoint.Address), aws.Int64Value(c.ClusterDiscoveryEndpoint.Port)))
-		d.Set("cluster_address", aws.StringValue(c.ClusterDiscoveryEndpoint.Address))
+		d.Set("cluster_address", c.ClusterDiscoveryEndpoint.Address)
 	}
 
 	d.Set("subnet_group_name", c.SubnetGroup)
@@ -368,7 +368,7 @@ func resourceAwsDaxClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("security_group_ids") {
 		if attr := d.Get("security_group_ids").(*schema.Set); attr.Len() > 0 {
-			req.SecurityGroupIds = expandStringList(attr.List())
+			req.SecurityGroupIds = expandStringSet(attr)
 			requestUpdate = true
 		}
 	}

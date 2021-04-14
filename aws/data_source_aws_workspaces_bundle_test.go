@@ -2,18 +2,21 @@ package aws
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsWorkspaceBundle_basic(t *testing.T) {
 	dataSourceName := "data.aws_workspaces_bundle.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsWorkspaceBundleConfig("wsb-b0s22j3d7"),
@@ -38,8 +41,9 @@ func TestAccDataSourceAwsWorkspaceBundle_byOwnerName(t *testing.T) {
 	dataSourceName := "data.aws_workspaces_bundle.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsWorkspaceBundleConfig_byOwnerName("AMAZON", "Value with Windows 10 and Office 2016"),
@@ -62,8 +66,9 @@ func TestAccDataSourceAwsWorkspaceBundle_byOwnerName(t *testing.T) {
 
 func TestAccDataSourceAwsWorkspaceBundle_bundleIDAndNameConflict(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDataSourceAwsWorkspaceBundleConfig_bundleIDAndOwnerNameConflict("wsb-df76rqys9", "AMAZON", "Value with Windows 10 and Office 2016"),
@@ -71,6 +76,34 @@ func TestAccDataSourceAwsWorkspaceBundle_bundleIDAndNameConflict(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccDataSourceAwsWorkspaceBundle_privateOwner(t *testing.T) {
+	dataSourceName := "data.aws_workspaces_bundle.test"
+	bundleName := os.Getenv("AWS_WORKSPACES_BUNDLE_NAME")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccWorkspacesBundlePreCheck(t)
+		},
+		ErrorCheck: testAccErrorCheck(t, workspaces.EndpointsID),
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsWorkspaceBundleConfig_privateOwner(bundleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "name", bundleName),
+				),
+			},
+		},
+	})
+}
+
+func testAccWorkspacesBundlePreCheck(t *testing.T) {
+	if os.Getenv("AWS_WORKSPACES_BUNDLE_NAME") == "" {
+		t.Skip("AWS_WORKSPACES_BUNDLE_NAME env var must be set for AWS WorkSpaces private bundle acceptance test. This is required until AWS provides bundle creation API.")
+	}
 }
 
 func testAccDataSourceAwsWorkspaceBundleConfig(bundleID string) string {
@@ -94,8 +127,16 @@ func testAccDataSourceAwsWorkspaceBundleConfig_bundleIDAndOwnerNameConflict(bund
 	return fmt.Sprintf(`
 data "aws_workspaces_bundle" "test" {
   bundle_id = %q
-  owner = %q
-  name  = %q
+  owner     = %q
+  name      = %q
 }
 `, bundleID, owner, name)
+}
+
+func testAccDataSourceAwsWorkspaceBundleConfig_privateOwner(name string) string {
+	return fmt.Sprintf(`
+data "aws_workspaces_bundle" "test" {
+  name = %q
+}
+`, name)
 }

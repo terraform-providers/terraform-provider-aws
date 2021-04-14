@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataElasticacheCluster_basic(t *testing.T) {
@@ -14,8 +15,9 @@ func TestAccAWSDataElasticacheCluster_basic(t *testing.T) {
 	dataSourceName := "data.aws_elasticache_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, elasticache.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSElastiCacheClusterConfigWithDataSource(rName),
@@ -36,11 +38,11 @@ func TestAccAWSDataElasticacheCluster_basic(t *testing.T) {
 func testAccAWSElastiCacheClusterConfigWithDataSource(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_elasticache_cluster" "test" {
-  cluster_id           = %[1]q
-  engine               = "memcached"
-  node_type            = "cache.t3.small"
-  num_cache_nodes      = 1
-  port                 = 11211
+  cluster_id      = %[1]q
+  engine          = "memcached"
+  node_type       = "cache.t3.small"
+  num_cache_nodes = 1
+  port            = 11211
 }
 
 data "aws_elasticache_cluster" "test" {

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/codecommit"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSCodeCommitRepositoryDataSource_basic(t *testing.T) {
@@ -14,8 +15,9 @@ func TestAccAWSCodeCommitRepositoryDataSource_basic(t *testing.T) {
 	datasourceName := "data.aws_codecommit_repository.default"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, codecommit.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsCodeCommitRepositoryDataSourceConfig(rName),
@@ -37,7 +39,7 @@ resource "aws_codecommit_repository" "default" {
 }
 
 data "aws_codecommit_repository" "default" {
-  repository_name = "${aws_codecommit_repository.default.repository_name}"
+  repository_name = aws_codecommit_repository.default.repository_name
 }
 `, rName)
 }

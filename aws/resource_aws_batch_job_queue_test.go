@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -61,6 +61,7 @@ func TestAccAWSBatchJobQueue_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBatchJobQueueDestroy,
 		Steps: []resource.TestStep{
@@ -73,6 +74,7 @@ func TestAccAWSBatchJobQueue_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "priority", "1"),
 					resource.TestCheckResourceAttr(resourceName, "state", batch.JQStateEnabled),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -91,6 +93,7 @@ func TestAccAWSBatchJobQueue_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -106,7 +109,7 @@ func TestAccAWSBatchJobQueue_disappears(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/8083
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/8083
 func TestAccAWSBatchJobQueue_ComputeEnvironments_ExternalOrderUpdate(t *testing.T) {
 	var jobQueue1 batch.JobQueueDetail
 	resourceName := "aws_batch_job_queue.test"
@@ -114,6 +117,7 @@ func TestAccAWSBatchJobQueue_ComputeEnvironments_ExternalOrderUpdate(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBatchJobQueueDestroy,
 		Steps: []resource.TestStep{
@@ -140,6 +144,7 @@ func TestAccAWSBatchJobQueue_Priority(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBatchJobQueueDestroy,
 		Steps: []resource.TestStep{
@@ -173,6 +178,7 @@ func TestAccAWSBatchJobQueue_State(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBatchJobQueueDestroy,
 		Steps: []resource.TestStep{
@@ -194,6 +200,51 @@ func TestAccAWSBatchJobQueue_State(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSBatchJobQueue_Tags(t *testing.T) {
+	var jobQueue batch.JobQueueDetail
+	resourceName := "aws_batch_job_queue.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBatchJobQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBatchJobQueueConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBatchJobQueueExists(resourceName, &jobQueue),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccBatchJobQueueConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBatchJobQueueExists(resourceName, &jobQueue),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccBatchJobQueueConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBatchJobQueueExists(resourceName, &jobQueue),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -296,18 +347,18 @@ func testAccBatchJobQueueConfigBase(rName string) string {
 data "aws_partition" "current" {}
 
 resource "aws_iam_role" "test" {
-  name = %[1]q
+  name               = %[1]q
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
-	{
-	    "Action": "sts:AssumeRole",
-	    "Effect": "Allow",
-	    "Principal": {
-		"Service": "batch.${data.aws_partition.current.dns_suffix}"
-	    }
-	}
+    {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+        "Service": "batch.${data.aws_partition.current.dns_suffix}"
+        }
+    }
     ]
 }
 EOF
@@ -316,6 +367,35 @@ EOF
 resource "aws_iam_role_policy_attachment" "test" {
   role       = aws_iam_role.test.name
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSBatchServiceRole"
+}
+
+resource "aws_iam_role" "ecs_instance_role" {
+  name = "%[1]s-ecs"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
+        }
+    }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "ecs_instance_role" {
+  name = aws_iam_role.ecs_instance_role.name
+  role = aws_iam_role_policy_attachment.ecs_instance_role.role
 }
 
 resource "aws_vpc" "test" {
@@ -346,7 +426,7 @@ resource "aws_batch_compute_environment" "test" {
   type                     = "MANAGED"
 
   compute_resources {
-    instance_role      = aws_iam_role.test.arn
+    instance_role      = aws_iam_instance_profile.ecs_instance_role.arn
     instance_type      = ["c5", "m5", "r5"]
     max_vcpus          = 1
     min_vcpus          = 0
@@ -355,7 +435,7 @@ resource "aws_batch_compute_environment" "test" {
     type               = "EC2"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, rName)
 }
@@ -384,4 +464,39 @@ resource "aws_batch_job_queue" "test" {
   state                = %[2]q
 }
 `, rName, state))
+}
+
+func testAccBatchJobQueueConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return composeConfig(
+		testAccBatchJobQueueConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_batch_job_queue" "test" {
+  compute_environments = [aws_batch_compute_environment.test.arn]
+  name                 = %[1]q
+  priority             = 1
+  state                = "DISABLED"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1))
+}
+
+func testAccBatchJobQueueConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return composeConfig(
+		testAccBatchJobQueueConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_batch_job_queue" "test" {
+  compute_environments = [aws_batch_compute_environment.test.arn]
+  name                 = %[1]q
+  priority             = 1
+  state                = "DISABLED"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }

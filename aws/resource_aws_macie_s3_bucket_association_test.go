@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/macie"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSMacieS3BucketAssociation_basic(t *testing.T) {
@@ -16,6 +16,7 @@ func TestAccAWSMacieS3BucketAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMacie(t) },
+		ErrorCheck:   testAccErrorCheck(t, macie.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSMacieS3BucketAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -44,6 +45,7 @@ func TestAccAWSMacieS3BucketAssociation_accountIdAndPrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMacie(t) },
+		ErrorCheck:   testAccErrorCheck(t, macie.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSMacieS3BucketAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -164,7 +166,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_macie_s3_bucket_association" "test" {
-  bucket_name = "${aws_s3_bucket.test.id}"
+  bucket_name = aws_s3_bucket.test.id
 }
 `, randInt)
 }
@@ -176,7 +178,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_macie_s3_bucket_association" "test" {
-  bucket_name = "${aws_s3_bucket.test.id}"
+  bucket_name = aws_s3_bucket.test.id
 
   classification_type {
     one_time = "FULL"
@@ -194,8 +196,8 @@ resource "aws_s3_bucket" "test" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_macie_s3_bucket_association" "test" {
-  bucket_name       = "${aws_s3_bucket.test.id}"
-  member_account_id = "${data.aws_caller_identity.current.account_id}"
+  bucket_name       = aws_s3_bucket.test.id
+  member_account_id = data.aws_caller_identity.current.account_id
   prefix            = "data"
 }
 `, randInt)
@@ -210,8 +212,8 @@ resource "aws_s3_bucket" "test" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_macie_s3_bucket_association" "test" {
-  bucket_name       = "${aws_s3_bucket.test.id}"
-  member_account_id = "${data.aws_caller_identity.current.account_id}"
+  bucket_name       = aws_s3_bucket.test.id
+  member_account_id = data.aws_caller_identity.current.account_id
   prefix            = "data"
 
   classification_type {

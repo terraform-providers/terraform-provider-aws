@@ -24,7 +24,7 @@ but take care to not duplicate those hooks with this resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_autoscaling_group" "foobar" {
   availability_zones   = ["us-west-2a"]
   name                 = "terraform-test-foobar5"
@@ -40,7 +40,7 @@ resource "aws_autoscaling_group" "foobar" {
 
 resource "aws_autoscaling_lifecycle_hook" "foobar" {
   name                   = "foobar"
-  autoscaling_group_name = "${aws_autoscaling_group.foobar.name}"
+  autoscaling_group_name = aws_autoscaling_group.foobar.name
   default_result         = "CONTINUE"
   heartbeat_timeout      = 2000
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
@@ -68,6 +68,10 @@ The following arguments are supported:
 * `notification_metadata` - (Optional) Contains additional information that you want to include any time Auto Scaling sends a message to the notification target.
 * `notification_target_arn` - (Optional) The ARN of the notification target that Auto Scaling will use to notify you when an instance is in the transition state for the lifecycle hook. This ARN target can be either an SQS queue or an SNS topic.
 * `role_arn` - (Optional) The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

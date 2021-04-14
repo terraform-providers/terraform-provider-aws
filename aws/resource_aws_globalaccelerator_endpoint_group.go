@@ -3,14 +3,18 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfglobalaccelerator "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsGlobalAcceleratorEndpointGroup() *schema.Resource {
@@ -24,71 +28,121 @@ func resourceAwsGlobalAcceleratorEndpointGroup() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
-			"listener_arn": {
+			"arn": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"endpoint_group_region": {
-				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
-			"health_check_interval_seconds": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      30,
-				ValidateFunc: validation.IntBetween(10, 30),
-			},
-			"health_check_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "/",
-			},
-			"health_check_port": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"health_check_protocol": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  globalaccelerator.HealthCheckProtocolTcp,
-				ValidateFunc: validation.StringInSlice([]string{
-					globalaccelerator.HealthCheckProtocolTcp,
-					globalaccelerator.HealthCheckProtocolHttp,
-					globalaccelerator.HealthCheckProtocolHttps,
-				}, false),
-			},
-			"threshold_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      3,
-				ValidateFunc: validation.IntBetween(1, 10),
-			},
-			"traffic_dial_percentage": {
-				Type:         schema.TypeFloat,
-				Optional:     true,
-				Default:      100.0,
-				ValidateFunc: validation.FloatBetween(0.0, 100.0),
-			},
+
 			"endpoint_configuration": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 10,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"endpoint_id": {
-							Type:     schema.TypeString,
+						"client_ip_preservation_enabled": {
+							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
+
+						"endpoint_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(1, 255),
+						},
+
 						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 255),
 						},
 					},
 				},
+			},
+
+			"endpoint_group_region": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 255),
+			},
+
+			"health_check_interval_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      30,
+				ValidateFunc: validation.IntBetween(10, 30),
+			},
+
+			"health_check_path": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringLenBetween(1, 255),
+			},
+
+			"health_check_port": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsPortNumber,
+			},
+
+			"health_check_protocol": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      globalaccelerator.HealthCheckProtocolTcp,
+				ValidateFunc: validation.StringInSlice(globalaccelerator.HealthCheckProtocol_Values(), false),
+			},
+
+			"listener_arn": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
+			},
+
+			"port_override": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint_port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+
+						"listener_port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+					},
+				},
+			},
+
+			"threshold_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      3,
+				ValidateFunc: validation.IntBetween(1, 10),
+			},
+
+			"traffic_dial_percentage": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      100.0,
+				ValidateFunc: validation.FloatBetween(0.0, 100.0),
 			},
 		},
 	}
@@ -99,9 +153,13 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 	region := meta.(*AWSClient).region
 
 	opts := &globalaccelerator.CreateEndpointGroupInput{
-		ListenerArn:         aws.String(d.Get("listener_arn").(string)),
-		IdempotencyToken:    aws.String(resource.UniqueId()),
 		EndpointGroupRegion: aws.String(region),
+		IdempotencyToken:    aws.String(resource.UniqueId()),
+		ListenerArn:         aws.String(d.Get("listener_arn").(string)),
+	}
+
+	if v, ok := d.GetOk("endpoint_configuration"); ok {
+		opts.EndpointConfigurations = expandGlobalAcceleratorEndpointConfigurations(v.(*schema.Set).List())
 	}
 
 	if v, ok := d.GetOk("endpoint_group_region"); ok {
@@ -124,6 +182,10 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 		opts.HealthCheckProtocol = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("port_override"); ok {
+		opts.PortOverrides = expandGlobalAcceleratorPortOverrides(v.(*schema.Set).List())
+	}
+
 	if v, ok := d.GetOk("threshold_count"); ok {
 		opts.ThresholdCount = aws.Int64(int64(v.(int)))
 	}
@@ -132,29 +194,23 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 		opts.TrafficDialPercentage = aws.Float64(v)
 	}
 
-	if v, ok := d.GetOk("endpoint_configuration"); ok {
-		opts.EndpointConfigurations = resourceAwsGlobalAcceleratorEndpointGroupExpandEndpointConfigurations(v.(*schema.Set).List())
-	}
-
 	log.Printf("[DEBUG] Create Global Accelerator endpoint group: %s", opts)
 
 	resp, err := conn.CreateEndpointGroup(opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Global Accelerator endpoint group: %s", err)
+		return fmt.Errorf("error creating Global Accelerator endpoint group: %w", err)
 	}
 
-	d.SetId(*resp.EndpointGroup.EndpointGroupArn)
+	d.SetId(aws.StringValue(resp.EndpointGroup.EndpointGroupArn))
 
-	acceleratorArn, err := resourceAwsGlobalAcceleratorListenerParseAcceleratorArn(d.Id())
+	acceleratorARN, err := tfglobalaccelerator.ListenerOrEndpointGroupARNToAcceleratorARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
-
-	if err != nil {
-		return err
+	if _, err := waiter.AcceleratorDeployed(conn, acceleratorARN, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return fmt.Errorf("error waiting for Global Accelerator Accelerator (%s) deployment: %w", acceleratorARN, err)
 	}
 
 	return resourceAwsGlobalAcceleratorEndpointGroupRead(d, meta)
@@ -163,93 +219,41 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 func resourceAwsGlobalAcceleratorEndpointGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).globalacceleratorconn
 
-	endpointGroup, err := resourceAwsGlobalAcceleratorEndpointGroupRetrieve(conn, d.Id())
+	endpointGroup, err := finder.EndpointGroupByARN(conn, d.Id())
 
-	if err != nil {
-		return fmt.Errorf("Error reading Global Accelerator endpoint group: %s", err)
-	}
-
-	if endpointGroup == nil {
+	if !d.IsNewResource() && tfresource.NotFound(err) {
 		log.Printf("[WARN] Global Accelerator endpoint group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	listenerArn, err := resourceAwsGlobalAcceleratorEndpointGroupParseListenerArn(d.Id())
+	if err != nil {
+		return fmt.Errorf("error reading Global Accelerator endpoint group (%s): %w", d.Id(), err)
+	}
+
+	listenerARN, err := tfglobalaccelerator.EndpointGroupARNToListenerARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	d.Set("listener_arn", listenerArn)
+	d.Set("arn", endpointGroup.EndpointGroupArn)
+	if err := d.Set("endpoint_configuration", flattenGlobalAcceleratorEndpointDescriptions(endpointGroup.EndpointDescriptions)); err != nil {
+		return fmt.Errorf("error setting endpoint_configuration: %w", err)
+	}
 	d.Set("endpoint_group_region", endpointGroup.EndpointGroupRegion)
 	d.Set("health_check_interval_seconds", endpointGroup.HealthCheckIntervalSeconds)
 	d.Set("health_check_path", endpointGroup.HealthCheckPath)
 	d.Set("health_check_port", endpointGroup.HealthCheckPort)
 	d.Set("health_check_protocol", endpointGroup.HealthCheckProtocol)
+	d.Set("listener_arn", listenerARN)
+	if err := d.Set("port_override", flattenGlobalAcceleratorPortOverrides(endpointGroup.PortOverrides)); err != nil {
+		return fmt.Errorf("error setting port_override: %w", err)
+	}
 	d.Set("threshold_count", endpointGroup.ThresholdCount)
 	d.Set("traffic_dial_percentage", endpointGroup.TrafficDialPercentage)
-	if err := d.Set("endpoint_configuration", resourceAwsGlobalAcceleratorEndpointGroupFlattenEndpointDescriptions(endpointGroup.EndpointDescriptions)); err != nil {
-		return fmt.Errorf("error setting endpoint_configuration: %s", err)
-	}
 
 	return nil
-}
-
-func resourceAwsGlobalAcceleratorEndpointGroupParseListenerArn(endpointGroupArn string) (string, error) {
-	parts := strings.Split(endpointGroupArn, "/")
-	if len(parts) < 6 {
-		return "", fmt.Errorf("Unable to parse listener ARN from %s", endpointGroupArn)
-	}
-	return strings.Join(parts[0:4], "/"), nil
-}
-
-func resourceAwsGlobalAcceleratorEndpointGroupExpandEndpointConfigurations(configurations []interface{}) []*globalaccelerator.EndpointConfiguration {
-	out := make([]*globalaccelerator.EndpointConfiguration, len(configurations))
-
-	for i, raw := range configurations {
-		configuration := raw.(map[string]interface{})
-		m := globalaccelerator.EndpointConfiguration{}
-
-		m.EndpointId = aws.String(configuration["endpoint_id"].(string))
-		m.Weight = aws.Int64(int64(configuration["weight"].(int)))
-
-		out[i] = &m
-	}
-
-	log.Printf("[DEBUG] Expand endpoint_configuration: %s", out)
-	return out
-}
-
-func resourceAwsGlobalAcceleratorEndpointGroupFlattenEndpointDescriptions(configurations []*globalaccelerator.EndpointDescription) []interface{} {
-	out := make([]interface{}, len(configurations))
-
-	for i, configuration := range configurations {
-		m := make(map[string]interface{})
-
-		m["endpoint_id"] = aws.StringValue(configuration.EndpointId)
-		m["weight"] = aws.Int64Value(configuration.Weight)
-
-		out[i] = m
-	}
-
-	log.Printf("[DEBUG] Flatten endpoint_configuration: %s", out)
-	return out
-}
-
-func resourceAwsGlobalAcceleratorEndpointGroupRetrieve(conn *globalaccelerator.GlobalAccelerator, endpointGroupArn string) (*globalaccelerator.EndpointGroup, error) {
-	resp, err := conn.DescribeEndpointGroup(&globalaccelerator.DescribeEndpointGroupInput{
-		EndpointGroupArn: aws.String(endpointGroupArn),
-	})
-
-	if err != nil {
-		if isAWSErr(err, globalaccelerator.ErrCodeEndpointGroupNotFoundException, "") {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return resp.EndpointGroup, nil
 }
 
 func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -257,6 +261,12 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 
 	opts := &globalaccelerator.UpdateEndpointGroupInput{
 		EndpointGroupArn: aws.String(d.Id()),
+	}
+
+	if v, ok := d.GetOk("endpoint_configuration"); ok {
+		opts.EndpointConfigurations = expandGlobalAcceleratorEndpointConfigurations(v.(*schema.Set).List())
+	} else {
+		opts.EndpointConfigurations = []*globalaccelerator.EndpointConfiguration{}
 	}
 
 	if v, ok := d.GetOk("health_check_interval_seconds"); ok {
@@ -275,6 +285,12 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 		opts.HealthCheckProtocol = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("port_override"); ok {
+		opts.PortOverrides = expandGlobalAcceleratorPortOverrides(v.(*schema.Set).List())
+	} else {
+		opts.PortOverrides = []*globalaccelerator.PortOverride{}
+	}
+
 	if v, ok := d.GetOk("threshold_count"); ok {
 		opts.ThresholdCount = aws.Int64(int64(v.(int)))
 	}
@@ -283,29 +299,22 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 		opts.TrafficDialPercentage = aws.Float64(v)
 	}
 
-	if v, ok := d.GetOk("endpoint_configuration"); ok {
-		opts.EndpointConfigurations = resourceAwsGlobalAcceleratorEndpointGroupExpandEndpointConfigurations(v.(*schema.Set).List())
-	} else {
-		opts.EndpointConfigurations = []*globalaccelerator.EndpointConfiguration{}
-	}
-
 	log.Printf("[DEBUG] Update Global Accelerator endpoint group: %s", opts)
 
 	_, err := conn.UpdateEndpointGroup(opts)
+
 	if err != nil {
-		return fmt.Errorf("Error updating Global Accelerator endpoint group: %s", err)
+		return fmt.Errorf("error updating Global Accelerator endpoint group (%s): %w", d.Id(), err)
 	}
 
-	acceleratorArn, err := resourceAwsGlobalAcceleratorListenerParseAcceleratorArn(d.Id())
+	acceleratorARN, err := tfglobalaccelerator.ListenerOrEndpointGroupARNToAcceleratorARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
-
-	if err != nil {
-		return err
+	if _, err := waiter.AcceleratorDeployed(conn, acceleratorARN, d.Timeout(schema.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("error waiting for Global Accelerator Accelerator (%s) deployment: %w", acceleratorARN, err)
 	}
 
 	return resourceAwsGlobalAcceleratorEndpointGroupRead(d, meta)
@@ -314,29 +323,103 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 func resourceAwsGlobalAcceleratorEndpointGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).globalacceleratorconn
 
-	opts := &globalaccelerator.DeleteEndpointGroupInput{
+	input := &globalaccelerator.DeleteEndpointGroupInput{
 		EndpointGroupArn: aws.String(d.Id()),
 	}
 
-	_, err := conn.DeleteEndpointGroup(opts)
-	if err != nil {
-		if isAWSErr(err, globalaccelerator.ErrCodeEndpointGroupNotFoundException, "") {
-			return nil
-		}
-		return fmt.Errorf("Error deleting Global Accelerator endpoint group: %s", err)
+	log.Printf("[DEBUG] Deleting Global Accelerator endpoint group (%s)", d.Id())
+	_, err := conn.DeleteEndpointGroup(input)
+
+	if tfawserr.ErrCodeEquals(err, globalaccelerator.ErrCodeEndpointGroupNotFoundException) {
+		return nil
 	}
 
-	acceleratorArn, err := resourceAwsGlobalAcceleratorListenerParseAcceleratorArn(d.Id())
+	if err != nil {
+		return fmt.Errorf("error deleting Global Accelerator endpoint group (%s): %w", d.Id(), err)
+	}
+
+	acceleratorARN, err := tfglobalaccelerator.ListenerOrEndpointGroupARNToAcceleratorARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
-
-	if err != nil {
-		return err
+	if _, err := waiter.AcceleratorDeployed(conn, acceleratorARN, d.Timeout(schema.TimeoutDelete)); err != nil {
+		return fmt.Errorf("error waiting for Global Accelerator Accelerator (%s) deployment: %w", acceleratorARN, err)
 	}
 
 	return nil
+}
+
+func expandGlobalAcceleratorEndpointConfigurations(configurations []interface{}) []*globalaccelerator.EndpointConfiguration {
+	out := make([]*globalaccelerator.EndpointConfiguration, len(configurations))
+
+	for i, raw := range configurations {
+		configuration := raw.(map[string]interface{})
+		m := globalaccelerator.EndpointConfiguration{}
+
+		m.EndpointId = aws.String(configuration["endpoint_id"].(string))
+		m.Weight = aws.Int64(int64(configuration["weight"].(int)))
+		m.ClientIPPreservationEnabled = aws.Bool(configuration["client_ip_preservation_enabled"].(bool))
+
+		out[i] = &m
+	}
+
+	return out
+}
+
+func expandGlobalAcceleratorPortOverrides(vPortOverrides []interface{}) []*globalaccelerator.PortOverride {
+	portOverrides := []*globalaccelerator.PortOverride{}
+
+	for _, vPortOverride := range vPortOverrides {
+		portOverride := &globalaccelerator.PortOverride{}
+
+		mPortOverride := vPortOverride.(map[string]interface{})
+
+		if vEndpointPort, ok := mPortOverride["endpoint_port"].(int); ok && vEndpointPort > 0 {
+			portOverride.EndpointPort = aws.Int64(int64(vEndpointPort))
+		}
+		if vListenerPort, ok := mPortOverride["listener_port"].(int); ok && vListenerPort > 0 {
+			portOverride.ListenerPort = aws.Int64(int64(vListenerPort))
+		}
+
+		portOverrides = append(portOverrides, portOverride)
+	}
+
+	return portOverrides
+}
+
+func flattenGlobalAcceleratorEndpointDescriptions(configurations []*globalaccelerator.EndpointDescription) []interface{} {
+	out := make([]interface{}, len(configurations))
+
+	for i, configuration := range configurations {
+		m := make(map[string]interface{})
+
+		m["endpoint_id"] = aws.StringValue(configuration.EndpointId)
+		m["weight"] = aws.Int64Value(configuration.Weight)
+		m["client_ip_preservation_enabled"] = aws.BoolValue(configuration.ClientIPPreservationEnabled)
+
+		out[i] = m
+	}
+
+	return out
+}
+
+func flattenGlobalAcceleratorPortOverrides(portOverrides []*globalaccelerator.PortOverride) []interface{} {
+	if len(portOverrides) == 0 || portOverrides[0] == nil {
+		return []interface{}{}
+	}
+
+	vPortOverrides := []interface{}{}
+
+	for _, portOverride := range portOverrides {
+		mPortOverride := map[string]interface{}{
+			"endpoint_port": int(aws.Int64Value(portOverride.EndpointPort)),
+			"listener_port": int(aws.Int64Value(portOverride.ListenerPort)),
+		}
+
+		vPortOverrides = append(vPortOverrides, mPortOverride)
+	}
+
+	return vPortOverrides
 }

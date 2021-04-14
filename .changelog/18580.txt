@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_cloudhsm_v2_hsm: Prevent orphaned HSM Instances by additionally matching on ENI identifier during lookup
+```

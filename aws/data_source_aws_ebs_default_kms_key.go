@@ -2,10 +2,9 @@ package aws
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsEbsDefaultKmsKey() *schema.Resource {
@@ -25,10 +24,10 @@ func dataSourceAwsEbsDefaultKmsKeyRead(d *schema.ResourceData, meta interface{})
 
 	res, err := conn.GetEbsDefaultKmsKeyId(&ec2.GetEbsDefaultKmsKeyIdInput{})
 	if err != nil {
-		return fmt.Errorf("Error reading EBS default KMS key: %q", err)
+		return fmt.Errorf("Error reading EBS default KMS key: %w", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 	d.Set("key_arn", res.KmsKeyId)
 
 	return nil

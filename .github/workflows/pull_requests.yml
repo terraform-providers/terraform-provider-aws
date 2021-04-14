@@ -1,0 +1,30 @@
+on:
+  - pull_request_target
+
+name: Pull Request Target (All types)
+jobs:
+  NeedsTriageLabeler:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Apply needs-triage Label
+      uses: actions/labeler@v3
+      if: github.event.action == 'opened' && !contains(fromJSON('["anGie44", "bflad", "bill-rich","breathingdust", "dependabot[bot]", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
+      with:
+        configuration-path: .github/labeler-pr-needs-triage.yml
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+  PullRequestComments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add comment to add helpful context for new contributors
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |-
+            Welcome @${{github.actor}} :wave:
+            
+            It looks like this is your first Pull Request submission to the [Terraform AWS Provider](https://github.com/terraform-providers/terraform-provider-aws)! If you haven’t already done so please make sure you have checked out our [CONTRIBUTING](https://github.com/terraform-providers/terraform-provider-aws/blob/main/docs/CONTRIBUTING.md) guide and [FAQ](https://github.com/terraform-providers/terraform-provider-aws/blob/main/docs/FAQ.md) to make sure your contribution is adhering to best practice and has all the necessary elements in place for a successful approval.
+
+            Also take a look at our [FAQ](https://github.com/terraform-providers/terraform-provider-aws/blob/main/docs/FAQ.md) which details how we prioritize Pull Requests for inclusion.
+            
+            Thanks again, and welcome to the community! :smiley:         

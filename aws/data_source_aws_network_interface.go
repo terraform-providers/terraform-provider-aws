@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -30,6 +30,14 @@ func dataSourceAwsNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 						"association_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"carrier_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"customer_owned_ip": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -165,7 +173,7 @@ func dataSourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 
 	eni := resp.NetworkInterfaces[0]
 
-	d.SetId(*eni.NetworkInterfaceId)
+	d.SetId(aws.StringValue(eni.NetworkInterfaceId))
 	if eni.Association != nil {
 		d.Set("association", flattenEc2NetworkInterfaceAssociation(eni.Association))
 	}
@@ -189,7 +197,7 @@ func dataSourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("vpc_id", eni.VpcId)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(eni.TagSet).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

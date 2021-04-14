@@ -14,7 +14,7 @@ Provides an Application AutoScaling Policy resource.
 
 ### DynamoDB Table Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
   max_capacity       = 100
   min_capacity       = 5
@@ -26,9 +26,9 @@ resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
 resource "aws_appautoscaling_policy" "dynamodb_table_read_policy" {
   name               = "DynamoDBReadCapacityUtilization:${aws_appautoscaling_target.dynamodb_table_read_target.resource_id}"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = "${aws_appautoscaling_target.dynamodb_table_read_target.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.dynamodb_table_read_target.scalable_dimension}"
-  service_namespace  = "${aws_appautoscaling_target.dynamodb_table_read_target.service_namespace}"
+  resource_id        = aws_appautoscaling_target.dynamodb_table_read_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.dynamodb_table_read_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.dynamodb_table_read_target.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -42,7 +42,7 @@ resource "aws_appautoscaling_policy" "dynamodb_table_read_policy" {
 
 ### ECS Service Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "ecs_target" {
   max_capacity       = 4
   min_capacity       = 1
@@ -54,9 +54,9 @@ resource "aws_appautoscaling_target" "ecs_target" {
 resource "aws_appautoscaling_policy" "ecs_policy" {
   name               = "scale-down"
   policy_type        = "StepScaling"
-  resource_id        = "${aws_appautoscaling_target.ecs_target.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.ecs_target.scalable_dimension}"
-  service_namespace  = "${aws_appautoscaling_target.ecs_target.service_namespace}"
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
@@ -73,7 +73,7 @@ resource "aws_appautoscaling_policy" "ecs_policy" {
 
 ### Preserve desired count when updating an autoscaled ECS Service
 
-```hcl
+```terraform
 resource "aws_ecs_service" "ecs_service" {
   name            = "serviceName"
   cluster         = "clusterName"
@@ -81,14 +81,14 @@ resource "aws_ecs_service" "ecs_service" {
   desired_count   = 2
 
   lifecycle {
-    ignore_changes = ["desired_count"]
+    ignore_changes = [desired_count]
   }
 }
 ```
 
 ### Aurora Read Replica Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "replicas" {
   service_namespace  = "rds"
   scalable_dimension = "rds:cluster:ReadReplicaCount"
@@ -99,9 +99,9 @@ resource "aws_appautoscaling_target" "replicas" {
 
 resource "aws_appautoscaling_policy" "replicas" {
   name               = "cpu-auto-scaling"
-  service_namespace  = "${aws_appautoscaling_target.replicas.service_namespace}"
-  scalable_dimension = "${aws_appautoscaling_target.replicas.scalable_dimension}"
-  resource_id        = "${aws_appautoscaling_target.replicas.resource_id}"
+  service_namespace  = aws_appautoscaling_target.replicas.service_namespace
+  scalable_dimension = aws_appautoscaling_target.replicas.scalable_dimension
+  resource_id        = aws_appautoscaling_target.replicas.resource_id
   policy_type        = "TargetTrackingScaling"
 
   target_tracking_scaling_policy_configuration {
@@ -120,7 +120,7 @@ resource "aws_appautoscaling_policy" "replicas" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the policy.
+* `name` - (Required) The name of the policy. Must be between 1 and 255 characters in length.
 * `policy_type` - (Optional) The policy type. Valid values are `StepScaling` and `TargetTrackingScaling`. Defaults to `StepScaling`. Certain services only support only one policy type. For more information see the [Target Tracking Scaling Policies](https://docs.aws.amazon.com/autoscaling/application/userguide/application-auto-scaling-target-tracking.html) and [Step Scaling Policies](https://docs.aws.amazon.com/autoscaling/application/userguide/application-auto-scaling-step-scaling-policies.html) documentation.
 * `resource_id` - (Required) The resource type and unique identifier string for the resource associated with the scaling policy. Documentation can be found in the `ResourceId` parameter at: [AWS Application Auto Scaling API Reference](http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
 * `scalable_dimension` - (Required) The scalable dimension of the scalable target. Documentation can be found in the `ScalableDimension` parameter at: [AWS Application Auto Scaling API Reference](http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
@@ -138,7 +138,7 @@ The `step_scaling_policy_configuration` configuration block supports the followi
 * `min_adjustment_magnitude` - (Optional) The minimum number to adjust your scalable dimension as a result of a scaling activity. If the adjustment type is PercentChangeInCapacity, the scaling policy changes the scalable dimension of the scalable target by this amount.
 * `step_adjustment` - (Optional) A set of adjustments that manage scaling. These have the following structure:
 
- ```hcl
+ ```terraform
 resource "aws_appautoscaling_policy" "ecs_policy" {
   # ...
 
@@ -179,7 +179,7 @@ The `target_tracking_scaling_policy_configuration` configuration block supports 
 
 Example usage:
 
-```hcl
+```terraform
 resource "aws_appautoscaling_policy" "example" {
   policy_type = "TargetTrackingScaling"
 
@@ -215,7 +215,7 @@ The `target_tracking_scaling_policy_configuration` `customized_metric_specificat
 
 ### target_tracking_scaling_policy_configuration customized_metric_specification dimensions
 
-The `target_tracking_scaling_policy_configration` `customized_metric_specification` `dimensions` configuration block supports the following arguments:
+The `target_tracking_scaling_policy_configuration` `customized_metric_specification` `dimensions` configuration block supports the following arguments:
 
 * `name` - (Required) Name of the dimension.
 * `value` - (Required) Value of the dimension.
@@ -225,9 +225,11 @@ The `target_tracking_scaling_policy_configration` `customized_metric_specificati
 The `target_tracking_scaling_policy_configuration` `predefined_metric_specification` configuration block supports the following arguments:
 
 * `predefined_metric_type` - (Required) The metric type.
-* `resource_label` - (Optional) Reserved for future use.
+* `resource_label` - (Optional) Reserved for future use. Must be less than or equal to 1023 characters in length.
 
-## Attribute Reference
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN assigned by AWS to the scaling policy.
 * `name` - The scaling policy's name.

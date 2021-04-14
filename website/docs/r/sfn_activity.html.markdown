@@ -12,7 +12,7 @@ Provides a Step Function Activity resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sfn_activity" "sfn_activity" {
   name = "my-activity"
 }

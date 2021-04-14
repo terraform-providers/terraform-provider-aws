@@ -10,7 +10,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iot_topic_rule" "rule" {
   name        = "MyRule"
   description = "Example rule"
@@ -20,15 +20,15 @@ resource "aws_iot_topic_rule" "rule" {
 
   sns {
     message_format = "RAW"
-    role_arn       = "${aws_iam_role.role.arn}"
-    target_arn     = "${aws_sns_topic.mytopic.arn}"
+    role_arn       = aws_iam_role.role.arn
+    target_arn     = aws_sns_topic.mytopic.arn
   }
 
   error_action {
     sns {
       message_format = "RAW"
-      role_arn       = "${aws_iam_role.role.arn}"
-      target_arn     = "${aws_sns_topic.myerrortopic.arn}"
+      role_arn       = aws_iam_role.role.arn
+      target_arn     = aws_sns_topic.myerrortopic.arn
     }
   }
 }
@@ -62,7 +62,7 @@ EOF
 
 resource "aws_iam_role_policy" "iam_policy_for_lambda" {
   name = "mypolicy"
-  role = "${aws_iam_role.role.id}"
+  role = aws_iam_role.role.id
 
   policy = <<EOF
 {
@@ -154,7 +154,7 @@ The `republish` object takes the following arguments:
 
 * `role_arn` - (Required) The ARN of the IAM role that grants access.
 * `topic` - (Required) The name of the MQTT topic the message should be republished to.
-* `qos` - (Optional) The Quality of Service (QoS) level to use when republishing messages. Valid values are 0 or 1. The default value is 0. 
+* `qos` - (Optional) The Quality of Service (QoS) level to use when republishing messages. Valid values are 0 or 1. The default value is 0.
 
 The `s3` object takes the following arguments:
 
@@ -189,7 +189,7 @@ The `iot_events` object takes the following arguments:
 
 * `input_name` - (Required) The name of the AWS IoT Events input.
 * `role_arn` - (Required) The ARN of the IAM role that grants access.
-* `message_id` - (Optional) Use this to ensure that only one input (message) with a given messageId is processed by an AWS IoT Events detector. 
+* `message_id` - (Optional) Use this to ensure that only one input (message) with a given messageId is processed by an AWS IoT Events detector.
 
 ## Attributes Reference
 

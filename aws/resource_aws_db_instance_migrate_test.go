@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
@@ -44,7 +45,7 @@ func TestResourceAwsDbInstanceStateUpgradeV0(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.Description, func(t *testing.T) {
-			got, err := resourceAwsDbInstanceStateUpgradeV0(testCase.InputState, nil)
+			got, err := resourceAwsDbInstanceStateUpgradeV0(context.Background(), testCase.InputState, nil)
 
 			if err != nil {
 				t.Fatalf("error migrating state: %s", err)

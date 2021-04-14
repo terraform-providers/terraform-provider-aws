@@ -7,13 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3control"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 // S3 account-level settings must run serialized
 // for TeamCity environment
-func TestAccAWSS3Account(t *testing.T) {
+func TestAccAWSS3Account_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"PublicAccessBlock": {
 			"basic":                 testAccAWSS3AccountPublicAccessBlock_basic,
@@ -47,6 +47,7 @@ func testAccAWSS3AccountPublicAccessBlock_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -76,6 +77,7 @@ func testAccAWSS3AccountPublicAccessBlock_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -97,6 +99,7 @@ func testAccAWSS3AccountPublicAccessBlock_AccountId(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -122,6 +125,7 @@ func testAccAWSS3AccountPublicAccessBlock_BlockPublicAcls(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -161,6 +165,7 @@ func testAccAWSS3AccountPublicAccessBlock_BlockPublicPolicy(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -200,6 +205,7 @@ func testAccAWSS3AccountPublicAccessBlock_IgnorePublicAcls(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -239,6 +245,7 @@ func testAccAWSS3AccountPublicAccessBlock_RestrictPublicBuckets(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3control.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSS3AccountPublicAccessBlockDestroy,
 		Steps: []resource.TestStep{
@@ -392,19 +399,17 @@ func testAccCheckAWSS3AccountPublicAccessBlockDisappears() resource.TestCheckFun
 }
 
 func testAccAWSS3AccountPublicAccessBlockConfig() string {
-	return fmt.Sprintf(`
-resource "aws_s3_account_public_access_block" "test" {}
-`)
+	return `resource "aws_s3_account_public_access_block" "test" {}`
 }
 
 func testAccAWSS3AccountPublicAccessBlockConfigAccountId() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_caller_identity" "test" {}
 
 resource "aws_s3_account_public_access_block" "test" {
-  account_id = "${data.aws_caller_identity.test.account_id}"
+  account_id = data.aws_caller_identity.test.account_id
 }
-`)
+`
 }
 
 func testAccAWSS3AccountPublicAccessBlockConfigBlockPublicAcls(blockPublicAcls bool) string {

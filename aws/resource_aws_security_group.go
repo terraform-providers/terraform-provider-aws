@@ -13,10 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
 )
@@ -29,12 +30,12 @@ func resourceAwsSecurityGroup() *schema.Resource {
 		Update: resourceAwsSecurityGroupUpdate,
 		Delete: resourceAwsSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAwsSecurityGroupImportState,
+			State: schema.ImportStatePassthrough,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(15 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -53,6 +54,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
 				ValidateFunc:  validation.StringLenBetween(0, 100),
@@ -243,6 +245,10 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		securityGroupOpts.VpcId = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("tags"); ok {
+		securityGroupOpts.TagSpecifications = ec2TagSpecificationsFromMap(v.(map[string]interface{}), ec2.ResourceTypeSecurityGroup)
+	}
+
 	if v := d.Get("description"); v != nil {
 		securityGroupOpts.Description = aws.String(v.(string))
 	}
@@ -258,7 +264,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Security Group: %s", err)
 	}
 
-	d.SetId(*createResp.GroupId)
+	d.SetId(aws.StringValue(createResp.GroupId))
 
 	log.Printf("[INFO] Security Group ID: %s", d.Id())
 
@@ -268,12 +274,6 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf(
 			"Error waiting for Security Group (%s) to become available: %s",
 			d.Id(), err)
-	}
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding EC2 Security Group (%s) tags: %s", d.Id(), err)
-		}
 	}
 
 	// AWS defaults all Security Groups to have an ALLOW ALL egress rule. Here we
@@ -383,8 +383,9 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("arn", sgArn.String())
 	d.Set("description", sg.Description)
 	d.Set("name", sg.GroupName)
-	d.Set("vpc_id", sg.VpcId)
+	d.Set("name_prefix", naming.NamePrefixFromName(aws.StringValue(sg.GroupName)))
 	d.Set("owner_id", sg.OwnerId)
+	d.Set("vpc_id", sg.VpcId)
 
 	if err := d.Set("ingress", ingressRules); err != nil {
 		log.Printf("[WARN] Error setting Ingress rule set for (%s): %s", d.Id(), err)
@@ -467,13 +468,23 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		_, err := conn.DeleteSecurityGroup(input)
 		if err != nil {
-			if isAWSErr(err, "InvalidGroup.NotFound", "") {
+			if tfawserr.ErrCodeEquals(err, "InvalidGroup.NotFound") {
 				return nil
 			}
-			if isAWSErr(err, "DependencyViolation", "") {
-				// If it is a dependency violation, we want to retry
+
+			// If it is a dependency violation, we want to retry
+			if tfawserr.ErrMessageContains(err, "DependencyViolation", "has a dependent object") {
 				return resource.RetryableError(err)
 			}
+
+			if tfawserr.ErrCodeEquals(err, "DependencyViolation") {
+				return resource.RetryableError(err)
+			}
+
+			if tfawserr.ErrCodeEquals(err, "InvalidGroup.InUse") {
+				return resource.RetryableError(err)
+			}
+
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -1230,7 +1241,7 @@ func resourceAwsSecurityGroupCollapseRules(ruleset string, rules []interface{}) 
 // resourceAwsSecurityGroupExpandRules works in pair with
 // resourceAwsSecurityGroupCollapseRules and is used as a
 // workaround for the problem explained in
-// https://github.com/terraform-providers/terraform-provider-aws/pull/4726
+// https://github.com/hashicorp/terraform-provider-aws/pull/4726
 //
 // This function converts every ingress/egress block that
 // contains multiple rules to multiple blocks with only one

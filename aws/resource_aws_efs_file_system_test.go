@@ -5,15 +5,13 @@ import (
 	"log"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/efs"
-
-	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -33,8 +31,8 @@ func testSweepEfsFileSystems(region string) error {
 		return fmt.Errorf("error getting client: %s", err)
 	}
 	conn := client.(*AWSClient).efsconn
+	var sweeperErrs *multierror.Error
 
-	var errors error
 	input := &efs.DescribeFileSystemsInput{}
 	err = conn.DescribeFileSystemsPages(input, func(page *efs.DescribeFileSystemsOutput, lastPage bool) bool {
 		for _, filesystem := range page.FileSystems {
@@ -42,27 +40,24 @@ func testSweepEfsFileSystems(region string) error {
 
 			log.Printf("[INFO] Deleting EFS File System: %s", id)
 
-			_, err := conn.DeleteFileSystem(&efs.DeleteFileSystemInput{
-				FileSystemId: filesystem.FileSystemId,
-			})
-			if err != nil {
-				errors = multierror.Append(errors, fmt.Errorf("error deleting EFS File System %q: %w", id, err))
-				continue
-			}
+			r := resourceAwsEfsFileSystem()
+			d := r.Data(nil)
+			d.SetId(id)
+			err := r.Delete(d, client)
 
-			err = waitForDeleteEfsFileSystem(conn, id, 10*time.Minute)
 			if err != nil {
-				errors = multierror.Append(fmt.Errorf("error waiting for EFS File System %q to delete: %w", id, err))
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
 				continue
 			}
 		}
 		return true
 	})
 	if err != nil {
-		errors = multierror.Append(errors, fmt.Errorf("error retrieving EFS File Systems: %w", err))
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving EFS File Systems: %w", err))
 	}
 
-	return errors
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestResourceAWSEFSFileSystem_hasEmptyFileSystems(t *testing.T) {
@@ -92,6 +87,7 @@ func TestAccAWSEFSFileSystem_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -104,6 +100,12 @@ func TestAccAWSEFSFileSystem_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "throughput_mode", efs.ThroughputModeBursting),
 					testAccCheckEfsFileSystem(resourceName, &desc),
 					testAccCheckEfsFileSystemPerformanceMode(resourceName, "generalPurpose"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_bytes.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "size_in_bytes.0.value"),
+					resource.TestCheckResourceAttrSet(resourceName, "size_in_bytes.0.value_in_ia"),
+					resource.TestCheckResourceAttrSet(resourceName, "size_in_bytes.0.value_in_standard"),
+					testAccMatchResourceAttrAccountID(resourceName, "owner_id"),
 				),
 			},
 			{
@@ -124,6 +126,35 @@ func TestAccAWSEFSFileSystem_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSEFSFileSystem_availabilityZoneName(t *testing.T) {
+	var desc efs.FileSystemDescription
+	resourceName := "aws_efs_file_system.test"
+	rName := acctest.RandomWithPrefix("tf-acc")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckEfsFileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEFSFileSystemConfigAvailabilityZoneName(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEfsFileSystem(resourceName, &desc),
+					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_name"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"creation_token"},
+			},
+		},
+	})
+}
+
 func TestAccAWSEFSFileSystem_tags(t *testing.T) {
 	var desc efs.FileSystemDescription
 	rName := acctest.RandomWithPrefix("tf-acc-tags")
@@ -131,6 +162,7 @@ func TestAccAWSEFSFileSystem_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -186,6 +218,7 @@ func TestAccAWSEFSFileSystem_pagedTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -193,7 +226,7 @@ func TestAccAWSEFSFileSystem_pagedTags(t *testing.T) {
 				Config: testAccAWSEFSFileSystemConfigPagedTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEfsFileSystem(resourceName, &desc),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "11"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "10"),
 				),
 			},
 			{
@@ -214,6 +247,7 @@ func TestAccAWSEFSFileSystem_kmsKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -240,6 +274,7 @@ func TestAccAWSEFSFileSystem_kmsConfigurationWithoutEncryption(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -257,6 +292,7 @@ func TestAccAWSEFSFileSystem_ProvisionedThroughputInMibps(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -292,6 +328,7 @@ func TestAccAWSEFSFileSystem_ThroughputMode(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -327,6 +364,7 @@ func TestAccAWSEFSFileSystem_lifecyclePolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -373,6 +411,7 @@ func TestAccAWSEFSFileSystem_lifecyclePolicy_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -405,6 +444,7 @@ func TestAccAWSEFSFileSystem_lifecyclePolicy_removal(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -435,10 +475,11 @@ func TestAccAWSEFSFileSystem_lifecyclePolicy_removal(t *testing.T) {
 func TestAccAWSEFSFileSystem_disappears(t *testing.T) {
 	var desc efs.FileSystemDescription
 	resourceName := "aws_efs_file_system.test"
-	rName := acctest.RandomWithPrefix("tf-acc-disappears")
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEfsFileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -446,7 +487,7 @@ func TestAccAWSEFSFileSystem_disappears(t *testing.T) {
 				Config: testAccAWSEFSFileSystemConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEfsFileSystem(resourceName, &desc),
-					testAccCheckEfsFileSystemDisappears(&desc),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEfsFileSystem(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -506,20 +547,6 @@ func testAccCheckEfsFileSystem(resourceID string, fDesc *efs.FileSystemDescripti
 		*fDesc = *fs.FileSystems[0]
 
 		return nil
-	}
-}
-
-func testAccCheckEfsFileSystemDisappears(fDesc *efs.FileSystemDescription) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).efsconn
-
-		input := &efs.DeleteFileSystemInput{
-			FileSystemId: fDesc.FileSystemId,
-		}
-
-		_, err := conn.DeleteFileSystem(input)
-
-		return err
 	}
 }
 
@@ -626,7 +653,25 @@ func testAccCheckEfsFileSystemLifecyclePolicy(resourceID string, expectedVal str
 func testAccAWSEFSFileSystemConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %q
+  creation_token = %q
+}
+`, rName)
+}
+
+func testAccAWSEFSFileSystemConfigAvailabilityZoneName(rName string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_efs_file_system" "test" {
+  creation_token         = %q
+  availability_zone_name = data.aws_availability_zones.available.names[0]
 }
 `, rName)
 }
@@ -634,10 +679,10 @@ resource "aws_efs_file_system" "test" {
 func testAccAWSEFSFileSystemConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %[1]q
-    tags = {
-      %[2]q = %[3]q
-    }
+  creation_token = %[1]q
+  tags = {
+    %[2]q = %[3]q
+  }
 }
 `, rName, tagKey1, tagValue1)
 }
@@ -645,11 +690,11 @@ resource "aws_efs_file_system" "test" {
 func testAccAWSEFSFileSystemConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %[1]q
-    tags = {
-      %[2]q = %[3]q
-      %[4]q = %[5]q
-    }
+  creation_token = %[1]q
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
@@ -658,7 +703,7 @@ func testAccAWSEFSFileSystemConfigPagedTags(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
   tags = {
-    Name           = "test-efs-%d"
+    Name           = "test-efs-%[1]d"
     Another        = "tag"
     Test           = "yes"
     User           = "root"
@@ -668,7 +713,6 @@ resource "aws_efs_file_system" "test" {
     AcceptanceTest = "PagedTags"
     CreationToken  = "radek"
     PerfMode       = "max"
-    Region         = "us-west-2"
   }
 }
 `, rInt)
@@ -680,55 +724,54 @@ resource "aws_efs_file_system" "test" {
   tags = {
     Name    = %q
     Another = "tag"
-
-		Tag00 = "TestTagValue"
-		Tag01 = "TestTagValue"
-		Tag02 = "TestTagValue"
-		Tag03 = "TestTagValue"
-		Tag04 = "TestTagValue"
-		Tag05 = "TestTagValue"
-		Tag06 = "TestTagValue"
-		Tag07 = "TestTagValue"
-		Tag08 = "TestTagValue"
-		Tag09 = "TestTagValue"
-		Tag10 = "TestTagValue"
-		Tag11 = "TestTagValue"
-		Tag12 = "TestTagValue"
-		Tag13 = "TestTagValue"
-		Tag14 = "TestTagValue"
-		Tag15 = "TestTagValue"
-		Tag16 = "TestTagValue"
-		Tag17 = "TestTagValue"
-		Tag18 = "TestTagValue"
-		Tag19 = "TestTagValue"
-		Tag20 = "TestTagValue"
-		Tag21 = "TestTagValue"
-		Tag22 = "TestTagValue"
-		Tag23 = "TestTagValue"
-		Tag24 = "TestTagValue"
-		Tag25 = "TestTagValue"
-		Tag26 = "TestTagValue"
-		Tag27 = "TestTagValue"
-		Tag28 = "TestTagValue"
-		Tag29 = "TestTagValue"
-		Tag30 = "TestTagValue"
-		Tag31 = "TestTagValue"
-		Tag32 = "TestTagValue"
-		Tag33 = "TestTagValue"
-		Tag34 = "TestTagValue"
-		Tag35 = "TestTagValue"
-		Tag36 = "TestTagValue"
-		Tag37 = "TestTagValue"
-		Tag38 = "TestTagValue"
-		Tag39 = "TestTagValue"
-		Tag40 = "TestTagValue"
-		Tag41 = "TestTagValue"
-		Tag42 = "TestTagValue"
-		Tag43 = "TestTagValue"
-		Tag44 = "TestTagValue"
-		Tag45 = "TestTagValue"
-		Tag46 = "TestTagValue"
-		Tag47 = "TestTagValue"
+    Tag00   = "TestTagValue"
+    Tag01   = "TestTagValue"
+    Tag02   = "TestTagValue"
+    Tag03   = "TestTagValue"
+    Tag04   = "TestTagValue"
+    Tag05   = "TestTagValue"
+    Tag06   = "TestTagValue"
+    Tag07   = "TestTagValue"
+    Tag08   = "TestTagValue"
+    Tag09   = "TestTagValue"
+    Tag10   = "TestTagValue"
+    Tag11   = "TestTagValue"
+    Tag12   = "TestTagValue"
+    Tag13   = "TestTagValue"
+    Tag14   = "TestTagValue"
+    Tag15   = "TestTagValue"
+    Tag16   = "TestTagValue"
+    Tag17   = "TestTagValue"
+    Tag18   = "TestTagValue"
+    Tag19   = "TestTagValue"
+    Tag20   = "TestTagValue"
+    Tag21   = "TestTagValue"
+    Tag22   = "TestTagValue"
+    Tag23   = "TestTagValue"
+    Tag24   = "TestTagValue"
+    Tag25   = "TestTagValue"
+    Tag26   = "TestTagValue"
+    Tag27   = "TestTagValue"
+    Tag28   = "TestTagValue"
+    Tag29   = "TestTagValue"
+    Tag30   = "TestTagValue"
+    Tag31   = "TestTagValue"
+    Tag32   = "TestTagValue"
+    Tag33   = "TestTagValue"
+    Tag34   = "TestTagValue"
+    Tag35   = "TestTagValue"
+    Tag36   = "TestTagValue"
+    Tag37   = "TestTagValue"
+    Tag38   = "TestTagValue"
+    Tag39   = "TestTagValue"
+    Tag40   = "TestTagValue"
+    Tag41   = "TestTagValue"
+    Tag42   = "TestTagValue"
+    Tag43   = "TestTagValue"
+    Tag44   = "TestTagValue"
+    Tag45   = "TestTagValue"
+    Tag46   = "TestTagValue"
+    Tag47   = "TestTagValue"
   }
 }
 `, rName)
@@ -736,8 +779,8 @@ resource "aws_efs_file_system" "test" {
 
 const testAccAWSEFSFileSystemConfigWithPerformanceMode = `
 resource "aws_efs_file_system" "test2" {
-	creation_token = "supercalifragilisticexpialidocious"
-	performance_mode = "maxIO"
+  creation_token   = "supercalifragilisticexpialidocious"
+  performance_mode = "maxIO"
 }
 `
 
@@ -749,7 +792,7 @@ resource "aws_kms_key" "test" {
 
 resource "aws_efs_file_system" "test" {
   encrypted  = true
-  kms_key_id = "${aws_kms_key.test.arn}"
+  kms_key_id = aws_kms_key.test.arn
 }
 `, rInt)
 }
@@ -762,7 +805,7 @@ resource "aws_kms_key" "test" {
 
 resource "aws_efs_file_system" "test" {
   encrypted  = false
-  kms_key_id = "${aws_kms_key.test.arn}"
+  kms_key_id = aws_kms_key.test.arn
 }
 `, rInt)
 }

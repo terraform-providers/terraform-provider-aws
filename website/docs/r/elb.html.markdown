@@ -21,7 +21,7 @@ conflict and will overwrite attachments.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new load balancer
 resource "aws_elb" "bar" {
   name               = "foobar-terraform-elb"
@@ -56,7 +56,7 @@ resource "aws_elb" "bar" {
     interval            = 30
   }
 
-  instances                   = ["${aws_instance.foo.id}"]
+  instances                   = [aws_instance.foo.id]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true

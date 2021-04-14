@@ -5,19 +5,21 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceAwsSecretsManagerSecretVersion_Basic(t *testing.T) {
+func TestAccDataSourceAwsSecretsManagerSecretVersion_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_secretsmanager_secret_version.test"
 	datasourceName := "data.aws_secretsmanager_secret_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDataSourceAwsSecretsManagerSecretVersionConfig_NonExistent,
@@ -39,8 +41,9 @@ func TestAccDataSourceAwsSecretsManagerSecretVersion_VersionID(t *testing.T) {
 	datasourceName := "data.aws_secretsmanager_secret_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecretsManagerSecretVersionConfig_VersionID(rName),
@@ -58,8 +61,9 @@ func TestAccDataSourceAwsSecretsManagerSecretVersion_VersionStage(t *testing.T) 
 	datasourceName := "data.aws_secretsmanager_secret_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecretsManagerSecretVersionConfig_VersionStage_Custom(rName),
@@ -116,13 +120,13 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_id     = aws_secretsmanager_secret.test.id
   secret_string = "test-string"
 }
 
 data "aws_secretsmanager_secret_version" "test" {
-  secret_id  = "${aws_secretsmanager_secret.test.id}"
-  version_id = "${aws_secretsmanager_secret_version.test.version_id}"
+  secret_id  = aws_secretsmanager_secret.test.id
+  version_id = aws_secretsmanager_secret_version.test.version_id
 }
 `, rName)
 }
@@ -134,13 +138,13 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id      = "${aws_secretsmanager_secret.test.id}"
+  secret_id      = aws_secretsmanager_secret.test.id
   secret_string  = "test-string"
   version_stages = ["test-stage", "AWSCURRENT"]
 }
 
 data "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret_version.test.secret_id}"
+  secret_id     = aws_secretsmanager_secret_version.test.secret_id
   version_stage = "test-stage"
 }
 `, rName)
@@ -153,12 +157,12 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_id     = aws_secretsmanager_secret.test.id
   secret_string = "test-string"
 }
 
 data "aws_secretsmanager_secret_version" "test" {
-  secret_id = "${aws_secretsmanager_secret_version.test.secret_id}"
+  secret_id = aws_secretsmanager_secret_version.test.secret_id
 }
 `, rName)
 }

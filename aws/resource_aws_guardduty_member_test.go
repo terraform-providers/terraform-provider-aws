@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccAwsGuardDutyMember_basic(t *testing.T) {
@@ -17,6 +17,7 @@ func testAccAwsGuardDutyMember_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyMemberDestroy,
 		Steps: []resource.TestStep{
@@ -45,6 +46,7 @@ func testAccAwsGuardDutyMember_invite_disassociate(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyMemberDestroy,
 		Steps: []resource.TestStep{
@@ -83,6 +85,7 @@ func testAccAwsGuardDutyMember_invite_onUpdate(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyMemberDestroy,
 		Steps: []resource.TestStep{
@@ -122,6 +125,7 @@ func testAccAwsGuardDutyMember_invitationMessage(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyMemberDestroy,
 		Steps: []resource.TestStep{
@@ -224,7 +228,7 @@ func testAccGuardDutyMemberConfig_basic(accountID, email string) string {
 
 resource "aws_guardduty_member" "test" {
   account_id  = "%[2]s"
-  detector_id = "${aws_guardduty_detector.test.id}"
+  detector_id = aws_guardduty_detector.test.id
   email       = "%[3]s"
 }
 `, testAccGuardDutyDetectorConfig_basic1, accountID, email)
@@ -236,7 +240,7 @@ func testAccGuardDutyMemberConfig_invite(accountID, email string, invite bool) s
 
 resource "aws_guardduty_member" "test" {
   account_id                 = "%[2]s"
-  detector_id                = "${aws_guardduty_detector.test.id}"
+  detector_id                = aws_guardduty_detector.test.id
   disable_email_notification = true
   email                      = "%[3]s"
   invite                     = %[4]t
@@ -250,7 +254,7 @@ func testAccGuardDutyMemberConfig_invitationMessage(accountID, email, invitation
 
 resource "aws_guardduty_member" "test" {
   account_id                 = "%[2]s"
-  detector_id                = "${aws_guardduty_detector.test.id}"
+  detector_id                = aws_guardduty_detector.test.id
   disable_email_notification = true
   email                      = "%[3]s"
   invitation_message         = "%[4]s"

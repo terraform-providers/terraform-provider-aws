@@ -7,18 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appsync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
-
-var validAppsyncAuthTypes = []string{
-	appsync.AuthenticationTypeApiKey,
-	appsync.AuthenticationTypeAwsIam,
-	appsync.AuthenticationTypeAmazonCognitoUserPools,
-	appsync.AuthenticationTypeOpenidConnect,
-}
 
 func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 	return &schema.Resource{
@@ -40,7 +33,7 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 						"authentication_type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice(validAppsyncAuthTypes, false),
+							ValidateFunc: validation.StringInSlice(appsync.AuthenticationType_Values(), false),
 						},
 						"openid_connect_config": {
 							Type:     schema.TypeList,
@@ -95,7 +88,7 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 			"authentication_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(validAppsyncAuthTypes, false),
+				ValidateFunc: validation.StringInSlice(appsync.AuthenticationType_Values(), false),
 			},
 			"schema": {
 				Type:     schema.TypeString,
@@ -249,7 +242,7 @@ func resourceAwsAppsyncGraphqlApiCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error creating AppSync GraphQL API: %s", err)
 	}
 
-	d.SetId(*resp.GraphqlApi.ApiId)
+	d.SetId(aws.StringValue(resp.GraphqlApi.ApiId))
 
 	if err := resourceAwsAppsyncSchemaPut(d, meta); err != nil {
 		return fmt.Errorf("error creating AppSync GraphQL API (%s) Schema: %s", d.Id(), err)
@@ -306,7 +299,7 @@ func resourceAwsAppsyncGraphqlApiRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
-	if err := d.Set("xray_enabled", aws.BoolValue(resp.GraphqlApi.XrayEnabled)); err != nil {
+	if err := d.Set("xray_enabled", resp.GraphqlApi.XrayEnabled); err != nil {
 		return fmt.Errorf("error setting xray_enabled: %s", err)
 	}
 

@@ -12,7 +12,7 @@ Provides a Gamelift Alias resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_alias" "example" {
   name        = "example-alias"
   description = "Example Description"

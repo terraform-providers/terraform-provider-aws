@@ -14,13 +14,13 @@ Note that currently only one policy may be applied to a repository.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name = "bar"
 }
 
 resource "aws_ecr_repository_policy" "foopolicy" {
-  repository = "${aws_ecr_repository.foo.name}"
+  repository = aws_ecr_repository.foo.name
 
   policy = <<EOF
 {

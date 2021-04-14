@@ -19,7 +19,7 @@ connection into management.
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   region = "us-east-1"
 
@@ -38,19 +38,19 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_vpc" "peer" {
-  provider   = "aws.peer"
+  provider   = aws.peer
   cidr_block = "10.1.0.0/16"
 }
 
 data "aws_caller_identity" "peer" {
-  provider = "aws.peer"
+  provider = aws.peer
 }
 
 # Requester's side of the connection.
 resource "aws_vpc_peering_connection" "peer" {
-  vpc_id        = "${aws_vpc.main.id}"
-  peer_vpc_id   = "${aws_vpc.peer.id}"
-  peer_owner_id = "${data.aws_caller_identity.peer.account_id}"
+  vpc_id        = aws_vpc.main.id
+  peer_vpc_id   = aws_vpc.peer.id
+  peer_owner_id = data.aws_caller_identity.peer.account_id
   peer_region   = "us-west-2"
   auto_accept   = false
 
@@ -61,8 +61,8 @@ resource "aws_vpc_peering_connection" "peer" {
 
 # Accepter's side of the connection.
 resource "aws_vpc_peering_connection_accepter" "peer" {
-  provider                  = "aws.peer"
-  vpc_peering_connection_id = "${aws_vpc_peering_connection.peer.id}"
+  provider                  = aws.peer
+  vpc_peering_connection_id = aws_vpc_peering_connection.peer.id
   auto_accept               = true
 
   tags = {
@@ -89,7 +89,7 @@ from your statefile and management, **but will not destroy the VPC Peering Conne
 
 ## Attributes Reference
 
-All of the argument attributes except `auto_accept` are also exported as result attributes.
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the VPC Peering Connection.
 * `accept_status` - The status of the VPC Peering Connection request.
@@ -125,15 +125,15 @@ VPC Peering Connection Accepters can be imported by using the Peering Connection
 $ terraform import aws_vpc_peering_connection_accepter.example pcx-12345678
 ```
 
-Certain resource arguments, like `auto_accept`, do not have an EC2 API method for reading the information after peering connection creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](/docs/configuration/resources.html#ignore_changes) to hide the difference, e.g.
+Certain resource arguments, like `auto_accept`, do not have an EC2 API method for reading the information after peering connection creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
-```hcl
+```terraform
 resource "aws_vpc_peering_connection_accepter" "example" {
   # ... other configuration ...
 
   # There is no AWS EC2 API for reading auto_accept
   lifecycle {
-    ignore_changes = ["auto_accept"]
+    ignore_changes = [auto_accept]
   }
 }
 ```

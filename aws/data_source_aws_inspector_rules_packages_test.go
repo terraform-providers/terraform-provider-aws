@@ -3,13 +3,15 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/inspector"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSInspectorRulesPackages_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, inspector.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAWSInspectorRulesPackagesConfig,
@@ -20,5 +22,5 @@ func TestAccAWSInspectorRulesPackages_basic(t *testing.T) {
 }
 
 const testAccCheckAWSInspectorRulesPackagesConfig = `
-data "aws_inspector_rules_packages" "test" { }
+data "aws_inspector_rules_packages" "test" {}
 `

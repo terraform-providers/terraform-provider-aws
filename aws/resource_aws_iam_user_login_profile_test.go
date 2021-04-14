@@ -3,19 +3,18 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
-
-	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/hashicorp/vault/helper/pgpkeys"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/vault/helper/pgpkeys"
 )
 
 func TestGenerateIAMPassword(t *testing.T) {
@@ -67,6 +66,7 @@ func TestAccAWSUserLoginProfile_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -105,6 +105,7 @@ func TestAccAWSUserLoginProfile_keybase(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -140,6 +141,7 @@ func TestAccAWSUserLoginProfile_keybaseDoesntExist(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -157,6 +159,7 @@ func TestAccAWSUserLoginProfile_notAKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -176,6 +179,7 @@ func TestAccAWSUserLoginProfile_PasswordLength(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -253,7 +257,7 @@ func testDecryptPasswordAndTest(nProfile, nAccessKey, key string) resource.TestC
 		}
 
 		iamAsCreatedUserSession := session.New(&aws.Config{
-			Region:      aws.String("us-west-2"),
+			Region:      aws.String(testAccGetRegion()),
 			Credentials: credentials.NewStaticCredentials(accessKeyId, secretAccessKey, ""),
 		})
 		_, err = iamAsCreatedUserSession.Config.Credentials.Get()
@@ -323,6 +327,8 @@ resource "aws_iam_user" "user" {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "user" {
   statement {
     effect    = "Allow"
@@ -333,18 +339,18 @@ data "aws_iam_policy_document" "user" {
   statement {
     effect    = "Allow"
     actions   = ["iam:ChangePassword"]
-    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/&{aws:username}"]
+    resources = ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:user/&{aws:username}"]
   }
 }
 
 resource "aws_iam_user_policy" "user" {
   name   = "AllowChangeOwnPassword"
-  user   = "${aws_iam_user.user.name}"
-  policy = "${data.aws_iam_policy_document.user.json}"
+  user   = aws_iam_user.user.name
+  policy = data.aws_iam_policy_document.user.json
 }
 
 resource "aws_iam_access_key" "user" {
-  user = "${aws_iam_user.user.name}"
+  user = aws_iam_user.user.name
 }
 `, rName, path)
 }
@@ -354,7 +360,7 @@ func testAccAWSUserLoginProfileConfig_PasswordLength(rName, path, pgpKey string,
 %s
 
 resource "aws_iam_user_login_profile" "user" {
-  user            = "${aws_iam_user.user.name}"
+  user            = aws_iam_user.user.name
   password_length = %d
 
   pgp_key = <<EOF
@@ -369,7 +375,7 @@ func testAccAWSUserLoginProfileConfig_Required(rName, path, pgpKey string) strin
 %s
 
 resource "aws_iam_user_login_profile" "user" {
-  user = "${aws_iam_user.user.name}"
+  user = aws_iam_user.user.name
 
   pgp_key = <<EOF
 %s

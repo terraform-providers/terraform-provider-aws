@@ -5,8 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/outposts"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsOutpostsOutposts() *schema.Resource {
@@ -91,7 +90,7 @@ func dataSourceAwsOutpostsOutpostsRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error setting ids: %w", err)
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(meta.(*AWSClient).region)
 
 	return nil
 }

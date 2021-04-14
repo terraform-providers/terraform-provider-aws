@@ -7,10 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSUserGroupMembership_basic(t *testing.T) {
@@ -25,6 +24,7 @@ func TestAccAWSUserGroupMembership_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccAWSUserGroupMembershipDestroy,
 		Steps: []resource.TestStep{
@@ -224,106 +224,106 @@ resource "aws_iam_group" "group3" {
 // associate users and groups
 const testAccAWSUserGroupMembershipConfigInit = `
 resource "aws_iam_user_group_membership" "user1_test1" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group1.name,
+  ]
 }
 `
 
 const testAccAWSUserGroupMembershipConfigAddOne = `
 resource "aws_iam_user_group_membership" "user1_test1" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-		"${aws_iam_group.group2.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group1.name,
+    aws_iam_group.group2.name,
+  ]
 }
 `
 
 const testAccAWSUserGroupMembershipConfigAddAll = `
 resource "aws_iam_user_group_membership" "user1_test1" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-		"${aws_iam_group.group2.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group1.name,
+    aws_iam_group.group2.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user1_test2" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group3.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group3.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user2_test1" {
-	user = "${aws_iam_user.user2.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-	]
+  user = aws_iam_user.user2.name
+  groups = [
+    aws_iam_group.group1.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user2_test2" {
-	user = "${aws_iam_user.user2.name}"
-	groups = [
-		"${aws_iam_group.group2.name}",
-		"${aws_iam_group.group3.name}",
-	]
+  user = aws_iam_user.user2.name
+  groups = [
+    aws_iam_group.group2.name,
+    aws_iam_group.group3.name,
+  ]
 }
 `
 
 // test removing a group
 const testAccAWSUserGroupMembershipConfigRemoveGroup = `
 resource "aws_iam_user_group_membership" "user1_test1" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group1.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user1_test2" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group3.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group3.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user2_test1" {
-	user = "${aws_iam_user.user2.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-	]
+  user = aws_iam_user.user2.name
+  groups = [
+    aws_iam_group.group1.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user2_test2" {
-	user = "${aws_iam_user.user2.name}"
-	groups = [
-		"${aws_iam_group.group2.name}",
-	]
+  user = aws_iam_user.user2.name
+  groups = [
+    aws_iam_group.group2.name,
+  ]
 }
 `
 
 // test deleting an entity
 const testAccAWSUserGroupMembershipConfigDeleteResource = `
 resource "aws_iam_user_group_membership" "user1_test1" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group1.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user1_test2" {
-	user = "${aws_iam_user.user1.name}"
-	groups = [
-		"${aws_iam_group.group3.name}",
-	]
+  user = aws_iam_user.user1.name
+  groups = [
+    aws_iam_group.group3.name,
+  ]
 }
 
 resource "aws_iam_user_group_membership" "user2_test1" {
-	user = "${aws_iam_user.user2.name}"
-	groups = [
-		"${aws_iam_group.group1.name}",
-	]
+  user = aws_iam_user.user2.name
+  groups = [
+    aws_iam_group.group1.name,
+  ]
 }
 `

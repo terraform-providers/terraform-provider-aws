@@ -14,7 +14,7 @@ Provides a Glacier Vault Resource. You can refer to the [Glacier Developer Guide
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_topic" "aws_sns_topic" {
   name = "glacier-sns-topic"
 }
@@ -23,7 +23,7 @@ resource "aws_glacier_vault" "my_archive" {
   name = "MyArchive"
 
   notification {
-    sns_topic = "${aws_sns_topic.aws_sns_topic.arn}"
+    sns_topic = aws_sns_topic.aws_sns_topic.arn
     events    = ["ArchiveRetrievalCompleted", "InventoryRetrievalCompleted"]
   }
 

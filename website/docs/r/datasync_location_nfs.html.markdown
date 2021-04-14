@@ -14,13 +14,13 @@ Manages an NFS Location within AWS DataSync.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_location_nfs" "example" {
   server_hostname = "nfs.example.com"
   subdirectory    = "/exported/path"
 
   on_prem_config {
-    agent_arns = ["${aws_datasync_agent.example.arn}"]
+    agent_arns = [aws_datasync_agent.example.arn]
   }
 }
 ```
@@ -40,7 +40,7 @@ The following arguments are supported inside the `on_prem_config` configuration 
 
 * `agent_arns` - (Required) List of Amazon Resource Names (ARNs) of the DataSync Agents used to connect to the NFS server.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

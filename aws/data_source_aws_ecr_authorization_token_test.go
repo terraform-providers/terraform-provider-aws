@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEcrAuthorizationTokenDataSource_basic(t *testing.T) {
@@ -14,8 +15,9 @@ func TestAccAWSEcrAuthorizationTokenDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_ecr_authorization_token.repo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ecr.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsEcrAuthorizationTokenDataSourceBasicConfig,
@@ -53,8 +55,9 @@ func testAccCheckAwsEcrAuthorizationTokenDataSourceRepositoryConfig(rName string
 resource "aws_ecr_repository" "repo" {
   name = %q
 }
+
 data "aws_ecr_authorization_token" "repo" {
-	registry_id = "${aws_ecr_repository.repo.registry_id}"
+  registry_id = aws_ecr_repository.repo.registry_id
 }
 `, rName)
 }

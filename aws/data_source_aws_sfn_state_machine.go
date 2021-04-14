@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsSfnStateMachine() *schema.Resource {
@@ -52,15 +52,15 @@ func dataSourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) 
 
 	err := conn.ListStateMachinesPages(params, func(page *sfn.ListStateMachinesOutput, lastPage bool) bool {
 		for _, sm := range page.StateMachines {
-			if *sm.Name == target {
-				arns = append(arns, *sm.StateMachineArn)
+			if aws.StringValue(sm.Name) == target {
+				arns = append(arns, aws.StringValue(sm.StateMachineArn))
 			}
 		}
 		return true
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error listing state machines: %s", err)
+		return fmt.Errorf("Error listing state machines: %w", err)
 	}
 
 	if len(arns) == 0 {

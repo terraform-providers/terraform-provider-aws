@@ -15,10 +15,10 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_route_response" "example" {
-  api_id             = "${aws_apigatewayv2_api.example.id}"
-  route_id           = "${aws_apigatewayv2_route.example.id}"
+  api_id             = aws_apigatewayv2_api.example.id
+  route_id           = aws_apigatewayv2_route.example.id
   route_response_key = "$default"
 }
 ```
@@ -33,7 +33,7 @@ The following arguments are supported:
 * `model_selection_expression` - (Optional) The [model selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-model-selection-expressions) for the route response.
 * `response_models` - (Optional) The response models for the route response.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

@@ -16,11 +16,11 @@ Services, and are applied to each AutoScaling Group you supply.
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_autoscaling_notification" "example_notifications" {
   group_names = [
-    "${aws_autoscaling_group.bar.name}",
-    "${aws_autoscaling_group.foo.name}",
+    aws_autoscaling_group.bar.name,
+    aws_autoscaling_group.foo.name,
   ]
 
   notifications = [
@@ -30,7 +30,7 @@ resource "aws_autoscaling_notification" "example_notifications" {
     "autoscaling:EC2_INSTANCE_TERMINATE_ERROR",
   ]
 
-  topic_arn = "${aws_sns_topic.example.arn}"
+  topic_arn = aws_sns_topic.example.arn
 }
 
 resource "aws_sns_topic" "example" {

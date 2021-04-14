@@ -9,8 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestResourceSortByExpirationDate(t *testing.T) {
@@ -29,7 +29,7 @@ func TestResourceSortByExpirationDate(t *testing.T) {
 		},
 	}
 	sort.Sort(certificateByExpiration(certs))
-	if *certs[0].ServerCertificateName != "latest" {
+	if aws.StringValue(certs[0].ServerCertificateName) != "latest" {
 		t.Fatalf("Expected first item to be %q, but was %q", "latest", *certs[0].ServerCertificateName)
 	}
 }
@@ -42,6 +42,7 @@ func TestAccAWSDataSourceIAMServerCertificate_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServerCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -65,6 +66,7 @@ func TestAccAWSDataSourceIAMServerCertificate_basic(t *testing.T) {
 func TestAccAWSDataSourceIAMServerCertificate_matchNamePrefix(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServerCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -86,6 +88,7 @@ func TestAccAWSDataSourceIAMServerCertificate_path(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServerCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -108,7 +111,7 @@ resource "aws_iam_server_certificate" "test_cert" {
 }
 
 data "aws_iam_server_certificate" "test" {
-  name   = "${aws_iam_server_certificate.test_cert.name}"
+  name   = aws_iam_server_certificate.test_cert.name
   latest = true
 }
 `, rName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key))
@@ -124,7 +127,7 @@ resource "aws_iam_server_certificate" "test_cert" {
 }
 
 data "aws_iam_server_certificate" "test" {
-  name        = "${aws_iam_server_certificate.test_cert.name}"
+  name        = aws_iam_server_certificate.test_cert.name
   path_prefix = "%[5]s"
   latest      = true
 }
@@ -134,6 +137,6 @@ data "aws_iam_server_certificate" "test" {
 var testAccAwsDataIAMServerCertConfigMatchNamePrefix = `
 data "aws_iam_server_certificate" "test" {
   name_prefix = "MyCert"
-  latest = true
+  latest      = true
 }
 `

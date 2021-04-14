@@ -1,0 +1,11 @@
+```release-note:note
+resource/aws_storagegateway_upload_buffer: The Storage Gateway `ListLocalDisks` API operation has been implemented to support the `disk_path` attribute for Cached and VTL gateway types. Environments using restrictive IAM permissions may require updates.
+```
+
+```release-note:bug
+data-source/aws_storagegateway_local_disk: Allow `disk_path` reference on `disk_node` lookup and vice-versa
+```
+
+```release-note:enhancement
+resource/aws_storagegateway_upload_buffer: Add `disk_path` argument for Cached and VTL gateways
+```

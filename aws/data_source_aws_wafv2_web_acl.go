@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsWafv2WebACL() *schema.Resource {
@@ -51,7 +51,7 @@ func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) erro
 	for {
 		resp, err := conn.ListWebACLs(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAFv2 WebACLs: %s", err)
+			return fmt.Errorf("Error reading WAFv2 WebACLs: %w", err)
 		}
 
 		if resp == nil || resp.WebACLs == nil {
@@ -76,8 +76,8 @@ func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(aws.StringValue(foundWebACL.Id))
-	d.Set("arn", aws.StringValue(foundWebACL.ARN))
-	d.Set("description", aws.StringValue(foundWebACL.Description))
+	d.Set("arn", foundWebACL.ARN)
+	d.Set("description", foundWebACL.Description)
 
 	return nil
 }

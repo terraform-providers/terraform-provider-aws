@@ -12,9 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestLambdaPermissionUnmarshalling(t *testing.T) {
@@ -29,7 +30,7 @@ func TestLambdaPermissionUnmarshalling(t *testing.T) {
 		t.Fatalf("Expected Sid to match (%q != %q)", v.Statement[0].Sid, expectedSid)
 	}
 
-	expectedFunctionName := "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction"
+	expectedFunctionName := "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction" // lintignore:AWSAT003,AWSAT005 // unit test
 	if v.Statement[0].Resource != expectedFunctionName {
 		t.Fatalf("Expected function name to match (%q != %q)", v.Statement[0].Resource, expectedFunctionName)
 	}
@@ -60,7 +61,7 @@ func TestLambdaPermissionUnmarshalling(t *testing.T) {
 }
 
 func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_alias(t *testing.T) {
-	arnWithAlias := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:testalias"
+	arnWithAlias := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:testalias" // lintignore:AWSAT003,AWSAT005 // unit test
 	expectedQualifier := "testalias"
 	qualifier, err := getQualifierFromLambdaAliasOrVersionArn(arnWithAlias)
 	if err != nil {
@@ -70,8 +71,9 @@ func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_alias(t *testin
 		t.Fatalf("Expected qualifier to match (%q != %q)", qualifier, expectedQualifier)
 	}
 }
+
 func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_govcloud(t *testing.T) {
-	arnWithAlias := "arn:aws-us-gov:lambda:us-gov-west-1:187636751137:function:lambda_function_name:testalias"
+	arnWithAlias := "arn:aws-us-gov:lambda:us-gov-west-1:187636751137:function:lambda_function_name:testalias" // lintignore:AWSAT003,AWSAT005 // unit test
 	expectedQualifier := "testalias"
 	qualifier, err := getQualifierFromLambdaAliasOrVersionArn(arnWithAlias)
 	if err != nil {
@@ -83,7 +85,7 @@ func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_govcloud(t *tes
 }
 
 func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_version(t *testing.T) {
-	arnWithVersion := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:223"
+	arnWithVersion := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:223" // lintignore:AWSAT003,AWSAT005 // unit test
 	expectedQualifier := "223"
 	qualifier, err := getQualifierFromLambdaAliasOrVersionArn(arnWithVersion)
 	if err != nil {
@@ -95,7 +97,7 @@ func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_version(t *test
 }
 
 func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_invalid(t *testing.T) {
-	invalidArn := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name"
+	invalidArn := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name" // lintignore:AWSAT003,AWSAT005 // unit test
 	qualifier, err := getQualifierFromLambdaAliasOrVersionArn(invalidArn)
 	if err == nil {
 		t.Fatalf("Expected error when getting qualifier")
@@ -105,7 +107,7 @@ func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_invalid(t *test
 	}
 
 	// with trailing colon
-	invalidArn = "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:"
+	invalidArn = "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:" // lintignore:AWSAT003,AWSAT005 // unit test
 	qualifier, err = getQualifierFromLambdaAliasOrVersionArn(invalidArn)
 	if err == nil {
 		t.Fatalf("Expected error when getting qualifier")
@@ -116,7 +118,7 @@ func TestLambdaPermissionGetQualifierFromLambdaAliasOrVersionArn_invalid(t *test
 }
 
 func TestLambdaPermissionGetFunctionNameFromLambdaArn_invalid(t *testing.T) {
-	invalidArn := "arn:aws:lambda:us-west-2:187636751137:function:"
+	invalidArn := "arn:aws:lambda:us-west-2:187636751137:function:" // lintignore:AWSAT003,AWSAT005 // unit test
 	fn, err := getFunctionNameFromLambdaArn(invalidArn)
 	if err == nil {
 		t.Fatalf("Expected error when parsing invalid ARN (%q)", invalidArn)
@@ -127,7 +129,7 @@ func TestLambdaPermissionGetFunctionNameFromLambdaArn_invalid(t *testing.T) {
 }
 
 func TestLambdaPermissionGetFunctionNameFromLambdaArn_valid(t *testing.T) {
-	validArn := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name"
+	validArn := "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name" // lintignore:AWSAT003,AWSAT005 // unit test
 	fn, err := getFunctionNameFromLambdaArn(validArn)
 	if err != nil {
 		t.Fatalf("Expected no error (%q): %q", validArn, err)
@@ -139,7 +141,7 @@ func TestLambdaPermissionGetFunctionNameFromLambdaArn_valid(t *testing.T) {
 	}
 
 	// With qualifier
-	validArn = "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:12"
+	validArn = "arn:aws:lambda:us-west-2:187636751137:function:lambda_function_name:12" // lintignore:AWSAT003,AWSAT005 // unit test
 	fn, err = getFunctionNameFromLambdaArn(validArn)
 	if err != nil {
 		t.Fatalf("Expected no error (%q): %q", validArn, err)
@@ -152,7 +154,7 @@ func TestLambdaPermissionGetFunctionNameFromLambdaArn_valid(t *testing.T) {
 }
 
 func TestLambdaPermissionGetFunctionNameFromGovCloudLambdaArn(t *testing.T) {
-	validArn := "arn:aws-us-gov:lambda:us-gov-west-1:187636751137:function:lambda_function_name"
+	validArn := "arn:aws-us-gov:lambda:us-gov-west-1:187636751137:function:lambda_function_name" // lintignore:AWSAT003,AWSAT005 // unit test
 	fn, err := getFunctionNameFromLambdaArn(validArn)
 	if err != nil {
 		t.Fatalf("Expected no error (%q): %q", validArn, err)
@@ -176,6 +178,7 @@ func TestAccAWSLambdaPermission_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -206,6 +209,7 @@ func TestAccAWSLambdaPermission_StatementId_Duplicate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -229,6 +233,7 @@ func TestAccAWSLambdaPermission_withRawFunctionName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -263,6 +268,7 @@ func TestAccAWSLambdaPermission_withStatementIdPrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -300,6 +306,7 @@ func TestAccAWSLambdaPermission_withQualifier(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -333,6 +340,7 @@ func TestAccAWSLambdaPermission_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -368,6 +376,7 @@ func TestAccAWSLambdaPermission_multiplePerms(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -441,6 +450,7 @@ func TestAccAWSLambdaPermission_withS3(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -479,6 +489,7 @@ func TestAccAWSLambdaPermission_withSNS(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -516,6 +527,7 @@ func TestAccAWSLambdaPermission_withIAMRole(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -667,9 +679,13 @@ func isLambdaPermissionGone(rs *terraform.ResourceState, conn *lambda.Lambda) er
 	}
 
 	state, err := findLambdaPolicyStatementById(&policy, rs.Primary.ID)
-	if err != nil {
-		// statement not found => deleted
+
+	if tfresource.NotFound(err) {
 		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error finding Lambda Policy Statement (%s): %w", rs.Primary.ID, err)
 	}
 
 	return fmt.Errorf("Policy statement expected to be gone (%s):\n%s",
@@ -884,6 +900,7 @@ EOF
 }
 
 func testAccAWSLambdaPermissionConfig_withQualifier(aliasName, funcName, roleName string) string {
+	// lintignore:AWSAT003,AWSAT005 // ARN, region not actually used
 	return fmt.Sprintf(`
 resource "aws_lambda_permission" "with_qualifier" {
   statement_id   = "AllowExecutionWithQualifier"
@@ -934,31 +951,32 @@ EOF
 
 var testAccAWSLambdaPermissionConfig_multiplePerms_tpl = `
 resource "aws_lambda_permission" "first" {
-    statement_id = "AllowExecutionFirst"
-    action = "lambda:InvokeFunction"
-    function_name = aws_lambda_function.test.arn
-    principal = "events.amazonaws.com"
+  statement_id  = "AllowExecutionFirst"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test.arn
+  principal     = "events.amazonaws.com"
 }
 
 resource "aws_lambda_permission" "%s" {
-    statement_id = "%s"
-    action = "lambda:*"
-    function_name = aws_lambda_function.test.arn
-    principal = "events.amazonaws.com"
+  statement_id  = "%s"
+  action        = "lambda:*"
+  function_name = aws_lambda_function.test.arn
+  principal     = "events.amazonaws.com"
 }
 %s
 
 resource "aws_lambda_function" "test" {
-    filename = "test-fixtures/lambdatest.zip"
-    function_name = "%s"
-    role = aws_iam_role.iam_for_lambda.arn
-    handler = "exports.handler"
-    runtime = "nodejs12.x"
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "%s"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.handler"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-    name = "%s"
-    assume_role_policy = <<EOF
+  name = "%s"
+
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -985,10 +1003,10 @@ func testAccAWSLambdaPermissionConfig_multiplePermsModified(funcName, roleName s
 	return fmt.Sprintf(testAccAWSLambdaPermissionConfig_multiplePerms_tpl,
 		"sec0nd", "AllowExecutionSec0nd", `
 resource "aws_lambda_permission" "third" {
-    statement_id = "AllowExecutionThird"
-    action = "lambda:*"
-    function_name = aws_lambda_function.test.arn
-    principal = "events.amazonaws.com"
+  statement_id  = "AllowExecutionThird"
+  action        = "lambda:*"
+  function_name = aws_lambda_function.test.arn
+  principal     = "events.amazonaws.com"
 }
 `, funcName, roleName)
 }
@@ -1127,20 +1145,28 @@ EOF
 `, funcName, roleName)
 }
 
+// lintignore:AWSAT003,AWSAT005 // unit test
 var testLambdaPolicy = []byte(`{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Condition": {
-				"StringEquals": {"AWS:SourceAccount": "319201112229", "lambda:EventSourceToken": "test-event-source-token"},
-				"ArnLike":{"AWS:SourceArn":"arn:aws:events:eu-west-1:319201112229:rule/RunDaily"}
-			},
-			"Action": "lambda:InvokeFunction",
-			"Resource": "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",
-			"Effect": "Allow",
-			"Principal": {"Service":"events.amazonaws.com"},
-			"Sid": "36fe77d9-a4ae-13fb-8beb-5dc6821d5291"
-		}
-	],
-	"Id":"default"
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceAccount": "319201112229",
+          "lambda:EventSourceToken": "test-event-source-token"
+        },
+        "ArnLike": {
+          "AWS:SourceArn": "arn:aws:events:eu-west-1:319201112229:rule/RunDaily"
+        }
+      },
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "events.amazonaws.com"
+      },
+      "Sid": "36fe77d9-a4ae-13fb-8beb-5dc6821d5291"
+    }
+  ],
+  "Id": "default"
 }`)

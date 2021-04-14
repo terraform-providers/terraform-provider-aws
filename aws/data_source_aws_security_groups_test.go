@@ -4,21 +4,25 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsSecurityGroups_tag(t *testing.T) {
 	rInt := acctest.RandInt()
+	dataSourceName := "data.aws_security_groups.by_tag"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecurityGroupsConfig_tag(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_security_groups.by_tag", "ids.#", "3"),
-					resource.TestCheckResourceAttr("data.aws_security_groups.by_tag", "vpc_ids.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "ids.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpc_ids.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "arns.#", "3"),
 				),
 			},
 		},
@@ -27,15 +31,18 @@ func TestAccDataSourceAwsSecurityGroups_tag(t *testing.T) {
 
 func TestAccDataSourceAwsSecurityGroups_filter(t *testing.T) {
 	rInt := acctest.RandInt()
+	dataSourceName := "data.aws_security_groups.by_filter"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecurityGroupsConfig_filter(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_security_groups.by_filter", "ids.#", "3"),
-					resource.TestCheckResourceAttr("data.aws_security_groups.by_filter", "vpc_ids.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "ids.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpc_ids.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "arns.#", "3"),
 				),
 			},
 		},
@@ -54,7 +61,7 @@ resource "aws_vpc" "test_tag" {
 
 resource "aws_security_group" "test" {
   count  = 3
-  vpc_id = "${aws_vpc.test_tag.id}"
+  vpc_id = aws_vpc.test_tag.id
   name   = "tf-%[1]d-${count.index}"
 
   tags = {
@@ -64,7 +71,7 @@ resource "aws_security_group" "test" {
 
 data "aws_security_groups" "by_tag" {
   tags = {
-    Seed = "${aws_security_group.test.0.tags["Seed"]}"
+    Seed = aws_security_group.test[0].tags["Seed"]
   }
 }
 `, rInt)
@@ -82,7 +89,7 @@ resource "aws_vpc" "test_filter" {
 
 resource "aws_security_group" "test" {
   count  = 3
-  vpc_id = "${aws_vpc.test_filter.id}"
+  vpc_id = aws_vpc.test_filter.id
   name   = "tf-%[1]d-${count.index}"
 
   tags = {
@@ -93,12 +100,12 @@ resource "aws_security_group" "test" {
 data "aws_security_groups" "by_filter" {
   filter {
     name   = "vpc-id"
-    values = ["${aws_vpc.test_filter.id}"]
+    values = [aws_vpc.test_filter.id]
   }
 
   filter {
     name   = "group-name"
-    values = ["tf-${aws_security_group.test.0.tags["Seed"]}-*"]
+    values = ["tf-${aws_security_group.test[0].tags["Seed"]}-*"]
   }
 }
 `, rInt)

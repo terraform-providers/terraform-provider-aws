@@ -2,10 +2,12 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSLaunchTemplateDataSource_basic(t *testing.T) {
@@ -15,11 +17,37 @@ func TestAccAWSLaunchTemplateDataSource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLaunchTemplateDataSourceConfig_Basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(resourceName, "arn", dataSourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "default_version", dataSourceName, "default_version"),
+					resource.TestCheckResourceAttrPair(resourceName, "latest_version", dataSourceName, "latest_version"),
+					resource.TestCheckResourceAttrPair(resourceName, "name", dataSourceName, "name"),
+					resource.TestCheckResourceAttrPair(resourceName, "hibernation_options", dataSourceName, "hibernation_options"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchTemplateDataSource_id_basic(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_launch_template.test"
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfig_BasicId(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceName, "arn", dataSourceName, "arn"),
 					resource.TestCheckResourceAttrPair(resourceName, "default_version", dataSourceName, "default_version"),
@@ -39,6 +67,7 @@ func TestAccAWSLaunchTemplateDataSource_filter_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -84,6 +113,7 @@ func TestAccAWSLaunchTemplateDataSource_filter_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -108,6 +138,7 @@ func TestAccAWSLaunchTemplateDataSource_metadataOptions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -124,6 +155,28 @@ func TestAccAWSLaunchTemplateDataSource_metadataOptions(t *testing.T) {
 	})
 }
 
+func TestAccAWSLaunchTemplateDataSource_enclaveOptions(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_launch_template.test"
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfig_enclaveOptions(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "enclave_options.#", resourceName, "enclave_options.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "enclave_options.0.enabled", resourceName, "enclave_options.0.enabled"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLaunchTemplateDataSource_associatePublicIPAddress(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	dataSourceName := "data.aws_launch_template.test"
@@ -131,6 +184,7 @@ func TestAccAWSLaunchTemplateDataSource_associatePublicIPAddress(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -159,6 +213,93 @@ func TestAccAWSLaunchTemplateDataSource_associatePublicIPAddress(t *testing.T) {
 	})
 }
 
+func TestAccAWSLaunchTemplateDataSource_associateCarrierIPAddress(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_launch_template.test"
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfig_associateCarrierIpAddress(rName, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.#", resourceName, "network_interfaces.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.0.associate_carrier_ip_address", resourceName, "network_interfaces.0.associate_carrier_ip_address"),
+				),
+			},
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfig_associateCarrierIpAddress(rName, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.#", resourceName, "network_interfaces.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.0.associate_carrier_ip_address", resourceName, "network_interfaces.0.associate_carrier_ip_address"),
+				),
+			},
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfig_associateCarrierIpAddress(rName, "null"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.#", resourceName, "network_interfaces.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.0.associate_carrier_ip_address", resourceName, "network_interfaces.0.associate_carrier_ip_address"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchTemplateDataSource_networkInterfaces_deleteOnTermination(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_launch_template.test"
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfigNetworkInterfacesDeleteOnTermination(rName, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.#", resourceName, "network_interfaces.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.0.delete_on_termination", resourceName, "network_interfaces.0.delete_on_termination"),
+				),
+			},
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfigNetworkInterfacesDeleteOnTermination(rName, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.#", resourceName, "network_interfaces.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.0.delete_on_termination", resourceName, "network_interfaces.0.delete_on_termination"),
+				),
+			},
+			{
+				Config: testAccAWSLaunchTemplateDataSourceConfigNetworkInterfacesDeleteOnTermination(rName, "null"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.#", resourceName, "network_interfaces.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "network_interfaces.0.delete_on_termination", resourceName, "network_interfaces.0.delete_on_termination"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchTemplateDataSource_NonExistent(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSLaunchTemplateDataSourceConfig_NonExistent,
+				ExpectError: regexp.MustCompile(`not found`),
+			},
+		},
+	})
+}
+
 func testAccAWSLaunchTemplateDataSourceConfig_Basic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
@@ -166,7 +307,19 @@ resource "aws_launch_template" "test" {
 }
 
 data "aws_launch_template" "test" {
-  name = "${aws_launch_template.test.name}"
+  name = aws_launch_template.test.name
+}
+`, rName)
+}
+
+func testAccAWSLaunchTemplateDataSourceConfig_BasicId(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  name = %q
+}
+
+data "aws_launch_template" "test" {
+  id = aws_launch_template.test.id
 }
 `, rName)
 }
@@ -180,7 +333,7 @@ resource "aws_launch_template" "test" {
 data "aws_launch_template" "test" {
   filter {
     name   = "launch-template-name"
-    values = ["${aws_launch_template.test.name}"]
+    values = [aws_launch_template.test.name]
   }
 }
 `, rName)
@@ -190,6 +343,7 @@ func testAccAWSLaunchTemplateDataSourceConfigFilterTags(rName string, rInt int) 
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
   name = %[1]q
+
   tags = {
     Name     = "key1"
     TestSeed = "%[2]d"
@@ -198,7 +352,7 @@ resource "aws_launch_template" "test" {
 
 data "aws_launch_template" "test" {
   tags = {
-    Name     = "${aws_launch_template.test.tags["Name"]}"
+    Name     = aws_launch_template.test.tags["Name"]
     TestSeed = "%[2]d"
   }
 }
@@ -223,13 +377,29 @@ data "aws_launch_template" "test" {
 `, rName)
 }
 
+func testAccAWSLaunchTemplateDataSourceConfig_enclaveOptions(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  name = %[1]q
+
+  enclave_options {
+    enabled = true
+  }
+}
+
+data "aws_launch_template" "test" {
+  name = aws_launch_template.test.name
+}
+`, rName)
+}
+
 func testAccAWSLaunchTemplateDataSourceConfig_associatePublicIpAddress(rName, associatePublicIPAddress string) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
   name = %[1]q
 
   network_interfaces {
-	associate_public_ip_address = %[2]s
+    associate_public_ip_address = %[2]s
   }
 }
 
@@ -238,3 +408,41 @@ data "aws_launch_template" "test" {
 }
 `, rName, associatePublicIPAddress)
 }
+
+func testAccAWSLaunchTemplateDataSourceConfig_associateCarrierIpAddress(rName, associateCarrierIPAddress string) string {
+	return fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  name = %[1]q
+
+  network_interfaces {
+    associate_carrier_ip_address = %[2]s
+  }
+}
+
+data "aws_launch_template" "test" {
+  name = aws_launch_template.test.name
+}
+`, rName, associateCarrierIPAddress)
+}
+
+func testAccAWSLaunchTemplateDataSourceConfigNetworkInterfacesDeleteOnTermination(rName, deleteOnTermination string) string {
+	return fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  name = %[1]q
+
+  network_interfaces {
+    delete_on_termination = %[2]s
+  }
+}
+
+data "aws_launch_template" "test" {
+  name = aws_launch_template.test.name
+}
+`, rName, deleteOnTermination)
+}
+
+const testAccAWSLaunchTemplateDataSourceConfig_NonExistent = `
+data "aws_launch_template" "test" {
+  name = "tf-acc-test-nonexistent"
+}
+`

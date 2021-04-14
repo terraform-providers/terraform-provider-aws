@@ -3,11 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsKmsAlias() *schema.Resource {
@@ -44,7 +43,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Reading KMS Alias: %s", params)
 	err := conn.ListAliasesPages(params, func(page *kms.ListAliasesOutput, lastPage bool) bool {
 		for _, entity := range page.Aliases {
-			if *entity.AliasName == target {
+			if aws.StringValue(entity.AliasName) == target {
 				alias = entity
 				return false
 			}
@@ -53,14 +52,14 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error fetch KMS alias list: %s", err)
+		return fmt.Errorf("Error fetch KMS alias list: %w", err)
 	}
 
 	if alias == nil {
 		return fmt.Errorf("No alias with name %q found in this region.", target)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(aws.StringValue(alias.AliasArn))
 	d.Set("arn", alias.AliasArn)
 
 	// ListAliases can return an alias for an AWS service key (e.g.
@@ -79,7 +78,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resp, err := conn.DescribeKey(req)
 	if err != nil {
-		return fmt.Errorf("Error calling KMS DescribeKey: %s", err)
+		return fmt.Errorf("Error calling KMS DescribeKey: %w", err)
 	}
 
 	d.Set("target_key_arn", resp.KeyMetadata.Arn)

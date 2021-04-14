@@ -2,11 +2,12 @@ package aws
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/cognitoidentity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/service/cognitoidentity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 )
 
 func TestValidateTypeStringNullableBoolean(t *testing.T) {
@@ -168,11 +169,38 @@ func TestValidateCloudWatchEventRuleName(t *testing.T) {
 	}
 }
 
+func TestValidateCloudWatchEventBusNameOrARN(t *testing.T) {
+	validNames := []string{
+		"HelloWorl_d",
+		"hello-world",
+		"hello.World0125",
+		"aws.partner/mongodb.com/stitch.trigger/something",
+		"arn:aws:events:us-east-1:123456789012:event-bus/default", // lintignore:AWSAT003,AWSAT005
+	}
+	for _, v := range validNames {
+		_, errors := validateCloudWatchEventBusNameOrARN(v, "name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid CW event rule name: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"special@character",
+		"arn:aw:events:us-east-1:123456789012:event-bus/default", // lintignore:AWSAT003,AWSAT005
+	}
+	for _, v := range invalidNames {
+		_, errors := validateCloudWatchEventBusNameOrARN(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid CW event rule name", v)
+		}
+	}
+}
+
 func TestValidateLambdaFunctionName(t *testing.T) {
 	validNames := []string{
-		"arn:aws:lambda:us-west-2:123456789012:function:ThumbNail",
-		"arn:aws-us-gov:lambda:us-west-2:123456789012:function:ThumbNail",
-		"arn:aws-us-gov:lambda:us-gov-west-1:123456789012:function:ThumbNail",
+		"arn:aws:lambda:us-west-2:123456789012:function:ThumbNail",            //lintignore:AWSAT003,AWSAT005
+		"arn:aws-us-gov:lambda:us-west-2:123456789012:function:ThumbNail",     //lintignore:AWSAT003,AWSAT005
+		"arn:aws-us-gov:lambda:us-gov-west-1:123456789012:function:ThumbNail", //lintignore:AWSAT003,AWSAT005
 		"FunctionName",
 		"function-name",
 	}
@@ -187,7 +215,7 @@ func TestValidateLambdaFunctionName(t *testing.T) {
 		"/FunctionNameWithSlash",
 		"function.name.with.dots",
 		// length > 140
-		"arn:aws:lambda:us-west-2:123456789012:function:TooLoooooo" +
+		"arn:aws:lambda:us-west-2:123456789012:function:TooLoooooo" + //lintignore:AWSAT003,AWSAT005
 			"ooooooooooooooooooooooooooooooooooooooooooooooooooooooo" +
 			"ooooooooooooooooongFunctionName",
 	}
@@ -218,7 +246,7 @@ func TestValidateLambdaQualifier(t *testing.T) {
 
 	invalidNames := []string{
 		// No ARNs allowed
-		"arn:aws:lambda:us-west-2:123456789012:function:prod",
+		"arn:aws:lambda:us-west-2:123456789012:function:prod", //lintignore:AWSAT003,AWSAT005
 		// length > 128
 		"TooLooooooooooooooooooooooooooooooooooooooooooooooooooo" +
 			"ooooooooooooooooooooooooooooooooooooooooooooooooooo" +
@@ -319,22 +347,22 @@ func TestValidateArn(t *testing.T) {
 	}
 
 	validNames := []string{
-		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // Beanstalk
-		"arn:aws:iam::123456789012:user/David",                                             // IAM User
-		"arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",                                 // Managed IAM policy
-		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // RDS
-		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // S3 object
-		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // CloudWatch Rule
-		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",                  // Lambda function
-		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction:Qualifier",        // Lambda func qualifier
-		"arn:aws-cn:ec2:cn-north-1:123456789012:instance/i-12345678",                       // China EC2 ARN
-		"arn:aws-cn:s3:::bucket/object",                                                    // China S3 ARN
-		"arn:aws-iso:ec2:us-iso-east-1:123456789012:instance/i-12345678",                   // C2S EC2 ARN
-		"arn:aws-iso:s3:::bucket/object",                                                   // C2S S3 ARN
-		"arn:aws-iso-b:ec2:us-isob-east-1:123456789012:instance/i-12345678",                // SC2S EC2 ARN
-		"arn:aws-iso-b:s3:::bucket/object",                                                 // SC2S S3 ARN
-		"arn:aws-us-gov:ec2:us-gov-west-1:123456789012:instance/i-12345678",                // GovCloud EC2 ARN
-		"arn:aws-us-gov:s3:::bucket/object",                                                // GovCloud S3 ARN
+		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // lintignore:AWSAT003,AWSAT005 // Beanstalk
+		"arn:aws:iam::123456789012:user/David",                                             // lintignore:AWSAT005          // IAM User
+		"arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",                                 // lintignore:AWSAT005          // Managed IAM policy
+		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // lintignore:AWSAT003,AWSAT005 // RDS
+		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // lintignore:AWSAT005          // S3 object
+		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // lintignore:AWSAT003,AWSAT005 // CloudWatch Rule
+		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",                  // lintignore:AWSAT003,AWSAT005 // Lambda function
+		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction:Qualifier",        // lintignore:AWSAT003,AWSAT005 // Lambda func qualifier
+		"arn:aws-cn:ec2:cn-north-1:123456789012:instance/i-12345678",                       // lintignore:AWSAT003,AWSAT005 // China EC2 ARN
+		"arn:aws-cn:s3:::bucket/object",                                                    // lintignore:AWSAT005          // China S3 ARN
+		"arn:aws-iso:ec2:us-iso-east-1:123456789012:instance/i-12345678",                   // lintignore:AWSAT003,AWSAT005 // C2S EC2 ARN
+		"arn:aws-iso:s3:::bucket/object",                                                   // lintignore:AWSAT005          // C2S S3 ARN
+		"arn:aws-iso-b:ec2:us-isob-east-1:123456789012:instance/i-12345678",                // lintignore:AWSAT003,AWSAT005 // SC2S EC2 ARN
+		"arn:aws-iso-b:s3:::bucket/object",                                                 // lintignore:AWSAT005          // SC2S S3 ARN
+		"arn:aws-us-gov:ec2:us-gov-west-1:123456789012:instance/i-12345678",                // lintignore:AWSAT003,AWSAT005 // GovCloud EC2 ARN
+		"arn:aws-us-gov:s3:::bucket/object",                                                // lintignore:AWSAT005          // GovCloud S3 ARN
 	}
 	for _, v := range validNames {
 		_, errors := validateArn(v, "arn")
@@ -347,8 +375,8 @@ func TestValidateArn(t *testing.T) {
 		"arn",
 		"123456789012",
 		"arn:aws",
-		"arn:aws:logs",
-		"arn:aws:logs:region:*:*",
+		"arn:aws:logs",            //lintignore:AWSAT005
+		"arn:aws:logs:region:*:*", //lintignore:AWSAT005
 	}
 	for _, v := range invalidNames {
 		_, errors := validateArn(v, "arn")
@@ -358,12 +386,56 @@ func TestValidateArn(t *testing.T) {
 	}
 }
 
+func TestValidatePrincipal(t *testing.T) {
+	v := ""
+	_, errors := validatePrincipal(v, "arn")
+	if len(errors) == 0 {
+		t.Fatalf("%q should not be validated as a principal %d: %q", v, len(errors), errors)
+	}
+
+	validNames := []string{
+		"IAM_ALLOWED_PRINCIPALS", // Special principal
+		"arn:aws-us-gov:iam::357342307427:role/tf-acc-test-3217321001347236965",          // lintignore:AWSAT005          // IAM Role
+		"arn:aws:iam::123456789012:user/David",                                           // lintignore:AWSAT005          // IAM User
+		"arn:aws-us-gov:iam:us-west-2:357342307427:role/tf-acc-test-3217321001347236965", // lintignore:AWSAT003,AWSAT005 // Non-global IAM Role?
+		"arn:aws:iam:us-east-1:123456789012:user/David",                                  // lintignore:AWSAT003,AWSAT005 // Non-global IAM User?
+	}
+	for _, v := range validNames {
+		_, errors := validatePrincipal(v, "arn")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid principal: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"IAM_NOT_ALLOWED_PRINCIPALS", // doesn't exist
+		"arn",
+		"123456789012",
+		"arn:aws",
+		"arn:aws:logs",            //lintignore:AWSAT005
+		"arn:aws:logs:region:*:*", //lintignore:AWSAT005
+		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",                                 // lintignore:AWSAT005          // not a user or role
+		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // lintignore:AWSAT005          // not a user or role
+		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws-us-gov:ec2:us-gov-west-1:123456789012:instance/i-12345678",                // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws-us-gov:s3:::bucket/object",                                                // lintignore:AWSAT005          // not a user or role
+	}
+	for _, v := range invalidNames {
+		_, errors := validatePrincipal(v, "arn")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid principal", v)
+		}
+	}
+}
+
 func TestValidateEC2AutomateARN(t *testing.T) {
 	validNames := []string{
-		"arn:aws:automate:us-east-1:ec2:reboot",
-		"arn:aws:automate:us-east-1:ec2:recover",
-		"arn:aws:automate:us-east-1:ec2:stop",
-		"arn:aws:automate:us-east-1:ec2:terminate",
+		"arn:aws:automate:us-east-1:ec2:reboot",    //lintignore:AWSAT003,AWSAT005
+		"arn:aws:automate:us-east-1:ec2:recover",   //lintignore:AWSAT003,AWSAT005
+		"arn:aws:automate:us-east-1:ec2:stop",      //lintignore:AWSAT003,AWSAT005
+		"arn:aws:automate:us-east-1:ec2:terminate", //lintignore:AWSAT003,AWSAT005
 	}
 	for _, v := range validNames {
 		_, errors := validateEC2AutomateARN(v, "test_property")
@@ -374,15 +446,15 @@ func TestValidateEC2AutomateARN(t *testing.T) {
 
 	invalidNames := []string{
 		"",
-		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // Beanstalk
-		"arn:aws:iam::123456789012:user/David",                                             // IAM User
-		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // RDS
-		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // S3 object
-		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // CloudWatch Rule
-		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",                  // Lambda function
-		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction:Qualifier",        // Lambda func qualifier
-		"arn:aws-us-gov:s3:::corp_bucket/object.png",                                       // GovCloud ARN
-		"arn:aws-us-gov:kms:us-gov-west-1:123456789012:key/some-uuid-abc123",               // GovCloud KMS ARN
+		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // lintignore:AWSAT003,AWSAT005 // Beanstalk
+		"arn:aws:iam::123456789012:user/David",                                             // lintignore:AWSAT005          // IAM User
+		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // lintignore:AWSAT003,AWSAT005 // RDS
+		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // lintignore:AWSAT005          // S3 object
+		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // lintignore:AWSAT003,AWSAT005 // CloudWatch Rule
+		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",                  // lintignore:AWSAT003,AWSAT005 // Lambda function
+		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction:Qualifier",        // lintignore:AWSAT003,AWSAT005 // Lambda func qualifier
+		"arn:aws-us-gov:s3:::corp_bucket/object.png",                                       // lintignore:AWSAT005          // GovCloud ARN
+		"arn:aws-us-gov:kms:us-gov-west-1:123456789012:key/some-uuid-abc123",               // lintignore:AWSAT003,AWSAT005 // GovCloud KMS ARN
 	}
 	for _, v := range invalidNames {
 		_, errors := validateEC2AutomateARN(v, "test_property")
@@ -452,7 +524,7 @@ func TestValidateCIDRNetworkAddress(t *testing.T) {
 	}
 }
 
-func Test_validateCIDRBlock(t *testing.T) {
+func TestValidateCIDRBlock(t *testing.T) {
 	for _, ts := range []struct {
 		cidr  string
 		valid bool
@@ -476,7 +548,7 @@ func Test_validateCIDRBlock(t *testing.T) {
 	}
 }
 
-func Test_validateIpv4CIDRBlock(t *testing.T) {
+func TestValidateIpv4CIDRBlock(t *testing.T) {
 	for _, ts := range []struct {
 		cidr  string
 		valid bool
@@ -499,7 +571,7 @@ func Test_validateIpv4CIDRBlock(t *testing.T) {
 	}
 }
 
-func Test_validateIpv6CIDRBlock(t *testing.T) {
+func TestValidateIpv6CIDRBlock(t *testing.T) {
 	for _, ts := range []struct {
 		cidr  string
 		valid bool
@@ -523,7 +595,7 @@ func Test_validateIpv6CIDRBlock(t *testing.T) {
 	}
 }
 
-func Test_cidrBlocksEqual(t *testing.T) {
+func TestCidrBlocksEqual(t *testing.T) {
 	for _, ts := range []struct {
 		cidr1 string
 		cidr2 string
@@ -540,6 +612,42 @@ func Test_cidrBlocksEqual(t *testing.T) {
 		equal := cidrBlocksEqual(ts.cidr1, ts.cidr2)
 		if ts.equal != equal {
 			t.Fatalf("cidrBlocksEqual(%q, %q) should be: %t", ts.cidr1, ts.cidr2, ts.equal)
+		}
+	}
+}
+func TestCanonicalCidrBlock(t *testing.T) {
+	for _, ts := range []struct {
+		cidr     string
+		expected string
+	}{
+		{"10.2.2.0/24", "10.2.2.0/24"},
+		{"10.2.2.5/24", "10.2.2.0/24"},
+		{"::/0", "::/0"},
+		{"::0/0", "::/0"},
+		{"2001::/15", "2000::/15"},
+		{"2001:db8::1/120", "2001:db8::/120"},
+		{"", ""},
+	} {
+		got := canonicalCidrBlock(ts.cidr)
+		if ts.expected != got {
+			t.Fatalf("canonicalCidrBlock(%q) should be: %q, got: %q", ts.cidr, ts.expected, got)
+		}
+	}
+}
+
+func Test_canonicalCidrBlock(t *testing.T) {
+	for _, ts := range []struct {
+		cidr     string
+		expected string
+	}{
+		{"10.2.2.0/24", "10.2.2.0/24"},
+		{"::/0", "::/0"},
+		{"::0/0", "::/0"},
+		{"", ""},
+	} {
+		got := canonicalCidrBlock(ts.cidr)
+		if ts.expected != got {
+			t.Fatalf("canonicalCidrBlock(%q) should be: %q, got: %q", ts.cidr, ts.expected, got)
 		}
 	}
 }
@@ -823,7 +931,7 @@ func TestValidateIAMPolicyJsonString(t *testing.T) {
 	}
 }
 
-func TestValidateCloudFormationTemplate(t *testing.T) {
+func TestValidateStringIsJsonOrYaml(t *testing.T) {
 	type testCases struct {
 		Value    string
 		ErrCount int
@@ -841,7 +949,7 @@ func TestValidateCloudFormationTemplate(t *testing.T) {
 	}
 
 	for _, tc := range invalidCases {
-		_, errors := validateCloudFormationTemplate(tc.Value, "template")
+		_, errors := validateStringIsJsonOrYaml(tc.Value, "template")
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected %q to trigger a validation error.", tc.Value)
 		}
@@ -859,7 +967,7 @@ func TestValidateCloudFormationTemplate(t *testing.T) {
 	}
 
 	for _, tc := range validCases {
-		_, errors := validateCloudFormationTemplate(tc.Value, "template")
+		_, errors := validateStringIsJsonOrYaml(tc.Value, "template")
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected %q not to trigger a validation error.", tc.Value)
 		}
@@ -1178,7 +1286,7 @@ func TestValidateEmrCustomAmiId(t *testing.T) {
 		ErrCount int
 	}{
 		{
-			Value:    "ami-dbcf88b1",
+			Value:    "ami-dbcf88b1", //lintignore:AWSAT002
 			ErrCount: 0,
 		},
 		{
@@ -1223,37 +1331,6 @@ func TestValidateDmsEndpointId(t *testing.T) {
 		_, errors := validateDmsEndpointId(s, "endpoint_id")
 		if len(errors) == 0 {
 			t.Fatalf("%q should not be a valid endpoint id: %v", s, errors)
-		}
-	}
-}
-
-func TestValidateDmsCertificateId(t *testing.T) {
-	validIds := []string{
-		"tf-test-certificate-1",
-		"tfTestEndpoint",
-	}
-
-	for _, s := range validIds {
-		_, errors := validateDmsCertificateId(s, "certificate_id")
-		if len(errors) > 0 {
-			t.Fatalf("%q should be a valid certificate id: %v", s, errors)
-		}
-	}
-
-	invalidIds := []string{
-		"tf_test_certificate_1",
-		"tf.test.certificate.1",
-		"tf test certificate 1",
-		"tf-test-certificate-1!",
-		"tf-test-certificate-1-",
-		"tf-test-certificate--1",
-		"tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1",
-	}
-
-	for _, s := range invalidIds {
-		_, errors := validateDmsEndpointId(s, "certificate_id")
-		if len(errors) == 0 {
-			t.Fatalf("%q should not be a valid certificate id: %v", s, errors)
 		}
 	}
 }
@@ -1983,6 +2060,8 @@ func TestValidateCognitoIdentityPoolName(t *testing.T) {
 		"foo bar",
 		"foo_bar",
 		"1foo 2bar 3",
+		"foo-bar_123",
+		"foo-bar",
 	}
 
 	for _, s := range validValues {
@@ -1993,11 +2072,10 @@ func TestValidateCognitoIdentityPoolName(t *testing.T) {
 	}
 
 	invalidValues := []string{
-		"1-2-3",
-		"foo!",
-		"foo-bar",
-		"foo-bar",
-		"foo1-bar2",
+		"foo*",
+		"foo:bar",
+		"foo&bar",
+		"foo1^bar2",
 	}
 
 	for _, s := range invalidValues {
@@ -2114,7 +2192,7 @@ func TestValidateCognitoIdentityProvidersProviderName(t *testing.T) {
 		"foo:bar",
 		"foo/bar",
 		"foo-bar",
-		"cognito-idp.us-east-1.amazonaws.com/us-east-1_Zr231apJu",
+		"cognito-idp.us-east-1.amazonaws.com/us-east-1_Zr231apJu", //lintignore:AWSAT003
 		strings.Repeat("W", 128),
 	}
 
@@ -2284,29 +2362,6 @@ func TestValidateWafMetricName(t *testing.T) {
 		_, errors := validateWafMetricName(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid WAF metric name", v)
-		}
-	}
-}
-
-func TestValidateIamRoleDescription(t *testing.T) {
-	validNames := []string{
-		"This 1s a D3scr!pti0n with weird content: @ #^ù£ê®æ ø]ŒîÏî~ÈÙ£÷=,ë",
-		strings.Repeat("W", 1000),
-	}
-	for _, v := range validNames {
-		_, errors := validateIamRoleDescription(v, "description")
-		if len(errors) != 0 {
-			t.Fatalf("%q should be a valid IAM Role Description: %q", v, errors)
-		}
-	}
-
-	invalidNames := []string{
-		strings.Repeat("W", 1001), // > 1000
-	}
-	for _, v := range invalidNames {
-		_, errors := validateIamRoleDescription(v, "description")
-		if len(errors) == 0 {
-			t.Fatalf("%q should be an invalid IAM Role Description", v)
 		}
 	}
 }
@@ -2546,7 +2601,7 @@ func TestValidateKmsKey(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    "arn:aws:kms:us-west-2:111122223333:key/arbitrary-uuid-1234",
+			Value:    "arn:aws:kms:us-west-2:111122223333:key/arbitrary-uuid-1234", //lintignore:AWSAT003,AWSAT005
 			ErrCount: 0,
 		},
 		{
@@ -2558,11 +2613,11 @@ func TestValidateKmsKey(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    "arn:aws:kms:us-west-2:111122223333:alias/arbitrary-key",
+			Value:    "arn:aws:kms:us-west-2:111122223333:alias/arbitrary-key", //lintignore:AWSAT003,AWSAT005
 			ErrCount: 0,
 		},
 		{
-			Value:    "arn:aws:kms:us-west-2:111122223333:alias/arbitrary/key",
+			Value:    "arn:aws:kms:us-west-2:111122223333:alias/arbitrary/key", //lintignore:AWSAT003,AWSAT005
 			ErrCount: 0,
 		},
 		{
@@ -2570,7 +2625,7 @@ func TestValidateKmsKey(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    "arn:aws:lamda:foo:bar:key/xyz",
+			Value:    "arn:aws:lamda:foo:bar:key/xyz", //lintignore:AWSAT003,AWSAT005
 			ErrCount: 1,
 		},
 	}
@@ -2657,8 +2712,8 @@ func TestValidateCognitoUserGroupName(t *testing.T) {
 
 func TestValidateCognitoUserPoolId(t *testing.T) {
 	validValues := []string{
-		"eu-west-1_Foo123",
-		"ap-southeast-2_BaRBaz987",
+		"eu-west-1_Foo123",         //lintignore:AWSAT003
+		"ap-southeast-2_BaRBaz987", //lintignore:AWSAT003
 	}
 
 	for _, s := range validValues {
@@ -2671,8 +2726,8 @@ func TestValidateCognitoUserPoolId(t *testing.T) {
 	invalidValues := []string{
 		"",
 		"foo",
-		"us-east-1-Foo123",
-		"eu-central-2_Bar+4",
+		"us-east-1-Foo123",   //lintignore:AWSAT003
+		"eu-central-2_Bar+4", //lintignore:AWSAT003
 	}
 
 	for _, s := range invalidValues {
@@ -3142,6 +3197,139 @@ func TestValidateRoute53ResolverName(t *testing.T) {
 		_, errors := validateRoute53ResolverName(tc.Value, "aws_route53_resolver_endpoint")
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AWS Route 53 Resolver Endpoint Name to not trigger a validation error for %q", tc.Value)
+		}
+	}
+}
+
+func TestCloudWatchEventCustomEventBusName(t *testing.T) {
+	cases := []struct {
+		Value   string
+		IsValid bool
+	}{
+		{
+			Value:   "",
+			IsValid: false,
+		},
+		{
+			Value:   "default",
+			IsValid: false,
+		},
+		{
+			Value:   acctest.RandStringFromCharSet(256, acctest.CharSetAlpha),
+			IsValid: true,
+		},
+		{
+			Value:   acctest.RandStringFromCharSet(257, acctest.CharSetAlpha),
+			IsValid: false,
+		},
+		{
+			Value:   "aws.partner/test/test",
+			IsValid: false,
+		},
+		{
+			Value:   "/test0._1-",
+			IsValid: false,
+		},
+		{
+			Value:   "test0._1-",
+			IsValid: true,
+		},
+	}
+	for _, tc := range cases {
+		_, errors := validateCloudWatchEventCustomEventBusName(tc.Value, "aws_cloudwatch_event_bus")
+		isValid := len(errors) == 0
+		if tc.IsValid && !isValid {
+			t.Errorf("expected %q to return valid, but did not", tc.Value)
+		} else if !tc.IsValid && isValid {
+			t.Errorf("expected %q to not return valid, but did", tc.Value)
+		}
+	}
+}
+
+func TestValidateServiceDiscoveryNamespaceName(t *testing.T) {
+	validNames := []string{
+		"ValidName",
+		"V_-.dN01e",
+		"0",
+		".",
+		"-",
+		"_",
+		strings.Repeat("x", 1024),
+	}
+	for _, v := range validNames {
+		_, errors := validateServiceDiscoveryNamespaceName(v, "name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid namespace name: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"Inval:dName",
+		"Invalid Name",
+		"*",
+		"",
+		// length > 512
+		strings.Repeat("x", 1025),
+	}
+	for _, v := range invalidNames {
+		_, errors := validateServiceDiscoveryNamespaceName(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid namespace name", v)
+		}
+	}
+}
+
+func TestValidateUTCTimestamp(t *testing.T) {
+	validT := []string{
+		"2006-01-02T15:04:05Z",
+	}
+
+	invalidT := []string{
+		"2015-03-07 23:45:00",
+		"27-03-2019 23:45:00",
+		"Mon, 02 Jan 2006 15:04:05 -0700",
+	}
+
+	for _, f := range validT {
+		_, errors := validateUTCTimestamp(f, "utc_timestamp")
+		if len(errors) > 0 {
+			t.Fatalf("expected the time %q to be in valid format, got error %q", f, errors)
+		}
+	}
+
+	for _, f := range invalidT {
+		_, errors := validateUTCTimestamp(f, "utc_timestamp")
+		if len(errors) == 0 {
+			t.Fatalf("expected the time %q to fail validation", f)
+		}
+	}
+}
+
+func TestValidateTypeStringIsDateOrInt(t *testing.T) {
+	validT := []string{
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05-07:00",
+		"1234",
+		"0",
+	}
+
+	for _, f := range validT {
+		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
+		if len(errors) > 0 {
+			t.Fatalf("expected the value %q to be either RFC 3339 or positive integer, got error %q", f, errors)
+		}
+	}
+
+	invalidT := []string{
+		"2018-03-01T00:00:00", // No time zone
+		"ABC",
+		"-789",
+	}
+
+	for _, f := range invalidT {
+		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
+		if len(errors) == 0 {
+			t.Fatalf("expected the value %q to fail validation", f)
 		}
 	}
 }

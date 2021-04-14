@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceIAMRole_basic(t *testing.T) {
@@ -14,8 +15,9 @@ func TestAccAWSDataSourceIAMRole_basic(t *testing.T) {
 	resourceName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsIAMRoleConfig(roleName),
@@ -41,8 +43,9 @@ func TestAccAWSDataSourceIAMRole_tags(t *testing.T) {
 	resourceName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsIAMRoleConfig_tags(roleName),
@@ -89,7 +92,7 @@ EOF
 }
 
 data "aws_iam_role" "test" {
-  name = "${aws_iam_role.test.name}"
+  name = aws_iam_role.test.name
 }
 `, roleName)
 }
@@ -122,7 +125,7 @@ EOF
 }
 
 data "aws_iam_role" "test" {
-  name = "${aws_iam_role.test.name}"
+  name = aws_iam_role.test.name
 }
 `, roleName)
 }

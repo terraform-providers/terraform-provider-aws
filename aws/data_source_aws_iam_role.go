@@ -5,11 +5,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsIAMRole() *schema.Resource {
@@ -20,11 +19,6 @@ func dataSourceAwsIAMRole() *schema.Resource {
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"assume_role_policy_document": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Removed:  "Use `assume_role_policy` instead",
 			},
 			"assume_role_policy": {
 				Type:     schema.TypeString,
@@ -38,11 +32,6 @@ func dataSourceAwsIAMRole() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"role_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Removed:  "Use `unique_id` instead",
-			},
 			"unique_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -50,11 +39,6 @@ func dataSourceAwsIAMRole() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"role_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `name` instead",
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -85,12 +69,12 @@ func dataSourceAwsIAMRoleRead(d *schema.ResourceData, meta interface{}) error {
 
 	output, err := iamconn.GetRole(input)
 	if err != nil {
-		return fmt.Errorf("error reading IAM Role (%s): %s", name, err)
+		return fmt.Errorf("error reading IAM Role (%s): %w", name, err)
 	}
 
 	d.Set("arn", output.Role.Arn)
 	if err := d.Set("create_date", output.Role.CreateDate.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting create_date: %s", err)
+		return fmt.Errorf("error setting create_date: %w", err)
 	}
 	d.Set("description", output.Role.Description)
 	d.Set("max_session_duration", output.Role.MaxSessionDuration)
@@ -105,10 +89,10 @@ func dataSourceAwsIAMRoleRead(d *schema.ResourceData, meta interface{}) error {
 
 	assumRolePolicy, err := url.QueryUnescape(aws.StringValue(output.Role.AssumeRolePolicyDocument))
 	if err != nil {
-		return fmt.Errorf("error parsing assume role policy document: %s", err)
+		return fmt.Errorf("error parsing assume role policy document: %w", err)
 	}
 	if err := d.Set("assume_role_policy", assumRolePolicy); err != nil {
-		return fmt.Errorf("error setting assume_role_policy: %s", err)
+		return fmt.Errorf("error setting assume_role_policy: %w", err)
 	}
 
 	d.SetId(name)

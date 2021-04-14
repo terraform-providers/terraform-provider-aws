@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEcrDataSource_ecrImage(t *testing.T) {
@@ -15,8 +16,9 @@ func TestAccAWSEcrDataSource_ecrImage(t *testing.T) {
 	resourceByDigest := "data.aws_ecr_image.by_digest"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ecr.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsEcrImageDataSourceConfig(registry, repo, tag),
@@ -43,9 +45,9 @@ data "aws_ecr_image" "by_tag" {
 }
 
 data "aws_ecr_image" "by_digest" {
-  registry_id     = "${data.aws_ecr_image.by_tag.registry_id}"
-  repository_name = "${data.aws_ecr_image.by_tag.repository_name}"
-  image_digest    = "${data.aws_ecr_image.by_tag.image_digest}"
+  registry_id     = data.aws_ecr_image.by_tag.registry_id
+  repository_name = data.aws_ecr_image.by_tag.repository_name
+  image_digest    = data.aws_ecr_image.by_tag.image_digest
 }
 `, reg, repo, tag)
 }

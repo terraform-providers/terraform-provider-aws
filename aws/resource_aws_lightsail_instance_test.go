@@ -12,9 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lightsail"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -77,7 +77,12 @@ func TestAccAWSLightsailInstance_basic(t *testing.T) {
 	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
+			testAccPreCheckAWSLightsail(t)
+		},
+		ErrorCheck:    testAccErrorCheck(t, lightsail.EndpointsID),
 		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLightsailInstanceDestroy,
@@ -89,6 +94,8 @@ func TestAccAWSLightsailInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "availability_zone"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "blueprint_id"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "bundle_id"),
+					resource.TestMatchResourceAttr("aws_lightsail_instance.lightsail_instance_test", "ipv6_address", regexp.MustCompile(`([a-f0-9]{1,4}:){7}[a-f0-9]{1,4}`)),
+					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "ipv6_addresses.#", "1"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "key_pair_name"),
 					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "tags.%", "0"),
 					resource.TestMatchResourceAttr("aws_lightsail_instance.lightsail_instance_test", "ram_size", regexp.MustCompile(`\d+(.\d+)?`)),
@@ -106,7 +113,12 @@ func TestAccAWSLightsailInstance_Name(t *testing.T) {
 	lightsailNameWithUnderscore := fmt.Sprintf("%s_123456", lightsailName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
+			testAccPreCheckAWSLightsail(t)
+		},
+		ErrorCheck:    testAccErrorCheck(t, lightsail.EndpointsID),
 		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLightsailInstanceDestroy,
@@ -148,7 +160,12 @@ func TestAccAWSLightsailInstance_Tags(t *testing.T) {
 	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
+			testAccPreCheckAWSLightsail(t)
+		},
+		ErrorCheck:    testAccErrorCheck(t, lightsail.EndpointsID),
 		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSLightsailInstanceDestroy,
@@ -161,7 +178,7 @@ func TestAccAWSLightsailInstance_Tags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "blueprint_id"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "bundle_id"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "key_pair_name"),
-					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "tags.%", "1"),
+					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "tags.%", "2"),
 				),
 			},
 			{
@@ -172,7 +189,7 @@ func TestAccAWSLightsailInstance_Tags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "blueprint_id"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "bundle_id"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "key_pair_name"),
-					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "tags.%", "2"),
+					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "tags.%", "3"),
 				),
 			},
 		},
@@ -201,7 +218,12 @@ func TestAccAWSLightsailInstance_disapear(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
+			testAccPreCheckAWSLightsail(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -247,7 +269,6 @@ func testAccCheckAWSLightsailInstanceExists(n string, res *lightsail.Instance) r
 }
 
 func testAccCheckAWSLightsailInstanceDestroy(s *terraform.State) error {
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lightsail_instance" {
 			continue
@@ -306,7 +327,7 @@ data "aws_availability_zones" "available" {
 
 resource "aws_lightsail_instance" "lightsail_instance_test" {
   name              = "%s"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   blueprint_id      = "amazon_linux"
   bundle_id         = "nano_1_0"
 }
@@ -326,11 +347,13 @@ data "aws_availability_zones" "available" {
 
 resource "aws_lightsail_instance" "lightsail_instance_test" {
   name              = "%s"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   blueprint_id      = "amazon_linux"
   bundle_id         = "nano_1_0"
+
   tags = {
-    Name = "tf-test"
+    Name       = "tf-test"
+    KeyOnlyTag = ""
   }
 }
 `, lightsailName)
@@ -349,12 +372,14 @@ data "aws_availability_zones" "available" {
 
 resource "aws_lightsail_instance" "lightsail_instance_test" {
   name              = "%s"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   blueprint_id      = "amazon_linux"
   bundle_id         = "nano_1_0"
+
   tags = {
-    Name = "tf-test",
-    ExtraName = "tf-test"
+    Name       = "tf-test",
+    KeyOnlyTag = ""
+    ExtraName  = "tf-test"
   }
 }
 `, lightsailName)

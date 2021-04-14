@@ -2,15 +2,93 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/waf/lister"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_waf_xss_match_set", &resource.Sweeper{
+		Name: "aws_waf_xss_match_set",
+		F:    testSweepWafXssMatchSet,
+		Dependencies: []string{
+			"aws_waf_rate_based_rule",
+			"aws_waf_rule",
+			"aws_waf_rule_group",
+		},
+	})
+}
+
+func testSweepWafXssMatchSet(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).wafconn
+
+	var sweeperErrs *multierror.Error
+
+	input := &waf.ListXssMatchSetsInput{}
+
+	err = lister.ListXssMatchSetsPages(conn, input, func(page *waf.ListXssMatchSetsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, xssMatchSet := range page.XssMatchSets {
+			id := aws.StringValue(xssMatchSet.XssMatchSetId)
+
+			r := resourceAwsWafXssMatchSet()
+			d := r.Data(nil)
+			d.SetId(id)
+
+			// Need to Read first to fill in xss_match_tuples attribute
+			err := r.Read(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error reading WAF XSS Match Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			// In case it was already deleted
+			if d.Id() == "" {
+				continue
+			}
+
+			err = r.Delete(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting WAF XSS Match Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping WAF XSS Match Set sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAF XSS Match Sets: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSWafXssMatchSet_basic(t *testing.T) {
 	var v waf.XssMatchSet
@@ -18,10 +96,10 @@ func TestAccAWSWafXssMatchSet_basic(t *testing.T) {
 	resourceName := "aws_waf_xss_match_set.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafXssMatchSetDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafXssMatchSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafXssMatchSetConfig(rName),
@@ -30,14 +108,18 @@ func TestAccAWSWafXssMatchSet_basic(t *testing.T) {
 					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "waf", regexp.MustCompile(`xssmatchset/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.field_to_match.0.data", ""),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.field_to_match.0.type", "URI"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.text_transformation", "NONE"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.field_to_match.0.data", ""),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.field_to_match.0.type", "QUERY_STRING"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.text_transformation", "NONE"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "xss_match_tuples.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "",
+						"field_to_match.0.type": "URI",
+						"text_transformation":   "NONE",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "xss_match_tuples.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "",
+						"field_to_match.0.type": "QUERY_STRING",
+						"text_transformation":   "NONE",
+					}),
 				),
 			},
 			{
@@ -57,6 +139,7 @@ func TestAccAWSWafXssMatchSet_changeNameForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafXssMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -92,6 +175,7 @@ func TestAccAWSWafXssMatchSet_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafXssMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -99,7 +183,7 @@ func TestAccAWSWafXssMatchSet_disappears(t *testing.T) {
 				Config: testAccAWSWafXssMatchSetConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafXssMatchSetExists(resourceName, &v),
-					testAccCheckAWSWafXssMatchSetDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsWafXssMatchSet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -113,10 +197,10 @@ func TestAccAWSWafXssMatchSet_changeTuples(t *testing.T) {
 	resourceName := "aws_waf_xss_match_set.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafXssMatchSetDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafXssMatchSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafXssMatchSetConfig(setName),
@@ -124,14 +208,18 @@ func TestAccAWSWafXssMatchSet_changeTuples(t *testing.T) {
 					testAccCheckAWSWafXssMatchSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", setName),
 					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.field_to_match.0.data", ""),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.field_to_match.0.type", "QUERY_STRING"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.599421078.text_transformation", "NONE"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.field_to_match.0.data", ""),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.field_to_match.0.type", "URI"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.41660541.text_transformation", "NONE"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "xss_match_tuples.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "",
+						"field_to_match.0.type": "QUERY_STRING",
+						"text_transformation":   "NONE",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "xss_match_tuples.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "",
+						"field_to_match.0.type": "URI",
+						"text_transformation":   "NONE",
+					}),
 				),
 			},
 			{
@@ -140,14 +228,18 @@ func TestAccAWSWafXssMatchSet_changeTuples(t *testing.T) {
 					testAccCheckAWSWafXssMatchSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", setName),
 					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.42378128.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.42378128.field_to_match.0.data", "GET"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.42378128.field_to_match.0.type", "METHOD"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.42378128.text_transformation", "HTML_ENTITY_DECODE"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.3815294338.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.3815294338.field_to_match.0.data", ""),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.3815294338.field_to_match.0.type", "BODY"),
-					resource.TestCheckResourceAttr(resourceName, "xss_match_tuples.3815294338.text_transformation", "CMD_LINE"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "xss_match_tuples.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "",
+						"field_to_match.0.type": "METHOD",
+						"text_transformation":   "HTML_ENTITY_DECODE",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "xss_match_tuples.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "",
+						"field_to_match.0.type": "BODY",
+						"text_transformation":   "CMD_LINE",
+					}),
 				),
 			},
 			{
@@ -166,6 +258,7 @@ func TestAccAWSWafXssMatchSet_noTuples(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafXssMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -184,47 +277,6 @@ func TestAccAWSWafXssMatchSet_noTuples(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckAWSWafXssMatchSetDisappears(v *waf.XssMatchSet) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).wafconn
-
-		wr := newWafRetryer(conn)
-		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
-			req := &waf.UpdateXssMatchSetInput{
-				ChangeToken:   token,
-				XssMatchSetId: v.XssMatchSetId,
-			}
-
-			for _, xssMatchTuple := range v.XssMatchTuples {
-				xssMatchTupleUpdate := &waf.XssMatchSetUpdate{
-					Action: aws.String(waf.ChangeActionDelete),
-					XssMatchTuple: &waf.XssMatchTuple{
-						FieldToMatch:       xssMatchTuple.FieldToMatch,
-						TextTransformation: xssMatchTuple.TextTransformation,
-					},
-				}
-				req.Updates = append(req.Updates, xssMatchTupleUpdate)
-			}
-			return conn.UpdateXssMatchSet(req)
-		})
-		if err != nil {
-			return fmt.Errorf("Error updating XssMatchSet: %s", err)
-		}
-
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
-			opts := &waf.DeleteXssMatchSetInput{
-				ChangeToken:   token,
-				XssMatchSetId: v.XssMatchSetId,
-			}
-			return conn.DeleteXssMatchSet(opts)
-		})
-		if err != nil {
-			return fmt.Errorf("Error deleting WAF XSS Match Set: %s", err)
-		}
-		return nil
-	}
 }
 
 func testAccCheckAWSWafXssMatchSetExists(n string, v *waf.XssMatchSet) resource.TestCheckFunc {
@@ -351,7 +403,6 @@ resource "aws_waf_xss_match_set" "test" {
 
     field_to_match {
       type = "METHOD"
-      data = "GET"
     }
   }
 }

@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/aws_elb_hosted_zone_id: Correct values for `cn-north-1` and `cn-northwest-1` regions
+```

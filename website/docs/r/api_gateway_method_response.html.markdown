@@ -12,36 +12,36 @@ Provides an HTTP Method Response for an API Gateway Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_api_gateway_rest_api" "MyDemoAPI" {
   name        = "MyDemoAPI"
   description = "This is my API for demonstration purposes"
 }
 
 resource "aws_api_gateway_resource" "MyDemoResource" {
-  rest_api_id = "${aws_api_gateway_rest_api.MyDemoAPI.id}"
-  parent_id   = "${aws_api_gateway_rest_api.MyDemoAPI.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.MyDemoAPI.id
+  parent_id   = aws_api_gateway_rest_api.MyDemoAPI.root_resource_id
   path_part   = "mydemoresource"
 }
 
 resource "aws_api_gateway_method" "MyDemoMethod" {
-  rest_api_id   = "${aws_api_gateway_rest_api.MyDemoAPI.id}"
-  resource_id   = "${aws_api_gateway_resource.MyDemoResource.id}"
+  rest_api_id   = aws_api_gateway_rest_api.MyDemoAPI.id
+  resource_id   = aws_api_gateway_resource.MyDemoResource.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "MyDemoIntegration" {
-  rest_api_id = "${aws_api_gateway_rest_api.MyDemoAPI.id}"
-  resource_id = "${aws_api_gateway_resource.MyDemoResource.id}"
-  http_method = "${aws_api_gateway_method.MyDemoMethod.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.MyDemoAPI.id
+  resource_id = aws_api_gateway_resource.MyDemoResource.id
+  http_method = aws_api_gateway_method.MyDemoMethod.http_method
   type        = "MOCK"
 }
 
 resource "aws_api_gateway_method_response" "response_200" {
-  rest_api_id = "${aws_api_gateway_rest_api.MyDemoAPI.id}"
-  resource_id = "${aws_api_gateway_resource.MyDemoResource.id}"
-  http_method = "${aws_api_gateway_method.MyDemoMethod.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.MyDemoAPI.id
+  resource_id = aws_api_gateway_resource.MyDemoResource.id
+  http_method = aws_api_gateway_method.MyDemoMethod.http_method
   status_code = "200"
 }
 ```
@@ -58,6 +58,10 @@ The following arguments are supported:
 * `response_parameters` - (Optional) A map of response parameters that can be sent to the caller.
    For example: `response_parameters = { "method.response.header.X-Some-Header" = true }`
    would define that the header `X-Some-Header` can be provided on the response.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

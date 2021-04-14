@@ -14,7 +14,7 @@ Get information on an EC2 Transit Gateway VPC Attachment.
 
 ### By Filter
 
-```hcl
+```terraform
 data "aws_ec2_transit_gateway_vpc_attachment" "example" {
   filter {
     name   = "vpc-id"
@@ -25,7 +25,7 @@ data "aws_ec2_transit_gateway_vpc_attachment" "example" {
 
 ### By Identifier
 
-```hcl
+```terraform
 data "aws_ec2_transit_gateway_vpc_attachment" "example" {
   id = "tgw-attach-12345678"
 }
@@ -47,6 +47,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `appliance_mode_support` - Whether Appliance Mode support is enabled.
 * `dns_support` - Whether DNS support is enabled.
 * `id` - EC2 Transit Gateway VPC Attachment identifier
 * `ipv6_support` - Whether IPv6 support is enabled.

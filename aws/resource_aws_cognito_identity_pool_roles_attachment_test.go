@@ -8,18 +8,19 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_basic(t *testing.T) {
 	resourceName := "aws_cognito_identity_pool_roles_attachment.test"
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	updatedName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	name := acctest.RandString(10)
+	updatedName := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -50,10 +51,11 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_basic(t *testing.T) {
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappings(t *testing.T) {
 	resourceName := "aws_cognito_identity_pool_roles_attachment.test"
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	name := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -104,10 +106,11 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappings(t *testing.T) {
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_disappears(t *testing.T) {
 	resourceName := "aws_cognito_identity_pool_roles_attachment.test"
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	name := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -124,10 +127,11 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_disappears(t *testing.T) {
 }
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappingsWithAmbiguousRoleResolutionError(t *testing.T) {
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	name := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -140,10 +144,11 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappingsWithAmbiguousRoleR
 }
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappingsWithRulesTypeError(t *testing.T) {
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	name := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -156,10 +161,11 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappingsWithRulesTypeError
 }
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappingsWithTokenTypeError(t *testing.T) {
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	name := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -256,7 +262,7 @@ EOF
 
 resource "aws_iam_role_policy" "unauthenticated" {
   name = "unauthenticated_policy_%[1]s"
-  role = "${aws_iam_role.unauthenticated.id}"
+  role = aws_iam_role.unauthenticated.id
 
   policy = <<EOF
 {
@@ -307,7 +313,7 @@ EOF
 
 resource "aws_iam_role_policy" "authenticated" {
   name = "authenticated_policy_%[1]s"
-  role = "${aws_iam_role.authenticated.id}"
+  role = aws_iam_role.authenticated.id
 
   policy = <<EOF
 {
@@ -334,10 +340,10 @@ EOF
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
 resource "aws_cognito_identity_pool_roles_attachment" "test" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 `)
@@ -346,7 +352,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappings(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
 resource "aws_cognito_identity_pool_roles_attachment" "test" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   role_mapping {
     identity_provider         = "graph.facebook.com"
@@ -356,13 +362,13 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
     mapping_rule {
       claim      = "isAdmin"
       match_type = "Equals"
-      role_arn   = "${aws_iam_role.authenticated.arn}"
+      role_arn   = aws_iam_role.authenticated.arn
       value      = "paid"
     }
   }
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 `)
@@ -371,30 +377,30 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsUpdated(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
 resource "aws_cognito_identity_pool_roles_attachment" "test" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   role_mapping {
     identity_provider         = "graph.facebook.com"
     ambiguous_role_resolution = "AuthenticatedRole"
-    type                    = "Rules"
+    type                      = "Rules"
 
     mapping_rule {
       claim      = "isPaid"
       match_type = "Equals"
-      role_arn   = "${aws_iam_role.authenticated.arn}"
+      role_arn   = aws_iam_role.authenticated.arn
       value      = "unpaid"
     }
 
     mapping_rule {
       claim      = "isFoo"
       match_type = "Equals"
-      role_arn   = "${aws_iam_role.authenticated.arn}"
+      role_arn   = aws_iam_role.authenticated.arn
       value      = "bar"
     }
   }
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 `)
@@ -403,7 +409,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsWithAmbiguousRoleResolutionError(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
 resource "aws_cognito_identity_pool_roles_attachment" "test" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   role_mapping {
     identity_provider = "graph.facebook.com"
@@ -412,13 +418,13 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
     mapping_rule {
       claim      = "isAdmin"
       match_type = "Equals"
-      role_arn   = "${aws_iam_role.authenticated.arn}"
+      role_arn   = aws_iam_role.authenticated.arn
       value      = "paid"
     }
   }
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 `)
@@ -427,7 +433,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsWithRulesTypeError(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
 resource "aws_cognito_identity_pool_roles_attachment" "test" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   role_mapping {
     identity_provider         = "graph.facebook.com"
@@ -436,7 +442,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
   }
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 `)
@@ -445,7 +451,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsWithTokenTypeError(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
 resource "aws_cognito_identity_pool_roles_attachment" "test" {
-  identity_pool_id = "${aws_cognito_identity_pool.main.id}"
+  identity_pool_id = aws_cognito_identity_pool.main.id
 
   role_mapping {
     identity_provider         = "graph.facebook.com"
@@ -455,13 +461,13 @@ resource "aws_cognito_identity_pool_roles_attachment" "test" {
     mapping_rule {
       claim      = "isAdmin"
       match_type = "Equals"
-      role_arn   = "${aws_iam_role.authenticated.arn}"
+      role_arn   = aws_iam_role.authenticated.arn
       value      = "paid"
     }
   }
 
   roles = {
-    "authenticated" = "${aws_iam_role.authenticated.arn}"
+    "authenticated" = aws_iam_role.authenticated.arn
   }
 }
 `)

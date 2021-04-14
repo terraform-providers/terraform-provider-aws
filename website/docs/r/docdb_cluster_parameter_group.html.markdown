@@ -12,7 +12,7 @@ Manages a DocumentDB Cluster Parameter Group
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_docdb_cluster_parameter_group" "example" {
   family      = "docdb3.6"
   name        = "example"
@@ -33,7 +33,7 @@ The following arguments are supported:
 * `name_prefix` - (Optional, Forces new resource) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
 * `family` - (Required, Forces new resource) The family of the documentDB cluster parameter group.
 * `description` - (Optional, Forces new resource) The description of the documentDB cluster parameter group. Defaults to "Managed by Terraform".
-* `parameter` - (Optional) A list of documentDB parameters to apply.
+* `parameter` - (Optional) A list of documentDB parameters to apply. Setting parameters to system default values may show a difference on imported resources.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
 Parameter blocks support the following:

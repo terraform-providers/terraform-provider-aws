@@ -6,7 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsBatchComputeEnvironment() *schema.Resource {
@@ -34,6 +35,8 @@ func dataSourceAwsBatchComputeEnvironment() *schema.Resource {
 				Computed: true,
 			},
 
+			"tags": tagsSchemaComputed(),
+
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -59,6 +62,7 @@ func dataSourceAwsBatchComputeEnvironment() *schema.Resource {
 
 func dataSourceAwsBatchComputeEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &batch.DescribeComputeEnvironmentsInput{
 		ComputeEnvironments: []*string{aws.String(d.Get("compute_environment_name").(string))},
@@ -88,5 +92,10 @@ func dataSourceAwsBatchComputeEnvironmentRead(d *schema.ResourceData, meta inter
 	d.Set("status", computeEnvironment.Status)
 	d.Set("status_reason", computeEnvironment.StatusReason)
 	d.Set("state", computeEnvironment.State)
+
+	if err := d.Set("tags", keyvaluetags.BatchKeyValueTags(computeEnvironment.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
 	return nil
 }

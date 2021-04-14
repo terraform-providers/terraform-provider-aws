@@ -12,7 +12,7 @@ Provides details about an EC2 Local Gateway Virtual Interface Group. More inform
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_local_gateway_virtual_interface_group" "example" {
   local_gateway_id = data.aws_ec2_local_gateway.example.id
 }

@@ -7,10 +7,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsApiGatewayIntegration() *schema.Resource {
@@ -114,12 +113,6 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 				Optional: true,
 			},
 
-			"request_parameters_in_json": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `request_parameters` argument instead",
-			},
-
 			"content_handling": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -157,6 +150,21 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 				ValidateFunc: validation.IntBetween(50, 29000),
 				Default:      29000,
 			},
+
+			"tls_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 0,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"insecure_skip_verification": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -166,89 +174,69 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 
 	log.Print("[DEBUG] Creating API Gateway Integration")
 
-	connectionType := aws.String(d.Get("connection_type").(string))
-	var connectionId *string
-	if *connectionType == apigateway.ConnectionTypeVpcLink {
-		if _, ok := d.GetOk("connection_id"); !ok {
-			return fmt.Errorf("connection_id required when connection_type set to VPC_LINK")
-		}
-		connectionId = aws.String(d.Get("connection_id").(string))
+	input := &apigateway.PutIntegrationInput{
+		HttpMethod: aws.String(d.Get("http_method").(string)),
+		ResourceId: aws.String(d.Get("resource_id").(string)),
+		RestApiId:  aws.String(d.Get("rest_api_id").(string)),
+		Type:       aws.String(d.Get("type").(string)),
 	}
 
-	var integrationHttpMethod *string
-	if v, ok := d.GetOk("integration_http_method"); ok {
-		integrationHttpMethod = aws.String(v.(string))
+	if v, ok := d.GetOk("cache_key_parameters"); ok && v.(*schema.Set).Len() > 0 {
+		input.CacheKeyParameters = expandStringSet(v.(*schema.Set))
 	}
 
-	var uri *string
-	if v, ok := d.GetOk("uri"); ok {
-		uri = aws.String(v.(string))
-	}
-
-	templates := make(map[string]string)
-	for k, v := range d.Get("request_templates").(map[string]interface{}) {
-		templates[k] = v.(string)
-	}
-
-	parameters := make(map[string]string)
-	if kv, ok := d.GetOk("request_parameters"); ok {
-		for k, v := range kv.(map[string]interface{}) {
-			parameters[k] = v.(string)
-		}
-	}
-
-	var passthroughBehavior *string
-	if v, ok := d.GetOk("passthrough_behavior"); ok {
-		passthroughBehavior = aws.String(v.(string))
-	}
-
-	var credentials *string
-	if val, ok := d.GetOk("credentials"); ok {
-		credentials = aws.String(val.(string))
-	}
-
-	var contentHandling *string
-	if val, ok := d.GetOk("content_handling"); ok {
-		contentHandling = aws.String(val.(string))
-	}
-
-	var cacheKeyParameters []*string
-	if v, ok := d.GetOk("cache_key_parameters"); ok {
-		cacheKeyParameters = expandStringList(v.(*schema.Set).List())
-	}
-
-	var cacheNamespace *string
-	if cacheKeyParameters != nil {
-		// Use resource_id unless user provides a custom name
-		cacheNamespace = aws.String(d.Get("resource_id").(string))
-	}
 	if v, ok := d.GetOk("cache_namespace"); ok {
-		cacheNamespace = aws.String(v.(string))
+		input.CacheNamespace = aws.String(v.(string))
+	} else if input.CacheKeyParameters != nil {
+		input.CacheNamespace = aws.String(d.Get("resource_id").(string))
 	}
 
-	var timeoutInMillis *int64
+	if v, ok := d.GetOk("connection_id"); ok {
+		input.ConnectionId = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("connection_type"); ok {
+		input.ConnectionType = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("content_handling"); ok {
+		input.ContentHandling = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("credentials"); ok {
+		input.Credentials = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("integration_http_method"); ok {
+		input.IntegrationHttpMethod = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("passthrough_behavior"); ok {
+		input.PassthroughBehavior = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("request_parameters"); ok && len(v.(map[string]interface{})) > 0 {
+		input.RequestParameters = stringMapToPointers(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("request_templates"); ok && len(v.(map[string]interface{})) > 0 {
+		input.RequestTemplates = stringMapToPointers(v.(map[string]interface{}))
+	}
+
 	if v, ok := d.GetOk("timeout_milliseconds"); ok {
-		timeoutInMillis = aws.Int64(int64(v.(int)))
+		input.TimeoutInMillis = aws.Int64(int64(v.(int)))
 	}
 
-	_, err := conn.PutIntegration(&apigateway.PutIntegrationInput{
-		HttpMethod:            aws.String(d.Get("http_method").(string)),
-		ResourceId:            aws.String(d.Get("resource_id").(string)),
-		RestApiId:             aws.String(d.Get("rest_api_id").(string)),
-		Type:                  aws.String(d.Get("type").(string)),
-		IntegrationHttpMethod: integrationHttpMethod,
-		Uri:                   uri,
-		RequestParameters:     aws.StringMap(parameters),
-		RequestTemplates:      aws.StringMap(templates),
-		Credentials:           credentials,
-		CacheNamespace:        cacheNamespace,
-		CacheKeyParameters:    cacheKeyParameters,
-		PassthroughBehavior:   passthroughBehavior,
-		ContentHandling:       contentHandling,
-		ConnectionType:        connectionType,
-		ConnectionId:          connectionId,
-		TimeoutInMillis:       timeoutInMillis,
-	})
+	if v, ok := d.GetOk("tls_config"); ok && len(v.([]interface{})) > 0 {
+		input.TlsConfig = expandApiGatewayTlsConfig(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("uri"); ok {
+		input.Uri = aws.String(v.(string))
+	}
+
+	_, err := conn.PutIntegration(input)
+
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Integration: %s", err)
 	}
@@ -268,7 +256,7 @@ func resourceAwsApiGatewayIntegrationRead(d *schema.ResourceData, meta interface
 		RestApiId:  aws.String(d.Get("rest_api_id").(string)),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
+		if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] API Gateway Integration (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -308,6 +296,10 @@ func resourceAwsApiGatewayIntegrationRead(d *schema.ResourceData, meta interface
 	d.Set("type", integration.Type)
 	d.Set("uri", integration.Uri)
 
+	if err := d.Set("tls_config", flattenApiGatewayTlsConfig(integration.TlsConfig)); err != nil {
+		return fmt.Errorf("error setting tls_config: %s", err)
+	}
+
 	return nil
 }
 
@@ -330,7 +322,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 		for k := range os {
 			if _, ok := ns[k]; !ok {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:   aws.String("remove"),
+					Op:   aws.String(apigateway.OpRemove),
 					Path: aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
 				})
 			}
@@ -340,7 +332,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 			// Handle replaces
 			if _, ok := os[k]; ok {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:    aws.String("replace"),
+					Op:    aws.String(apigateway.OpReplace),
 					Path:  aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
 					Value: aws.String(v.(string)),
 				})
@@ -349,7 +341,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 			// Handle additions
 			if _, ok := os[k]; !ok {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:    aws.String("add"),
+					Op:    aws.String(apigateway.OpAdd),
 					Path:  aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
 					Value: aws.String(v.(string)),
 				})
@@ -368,7 +360,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 		for k := range os {
 			if _, ok := ns[k]; !ok {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:   aws.String("remove"),
+					Op:   aws.String(apigateway.OpRemove),
 					Path: aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
 				})
 			}
@@ -378,7 +370,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 			// Handle replaces
 			if _, ok := os[k]; ok {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:    aws.String("replace"),
+					Op:    aws.String(apigateway.OpReplace),
 					Path:  aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
 					Value: aws.String(v.(string)),
 				})
@@ -387,7 +379,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 			// Handle additions
 			if _, ok := os[k]; !ok {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:    aws.String("add"),
+					Op:    aws.String(apigateway.OpAdd),
 					Path:  aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
 					Value: aws.String(v.(string)),
 				})
@@ -404,7 +396,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 		removalList := os.Difference(ns)
 		for _, v := range removalList.List() {
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:    aws.String("remove"),
+				Op:    aws.String(apigateway.OpRemove),
 				Path:  aws.String(fmt.Sprintf("/cacheKeyParameters/%s", v.(string))),
 				Value: aws.String(""),
 			})
@@ -413,7 +405,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 		additionList := ns.Difference(os)
 		for _, v := range additionList.List() {
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:    aws.String("add"),
+				Op:    aws.String(apigateway.OpAdd),
 				Path:  aws.String(fmt.Sprintf("/cacheKeyParameters/%s", v.(string))),
 				Value: aws.String(""),
 			})
@@ -422,7 +414,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("cache_namespace") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/cacheNamespace"),
 			Value: aws.String(d.Get("cache_namespace").(string)),
 		})
@@ -433,7 +425,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 	// resources, it means that the uri can always be updated
 	if d.HasChange("uri") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/uri"),
 			Value: aws.String(d.Get("uri").(string)),
 		})
@@ -441,7 +433,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("content_handling") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/contentHandling"),
 			Value: aws.String(d.Get("content_handling").(string)),
 		})
@@ -449,7 +441,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("connection_type") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/connectionType"),
 			Value: aws.String(d.Get("connection_type").(string)),
 		})
@@ -457,7 +449,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("connection_id") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/connectionId"),
 			Value: aws.String(d.Get("connection_id").(string)),
 		})
@@ -465,10 +457,22 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("timeout_milliseconds") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/timeoutInMillis"),
 			Value: aws.String(strconv.Itoa(d.Get("timeout_milliseconds").(int))),
 		})
+	}
+
+	if d.HasChange("tls_config") {
+		if v, ok := d.GetOk("tls_config"); ok && len(v.([]interface{})) > 0 {
+			m := v.([]interface{})[0].(map[string]interface{})
+
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/tlsConfig/insecureSkipVerification"),
+				Value: aws.String(strconv.FormatBool(m["insecure_skip_verification"].(bool))),
+			})
+		}
 	}
 
 	params := &apigateway.UpdateIntegrationInput{
@@ -507,4 +511,28 @@ func resourceAwsApiGatewayIntegrationDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func expandApiGatewayTlsConfig(vConfig []interface{}) *apigateway.TlsConfig {
+	config := &apigateway.TlsConfig{}
+
+	if len(vConfig) == 0 || vConfig[0] == nil {
+		return config
+	}
+	mConfig := vConfig[0].(map[string]interface{})
+
+	if insecureSkipVerification, ok := mConfig["insecure_skip_verification"].(bool); ok {
+		config.InsecureSkipVerification = aws.Bool(insecureSkipVerification)
+	}
+	return config
+}
+
+func flattenApiGatewayTlsConfig(config *apigateway.TlsConfig) []interface{} {
+	if config == nil {
+		return nil
+	}
+
+	return []interface{}{map[string]interface{}{
+		"insecure_skip_verification": aws.BoolValue(config.InsecureSkipVerification),
+	}}
 }

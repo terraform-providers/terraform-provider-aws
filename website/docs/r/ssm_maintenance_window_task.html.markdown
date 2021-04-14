@@ -14,19 +14,18 @@ Provides an SSM Maintenance Window Task resource
 
 ### Automation Tasks
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
-  max_concurrency  = 2
-  max_errors       = 1
-  priority         = 1
-  service_role_arn = "${aws_iam_role.example.arn}"
-  task_arn         = "AWS-RestartEC2Instance"
-  task_type        = "AUTOMATION"
-  window_id        = "${aws_ssm_maintenance_window.example.id}"
+  max_concurrency = 2
+  max_errors      = 1
+  priority        = 1
+  task_arn        = "AWS-RestartEC2Instance"
+  task_type       = "AUTOMATION"
+  window_id       = aws_ssm_maintenance_window.example.id
 
   targets {
     key    = "InstanceIds"
-    values = ["${aws_instance.example.id}"]
+    values = [aws_instance.example.id]
   }
 
   task_invocation_parameters {
@@ -35,7 +34,7 @@ resource "aws_ssm_maintenance_window_task" "example" {
 
       parameter {
         name   = "InstanceId"
-        values = ["${aws_instance.example.id}"]
+        values = [aws_instance.example.id]
       }
     }
   }
@@ -44,24 +43,23 @@ resource "aws_ssm_maintenance_window_task" "example" {
 
 ### Lambda Tasks
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
-  max_concurrency  = 2
-  max_errors       = 1
-  priority         = 1
-  service_role_arn = "${aws_iam_role.example.arn}"
-  task_arn         = "${aws_lambda_function.example.arn}"
-  task_type        = "LAMBDA"
-  window_id        = "${aws_ssm_maintenance_window.example.id}"
+  max_concurrency = 2
+  max_errors      = 1
+  priority        = 1
+  task_arn        = aws_lambda_function.example.arn
+  task_type       = "LAMBDA"
+  window_id       = aws_ssm_maintenance_window.example.id
 
   targets {
     key    = "InstanceIds"
-    values = ["${aws_instance.example.id}"]
+    values = [aws_instance.example.id]
   }
 
   task_invocation_parameters {
     lambda_parameters {
-      client_context = "${base64encode("{\"key1\":\"value1\"}")}"
+      client_context = base64encode("{\"key1\":\"value1\"}")
       payload        = "{\"key1\":\"value1\"}"
     }
   }
@@ -70,30 +68,29 @@ resource "aws_ssm_maintenance_window_task" "example" {
 
 ### Run Command Tasks
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
-  max_concurrency  = 2
-  max_errors       = 1
-  priority         = 1
-  service_role_arn = "${aws_iam_role.example.arn}"
-  task_arn         = "AWS-RunShellScript"
-  task_type        = "RUN_COMMAND"
-  window_id        = "${aws_ssm_maintenance_window.example.id}"
+  max_concurrency = 2
+  max_errors      = 1
+  priority        = 1
+  task_arn        = "AWS-RunShellScript"
+  task_type       = "RUN_COMMAND"
+  window_id       = aws_ssm_maintenance_window.example.id
 
   targets {
     key    = "InstanceIds"
-    values = ["${aws_instance.example.id}"]
+    values = [aws_instance.example.id]
   }
 
   task_invocation_parameters {
     run_command_parameters {
-      output_s3_bucket     = "${aws_s3_bucket.example.bucket}"
+      output_s3_bucket     = aws_s3_bucket.example.bucket
       output_s3_key_prefix = "output"
-      service_role_arn     = "${aws_iam_role.example.arn}"
+      service_role_arn     = aws_iam_role.example.arn
       timeout_seconds      = 600
 
       notification_config {
-        notification_arn    = "${aws_sns_topic.example.arn}"
+        notification_arn    = aws_sns_topic.example.arn
         notification_events = ["All"]
         notification_type   = "Command"
       }
@@ -109,19 +106,18 @@ resource "aws_ssm_maintenance_window_task" "example" {
 
 ### Step Function Tasks
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
-  max_concurrency  = 2
-  max_errors       = 1
-  priority         = 1
-  service_role_arn = "${aws_iam_role.example.arn}"
-  task_arn         = "${aws_sfn_activity.example.id}"
-  task_type        = "STEP_FUNCTIONS"
-  window_id        = "${aws_ssm_maintenance_window.example.id}"
+  max_concurrency = 2
+  max_errors      = 1
+  priority        = 1
+  task_arn        = aws_sfn_activity.example.id
+  task_type       = "STEP_FUNCTIONS"
+  window_id       = aws_ssm_maintenance_window.example.id
 
   targets {
     key    = "InstanceIds"
-    values = ["${aws_instance.example.id}"]
+    values = [aws_instance.example.id]
   }
 
   task_invocation_parameters {
@@ -140,27 +136,14 @@ The following arguments are supported:
 * `window_id` - (Required) The Id of the maintenance window to register the task with.
 * `max_concurrency` - (Required) The maximum number of targets this task can be run for in parallel.
 * `max_errors` - (Required) The maximum number of errors allowed before this task stops being scheduled.
-* `task_type` - (Required) The type of task being registered. The only allowed value is `RUN_COMMAND`.
+* `task_type` - (Required) The type of task being registered. Valid values: `AUTOMATION`, `LAMBDA`, `RUN_COMMAND` or `STEP_FUNCTIONS`.
 * `task_arn` - (Required) The ARN of the task to execute.
-* `service_role_arn` - (Required) The role that should be assumed when executing the task.
+* `service_role_arn` - (Optional) The role that should be assumed when executing the task. If a role is not provided, Systems Manager uses your account's service-linked role. If no service-linked role for Systems Manager exists in your account, it is created for you.
 * `name` - (Optional) The name of the maintenance window task.
 * `description` - (Optional) The description of the maintenance window task.
 * `targets` - (Required) The targets (either instances or window target ids). Instances are specified using Key=InstanceIds,Values=instanceid1,instanceid2. Window target ids are specified using Key=WindowTargetIds,Values=window target id1, window target id2.
 * `priority` - (Optional) The priority of the task in the Maintenance Window, the lower the number the higher the priority. Tasks in a Maintenance Window are scheduled in priority order with tasks that have the same priority scheduled in parallel.
-* `logging_info` - (Optional, **Deprecated**) A structure containing information about an Amazon S3 bucket to write instance-level logs to. Use `task_invocation_parameters` configuration block `run_command_parameters` configuration block `output_s3_*` arguments instead. Conflicts with `task_invocation_parameters`. Documented below.
-* `task_parameters` - (Optional, **Deprecated**) A structure containing information about parameters required by the particular `task_arn`. Use `parameter` configuration blocks under the `task_invocation_parameters` configuration block instead. Conflicts with `task_invocation_parameters`. Documented below.
-* `task_invocation_parameters` - (Optional) The parameters for task execution. This argument is conflict with `task_parameters` and `logging_info`.
-
-`logging_info` supports the following:
-
-* `s3_bucket_name` - (Required)
-* `s3_region` - (Required)
-* `s3_bucket_prefix` - (Optional)
-
-`task_parameters` supports the following:
-
-* `name` - (Required)
-* `values` - (Required)
+* `task_invocation_parameters` - (Optional) Configuration block with parameters for task execution.
 
 `task_invocation_parameters` supports the following:
 
@@ -191,6 +174,7 @@ The following arguments are supported:
 * `parameter` - (Optional) The parameters for the RUN_COMMAND task execution. Documented below.
 * `service_role_arn` - (Optional) The IAM service role to assume during task execution.
 * `timeout_seconds` - (Optional) If this time is reached and the command has not already started executing, it doesn't run.
+* `cloudwatch_config` - (Optional) Configuration options for sending command output to CloudWatch Logs. Documented below.
 
 `step_functions_parameters` supports the following:
 
@@ -202,6 +186,11 @@ The following arguments are supported:
 * `notification_arn` - (Optional) An Amazon Resource Name (ARN) for a Simple Notification Service (SNS) topic. Run Command pushes notifications about command status changes to this topic.
 * `notification_events` - (Optional) The different events for which you can receive notifications. Valid values: `All`, `InProgress`, `Success`, `TimedOut`, `Cancelled`, and `Failed`
 * `notification_type` - (Optional) When specified with `Command`, receive notification when the status of a command changes. When specified with `Invocation`, for commands sent to multiple instances, receive notification on a per-instance basis when the status of a command changes. Valid values: `Command` and `Invocation`
+
+`cloudwatch_config` supports the following:
+
+* `cloudwatch_log_group_name` - (Optional) The name of the CloudWatch log group where you want to send command output. If you don't specify a group name, Systems Manager automatically creates a log group for you. The log group uses the following naming format: aws/ssm/SystemsManagerDocumentName.
+* `cloudwatch_output_enabled` - (Optional) Enables Systems Manager to send command output to CloudWatch Logs.
 
 `parameter` supports the following:
 

@@ -18,20 +18,20 @@ with it, etc.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "lb_arn" {
-  type    = "string"
+  type    = string
   default = ""
 }
 
 variable "lb_name" {
-  type    = "string"
+  type    = string
   default = ""
 }
 
 data "aws_lb" "test" {
-  arn  = "${var.lb_arn}"
-  name = "${var.lb_name}"
+  arn  = var.lb_arn
+  name = var.lb_name
 }
 ```
 

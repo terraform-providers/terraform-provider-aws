@@ -14,8 +14,7 @@ Get information about the organization that the user's account belongs to
 
 ### List all account IDs for the organization
 
-```hcl
-# Terraform 0.12 syntax
+```terraform
 data "aws_organizations_organization" "example" {}
 
 output "account_ids" {
@@ -25,7 +24,7 @@ output "account_ids" {
 
 ### SNS topic that can be interacted by the organization only
 
-```hcl
+```terraform
 data "aws_organizations_organization" "example" {}
 
 resource "aws_sns_topic" "sns_topic" {
@@ -33,9 +32,9 @@ resource "aws_sns_topic" "sns_topic" {
 }
 
 resource "aws_sns_topic_policy" "sns_topic_policy" {
-  arn = "${aws_sns_topic.sns_topic.arn}"
+  arn = aws_sns_topic.sns_topic.arn
 
-  policy = "${data.aws_iam_policy_document.sns_topic_policy.json}"
+  policy = data.aws_iam_policy_document.sns_topic_policy.json
 }
 
 data "aws_iam_policy_document" "sns_topic_policy" {
@@ -52,7 +51,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
       variable = "aws:PrincipalOrgID"
 
       values = [
-        "${data.aws_organizations_organization.example.id}",
+        data.aws_organizations_organization.example.id,
       ]
     }
 
@@ -62,7 +61,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     }
 
     resources = [
-      "${aws_sns_topic.sns_topic.arn}",
+      aws_sns_topic.sns_topic.arn,
     ]
   }
 }
@@ -78,7 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name (ARN) of the organization.
 * `feature_set` - The FeatureSet of the organization.
-* `id` - The ID of the organization. 
+* `id` - The ID of the organization.
 * `master_account_arn` - The Amazon Resource Name (ARN) of the account that is designated as the master account for the organization.
 * `master_account_email` - The email address that is associated with the AWS account that is designated as the master account for the organization.
 * `master_account_id` - The unique identifier (ID) of the master account of an organization.

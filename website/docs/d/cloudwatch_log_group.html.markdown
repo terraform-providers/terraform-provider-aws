@@ -12,7 +12,7 @@ Use this data source to get information about an AWS Cloudwatch Log Group
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_cloudwatch_log_group" "example" {
   name = "MyImportantLogs"
 }

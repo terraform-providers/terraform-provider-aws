@@ -28,7 +28,7 @@ This guide outlines how to get started with customizing endpoints, the available
 
 To configure the Terraform AWS Provider to use customized endpoints, it can be done within `provider` declarations using the `endpoints` configuration block, e.g.
 
-```hcl
+```terraform
 provider "aws" {
   # ... potentially other provider configuration ...
 
@@ -65,6 +65,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>appstream</code></li>
   <li><code>appsync</code></li>
   <li><code>athena</code></li>
+  <li><code>auditmanager</code></li>
   <li><code>autoscaling</code></li>
   <li><code>autoscalingplans</code></li>
   <li><code>backup</code></li>
@@ -84,10 +85,12 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>codecommit</code></li>
   <li><code>codedeploy</code></li>
   <li><code>codepipeline</code></li>
+  <li><code>codestarconnections</code></li>
   <li><code>codestarnotifications</code></li>
   <li><code>cognitoidentity</code></li>
   <li><code>cognitoidp</code></li>
   <li><code>configservice</code></li>
+  <li><code>connect</code></li>
   <li><code>cur</code></li>
   <li><code>dataexchange</code></li>
   <li><code>datapipeline</code></li>
@@ -102,6 +105,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>dynamodb</code></li>
   <li><code>ec2</code></li>
   <li><code>ecr</code></li>
+  <li><code>ecrpublic</code></li>
   <li><code>ecs</code></li>
   <li><code>efs</code></li>
   <li><code>eks</code></li>
@@ -110,6 +114,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>elastictranscoder</code></li>
   <li><code>elb</code></li>
   <li><code>emr</code></li>
+  <li><code>emrcontainers</code></li>
   <li><code>es</code></li>
   <li><code>firehose</code></li>
   <li><code>fms</code></li>
@@ -122,13 +127,13 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>guardduty</code></li>
   <li><code>greengrass</code></li>
   <li><code>iam</code></li>
+  <li><code>identitystore</code></li>
   <li><code>imagebuilder</code></li>
   <li><code>inspector</code></li>
   <li><code>iot</code></li>
   <li><code>iotanalytics</code></li>
   <li><code>iotevents</code></li>
   <li><code>kafka</code></li>
-  <li><code>kinesis_analytics</code> (<b>DEPRECATED</b> Use <code>kinesisanalytics</code> instead)</li>
   <li><code>kinesis</code></li>
   <li><code>kinesisanalytics</code></li>
   <li><code>kinesisanalyticsv2</code></li>
@@ -140,6 +145,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>licensemanager</code></li>
   <li><code>lightsail</code></li>
   <li><code>macie</code></li>
+  <li><code>macie2</code></li>
   <li><code>managedblockchain</code></li>
   <li><code>marketplacecatalog</code></li>
   <li><code>mediaconnect</code></li>
@@ -149,7 +155,9 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>mediastore</code></li>
   <li><code>mediastoredata</code></li>
   <li><code>mq</code></li>
+  <li><code>mwaa</code></li>
   <li><code>neptune</code></li>
+  <li><code>networkfirewall</code></li>
   <li><code>networkmanager</code></li>
   <li><code>opsworks</code></li>
   <li><code>organizations</code></li>
@@ -157,9 +165,9 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>personalize</code></li>
   <li><code>pinpoint</code></li>
   <li><code>pricing</code></li>
+  <li><code>prometheusservice</code></li>
   <li><code>qldb</code></li>
   <li><code>quicksight</code></li>
-  <li><code>r53</code></li> (<b>DEPRECATED</b> Use <code>route53</code> instead)</li>
   <li><code>ram</code></li>
   <li><code>rds</code></li>
   <li><code>redshift</code></li>
@@ -170,6 +178,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>route53resolver</code></li>
   <li><code>s3</code></li>
   <li><code>s3control</code></li>
+  <li><code>s3outposts</code></li>
   <li><code>sagemaker</code></li>
   <li><code>sdb</code></li>
   <li><code>secretsmanager</code></li>
@@ -180,14 +189,17 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>servicequotas</code></li>
   <li><code>ses</code></li>
   <li><code>shield</code></li>
+  <li><code>signer</code></li>
   <li><code>sns</code></li>
   <li><code>sqs</code></li>
   <li><code>ssm</code></li>
+  <li><code>ssoadmin</code></li>
   <li><code>stepfunctions</code></li>
   <li><code>storagegateway</code></li>
   <li><code>sts</code></li>
   <li><code>swf</code></li>
   <li><code>synthetics</code></li>
+  <li><code>timestreamwrite</code></li>
   <li><code>transfer</code></li>
   <li><code>waf</code></li>
   <li><code>wafregional</code></li>
@@ -210,7 +222,7 @@ The Amazon DynamoDB service offers a downloadable version for writing and testin
 
 An example provider configuration:
 
-```hcl
+```terraform
 provider "aws" {
   access_key                  = "mock_access_key"
   region                      = "us-east-1"
@@ -231,7 +243,7 @@ provider "aws" {
 
 An example provider configuration:
 
-```hcl
+```terraform
 provider "aws" {
   access_key                  = "mock_access_key"
   region                      = "us-east-1"
@@ -246,6 +258,7 @@ provider "aws" {
     cloudformation = "http://localhost:4581"
     cloudwatch     = "http://localhost:4582"
     dynamodb       = "http://localhost:4569"
+    ec2            = "http://localhost:4597"
     es             = "http://localhost:4578"
     firehose       = "http://localhost:4573"
     iam            = "http://localhost:4593"

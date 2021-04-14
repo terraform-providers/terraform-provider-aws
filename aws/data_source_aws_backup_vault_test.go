@@ -2,11 +2,12 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSBackupVaultDataSource_basic(t *testing.T) {
@@ -15,8 +16,9 @@ func TestAccAWSBackupVaultDataSource_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, backup.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAwsBackupVaultDataSourceConfig_nonExistent,
@@ -38,7 +40,7 @@ func TestAccAWSBackupVaultDataSource_basic(t *testing.T) {
 
 const testAccAwsBackupVaultDataSourceConfig_nonExistent = `
 data "aws_backup_vault" "test" {
-	name = "tf-acc-test-does-not-exist"
+  name = "tf-acc-test-does-not-exist"
 }
 `
 

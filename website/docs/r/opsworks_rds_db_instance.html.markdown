@@ -11,14 +11,14 @@ description: |-
 Provides an OpsWorks RDS DB Instance resource.
 
 ~> **Note:** All arguments including the username and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_opsworks_rds_db_instance" "my_instance" {
-  stack_id            = "${aws_opsworks_stack.my_stack.id}"
-  rds_db_instance_arn = "${aws_db_instance.my_instance.arn}"
+  stack_id            = aws_opsworks_stack.my_stack.id
+  rds_db_instance_arn = aws_db_instance.my_instance.arn
   db_user             = "someUser"
   db_password         = "somePass"
 }

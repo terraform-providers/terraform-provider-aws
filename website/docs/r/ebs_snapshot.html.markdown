@@ -12,7 +12,7 @@ Creates a Snapshot of an EBS Volume.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
   size              = 40
@@ -23,7 +23,7 @@ resource "aws_ebs_volume" "example" {
 }
 
 resource "aws_ebs_snapshot" "example_snapshot" {
-  volume_id = "${aws_ebs_volume.example.id}"
+  volume_id = aws_ebs_volume.example.id
 
   tags = {
     Name = "HelloWorld_snap"
@@ -42,7 +42,7 @@ The following arguments are supported:
 ### Timeouts
 
 `aws_ebs_snapshot` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating the ebs snapshot
 - `delete` - (Default `10 minutes`) Used for deleting the ebs snapshot

@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_efs_file_system: Add `availability_zone_id` and `availability_zone_name` attributes
+```
+
+```release-note:enhancement
+resource/aws_efs_file_system: Add `availability_zone_id` attribute and `availability_zone_name` argument
+```

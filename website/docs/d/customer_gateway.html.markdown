@@ -12,7 +12,7 @@ Get an existing AWS Customer Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_customer_gateway" "foo" {
   filter {
     name   = "tag:Name"
@@ -21,14 +21,14 @@ data "aws_customer_gateway" "foo" {
 }
 
 resource "aws_vpn_gateway" "main" {
-  vpc_id          = "${aws_vpc.main.id}"
+  vpc_id          = aws_vpc.main.id
   amazon_side_asn = 7224
 }
 
 resource "aws_vpn_connection" "transit" {
-  vpn_gateway_id      = "${aws_vpn_gateway.main.id}"
-  customer_gateway_id = "${data.aws_customer_gateway.foo.id}"
-  type                = "${data.aws_customer_gateway.foo.type}"
+  vpn_gateway_id      = aws_vpn_gateway.main.id
+  customer_gateway_id = data.aws_customer_gateway.foo.id
+  type                = data.aws_customer_gateway.foo.type
   static_routes_only  = false
 }
 ```
@@ -48,6 +48,7 @@ In addition to the arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the customer gateway.
 * `bgp_asn` - (Optional) The gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).
+* `device_name` - (Optional) A name for the customer gateway device.
 * `ip_address` - (Optional) The IP address of the gateway's Internet-routable external interface.
 * `tags` - Map of key-value pairs assigned to the gateway.
 * `type` - (Optional) The type of customer gateway. The only type AWS supports at this time is "ipsec.1".

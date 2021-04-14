@@ -2,24 +2,90 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/wafv2/lister"
 )
 
-func TestAccAwsWafv2IPSet_Basic(t *testing.T) {
+func init() {
+	resource.AddTestSweepers("aws_wafv2_ip_set", &resource.Sweeper{
+		Name: "aws_wafv2_ip_set",
+		F:    testSweepWafv2IpSets,
+		Dependencies: []string{
+			"aws_wafv2_rule_group",
+			"aws_wafv2_web_acl",
+		},
+	})
+}
+
+func testSweepWafv2IpSets(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).wafv2conn
+
+	var sweeperErrs *multierror.Error
+
+	input := &wafv2.ListIPSetsInput{
+		Scope: aws.String(wafv2.ScopeRegional),
+	}
+
+	err = lister.ListIPSetsPages(conn, input, func(page *wafv2.ListIPSetsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, ipSet := range page.IPSets {
+			id := aws.StringValue(ipSet.Id)
+
+			r := resourceAwsWafv2IPSet()
+			d := r.Data(nil)
+			d.SetId(id)
+			d.Set("lock_token", ipSet.LockToken)
+			d.Set("name", ipSet.Name)
+			d.Set("scope", input.Scope)
+			err := r.Delete(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting WAFv2 IP Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping WAFv2 IP Set sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAFv2 IP Sets: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
+
+func TestAccAwsWafv2IPSet_basic(t *testing.T) {
 	var v wafv2.IPSet
 	ipSetName := fmt.Sprintf("ip-set-%s", acctest.RandString(5))
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -66,7 +132,8 @@ func TestAccAwsWafv2IPSet_Disappears(t *testing.T) {
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -88,7 +155,8 @@ func TestAccAwsWafv2IPSet_IPv6(t *testing.T) {
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -102,9 +170,9 @@ func TestAccAwsWafv2IPSet_IPv6(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
 					resource.TestCheckResourceAttr(resourceName, "ip_address_version", wafv2.IPAddressVersionIpv6),
 					resource.TestCheckResourceAttr(resourceName, "addresses.#", "3"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "1234:5678:9abc:6811:0000:0000:0000:0000/64"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "2001:db8::/32"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "1111:0000:0000:0000:0000:0000:0000:0111/128"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "1234:5678:9abc:6811:0000:0000:0000:0000/64"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "2001:db8::/32"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "1111:0000:0000:0000:0000:0000:0000:0111/128"),
 				),
 			},
 			{
@@ -123,7 +191,8 @@ func TestAccAwsWafv2IPSet_Minimal(t *testing.T) {
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -156,7 +225,8 @@ func TestAccAwsWafv2IPSet_ChangeNameForceNew(t *testing.T) {
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -194,7 +264,8 @@ func TestAccAwsWafv2IPSet_Tags(t *testing.T) {
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -242,7 +313,8 @@ func TestAccAwsWafv2IPSet_Large(t *testing.T) {
 	resourceName := "aws_wafv2_ip_set.ip_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWafv2ScopeRegional(t) },
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
 		Steps: []resource.TestStep{
@@ -374,7 +446,7 @@ resource "aws_wafv2_ip_set" "ip_set" {
   description        = "%s"
   scope              = "REGIONAL"
   ip_address_version = "IPV6"
-  addresses          = [
+  addresses = [
     "1111:0000:0000:0000:0000:0000:0000:0111/128",
     "1234:5678:9abc:6811:0000:0000:0000:0000/64",
     "2001:db8::/32"
@@ -433,17 +505,17 @@ resource "aws_wafv2_ip_set" "ip_set" {
   description        = "%s"
   scope              = "REGIONAL"
   ip_address_version = "IPV4"
-  addresses          = [
-	"1.1.1.50/32", "1.1.1.73/32", "1.1.1.15/32", "2.2.2.30/32", "1.1.1.38/32",
+  addresses = [
+    "1.1.1.50/32", "1.1.1.73/32", "1.1.1.15/32", "2.2.2.30/32", "1.1.1.38/32",
     "2.2.2.53/32", "1.1.1.21/32", "2.2.2.24/32", "1.1.1.44/32", "1.1.1.1/32",
     "1.1.1.67/32", "2.2.2.76/32", "2.2.2.99/32", "1.1.1.26/32", "2.2.2.93/32",
-	"2.2.2.64/32", "1.1.1.32/32", "2.2.2.12/32", "2.2.2.47/32", "1.1.1.91/32",
+    "2.2.2.64/32", "1.1.1.32/32", "2.2.2.12/32", "2.2.2.47/32", "1.1.1.91/32",
     "1.1.1.78/32", "2.2.2.82/32", "2.2.2.58/32", "1.1.1.85/32", "2.2.2.4/32",
     "2.2.2.65/32", "2.2.2.23/32", "2.2.2.17/32", "2.2.2.42/32", "1.1.1.56/32",
     "1.1.1.79/32", "2.2.2.81/32", "2.2.2.36/32", "2.2.2.59/32", "2.2.2.9/32",
     "1.1.1.7/32", "1.1.1.84/32", "1.1.1.51/32", "2.2.2.70/32", "2.2.2.87/32",
-	"1.1.1.39/32", "1.1.1.90/32", "2.2.2.31/32", "1.1.1.62/32", "1.1.1.14/32",
-	"1.1.1.20/32", "2.2.2.25/32", "1.1.1.45/32", "1.1.1.2/32", "2.2.2.98/32"
+    "1.1.1.39/32", "1.1.1.90/32", "2.2.2.31/32", "1.1.1.62/32", "1.1.1.14/32",
+    "1.1.1.20/32", "2.2.2.25/32", "1.1.1.45/32", "1.1.1.2/32", "2.2.2.98/32"
   ]
 }
 `, name, name)

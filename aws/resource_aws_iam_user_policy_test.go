@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIAMUserPolicy_basic(t *testing.T) {
@@ -25,6 +25,7 @@ func TestAccAWSIAMUserPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -67,6 +68,7 @@ func TestAccAWSIAMUserPolicy_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -93,6 +95,7 @@ func TestAccAWSIAMUserPolicy_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, iam.EndpointsID),
 		IDRefreshName: policyResourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckIAMUserPolicyDestroy,
@@ -135,6 +138,7 @@ func TestAccAWSIAMUserPolicy_generatedName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, iam.EndpointsID),
 		IDRefreshName: policyResourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckIAMUserPolicyDestroy,
@@ -177,6 +181,7 @@ func TestAccAWSIAMUserPolicy_multiplePolicies(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -397,9 +402,9 @@ func testAccIAMUserPolicyConfig_name(rInt int, policy string) string {
 %s
 
 resource "aws_iam_user_policy" "foo" {
-  name = "foo_policy_%d"
-  user = "${aws_iam_user.user.name}"
-  policy = %v
+  name   = "foo_policy_%d"
+  user   = aws_iam_user.user.name
+  policy = %s
 }
 `, testAccAWSUserConfig(fmt.Sprintf("test_user_%d", rInt), "/"), rInt, policy)
 }
@@ -410,8 +415,8 @@ func testAccIAMUserPolicyConfig_namePrefix(rInt int, policy string) string {
 
 resource "aws_iam_user_policy" "foo" {
   name_prefix = "foo_policy_"
-  user = "${aws_iam_user.user.name}"
-  policy = %v
+  user        = aws_iam_user.user.name
+  policy      = %s
 }
 `, testAccAWSUserConfig(fmt.Sprintf("test_user_%d", rInt), "/"), policy)
 }
@@ -421,8 +426,8 @@ func testAccIAMUserPolicyConfig_generatedName(rInt int, policy string) string {
 %s
 
 resource "aws_iam_user_policy" "foo" {
-  user = "${aws_iam_user.user.name}"
-  policy = %v
+  user   = aws_iam_user.user.name
+  policy = %s
 }
 `, testAccAWSUserConfig(fmt.Sprintf("test_user_%d", rInt), "/"), policy)
 }
@@ -432,15 +437,15 @@ func testAccIAMUserPolicyConfig_multiplePolicies(rInt int, policy1, policy2 stri
 %[1]s
 
 resource "aws_iam_user_policy" "foo" {
-  name = "foo_policy_%[2]d"
-  user = "${aws_iam_user.user.name}"
-  policy = %[3]v
+  name   = "foo_policy_%[2]d"
+  user   = aws_iam_user.user.name
+  policy = %[3]s
 }
 
 resource "aws_iam_user_policy" "bar" {
-  name = "bar_policy_%[2]d"
-  user = "${aws_iam_user.user.name}"
-  policy = %[4]v
+  name   = "bar_policy_%[2]d"
+  user   = aws_iam_user.user.name
+  policy = %[4]s
 }
 `, testAccAWSUserConfig(fmt.Sprintf("test_user_%d", rInt), "/"), rInt, policy1, policy2)
 }

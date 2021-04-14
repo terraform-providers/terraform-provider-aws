@@ -12,7 +12,7 @@ Creates a Snapshot of a snapshot.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
   size              = 40
@@ -23,7 +23,7 @@ resource "aws_ebs_volume" "example" {
 }
 
 resource "aws_ebs_snapshot" "example_snapshot" {
-  volume_id = "${aws_ebs_volume.example.id}"
+  volume_id = aws_ebs_volume.example.id
 
   tags = {
     Name = "HelloWorld_snap"
@@ -31,7 +31,7 @@ resource "aws_ebs_snapshot" "example_snapshot" {
 }
 
 resource "aws_ebs_snapshot_copy" "example_copy" {
-  source_snapshot_id = "${aws_ebs_snapshot.example_snapshot.id}"
+  source_snapshot_id = aws_ebs_snapshot.example_snapshot.id
   source_region      = "us-west-2"
 
   tags = {
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of the EBS Snapshot.
 * `id` - The snapshot ID (e.g. snap-59fcb34e).

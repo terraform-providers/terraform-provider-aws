@@ -7,9 +7,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+const (
+	rdsGlobalClusterRemovalTimeout = 2 * time.Minute
 )
 
 func resourceAwsRDSGlobalCluster() *schema.Resource {
@@ -38,10 +43,11 @@ func resourceAwsRDSGlobalCluster() *schema.Resource {
 				Default:  false,
 			},
 			"engine": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  "aurora",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_db_cluster_identifier"},
 				ValidateFunc: validation.StringInSlice([]string{
 					"aurora",
 					"aurora-mysql",
@@ -54,18 +60,47 @@ func resourceAwsRDSGlobalCluster() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"force_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"global_cluster_identifier": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+			"global_cluster_members": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"db_cluster_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"is_writer": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"global_cluster_resource_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"source_db_cluster_identifier": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"engine"},
+				RequiredWith:  []string{"force_destroy"},
+			},
 			"storage_encrypted": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 		},
@@ -76,13 +111,15 @@ func resourceAwsRDSGlobalClusterCreate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).rdsconn
 
 	input := &rds.CreateGlobalClusterInput{
-		DeletionProtection:      aws.Bool(d.Get("deletion_protection").(bool)),
 		GlobalClusterIdentifier: aws.String(d.Get("global_cluster_identifier").(string)),
-		StorageEncrypted:        aws.Bool(d.Get("storage_encrypted").(bool)),
 	}
 
 	if v, ok := d.GetOk("database_name"); ok {
 		input.DatabaseName = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("deletion_protection"); ok {
+		input.DeletionProtection = aws.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("engine"); ok {
@@ -93,7 +130,21 @@ func resourceAwsRDSGlobalClusterCreate(d *schema.ResourceData, meta interface{})
 		input.EngineVersion = aws.String(v.(string))
 	}
 
-	log.Printf("[DEBUG] Creating RDS Global Cluster: %s", input)
+	if v, ok := d.GetOk("source_db_cluster_identifier"); ok {
+		input.SourceDBClusterIdentifier = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_encrypted"); ok {
+		input.StorageEncrypted = aws.Bool(v.(bool))
+	}
+
+	// Prevent the following error and keep the previous default,
+	// since we cannot have Engine default after adding SourceDBClusterIdentifier:
+	// InvalidParameterValue: When creating standalone global cluster, value for engineName should be specified
+	if input.Engine == nil && input.SourceDBClusterIdentifier == nil {
+		input.Engine = aws.String("aurora")
+	}
+
 	output, err := conn.CreateGlobalCluster(input)
 	if err != nil {
 		return fmt.Errorf("error creating RDS Global Cluster: %s", err)
@@ -141,6 +192,11 @@ func resourceAwsRDSGlobalClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("engine", globalCluster.Engine)
 	d.Set("engine_version", globalCluster.EngineVersion)
 	d.Set("global_cluster_identifier", globalCluster.GlobalClusterIdentifier)
+
+	if err := d.Set("global_cluster_members", flattenRdsGlobalClusterMembers(globalCluster.GlobalClusterMembers)); err != nil {
+		return fmt.Errorf("error setting global_cluster_members: %w", err)
+	}
+
 	d.Set("global_cluster_resource_id", globalCluster.GlobalClusterResourceId)
 	d.Set("storage_encrypted", globalCluster.StorageEncrypted)
 
@@ -175,6 +231,41 @@ func resourceAwsRDSGlobalClusterUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsRDSGlobalClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+
+	if d.Get("force_destroy").(bool) {
+		for _, globalClusterMemberRaw := range d.Get("global_cluster_members").(*schema.Set).List() {
+			globalClusterMember, ok := globalClusterMemberRaw.(map[string]interface{})
+
+			if !ok {
+				continue
+			}
+
+			dbClusterArn, ok := globalClusterMember["db_cluster_arn"].(string)
+
+			if !ok {
+				continue
+			}
+
+			input := &rds.RemoveFromGlobalClusterInput{
+				DbClusterIdentifier:     aws.String(dbClusterArn),
+				GlobalClusterIdentifier: aws.String(d.Id()),
+			}
+
+			_, err := conn.RemoveFromGlobalCluster(input)
+
+			if tfawserr.ErrMessageContains(err, "InvalidParameterValue", "is not found in global cluster") {
+				continue
+			}
+
+			if err != nil {
+				return fmt.Errorf("error removing RDS DB Cluster (%s) from Global Cluster (%s): %w", dbClusterArn, d.Id(), err)
+			}
+
+			if err := waitForRdsGlobalClusterRemoval(conn, dbClusterArn); err != nil {
+				return fmt.Errorf("error waiting for RDS DB Cluster (%s) removal from RDS Global Cluster (%s): %w", dbClusterArn, d.Id(), err)
+			}
+		}
+	}
 
 	input := &rds.DeleteGlobalClusterInput{
 		GlobalClusterIdentifier: aws.String(d.Id()),
@@ -215,6 +306,25 @@ func resourceAwsRDSGlobalClusterDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func flattenRdsGlobalClusterMembers(apiObjects []*rds.GlobalClusterMember) []interface{} {
+	if len(apiObjects) == 0 {
+		return nil
+	}
+
+	var tfList []interface{}
+
+	for _, apiObject := range apiObjects {
+		tfMap := map[string]interface{}{
+			"db_cluster_arn": aws.StringValue(apiObject.DBClusterArn),
+			"is_writer":      aws.BoolValue(apiObject.IsWriter),
+		}
+
+		tfList = append(tfList, tfMap)
+	}
+
+	return tfList
 }
 
 func rdsDescribeGlobalCluster(conn *rds.RDS, globalClusterID string) (*rds.GlobalCluster, error) {
@@ -352,4 +462,39 @@ func waitForRdsGlobalClusterDeletion(conn *rds.RDS, globalClusterID string) erro
 	}
 
 	return err
+}
+
+func waitForRdsGlobalClusterRemoval(conn *rds.RDS, dbClusterIdentifier string) error {
+	var globalCluster *rds.GlobalCluster
+	stillExistsErr := fmt.Errorf("RDS DB Cluster still exists in RDS Global Cluster")
+
+	err := resource.Retry(rdsGlobalClusterRemovalTimeout, func() *resource.RetryError {
+		var err error
+
+		globalCluster, err = rdsDescribeGlobalClusterFromDbClusterARN(conn, dbClusterIdentifier)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if globalCluster != nil {
+			return resource.RetryableError(stillExistsErr)
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		_, err = rdsDescribeGlobalClusterFromDbClusterARN(conn, dbClusterIdentifier)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if globalCluster != nil {
+		return stillExistsErr
+	}
+
+	return nil
 }

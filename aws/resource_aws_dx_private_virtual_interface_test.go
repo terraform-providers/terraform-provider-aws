@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsDxPrivateVirtualInterface_basic(t *testing.T) {
@@ -25,11 +25,12 @@ func TestAccAwsDxPrivateVirtualInterface_basic(t *testing.T) {
 	resourceName := "aws_dx_private_virtual_interface.test"
 	vpnGatewayResourceName := "aws_vpn_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-private-vif-%s", acctest.RandString(9))
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxPrivateVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -96,11 +97,12 @@ func TestAccAwsDxPrivateVirtualInterface_Tags(t *testing.T) {
 	resourceName := "aws_dx_private_virtual_interface.test"
 	vpnGatewayResourceName := "aws_vpn_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-private-vif-%s", acctest.RandString(9))
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxPrivateVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -173,12 +175,13 @@ func TestAccAwsDxPrivateVirtualInterface_DxGateway(t *testing.T) {
 	resourceName := "aws_dx_private_virtual_interface.test"
 	dxGatewayResourceName := "aws_dx_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-private-vif-%s", acctest.RandString(9))
-	amzAsn := randIntRange(64512, 65534)
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	amzAsn := acctest.RandIntRange(64512, 65534)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxPrivateVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -238,7 +241,7 @@ resource "aws_dx_private_virtual_interface" "test" {
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[4]d
-  vpn_gateway_id = "${aws_vpn_gateway.test.id}"
+  vpn_gateway_id = aws_vpn_gateway.test.id
 }
 `, cid, rName, bgpAsn, vlan)
 }
@@ -252,7 +255,7 @@ resource "aws_dx_private_virtual_interface" "test" {
   mtu            = 9001
   name           = %[2]q
   vlan           = %[4]d
-  vpn_gateway_id = "${aws_vpn_gateway.test.id}"
+  vpn_gateway_id = aws_vpn_gateway.test.id
 }
 `, cid, rName, bgpAsn, vlan)
 }
@@ -265,7 +268,7 @@ resource "aws_dx_private_virtual_interface" "test" {
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[4]d
-  vpn_gateway_id = "${aws_vpn_gateway.test.id}"
+  vpn_gateway_id = aws_vpn_gateway.test.id
 
   tags = {
     Name = %[2]q
@@ -284,7 +287,7 @@ resource "aws_dx_private_virtual_interface" "test" {
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[4]d
-  vpn_gateway_id = "${aws_vpn_gateway.test.id}"
+  vpn_gateway_id = aws_vpn_gateway.test.id
 
   tags = {
     Name = %[2]q
@@ -305,7 +308,7 @@ resource "aws_dx_gateway" "test" {
 resource "aws_dx_private_virtual_interface" "test" {
   address_family = "ipv4"
   bgp_asn        = %[4]d
-  dx_gateway_id  = "${aws_dx_gateway.test.id}"
+  dx_gateway_id  = aws_dx_gateway.test.id
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[5]d

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsArn() *schema.Resource {
@@ -45,7 +45,7 @@ func dataSourceAwsArnRead(d *schema.ResourceData, meta interface{}) error {
 	v := d.Get("arn").(string)
 	arn, err := arn.Parse(v)
 	if err != nil {
-		return fmt.Errorf("Error parsing '%s': %s", v, err.Error())
+		return fmt.Errorf("Error parsing '%s': %w", v, err)
 	}
 
 	d.SetId(arn.String())

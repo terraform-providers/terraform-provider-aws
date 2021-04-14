@@ -15,13 +15,13 @@ This data feed is sent to an Amazon S3 bucket that you specify when you subscrib
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "default" {
   bucket = "tf-spot-datafeed"
 }
 
 resource "aws_spot_datafeed_subscription" "default" {
-  bucket = "${aws_s3_bucket.default.bucket}"
+  bucket = aws_s3_bucket.default.bucket
   prefix = "my_subdirectory"
 }
 ```
@@ -30,6 +30,10 @@ resource "aws_spot_datafeed_subscription" "default" {
 
 * `bucket` - (Required) The Amazon S3 bucket in which to store the Spot instance data feed.
 * `prefix` - (Optional) Path of folder inside bucket to place spot pricing data.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsServiceQuotasService() *schema.Resource {
@@ -45,7 +45,7 @@ func dataSourceAwsServiceQuotasServiceRead(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("error listing Services: %s", err)
+		return fmt.Errorf("error listing Services: %w", err)
 	}
 
 	if service == nil {

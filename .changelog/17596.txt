@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_fms_admin_account: Extend creation timeout to 10 minutes
+```

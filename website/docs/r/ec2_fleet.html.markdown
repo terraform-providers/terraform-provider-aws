@@ -12,12 +12,12 @@ Provides a resource to manage EC2 Fleets.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_fleet" "example" {
   launch_template_config {
     launch_template_specification {
-      launch_template_id = "${aws_launch_template.example.id}"
-      version            = "${aws_launch_template.example.latest_version}"
+      launch_template_id = aws_launch_template.example.id
+      version            = aws_launch_template.example.latest_version
     }
   }
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 Example:
 
-```hcl
+```terraform
 resource "aws_ec2_fleet" "example" {
   # ... other configuration ...
 
@@ -96,6 +96,18 @@ resource "aws_ec2_fleet" "example" {
 * `allocation_strategy` - (Optional) How to allocate the target capacity across the Spot pools. Valid values: `diversified`, `lowestPrice`. Default: `lowestPrice`.
 * `instance_interruption_behavior` - (Optional) Behavior when a Spot Instance is interrupted. Valid values: `hibernate`, `stop`, `terminate`. Default: `terminate`.
 * `instance_pools_to_use_count` - (Optional) Number of Spot pools across which to allocate your target Spot capacity. Valid only when Spot `allocation_strategy` is set to `lowestPrice`. Default: `1`.
+* `maintenance_strategies` - (Optional) Nested argument containing maintenance strategies for managing your Spot Instances that are at an elevated risk of being interrupted. Defined below.
+
+
+### maintenance_strategies
+
+* `capacity_rebalance` - (Optional) Nested argument containing the capacity rebalance for your fleet request. Defined below.
+
+### capacity_rebalance
+
+* `replacement_strategy` - (Optional) The replacement strategy to use. Only available for fleets of `type` set to `maintain`. Valid values: `launch`.
+
+
 
 ### target_capacity_specification
 
@@ -104,7 +116,7 @@ resource "aws_ec2_fleet" "example" {
 * `on_demand_target_capacity` - (Optional) The number of On-Demand units to request.
 * `spot_target_capacity` - (Optional) The number of Spot units to request.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -112,7 +124,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_ec2_fleet` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_ec2_fleet` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for a fleet to be active.
 * `update` - (Default `10m`) How long to wait for a fleet to be modified.

@@ -8,9 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsOrganizationsOrganizationalUnit() *schema.Resource {
@@ -105,7 +106,7 @@ func resourceAwsOrganizationsOrganizationalUnitCreate(d *schema.ResourceData, me
 
 	// Store the ID
 	ouId := resp.OrganizationalUnit.Id
-	d.SetId(*ouId)
+	d.SetId(aws.StringValue(ouId))
 
 	return resourceAwsOrganizationsOrganizationalUnitRead(d, meta)
 }
@@ -116,27 +117,36 @@ func resourceAwsOrganizationsOrganizationalUnitRead(d *schema.ResourceData, meta
 		OrganizationalUnitId: aws.String(d.Id()),
 	}
 	resp, err := conn.DescribeOrganizationalUnit(describeOpts)
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, organizations.ErrCodeOrganizationalUnitNotFoundException) {
+		log.Printf("[WARN] Organizations Organizational Unit (%s) does not exist, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, organizations.ErrCodeOrganizationalUnitNotFoundException, "") {
-			log.Printf("[WARN] Organizational Unit does not exist, removing from state: %s", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return err
+		return fmt.Errorf("error reading Organizations Organizational Unit (%s): %w", d.Id(), err)
+	}
+
+	if resp == nil {
+		return fmt.Errorf("error reading Organizations Organizational Unit (%s): empty response", d.Id())
 	}
 
 	ou := resp.OrganizationalUnit
 	if ou == nil {
-		log.Printf("[WARN] Organizational Unit does not exist, removing from state: %s", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading Organizations Organizational Unit (%s): not found after creation", d.Id())
+		}
+
+		log.Printf("[WARN] Organizations Organizational Unit (%s) does not exist, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	parentId, err := resourceAwsOrganizationsOrganizationalUnitGetParentId(conn, d.Id())
+
 	if err != nil {
-		log.Printf("[WARN] Unable to find parent organizational unit, removing from state: %s", d.Id())
-		d.SetId("")
-		return nil
+		return fmt.Errorf("error listing Organizations Organizational Unit (%s) parents: %w", d.Id(), err)
 	}
 
 	log.Printf("[INFO] Listing Accounts for Organizational Unit: %s", d.Id())

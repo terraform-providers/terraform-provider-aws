@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_vpc: Handle EC2 eventual consistency errors on creation
+```

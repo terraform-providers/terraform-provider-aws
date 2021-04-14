@@ -12,7 +12,7 @@ Provides a WAF Web ACL Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_ipset" "ipset" {
   name = "tfIPSet"
 
@@ -23,19 +23,22 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  depends_on  = [aws_waf_ipset.ipset]
   name        = "tfWAFRule"
   metric_name = "tfWAFRule"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = aws_waf_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
 }
 
 resource "aws_waf_web_acl" "waf_acl" {
-  depends_on  = ["aws_waf_ipset.ipset", "aws_waf_rule.wafrule"]
+  depends_on = [
+    aws_waf_ipset.ipset,
+    aws_waf_rule.wafrule,
+  ]
   name        = "tfWebACL"
   metric_name = "tfWebACL"
 
@@ -49,7 +52,7 @@ resource "aws_waf_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_waf_rule.wafrule.id}"
+    rule_id  = aws_waf_rule.wafrule.id
     type     = "REGULAR"
   }
 }
@@ -59,11 +62,11 @@ resource "aws_waf_web_acl" "waf_acl" {
 
 ~> *NOTE:* The Kinesis Firehose Delivery Stream name must begin with `aws-waf-logs-` and be located in `us-east-1` region. See the [AWS WAF Developer Guide](https://docs.aws.amazon.com/waf/latest/developerguide/logging.html) for more information about enabling WAF logging.
 
-```hcl
+```terraform
 resource "aws_waf_web_acl" "example" {
   # ... other configuration ...
   logging_configuration {
-    log_destination = "${aws_kinesis_firehose_delivery_stream.example.arn}"
+    log_destination = aws_kinesis_firehose_delivery_stream.example.arn
 
     redacted_fields {
       field_to_match {

@@ -22,92 +22,92 @@ deploy the required validation records and wait for validation to complete.
 
 ### DNS Validation with Route 53
 
-```hcl
-resource "aws_acm_certificate" "cert" {
+```terraform
+resource "aws_acm_certificate" "example" {
   domain_name       = "example.com"
   validation_method = "DNS"
 }
 
-data "aws_route53_zone" "zone" {
-  name         = "example.com."
+data "aws_route53_zone" "example" {
+  name         = "example.com"
   private_zone = false
 }
 
-resource "aws_route53_record" "cert_validation" {
-  name    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_name}"
-  type    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_type}"
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
-  records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
-  ttl     = 60
+resource "aws_route53_record" "example" {
+  for_each = {
+    for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.example.zone_id
 }
 
-resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn         = "${aws_acm_certificate.cert.arn}"
-  validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
+resource "aws_acm_certificate_validation" "example" {
+  certificate_arn         = aws_acm_certificate.example.arn
+  validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
 }
 
-resource "aws_lb_listener" "front_end" {
-  # [...]
-  certificate_arn = "${aws_acm_certificate_validation.cert.certificate_arn}"
+resource "aws_lb_listener" "example" {
+  # ... other configuration ...
+
+  certificate_arn = aws_acm_certificate_validation.example.certificate_arn
 }
 ```
 
 ### Alternative Domains DNS Validation with Route 53
 
-```hcl
-resource "aws_acm_certificate" "cert" {
+```terraform
+resource "aws_acm_certificate" "example" {
   domain_name               = "example.com"
   subject_alternative_names = ["www.example.com", "example.org"]
   validation_method         = "DNS"
 }
 
-data "aws_route53_zone" "zone" {
-  name         = "example.com."
+data "aws_route53_zone" "example_com" {
+  name         = "example.com"
   private_zone = false
 }
 
-data "aws_route53_zone" "zone_alt" {
-  name         = "example.org."
+data "aws_route53_zone" "example_org" {
+  name         = "example.org"
   private_zone = false
 }
 
-resource "aws_route53_record" "cert_validation" {
-  name    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_name}"
-  type    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_type}"
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
-  records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
-  ttl     = 60
+resource "aws_route53_record" "example" {
+  for_each = {
+    for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
+      name    = dvo.resource_record_name
+      record  = dvo.resource_record_value
+      type    = dvo.resource_record_type
+      zone_id = dvo.domain_name == "example.org" ? data.aws_route53_zone.example_org.zone_id : data.aws_route53_zone.example_com.zone_id
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = each.value.zone_id
 }
 
-resource "aws_route53_record" "cert_validation_alt1" {
-  name    = "${aws_acm_certificate.cert.domain_validation_options.1.resource_record_name}"
-  type    = "${aws_acm_certificate.cert.domain_validation_options.1.resource_record_type}"
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
-  records = ["${aws_acm_certificate.cert.domain_validation_options.1.resource_record_value}"]
-  ttl     = 60
+resource "aws_acm_certificate_validation" "example" {
+  certificate_arn         = aws_acm_certificate.example.arn
+  validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
 }
 
-resource "aws_route53_record" "cert_validation_alt2" {
-  name    = "${aws_acm_certificate.cert.domain_validation_options.2.resource_record_name}"
-  type    = "${aws_acm_certificate.cert.domain_validation_options.2.resource_record_type}"
-  zone_id = "${data.aws_route53_zone.zone_alt.zone_id}"
-  records = ["${aws_acm_certificate.cert.domain_validation_options.2.resource_record_value}"]
-  ttl     = 60
-}
+resource "aws_lb_listener" "example" {
+  # ... other configuration ...
 
-resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn = "${aws_acm_certificate.cert.arn}"
-
-  validation_record_fqdns = [
-    "${aws_route53_record.cert_validation.fqdn}",
-    "${aws_route53_record.cert_validation_alt1.fqdn}",
-    "${aws_route53_record.cert_validation_alt2.fqdn}",
-  ]
-}
-
-resource "aws_lb_listener" "front_end" {
-  # [...]
-  certificate_arn = "${aws_acm_certificate_validation.cert.certificate_arn}"
+  certificate_arn = aws_acm_certificate_validation.example.certificate_arn
 }
 ```
 
@@ -115,14 +115,14 @@ resource "aws_lb_listener" "front_end" {
 
 In this situation, the resource is simply a waiter for manual email approval of ACM certificates.
 
-```hcl
-resource "aws_acm_certificate" "cert" {
+```terraform
+resource "aws_acm_certificate" "example" {
   domain_name       = "example.com"
   validation_method = "EMAIL"
 }
 
-resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn = "${aws_acm_certificate.cert.arn}"
+resource "aws_acm_certificate_validation" "example" {
+  certificate_arn = aws_acm_certificate.example.arn
 }
 ```
 
@@ -141,7 +141,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`acm_certificate_validation` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`acm_certificate_validation` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `45m`) How long to wait for a certificate to be issued.

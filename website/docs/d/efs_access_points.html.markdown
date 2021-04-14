@@ -12,7 +12,7 @@ Provides information about multiple Elastic File System (EFS) Access Points.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_efs_access_points" "test" {
   file_system_id = "fs-12345678"
 }
@@ -29,5 +29,5 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arns` - Set of Amazon Resource Names (ARNs).
-* `id` - RFC3339 timestamp when the data source was invoked.
+* `id` - EFS File System identifier.
 * `ids` - Set of identifiers.

@@ -12,7 +12,7 @@ Provides details about multiple EC2 Local Gateway Virtual Interface Groups, such
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_local_gateway_virtual_interface_groups" "all" {}
 ```
 
@@ -34,5 +34,6 @@ The `filter` configuration block supports the following arguments:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - AWS Region.
 * `ids` - Set of EC2 Local Gateway Virtual Interface Group identifiers.
 * `local_gateway_virtual_interface_ids` - Set of EC2 Local Gateway Virtual Interface identifiers.

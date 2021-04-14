@@ -12,11 +12,11 @@ Manages an AWS DataSync Task, which represents a configuration for synchronizati
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_task" "example" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = "example"
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     bytes_per_second = -1
@@ -51,7 +51,7 @@ The following arguments are supported inside the `options` configuration block:
 * `uid` - (Optional) User identifier of the file's owners. Valid values: `BOTH`, `INT_VALUE`, `NAME`, `NONE`. Default: `INT_VALUE` (preserve integer value of the ID).
 * `verify_mode` - (Optional) Whether a data integrity verification should be performed at the end of a task execution after all data and metadata have been transferred. Valid values: `NONE`, `POINT_IN_TIME_CONSISTENT`, `ONLY_FILES_TRANSFERRED`. Default: `POINT_IN_TIME_CONSISTENT`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -60,7 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_datasync_task` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_datasync_task` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `5m`) How long to wait for DataSync Task availability.
 

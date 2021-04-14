@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsWafSqlInjectionMatchSet() *schema.Resource {
@@ -76,7 +76,7 @@ func resourceAwsWafSqlInjectionMatchSetCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error creating SqlInjectionMatchSet: %s", err)
 	}
 	resp := out.(*waf.CreateSqlInjectionMatchSetOutput)
-	d.SetId(*resp.SqlInjectionMatchSet.SqlInjectionMatchSetId)
+	d.SetId(aws.StringValue(resp.SqlInjectionMatchSet.SqlInjectionMatchSetId))
 
 	return resourceAwsWafSqlInjectionMatchSetUpdate(d, meta)
 }
@@ -176,7 +176,7 @@ func flattenWafSqlInjectionMatchTuples(ts []*waf.SqlInjectionMatchTuple) []inter
 	out := make([]interface{}, len(ts))
 	for i, t := range ts {
 		m := make(map[string]interface{})
-		m["text_transformation"] = *t.TextTransformation
+		m["text_transformation"] = aws.StringValue(t.TextTransformation)
 		m["field_to_match"] = flattenFieldToMatch(t.FieldToMatch)
 		out[i] = m
 	}

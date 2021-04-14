@@ -8,10 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/gamelift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsGameliftFleet() *schema.Resource {
@@ -232,22 +235,30 @@ func resourceAwsGameliftFleetCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Creating Gamelift Fleet: %s", input)
 	var out *gamelift.CreateFleetOutput
-	err := resource.Retry(3*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		out, err = conn.CreateFleet(&input)
-		if isAWSErr(err, gamelift.ErrCodeInvalidRequestException, "GameLift is not authorized to perform") {
+
+		if tfawserr.ErrMessageContains(err, gamelift.ErrCodeInvalidRequestException, "GameLift is not authorized to perform") {
 			return resource.RetryableError(err)
 		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
-	if err != nil {
-		return err
+
+	if tfresource.TimedOut(err) {
+		out, err = conn.CreateFleet(&input)
 	}
 
-	d.SetId(*out.FleetAttributes.FleetId)
+	if err != nil {
+		return fmt.Errorf("error creating GameLift Fleet (%s): %w", d.Get("name").(string), err)
+	}
+
+	d.SetId(aws.StringValue(out.FleetAttributes.FleetId))
 
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{

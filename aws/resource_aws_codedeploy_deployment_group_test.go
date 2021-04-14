@@ -11,11 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/codedeploy"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCodeDeployDeploymentGroup_basic(t *testing.T) {
@@ -26,6 +25,7 @@ func TestAccAWSCodeDeployDeploymentGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -42,7 +42,7 @@ func TestAccAWSCodeDeployDeploymentGroup_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_set.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_filter.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_filter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "filtervalue",
@@ -64,7 +64,7 @@ func TestAccAWSCodeDeployDeploymentGroup_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_set.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_filter.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_filter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "anotherfiltervalue",
@@ -93,6 +93,7 @@ func TestAccAWSCodeDeployDeploymentGroup_basic_tagSet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -106,10 +107,10 @@ func TestAccAWSCodeDeployDeploymentGroup_basic_tagSet(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "service_role_arn", "aws_iam_role.test", "arn"),
 
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_set.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*", map[string]string{
 						"ec2_tag_filter.#": "1",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*.ec2_tag_filter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*.ec2_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "filtervalue",
@@ -131,10 +132,10 @@ func TestAccAWSCodeDeployDeploymentGroup_basic_tagSet(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "service_role_arn", "aws_iam_role.test_updated", "arn"),
 
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_set.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*", map[string]string{
 						"ec2_tag_filter.#": "1",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*.ec2_tag_filter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_set.*.ec2_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "anotherfiltervalue",
@@ -163,6 +164,7 @@ func TestAccAWSCodeDeployDeploymentGroup_onPremiseTag(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -179,7 +181,7 @@ func TestAccAWSCodeDeployDeploymentGroup_onPremiseTag(t *testing.T) {
 
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "filtervalue",
@@ -202,6 +204,7 @@ func TestAccAWSCodeDeployDeploymentGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -224,6 +227,7 @@ func TestAccAWSCodeDeployDeploymentGroup_triggerConfiguration_basic(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -271,6 +275,7 @@ func TestAccAWSCodeDeployDeploymentGroup_triggerConfiguration_multiple(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -289,7 +294,7 @@ func TestAccAWSCodeDeployDeploymentGroup_triggerConfiguration_multiple(t *testin
 						"InstanceFailure",
 					}),
 					testAccCheckCodeDeployDeploymentGroupTriggerTargetArn(&group, "test-trigger-2",
-						regexp.MustCompile("^arn:aws:sns:[^:]+:[0-9]{12}:tf-acc-test-2-"+rName+"$")),
+						regexp.MustCompile(fmt.Sprintf("^arn:%s:sns:[^:]+:[0-9]{12}:tf-acc-test-2-%s$", testAccGetPartition(), rName))),
 				),
 			},
 			{
@@ -310,7 +315,7 @@ func TestAccAWSCodeDeployDeploymentGroup_triggerConfiguration_multiple(t *testin
 						"InstanceFailure",
 					}),
 					testAccCheckCodeDeployDeploymentGroupTriggerTargetArn(&group, "test-trigger-2",
-						regexp.MustCompile("^arn:aws:sns:[^:]+:[0-9]{12}:tf-acc-test-3-"+rName+"$")),
+						regexp.MustCompile(fmt.Sprintf("^arn:%s:sns:[^:]+:[0-9]{12}:tf-acc-test-3-%s$", testAccGetPartition(), rName))),
 				),
 			},
 			{
@@ -330,6 +335,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_create(t *tes
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -343,7 +349,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_create(t *tes
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
 				),
 			},
 			{
@@ -363,6 +369,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_update(t *tes
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -376,7 +383,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_update(t *tes
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
 				),
 			},
 			{
@@ -389,8 +396,8 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_update(t *tes
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_STOP_ON_ALARM"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_STOP_ON_ALARM"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
 				),
 			},
 			{
@@ -410,6 +417,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_delete(t *tes
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -423,7 +431,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_delete(t *tes
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
 				),
 			},
 			{
@@ -451,6 +459,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_disable(t *te
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -464,7 +473,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_disable(t *te
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
 				),
 			},
 			{
@@ -477,7 +486,7 @@ func TestAccAWSCodeDeployDeploymentGroup_autoRollbackConfiguration_disable(t *te
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.enabled", "false"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "auto_rollback_configuration.0.events.*", "DEPLOYMENT_FAILURE"),
 				),
 			},
 			{
@@ -497,6 +506,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_create(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -510,7 +520,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_create(t *testing.T)
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.ignore_poll_alarm_failure", "false"),
 				),
@@ -532,6 +542,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_update(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -545,7 +556,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_update(t *testing.T)
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.ignore_poll_alarm_failure", "false"),
 				),
@@ -560,8 +571,8 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_update(t *testing.T)
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm-2"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm-2"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.ignore_poll_alarm_failure", "true"),
 				),
@@ -583,6 +594,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_delete(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -596,7 +608,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_delete(t *testing.T)
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.ignore_poll_alarm_failure", "false"),
 				),
@@ -626,6 +638,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_disable(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -639,7 +652,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_disable(t *testing.T
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.ignore_poll_alarm_failure", "false"),
 				),
@@ -654,7 +667,7 @@ func TestAccAWSCodeDeployDeploymentGroup_alarmConfiguration_disable(t *testing.T
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.enabled", "false"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
+					resource.TestCheckTypeSetElemAttr("aws_codedeploy_deployment_group.test", "alarm_configuration.0.alarms.*", "test-alarm"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "alarm_configuration.0.ignore_poll_alarm_failure", "false"),
 				),
@@ -677,6 +690,7 @@ func TestAccAWSCodeDeployDeploymentGroup_deploymentStyle_default(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -709,6 +723,7 @@ func TestAccAWSCodeDeployDeploymentGroup_deploymentStyle_create(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -727,7 +742,7 @@ func TestAccAWSCodeDeployDeploymentGroup_deploymentStyle_create(t *testing.T) {
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -749,6 +764,7 @@ func TestAccAWSCodeDeployDeploymentGroup_deploymentStyle_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -794,6 +810,7 @@ func TestAccAWSCodeDeployDeploymentGroup_deploymentStyle_delete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -838,6 +855,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_create(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -849,7 +867,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_create(t *testing.T) {
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -871,6 +889,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -882,7 +901,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_update(t *testing.T) {
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -895,7 +914,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_update(t *testing.T) {
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group-2",
 					}),
 				),
@@ -917,6 +936,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_delete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -928,7 +948,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_delete(t *testing.T) {
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -958,6 +978,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_create
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -970,7 +991,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_create
 
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -992,6 +1013,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_update
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1003,7 +1025,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_update
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -1016,7 +1038,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_update
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group-2",
 					}),
 				),
@@ -1038,6 +1060,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_delete
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1049,7 +1072,7 @@ func TestAccAWSCodeDeployDeploymentGroup_loadBalancerInfo_targetGroupInfo_delete
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.target_group_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -1079,6 +1102,7 @@ func TestAccAWSCodeDeployDeploymentGroup_inPlaceDeploymentWithTrafficControl_cre
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1097,7 +1121,7 @@ func TestAccAWSCodeDeployDeploymentGroup_inPlaceDeploymentWithTrafficControl_cre
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -1119,6 +1143,7 @@ func TestAccAWSCodeDeployDeploymentGroup_inPlaceDeploymentWithTrafficControl_upd
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1137,7 +1162,7 @@ func TestAccAWSCodeDeployDeploymentGroup_inPlaceDeploymentWithTrafficControl_upd
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 				),
@@ -1157,7 +1182,7 @@ func TestAccAWSCodeDeployDeploymentGroup_inPlaceDeploymentWithTrafficControl_upd
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 					resource.TestCheckResourceAttr(
@@ -1193,6 +1218,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeploymentConfiguration_create
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1247,6 +1273,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeploymentConfiguration_update
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1313,6 +1340,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeploymentConfiguration_update
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1393,6 +1421,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeploymentConfiguration_delete
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1459,6 +1488,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeployment_complete(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1478,7 +1508,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeployment_complete(t *testing
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 					resource.TestCheckResourceAttr(
@@ -1520,7 +1550,7 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeployment_complete(t *testing
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "load_balancer_info.0.elb_info.*", map[string]string{
 						"name": "acc-test-codedeploy-dep-group",
 					}),
 					resource.TestCheckResourceAttr(
@@ -1565,6 +1595,7 @@ func TestAccAWSCodeDeployDeploymentGroup_ECS_BlueGreen(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codedeploy.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
 		Steps: []resource.TestStep{
@@ -1626,7 +1657,7 @@ func TestAWSCodeDeployDeploymentGroup_buildTriggerConfigs(t *testing.T) {
 				"DeploymentFailure",
 			}),
 			"trigger_name":       "test-trigger",
-			"trigger_target_arn": "arn:aws:sns:us-west-2:123456789012:test-topic",
+			"trigger_target_arn": "arn:aws:sns:us-west-2:123456789012:test-topic", // lintignore:AWSAT003,AWSAT005 // unit test
 		},
 	}
 
@@ -1636,7 +1667,7 @@ func TestAWSCodeDeployDeploymentGroup_buildTriggerConfigs(t *testing.T) {
 				aws.String("DeploymentFailure"),
 			},
 			TriggerName:      aws.String("test-trigger"),
-			TriggerTargetArn: aws.String("arn:aws:sns:us-west-2:123456789012:test-topic"),
+			TriggerTargetArn: aws.String("arn:aws:sns:us-west-2:123456789012:test-topic"), // lintignore:AWSAT003,AWSAT005 // unit test
 		},
 	}
 
@@ -1656,7 +1687,7 @@ func TestAWSCodeDeployDeploymentGroup_triggerConfigsToMap(t *testing.T) {
 				aws.String("InstanceFailure"),
 			},
 			TriggerName:      aws.String("test-trigger-2"),
-			TriggerTargetArn: aws.String("arn:aws:sns:us-west-2:123456789012:test-topic-2"),
+			TriggerTargetArn: aws.String("arn:aws:sns:us-west-2:123456789012:test-topic-2"), // lintignore:AWSAT003,AWSAT005 // unit test
 		},
 	}
 
@@ -1666,7 +1697,7 @@ func TestAWSCodeDeployDeploymentGroup_triggerConfigsToMap(t *testing.T) {
 			"InstanceFailure",
 		}),
 		"trigger_name":       "test-trigger-2",
-		"trigger_target_arn": "arn:aws:sns:us-west-2:123456789012:test-topic-2",
+		"trigger_target_arn": "arn:aws:sns:us-west-2:123456789012:test-topic-2", // lintignore:AWSAT003,AWSAT005 // unit test
 	}
 
 	actual := triggerConfigsToMap(input)[0]
@@ -2087,7 +2118,6 @@ func TestAWSCodeDeployDeploymentGroup_alarmConfigToMap(t *testing.T) {
 
 func testAccCheckCodeDeployDeploymentGroupTriggerEvents(group *codedeploy.DeploymentGroupInfo, triggerName string, expectedEvents []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		found := false
 		for _, actual := range group.TriggerConfigurations {
 			if *actual.TriggerName == triggerName {
@@ -2238,21 +2268,25 @@ func testAccAWSCodeDeployDeploymentGroupImportStateIdFunc(resourceName string) r
 func testAccAWSCodeDeployDeploymentGroup(rName string, tagGroup bool) string {
 	var tagGroupOrFilter string
 	if tagGroup {
-		tagGroupOrFilter = `ec2_tag_set {
-    ec2_tag_filter {
-      key   = "filterkey"
-      type  = "KEY_AND_VALUE"
-      value = "filtervalue"
-    }
-  }
-`
-	} else {
-		tagGroupOrFilter = `ec2_tag_filter {
+		tagGroupOrFilter = `
+ec2_tag_set {
+  ec2_tag_filter {
     key   = "filterkey"
     type  = "KEY_AND_VALUE"
     value = "filtervalue"
   }
+}
 `
+
+	} else {
+		tagGroupOrFilter = `
+ec2_tag_filter {
+  key   = "filterkey"
+  type  = "KEY_AND_VALUE"
+  value = "filtervalue"
+}
+`
+
 	}
 
 	return fmt.Sprintf(`
@@ -2268,8 +2302,9 @@ resource "aws_codedeploy_app" "test" {
 }
 
 resource "aws_iam_role_policy" "test" {
-  name   = "tf-acc-test-%[1]s"
-  role   = aws_iam_role.test.id
+  name = "tf-acc-test-%[1]s"
+  role = aws_iam_role.test.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2293,11 +2328,13 @@ resource "aws_iam_role_policy" "test" {
   ]
 }
 EOF
-
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test" {
-  name               = "tf-acc-test-%[1]s"
+  name = "tf-acc-test-%[1]s"
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2307,7 +2344,7 @@ resource "aws_iam_role" "test" {
       "Effect": "Allow",
       "Principal": {
         "Service": [
-          "codedeploy.amazonaws.com"
+          "codedeploy.${data.aws_partition.current.dns_suffix}"
         ]
       },
       "Action": "sts:AssumeRole"
@@ -2315,7 +2352,6 @@ resource "aws_iam_role" "test" {
   ]
 }
 EOF
-
 }
 `, rName, tagGroupOrFilter)
 }
@@ -2323,21 +2359,25 @@ EOF
 func testAccAWSCodeDeployDeploymentGroupModified(rName string, tagGroup bool) string {
 	var tagGroupOrFilter string
 	if tagGroup {
-		tagGroupOrFilter = `ec2_tag_set {
-    ec2_tag_filter {
-      key   = "filterkey"
-      type  = "KEY_AND_VALUE"
-      value = "anotherfiltervalue"
-    }
-  }
-`
-	} else {
-		tagGroupOrFilter = `ec2_tag_filter {
+		tagGroupOrFilter = `
+ec2_tag_set {
+  ec2_tag_filter {
     key   = "filterkey"
     type  = "KEY_AND_VALUE"
     value = "anotherfiltervalue"
   }
+}
 `
+
+	} else {
+		tagGroupOrFilter = `
+ec2_tag_filter {
+  key   = "filterkey"
+  type  = "KEY_AND_VALUE"
+  value = "anotherfiltervalue"
+}
+`
+
 	}
 
 	return fmt.Sprintf(`
@@ -2353,8 +2393,9 @@ resource "aws_codedeploy_app" "test" {
 }
 
 resource "aws_iam_role_policy" "test" {
-  name   = "tf-acc-test-%[1]s"
-  role   = aws_iam_role.test_updated.id
+  name = "tf-acc-test-%[1]s"
+  role = aws_iam_role.test_updated.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2378,11 +2419,13 @@ resource "aws_iam_role_policy" "test" {
   ]
 }
 EOF
-
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test_updated" {
-  name               = "tf-acc-test-updated-%[1]s"
+  name = "tf-acc-test-updated-%[1]s"
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2392,7 +2435,7 @@ resource "aws_iam_role" "test_updated" {
       "Effect": "Allow",
       "Principal": {
         "Service": [
-          "codedeploy.amazonaws.com"
+          "codedeploy.${data.aws_partition.current.dns_suffix}"
         ]
       },
       "Action": "sts:AssumeRole"
@@ -2400,7 +2443,6 @@ resource "aws_iam_role" "test_updated" {
   ]
 }
 EOF
-
 }
 `, rName, tagGroupOrFilter)
 }
@@ -2412,8 +2454,9 @@ resource "aws_codedeploy_app" "test" {
 }
 
 resource "aws_iam_role_policy" "test" {
-  name   = "tf-acc-test-%[1]s"
-  role   = aws_iam_role.test.id
+  name = "tf-acc-test-%[1]s"
+  role = aws_iam_role.test.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2437,11 +2480,13 @@ resource "aws_iam_role_policy" "test" {
   ]
 }
 EOF
-
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test" {
-  name               = "tf-acc-test-%[1]s"
+  name = "tf-acc-test-%[1]s"
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2451,7 +2496,7 @@ resource "aws_iam_role" "test" {
       "Effect": "Allow",
       "Principal": {
         "Service": [
-          "codedeploy.amazonaws.com"
+          "codedeploy.${data.aws_partition.current.dns_suffix}"
         ]
       },
       "Action": "sts:AssumeRole"
@@ -2459,7 +2504,6 @@ resource "aws_iam_role" "test" {
   ]
 }
 EOF
-
 }
 
 resource "aws_codedeploy_deployment_group" "test" {
@@ -2483,8 +2527,9 @@ resource "aws_codedeploy_app" "test" {
 }
 
 resource "aws_iam_role_policy" "test" {
-  name   = "tf-acc-test-%[1]s"
-  role   = aws_iam_role.test.id
+  name = "tf-acc-test-%[1]s"
+  role = aws_iam_role.test.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2510,11 +2555,13 @@ resource "aws_iam_role_policy" "test" {
   ]
 }
 EOF
-
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test" {
-  name               = "tf-acc-test-%[1]s"
+  name = "tf-acc-test-%[1]s"
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -2523,14 +2570,13 @@ resource "aws_iam_role" "test" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "codedeploy.amazonaws.com"
+        "Service": "codedeploy.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
   ]
 }
 EOF
-
 }
 
 resource "aws_sns_topic" "test" {
@@ -2979,6 +3025,7 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
     name   = "name"
     values = ["amzn-ami-minimal-hvm-*"]
   }
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
@@ -3070,6 +3117,7 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
     name   = "name"
     values = ["amzn-ami-minimal-hvm-*"]
   }
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
@@ -3322,7 +3370,7 @@ resource "aws_lb_target_group" "green" {
 resource "aws_lb" "test" {
   internal = true
   name     = %[1]q
-  subnets  = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+  subnets  = aws_subnet.test[*].id
 }
 
 resource "aws_lb_listener" "test" {
@@ -3365,7 +3413,6 @@ resource "aws_ecs_task_definition" "test" {
   }
 ]
 DEFINITION
-
 }
 
 resource "aws_ecs_service" "test" {
@@ -3388,7 +3435,7 @@ resource "aws_ecs_service" "test" {
   network_configuration {
     assign_public_ip = true
     security_groups  = [aws_security_group.test.id]
-    subnets          = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+    subnets          = aws_subnet.test[*].id
   }
 }
 
@@ -3396,6 +3443,8 @@ resource "aws_codedeploy_app" "test" {
   compute_platform = "ECS"
   name             = %[1]q
 }
+
+data "aws_partition" "current" {}
 
 resource "aws_iam_role" "test" {
   name = %[1]q
@@ -3409,13 +3458,14 @@ resource "aws_iam_role" "test" {
       "Effect": "Allow",
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": ["codedeploy.amazonaws.com"]
+        "Service": [
+          "codedeploy.${data.aws_partition.current.dns_suffix}"
+        ]
       }
     }
   ]
 }
 POLICY
-
 }
 
 resource "aws_iam_role_policy" "test" {
@@ -3449,7 +3499,6 @@ resource "aws_iam_role_policy" "test" {
   ]
 }
 POLICY
-
 }
 `, rName)
 }
@@ -3457,10 +3506,10 @@ POLICY
 func testAccAWSCodeDeployDeploymentGroupConfigEcsBlueGreen(rName string) string {
 	return testAccAWSCodeDeployDeploymentGroupConfigEcsBase(rName) + fmt.Sprintf(`
 resource "aws_codedeploy_deployment_group" "test" {
-  app_name               = "${aws_codedeploy_app.test.name}"
+  app_name               = aws_codedeploy_app.test.name
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
   deployment_group_name  = %q
-  service_role_arn       = "${aws_iam_role.test.arn}"
+  service_role_arn       = aws_iam_role.test.arn
 
   auto_rollback_configuration {
     enabled = true
@@ -3484,22 +3533,22 @@ resource "aws_codedeploy_deployment_group" "test" {
   }
 
   ecs_service {
-    cluster_name = "${aws_ecs_cluster.test.name}"
-    service_name = "${aws_ecs_service.test.name}"
+    cluster_name = aws_ecs_cluster.test.name
+    service_name = aws_ecs_service.test.name
   }
 
   load_balancer_info {
     target_group_pair_info {
       prod_traffic_route {
-        listener_arns = ["${aws_lb_listener.test.arn}"]
+        listener_arns = [aws_lb_listener.test.arn]
       }
 
       target_group {
-        name = "${aws_lb_target_group.blue.name}"
+        name = aws_lb_target_group.blue.name
       }
 
       target_group {
-        name = "${aws_lb_target_group.green.name}"
+        name = aws_lb_target_group.green.name
       }
     }
   }
@@ -3510,10 +3559,10 @@ resource "aws_codedeploy_deployment_group" "test" {
 func testAccAWSCodeDeployDeploymentGroupConfigEcsBlueGreenUpdate(rName string) string {
 	return testAccAWSCodeDeployDeploymentGroupConfigEcsBase(rName) + fmt.Sprintf(`
 resource "aws_codedeploy_deployment_group" "test" {
-  app_name               = "${aws_codedeploy_app.test.name}"
+  app_name               = aws_codedeploy_app.test.name
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
   deployment_group_name  = %q
-  service_role_arn       = "${aws_iam_role.test.arn}"
+  service_role_arn       = aws_iam_role.test.arn
 
   auto_rollback_configuration {
     enabled = true
@@ -3538,22 +3587,22 @@ resource "aws_codedeploy_deployment_group" "test" {
   }
 
   ecs_service {
-    cluster_name = "${aws_ecs_cluster.test.name}"
-    service_name = "${aws_ecs_service.test.name}"
+    cluster_name = aws_ecs_cluster.test.name
+    service_name = aws_ecs_service.test.name
   }
 
   load_balancer_info {
     target_group_pair_info {
       prod_traffic_route {
-        listener_arns = ["${aws_lb_listener.test.arn}"]
+        listener_arns = [aws_lb_listener.test.arn]
       }
 
       target_group {
-        name = "${aws_lb_target_group.blue.name}"
+        name = aws_lb_target_group.blue.name
       }
 
       target_group {
-        name = "${aws_lb_target_group.green.name}"
+        name = aws_lb_target_group.green.name
       }
     }
   }

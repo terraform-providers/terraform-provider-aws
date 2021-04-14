@@ -12,7 +12,7 @@ Provides details about multiple Outposts.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_outposts_outposts" "example" {
   site_id = data.aws_outposts_site.id
 }
@@ -31,4 +31,5 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arns` - Set of Amazon Resource Names (ARNs).
+* `id` - AWS Region.
 * `ids` - Set of identifiers.

@@ -12,7 +12,7 @@ Provides a Inspector assessment target
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_inspector_resource_group" "bar" {
   tags = {
     Name = "foo"
@@ -22,7 +22,7 @@ resource "aws_inspector_resource_group" "bar" {
 
 resource "aws_inspector_assessment_target" "foo" {
   name               = "assessment target"
-  resource_group_arn = "${aws_inspector_resource_group.bar.arn}"
+  resource_group_arn = aws_inspector_resource_group.bar.arn
 }
 ```
 

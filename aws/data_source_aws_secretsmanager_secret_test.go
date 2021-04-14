@@ -5,15 +5,17 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceAwsSecretsManagerSecret_Basic(t *testing.T) {
+func TestAccDataSourceAwsSecretsManagerSecret_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDataSourceAwsSecretsManagerSecretConfig_MissingRequired,
@@ -37,8 +39,9 @@ func TestAccDataSourceAwsSecretsManagerSecret_ARN(t *testing.T) {
 	datasourceName := "data.aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecretsManagerSecretConfig_ARN(rName),
@@ -56,8 +59,9 @@ func TestAccDataSourceAwsSecretsManagerSecret_Name(t *testing.T) {
 	datasourceName := "data.aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecretsManagerSecretConfig_Name(rName),
@@ -75,8 +79,9 @@ func TestAccDataSourceAwsSecretsManagerSecret_Policy(t *testing.T) {
 	datasourceName := "data.aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck: testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSecretsManagerSecretConfig_Policy(rName),
@@ -138,7 +143,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 data "aws_secretsmanager_secret" "test" {
-  arn = "${aws_secretsmanager_secret.test.arn}"
+  arn = aws_secretsmanager_secret.test.arn
 }
 `, rName)
 }
@@ -147,6 +152,7 @@ const testAccDataSourceAwsSecretsManagerSecretConfig_MissingRequired = `
 data "aws_secretsmanager_secret" "test" {}
 `
 
+//lintignore:AWSAT003,AWSAT005
 const testAccDataSourceAwsSecretsManagerSecretConfig_MultipleSpecified = `
 data "aws_secretsmanager_secret" "test" {
   arn  = "arn:aws:secretsmanager:us-east-1:123456789012:secret:tf-acc-test-does-not-exist"
@@ -165,7 +171,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 data "aws_secretsmanager_secret" "test" {
-  name = "${aws_secretsmanager_secret.test.name}"
+  name = aws_secretsmanager_secret.test.name
 }
 `, rName)
 }
@@ -179,22 +185,22 @@ resource "aws_secretsmanager_secret" "test" {
 {
   "Version": "2012-10-17",
   "Statement": [
-	{
-	  "Sid": "EnableAllPermissions",
-	  "Effect": "Allow",
-	  "Principal": {
-		"AWS": "*"
-	  },
-	  "Action": "secretsmanager:GetSecretValue",
-	  "Resource": "*"
-	}
+    {
+      "Sid": "EnableAllPermissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "*"
+    }
   ]
 }
 POLICY
 }
 
 data "aws_secretsmanager_secret" "test" {
-  name = "${aws_secretsmanager_secret.test.name}"
+  name = aws_secretsmanager_secret.test.name
 }
 `, rName)
 }

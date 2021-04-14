@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsApiGatewayApiKey(t *testing.T) {
+func TestAccDataSourceAwsApiGatewayApiKey_basic(t *testing.T) {
 	rName := acctest.RandString(8)
 	resourceName1 := "aws_api_gateway_api_key.example_key"
 	dataSourceName1 := "data.aws_api_gateway_api_key.test_key"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, apigateway.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsApiGatewayApiKeyConfig(rName),
@@ -41,7 +43,7 @@ resource "aws_api_gateway_api_key" "example_key" {
 }
 
 data "aws_api_gateway_api_key" "test_key" {
-  id = "${aws_api_gateway_api_key.example_key.id}"
+  id = aws_api_gateway_api_key.example_key.id
 }
 `, r)
 }

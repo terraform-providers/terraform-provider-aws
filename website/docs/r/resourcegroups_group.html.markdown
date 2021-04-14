@@ -12,7 +12,7 @@ Provides a Resource Group.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_resourcegroups_group" "test" {
   name = "test-group"
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 An `resource_query` block supports the following arguments:
 
 * `query` - (Required) The resource query as a JSON string.
-* `type` - (Required) The type of the resource query. Defaults to `TAG_FILTERS_1_0`. 
+* `type` - (Required) The type of the resource query. Defaults to `TAG_FILTERS_1_0`.
 
 ## Attributes Reference
 

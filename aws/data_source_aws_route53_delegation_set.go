@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsDelegationSet() *schema.Resource {
@@ -44,14 +44,14 @@ func dataSourceAwsDelegationSetRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := conn.GetReusableDelegationSet(input)
 	if err != nil {
-		return fmt.Errorf("Failed getting Route53 delegation set: %s Set: %q", err, dSetID)
+		return fmt.Errorf("Failed getting Route53 delegation set (%s): %w", dSetID, err)
 	}
 
 	d.SetId(dSetID)
 	d.Set("caller_reference", resp.DelegationSet.CallerReference)
 
 	if err := d.Set("name_servers", expandNameServers(resp.DelegationSet.NameServers)); err != nil {
-		return fmt.Errorf("error setting name_servers: %s", err)
+		return fmt.Errorf("error setting name_servers: %w", err)
 	}
 
 	return nil

@@ -7,17 +7,22 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAwsWafv2WebACLAssociation_Basic(t *testing.T) {
+func TestAccAwsWafv2WebACLAssociation_basic(t *testing.T) {
 	testName := fmt.Sprintf("web-acl-association-%s", acctest.RandString(5))
 	resourceName := "aws_wafv2_web_acl_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccAPIGatewayTypeEDGEPreCheck(t)
+			testAccPreCheckAWSWafv2ScopeRegional(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2WebACLAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -44,7 +49,12 @@ func TestAccAwsWafv2WebACLAssociation_Disappears(t *testing.T) {
 	resourceName := "aws_wafv2_web_acl_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccAPIGatewayTypeEDGEPreCheck(t)
+			testAccPreCheckAWSWafv2ScopeRegional(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2WebACLAssociationDestroy,
 		Steps: []resource.TestStep{

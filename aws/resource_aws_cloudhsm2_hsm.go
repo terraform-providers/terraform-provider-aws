@@ -5,11 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudhsmv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsCloudHsmV2Hsm() *schema.Resource {
@@ -23,7 +22,6 @@ func resourceAwsCloudHsmV2Hsm() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(120 * time.Minute),
-			Update: schema.DefaultTimeout(120 * time.Minute),
 			Delete: schema.DefaultTimeout(120 * time.Minute),
 		},
 
@@ -79,37 +77,56 @@ func resourceAwsCloudHsmV2HsmImport(
 	return []*schema.ResourceData{d}, nil
 }
 
-func describeHsm(conn *cloudhsmv2.CloudHSMV2, hsmId string) (*cloudhsmv2.Hsm, error) {
-	out, err := conn.DescribeClusters(&cloudhsmv2.DescribeClustersInput{})
+func describeHsm(conn *cloudhsmv2.CloudHSMV2, hsmID string, eniID string) (*cloudhsmv2.Hsm, error) {
+	input := &cloudhsmv2.DescribeClustersInput{}
+
+	var result *cloudhsmv2.Hsm
+
+	err := conn.DescribeClustersPages(input, func(page *cloudhsmv2.DescribeClustersOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, cluster := range page.Clusters {
+			if cluster == nil {
+				continue
+			}
+
+			for _, hsm := range cluster.Hsms {
+				if hsm == nil {
+					continue
+				}
+
+				// CloudHSMv2 HSM instances can be recreated, but the ENI ID will
+				// remain consistent. Without this ENI matching, HSM instances
+				// instances can become orphaned.
+				if aws.StringValue(hsm.HsmId) == hsmID || aws.StringValue(hsm.EniId) == eniID {
+					result = hsm
+					return false
+				}
+			}
+		}
+
+		return !lastPage
+	})
+
 	if err != nil {
-		log.Printf("[WARN] Error on descibing CloudHSM v2 Cluster: %s", err)
 		return nil, err
 	}
 
-	var hsm *cloudhsmv2.Hsm
-
-	for _, c := range out.Clusters {
-		for _, h := range c.Hsms {
-			if aws.StringValue(h.HsmId) == hsmId {
-				hsm = h
-				break
-			}
-		}
-	}
-
-	return hsm, nil
+	return result, nil
 }
 
 func resourceAwsCloudHsmV2HsmRefreshFunc(conn *cloudhsmv2.CloudHSMV2, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		hsm, err := describeHsm(conn, id)
+		hsm, err := describeHsm(conn, id, "")
 
-		if hsm == nil {
-			return 42, "destroyed", nil
+		if err != nil {
+			return nil, "", err
 		}
 
-		if hsm.State != nil {
-			log.Printf("[DEBUG] CloudHSMv2 Cluster status (%s): %s", id, *hsm.State)
+		if hsm == nil {
+			return nil, "", nil
 		}
 
 		return hsm, aws.StringValue(hsm.State), err
@@ -182,13 +199,27 @@ func resourceAwsCloudHsmV2HsmCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAwsCloudHsmV2HsmRead(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).cloudhsmv2conn
 
-	hsm, err := describeHsm(meta.(*AWSClient).cloudhsmv2conn, d.Id())
+	hsm, err := describeHsm(conn, d.Id(), d.Get("hsm_eni_id").(string))
+
+	if err != nil {
+		return fmt.Errorf("error reading CloudHSMv2 HSM (%s): %w", d.Id(), err)
+	}
 
 	if hsm == nil {
-		log.Printf("[WARN] CloudHSMv2 HSM (%s) not found", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading CloudHSMv2 HSM (%s): not found after creation", d.Id())
+		}
+
+		log.Printf("[WARN] CloudHSMv2 HSM (%s) not found, removing from state", d.Id())
 		d.SetId("")
-		return err
+		return nil
+	}
+
+	// When matched by ENI ID, the ID should updated.
+	if aws.StringValue(hsm.HsmId) != d.Id() {
+		d.SetId(aws.StringValue(hsm.HsmId))
 	}
 
 	log.Printf("[INFO] Reading CloudHSMv2 HSM Information: %s", d.Id())
@@ -242,7 +273,7 @@ func resourceAwsCloudHsmV2HsmDelete(d *schema.ResourceData, meta interface{}) er
 
 func waitForCloudhsmv2HsmActive(conn *cloudhsmv2.CloudHSMV2, id string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{cloudhsmv2.HsmStateCreateInProgress, "destroyed"},
+		Pending:    []string{cloudhsmv2.HsmStateCreateInProgress},
 		Target:     []string{cloudhsmv2.HsmStateActive},
 		Refresh:    resourceAwsCloudHsmV2HsmRefreshFunc(conn, id),
 		Timeout:    timeout,
@@ -258,7 +289,7 @@ func waitForCloudhsmv2HsmActive(conn *cloudhsmv2.CloudHSMV2, id string, timeout 
 func waitForCloudhsmv2HsmDeletion(conn *cloudhsmv2.CloudHSMV2, id string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{cloudhsmv2.HsmStateDeleteInProgress},
-		Target:     []string{"destroyed"},
+		Target:     []string{},
 		Refresh:    resourceAwsCloudHsmV2HsmRefreshFunc(conn, id),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,

@@ -19,16 +19,16 @@ more information on managing IAM Groups or IAM Users, see [IAM Groups][1] or
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_group_membership" "team" {
   name = "tf-testing-group-membership"
 
   users = [
-    "${aws_iam_user.user_one.name}",
-    "${aws_iam_user.user_two.name}",
+    aws_iam_user.user_one.name,
+    aws_iam_user.user_two.name,
   ]
 
-  group = "${aws_iam_group.group.name}"
+  group = aws_iam_group.group.name
 }
 
 resource "aws_iam_group" "group" {
@@ -53,6 +53,8 @@ The following arguments are supported:
 * `group` – (Required) The IAM Group name to attach the list of `users` to
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `name` - The name to identify the Group Membership
 * `users` - list of IAM User names

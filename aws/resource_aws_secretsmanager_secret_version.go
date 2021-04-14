@@ -1,15 +1,18 @@
 package aws
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
 
-	"encoding/base64"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSecretsManagerSecretVersion() *schema.Resource {
@@ -88,7 +91,7 @@ func resourceAwsSecretsManagerSecretVersionCreate(d *schema.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("version_stages"); ok {
-		input.VersionStages = expandStringList(v.(*schema.Set).List())
+		input.VersionStages = expandStringSet(v.(*schema.Set))
 	}
 
 	log.Printf("[DEBUG] Putting Secrets Manager Secret %q value", secretID)
@@ -115,20 +118,50 @@ func resourceAwsSecretsManagerSecretVersionRead(d *schema.ResourceData, meta int
 		VersionId: aws.String(versionID),
 	}
 
-	log.Printf("[DEBUG] Reading Secrets Manager Secret Version: %s", input)
-	output, err := conn.GetSecretValue(input)
+	var output *secretsmanager.GetSecretValueOutput
+
+	err = resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		output, err = conn.GetSecretValue(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if d.IsNewResource() && tfawserr.ErrMessageContains(err, secretsmanager.ErrCodeInvalidRequestException, "You can’t perform this operation on the secret because it was deleted") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = conn.GetSecretValue(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] Secrets Manager Secret Version (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrMessageContains(err, secretsmanager.ErrCodeInvalidRequestException, "You can’t perform this operation on the secret because it was deleted") {
+		log.Printf("[WARN] Secrets Manager Secret Version (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Secrets Manager Secret Version %q not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		if isAWSErr(err, secretsmanager.ErrCodeInvalidRequestException, "You can’t perform this operation on the secret because it was deleted") {
-			log.Printf("[WARN] Secrets Manager Secret Version %q not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("error reading Secrets Manager Secret Version: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret Version (%s): %w", d.Id(), err)
+	}
+
+	if output == nil {
+		return fmt.Errorf("error reading Secrets Manager Secret Version (%s): empty response", d.Id())
 	}
 
 	d.Set("secret_id", secretID)

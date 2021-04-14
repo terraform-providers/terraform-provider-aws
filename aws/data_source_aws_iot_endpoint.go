@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsIotEndpoint() *schema.Resource {
@@ -41,12 +41,12 @@ func dataSourceAwsIotEndpointRead(d *schema.ResourceData, meta interface{}) erro
 
 	output, err := conn.DescribeEndpoint(input)
 	if err != nil {
-		return fmt.Errorf("error while describing iot endpoint: %s", err)
+		return fmt.Errorf("error while describing iot endpoint: %w", err)
 	}
 	endpointAddress := aws.StringValue(output.EndpointAddress)
 	d.SetId(endpointAddress)
 	if err := d.Set("endpoint_address", endpointAddress); err != nil {
-		return fmt.Errorf("error setting endpoint_address: %s", err)
+		return fmt.Errorf("error setting endpoint_address: %w", err)
 	}
 	return nil
 }

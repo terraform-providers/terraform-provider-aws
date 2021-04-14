@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -166,11 +166,11 @@ func resourceAwsWafv2IPSetRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error reading WAFv2 IPSet")
 	}
 
-	d.Set("name", aws.StringValue(resp.IPSet.Name))
-	d.Set("description", aws.StringValue(resp.IPSet.Description))
-	d.Set("ip_address_version", aws.StringValue(resp.IPSet.IPAddressVersion))
-	d.Set("arn", aws.StringValue(resp.IPSet.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.IPSet.Name)
+	d.Set("description", resp.IPSet.Description)
+	d.Set("ip_address_version", resp.IPSet.IPAddressVersion)
+	d.Set("arn", resp.IPSet.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("addresses", flattenStringSet(resp.IPSet.Addresses)); err != nil {
 		return fmt.Errorf("Error setting addresses: %s", err)
@@ -206,7 +206,7 @@ func resourceAwsWafv2IPSetUpdate(d *schema.ResourceData, meta interface{}) error
 		params.Addresses = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("description"); ok && len(v.(string)) > 0 {
+	if v, ok := d.GetOk("description"); ok {
 		params.Description = aws.String(v.(string))
 	}
 

@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsGlueSecurityConfiguration() *schema.Resource {
@@ -213,7 +213,7 @@ func expandGlueCloudWatchEncryption(l []interface{}) *glue.CloudWatchEncryption 
 		CloudWatchEncryptionMode: aws.String(m["cloudwatch_encryption_mode"].(string)),
 	}
 
-	if v, ok := m["kms_key_arn"]; ok {
+	if v, ok := m["kms_key_arn"]; ok && v.(string) != "" {
 		cloudwatchEncryption.KmsKeyArn = aws.String(v.(string))
 	}
 
@@ -247,7 +247,7 @@ func expandGlueJobBookmarksEncryption(l []interface{}) *glue.JobBookmarksEncrypt
 		JobBookmarksEncryptionMode: aws.String(m["job_bookmarks_encryption_mode"].(string)),
 	}
 
-	if v, ok := m["kms_key_arn"]; ok {
+	if v, ok := m["kms_key_arn"]; ok && v.(string) != "" {
 		jobBookmarksEncryption.KmsKeyArn = aws.String(v.(string))
 	}
 
@@ -272,10 +272,8 @@ func expandGlueS3Encryption(m map[string]interface{}) *glue.S3Encryption {
 		S3EncryptionMode: aws.String(m["s3_encryption_mode"].(string)),
 	}
 
-	if v, ok := m["kms_key_arn"]; ok {
-		if v.(string) != "" {
-			s3Encryption.KmsKeyArn = aws.String(v.(string))
-		}
+	if v, ok := m["kms_key_arn"]; ok && v.(string) != "" {
+		s3Encryption.KmsKeyArn = aws.String(v.(string))
 	}
 
 	return s3Encryption

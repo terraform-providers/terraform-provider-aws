@@ -3,6 +3,7 @@ package aws
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	elasticsearch "github.com/aws/aws-sdk-go/service/elasticsearchservice"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func expandAdvancedSecurityOptions(m []interface{}) *elasticsearch.AdvancedSecurityOptionsInput {
@@ -48,10 +49,37 @@ func flattenAdvancedSecurityOptions(advancedSecurityOptions *elasticsearch.Advan
 		return []map[string]interface{}{}
 	}
 
-	m := map[string]interface{}{
-		"enabled":                        aws.BoolValue(advancedSecurityOptions.Enabled),
-		"internal_user_database_enabled": aws.BoolValue(advancedSecurityOptions.InternalUserDatabaseEnabled),
+	m := map[string]interface{}{}
+	m["enabled"] = aws.BoolValue(advancedSecurityOptions.Enabled)
+	if aws.BoolValue(advancedSecurityOptions.Enabled) {
+		m["internal_user_database_enabled"] = aws.BoolValue(advancedSecurityOptions.InternalUserDatabaseEnabled)
 	}
 
 	return []map[string]interface{}{m}
+}
+
+func getMasterUserOptions(d *schema.ResourceData) []interface{} {
+	if v, ok := d.GetOk("advanced_security_options"); ok {
+		options := v.([]interface{})
+		if len(options) > 0 && options[0] != nil {
+			m := options[0].(map[string]interface{})
+			if opts, ok := m["master_user_options"]; ok {
+				return opts.([]interface{})
+			}
+		}
+	}
+	return []interface{}{}
+}
+
+func getUserDBEnabled(d *schema.ResourceData) bool {
+	if v, ok := d.GetOk("advanced_security_options"); ok {
+		options := v.([]interface{})
+		if len(options) > 0 && options[0] != nil {
+			m := options[0].(map[string]interface{})
+			if enabled, ok := m["internal_user_database_enabled"]; ok {
+				return enabled.(bool)
+			}
+		}
+	}
+	return false
 }

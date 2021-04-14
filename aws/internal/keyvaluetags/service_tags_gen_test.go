@@ -1,7 +1,6 @@
 package keyvaluetags
 
 import (
-	"github.com/aws/aws-sdk-go/service/quicksight"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/athena"
 	"github.com/aws/aws-sdk-go/service/datasync"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go/service/quicksight"
 )
 
 // map[string]*string handling

@@ -20,9 +20,9 @@ When working with [Bitbucket](https://bitbucket.org) and [GitHub](https://github
 
 ~> **Note:** Further managing the automatically created Bitbucket/GitHub webhook with the `bitbucket_hook`/`github_repository_webhook` resource is only possible with importing that resource after creation of the `aws_codebuild_webhook` resource. The CodeBuild API does not ever provide the `secret` attribute for the `aws_codebuild_webhook` resource in this scenario.
 
-```hcl
+```terraform
 resource "aws_codebuild_webhook" "example" {
-  project_name = "${aws_codebuild_project.example.name}"
+  project_name = aws_codebuild_project.example.name
 
   filter_group {
     filter {
@@ -44,20 +44,20 @@ When working with [GitHub Enterprise](https://enterprise.github.com/) source Cod
 
 More information creating webhooks with GitHub Enterprise can be found in the [CodeBuild User Guide](https://docs.aws.amazon.com/codebuild/latest/userguide/sample-github-enterprise.html).
 
-```hcl
+```terraform
 resource "aws_codebuild_webhook" "example" {
-  project_name = "${aws_codebuild_project.example.name}"
+  project_name = aws_codebuild_project.example.name
 }
 
 resource "github_repository_webhook" "example" {
   active     = true
   events     = ["push"]
   name       = "example"
-  repository = "${github_repository.example.name}"
+  repository = github_repository.example.name
 
   configuration {
-    url          = "${aws_codebuild_webhook.example.payload_url}"
-    secret       = "${aws_codebuild_webhook.example.secret}"
+    url          = aws_codebuild_webhook.example.payload_url
+    secret       = aws_codebuild_webhook.example.secret
     content_type = "json"
     insecure_ssl = false
   }
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 `filter` supports the following:
 
-* `type` - (Required) The webhook filter group's type. Valid values for this parameter are: `EVENT`, `BASE_REF`, `HEAD_REF`, `ACTOR_ACCOUNT_ID`, `FILE_PATH`. At least one filter group must specify `EVENT` as its type.
+* `type` - (Required) The webhook filter group's type. Valid values for this parameter are: `EVENT`, `BASE_REF`, `HEAD_REF`, `ACTOR_ACCOUNT_ID`, `FILE_PATH`, `COMMIT_MESSAGE`. At least one filter group must specify `EVENT` as its type.
 * `pattern` - (Required) For a filter that uses `EVENT` type, a comma-separated string that specifies one event: `PUSH`, `PULL_REQUEST_CREATED`, `PULL_REQUEST_UPDATED`, `PULL_REQUEST_REOPENED`. `PULL_REQUEST_MERGED` works with GitHub & GitHub Enterprise only. For a filter that uses any of the other filter types, a regular expression.
 * `exclude_matched_pattern` - (Optional) If set to `true`, the specified filter does *not* trigger a build. Defaults to `false`.
 

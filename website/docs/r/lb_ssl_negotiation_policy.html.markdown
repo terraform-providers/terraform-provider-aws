@@ -12,7 +12,7 @@ Provides a load balancer SSL negotiation policy, which allows an ELB to control 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_elb" "lb" {
   name               = "test-lb"
   availability_zones = ["us-east-1a"]
@@ -28,7 +28,7 @@ resource "aws_elb" "lb" {
 
 resource "aws_lb_ssl_negotiation_policy" "foo" {
   name          = "foo-policy"
-  load_balancer = "${aws_elb.lb.id}"
+  load_balancer = aws_elb.lb.id
   lb_port       = 443
 
   attribute {

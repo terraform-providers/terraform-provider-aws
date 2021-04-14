@@ -16,7 +16,7 @@ Manages a S3 Bucket Notification Configuration. For additional information, see 
 
 ### Add notification configuration to SNS Topic
 
-```hcl
+```terraform
 resource "aws_sns_topic" "topic" {
   name = "s3-event-notification-topic"
 
@@ -25,7 +25,7 @@ resource "aws_sns_topic" "topic" {
     "Version":"2012-10-17",
     "Statement":[{
         "Effect": "Allow",
-        "Principal": {"AWS":"*"},
+        "Principal": { "Service": "s3.amazonaws.com" },
         "Action": "SNS:Publish",
         "Resource": "arn:aws:sns:*:*:s3-event-notification-topic",
         "Condition":{
@@ -37,14 +37,14 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   topic {
-    topic_arn     = "${aws_sns_topic.topic.arn}"
+    topic_arn     = aws_sns_topic.topic.arn
     events        = ["s3:ObjectCreated:*"]
     filter_suffix = ".log"
   }
@@ -53,7 +53,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Add notification configuration to SQS Queue
 
-```hcl
+```terraform
 resource "aws_sqs_queue" "queue" {
   name = "s3-event-notification-queue"
 
@@ -76,14 +76,14 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   queue {
-    queue_arn     = "${aws_sqs_queue.queue.arn}"
+    queue_arn     = aws_sqs_queue.queue.arn
     events        = ["s3:ObjectCreated:*"]
     filter_suffix = ".log"
   }
@@ -92,7 +92,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Add notification configuration to Lambda Function
 
-```hcl
+```terraform
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
@@ -115,28 +115,28 @@ EOF
 resource "aws_lambda_permission" "allow_bucket" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.func.arn}"
+  function_name = aws_lambda_function.func.arn
   principal     = "s3.amazonaws.com"
-  source_arn    = "${aws_s3_bucket.bucket.arn}"
+  source_arn    = aws_s3_bucket.bucket.arn
 }
 
 resource "aws_lambda_function" "func" {
   filename      = "your-function.zip"
   function_name = "example_lambda_name"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.example"
   runtime       = "go1.x"
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   lambda_function {
-    lambda_function_arn = "${aws_lambda_function.func.arn}"
+    lambda_function_arn = aws_lambda_function.func.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "AWSLogs/"
     filter_suffix       = ".log"
@@ -148,7 +148,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 ### Trigger multiple Lambda functions
 
-```hcl
+```terraform
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
@@ -171,15 +171,15 @@ EOF
 resource "aws_lambda_permission" "allow_bucket1" {
   statement_id  = "AllowExecutionFromS3Bucket1"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.func1.arn}"
+  function_name = aws_lambda_function.func1.arn
   principal     = "s3.amazonaws.com"
-  source_arn    = "${aws_s3_bucket.bucket.arn}"
+  source_arn    = aws_s3_bucket.bucket.arn
 }
 
 resource "aws_lambda_function" "func1" {
   filename      = "your-function1.zip"
   function_name = "example_lambda_name1"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.example"
   runtime       = "go1.x"
 }
@@ -187,34 +187,34 @@ resource "aws_lambda_function" "func1" {
 resource "aws_lambda_permission" "allow_bucket2" {
   statement_id  = "AllowExecutionFromS3Bucket2"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.func2.arn}"
+  function_name = aws_lambda_function.func2.arn
   principal     = "s3.amazonaws.com"
-  source_arn    = "${aws_s3_bucket.bucket.arn}"
+  source_arn    = aws_s3_bucket.bucket.arn
 }
 
 resource "aws_lambda_function" "func2" {
   filename      = "your-function2.zip"
   function_name = "example_lambda_name2"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.example"
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   lambda_function {
-    lambda_function_arn = "${aws_lambda_function.func1.arn}"
+    lambda_function_arn = aws_lambda_function.func1.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "AWSLogs/"
     filter_suffix       = ".log"
   }
 
   lambda_function {
-    lambda_function_arn = "${aws_lambda_function.func2.arn}"
+    lambda_function_arn = aws_lambda_function.func2.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "OtherLogs/"
     filter_suffix       = ".log"
@@ -222,14 +222,14 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   depends_on = [
     aws_lambda_permission.allow_bucket1,
-    aws_lambda_permission.allow_bucket2
+    aws_lambda_permission.allow_bucket2,
   ]
 }
 ```
 
 ### Add multiple notification configurations to SQS Queue
 
-```hcl
+```terraform
 resource "aws_sqs_queue" "queue" {
   name = "s3-event-notification-queue"
 
@@ -252,22 +252,22 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "your_bucket_name"
+  bucket = "your-bucket-name"
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   queue {
     id            = "image-upload-event"
-    queue_arn     = "${aws_sqs_queue.queue.arn}"
+    queue_arn     = aws_sqs_queue.queue.arn
     events        = ["s3:ObjectCreated:*"]
     filter_prefix = "images/"
   }
 
   queue {
     id            = "video-upload-event"
-    queue_arn     = "${aws_sqs_queue.queue.arn}"
+    queue_arn     = aws_sqs_queue.queue.arn
     events        = ["s3:ObjectCreated:*"]
     filter_prefix = "videos/"
   }
@@ -328,6 +328,10 @@ The `lambda_function` notification configuration supports the following:
 * `events` - (Required) Specifies [event](http://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html#notification-how-to-event-types-and-destinations) for which to send notifications.
 * `filter_prefix` - (Optional) Specifies object key name prefix.
 * `filter_suffix` - (Optional) Specifies object key name suffix.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

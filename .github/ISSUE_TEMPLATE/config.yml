@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Terraform AWS Provider Roadmap
-    url: https://github.com/terraform-providers/terraform-provider-aws/blob/master/ROADMAP.md
+    url: https://github.com/hashicorp/terraform-provider-aws/blob/main/ROADMAP.md
     about: View the Roadmap for the upcoming work planned on the AWS provider.
   - name: Terraform AWS Provider Questions
     url: https://discuss.hashicorp.com/c/terraform-providers/tf-aws
@@ -12,6 +12,3 @@ contact_links:
   - name: Terraform Language or Workflow Questions
     url: https://discuss.hashicorp.com/c/terraform-core
     about: Please ask and answer language or workflow related questions through the Terraform Core Community Forum.
-  - name: Security Vulnerability
-    url: https://www.hashicorp.com/security.html
-    about: Please report security vulnerabilities responsibly.

@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_synthetics_canary: Handle asynchronous IAM eventual consistency error on creation
+```
