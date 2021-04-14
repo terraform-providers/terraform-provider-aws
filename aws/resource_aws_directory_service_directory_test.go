@@ -709,7 +709,7 @@ resource "aws_directory_service_directory" "test" {
   edition  = "Standard"
   vpc_settings {
     vpc_id     = aws_vpc.test.id
-	  subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
+	subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
   radius_settings {
     protocol = "PAP"
