@@ -42,6 +42,31 @@ func testAccAwsOrganizationsOrganizationalUnit_basic(t *testing.T) {
 	})
 }
 
+func testAccAwsOrganizationsOrganizationalUnit_disappears(t *testing.T) {
+	var unit organizations.OrganizationalUnit
+
+	rInt := acctest.RandInt()
+	name := fmt.Sprintf("tf_outest_%d", rInt)
+	resourceName := "aws_organizations_organizational_unit.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsOrganizationalUnitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsOrganizationalUnitConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationalUnitExists(resourceName, &unit),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsOrganizationsOrganizationalUnit(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccAwsOrganizationsOrganizationalUnit_Name(t *testing.T) {
 	var unit organizations.OrganizationalUnit
 

@@ -24,6 +24,7 @@ linters:
     - makezero
     - misspell
     - nakedret
+    - nilerr
     - staticcheck
     - structcheck
     - unconvert

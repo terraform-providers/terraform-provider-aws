@@ -7,11 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamUser() *schema.Resource {
@@ -107,20 +109,40 @@ func resourceAwsIamUserRead(d *schema.ResourceData, meta interface{}) error {
 		UserName: aws.String(d.Id()),
 	}
 
-	output, err := iamconn.GetUser(request)
-	if err != nil {
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			log.Printf("[WARN] No IAM user by name (%s) found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+	var output *iam.GetUserOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		output, err = iamconn.GetUser(request)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("Error reading IAM User %s: %s", d.Id(), err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = iamconn.GetUser(request)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM User (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM User (%s): %w", d.Id(), err)
 	}
 
 	if output == nil || output.User == nil {
-		log.Printf("[WARN] No IAM user by name (%s) found, removing from state", d.Id())
-		d.SetId("")
-		return nil
+		return fmt.Errorf("error reading IAM User (%s): empty response", d.Id())
 	}
 
 	d.Set("arn", output.User.Arn)

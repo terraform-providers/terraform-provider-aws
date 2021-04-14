@@ -20,6 +20,7 @@ This guide describes the behavior of the Terraform AWS Provider and provides cod
 - [Eventual Consistency](#eventual-consistency)
     - [Operation Specific Error Retries](#operation-specific-error-retries)
         - [IAM Error Retries](#iam-error-retries)
+        - [Asynchronous Operation Error Retries](#asynchronous-operation-error-retries)
     - [Resource Lifecycle Retries](#resource-lifecycle-retries)
     - [Resource Attribute Value Waiters](#resource-attribute-value-waiters)
 - [Asynchronous Operations](#asynchronous-operations)
@@ -208,6 +209,69 @@ import (
 
 	if err != nil {
 		return fmt.Errorf("... error message context ... : %w", err)
+	}
+```
+
+#### Asynchronous Operation Error Retries
+
+Some remote system operations run asynchronously as detailed in the [Asynchronous Operations section](#asynchronous-operations). In these cases, it is possible that the initial operation will immediately return as successful, but potentially return a retryable failure while checking the operation status that requires starting everything over. The handling for these is complicated by the fact that there are two timeouts, one for the retryable failure and one for the asynchronous operation status checking.
+
+The below code example highlights this situation for a resource creation that also exhibited IAM eventual consistency.
+
+```go
+// aws/resource_example_thing.go
+
+import (
+	// ... other imports ...
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/{SERVICE}/waiter"
+	// By convention, cross-service waiter imports are aliased as {SERVICE}waiter
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+)
+
+// ... Create function ...
+
+	// Underlying IAM eventual consistency errors can occur after the creation
+	// operation. The goal is only retry these types of errors up to the IAM
+	// timeout. Since the creation process is asynchronous and can take up to
+	// its own timeout, we store a stop time upfront for checking.
+	iamwaiterStopTime := time.Now().Add(iamwaiter.PropagationTimeout)
+
+	// Ensure to add IAM eventual consistency timeout in case of retries
+	err = resource.Retry(iamwaiter.PropagationTimeout+waiter.ThingOperationTimeout, func() *resource.RetryError {
+		// Only retry IAM eventual consistency errors up to that timeout
+		iamwaiterRetry := time.Now().Before(iamwaiterStopTime)
+
+		_, err := conn./* ... AWS Go SDK operation without eventual consistency errors ... */
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		_, err = waiter.ThingOperation(conn, d.Id())
+
+		if err != nil {
+			if iamwaiterRetry && /* eventual consistency error checking */ {
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn./* ... AWS Go SDK operation without eventual consistency errors ... */
+
+		if err != nil {
+			return err
+		}
+
+		_, err = waiter.ThingOperation(conn, d.Id())
+
+		if err != nil {
+			return err
+		}
 	}
 ```
 

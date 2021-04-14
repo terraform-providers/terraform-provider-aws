@@ -401,19 +401,19 @@ func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 	// set the mutable attributes
 	if attributeOutput.Attributes != nil && len(attributeOutput.Attributes) > 0 {
 		// set the string values
-		d.Set("application_failure_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["ApplicationFailureFeedbackRoleArn"]))
-		d.Set("application_success_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["ApplicationSuccessFeedbackRoleArn"]))
-		d.Set("arn", aws.StringValue(attributeOutput.Attributes["TopicArn"]))
-		d.Set("delivery_policy", aws.StringValue(attributeOutput.Attributes["DeliveryPolicy"]))
-		d.Set("display_name", aws.StringValue(attributeOutput.Attributes["DisplayName"]))
-		d.Set("http_failure_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["HTTPFailureFeedbackRoleArn"]))
-		d.Set("http_success_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["HTTPSuccessFeedbackRoleArn"]))
-		d.Set("kms_master_key_id", aws.StringValue(attributeOutput.Attributes["KmsMasterKeyId"]))
-		d.Set("lambda_failure_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["LambdaFailureFeedbackRoleArn"]))
-		d.Set("lambda_success_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["LambdaSuccessFeedbackRoleArn"]))
-		d.Set("policy", aws.StringValue(attributeOutput.Attributes["Policy"]))
-		d.Set("sqs_failure_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["SQSFailureFeedbackRoleArn"]))
-		d.Set("sqs_success_feedback_role_arn", aws.StringValue(attributeOutput.Attributes["SQSSuccessFeedbackRoleArn"]))
+		d.Set("application_failure_feedback_role_arn", attributeOutput.Attributes["ApplicationFailureFeedbackRoleArn"])
+		d.Set("application_success_feedback_role_arn", attributeOutput.Attributes["ApplicationSuccessFeedbackRoleArn"])
+		d.Set("arn", attributeOutput.Attributes["TopicArn"])
+		d.Set("delivery_policy", attributeOutput.Attributes["DeliveryPolicy"])
+		d.Set("display_name", attributeOutput.Attributes["DisplayName"])
+		d.Set("http_failure_feedback_role_arn", attributeOutput.Attributes["HTTPFailureFeedbackRoleArn"])
+		d.Set("http_success_feedback_role_arn", attributeOutput.Attributes["HTTPSuccessFeedbackRoleArn"])
+		d.Set("kms_master_key_id", attributeOutput.Attributes["KmsMasterKeyId"])
+		d.Set("lambda_failure_feedback_role_arn", attributeOutput.Attributes["LambdaFailureFeedbackRoleArn"])
+		d.Set("lambda_success_feedback_role_arn", attributeOutput.Attributes["LambdaSuccessFeedbackRoleArn"])
+		d.Set("policy", attributeOutput.Attributes["Policy"])
+		d.Set("sqs_failure_feedback_role_arn", attributeOutput.Attributes["SQSFailureFeedbackRoleArn"])
+		d.Set("sqs_success_feedback_role_arn", attributeOutput.Attributes["SQSSuccessFeedbackRoleArn"])
 
 		// set the number values
 		var vStr string

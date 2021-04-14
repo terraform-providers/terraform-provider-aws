@@ -97,6 +97,10 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"fail_on_warnings": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"execution_arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -158,6 +162,10 @@ func resourceAwsAPIGatewayV2ImportOpenAPI(d *schema.ResourceData, meta interface
 		importReq := &apigatewayv2.ReimportApiInput{
 			ApiId: aws.String(d.Id()),
 			Body:  aws.String(body.(string)),
+		}
+
+		if value, ok := d.GetOk("fail_on_warnings"); ok {
+			importReq.FailOnWarnings = aws.Bool(value.(bool))
 		}
 
 		_, err := conn.ReimportApi(importReq)

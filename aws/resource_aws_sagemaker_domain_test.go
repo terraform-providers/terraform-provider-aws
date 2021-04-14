@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -479,8 +480,13 @@ func testAccCheckAWSSagemakerDomainDestroy(s *terraform.State) error {
 		}
 
 		domain, err := finder.DomainByName(conn, rs.Primary.ID)
+
+		if tfawserr.ErrCodeEquals(err, sagemaker.ErrCodeResourceNotFound) {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker Domain (%s): %w", rs.Primary.ID, err)
 		}
 
 		domainArn := aws.StringValue(domain.DomainArn)

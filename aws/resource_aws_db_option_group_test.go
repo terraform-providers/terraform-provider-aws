@@ -184,7 +184,7 @@ func TestAccAWSDBOptionGroup_generatedName(t *testing.T) {
 	})
 }
 
-func TestAccAWSDBOptionGroupConfig_OptionGroupDescription(t *testing.T) {
+func TestAccAWSDBOptionGroup_OptionGroupDescription(t *testing.T) {
 	var optionGroup1 rds.OptionGroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_db_option_group.test"
@@ -697,7 +697,7 @@ func testAccAWSDBOptionGroupBasicDestroyConfig(r string) string {
 	return fmt.Sprintf(`
 resource "aws_db_instance" "bar" {
   allocated_storage = 10
-  engine            = "MySQL"
+  engine            = "mysql"
   engine_version    = "5.6.35"
   instance_class    = "db.t2.micro"
   name              = "baz"

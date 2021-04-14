@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -23,63 +24,61 @@ func init() {
 
 func testSweepRedshiftSnapshotSchedules(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).redshiftconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
-	req := &redshift.DescribeSnapshotSchedulesInput{}
+	input := &redshift.DescribeSnapshotSchedulesInput{}
+	prefixesToSweep := []string{"tf-acc-test"}
 
-	resp, err := conn.DescribeSnapshotSchedules(req)
-	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping Redshift Regional Snapshot Schedules sweep for %s: %s", region, err)
-			return nil
+	err = conn.DescribeSnapshotSchedulesPages(input, func(page *redshift.DescribeSnapshotSchedulesOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
 		}
-		return fmt.Errorf("Error describing Redshift Regional Snapshot Schedules: %s", err)
-	}
 
-	if len(resp.SnapshotSchedules) == 0 {
-		log.Print("[DEBUG] No AWS Redshift Regional Snapshot Schedules to sweep")
-		return nil
-	}
+		for _, snapshotSchedules := range page.SnapshotSchedules {
+			id := aws.StringValue(snapshotSchedules.ScheduleIdentifier)
 
-	for _, snapshotSchedules := range resp.SnapshotSchedules {
-		identifier := aws.StringValue(snapshotSchedules.ScheduleIdentifier)
+			for _, prefix := range prefixesToSweep {
+				if strings.HasPrefix(id, prefix) {
+					r := resourceAwsRedshiftSnapshotSchedule()
+					d := r.Data(nil)
+					d.SetId(id)
 
-		hasPrefix := false
-		prefixes := []string{"tf-snapshot-schedule-"}
+					sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(identifier, prefix) {
-				hasPrefix = true
-				break
+					break
+				}
 			}
 		}
 
-		if !hasPrefix {
-			log.Printf("[INFO] Skipping Delete Redshift Snapshot Schedule: %s", identifier)
-			continue
-		}
+		return !isLast
+	})
 
-		_, err := conn.DeleteSnapshotSchedule(&redshift.DeleteSnapshotScheduleInput{
-			ScheduleIdentifier: snapshotSchedules.ScheduleIdentifier,
-		})
-		if isAWSErr(err, redshift.ErrCodeSnapshotScheduleNotFoundFault, "") {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("Error deleting Redshift Snapshot Schedule %s: %s", identifier, err)
-		}
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error describing Redshift Snapshot Schedules: %w", err))
 	}
 
-	return nil
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping Redshift Snapshot Schedules for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping Redshift Snapshot Schedules sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSRedshiftSnapshotSchedule_basic(t *testing.T) {
 	var v redshift.SnapshotSchedule
-
-	rName := acctest.RandString(8)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_redshift_snapshot_schedule.default"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,8 +115,7 @@ func TestAccAWSRedshiftSnapshotSchedule_basic(t *testing.T) {
 
 func TestAccAWSRedshiftSnapshotSchedule_withMultipleDefinition(t *testing.T) {
 	var v redshift.SnapshotSchedule
-
-	rName := acctest.RandString(8)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_redshift_snapshot_schedule.default"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -155,7 +153,6 @@ func TestAccAWSRedshiftSnapshotSchedule_withMultipleDefinition(t *testing.T) {
 
 func TestAccAWSRedshiftSnapshotSchedule_withIdentifierPrefix(t *testing.T) {
 	var v redshift.SnapshotSchedule
-
 	resourceName := "aws_redshift_snapshot_schedule.default"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -185,8 +182,7 @@ func TestAccAWSRedshiftSnapshotSchedule_withIdentifierPrefix(t *testing.T) {
 
 func TestAccAWSRedshiftSnapshotSchedule_withDescription(t *testing.T) {
 	var v redshift.SnapshotSchedule
-
-	rName := acctest.RandString(8)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_redshift_snapshot_schedule.default"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -217,8 +213,7 @@ func TestAccAWSRedshiftSnapshotSchedule_withDescription(t *testing.T) {
 
 func TestAccAWSRedshiftSnapshotSchedule_withTags(t *testing.T) {
 	var v redshift.SnapshotSchedule
-
-	rName := acctest.RandString(8)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_redshift_snapshot_schedule.default"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -261,7 +256,7 @@ func TestAccAWSRedshiftSnapshotSchedule_withForceDestroy(t *testing.T) {
 	var snapshotSchedule redshift.SnapshotSchedule
 	var cluster redshift.Cluster
 	rInt := acctest.RandInt()
-	rName := acctest.RandString(8)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_redshift_snapshot_schedule.default"
 	clusterResourceName := "aws_redshift_cluster.default"
 
@@ -371,7 +366,7 @@ func testAccCheckAWSRedshiftSnapshotScheduleCreateSnapshotScheduleAssociation(cl
 
 const testAccAWSRedshiftSnapshotScheduleConfigWithIdentifierPrefix = `
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier_prefix = "tf-snapshot-schedule-"
+  identifier_prefix = "tf-acc-test"
   definitions = [
     "rate(12 hours)",
   ]
@@ -381,7 +376,7 @@ resource "aws_redshift_snapshot_schedule" "default" {
 func testAccAWSRedshiftSnapshotScheduleConfig(rName, definition string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier = "tf-snapshot-schedule-%[1]s"
+  identifier = %[1]q
   definitions = [
     "%[2]s",
   ]
@@ -392,7 +387,7 @@ resource "aws_redshift_snapshot_schedule" "default" {
 func testAccAWSRedshiftSnapshotScheduleConfigWithMultipleDefinition(rName, definition1, definition2 string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier = "tf-snapshot-schedule-%[1]s"
+  identifier = %[1]q
   definitions = [
     "%[2]s",
     "%[3]s",
@@ -404,7 +399,7 @@ resource "aws_redshift_snapshot_schedule" "default" {
 func testAccAWSRedshiftSnapshotScheduleConfigWithDescription(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier  = "tf-snapshot-schedule-%[1]s"
+  identifier  = %[1]q
   description = "Test Schedule"
   definitions = [
     "rate(12 hours)",
@@ -416,7 +411,7 @@ resource "aws_redshift_snapshot_schedule" "default" {
 func testAccAWSRedshiftSnapshotScheduleConfigWithTags(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier = "tf-snapshot-schedule-%[1]s"
+  identifier = %[1]q
   definitions = [
     "rate(12 hours)",
   ]
@@ -432,7 +427,7 @@ resource "aws_redshift_snapshot_schedule" "default" {
 func testAccAWSRedshiftSnapshotScheduleConfigWithTagsUpdate(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier = "tf-snapshot-schedule-%[1]s"
+  identifier = %[1]q
   definitions = [
     "rate(12 hours)",
   ]
@@ -450,7 +445,7 @@ func testAccAWSRedshiftSnapshotScheduleConfigWithForceDestroy(rInt int, rName st
 %s
 
 resource "aws_redshift_snapshot_schedule" "default" {
-  identifier  = "tf-snapshot-schedule-%[2]s"
+  identifier  = %[2]q
   description = "Test Schedule"
   definitions = [
     "rate(12 hours)",

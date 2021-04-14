@@ -185,11 +185,11 @@ func resourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error getting WAFv2 RuleGroup")
 	}
 
-	d.Set("name", aws.StringValue(resp.RuleGroup.Name))
-	d.Set("capacity", aws.Int64Value(resp.RuleGroup.Capacity))
-	d.Set("description", aws.StringValue(resp.RuleGroup.Description))
-	d.Set("arn", aws.StringValue(resp.RuleGroup.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.RuleGroup.Name)
+	d.Set("capacity", resp.RuleGroup.Capacity)
+	d.Set("description", resp.RuleGroup.Description)
+	d.Set("arn", resp.RuleGroup.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("rule", flattenWafv2Rules(resp.RuleGroup.Rules)); err != nil {
 		return fmt.Errorf("Error setting rule: %s", err)

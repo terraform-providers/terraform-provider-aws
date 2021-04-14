@@ -89,8 +89,8 @@ func dataSourceAwsEc2TransitGatewayDxGatewayAttachmentRead(d *schema.ResourceDat
 		return fmt.Errorf("error setting tags: %w", err)
 	}
 
-	d.Set("transit_gateway_id", aws.StringValue(transitGatewayAttachment.TransitGatewayId))
-	d.Set("dx_gateway_id", aws.StringValue(transitGatewayAttachment.ResourceId))
+	d.Set("transit_gateway_id", transitGatewayAttachment.TransitGatewayId)
+	d.Set("dx_gateway_id", transitGatewayAttachment.ResourceId)
 
 	d.SetId(aws.StringValue(transitGatewayAttachment.TransitGatewayAttachmentId))
 

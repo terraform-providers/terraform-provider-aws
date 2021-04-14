@@ -185,8 +185,8 @@ func resourceAwsAcmpcaCertificateRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("arn", d.Id())
-	d.Set("certificate", aws.StringValue(certificateOutput.Certificate))
-	d.Set("certificate_chain", aws.StringValue(certificateOutput.CertificateChain))
+	d.Set("certificate", certificateOutput.Certificate)
+	d.Set("certificate_chain", certificateOutput.CertificateChain)
 
 	return nil
 }

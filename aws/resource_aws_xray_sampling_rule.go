@@ -27,7 +27,7 @@ func resourceAwsXraySamplingRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 128),
+				ValidateFunc: validation.StringLenBetween(1, 32),
 			},
 			"resource_arn": {
 				Type:     schema.TypeString,
@@ -112,7 +112,7 @@ func resourceAwsXraySamplingRuleCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("attributes"); ok {
-		samplingRule.Attributes = stringMapToPointers(v.(map[string]interface{}))
+		samplingRule.Attributes = expandStringMap(v.(map[string]interface{}))
 	}
 
 	params := &xray.CreateSamplingRuleInput{
@@ -202,7 +202,7 @@ func resourceAwsXraySamplingRuleUpdate(d *schema.ResourceData, meta interface{})
 			attributes := map[string]*string{}
 			if v, ok := d.GetOk("attributes"); ok {
 				if m, ok := v.(map[string]interface{}); ok {
-					attributes = stringMapToPointers(m)
+					attributes = expandStringMap(m)
 				}
 			}
 			samplingRuleUpdate.Attributes = attributes

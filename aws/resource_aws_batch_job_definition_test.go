@@ -35,9 +35,9 @@ func testSweepBatchJobDefinitions(region string) error {
 	}
 	var sweeperErrs *multierror.Error
 
-	err = conn.DescribeJobDefinitionsPages(input, func(page *batch.DescribeJobDefinitionsOutput, isLast bool) bool {
+	err = conn.DescribeJobDefinitionsPages(input, func(page *batch.DescribeJobDefinitionsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, jobDefinition := range page.JobDefinitions {
@@ -55,7 +55,7 @@ func testSweepBatchJobDefinitions(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping Batch Job Definitions sweep for %s: %s", region, err)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
@@ -14,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSecretsManagerSecret() *schema.Resource {
@@ -131,7 +133,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 
 	// Retry for secret recreation after deletion
 	var output *secretsmanager.CreateSecretOutput
-	err := resource.Retry(waiter.DeletionPropagationTimeout, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		output, err = conn.CreateSecret(input)
 		// Temporarily retry on these errors to support immediate secret recreation:
@@ -218,15 +220,40 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 		SecretId: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Reading Secrets Manager Secret: %s", input)
-	output, err := conn.DescribeSecret(input)
-	if err != nil {
-		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Secrets Manager Secret %q not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
+	var output *secretsmanager.DescribeSecretOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		output, err = conn.DescribeSecret(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("error reading Secrets Manager Secret: %w", err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = conn.DescribeSecret(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] Secrets Manager Secret (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading Secrets Manager Secret (%s): %w", d.Id(), err)
+	}
+
+	if output == nil {
+		return fmt.Errorf("error reading Secrets Manager Secret (%s): empty response", d.Id())
 	}
 
 	d.Set("arn", output.ARN)

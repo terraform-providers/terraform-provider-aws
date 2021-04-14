@@ -13,14 +13,17 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mitchellh/go-homedir"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
+
+const s3BucketObjectCreationTimeout = 2 * time.Minute
 
 func resourceAwsS3BucketObject() *schema.Resource {
 	return &schema.Resource{
@@ -51,6 +54,12 @@ func resourceAwsS3BucketObject() *schema.Resource {
 				Default:      s3.ObjectCannedACLPrivate,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(s3.ObjectCannedACL_Values(), false),
+			},
+
+			"bucket_key_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"cache_control": {
@@ -241,7 +250,7 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		putInput.Metadata = stringMapToPointers(v.(map[string]interface{}))
+		putInput.Metadata = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("content_encoding"); ok {
@@ -254,6 +263,10 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 
 	if v, ok := d.GetOk("content_disposition"); ok {
 		putInput.ContentDisposition = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("bucket_key_enabled"); ok {
+		putInput.BucketKeyEnabled = aws.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("server_side_encryption"); ok {
@@ -305,23 +318,46 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
 
-	resp, err := s3conn.HeadObject(
-		&s3.HeadObjectInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(key),
-		})
+	input := &s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+
+	var resp *s3.HeadObjectOutput
+
+	err := resource.Retry(s3BucketObjectCreationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = s3conn.HeadObject(input)
+
+		if d.IsNewResource() && isAWSErrRequestFailureStatusCode(err, 404) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = s3conn.HeadObject(input)
+	}
+
+	if !d.IsNewResource() && isAWSErrRequestFailureStatusCode(err, 404) {
+		log.Printf("[WARN] S3 Object (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 
 	if err != nil {
-		// If S3 returns a 404 Request Failure, mark the object as destroyed
-		if awsErr, ok := err.(awserr.RequestFailure); ok && awsErr.StatusCode() == 404 {
-			d.SetId("")
-			log.Printf("[WARN] Error Reading Object (%s), object not found (HTTP status 404)", key)
-			return nil
-		}
-		return err
+		return fmt.Errorf("error reading S3 Object (%s): %w", d.Id(), err)
 	}
+
 	log.Printf("[DEBUG] Reading S3 Bucket Object meta: %s", resp)
 
+	d.Set("bucket_key_enabled", resp.BucketKeyEnabled)
 	d.Set("cache_control", resp.CacheControl)
 	d.Set("content_disposition", resp.ContentDisposition)
 	d.Set("content_encoding", resp.ContentEncoding)
@@ -512,6 +548,7 @@ func resourceAwsS3BucketObjectCustomizeDiff(_ context.Context, d *schema.Resourc
 
 func hasS3BucketObjectContentChanges(d resourceDiffer) bool {
 	for _, key := range []string{
+		"bucket_key_enabled",
 		"cache_control",
 		"content_base64",
 		"content_disposition",

@@ -177,11 +177,11 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if kv, ok := d.GetOk("default_arguments"); ok {
-		input.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+		input.DefaultArguments = expandStringMap(kv.(map[string]interface{}))
 	}
 
 	if kv, ok := d.GetOk("non_overridable_arguments"); ok {
-		input.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
+		input.NonOverridableArguments = expandStringMap(kv.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -279,8 +279,8 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("execution_property", flattenGlueExecutionProperty(job.ExecutionProperty)); err != nil {
 		return fmt.Errorf("error setting execution_property: %s", err)
 	}
-	d.Set("max_capacity", aws.Float64Value(job.MaxCapacity))
-	d.Set("max_retries", int(aws.Int64Value(job.MaxRetries)))
+	d.Set("max_capacity", job.MaxCapacity)
+	d.Set("max_retries", job.MaxRetries)
 	if err := d.Set("notification_property", flattenGlueNotificationProperty(job.NotificationProperty)); err != nil {
 		return fmt.Errorf("error setting notification_property: #{err}")
 	}
@@ -297,13 +297,13 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
-	d.Set("timeout", int(aws.Int64Value(job.Timeout)))
+	d.Set("timeout", job.Timeout)
 	if err := d.Set("security_configuration", job.SecurityConfiguration); err != nil {
 		return fmt.Errorf("error setting security_configuration: %s", err)
 	}
 
 	d.Set("worker_type", job.WorkerType)
-	d.Set("number_of_workers", int(aws.Int64Value(job.NumberOfWorkers)))
+	d.Set("number_of_workers", job.NumberOfWorkers)
 
 	return nil
 }
@@ -335,11 +335,11 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if kv, ok := d.GetOk("default_arguments"); ok {
-			jobUpdate.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+			jobUpdate.DefaultArguments = expandStringMap(kv.(map[string]interface{}))
 		}
 
 		if kv, ok := d.GetOk("non_overridable_arguments"); ok {
-			jobUpdate.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
+			jobUpdate.NonOverridableArguments = expandStringMap(kv.(map[string]interface{}))
 		}
 
 		if v, ok := d.GetOk("description"); ok {

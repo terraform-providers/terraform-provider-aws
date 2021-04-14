@@ -29,9 +29,9 @@ func testSweepEcsClusters(region string) error {
 	}
 	conn := client.(*AWSClient).ecsconn
 
-	err = conn.ListClustersPages(&ecs.ListClustersInput{}, func(page *ecs.ListClustersOutput, isLast bool) bool {
+	err = conn.ListClustersPages(&ecs.ListClustersInput{}, func(page *ecs.ListClustersOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, clusterARNPtr := range page.ClusterArns {
@@ -48,7 +48,7 @@ func testSweepEcsClusters(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

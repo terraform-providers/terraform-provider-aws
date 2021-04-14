@@ -76,8 +76,8 @@ func dataSourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(aws.StringValue(foundWebACL.Id))
-	d.Set("arn", aws.StringValue(foundWebACL.ARN))
-	d.Set("description", aws.StringValue(foundWebACL.Description))
+	d.Set("arn", foundWebACL.ARN)
+	d.Set("description", foundWebACL.Description)
 
 	return nil
 }

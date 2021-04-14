@@ -718,7 +718,7 @@ func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta int
 	d.Set("last_update_timestamp", aws.TimeValue(application.LastUpdateTimestamp).Format(time.RFC3339))
 	d.Set("name", application.ApplicationName)
 	d.Set("status", application.ApplicationStatus)
-	d.Set("version", int(aws.Int64Value(application.ApplicationVersionId)))
+	d.Set("version", application.ApplicationVersionId)
 
 	if err := d.Set("cloudwatch_logging_options", flattenKinesisAnalyticsCloudWatchLoggingOptionDescriptions(application.CloudWatchLoggingOptionDescriptions)); err != nil {
 		return fmt.Errorf("error setting cloudwatch_logging_options: %w", err)

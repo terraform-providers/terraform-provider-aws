@@ -69,7 +69,7 @@ func resourceAwsApiGatewayV2IntegrationResponseCreate(d *schema.ResourceData, me
 		req.ContentHandlingStrategy = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("response_templates"); ok {
-		req.ResponseTemplates = stringMapToPointers(v.(map[string]interface{}))
+		req.ResponseTemplates = expandStringMap(v.(map[string]interface{}))
 	}
 	if v, ok := d.GetOk("template_selection_expression"); ok {
 		req.TemplateSelectionExpression = aws.String(v.(string))
@@ -129,7 +129,7 @@ func resourceAwsApiGatewayV2IntegrationResponseUpdate(d *schema.ResourceData, me
 		req.IntegrationResponseKey = aws.String(d.Get("integration_response_key").(string))
 	}
 	if d.HasChange("response_templates") {
-		req.ResponseTemplates = stringMapToPointers(d.Get("response_templates").(map[string]interface{}))
+		req.ResponseTemplates = expandStringMap(d.Get("response_templates").(map[string]interface{}))
 	}
 	if d.HasChange("template_selection_expression") {
 		req.TemplateSelectionExpression = aws.String(d.Get("template_selection_expression").(string))

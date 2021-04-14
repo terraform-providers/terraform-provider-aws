@@ -18,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -48,7 +47,6 @@ const (
 )
 
 const rfc3339RegexPattern = `^[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?([Zz]|([+-]([01][0-9]|2[0-3]):[0-5][0-9]))$`
-const uuidRegexPattern = `[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[ab89][a-f0-9]{3}-[a-f0-9]{12}`
 
 // TestAccSkip implements a wrapper for (*testing.T).Skip() to prevent unused linting reports
 //
@@ -1006,6 +1004,28 @@ func testAccAwsRegionProviderFunc(region string, providers *[]*schema.Provider) 
 	}
 }
 
+func testAccDeleteResource(resource *schema.Resource, d *schema.ResourceData, meta interface{}) error {
+	if resource.DeleteContext != nil || resource.DeleteWithoutTimeout != nil {
+		var diags diag.Diagnostics
+
+		if resource.DeleteContext != nil {
+			diags = resource.DeleteContext(context.Background(), d, meta)
+		} else {
+			diags = resource.DeleteWithoutTimeout(context.Background(), d, meta)
+		}
+
+		for i := range diags {
+			if diags[i].Severity == diag.Error {
+				return fmt.Errorf("error deleting resource: %s", diags[i].Summary)
+			}
+		}
+
+		return nil
+	}
+
+	return resource.Delete(d, meta)
+}
+
 func testAccCheckResourceDisappears(provider *schema.Provider, resource *schema.Resource, resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resourceState, ok := s.RootModule().Resources[resourceName]
@@ -1018,19 +1038,7 @@ func testAccCheckResourceDisappears(provider *schema.Provider, resource *schema.
 			return fmt.Errorf("resource ID missing: %s", resourceName)
 		}
 
-		if resource.DeleteContext != nil {
-			diags := resource.DeleteContext(context.Background(), resource.Data(resourceState.Primary), provider.Meta())
-
-			for i := range diags {
-				if diags[i].Severity == diag.Error {
-					return fmt.Errorf("error deleting resource: %s", diags[i].Summary)
-				}
-			}
-
-			return nil
-		}
-
-		return resource.Delete(resource.Data(resourceState.Primary), provider.Meta())
+		return testAccDeleteResource(resource, resource.Data(resourceState.Primary), provider.Meta())
 	}
 }
 
@@ -1055,7 +1063,7 @@ func testAccCheckWithProviders(f func(*terraform.State, *schema.Provider) error,
 func testAccErrorCheckSkipMessagesContaining(t *testing.T, messages ...string) resource.ErrorCheckFunc {
 	return func(err error) error {
 		if err == nil {
-			return err
+			return nil
 		}
 
 		for _, message := range messages {
@@ -1088,7 +1096,7 @@ func RegisterServiceErrorCheckFunc(endpointID string, f ServiceErrorCheckFunc) {
 func testAccErrorCheck(t *testing.T, endpointIDs ...string) resource.ErrorCheckFunc {
 	return func(err error) error {
 		if err == nil {
-			return err
+			return nil
 		}
 
 		for _, endpointID := range endpointIDs {
@@ -1173,57 +1181,7 @@ func testAccPreCheckSkipError(err error) bool {
 	return false
 }
 
-// Check sweeper API call error for reasons to skip sweeping
-// These include missing API endpoints and unsupported API calls
-func testSweepSkipSweepError(err error) bool {
-	// Ignore missing API endpoints
-	if isAWSErr(err, "RequestError", "send request failed") {
-		return true
-	}
-	// Ignore unsupported API calls
-	if isAWSErr(err, "UnsupportedOperation", "") {
-		return true
-	}
-	// Ignore more unsupported API calls
-	// InvalidParameterValue: Use of cache security groups is not permitted in this API version for your account.
-	if isAWSErr(err, "InvalidParameterValue", "not permitted in this API version for your account") {
-		return true
-	}
-	// InvalidParameterValue: Access Denied to API Version: APIGlobalDatabases
-	if isAWSErr(err, "InvalidParameterValue", "Access Denied to API Version") {
-		return true
-	}
-	// GovCloud has endpoints that respond with (no message provided):
-	// AccessDeniedException:
-	// Since acceptance test sweepers are best effort and this response is very common,
-	// we allow bypassing this error globally instead of individual test sweeper fixes.
-	if isAWSErr(err, "AccessDeniedException", "") {
-		return true
-	}
-	// Example: BadRequestException: vpc link not supported for region us-gov-west-1
-	if isAWSErr(err, "BadRequestException", "not supported") {
-		return true
-	}
-	// Example: InvalidAction: The action DescribeTransitGatewayAttachments is not valid for this web service
-	if isAWSErr(err, "InvalidAction", "is not valid") {
-		return true
-	}
-	// For example from GovCloud SES.SetActiveReceiptRuleSet.
-	if isAWSErr(err, "InvalidAction", "Unavailable Operation") {
-		return true
-	}
-	return false
-}
-
-// Check sweeper API call error for reasons to skip a specific resource
-// These include AccessDenied or AccessDeniedException for individual resources, e.g. managed by central IT
-func testSweepSkipResourceError(err error) bool {
-	// Since acceptance test sweepers are best effort, we allow bypassing this error globally
-	// instead of individual test sweeper fixes.
-	return tfawserr.ErrCodeContains(err, "AccessDenied")
-}
-
-func TestAccProvider_DefaultTags_EmptyConfigurationBlock(t *testing.T) {
+func TestAccAWSProvider_DefaultTags_EmptyConfigurationBlock(t *testing.T) {
 	var providers []*schema.Provider
 
 	resource.ParallelTest(t, resource.TestCase{

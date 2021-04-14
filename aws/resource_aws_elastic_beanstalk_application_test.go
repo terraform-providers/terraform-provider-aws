@@ -62,41 +62,10 @@ func testSweepElasticBeanstalkApplications(region string) error {
 	return errors
 }
 
-func TestAccAWSElasticBeanstalkApplication_basic(t *testing.T) {
-	resourceName := "aws_elastic_beanstalk_application.tftest"
-	config := fmt.Sprintf("tf-test-name-%d", acctest.RandInt())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBeanstalkAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBeanstalkAppImportConfig(config),
-			},
-
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func testAccBeanstalkAppImportConfig(name string) string {
-	return fmt.Sprintf(`
-resource "aws_elastic_beanstalk_application" "tftest" {
-  name        = "%s"
-  description = "tf-test-desc"
-}
-`, name)
-}
-
 func TestAccAWSBeanstalkApp_basic(t *testing.T) {
 	var app elasticbeanstalk.ApplicationDescription
 	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_elastic_beanstalk_application.tftest"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -107,8 +76,13 @@ func TestAccAWSBeanstalkApp_basic(t *testing.T) {
 			{
 				Config: testAccBeanstalkAppConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBeanstalkAppExists("aws_elastic_beanstalk_application.tftest", &app),
+					testAccCheckBeanstalkAppExists(resourceName, &app),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

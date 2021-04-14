@@ -9,11 +9,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSpotInstanceRequest() *schema.Resource {
@@ -250,35 +255,60 @@ func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).ec2conn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	req := &ec2.DescribeSpotInstanceRequestsInput{
-		SpotInstanceRequestIds: []*string{aws.String(d.Id())},
-	}
-	resp, err := conn.DescribeSpotInstanceRequests(req)
+	var request *ec2.SpotInstanceRequest
 
-	if err != nil {
-		// If the spot request was not found, return nil so that we can show
-		// that it is gone.
-		if isAWSErr(err, "InvalidSpotInstanceRequestID.NotFound", "") {
-			log.Printf("[WARN] EC2 Spot Instance Request (%s) not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		request, err = finder.SpotInstanceRequestByID(conn, d.Id())
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidSpotInstanceRequestIDNotFound) {
+			return resource.RetryableError(err)
 		}
 
-		// Some other error, report it
-		return err
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && request == nil {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("EC2 Spot Instance Request (%s) not found", d.Id()),
+			})
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		request, err = finder.SpotInstanceRequestByID(conn, d.Id())
 	}
 
-	// If nothing was found, then return no state
-	if len(resp.SpotInstanceRequests) == 0 {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidSpotInstanceRequestIDNotFound) {
 		log.Printf("[WARN] EC2 Spot Instance Request (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	request := resp.SpotInstanceRequests[0]
+	if err != nil {
+		return fmt.Errorf("error reading EC2 Spot Instance Request (%s): %w", d.Id(), err)
+	}
 
-	// if the request is cancelled or closed, then it is gone
-	if *request.State == ec2.SpotInstanceStateCancelled || *request.State == ec2.SpotInstanceStateClosed {
+	if request == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 Spot Instance Request (%s): not found after creation", d.Id())
+		}
+
+		log.Printf("[WARN] EC2 Spot Instance Request (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if aws.StringValue(request.State) == ec2.SpotInstanceStateCancelled || aws.StringValue(request.State) == ec2.SpotInstanceStateClosed {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 Spot Instance Request (%s): %s after creation", d.Id(), aws.StringValue(request.State))
+		}
+
+		log.Printf("[WARN] EC2 Spot Instance Request (%s) %s, removing from state", d.Id(), aws.StringValue(request.State))
 		d.SetId("")
 		return nil
 	}

@@ -365,7 +365,7 @@ To read:
 input := service.ExampleOperationInput{}
 
 if v, ok := d.GetOk("attribute_name"); ok && len(v.(map[string]interface{})) > 0 {
-    input.AttributeName = stringMapToPointers(v.(map[string]interface{}))
+    input.AttributeName = expandStringMap(v.(map[string]interface{}))
 }
 ```
 
@@ -667,7 +667,7 @@ To read:
 input := service.ExampleOperationInput{}
 
 if v, ok := tfMap["nested_attribute_name"].(map[string]interface{}); ok && len(v) > 0 {
-    apiObject.NestedAttributeName = stringMapToPointers(v)
+    apiObject.NestedAttributeName = expandStringMap(v)
 }
 ```
 

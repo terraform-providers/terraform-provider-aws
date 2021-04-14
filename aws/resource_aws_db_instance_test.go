@@ -5,7 +5,6 @@ import (
 	"log"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -28,27 +27,17 @@ func testSweepDbInstances(region string) error {
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).rdsconn
+	sweepResources := make([]*testSweepResource, 0)
 
 	err = conn.DescribeDBInstancesPages(&rds.DescribeDBInstancesInput{}, func(out *rds.DescribeDBInstancesOutput, lastPage bool) bool {
 		for _, dbi := range out.DBInstances {
-			log.Printf("[INFO] Deleting DB instance: %s", *dbi.DBInstanceIdentifier)
-
-			_, err := conn.DeleteDBInstance(&rds.DeleteDBInstanceInput{
-				DBInstanceIdentifier: dbi.DBInstanceIdentifier,
-				SkipFinalSnapshot:    aws.Bool(true),
-			})
-			if err != nil {
-				log.Printf("[ERROR] Failed to delete DB instance %s: %s",
-					*dbi.DBInstanceIdentifier, err)
-				continue
-			}
-
-			err = waitUntilAwsDbInstanceIsDeleted(*dbi.DBInstanceIdentifier, conn, 40*time.Minute)
-			if err != nil {
-				log.Printf("[ERROR] Failure while waiting for DB instance %s to be deleted: %s",
-					*dbi.DBInstanceIdentifier, err)
-			}
+			r := resourceAwsDbInstance()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(dbi.DBInstanceIdentifier))
+			d.Set("skip_final_snapshot", true)
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 		return !lastPage
 	})
@@ -60,7 +49,7 @@ func testSweepDbInstances(region string) error {
 		return fmt.Errorf("Error retrieving DB instances: %s", err)
 	}
 
-	return nil
+	return testSweepResourceOrchestrator(sweepResources)
 }
 
 func TestAccAWSDBInstance_basic(t *testing.T) {

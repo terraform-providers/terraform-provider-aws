@@ -8,8 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamRolePolicy() *schema.Resource {
@@ -94,18 +97,40 @@ func resourceAwsIamRolePolicyRead(d *schema.ResourceData, meta interface{}) erro
 		RoleName:   aws.String(role),
 	}
 
-	getResp, err := iamconn.GetRolePolicy(request)
-	if err != nil {
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			log.Printf("[WARN] IAM Role Policy (%s) for %s not found, removing from state", name, role)
-			d.SetId("")
-			return nil
+	var getResp *iam.GetRolePolicyOutput
+
+	err = resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		getResp, err = iamconn.GetRolePolicy(request)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("Error reading IAM policy %s from role %s: %s", name, role, err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		getResp, err = iamconn.GetRolePolicy(request)
 	}
 
-	if getResp.PolicyDocument == nil {
-		return fmt.Errorf("GetRolePolicy returned a nil policy document")
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM Role Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM Role Policy (%s): %w", d.Id(), err)
+	}
+
+	if getResp == nil || getResp.PolicyDocument == nil {
+		return fmt.Errorf("error reading IAM Role Policy (%s): empty response", d.Id())
 	}
 
 	policy, err := url.QueryUnescape(*getResp.PolicyDocument)

@@ -102,7 +102,7 @@ func resourceAwsLambdaProvisionedConcurrencyConfigRead(d *schema.ResourceData, m
 	}
 
 	d.Set("function_name", functionName)
-	d.Set("provisioned_concurrent_executions", aws.Int64Value(output.AllocatedProvisionedConcurrentExecutions))
+	d.Set("provisioned_concurrent_executions", output.AllocatedProvisionedConcurrentExecutions)
 	d.Set("qualifier", qualifier)
 
 	return nil

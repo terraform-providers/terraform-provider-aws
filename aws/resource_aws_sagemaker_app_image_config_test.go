@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -221,8 +222,13 @@ func testAccCheckAWSSagemakerAppImageConfigDestroy(s *terraform.State) error {
 		}
 
 		config, err := finder.AppImageConfigByName(conn, rs.Primary.ID)
+
+		if tfawserr.ErrCodeEquals(err, sagemaker.ErrCodeResourceNotFound) {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker App Image Config (%s): %w", rs.Primary.ID, err)
 		}
 
 		if aws.StringValue(config.AppImageConfigName) == rs.Primary.ID {

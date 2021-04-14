@@ -303,9 +303,9 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("replication_factor", c.TotalNodes)
 
 	if c.ClusterDiscoveryEndpoint != nil {
-		d.Set("port", aws.Int64Value(c.ClusterDiscoveryEndpoint.Port))
+		d.Set("port", c.ClusterDiscoveryEndpoint.Port)
 		d.Set("configuration_endpoint", fmt.Sprintf("%s:%d", aws.StringValue(c.ClusterDiscoveryEndpoint.Address), aws.Int64Value(c.ClusterDiscoveryEndpoint.Port)))
-		d.Set("cluster_address", aws.StringValue(c.ClusterDiscoveryEndpoint.Address))
+		d.Set("cluster_address", c.ClusterDiscoveryEndpoint.Address)
 	}
 
 	d.Set("subnet_group_name", c.SubnetGroup)

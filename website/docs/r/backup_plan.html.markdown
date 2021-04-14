@@ -46,6 +46,7 @@ For **rule** the following attributes are supported:
 * `rule_name` - (Required) An display name for a backup rule.
 * `target_vault_name` - (Required) The name of a logical container where backups are stored.
 * `schedule` - (Optional) A CRON expression specifying when AWS Backup initiates a backup job.
+* `enable_continuous_backup` - (Optional) Enable continuous backups for supported resources.
 * `start_window` - (Optional) The amount of time in minutes before beginning a backup.
 * `completion_window` - (Optional) The amount of time AWS Backup attempts a backup before canceling the job and returning an error.
 * `lifecycle` - (Optional) The lifecycle defines when a protected resource is transitioned to cold storage and when it expires.  Fields documented below.

@@ -50,9 +50,9 @@ func testSweepSnsTopics(region string) error {
 	conn := client.(*AWSClient).snsconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListTopicsPages(&sns.ListTopicsInput{}, func(page *sns.ListTopicsOutput, isLast bool) bool {
+	err = conn.ListTopicsPages(&sns.ListTopicsInput{}, func(page *sns.ListTopicsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, topic := range page.Topics {
@@ -73,7 +73,7 @@ func testSweepSnsTopics(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping SNS Topics sweep for %s: %s", region, err)

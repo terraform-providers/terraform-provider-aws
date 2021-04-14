@@ -29,9 +29,9 @@ func testSweepCloudTrails(region string) error {
 	conn := client.(*AWSClient).cloudtrailconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListTrailsPages(&cloudtrail.ListTrailsInput{}, func(page *cloudtrail.ListTrailsOutput, isLast bool) bool {
+	err = conn.ListTrailsPages(&cloudtrail.ListTrailsInput{}, func(page *cloudtrail.ListTrailsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, trail := range page.Trails {
@@ -77,7 +77,7 @@ func testSweepCloudTrails(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping CloudTrail sweep for %s: %s", region, err)

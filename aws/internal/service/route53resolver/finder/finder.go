@@ -75,3 +75,22 @@ func ResolverDnssecConfigByID(conn *route53resolver.Route53Resolver, dnssecConfi
 
 	return config, nil
 }
+
+// FirewallRuleGroupByID returns the DNS Firewall rule group corresponding to the specified ID.
+// Returns nil if no DNS Firewall rule group is found.
+func FirewallRuleGroupByID(conn *route53resolver.Route53Resolver, firewallGroupId string) (*route53resolver.FirewallRuleGroup, error) {
+	input := &route53resolver.GetFirewallRuleGroupInput{
+		FirewallRuleGroupId: aws.String(firewallGroupId),
+	}
+
+	output, err := conn.GetFirewallRuleGroup(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return nil, nil
+	}
+
+	return output.FirewallRuleGroup, nil
+}

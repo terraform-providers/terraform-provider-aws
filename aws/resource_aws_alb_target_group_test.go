@@ -46,42 +46,43 @@ func TestALBTargetGroupCloudwatchSuffixFromARN(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_basic(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "vpc_id"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "deregistration_delay", "200"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "slow_start", "0"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "target_type", "instance"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.enabled", "true"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.type", "lb_cookie"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.cookie_duration", "10000"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.path", "/health"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.interval", "60"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.port", "8081"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.protocol", "HTTP"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.timeout", "3"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.healthy_threshold", "3"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.unhealthy_threshold", "3"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.matcher", "200-299"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.TestName", "TestAccAWSALBTargetGroup_basic"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "slow_start", "0"),
+					resource.TestCheckResourceAttr(resourceName, "target_type", "instance"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "lb_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "60"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8081"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTP"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "3"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "3"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "3"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200-299"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TestName", rName),
 				),
 			},
 		},
@@ -90,19 +91,21 @@ func TestAccAWSALBTargetGroup_basic(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_namePrefix(t *testing.T) {
 	var conf elbv2.TargetGroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_namePrefix,
+				Config: testAccAWSALBTargetGroupConfig_namePrefix(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestMatchResourceAttr("aws_alb_target_group.test", "name", regexp.MustCompile("^tf-")),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile("^tf-")),
 				),
 			},
 		},
@@ -111,18 +114,20 @@ func TestAccAWSALBTargetGroup_namePrefix(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_generatedName(t *testing.T) {
 	var conf elbv2.TargetGroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_generatedName,
+				Config: testAccAWSALBTargetGroupConfig_generatedName(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
 				),
 			},
 		},
@@ -131,28 +136,29 @@ func TestAccAWSALBTargetGroup_generatedName(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupNameBefore := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
-	targetGroupNameAfter := fmt.Sprintf("test-target-group-%s", acctest.RandString(4))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameAfter := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupNameBefore),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &before),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupNameBefore),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupNameAfter),
+				Config: testAccAWSALBTargetGroupConfig_basic(rNameAfter),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &after),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupNameAfter),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameAfter),
 				),
 			},
 		},
@@ -161,27 +167,28 @@ func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &before),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_updatedProtocol(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_updatedProtocol(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &after),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTP"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTP"),
 				),
 			},
 		},
@@ -190,27 +197,28 @@ func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &before),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_updatedPort(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_updatedPort(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &after),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "442"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "port", "442"),
 				),
 			},
 		},
@@ -219,25 +227,26 @@ func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &before),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &before),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_updatedVpc(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_updatedVpc(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &after),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &after),
 				),
 			},
 		},
@@ -246,30 +255,31 @@ func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.TestName", "TestAccAWSALBTargetGroup_basic"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TestName", rName),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_updateTags(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_updateTags(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.Environment", "Production"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "tags.Type", "ALB Target Group"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Type", "ALB Target Group"),
 				),
 			},
 		},
@@ -278,61 +288,62 @@ func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_basic(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "vpc_id"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "deregistration_delay", "200"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.type", "lb_cookie"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.cookie_duration", "10000"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.path", "/health"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.interval", "60"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.port", "8081"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.protocol", "HTTP"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.timeout", "3"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.healthy_threshold", "3"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.unhealthy_threshold", "3"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.matcher", "200-299"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "lb_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "60"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8081"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTP"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "3"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "3"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "3"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200-299"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_updateHealthCheck(targetGroupName),
+				Config: testAccAWSALBTargetGroupConfig_updateHealthCheck(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "vpc_id"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "deregistration_delay", "200"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.type", "lb_cookie"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.cookie_duration", "10000"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.path", "/health2"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.interval", "30"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.port", "8082"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.protocol", "HTTPS"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.timeout", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.healthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.unhealthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.matcher", "200"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "lb_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
 				),
 			},
 		},
@@ -341,84 +352,85 @@ func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_stickiness(targetGroupName, false, false),
+				Config: testAccAWSALBTargetGroupConfig_stickiness(rName, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "vpc_id"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "deregistration_delay", "200"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.path", "/health2"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.interval", "30"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.port", "8082"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.protocol", "HTTPS"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.timeout", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.healthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.unhealthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.matcher", "200"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_stickiness(targetGroupName, true, true),
+				Config: testAccAWSALBTargetGroupConfig_stickiness(rName, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "vpc_id"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "deregistration_delay", "200"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.enabled", "true"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.type", "lb_cookie"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.cookie_duration", "10000"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.path", "/health2"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.interval", "30"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.port", "8082"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.protocol", "HTTPS"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.timeout", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.healthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.unhealthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.matcher", "200"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "lb_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_stickiness(targetGroupName, true, false),
+				Config: testAccAWSALBTargetGroupConfig_stickiness(rName, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "port", "443"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "protocol", "HTTPS"),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "vpc_id"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "deregistration_delay", "200"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.enabled", "false"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.type", "lb_cookie"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "stickiness.0.cookie_duration", "10000"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.#", "1"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.path", "/health2"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.interval", "30"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.port", "8082"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.protocol", "HTTPS"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.timeout", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.healthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.unhealthy_threshold", "4"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "health_check.0.matcher", "200"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "lb_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
 				),
 			},
 		},
@@ -427,27 +439,28 @@ func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName, 30),
+				Config: testAccAWSALBTargetGroupConfig_updateSlowStart(rName, 30),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &before),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "slow_start", "30"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "slow_start", "30"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName, 60),
+				Config: testAccAWSALBTargetGroupConfig_updateSlowStart(rName, 60),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &after),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "slow_start", "60"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "slow_start", "60"),
 				),
 			},
 		},
@@ -456,40 +469,41 @@ func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: "aws_alb_target_group.test",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, false, ""),
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(rName, false, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "round_robin"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "load_balancing_algorithm_type", "round_robin"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "round_robin"),
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(rName, true, "round_robin"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "round_robin"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "load_balancing_algorithm_type", "round_robin"),
 				),
 			},
 			{
-				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "least_outstanding_requests"),
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(rName, true, "least_outstanding_requests"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
-					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
-					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "least_outstanding_requests"),
+					testAccCheckAWSALBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "load_balancing_algorithm_type", "least_outstanding_requests"),
 				),
 			},
 		},
@@ -642,7 +656,7 @@ func TestAccAWSALBTargetGroup_lambdaMultiValueHeadersEnabled(t *testing.T) {
 }
 
 func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	rName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -651,25 +665,25 @@ func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
 		CheckDestroy: testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAWSALBTargetGroupConfig_missing_port(targetGroupName),
+				Config:      testAccAWSALBTargetGroupConfig_missing_port(rName),
 				ExpectError: regexp.MustCompile(`port should be set when target type is`),
 			},
 			{
-				Config:      testAccAWSALBTargetGroupConfig_missing_protocol(targetGroupName),
+				Config:      testAccAWSALBTargetGroupConfig_missing_protocol(rName),
 				ExpectError: regexp.MustCompile(`protocol should be set when target type is`),
 			},
 			{
-				Config:      testAccAWSALBTargetGroupConfig_missing_vpc(targetGroupName),
+				Config:      testAccAWSALBTargetGroupConfig_missing_vpc(rName),
 				ExpectError: regexp.MustCompile(`vpc_id should be set when target type is`),
 			},
 		},
 	})
 }
 
-func testAccAWSALBTargetGroupConfig_basic(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_basic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
@@ -693,7 +707,7 @@ resource "aws_alb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -701,15 +715,15 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic"
+    Name = %[1]q
   }
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_updatedPort(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_updatedPort(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 442
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
@@ -733,7 +747,7 @@ resource "aws_alb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -741,15 +755,15 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic"
+    Name = %[1]q
   }
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_updatedProtocol(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_updatedProtocol(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTP"
   vpc_id   = aws_vpc.test2.id
@@ -773,7 +787,7 @@ resource "aws_alb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -781,7 +795,7 @@ resource "aws_vpc" "test2" {
   cidr_block = "10.10.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic-2"
+    Name = "%[1]s-2"
   }
 }
 
@@ -789,15 +803,15 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic"
+    Name = %[1]q
   }
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_updatedVpc(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_updatedVpc(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
@@ -821,7 +835,7 @@ resource "aws_alb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -829,15 +843,15 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic"
+    Name = %[1]q
   }
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_updateTags(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_updateTags(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
@@ -870,15 +884,15 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic"
+    Name = %[1]q
   }
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_updateHealthCheck(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_updateHealthCheck(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
@@ -906,12 +920,12 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-basic"
+    Name = %[1]q
   }
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_stickiness(targetGroupName string, addStickinessBlock bool, enabled bool) string {
+func testAccAWSALBTargetGroupConfig_stickiness(rName string, addStickinessBlock bool, enabled bool) string {
 	var stickinessBlock string
 
 	if addStickinessBlock {
@@ -925,14 +939,14 @@ func testAccAWSALBTargetGroupConfig_stickiness(targetGroupName string, addSticki
 
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
-  %s
+  %[2]s
 
   health_check {
     path                = "/health2"
@@ -950,12 +964,12 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-stickiness"
+    Name = %[1]q
   }
-}`, targetGroupName, stickinessBlock)
+}`, rName, stickinessBlock)
 }
 
-func testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName string, nonDefault bool, algoType string) string {
+func testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(rName string, nonDefault bool, algoType string) string {
 	var algoTypeParam string
 
 	if nonDefault {
@@ -964,33 +978,33 @@ func testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName strin
 
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
 
-  %s
+  %[2]s
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-load-balancing-algo"
+    Name = %[1]q
   }
-}`, targetGroupName, algoTypeParam)
+}`, rName, algoTypeParam)
 }
 
-func testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName string, slowStartDuration int) string {
+func testAccAWSALBTargetGroupConfig_updateSlowStart(rName string, slowStartDuration int) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTP"
   vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
-  slow_start           = %d
+  slow_start           = %[2]d
 
   stickiness {
     type            = "lb_cookie"
@@ -1009,7 +1023,7 @@ resource "aws_alb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccAWSALBTargetGroup_SlowStart"
+    TestName = %[1]q
   }
 }
 
@@ -1017,12 +1031,13 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-alb-target-group-slowstart"
+    Name = %[1]q
   }
-}`, targetGroupName, slowStartDuration)
+}`, rName, slowStartDuration)
 }
 
-const testAccAWSALBTargetGroupConfig_namePrefix = `
+func testAccAWSALBTargetGroupConfig_namePrefix(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
   name_prefix = "tf-"
   port        = 80
@@ -1033,12 +1048,14 @@ resource "aws_alb_target_group" "test" {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    Name = "terraform-testacc-alb-target-group-name-prefix"
+    Name = %[1]q
   }
 }
-`
+`, rName)
+}
 
-const testAccAWSALBTargetGroupConfig_generatedName = `
+func testAccAWSALBTargetGroupConfig_generatedName(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
   port     = 80
   protocol = "HTTP"
@@ -1057,17 +1074,18 @@ resource "aws_alb_target_group" "test" {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    Name = "terraform-testacc-alb-target-group-generated-name"
+    Name = %[1]q
   }
 }
-`
+`, rName)
+}
 
-func testAccAWSALBTargetGroupConfig_lambda(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_lambda(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name        = "%s"
+  name        = %[1]q
   target_type = "lambda"
-}`, targetGroupName)
+}`, rName)
 }
 
 func testAccAWSALBTargetGroupConfig_lambdaMultiValueHeadersEnabled(rName string, lambdaMultiValueHadersEnabled bool) string {
@@ -1080,38 +1098,38 @@ resource "aws_alb_target_group" "test" {
 `, lambdaMultiValueHadersEnabled, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_missing_port(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_missing_port(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   protocol = "HTTPS"
   vpc_id   = aws_vpc.test.id
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_missing_protocol(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_missing_protocol(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name   = "%s"
+  name   = %[1]q
   port   = 443
   vpc_id = aws_vpc.test.id
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-}`, targetGroupName)
+}`, rName)
 }
 
-func testAccAWSALBTargetGroupConfig_missing_vpc(targetGroupName string) string {
+func testAccAWSALBTargetGroupConfig_missing_vpc(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 443
   protocol = "HTTPS"
 }
-`, targetGroupName)
+`, rName)
 }

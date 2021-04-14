@@ -7,10 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecr/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsEcrRepository() *schema.Resource {
@@ -145,30 +148,38 @@ func resourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) erro
 		RepositoryNames: aws.StringSlice([]string{d.Id()}),
 	}
 
-	var err error
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
 		out, err = conn.DescribeRepositories(input)
-		if d.IsNewResource() && isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
 			return resource.RetryableError(err)
 		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
+	if tfresource.TimedOut(err) {
 		out, err = conn.DescribeRepositories(input)
 	}
 
-	if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
 		log.Printf("[WARN] ECR Repository (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading ECR repository: %s", err)
+		return fmt.Errorf("error reading ECR Repository (%s): %w", d.Id(), err)
+	}
+
+	if out == nil || len(out.Repositories) == 0 || out.Repositories[0] == nil {
+		return fmt.Errorf("error reading ECR Repository (%s): empty response", d.Id())
 	}
 
 	repository := out.Repositories[0]

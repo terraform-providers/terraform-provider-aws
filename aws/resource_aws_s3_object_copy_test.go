@@ -39,6 +39,48 @@ func TestAccAWSS3ObjectCopy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3ObjectCopy_BucketKeyEnabled_Bucket(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_s3_object_copy.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3ObjectCopyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3ObjectCopyConfig_BucketKeyEnabled_Bucket(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3ObjectCopyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "bucket_key_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3ObjectCopy_BucketKeyEnabled_Object(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_s3_object_copy.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3ObjectCopyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3ObjectCopyConfig_BucketKeyEnabled_Object(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3ObjectCopyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "bucket_key_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSS3ObjectCopyDestroy(s *terraform.State) error {
 	s3conn := testAccProvider.Meta().(*AWSClient).s3conn
 
@@ -114,4 +156,74 @@ resource "aws_s3_object_copy" "test" {
   }
 }
 `, rName1, sourceKey, rName2, key)
+}
+
+func testAccAWSS3ObjectCopyConfig_BucketKeyEnabled_Bucket(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+  description             = "Encrypts test bucket objects"
+  deletion_window_in_days = 7
+}
+
+resource "aws_s3_bucket" "source" {
+  bucket = "%[1]s-source"
+}
+
+resource "aws_s3_bucket_object" "source" {
+  bucket  = aws_s3_bucket.source.bucket
+  content = "Ingen ko på isen"
+  key     = "test"
+}
+
+resource "aws_s3_bucket" "target" {
+  bucket = "%[1]s-target"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = aws_kms_key.test.arn
+        sse_algorithm     = "aws:kms"
+      }
+      bucket_key_enabled = true
+    }
+  }
+}
+
+resource "aws_s3_object_copy" "test" {
+  bucket = aws_s3_bucket.target.bucket
+  key    = "test"
+  source = "${aws_s3_bucket.source.bucket}/${aws_s3_bucket_object.source.key}"
+}
+`, rName)
+}
+
+func testAccAWSS3ObjectCopyConfig_BucketKeyEnabled_Object(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+  description             = "Encrypts test bucket objects"
+  deletion_window_in_days = 7
+}
+
+resource "aws_s3_bucket" "source" {
+  bucket = "%[1]s-source"
+}
+
+resource "aws_s3_bucket_object" "source" {
+  bucket  = aws_s3_bucket.source.bucket
+  content = "Ingen ko på isen"
+  key     = "test"
+}
+
+resource "aws_s3_bucket" "target" {
+  bucket = "%[1]s-target"
+}
+
+resource "aws_s3_object_copy" "test" {
+  bucket             = aws_s3_bucket.target.bucket
+  bucket_key_enabled = true
+  key                = "test"
+  kms_key_id         = aws_kms_key.test.arn
+  source             = "${aws_s3_bucket.source.bucket}/${aws_s3_bucket_object.source.key}"
+}
+`, rName)
 }

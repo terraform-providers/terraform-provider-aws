@@ -124,10 +124,10 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(aws.StringValue(bundle.BundleId))
-	d.Set("bundle_id", aws.StringValue(bundle.BundleId))
-	d.Set("description", aws.StringValue(bundle.Description))
-	d.Set("name", aws.StringValue(bundle.Name))
-	d.Set("owner", aws.StringValue(bundle.Owner))
+	d.Set("bundle_id", bundle.BundleId)
+	d.Set("description", bundle.Description)
+	d.Set("name", bundle.Name)
+	d.Set("owner", bundle.Owner)
 
 	computeType := make([]map[string]interface{}, 1)
 	if bundle.ComputeType != nil {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -136,8 +137,13 @@ func testAccCheckRoute53QueryLogDestroy(s *terraform.State) error {
 		out, err := conn.GetQueryLoggingConfig(&route53.GetQueryLoggingConfigInput{
 			Id: aws.String(rs.Primary.ID),
 		})
+
+		if tfawserr.ErrCodeEquals(err, route53.ErrCodeNoSuchQueryLoggingConfig) {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Route 53 Query Logging Configuration (%s): %w", rs.Primary.ID, err)
 		}
 
 		if out.QueryLoggingConfig != nil {

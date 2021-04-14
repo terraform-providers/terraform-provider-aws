@@ -105,8 +105,8 @@ func resourceAwsPinpointSMSChannelRead(d *schema.ResourceData, meta interface{})
 	d.Set("enabled", res.Enabled)
 	d.Set("sender_id", res.SenderId)
 	d.Set("short_code", res.ShortCode)
-	d.Set("promotional_messages_per_second", aws.Int64Value(res.PromotionalMessagesPerSecond))
-	d.Set("transactional_messages_per_second", aws.Int64Value(res.TransactionalMessagesPerSecond))
+	d.Set("promotional_messages_per_second", res.PromotionalMessagesPerSecond)
+	d.Set("transactional_messages_per_second", res.TransactionalMessagesPerSecond)
 	return nil
 }
 

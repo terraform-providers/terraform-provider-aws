@@ -34,7 +34,7 @@ func testSweepElasticacheParameterGroups(region string) error {
 	}
 	conn := client.(*AWSClient).elasticacheconn
 
-	err = conn.DescribeCacheParameterGroupsPages(&elasticache.DescribeCacheParameterGroupsInput{}, func(page *elasticache.DescribeCacheParameterGroupsOutput, isLast bool) bool {
+	err = conn.DescribeCacheParameterGroupsPages(&elasticache.DescribeCacheParameterGroupsInput{}, func(page *elasticache.DescribeCacheParameterGroupsOutput, lastPage bool) bool {
 		if len(page.CacheParameterGroups) == 0 {
 			log.Print("[DEBUG] No Elasticache Parameter Groups to sweep")
 			return false
@@ -56,7 +56,7 @@ func testSweepElasticacheParameterGroups(region string) error {
 				log.Printf("[ERROR] Failed to delete Elasticache Parameter Group (%s): %s", name, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

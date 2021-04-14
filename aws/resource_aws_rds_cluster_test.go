@@ -18,6 +18,8 @@ import (
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(rds.EndpointsID, testAccErrorCheckSkipRDS)
+
 	resource.AddTestSweepers("aws_rds_cluster", &resource.Sweeper{
 		Name: "aws_rds_cluster",
 		F:    testSweepRdsClusters,
@@ -25,6 +27,16 @@ func init() {
 			"aws_db_instance",
 		},
 	})
+}
+
+func testAccErrorCheckSkipRDS(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"engine mode serverless you requested is currently unavailable",
+		"engine mode multimaster you requested is currently unavailable",
+		"requested engine version was not found or does not support parallelquery functionality",
+		"Backtrack is not enabled for the aurora engine",
+		"Read replica DB clusters are not available in this region for engine aurora",
+	)
 }
 
 func testSweepRdsClusters(region string) error {
@@ -1525,7 +1537,6 @@ func TestAccAWSRDSCluster_Port(t *testing.T) {
 				Config: testAccAWSClusterConfig_Port(rInt, 2345),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSClusterExists(resourceName, &dbCluster2),
-					testAccCheckAWSClusterRecreated(&dbCluster1, &dbCluster2),
 					resource.TestCheckResourceAttr(resourceName, "port", "2345"),
 				),
 			},
@@ -4033,10 +4044,11 @@ resource "aws_db_cluster_snapshot" "test" {
 }
 
 resource "aws_rds_cluster" "test" {
-  cluster_identifier      = %[1]q
-  preferred_backup_window = %[2]q
-  skip_final_snapshot     = true
-  snapshot_identifier     = aws_db_cluster_snapshot.test.id
+  cluster_identifier           = %[1]q
+  preferred_backup_window      = %[2]q
+  preferred_maintenance_window = "sun:09:00-sun:09:30"
+  skip_final_snapshot          = true
+  snapshot_identifier          = aws_db_cluster_snapshot.test.id
 }
 `, rName, preferredBackupWindow)
 }

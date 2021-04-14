@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_s3_bucket_object: Handle read-after-create eventual consistency
+```

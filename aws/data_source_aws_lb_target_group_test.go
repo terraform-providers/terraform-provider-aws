@@ -9,9 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
-	lbName := fmt.Sprintf("testlb-%s", acctest.RandString(13))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
+func TestAccDataSourceAWSLBTargetGroup_basic(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceNameArn := "data.aws_lb_target_group.alb_tg_test_with_arn"
 	resourceName := "data.aws_lb_target_group.alb_tg_test_with_name"
 
@@ -21,9 +20,9 @@ func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAWSLBTargetGroupConfigBasic(lbName, targetGroupName),
+				Config: testAccDataSourceAWSLBTargetGroupConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceNameArn, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceNameArn, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceNameArn, "arn"),
 					resource.TestCheckResourceAttrSet(resourceNameArn, "arn_suffix"),
 					resource.TestCheckResourceAttr(resourceNameArn, "port", "8080"),
@@ -34,7 +33,7 @@ func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameArn, "deregistration_delay", "300"),
 					resource.TestCheckResourceAttr(resourceNameArn, "slow_start", "0"),
 					resource.TestCheckResourceAttr(resourceNameArn, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceNameArn, "tags.TestName", "TestAccDataSourceAWSALBTargetGroup_basic"),
+					resource.TestCheckResourceAttr(resourceNameArn, "tags.TestName", rName),
 					resource.TestCheckResourceAttr(resourceNameArn, "stickiness.#", "1"),
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.0.path", "/health"),
@@ -45,7 +44,7 @@ func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.0.unhealthy_threshold", "3"),
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.0.matcher", "200-299"),
 
-					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "arn"),
 					resource.TestCheckResourceAttrSet(resourceName, "arn_suffix"),
 					resource.TestCheckResourceAttr(resourceName, "port", "8080"),
@@ -55,7 +54,7 @@ func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "300"),
 					resource.TestCheckResourceAttr(resourceName, "slow_start", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.TestName", "TestAccDataSourceAWSALBTargetGroup_basic"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TestName", rName),
 					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health"),
@@ -72,8 +71,7 @@ func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
-	lbName := fmt.Sprintf("testlb-%s", acctest.RandString(13))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceNameArn := "data.aws_alb_target_group.alb_tg_test_with_arn"
 	resourceName := "data.aws_alb_target_group.alb_tg_test_with_name"
 
@@ -83,9 +81,9 @@ func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAWSLBTargetGroupConfigBackwardsCompatibility(lbName, targetGroupName),
+				Config: testAccDataSourceAWSLBTargetGroupConfigBackwardsCompatibility(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceNameArn, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceNameArn, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceNameArn, "arn"),
 					resource.TestCheckResourceAttrSet(resourceNameArn, "arn_suffix"),
 					resource.TestCheckResourceAttr(resourceNameArn, "port", "8080"),
@@ -95,7 +93,7 @@ func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameArn, "deregistration_delay", "300"),
 					resource.TestCheckResourceAttr(resourceNameArn, "slow_start", "0"),
 					resource.TestCheckResourceAttr(resourceNameArn, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceNameArn, "tags.TestName", "TestAccDataSourceAWSALBTargetGroup_basic"),
+					resource.TestCheckResourceAttr(resourceNameArn, "tags.TestName", rName),
 					resource.TestCheckResourceAttr(resourceNameArn, "stickiness.#", "1"),
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.0.path", "/health"),
@@ -106,7 +104,7 @@ func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.0.unhealthy_threshold", "3"),
 					resource.TestCheckResourceAttr(resourceNameArn, "health_check.0.matcher", "200-299"),
 
-					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "arn"),
 					resource.TestCheckResourceAttrSet(resourceName, "arn_suffix"),
 					resource.TestCheckResourceAttr(resourceName, "port", "8080"),
@@ -115,7 +113,7 @@ func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "300"),
 					resource.TestCheckResourceAttr(resourceName, "slow_start", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.TestName", "TestAccDataSourceAWSALBTargetGroup_basic"),
+					resource.TestCheckResourceAttr(resourceName, "tags.TestName", rName),
 					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health"),
@@ -131,7 +129,7 @@ func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAWSLBTargetGroupConfigBasic(lbName string, targetGroupName string) string {
+func testAccDataSourceAWSLBTargetGroupConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_lb_listener" "front_end" {
   load_balancer_arn = aws_lb.alb_test.id
@@ -145,7 +143,7 @@ resource "aws_lb_listener" "front_end" {
 }
 
 resource "aws_lb" "alb_test" {
-  name            = "%s"
+  name            = %[1]q
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
   subnets         = aws_subnet.alb_test[*].id
@@ -154,12 +152,12 @@ resource "aws_lb" "alb_test" {
   enable_deletion_protection = false
 
   tags = {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
 resource "aws_lb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 8080
   protocol = "HTTP"
   vpc_id   = aws_vpc.alb_test.id
@@ -176,7 +174,7 @@ resource "aws_lb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -198,7 +196,7 @@ resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-lb-data-source-target-group-basic"
+    Name = %[1]q
   }
 }
 
@@ -210,7 +208,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
-    Name = "tf-acc-lb-data-source-target-group-basic"
+    Name = %[1]q
   }
 }
 
@@ -234,7 +232,7 @@ resource "aws_security_group" "alb_test" {
   }
 
   tags = {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -245,10 +243,10 @@ data "aws_lb_target_group" "alb_tg_test_with_arn" {
 data "aws_lb_target_group" "alb_tg_test_with_name" {
   name = aws_lb_target_group.test.name
 }
-`, lbName, targetGroupName)
+`, rName)
 }
 
-func testAccDataSourceAWSLBTargetGroupConfigBackwardsCompatibility(lbName string, targetGroupName string) string {
+func testAccDataSourceAWSLBTargetGroupConfigBackwardsCompatibility(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_alb_listener" "front_end" {
   load_balancer_arn = aws_alb.alb_test.id
@@ -262,7 +260,7 @@ resource "aws_alb_listener" "front_end" {
 }
 
 resource "aws_alb" "alb_test" {
-  name            = "%s"
+  name            = %[1]q
   internal        = true
   security_groups = [aws_security_group.alb_test.id]
   subnets         = aws_subnet.alb_test[*].id
@@ -271,12 +269,12 @@ resource "aws_alb" "alb_test" {
   enable_deletion_protection = false
 
   tags = {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
 resource "aws_alb_target_group" "test" {
-  name     = "%s"
+  name     = %[1]q
   port     = 8080
   protocol = "HTTP"
   vpc_id   = aws_vpc.alb_test.id
@@ -293,7 +291,7 @@ resource "aws_alb_target_group" "test" {
   }
 
   tags = {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -315,7 +313,7 @@ resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-lb-data-source-target-group-bc"
+    Name = %[1]q
   }
 }
 
@@ -327,7 +325,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
-    Name = "tf-acc-lb-data-source-target-group-bc"
+    Name = %[1]q
   }
 }
 
@@ -351,7 +349,7 @@ resource "aws_security_group" "alb_test" {
   }
 
   tags = {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    TestName = %[1]q
   }
 }
 
@@ -362,5 +360,5 @@ data "aws_alb_target_group" "alb_tg_test_with_arn" {
 data "aws_alb_target_group" "alb_tg_test_with_name" {
   name = aws_alb_target_group.test.name
 }
-`, lbName, targetGroupName)
+`, rName)
 }

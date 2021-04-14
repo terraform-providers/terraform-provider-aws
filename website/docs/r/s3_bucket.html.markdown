@@ -476,6 +476,7 @@ The `server_side_encryption_configuration` object supports the following:
 The `rule` object supports the following:
 
 * `apply_server_side_encryption_by_default` - (required) A single object for setting server-side encryption by default. (documented below)
+* `bucket_key_enabled` - (Optional) Whether or not to use [Amazon S3 Bucket Keys](https://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-key.html) for SSE-KMS.
 
 The `apply_server_side_encryption_by_default` object supports the following:
 

@@ -1112,6 +1112,52 @@ func TestAccAWSS3BucketObject_ObjectLockRetentionStartWithSet(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3BucketObject_objectBucketKeyEnabled(t *testing.T) {
+	var obj s3.GetObjectOutput
+	resourceName := "aws_s3_bucket_object.object"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketObjectConfig_objectBucketKeyEnabled(rInt, "stuff"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckAWSS3BucketObjectBody(&obj, "stuff"),
+					resource.TestCheckResourceAttr(resourceName, "bucket_key_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3BucketObject_bucketBucketKeyEnabled(t *testing.T) {
+	var obj s3.GetObjectOutput
+	resourceName := "aws_s3_bucket_object.object"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketObjectConfig_bucketBucketKeyEnabled(rInt, "stuff"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckAWSS3BucketObjectBody(&obj, "stuff"),
+					resource.TestCheckResourceAttr(resourceName, "bucket_key_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSS3BucketObject_defaultBucketSSE(t *testing.T) {
 	var obj1 s3.GetObjectOutput
 	resourceName := "aws_s3_bucket_object.object"
@@ -1859,6 +1905,56 @@ resource "aws_s3_bucket_object" "object" {
   etag   = filemd5(%[2]q)
 }
 `, randInt, source)
+}
+
+func testAccAWSS3BucketObjectConfig_objectBucketKeyEnabled(randInt int, content string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+    description             = "Encrypts test bucket objects"
+    deletion_window_in_days = 7
+}
+
+resource "aws_s3_bucket" "object_bucket" {
+  bucket = "tf-object-test-bucket-%[1]d"
+}
+
+resource "aws_s3_bucket_object" "object" {
+  bucket             = aws_s3_bucket.object_bucket.bucket
+  key                = "test-key"
+  content            = %q
+  kms_key_id         = aws_kms_key.test.arn
+  bucket_key_enabled = true
+}
+`, randInt, content)
+}
+
+func testAccAWSS3BucketObjectConfig_bucketBucketKeyEnabled(randInt int, content string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+    description             = "Encrypts test bucket objects"
+    deletion_window_in_days = 7
+}
+
+resource "aws_s3_bucket" "object_bucket" {
+  bucket = "tf-object-test-bucket-%[1]d"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = aws_kms_key.test.arn
+        sse_algorithm     = "aws:kms"
+      }
+      bucket_key_enabled = true
+    }
+  }
+}
+
+resource "aws_s3_bucket_object" "object" {
+  bucket             = aws_s3_bucket.object_bucket.bucket
+  key                = "test-key"
+  content            = %q
+}
+`, randInt, content)
 }
 
 func testAccAWSS3BucketObjectConfig_defaultBucketSSE(randInt int, content string) string {

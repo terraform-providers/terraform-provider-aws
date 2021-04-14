@@ -367,7 +367,7 @@ func resourceAwsAutoScalingPlansScalingPlanRead(d *schema.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("error setting application_source: %w", err)
 	}
-	d.Set("scaling_plan_version", int(aws.Int64Value(scalingPlan.ScalingPlanVersion)))
+	d.Set("scaling_plan_version", scalingPlan.ScalingPlanVersion)
 
 	return nil
 }

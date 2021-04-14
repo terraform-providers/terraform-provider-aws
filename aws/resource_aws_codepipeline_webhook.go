@@ -249,17 +249,17 @@ func resourceAwsCodePipelineWebhookRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("name", name)
-	d.Set("url", aws.StringValue(webhook.Url))
+	d.Set("url", webhook.Url)
 
-	if err := d.Set("target_action", aws.StringValue(webhook.Definition.TargetAction)); err != nil {
+	if err := d.Set("target_action", webhook.Definition.TargetAction); err != nil {
 		return err
 	}
 
-	if err := d.Set("target_pipeline", aws.StringValue(webhook.Definition.TargetPipeline)); err != nil {
+	if err := d.Set("target_pipeline", webhook.Definition.TargetPipeline); err != nil {
 		return err
 	}
 
-	if err := d.Set("authentication", aws.StringValue(webhook.Definition.Authentication)); err != nil {
+	if err := d.Set("authentication", webhook.Definition.Authentication); err != nil {
 		return err
 	}
 

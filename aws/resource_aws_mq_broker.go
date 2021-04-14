@@ -390,7 +390,6 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mqconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	log.Printf("[INFO] Reading MQ Broker: %s", d.Id())
 	output, err := conn.DescribeBroker(&mq.DescribeBrokerInput{
 		BrokerId: aws.String(d.Id()),
 	})
@@ -423,70 +422,41 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("storage_type", output.StorageType)
 	d.Set("subnet_ids", aws.StringValueSlice(output.SubnetIds))
 
-	if output.Configurations != nil && output.Configurations.Current != nil {
-		if err := d.Set("configuration", flattenMqConfigurationId(output.Configurations.Current)); err != nil {
-			return fmt.Errorf("error setting configuration: %w", err)
-		}
-	} else {
-		d.Set("configuration", nil)
+	if err := d.Set("configuration", flattenMqConfiguration(output.Configurations)); err != nil {
+		return fmt.Errorf("error setting configuration: %w", err)
 	}
 
-	if output.EncryptionOptions != nil {
-		if err := d.Set("encryption_options", flattenMqEncryptionOptions(output.EncryptionOptions)); err != nil {
-			return fmt.Errorf("error setting encryption_options: %w", err)
-		}
-	} else {
-		d.Set("encryption_options", nil)
+	if err := d.Set("encryption_options", flattenMqEncryptionOptions(output.EncryptionOptions)); err != nil {
+		return fmt.Errorf("error setting encryption_options: %w", err)
 	}
 
-	if output.LdapServerMetadata != nil {
-		password := ""
-		if v, ok := d.GetOk("ldap_server_metadata.0.service_account_password"); ok {
-			password = v.(string)
-		}
-		if err := d.Set("ldap_server_metadata", flattenMQLDAPServerMetadata(output.LdapServerMetadata, password)); err != nil {
-			return fmt.Errorf("error setting ldap_server_metadata: %w", err)
-		}
-	} else {
-		d.Set("ldap_server_metadata", nil)
+	var password string
+	if v, ok := d.GetOk("ldap_server_metadata.0.service_account_password"); ok {
+		password = v.(string)
 	}
 
-	if output.Logs != nil {
-		if err := d.Set("logs", flattenMqLogs(output.Logs)); err != nil {
-			return fmt.Errorf("error setting logs: %w", err)
-		}
-	} else {
-		d.Set("logs", nil)
+	if err := d.Set("ldap_server_metadata", flattenMQLDAPServerMetadata(output.LdapServerMetadata, password)); err != nil {
+		return fmt.Errorf("error setting ldap_server_metadata: %w", err)
 	}
 
-	if output.MaintenanceWindowStartTime != nil {
-		if err := d.Set("maintenance_window_start_time", flattenMqWeeklyStartTime(output.MaintenanceWindowStartTime)); err != nil {
-			return fmt.Errorf("error setting maintenance_window_start_time: %w", err)
-		}
-	} else {
-		d.Set("maintenance_window_start_time", nil)
+	if err := d.Set("logs", flattenMqLogs(output.Logs)); err != nil {
+		return fmt.Errorf("error setting logs: %w", err)
 	}
 
-	rawUsers := make([]*mq.User, len(output.Users))
-	for i, u := range output.Users {
-		uOut, err := conn.DescribeUser(&mq.DescribeUserInput{
-			BrokerId: aws.String(d.Id()),
-			Username: u.Username,
-		})
-		if err != nil {
-			return err
-		}
+	if err := d.Set("maintenance_window_start_time", flattenMqWeeklyStartTime(output.MaintenanceWindowStartTime)); err != nil {
+		return fmt.Errorf("error setting maintenance_window_start_time: %w", err)
+	}
 
-		rawUsers[i] = &mq.User{
-			ConsoleAccess: uOut.ConsoleAccess,
-			Groups:        uOut.Groups,
-			Username:      uOut.Username,
-		}
+	rawUsers, err := expandMqUsersForBroker(conn, d.Id(), output.Users)
+
+	if err != nil {
+		return fmt.Errorf("error retrieving user info for MQ broker (%s): %w", d.Id(), err)
 	}
 
 	if err := d.Set("user", flattenMqUsers(rawUsers, d.Get("user").(*schema.Set).List())); err != nil {
 		return fmt.Errorf("error setting user: %w", err)
 	}
+
 	if err := d.Set("tags", keyvaluetags.MqKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
 	}
@@ -788,6 +758,35 @@ func expandMqUsers(cfg []interface{}) []*mq.User {
 	return users
 }
 
+func expandMqUsersForBroker(conn *mq.MQ, brokerId string, input []*mq.UserSummary) ([]*mq.User, error) {
+	var rawUsers []*mq.User
+
+	for _, u := range input {
+		if u == nil {
+			continue
+		}
+
+		uOut, err := conn.DescribeUser(&mq.DescribeUserInput{
+			BrokerId: aws.String(brokerId),
+			Username: u.Username,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		user := &mq.User{
+			ConsoleAccess: uOut.ConsoleAccess,
+			Groups:        uOut.Groups,
+			Username:      uOut.Username,
+		}
+
+		rawUsers = append(rawUsers, user)
+	}
+
+	return rawUsers, nil
+}
+
 // We use cfgdUsers to get & set the password
 func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
 	existingPairs := make(map[string]string)
@@ -800,17 +799,17 @@ func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
 	out := make([]interface{}, 0)
 	for _, u := range users {
 		m := map[string]interface{}{
-			"username": *u.Username,
+			"username": aws.StringValue(u.Username),
 		}
 		password := ""
-		if p, ok := existingPairs[*u.Username]; ok {
+		if p, ok := existingPairs[aws.StringValue(u.Username)]; ok {
 			password = p
 		}
 		if password != "" {
 			m["password"] = password
 		}
 		if u.ConsoleAccess != nil {
-			m["console_access"] = *u.ConsoleAccess
+			m["console_access"] = aws.BoolValue(u.ConsoleAccess)
 		}
 		if len(u.Groups) > 0 {
 			m["groups"] = flattenStringSet(u.Groups)
@@ -866,17 +865,16 @@ func expandMqConfigurationId(cfg []interface{}) *mq.ConfigurationId {
 	return &out
 }
 
-func flattenMqConfigurationId(cid *mq.ConfigurationId) []interface{} {
-	if cid == nil {
+func flattenMqConfiguration(config *mq.Configurations) []interface{} {
+	if config == nil || config.Current == nil {
 		return []interface{}{}
 	}
-	m := make(map[string]interface{})
-	if cid.Id != nil {
-		m["id"] = *cid.Id
+
+	m := map[string]interface{}{
+		"id":       aws.StringValue(config.Current.Id),
+		"revision": aws.Int64Value(config.Current.Revision),
 	}
-	if cid.Revision != nil {
-		m["revision"] = *cid.Revision
-	}
+
 	return []interface{}{m}
 }
 

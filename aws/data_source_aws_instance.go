@@ -545,7 +545,7 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 		if attr != nil && attr.UserData != nil && attr.UserData.Value != nil {
 			d.Set("user_data", userDataHashSum(aws.StringValue(attr.UserData.Value)))
 			if d.Get("get_user_data").(bool) {
-				d.Set("user_data_base64", aws.StringValue(attr.UserData.Value))
+				d.Set("user_data_base64", attr.UserData.Value)
 			}
 		}
 	}

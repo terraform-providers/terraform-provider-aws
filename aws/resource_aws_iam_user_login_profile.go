@@ -11,11 +11,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/encryption"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamUserLoginProfile() *schema.Resource {
@@ -172,21 +174,40 @@ func resourceAwsIamUserLoginProfileRead(d *schema.ResourceData, meta interface{}
 		UserName: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Getting IAM User Login Profile (%s): %s", d.Id(), input)
-	output, err := conn.GetLoginProfile(input)
+	var output *iam.GetLoginProfileOutput
 
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		output, err = conn.GetLoginProfile(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = conn.GetLoginProfile(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 		log.Printf("[WARN] IAM User Login Profile (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error getting IAM User Login Profile (%s): %w", d.Id(), err)
+		return fmt.Errorf("error reading IAM User Login Profile (%s): %w", d.Id(), err)
 	}
 
 	if output == nil || output.LoginProfile == nil {
-		return fmt.Errorf("error getting IAM User Login Profile (%s): empty response", d.Id())
+		return fmt.Errorf("error reading IAM User Login Profile (%s): empty response", d.Id())
 	}
 
 	loginProfile := output.LoginProfile

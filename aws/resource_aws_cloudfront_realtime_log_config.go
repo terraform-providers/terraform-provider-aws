@@ -142,7 +142,7 @@ func resourceAwsCloudFrontRealtimeLogConfigRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error setting fields: %w", err)
 	}
 	d.Set("name", logConfig.Name)
-	d.Set("sampling_rate", int(aws.Int64Value(logConfig.SamplingRate)))
+	d.Set("sampling_rate", logConfig.SamplingRate)
 
 	return nil
 }

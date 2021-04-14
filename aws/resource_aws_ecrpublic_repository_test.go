@@ -22,48 +22,47 @@ func init() {
 
 func testSweepEcrPublicRepositories(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %w", err)
 	}
-	conn := client.(*AWSClient).ecrpublicconn
 
-	var errors error
-	err = conn.DescribeRepositoriesPages(&ecrpublic.DescribeRepositoriesInput{}, func(page *ecrpublic.DescribeRepositoriesOutput, isLast bool) bool {
+	conn := client.(*AWSClient).ecrpublicconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
+	err = conn.DescribeRepositoriesPages(&ecrpublic.DescribeRepositoriesInput{}, func(page *ecrpublic.DescribeRepositoriesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, repository := range page.Repositories {
-			repositoryName := aws.StringValue(repository.RepositoryName)
-			log.Printf("[INFO] Deleting ECR Public repository: %s", repositoryName)
+			r := resourceAwsEcrPublicRepository()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(repository.RepositoryName))
+			d.Set("registry_id", repository.RegistryId)
+			d.Set("force_destroy", true)
 
-			_, err = conn.DeleteRepository(&ecrpublic.DeleteRepositoryInput{
-				// We should probably sweep repositories even if there are images.
-				Force:          aws.Bool(true),
-				RegistryId:     repository.RegistryId,
-				RepositoryName: repository.RepositoryName,
-			})
-			if err != nil {
-				if !isAWSErr(err, ecrpublic.ErrCodeRepositoryNotFoundException, "") {
-					sweeperErr := fmt.Errorf("Error deleting ECR Public repository (%s): %w", repositoryName, err)
-					log.Printf("[ERROR] %s", sweeperErr)
-					errors = multierror.Append(errors, sweeperErr)
-				}
-				continue
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		return !isLast
+		return !lastPage
 	})
+
 	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping ECR Public repository sweep for %s: %s", region, err)
-			return nil
-		}
-		errors = multierror.Append(errors, fmt.Errorf("Error retreiving ECR Public repositories: %w", err))
+		errs = multierror.Append(errs, fmt.Errorf("error describing ECR Public Repositories for %s: %w", region, err))
 	}
 
-	return errors
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping ECR Public Repositories for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping ECR Public Repositories sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSEcrPublicRepository_basic(t *testing.T) {

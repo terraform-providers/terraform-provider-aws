@@ -81,6 +81,7 @@ One of the following destination arguments must be supplied:
 
 * `cidr_block` - (Required) The CIDR block of the route.
 * `ipv6_cidr_block` - (Optional) The Ipv6 CIDR block of the route.
+* `destination_prefix_list_id` - (Optional) The ID of a [managed prefix list](ec2_managed_prefix_list.html) destination of the route.
 
 One of the following target arguments must be supplied:
 

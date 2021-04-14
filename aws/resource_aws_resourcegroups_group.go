@@ -115,8 +115,8 @@ func resourceAwsResourceGroupsGroupRead(d *schema.ResourceData, meta interface{}
 	}
 
 	arn := aws.StringValue(g.Group.GroupArn)
-	d.Set("name", aws.StringValue(g.Group.Name))
-	d.Set("description", aws.StringValue(g.Group.Description))
+	d.Set("name", g.Group.Name)
+	d.Set("description", g.Group.Description)
 	d.Set("arn", arn)
 
 	q, err := conn.GetGroupQuery(&resourcegroups.GetGroupQueryInput{

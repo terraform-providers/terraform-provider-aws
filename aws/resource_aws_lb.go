@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/waiter"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
@@ -345,28 +347,30 @@ func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elbv2conn
-	lbArn := d.Id()
 
-	describeLbOpts := &elbv2.DescribeLoadBalancersInput{
-		LoadBalancerArns: []*string{aws.String(lbArn)},
+	lb, err := finder.LoadBalancerByARN(conn, d.Id())
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, elb.ErrCodeAccessPointNotFoundException) {
+		// The ALB is gone now, so just remove it from the state
+		log.Printf("[WARN] ALB %s not found in AWS, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	describeResp, err := conn.DescribeLoadBalancers(describeLbOpts)
 	if err != nil {
-		if isLoadBalancerNotFound(err) {
-			// The ALB is gone now, so just remove it from the state
-			log.Printf("[WARN] ALB %s not found in AWS, removing from state", d.Id())
-			d.SetId("")
-			return nil
+		return fmt.Errorf("error retrieving ALB (%s): %w", d.Id(), err)
+	}
+
+	if lb == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error retrieving ALB (%s): empty output after creation", d.Id())
 		}
-
-		return fmt.Errorf("error retrieving ALB: %w", err)
-	}
-	if len(describeResp.LoadBalancers) != 1 {
-		return fmt.Errorf("unable to find ALB: %#v", describeResp.LoadBalancers)
+		log.Printf("[WARN] ALB %s not found in AWS, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	return flattenAwsLbResource(d, meta, describeResp.LoadBalancers[0])
+	return flattenAwsLbResource(d, meta, lb)
 }
 
 func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {

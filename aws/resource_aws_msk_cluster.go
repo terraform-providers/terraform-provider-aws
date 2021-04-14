@@ -456,7 +456,7 @@ func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 
 	cluster := out.ClusterInfo
 
-	d.Set("arn", aws.StringValue(cluster.ClusterArn))
+	d.Set("arn", cluster.ClusterArn)
 	d.Set("bootstrap_brokers", sortMskClusterEndpoints(aws.StringValue(brokerOut.BootstrapBrokerString)))
 	d.Set("bootstrap_brokers_sasl_scram", sortMskClusterEndpoints(aws.StringValue(brokerOut.BootstrapBrokerStringSaslScram)))
 	d.Set("bootstrap_brokers_tls", sortMskClusterEndpoints(aws.StringValue(brokerOut.BootstrapBrokerStringTls)))
@@ -469,21 +469,21 @@ func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting configuration_info: %s", err)
 	}
 
-	d.Set("cluster_name", aws.StringValue(cluster.ClusterName))
+	d.Set("cluster_name", cluster.ClusterName)
 
 	if err := d.Set("configuration_info", flattenMskConfigurationInfo(cluster.CurrentBrokerSoftwareInfo)); err != nil {
 		return fmt.Errorf("error setting configuration_info: %s", err)
 	}
 
-	d.Set("current_version", aws.StringValue(cluster.CurrentVersion))
-	d.Set("enhanced_monitoring", aws.StringValue(cluster.EnhancedMonitoring))
+	d.Set("current_version", cluster.CurrentVersion)
+	d.Set("enhanced_monitoring", cluster.EnhancedMonitoring)
 
 	if err := d.Set("encryption_info", flattenMskEncryptionInfo(cluster.EncryptionInfo)); err != nil {
 		return fmt.Errorf("error setting encryption_info: %s", err)
 	}
 
-	d.Set("kafka_version", aws.StringValue(cluster.CurrentBrokerSoftwareInfo.KafkaVersion))
-	d.Set("number_of_broker_nodes", aws.Int64Value(cluster.NumberOfBrokerNodes))
+	d.Set("kafka_version", cluster.CurrentBrokerSoftwareInfo.KafkaVersion)
+	d.Set("number_of_broker_nodes", cluster.NumberOfBrokerNodes)
 
 	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)

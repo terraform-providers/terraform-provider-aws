@@ -533,6 +533,59 @@ func TestAccAWSAPIGatewayV2Api_OpenapiWithMoreFields(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayV2Api_Openapi_FailOnWarnings(t *testing.T) {
+	var v apigatewayv2.GetApiOutput
+	resourceName := "aws_apigatewayv2_api.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiDestroy,
+		Steps: []resource.TestStep{
+			// Invalid body should not be accepted when fail_on_warnings is enabled
+			{
+				Config:      testAccAWSAPIGatewayV2ApiConfig_FailOnWarnings(rName, "fail_on_warnings = true"),
+				ExpectError: regexp.MustCompile(`BadRequestException: Warnings found during import`),
+			},
+			// Warnings do not break the deployment when fail_on_warnings is disabled
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_FailOnWarnings(rName, "fail_on_warnings = false"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					resource.TestCheckResourceAttr(resourceName, "fail_on_warnings", "false"),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body", "fail_on_warnings"},
+			},
+			// fail_on_warnings should be optional and false by default
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_FailOnWarnings(rName, ""),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body", "fail_on_warnings"},
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAPIGatewayV2ApiRoutes(v *apigatewayv2.GetApiOutput, routes []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).apigatewayv2conn
@@ -1274,4 +1327,48 @@ resource "aws_apigatewayv2_api" "test" {
 EOF
 }
 `, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_FailOnWarnings(rName string, failOnWarnings string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = %[1]q
+  protocol_type = "HTTP"
+  body          = <<EOF
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Title test",
+    "version": "2.0",
+    "description": "Description test"
+  },
+  "paths": {
+    "/update": {
+      "get": {
+        "x-amazon-apigateway-integration": {
+          "type": "HTTP_PROXY",
+          "httpMethod": "GET",
+          "payloadFormatVersion": "1.0",
+          "uri": "https://www.google.de"
+        },
+        "responses": {
+          "200": {
+            "description": "Response description",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelThatDoesNotExist"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+EOF
+  %[2]s
+}
+`, rName, failOnWarnings)
 }

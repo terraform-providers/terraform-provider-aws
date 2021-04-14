@@ -185,10 +185,10 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 
 	arn := aws.StringValue(volume.VolumeARN)
 	d.Set("arn", arn)
-	d.Set("snapshot_id", aws.StringValue(volume.SourceSnapshotId))
+	d.Set("snapshot_id", volume.SourceSnapshotId)
 	d.Set("volume_arn", arn)
-	d.Set("volume_id", aws.StringValue(volume.VolumeId))
-	d.Set("volume_size_in_bytes", int(aws.Int64Value(volume.VolumeSizeInBytes)))
+	d.Set("volume_id", volume.VolumeId)
+	d.Set("volume_size_in_bytes", volume.VolumeSizeInBytes)
 	d.Set("kms_key", volume.KMSKey)
 	if volume.KMSKey != nil {
 		d.Set("kms_encrypted", true)
@@ -205,10 +205,10 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 	}
 
 	if volume.VolumeiSCSIAttributes != nil {
-		d.Set("chap_enabled", aws.BoolValue(volume.VolumeiSCSIAttributes.ChapEnabled))
-		d.Set("lun_number", int(aws.Int64Value(volume.VolumeiSCSIAttributes.LunNumber)))
-		d.Set("network_interface_id", aws.StringValue(volume.VolumeiSCSIAttributes.NetworkInterfaceId))
-		d.Set("network_interface_port", int(aws.Int64Value(volume.VolumeiSCSIAttributes.NetworkInterfacePort)))
+		d.Set("chap_enabled", volume.VolumeiSCSIAttributes.ChapEnabled)
+		d.Set("lun_number", volume.VolumeiSCSIAttributes.LunNumber)
+		d.Set("network_interface_id", volume.VolumeiSCSIAttributes.NetworkInterfaceId)
+		d.Set("network_interface_port", volume.VolumeiSCSIAttributes.NetworkInterfacePort)
 
 		targetARN := aws.StringValue(volume.VolumeiSCSIAttributes.TargetARN)
 		d.Set("target_arn", targetARN)

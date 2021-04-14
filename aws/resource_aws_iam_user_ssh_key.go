@@ -8,8 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamUserSshKey() *schema.Resource {
@@ -99,14 +103,40 @@ func resourceAwsIamUserSshKeyRead(d *schema.ResourceData, meta interface{}) erro
 		Encoding:       aws.String(encoding),
 	}
 
-	getResp, err := iamconn.GetSSHPublicKey(request)
-	if err != nil {
-		if iamerr, ok := err.(awserr.Error); ok && iamerr.Code() == "NoSuchEntity" { // XXX test me
-			log.Printf("[WARN] No IAM user ssh key (%s) found", d.Id())
-			d.SetId("")
-			return nil
+	var getResp *iam.GetSSHPublicKeyOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		getResp, err = iamconn.GetSSHPublicKey(request)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("Error reading IAM User SSH Key %s: %s", d.Id(), err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		getResp, err = iamconn.GetSSHPublicKey(request)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM User SSH Key (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM User SSH Key (%s): %w", d.Id(), err)
+	}
+
+	if getResp == nil || getResp.SSHPublicKey == nil {
+		return fmt.Errorf("error reading IAM User SSH Key (%s): empty response", d.Id())
 	}
 
 	publicKey := *getResp.SSHPublicKey.SSHPublicKeyBody

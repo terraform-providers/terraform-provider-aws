@@ -685,6 +685,12 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	})
 
+	client.cloudhsmv2conn.Handlers.Retry.PushBack(func(r *request.Request) {
+		if tfawserr.ErrMessageContains(r.Error, cloudhsmv2.ErrCodeCloudHsmInternalFailureException, "request was rejected because of an AWS CloudHSM internal failure") {
+			r.Retryable = aws.Bool(true)
+		}
+	})
+
 	client.configconn.Handlers.Retry.PushBack(func(r *request.Request) {
 		// When calling Config Organization Rules API actions immediately
 		// after Organization creation, the API can randomly return the

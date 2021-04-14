@@ -89,7 +89,7 @@ func TestAccDataSourceAwsDirectoryServiceDirectory_MicrosoftAD(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSDirectoryServiceDirectory_connector(t *testing.T) {
+func TestAccDataSourceAwsDirectoryServiceDirectory_connector(t *testing.T) {
 	resourceName := "aws_directory_service_directory.connector"
 	dataSourceName := "data.aws_directory_service_directory.test-ad-connector"
 

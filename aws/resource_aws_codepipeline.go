@@ -348,7 +348,7 @@ func expandAwsCodePipelineActions(a []interface{}) []*codepipeline.ActionDeclara
 	for _, config := range a {
 		data := config.(map[string]interface{})
 
-		conf := stringMapToPointers(data["configuration"].(map[string]interface{}))
+		conf := expandStringMap(data["configuration"].(map[string]interface{}))
 
 		action := codepipeline.ActionDeclaration{
 			ActionTypeId: &codepipeline.ActionTypeId{

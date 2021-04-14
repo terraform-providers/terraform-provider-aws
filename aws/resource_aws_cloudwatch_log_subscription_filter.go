@@ -175,11 +175,11 @@ func resourceAwsCloudwatchLogSubscriptionFilterRead(d *schema.ResourceData, meta
 	for _, subscriptionFilter := range resp.SubscriptionFilters {
 		if aws.StringValue(subscriptionFilter.LogGroupName) == log_group_name {
 			d.SetId(cloudwatchLogsSubscriptionFilterId(log_group_name))
-			d.Set("destination_arn", aws.StringValue(subscriptionFilter.DestinationArn))
-			d.Set("distribution", aws.StringValue(subscriptionFilter.Distribution))
-			d.Set("filter_pattern", aws.StringValue(subscriptionFilter.FilterPattern))
-			d.Set("log_group_name", aws.StringValue(subscriptionFilter.LogGroupName))
-			d.Set("role_arn", aws.StringValue(subscriptionFilter.RoleArn))
+			d.Set("destination_arn", subscriptionFilter.DestinationArn)
+			d.Set("distribution", subscriptionFilter.Distribution)
+			d.Set("filter_pattern", subscriptionFilter.FilterPattern)
+			d.Set("log_group_name", subscriptionFilter.LogGroupName)
+			d.Set("role_arn", subscriptionFilter.RoleArn)
 			return nil // OK, matching subscription filter found
 		}
 	}

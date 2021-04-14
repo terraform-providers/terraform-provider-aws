@@ -218,7 +218,7 @@ func resourceAwsApiGatewayV2StageCreate(d *schema.ResourceData, meta interface{}
 		req.RouteSettings = expandApiGatewayV2RouteSettings(v.(*schema.Set).List(), protocolType)
 	}
 	if v, ok := d.GetOk("stage_variables"); ok {
-		req.StageVariables = stringMapToPointers(v.(map[string]interface{}))
+		req.StageVariables = expandStringMap(v.(map[string]interface{}))
 	}
 
 	log.Printf("[DEBUG] Creating API Gateway v2 stage: %s", req)

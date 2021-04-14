@@ -166,11 +166,11 @@ func resourceAwsWafv2IPSetRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error reading WAFv2 IPSet")
 	}
 
-	d.Set("name", aws.StringValue(resp.IPSet.Name))
-	d.Set("description", aws.StringValue(resp.IPSet.Description))
-	d.Set("ip_address_version", aws.StringValue(resp.IPSet.IPAddressVersion))
-	d.Set("arn", aws.StringValue(resp.IPSet.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.IPSet.Name)
+	d.Set("description", resp.IPSet.Description)
+	d.Set("ip_address_version", resp.IPSet.IPAddressVersion)
+	d.Set("arn", resp.IPSet.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("addresses", flattenStringSet(resp.IPSet.Addresses)); err != nil {
 		return fmt.Errorf("Error setting addresses: %s", err)

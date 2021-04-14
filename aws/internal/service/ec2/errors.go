@@ -18,6 +18,10 @@ const (
 )
 
 const (
+	ErrCodeInvalidNetworkInterfaceIDNotFound = "InvalidNetworkInterfaceID.NotFound"
+)
+
+const (
 	ErrCodeInvalidPrefixListIDNotFound = "InvalidPrefixListID.NotFound"
 )
 
@@ -44,6 +48,10 @@ const (
 const (
 	InvalidSecurityGroupIDNotFound = "InvalidSecurityGroupID.NotFound"
 	InvalidGroupNotFound           = "InvalidGroup.NotFound"
+)
+
+const (
+	ErrCodeInvalidSpotInstanceRequestIDNotFound = "InvalidSpotInstanceRequestID.NotFound"
 )
 
 const (

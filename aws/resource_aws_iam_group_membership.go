@@ -2,11 +2,16 @@ package aws
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamGroupMembership() *schema.Resource {
@@ -57,34 +62,58 @@ func resourceAwsIamGroupMembershipRead(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).iamconn
 	group := d.Get("group").(string)
 
+	input := &iam.GetGroupInput{
+		GroupName: aws.String(group),
+	}
+
 	var ul []string
-	var marker *string
-	for {
-		resp, err := conn.GetGroup(&iam.GetGroupInput{
-			GroupName: aws.String(group),
-			Marker:    marker,
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		err := conn.GetGroupPages(input, func(page *iam.GetGroupOutput, lastPage bool) bool {
+			if page == nil {
+				return !lastPage
+			}
+
+			for _, user := range page.Users {
+				ul = append(ul, aws.StringValue(user.UserName))
+			}
+
+			return !lastPage
 		})
 
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok {
-				// aws specific error
-				if awsErr.Code() == "NoSuchEntity" {
-					// group not found
-					d.SetId("")
-					return nil
-				}
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		err = conn.GetGroupPages(input, func(page *iam.GetGroupOutput, lastPage bool) bool {
+			if page == nil {
+				return !lastPage
 			}
-			return err
-		}
 
-		for _, u := range resp.Users {
-			ul = append(ul, *u.UserName)
-		}
+			for _, user := range page.Users {
+				ul = append(ul, aws.StringValue(user.UserName))
+			}
 
-		if !*resp.IsTruncated {
-			break
-		}
-		marker = resp.Marker
+			return !lastPage
+		})
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM Group Membership (%s) not found, removing from state", group)
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM Group Membership (%s): %w", group, err)
 	}
 
 	if err := d.Set("users", ul); err != nil {

@@ -212,11 +212,11 @@ func resourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error getting WAFv2 WebACL")
 	}
 
-	d.Set("name", aws.StringValue(resp.WebACL.Name))
-	d.Set("capacity", aws.Int64Value(resp.WebACL.Capacity))
-	d.Set("description", aws.StringValue(resp.WebACL.Description))
-	d.Set("arn", aws.StringValue(resp.WebACL.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.WebACL.Name)
+	d.Set("capacity", resp.WebACL.Capacity)
+	d.Set("description", resp.WebACL.Description)
+	d.Set("arn", resp.WebACL.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("default_action", flattenWafv2DefaultAction(resp.WebACL.DefaultAction)); err != nil {
 		return fmt.Errorf("Error setting default_action: %w", err)

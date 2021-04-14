@@ -198,22 +198,22 @@ func resourceAwsFmsPolicyRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceAwsFmsPolicyFlattenPolicy(d *schema.ResourceData, resp *fms.GetPolicyOutput) error {
-	d.Set("arn", aws.StringValue(resp.PolicyArn))
+	d.Set("arn", resp.PolicyArn)
 
-	d.Set("name", aws.StringValue(resp.Policy.PolicyName))
-	d.Set("exclude_resource_tags", aws.BoolValue(resp.Policy.ExcludeResourceTags))
+	d.Set("name", resp.Policy.PolicyName)
+	d.Set("exclude_resource_tags", resp.Policy.ExcludeResourceTags)
 	if err := d.Set("exclude_map", flattenFMSPolicyMap(resp.Policy.ExcludeMap)); err != nil {
 		return err
 	}
 	if err := d.Set("include_map", flattenFMSPolicyMap(resp.Policy.IncludeMap)); err != nil {
 		return err
 	}
-	d.Set("remediation_enabled", aws.BoolValue(resp.Policy.RemediationEnabled))
+	d.Set("remediation_enabled", resp.Policy.RemediationEnabled)
 	if err := d.Set("resource_type_list", resp.Policy.ResourceTypeList); err != nil {
 		return err
 	}
-	d.Set("resource_type", aws.StringValue(resp.Policy.ResourceType))
-	d.Set("policy_update_token", aws.StringValue(resp.Policy.PolicyUpdateToken))
+	d.Set("resource_type", resp.Policy.ResourceType)
+	d.Set("policy_update_token", resp.Policy.PolicyUpdateToken)
 	if err := d.Set("resource_tags", flattenFMSResourceTags(resp.Policy.ResourceTags)); err != nil {
 		return err
 	}

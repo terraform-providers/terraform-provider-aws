@@ -95,6 +95,7 @@ var serviceNames = []string{
 	"mediapackage",
 	"mediastore",
 	"mq",
+	"mwaa",
 	"neptune",
 	"networkfirewall",
 	"networkmanager",

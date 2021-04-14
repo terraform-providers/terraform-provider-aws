@@ -123,11 +123,11 @@ func resourceAwsDxGatewayAssociationProposalRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("error setting allowed_prefixes: %s", err)
 	}
 
-	d.Set("associated_gateway_id", aws.StringValue(proposal.AssociatedGateway.Id))
+	d.Set("associated_gateway_id", proposal.AssociatedGateway.Id)
 	d.Set("associated_gateway_owner_account_id", proposal.AssociatedGateway.OwnerAccount)
 	d.Set("associated_gateway_type", proposal.AssociatedGateway.Type)
-	d.Set("dx_gateway_id", aws.StringValue(proposal.DirectConnectGatewayId))
-	d.Set("dx_gateway_owner_account_id", aws.StringValue(proposal.DirectConnectGatewayOwnerAccount))
+	d.Set("dx_gateway_id", proposal.DirectConnectGatewayId)
+	d.Set("dx_gateway_owner_account_id", proposal.DirectConnectGatewayOwnerAccount)
 
 	return nil
 }

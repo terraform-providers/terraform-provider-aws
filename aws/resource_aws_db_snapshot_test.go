@@ -258,7 +258,7 @@ func testAccAwsDbSnapshotConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_db_instance" "test" {
   allocated_storage       = 10
-  engine                  = "MySQL"
+  engine                  = "mysql"
   engine_version          = "5.6.35"
   instance_class          = "db.t2.micro"
   name                    = "baz"

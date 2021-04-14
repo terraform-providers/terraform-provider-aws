@@ -384,7 +384,7 @@ func expandContainer(m map[string]interface{}) *sagemaker.ContainerDefinition {
 		container.ModelDataUrl = aws.String(v.(string))
 	}
 	if v, ok := m["environment"]; ok {
-		container.Environment = stringMapToPointers(v.(map[string]interface{}))
+		container.Environment = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := m["image_config"]; ok {

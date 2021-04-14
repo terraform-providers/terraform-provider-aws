@@ -255,14 +255,14 @@ func resourceAwsGlueMLTransformRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("description", output.Description)
 	d.Set("glue_version", output.GlueVersion)
-	d.Set("max_capacity", aws.Float64Value(output.MaxCapacity))
-	d.Set("max_retries", int(aws.Int64Value(output.MaxRetries)))
+	d.Set("max_capacity", output.MaxCapacity)
+	d.Set("max_retries", output.MaxRetries)
 	d.Set("name", output.Name)
 	d.Set("role_arn", output.Role)
-	d.Set("timeout", int(aws.Int64Value(output.Timeout)))
+	d.Set("timeout", output.Timeout)
 	d.Set("worker_type", output.WorkerType)
-	d.Set("number_of_workers", int(aws.Int64Value(output.NumberOfWorkers)))
-	d.Set("label_count", int(aws.Int64Value(output.LabelCount)))
+	d.Set("number_of_workers", output.NumberOfWorkers)
+	d.Set("label_count", output.LabelCount)
 
 	if err := d.Set("input_record_tables", flattenGlueMLTransformInputRecordTables(output.InputRecordTables)); err != nil {
 		return fmt.Errorf("error setting input_record_tables: %w", err)

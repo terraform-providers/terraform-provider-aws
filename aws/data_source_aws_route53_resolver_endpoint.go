@@ -117,11 +117,11 @@ func dataSourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta inter
 
 		d.SetId(aws.StringValue(resolver.Id))
 		d.Set("resolver_endpoint_id", resolver.Id)
-		d.Set("arn", aws.StringValue(resolver.Arn))
-		d.Set("status", aws.StringValue(resolver.Status))
-		d.Set("name", aws.StringValue(resolver.Name))
-		d.Set("vpc_id", aws.StringValue(resolver.HostVPCId))
-		d.Set("direction", aws.StringValue(resolver.Direction))
+		d.Set("arn", resolver.Arn)
+		d.Set("status", resolver.Status)
+		d.Set("name", resolver.Name)
+		d.Set("vpc_id", resolver.HostVPCId)
+		d.Set("direction", resolver.Direction)
 
 		if resp.NextToken == nil {
 			break

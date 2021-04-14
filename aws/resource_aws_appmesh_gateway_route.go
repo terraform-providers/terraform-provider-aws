@@ -9,10 +9,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsAppmeshGatewayRoute() *schema.Resource {
@@ -320,20 +324,54 @@ func resourceAwsAppmeshGatewayRouteRead(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).appmeshconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	gatewayRoute, err := finder.GatewayRoute(conn, d.Get("mesh_name").(string), d.Get("virtual_gateway_name").(string), d.Get("name").(string), d.Get("mesh_owner").(string))
+	var gatewayRoute *appmesh.GatewayRouteData
 
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh gateway route (%s) not found, removing from state", d.Id())
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		gatewayRoute, err = finder.GatewayRoute(conn, d.Get("mesh_name").(string), d.Get("virtual_gateway_name").(string), d.Get("name").(string), d.Get("mesh_owner").(string))
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		gatewayRoute, err = finder.GatewayRoute(conn, d.Get("mesh_name").(string), d.Get("virtual_gateway_name").(string), d.Get("name").(string), d.Get("mesh_owner").(string))
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+		log.Printf("[WARN] App Mesh Gateway Route (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading App Mesh gateway route: %w", err)
+		return fmt.Errorf("error reading App Mesh Gateway Route: %w", err)
 	}
 
-	if gatewayRoute == nil || aws.StringValue(gatewayRoute.Status.Status) == appmesh.GatewayRouteStatusCodeDeleted {
-		log.Printf("[WARN] App Mesh gateway route (%s) not found, removing from state", d.Id())
+	if gatewayRoute == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Gateway Route: not found after creation")
+		}
+
+		log.Printf("[WARN] App Mesh Gateway Route (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if aws.StringValue(gatewayRoute.Status.Status) == appmesh.GatewayRouteStatusCodeDeleted {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Gateway Route: %s after creation", aws.StringValue(gatewayRoute.Status.Status))
+		}
+
+		log.Printf("[WARN] App Mesh Gateway Route (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}

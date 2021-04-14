@@ -249,7 +249,7 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if v := d.Get("labels").(map[string]interface{}); len(v) > 0 {
-		input.Labels = stringMapToPointers(v)
+		input.Labels = expandStringMap(v)
 	}
 
 	if v := d.Get("launch_template").([]interface{}); len(v) > 0 {
@@ -278,7 +278,7 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 
 	_, err := conn.CreateNodegroup(input)
 
-	id := fmt.Sprintf("%s:%s", clusterName, nodeGroupName)
+	id := resourceAwsEksNodeGroupCreateId(clusterName, nodeGroupName)
 
 	if err != nil {
 		return fmt.Errorf("error creating EKS Node Group (%s): %s", id, err)
@@ -705,7 +705,7 @@ func refreshEksNodeGroupStatus(conn *eks.EKS, clusterName string, nodeGroupName 
 		nodeGroup := output.Nodegroup
 
 		if nodeGroup == nil {
-			return nodeGroup, "", fmt.Errorf("EKS Node Group (%s:%s) missing", clusterName, nodeGroupName)
+			return nodeGroup, "", fmt.Errorf("EKS Node Group (%s) missing", resourceAwsEksNodeGroupCreateId(clusterName, nodeGroupName))
 		}
 
 		status := aws.StringValue(nodeGroup.Status)
@@ -714,7 +714,7 @@ func refreshEksNodeGroupStatus(conn *eks.EKS, clusterName string, nodeGroupName 
 		// unexpected state 'CREATE_FAILED', wanted target 'ACTIVE'. last error: %!s(<nil>)
 		if status == eks.NodegroupStatusCreateFailed || status == eks.NodegroupStatusDeleteFailed {
 			if nodeGroup.Health == nil || len(nodeGroup.Health.Issues) == 0 || nodeGroup.Health.Issues[0] == nil {
-				return nodeGroup, status, fmt.Errorf("unable to find additional information about %s status, check EKS Node Group (%s:%s) health", status, clusterName, nodeGroupName)
+				return nodeGroup, status, fmt.Errorf("unable to find additional information about %s status, check EKS Node Group (%s) health", status, resourceAwsEksNodeGroupCreateId(clusterName, nodeGroupName))
 			}
 
 			issue := nodeGroup.Health.Issues[0]
@@ -741,7 +741,7 @@ func refreshEksNodeGroupUpdateStatus(conn *eks.EKS, clusterName string, nodeGrou
 		}
 
 		if output == nil || output.Update == nil {
-			return nil, "", fmt.Errorf("EKS Node Group (%s:%s) update (%s) missing", clusterName, nodeGroupName, updateID)
+			return nil, "", fmt.Errorf("EKS Node Group (%s) update (%s) missing", resourceAwsEksNodeGroupCreateId(clusterName, nodeGroupName), updateID)
 		}
 
 		return output.Update, aws.StringValue(output.Update.Status), nil
@@ -801,6 +801,7 @@ func waitForEksNodeGroupUpdate(conn *eks.EKS, clusterName, nodeGroupName string,
 }
 
 func resourceAwsEksNodeGroupParseId(id string) (string, string, error) {
+	// inverse of resourceAwsEksNodeGroupCreateId()
 	parts := strings.Split(id, ":")
 
 	if len(parts) != 2 {
@@ -808,4 +809,9 @@ func resourceAwsEksNodeGroupParseId(id string) (string, string, error) {
 	}
 
 	return parts[0], parts[1], nil
+}
+
+func resourceAwsEksNodeGroupCreateId(clusterName, nodeGroupName string) string {
+	// inverse of resourceAwsEksNodeGroupParseId()
+	return fmt.Sprintf("%s:%s", clusterName, nodeGroupName)
 }

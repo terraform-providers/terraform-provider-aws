@@ -189,7 +189,7 @@ func resourceAwsCloudFrontCachePolicyRead(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	d.Set("etag", aws.StringValue(resp.ETag))
+	d.Set("etag", resp.ETag)
 
 	setCloudFrontCachePolicy(d, resp.CachePolicy.CachePolicyConfig)
 

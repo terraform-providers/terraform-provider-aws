@@ -3,12 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3control"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/s3control/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsS3AccountPublicAccessBlock() *schema.Resource {
@@ -91,11 +93,11 @@ func resourceAwsS3AccountPublicAccessBlockRead(d *schema.ResourceData, meta inte
 
 	// Retry for eventual consistency on creation
 	var output *s3control.GetPublicAccessBlockOutput
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		output, err = conn.GetPublicAccessBlock(input)
 
-		if d.IsNewResource() && isAWSErr(err, s3control.ErrCodeNoSuchPublicAccessBlockConfiguration, "") {
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, s3control.ErrCodeNoSuchPublicAccessBlockConfiguration) {
 			return resource.RetryableError(err)
 		}
 
@@ -106,11 +108,11 @@ func resourceAwsS3AccountPublicAccessBlockRead(d *schema.ResourceData, meta inte
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
+	if tfresource.TimedOut(err) {
 		output, err = conn.GetPublicAccessBlock(input)
 	}
 
-	if isAWSErr(err, s3control.ErrCodeNoSuchPublicAccessBlockConfiguration, "") {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, s3control.ErrCodeNoSuchPublicAccessBlockConfiguration) {
 		log.Printf("[WARN] S3 Account Public Access Block (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -152,17 +154,31 @@ func resourceAwsS3AccountPublicAccessBlockUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("error updating S3 Account Public Access Block (%s): %s", d.Id(), err)
 	}
 
-	// Workaround API eventual consistency issues. This type of logic should not normally be used.
-	// We cannot reliably determine when the Read after Update might be properly updated.
-	// Rather than introduce complicated retry logic, we presume that a lack of an update error
-	// means our update succeeded with our expected values.
-	d.Set("block_public_acls", input.PublicAccessBlockConfiguration.BlockPublicAcls)
-	d.Set("block_public_policy", input.PublicAccessBlockConfiguration.BlockPublicPolicy)
-	d.Set("ignore_public_acls", input.PublicAccessBlockConfiguration.IgnorePublicAcls)
-	d.Set("restrict_public_buckets", input.PublicAccessBlockConfiguration.RestrictPublicBuckets)
+	if d.HasChange("block_public_acls") {
+		if _, err := waiter.PublicAccessBlockConfigurationBlockPublicAclsUpdated(conn, d.Id(), d.Get("block_public_acls").(bool)); err != nil {
+			return fmt.Errorf("error waiting for S3 Account Public Access Block (%s) block_public_acls update: %w", d.Id(), err)
+		}
+	}
 
-	// Skip normal Read after Update due to eventual consistency issues
-	return nil
+	if d.HasChange("block_public_policy") {
+		if _, err := waiter.PublicAccessBlockConfigurationBlockPublicPolicyUpdated(conn, d.Id(), d.Get("block_public_policy").(bool)); err != nil {
+			return fmt.Errorf("error waiting for S3 Account Public Access Block (%s) block_public_policy update: %w", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("ignore_public_acls") {
+		if _, err := waiter.PublicAccessBlockConfigurationIgnorePublicAclsUpdated(conn, d.Id(), d.Get("ignore_public_acls").(bool)); err != nil {
+			return fmt.Errorf("error waiting for S3 Account Public Access Block (%s) ignore_public_acls update: %w", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("restrict_public_buckets") {
+		if _, err := waiter.PublicAccessBlockConfigurationRestrictPublicBucketsUpdated(conn, d.Id(), d.Get("restrict_public_buckets").(bool)); err != nil {
+			return fmt.Errorf("error waiting for S3 Account Public Access Block (%s) restrict_public_buckets update: %w", d.Id(), err)
+		}
+	}
+
+	return resourceAwsS3AccountPublicAccessBlockRead(d, meta)
 }
 
 func resourceAwsS3AccountPublicAccessBlockDelete(d *schema.ResourceData, meta interface{}) error {

@@ -9,9 +9,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsAppmeshRoute() *schema.Resource {
@@ -730,17 +734,48 @@ func resourceAwsAppmeshRouteRead(d *schema.ResourceData, meta interface{}) error
 		req.MeshOwner = aws.String(v.(string))
 	}
 
-	resp, err := conn.DescribeRoute(req)
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh route (%s) not found, removing from state", d.Id())
+	var resp *appmesh.DescribeRouteOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = conn.DescribeRoute(req)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = conn.DescribeRoute(req)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+		log.Printf("[WARN] App Mesh Route (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
+
 	if err != nil {
-		return fmt.Errorf("error reading App Mesh route: %s", err)
+		return fmt.Errorf("error reading App Mesh Route: %w", err)
 	}
+
+	if resp == nil || resp.Route == nil {
+		return fmt.Errorf("error reading App Mesh Route: empty response")
+	}
+
 	if aws.StringValue(resp.Route.Status.Status) == appmesh.RouteStatusCodeDeleted {
-		log.Printf("[WARN] App Mesh route (%s) not found, removing from state", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Route: %s after creation", aws.StringValue(resp.Route.Status.Status))
+		}
+
+		log.Printf("[WARN] App Mesh Route (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}

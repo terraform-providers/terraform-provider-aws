@@ -57,6 +57,11 @@ func dataSourceAwsRouteTable() *schema.Resource {
 							Computed: true,
 						},
 
+						"destination_prefix_list_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						///
 						// Targets.
 						///
@@ -246,7 +251,7 @@ func dataSourceRoutesRead(ec2Routes []*ec2.Route) []map[string]interface{} {
 			continue
 		}
 
-		if r.DestinationPrefixListId != nil {
+		if r.DestinationPrefixListId != nil && strings.HasPrefix(aws.StringValue(r.GatewayId), "vpce-") {
 			// Skipping because VPC endpoint routes are handled separately
 			// See aws_vpc_endpoint
 			continue
@@ -259,6 +264,9 @@ func dataSourceRoutesRead(ec2Routes []*ec2.Route) []map[string]interface{} {
 		}
 		if r.DestinationIpv6CidrBlock != nil {
 			m["ipv6_cidr_block"] = *r.DestinationIpv6CidrBlock
+		}
+		if r.DestinationPrefixListId != nil {
+			m["destination_prefix_list_id"] = *r.DestinationPrefixListId
 		}
 		if r.CarrierGatewayId != nil {
 			m["carrier_gateway_id"] = *r.CarrierGatewayId

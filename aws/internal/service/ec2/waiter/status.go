@@ -12,6 +12,7 @@ import (
 	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 	tfiam "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const (
@@ -246,6 +247,32 @@ func InstanceIamInstanceProfile(conn *ec2.EC2, id string) resource.StateRefreshF
 }
 
 const (
+	ErrCodeInvalidRouteTableIDNotFound = "InvalidRouteTableID.NotFound"
+
+	RouteTableStatusReady = "ready"
+)
+
+func RouteTableStatus(conn *ec2.EC2, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.RouteTableByID(conn, id)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if output == nil {
+			return nil, "", nil
+		}
+
+		return output, RouteTableStatusReady, nil
+	}
+}
+
+const (
 	SecurityGroupStatusCreated = "Created"
 
 	SecurityGroupStatusNotFound = "NotFound"
@@ -328,6 +355,22 @@ func TransitGatewayPrefixListReferenceState(conn *ec2.EC2, transitGatewayRouteTa
 		}
 
 		return transitGatewayPrefixListReference, aws.StringValue(transitGatewayPrefixListReference.State), nil
+	}
+}
+
+func TransitGatewayRouteTablePropagationState(conn *ec2.EC2, transitGatewayRouteTableID string, transitGatewayAttachmentID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		transitGatewayRouteTablePropagation, err := finder.TransitGatewayRouteTablePropagation(conn, transitGatewayRouteTableID, transitGatewayAttachmentID)
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if transitGatewayRouteTablePropagation == nil {
+			return nil, "", nil
+		}
+
+		return transitGatewayRouteTablePropagation, aws.StringValue(transitGatewayRouteTablePropagation.State), nil
 	}
 }
 

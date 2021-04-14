@@ -98,18 +98,10 @@ func dataSourceAwsEcrImageRead(d *schema.ResourceData, meta interface{}) error {
 	image := imageDetails[0]
 
 	d.SetId(aws.StringValue(image.ImageDigest))
-	if err = d.Set("registry_id", aws.StringValue(image.RegistryId)); err != nil {
-		return fmt.Errorf("failed to set registry_id: %w", err)
-	}
-	if err = d.Set("image_digest", aws.StringValue(image.ImageDigest)); err != nil {
-		return fmt.Errorf("failed to set image_digest: %w", err)
-	}
-	if err = d.Set("image_pushed_at", image.ImagePushedAt.Unix()); err != nil {
-		return fmt.Errorf("failed to set image_pushed_at: %w", err)
-	}
-	if err = d.Set("image_size_in_bytes", aws.Int64Value(image.ImageSizeInBytes)); err != nil {
-		return fmt.Errorf("failed to set image_size_in_bytes: %w", err)
-	}
+	d.Set("registry_id", image.RegistryId)
+	d.Set("image_digest", image.ImageDigest)
+	d.Set("image_pushed_at", image.ImagePushedAt.Unix())
+	d.Set("image_size_in_bytes", image.ImageSizeInBytes)
 	if err := d.Set("image_tags", aws.StringValueSlice(image.ImageTags)); err != nil {
 		return fmt.Errorf("failed to set image_tags: %w", err)
 	}

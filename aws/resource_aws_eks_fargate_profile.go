@@ -277,7 +277,7 @@ func expandEksFargateProfileSelectors(l []interface{}) []*eks.FargateProfileSele
 		fargateProfileSelector := &eks.FargateProfileSelector{}
 
 		if v, ok := m["labels"].(map[string]interface{}); ok && len(v) > 0 {
-			fargateProfileSelector.Labels = stringMapToPointers(v)
+			fargateProfileSelector.Labels = expandStringMap(v)
 		}
 
 		if v, ok := m["namespace"].(string); ok && v != "" {

@@ -22,8 +22,9 @@ func init() {
 		Name: "aws_eks_cluster",
 		F:    testSweepEksClusters,
 		Dependencies: []string{
+			"aws_eks_addon",
 			"aws_eks_fargate_profile",
-			"aws_eks_fargate_node_group",
+			"aws_eks_node_group",
 		},
 	})
 }

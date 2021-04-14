@@ -6,11 +6,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSecretsManagerSecretPolicy() *schema.Resource {
@@ -89,15 +92,41 @@ func resourceAwsSecretsManagerSecretPolicyRead(d *schema.ResourceData, meta inte
 	input := &secretsmanager.GetResourcePolicyInput{
 		SecretId: aws.String(d.Id()),
 	}
-	log.Printf("[DEBUG] Reading Secrets Manager Secret Policy: %#v", input)
-	res, err := conn.GetResourcePolicy(input)
-	if err != nil {
-		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] SecretsManager Secret Policy (%s) not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+
+	var res *secretsmanager.GetResourcePolicyOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		res, err = conn.GetResourcePolicy(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("error reading Secrets Manager Secret policy: %w", err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		res, err = conn.GetResourcePolicy(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] Secrets Manager Secret Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading Secrets Manager Secret Policy (%s): %w", d.Id(), err)
+	}
+
+	if res == nil {
+		return fmt.Errorf("error reading Secrets Manager Secret Policy (%s): empty response", d.Id())
 	}
 
 	if res.ResourcePolicy != nil {

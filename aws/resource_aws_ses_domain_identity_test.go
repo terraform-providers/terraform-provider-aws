@@ -34,9 +34,9 @@ func testSweepSesIdentities(region, identityType string) error {
 	}
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListIdentitiesPages(input, func(page *ses.ListIdentitiesOutput, isLast bool) bool {
+	err = conn.ListIdentitiesPages(input, func(page *ses.ListIdentitiesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, identity := range page.Identities {
@@ -54,7 +54,7 @@ func testSweepSesIdentities(region, identityType string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping SES Identities sweep for %s: %s", region, err)

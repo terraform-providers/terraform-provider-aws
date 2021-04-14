@@ -118,7 +118,7 @@ func TestAccAWSCloudFrontOriginRequestPolicy_noneBehavior(t *testing.T) {
 func testAccAWSCloudFrontOriginRequestPolicyConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_cloudfront_origin_request_policy" "example" {
-  name    = "test-policy%[1]d"
+  name    = "test-policyz%[1]d"
   comment = "test comment"
   cookies_config {
     cookie_behavior = "whitelist"

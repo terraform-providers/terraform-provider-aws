@@ -99,9 +99,9 @@ func dataSourceAwsWafv2IPSetRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(aws.StringValue(resp.IPSet.Id))
-	d.Set("arn", aws.StringValue(resp.IPSet.ARN))
-	d.Set("description", aws.StringValue(resp.IPSet.Description))
-	d.Set("ip_address_version", aws.StringValue(resp.IPSet.IPAddressVersion))
+	d.Set("arn", resp.IPSet.ARN)
+	d.Set("description", resp.IPSet.Description)
+	d.Set("ip_address_version", resp.IPSet.IPAddressVersion)
 
 	if err := d.Set("addresses", flattenStringList(resp.IPSet.Addresses)); err != nil {
 		return fmt.Errorf("error setting addresses: %w", err)

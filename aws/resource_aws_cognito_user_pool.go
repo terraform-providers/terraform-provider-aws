@@ -306,7 +306,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 			"schema": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				MinItems: 1,
 				MaxItems: 50,
 				Elem: &schema.Resource{
@@ -314,41 +313,34 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 						"attribute_data_type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(cognitoidentityprovider.AttributeDataType_Values(), false),
 						},
 						"developer_only_attribute": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ForceNew: true,
 						},
 						"mutable": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ForceNew: true,
 						},
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validateCognitoUserPoolSchemaName,
 						},
 						"number_attribute_constraints": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"min_value": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 									"max_value": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -356,24 +348,20 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 						"required": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ForceNew: true,
 						},
 						"string_attribute_constraints": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"min_length": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 									"max_length": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -1151,6 +1139,22 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		if err != nil {
 			return fmt.Errorf("error updating Cognito User pool (%s): %w", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("schema") {
+		oldSchema, newSchema := d.GetChange("schema")
+		if oldSchema.(*schema.Set).Difference(newSchema.(*schema.Set)).Len() == 0 {
+			params := &cognitoidentityprovider.AddCustomAttributesInput{
+				UserPoolId:       aws.String(d.Id()),
+				CustomAttributes: expandCognitoUserPoolSchema(newSchema.(*schema.Set).Difference(oldSchema.(*schema.Set)).List()),
+			}
+			_, err := conn.AddCustomAttributes(params)
+			if err != nil {
+				return fmt.Errorf("error updating Cognito User Pool (%s): unable to add custom attributes from schema: %w", d.Id(), err)
+			}
+		} else {
+			return fmt.Errorf("error updating Cognito User Pool (%s): cannot modify or remove schema items", d.Id())
 		}
 	}
 

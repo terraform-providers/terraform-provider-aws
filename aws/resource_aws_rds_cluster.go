@@ -353,7 +353,6 @@ func resourceAwsRDSCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			// apply_immediately is used to determine when the update modifications
@@ -1015,7 +1014,7 @@ func resourceAwsRDSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("arn", dbc.DBClusterArn)
-	d.Set("backtrack_window", int(aws.Int64Value(dbc.BacktrackWindow)))
+	d.Set("backtrack_window", dbc.BacktrackWindow)
 	d.Set("backup_retention_period", dbc.BackupRetentionPeriod)
 	d.Set("cluster_identifier", dbc.DBClusterIdentifier)
 	d.Set("copy_tags_to_snapshot", dbc.CopyTagsToSnapshot)
@@ -1151,6 +1150,11 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		} else {
 			req.VpcSecurityGroupIds = []*string{}
 		}
+		requestUpdate = true
+	}
+
+	if d.HasChange("port") {
+		req.Port = aws.Int64(int64(d.Get("port").(int)))
 		requestUpdate = true
 	}
 

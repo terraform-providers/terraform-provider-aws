@@ -201,7 +201,7 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 		}
 
 		if v, ok := d.GetOk("parameters"); ok && len(v.(map[string]interface{})) > 0 {
-			input.Parameters = stringMapToPointers(v.(map[string]interface{}))
+			input.Parameters = expandStringMap(v.(map[string]interface{}))
 		}
 
 		output, err := conn.PutRestApi(input)
@@ -560,7 +560,7 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 			}
 
 			if v, ok := d.GetOk("parameters"); ok && len(v.(map[string]interface{})) > 0 {
-				input.Parameters = stringMapToPointers(v.(map[string]interface{}))
+				input.Parameters = expandStringMap(v.(map[string]interface{}))
 			}
 
 			output, err := conn.PutRestApi(input)

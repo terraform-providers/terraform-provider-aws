@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfs3 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/s3"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/s3/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsS3BucketInventory() *schema.Resource {
@@ -232,21 +235,26 @@ func resourceAwsS3BucketInventoryPut(d *schema.ResourceData, meta interface{}) e
 	}
 
 	log.Printf("[DEBUG] Putting S3 bucket inventory configuration: %s", input)
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := conn.PutBucketInventoryConfiguration(input)
+
+		if tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
-	if isResourceTimeoutError(err) {
+
+	if tfresource.TimedOut(err) {
 		_, err = conn.PutBucketInventoryConfiguration(input)
 	}
+
 	if err != nil {
-		return fmt.Errorf("Error putting S3 bucket inventory configuration: %s", err)
+		return fmt.Errorf("error putting S3 Bucket Inventory Configuration: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s:%s", bucket, name))
@@ -269,11 +277,17 @@ func resourceAwsS3BucketInventoryDelete(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[DEBUG] Deleting S3 bucket inventory configuration: %s", input)
 	_, err = conn.DeleteBucketInventoryConfiguration(input)
+
+	if tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+		return nil
+	}
+
+	if tfawserr.ErrCodeEquals(err, tfs3.ErrCodeNoSuchConfiguration) {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") || isAWSErr(err, "NoSuchConfiguration", "The specified configuration does not exist.") {
-			return nil
-		}
-		return fmt.Errorf("Error deleting S3 bucket inventory configuration: %s", err)
+		return fmt.Errorf("error deleting S3 Bucket Inventory Configuration (%s): %w", d.Id(), err)
 	}
 
 	return nil
@@ -297,40 +311,51 @@ func resourceAwsS3BucketInventoryRead(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[DEBUG] Reading S3 bucket inventory configuration: %s", input)
 	var output *s3.GetBucketInventoryConfigurationOutput
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		output, err = conn.GetBucketInventoryConfiguration(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+			return resource.RetryableError(err)
+		}
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfs3.ErrCodeNoSuchConfiguration) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") || isAWSErr(err, "NoSuchConfiguration", "The specified configuration does not exist.") {
-				if d.IsNewResource() {
-					return resource.RetryableError(err)
-				}
-				return nil
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
-	if isResourceTimeoutError(err) {
+
+	if tfresource.TimedOut(err) {
 		output, err = conn.GetBucketInventoryConfiguration(input)
-		if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") || isAWSErr(err, "NoSuchConfiguration", "The specified configuration does not exist.") {
-			if !d.IsNewResource() {
-				return nil
-			}
-		}
-	}
-	if err != nil {
-		return fmt.Errorf("error getting S3 Bucket Inventory (%s): %s", d.Id(), err)
 	}
 
-	if output == nil || output.InventoryConfiguration == nil {
-		log.Printf("[WARN] %s S3 bucket inventory configuration not found, removing from state.", d.Id())
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+		log.Printf("[WARN] S3 Bucket Inventory Configuration (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("enabled", aws.BoolValue(output.InventoryConfiguration.IsEnabled))
-	d.Set("included_object_versions", aws.StringValue(output.InventoryConfiguration.IncludedObjectVersions))
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfs3.ErrCodeNoSuchConfiguration) {
+		log.Printf("[WARN] S3 Bucket Inventory Configuration (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error getting S3 Bucket Inventory Configuration (%s): %w", d.Id(), err)
+	}
+
+	if output == nil || output.InventoryConfiguration == nil {
+		return fmt.Errorf("error getting S3 Bucket Inventory Configuration (%s): empty response", d.Id())
+	}
+
+	d.Set("enabled", output.InventoryConfiguration.IsEnabled)
+	d.Set("included_object_versions", output.InventoryConfiguration.IncludedObjectVersions)
 
 	if err := d.Set("optional_fields", flattenStringList(output.InventoryConfiguration.OptionalFields)); err != nil {
 		return fmt.Errorf("error setting optional_fields: %s", err)

@@ -12,11 +12,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sns/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sns/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSnsTopicSubscription() *schema.Resource {
@@ -91,7 +93,7 @@ func resourceAwsSnsTopicSubscription() *schema.Resource {
 					"lambda",
 					"sms",
 					"sqs",
-				}, true),
+				}, false),
 			},
 			"raw_message_delivery": {
 				Type:     schema.TypeBool,
@@ -169,27 +171,40 @@ func resourceAwsSnsTopicSubscriptionCreate(d *schema.ResourceData, meta interfac
 func resourceAwsSnsTopicSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).snsconn
 
-	log.Printf("[DEBUG] Loading subscription %s", d.Id())
+	var output *sns.GetSubscriptionAttributesOutput
 
-	input := &sns.ListSubscriptionsByTopicInput{
-		TopicArn: aws.String(d.Get("topic_arn").(string)),
-	}
+	err := resource.Retry(waiter.SubscriptionCreateTimeout, func() *resource.RetryError {
+		var err error
 
-	_, err := conn.ListSubscriptionsByTopic(input)
+		output, err = finder.SubscriptionByARN(conn, d.Id())
 
-	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, sns.ErrCodeNotFoundException) {
-		log.Printf("[WARN] SNS Topic Subscription (%s) not found, removing from state", d.Id())
-		d.SetId("")
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && output == nil {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("SNS Topic Subscription Attributes (%s) not found", d.Id()),
+			})
+		}
+
 		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = finder.SubscriptionByARN(conn, d.Id())
 	}
 
-	output, err := finder.SubscriptionByARN(conn, d.Id())
 	if err != nil {
-		return fmt.Errorf("getting SNS subscription attributes (%s): %w", d.Id(), err)
+		return fmt.Errorf("error getting SNS Topic Subscription Attributes (%s): %w", d.Id(), err)
 	}
 
 	if output == nil {
-		log.Printf("[WARN] SNS subscription attributes (%s) not found, removing from state", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error getting SNS Topic Subscription Attributes (%s): not found after creation", d.Id())
+		}
+
+		log.Printf("[WARN] SNS Topic Subscription Attributes (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}

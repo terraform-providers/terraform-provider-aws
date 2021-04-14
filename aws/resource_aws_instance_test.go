@@ -22,6 +22,8 @@ import (
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(ec2.EndpointsID, testAccErrorCheckSkipEC2)
+
 	resource.AddTestSweepers("aws_instance", &resource.Sweeper{
 		Name: "aws_instance",
 		F:    testSweepInstances,
@@ -30,6 +32,12 @@ func init() {
 			"aws_spot_fleet_request",
 		},
 	})
+}
+
+func testAccErrorCheckSkipEC2(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"VolumeTypeNotAvailableInRegion",
+	)
 }
 
 func testSweepInstances(region string) error {

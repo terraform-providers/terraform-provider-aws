@@ -6,10 +6,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecr/waiter"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsEcrRepositoryPolicy() *schema.Resource {
@@ -83,18 +86,54 @@ func resourceAwsEcrRepositoryPolicyPut(d *schema.ResourceData, meta interface{})
 func resourceAwsEcrRepositoryPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecrconn
 
-	log.Printf("[DEBUG] Reading repository policy %s", d.Id())
-	out, err := conn.GetRepositoryPolicy(&ecr.GetRepositoryPolicyInput{
+	input := &ecr.GetRepositoryPolicyInput{
 		RepositoryName: aws.String(d.Id()),
-	})
-	if err != nil {
-		if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") ||
-			isAWSErr(err, ecr.ErrCodeRepositoryPolicyNotFoundException, "") {
-			log.Printf("[WARN] ECR Repository Policy %s not found, removing", d.Id())
-			d.SetId("")
-			return nil
+	}
+
+	var out *ecr.GetRepositoryPolicyOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		out, err = conn.GetRepositoryPolicy(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
+			return resource.RetryableError(err)
 		}
-		return err
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryPolicyNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		out, err = conn.GetRepositoryPolicy(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
+		log.Printf("[WARN] ECR Repository Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryPolicyNotFoundException) {
+		log.Printf("[WARN] ECR Repository Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading ECR Repository Policy (%s): %w", d.Id(), err)
+	}
+
+	if out == nil {
+		return fmt.Errorf("error reading ECR Repository Policy (%s): empty response", d.Id())
 	}
 
 	log.Printf("[DEBUG] Received repository policy %s", out)

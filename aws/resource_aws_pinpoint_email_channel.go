@@ -113,7 +113,7 @@ func resourceAwsPinpointEmailChannelRead(d *schema.ResourceData, meta interface{
 	d.Set("identity", res.Identity)
 	d.Set("role_arn", res.RoleArn)
 	d.Set("configuration_set", res.ConfigurationSet)
-	d.Set("messages_per_second", aws.Int64Value(res.MessagesPerSecond))
+	d.Set("messages_per_second", res.MessagesPerSecond)
 
 	return nil
 }

@@ -280,8 +280,8 @@ func resourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("invocation_role", "")
 	d.Set("url", "")
 	if resp.Server.IdentityProviderDetails != nil {
-		d.Set("invocation_role", aws.StringValue(resp.Server.IdentityProviderDetails.InvocationRole))
-		d.Set("url", aws.StringValue(resp.Server.IdentityProviderDetails.Url))
+		d.Set("invocation_role", resp.Server.IdentityProviderDetails.InvocationRole)
+		d.Set("url", resp.Server.IdentityProviderDetails.Url)
 	}
 	d.Set("endpoint_type", resp.Server.EndpointType)
 	d.Set("endpoint_details", flattenTransferServerEndpointDetails(resp.Server.EndpointDetails))

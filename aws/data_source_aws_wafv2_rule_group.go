@@ -76,8 +76,8 @@ func dataSourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(aws.StringValue(foundRuleGroup.Id))
-	d.Set("arn", aws.StringValue(foundRuleGroup.ARN))
-	d.Set("description", aws.StringValue(foundRuleGroup.Description))
+	d.Set("arn", foundRuleGroup.ARN)
+	d.Set("description", foundRuleGroup.Description)
 
 	return nil
 }

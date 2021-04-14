@@ -5,9 +5,13 @@ import (
 	"log"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamUserGroupMembership() *schema.Resource {
@@ -57,36 +61,63 @@ func resourceAwsIamUserGroupMembershipRead(d *schema.ResourceData, meta interfac
 
 	user := d.Get("user").(string)
 	groups := d.Get("groups").(*schema.Set)
+
+	input := &iam.ListGroupsForUserInput{
+		UserName: aws.String(user),
+	}
+
 	var gl []string
-	var marker *string
 
-	for {
-		resp, err := conn.ListGroupsForUser(&iam.ListGroupsForUserInput{
-			UserName: &user,
-			Marker:   marker,
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		err := conn.ListGroupsForUserPages(input, func(page *iam.ListGroupsForUserOutput, lastPage bool) bool {
+			if page == nil {
+				return !lastPage
+			}
+
+			for _, group := range page.Groups {
+				if groups.Contains(aws.StringValue(group.GroupName)) {
+					gl = append(gl, aws.StringValue(group.GroupName))
+				}
+			}
+
+			return !lastPage
 		})
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-				// no such user
-				log.Printf("[WARN] Groups not found for user (%s), removing from state", user)
-				d.SetId("")
-				return nil
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		err = conn.ListGroupsForUserPages(input, func(page *iam.ListGroupsForUserOutput, lastPage bool) bool {
+			if page == nil {
+				return !lastPage
 			}
-			return err
-		}
 
-		for _, g := range resp.Groups {
-			// only read in the groups we care about
-			if groups.Contains(*g.GroupName) {
-				gl = append(gl, *g.GroupName)
+			for _, group := range page.Groups {
+				if groups.Contains(aws.StringValue(group.GroupName)) {
+					gl = append(gl, aws.StringValue(group.GroupName))
+				}
 			}
-		}
 
-		if !*resp.IsTruncated {
-			break
-		}
+			return !lastPage
+		})
+	}
 
-		marker = resp.Marker
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM User Group Membership (%s) not found, removing from state", user)
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM User Group Membership (%s): %w", user, err)
 	}
 
 	if err := d.Set("groups", gl); err != nil {

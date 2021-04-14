@@ -186,6 +186,7 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/cloudwatchlogs" = [
       "aws_cloudwatch_log_",
+      "aws_cloudwatch_query_definition",
     ],
     "service/codeartifact" = [
       "aws_codeartifact_",
@@ -518,6 +519,7 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/s3" = [
       "aws_canonical_user_id",
       "aws_s3_bucket",
+      "aws_s3_object",
     ],
     "service/s3control" = [
       "aws_s3_account_",
@@ -825,7 +827,9 @@ behavior "pull_request_path_labeler" "service_labels" {
     "service/cloudwatchlogs" = [
       "aws/internal/service/cloudwatchlogs/**/*",
       "**/*_cloudwatch_log_*",
-      "**/cloudwatch_log_*"
+      "**/cloudwatch_log_*",
+      "**/*_cloudwatch_query_definition*",
+      "**/cloudwatch_query_definition*"
     ]
     "service/codeartifact" = [
       "aws/internal/service/codeartifact/**/*",
@@ -1419,6 +1423,8 @@ behavior "pull_request_path_labeler" "service_labels" {
       "aws/internal/service/s3/**/*",
       "**/*_s3_bucket*",
       "**/s3_bucket*",
+      "**/*_s3_object*",
+      "**/s3_object*",
       "aws/*_aws_canonical_user_id*",
       "website/**/canonical_user_id*"
     ]

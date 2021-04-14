@@ -562,8 +562,8 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error reading Storage Gateway Bandwidth rate limit: %s", err)
 	}
 	if err == nil {
-		d.Set("average_download_rate_limit_in_bits_per_sec", aws.Int64Value(bandwidthOutput.AverageDownloadRateLimitInBitsPerSec))
-		d.Set("average_upload_rate_limit_in_bits_per_sec", aws.Int64Value(bandwidthOutput.AverageUploadRateLimitInBitsPerSec))
+		d.Set("average_download_rate_limit_in_bits_per_sec", bandwidthOutput.AverageDownloadRateLimitInBitsPerSec)
+		d.Set("average_upload_rate_limit_in_bits_per_sec", bandwidthOutput.AverageUploadRateLimitInBitsPerSec)
 	}
 
 	return nil

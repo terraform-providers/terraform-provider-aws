@@ -1013,7 +1013,7 @@ func resourceAwsEMRClusterRead(d *schema.ResourceData, meta interface{}) error {
 
 		d.Set("cluster_state", state)
 
-		d.Set("arn", aws.StringValue(cluster.ClusterArn))
+		d.Set("arn", cluster.ClusterArn)
 	}
 
 	instanceGroups, err := fetchAllEMRInstanceGroups(emrconn, d.Id())

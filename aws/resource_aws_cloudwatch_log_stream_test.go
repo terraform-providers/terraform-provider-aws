@@ -119,8 +119,9 @@ func testAccCheckAWSCloudWatchLogStreamDestroy(s *terraform.State) error {
 
 		logGroupName := rs.Primary.Attributes["log_group_name"]
 		_, exists, err := lookupCloudWatchLogStream(conn, rs.Primary.ID, logGroupName, nil)
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading CloudWatch Log Stream (%s): %w", rs.Primary.ID, err)
 		}
 
 		if exists {

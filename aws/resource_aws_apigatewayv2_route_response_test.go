@@ -26,7 +26,7 @@ func TestAccAWSAPIGatewayV2RouteResponse_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayV2RouteResponseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayV2RouteResponseConfig_basic(rName),
+				Config: testAccAWSAPIGatewayV2RouteResponseConfig_basicWebSocket(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayV2RouteResponseExists(resourceName, &apiId, &routeId, &v),
 					resource.TestCheckResourceAttr(resourceName, "model_selection_expression", ""),
@@ -58,7 +58,7 @@ func TestAccAWSAPIGatewayV2RouteResponse_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayV2RouteResponseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayV2RouteResponseConfig_basic(rName),
+				Config: testAccAWSAPIGatewayV2RouteResponseConfig_basicWebSocket(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayV2RouteResponseExists(resourceName, &apiId, &routeId, &v),
 					testAccCheckAWSAPIGatewayV2RouteResponseDisappears(&apiId, &routeId, &v),
@@ -188,18 +188,22 @@ func testAccAWSAPIGatewayV2RouteResponseImportStateIdFunc(resourceName string) r
 	}
 }
 
-func testAccAWSAPIGatewayV2RouteResponseConfig_basic(rName string) string {
-	return testAccAWSAPIGatewayV2RouteConfig_basic(rName) + `
+func testAccAWSAPIGatewayV2RouteResponseConfig_basicWebSocket(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2RouteConfig_basicWebSocket(rName),
+		`
 resource "aws_apigatewayv2_route_response" "test" {
   api_id             = aws_apigatewayv2_api.test.id
   route_id           = aws_apigatewayv2_route.test.id
   route_response_key = "$default"
 }
-`
+`)
 }
 
 func testAccAWSAPIGatewayV2RouteResponseConfig_model(rName string) string {
-	return testAccAWSAPIGatewayV2RouteConfig_model(rName) + `
+	return composeConfig(
+		testAccAWSAPIGatewayV2RouteConfig_model(rName),
+		`
 resource "aws_apigatewayv2_route_response" "test" {
   api_id             = aws_apigatewayv2_api.test.id
   route_id           = aws_apigatewayv2_route.test.id
@@ -211,5 +215,5 @@ resource "aws_apigatewayv2_route_response" "test" {
     "test" = aws_apigatewayv2_model.test.name
   }
 }
-`
+`)
 }

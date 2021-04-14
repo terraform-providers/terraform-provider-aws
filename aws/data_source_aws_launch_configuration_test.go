@@ -81,7 +81,7 @@ func TestAccAWSLaunchConfigurationDataSource_ebsNoDevice(t *testing.T) {
 	})
 }
 
-func TestAccLaunchConfigurationDataSource_metadataOptions(t *testing.T) {
+func TestAccAWSLaunchConfigurationDataSource_metadataOptions(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	dataSourceName := "data.aws_launch_configuration.test"
 	resourceName := "aws_launch_configuration.test"

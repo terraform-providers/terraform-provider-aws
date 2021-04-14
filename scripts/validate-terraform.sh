@@ -25,6 +25,9 @@ rules=(
     "--only=aws_instance_previous_type"
     "--only=aws_db_instance_previous_type"
     "--only=aws_elasticache_cluster_previous_type"
+    # Ensure engine types are valid
+    "--only=aws_db_instance_invalid_engine"
+    "--only=aws_mq_broker_invalid_engine_type"
 )
 while read -r filename ; do
     block_number=0

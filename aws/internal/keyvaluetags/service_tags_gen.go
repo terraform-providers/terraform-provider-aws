@@ -384,6 +384,16 @@ func MqKeyValueTags(tags map[string]*string) KeyValueTags {
 	return New(tags)
 }
 
+// MwaaTags returns mwaa service tags.
+func (tags KeyValueTags) MwaaTags() map[string]*string {
+	return aws.StringMap(tags.Map())
+}
+
+// MwaaKeyValueTags creates KeyValueTags from mwaa service tags.
+func MwaaKeyValueTags(tags map[string]*string) KeyValueTags {
+	return New(tags)
+}
+
 // OpsworksTags returns opsworks service tags.
 func (tags KeyValueTags) OpsworksTags() map[string]*string {
 	return aws.StringMap(tags.Map())

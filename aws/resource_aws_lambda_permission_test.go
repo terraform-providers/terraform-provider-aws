@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestLambdaPermissionUnmarshalling(t *testing.T) {
@@ -678,9 +679,13 @@ func isLambdaPermissionGone(rs *terraform.ResourceState, conn *lambda.Lambda) er
 	}
 
 	state, err := findLambdaPolicyStatementById(&policy, rs.Primary.ID)
-	if err != nil {
-		// statement not found => deleted
+
+	if tfresource.NotFound(err) {
 		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error finding Lambda Policy Statement (%s): %w", rs.Primary.ID, err)
 	}
 
 	return fmt.Errorf("Policy statement expected to be gone (%s):\n%s",

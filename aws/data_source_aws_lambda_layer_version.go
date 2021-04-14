@@ -123,7 +123,7 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error getting Lambda Layer Version (%s, version %d): empty response", layerName, version)
 	}
 
-	if err := d.Set("version", int(aws.Int64Value(output.Version))); err != nil {
+	if err := d.Set("version", output.Version); err != nil {
 		return fmt.Errorf("error setting lambda layer version: %w", err)
 	}
 	if err := d.Set("compatible_runtimes", flattenStringList(output.CompatibleRuntimes)); err != nil {

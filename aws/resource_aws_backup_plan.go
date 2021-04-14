@@ -57,6 +57,11 @@ func resourceAwsBackupPlan() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"enable_continuous_backup": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"start_window": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -301,6 +306,9 @@ func expandBackupPlanRules(vRules *schema.Set) []*backup.RuleInput {
 		if vSchedule, ok := mRule["schedule"].(string); ok && vSchedule != "" {
 			rule.ScheduleExpression = aws.String(vSchedule)
 		}
+		if vEnableContinuousBackup, ok := mRule["enable_continuous_backup"].(bool); ok {
+			rule.EnableContinuousBackup = aws.Bool(vEnableContinuousBackup)
+		}
 		if vStartWindow, ok := mRule["start_window"].(int); ok {
 			rule.StartWindowMinutes = aws.Int64(int64(vStartWindow))
 		}
@@ -335,7 +343,7 @@ func expandBackupPlanAdvancedBackupSettings(vAdvancedBackupSettings *schema.Set)
 		mAdvancedBackupSetting := vAdvancedBackupSetting.(map[string]interface{})
 
 		if v, ok := mAdvancedBackupSetting["backup_options"].(map[string]interface{}); ok && v != nil {
-			advancedBackupSetting.BackupOptions = stringMapToPointers(v)
+			advancedBackupSetting.BackupOptions = expandStringMap(v)
 		}
 		if v, ok := mAdvancedBackupSetting["resource_type"].(string); ok && v != "" {
 			advancedBackupSetting.ResourceType = aws.String(v)
@@ -393,12 +401,13 @@ func flattenBackupPlanRules(rules []*backup.Rule) *schema.Set {
 
 	for _, rule := range rules {
 		mRule := map[string]interface{}{
-			"rule_name":           aws.StringValue(rule.RuleName),
-			"target_vault_name":   aws.StringValue(rule.TargetBackupVaultName),
-			"schedule":            aws.StringValue(rule.ScheduleExpression),
-			"start_window":        int(aws.Int64Value(rule.StartWindowMinutes)),
-			"completion_window":   int(aws.Int64Value(rule.CompletionWindowMinutes)),
-			"recovery_point_tags": keyvaluetags.BackupKeyValueTags(rule.RecoveryPointTags).IgnoreAws().Map(),
+			"rule_name":                aws.StringValue(rule.RuleName),
+			"target_vault_name":        aws.StringValue(rule.TargetBackupVaultName),
+			"schedule":                 aws.StringValue(rule.ScheduleExpression),
+			"enable_continuous_backup": aws.BoolValue(rule.EnableContinuousBackup),
+			"start_window":             int(aws.Int64Value(rule.StartWindowMinutes)),
+			"completion_window":        int(aws.Int64Value(rule.CompletionWindowMinutes)),
+			"recovery_point_tags":      keyvaluetags.BackupKeyValueTags(rule.RecoveryPointTags).IgnoreAws().Map(),
 		}
 
 		if lifecycle := rule.Lifecycle; lifecycle != nil {
@@ -480,6 +489,9 @@ func backupBackupPlanHash(vRule interface{}) int {
 	}
 	if v, ok := mRule["schedule"].(string); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+	if v, ok := mRule["enable_continuous_backup"].(bool); ok {
+		buf.WriteString(fmt.Sprintf("%t-", v))
 	}
 	if v, ok := mRule["start_window"].(int); ok {
 		buf.WriteString(fmt.Sprintf("%d-", v))

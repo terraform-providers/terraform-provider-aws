@@ -63,11 +63,11 @@ func dataSourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}
 	taskDefinition := desc.TaskDefinition
 
 	d.SetId(aws.StringValue(taskDefinition.TaskDefinitionArn))
-	d.Set("family", aws.StringValue(taskDefinition.Family))
-	d.Set("network_mode", aws.StringValue(taskDefinition.NetworkMode))
-	d.Set("revision", aws.Int64Value(taskDefinition.Revision))
-	d.Set("status", aws.StringValue(taskDefinition.Status))
-	d.Set("task_role_arn", aws.StringValue(taskDefinition.TaskRoleArn))
+	d.Set("family", taskDefinition.Family)
+	d.Set("network_mode", taskDefinition.NetworkMode)
+	d.Set("revision", taskDefinition.Revision)
+	d.Set("status", taskDefinition.Status)
+	d.Set("task_role_arn", taskDefinition.TaskRoleArn)
 
 	if d.Id() == "" {
 		return fmt.Errorf("task definition %q not found", d.Get("task_definition").(string))

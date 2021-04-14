@@ -33,9 +33,9 @@ func testSweepEc2CarrierGateway(region string) error {
 	input := &ec2.DescribeCarrierGatewaysInput{}
 	var sweeperErrs *multierror.Error
 
-	err = conn.DescribeCarrierGatewaysPages(input, func(page *ec2.DescribeCarrierGatewaysOutput, isLast bool) bool {
+	err = conn.DescribeCarrierGatewaysPages(input, func(page *ec2.DescribeCarrierGatewaysOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, carrierGateway := range page.CarrierGateways {
@@ -51,7 +51,7 @@ func testSweepEc2CarrierGateway(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

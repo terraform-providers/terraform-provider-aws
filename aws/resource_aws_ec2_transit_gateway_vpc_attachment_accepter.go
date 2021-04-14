@@ -182,12 +182,12 @@ func resourceAwsEc2TransitGatewayVpcAttachmentAccepterRead(d *schema.ResourceDat
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
-	d.Set("transit_gateway_attachment_id", aws.StringValue(transitGatewayVpcAttachment.TransitGatewayAttachmentId))
+	d.Set("transit_gateway_attachment_id", transitGatewayVpcAttachment.TransitGatewayAttachmentId)
 	d.Set("transit_gateway_default_route_table_association", (transitGatewayDefaultRouteTableAssociation != nil))
 	d.Set("transit_gateway_default_route_table_propagation", (transitGatewayDefaultRouteTablePropagation != nil))
-	d.Set("transit_gateway_id", aws.StringValue(transitGatewayVpcAttachment.TransitGatewayId))
-	d.Set("vpc_id", aws.StringValue(transitGatewayVpcAttachment.VpcId))
-	d.Set("vpc_owner_id", aws.StringValue(transitGatewayVpcAttachment.VpcOwnerId))
+	d.Set("transit_gateway_id", transitGatewayVpcAttachment.TransitGatewayId)
+	d.Set("vpc_id", transitGatewayVpcAttachment.VpcId)
+	d.Set("vpc_owner_id", transitGatewayVpcAttachment.VpcOwnerId)
 
 	return nil
 }

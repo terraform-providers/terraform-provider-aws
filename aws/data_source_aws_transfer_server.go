@@ -66,8 +66,8 @@ func dataSourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("arn", resp.Server.Arn)
 	d.Set("endpoint", endpoint)
 	if resp.Server.IdentityProviderDetails != nil {
-		d.Set("invocation_role", aws.StringValue(resp.Server.IdentityProviderDetails.InvocationRole))
-		d.Set("url", aws.StringValue(resp.Server.IdentityProviderDetails.Url))
+		d.Set("invocation_role", resp.Server.IdentityProviderDetails.InvocationRole)
+		d.Set("url", resp.Server.IdentityProviderDetails.Url)
 	}
 	d.Set("identity_provider_type", resp.Server.IdentityProviderType)
 	d.Set("logging_role", resp.Server.LoggingRole)

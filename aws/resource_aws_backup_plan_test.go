@@ -580,6 +580,45 @@ func TestAccAwsBackupPlan_AdvancedBackupSetting(t *testing.T) {
 	})
 }
 
+func TestAccAwsBackupPlan_EnableContinuousBackup(t *testing.T) {
+	var plan backup.GetBackupPlanOutput
+	resourceName := "aws_backup_plan.test"
+	rName := fmt.Sprintf("tf-testacc-backup-%s", acctest.RandString(14))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
+		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsBackupPlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsBackupPlanConfigEnableContinuousBackup(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBackupPlanExists(resourceName, &plan),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "backup", regexp.MustCompile(`backup-plan:.+`)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"rule_name":                rName,
+						"target_vault_name":        rName,
+						"schedule":                 "cron(0 12 * * ? *)",
+						"enable_continuous_backup": "true",
+						"lifecycle.#":              "1",
+						"lifecycle.0.delete_after": "35",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "version"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAwsBackupPlan_disappears(t *testing.T) {
 	var plan backup.GetBackupPlanOutput
 	resourceName := "aws_backup_plan.test"
@@ -1088,6 +1127,29 @@ resource "aws_backup_plan" "test" {
     }
 
     resource_type = "EC2"
+  }
+}
+`, rName)
+}
+
+func testAccAwsBackupPlanConfigEnableContinuousBackup(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_backup_vault" "test" {
+  name = %[1]q
+}
+
+resource "aws_backup_plan" "test" {
+  name = %[1]q
+
+  rule {
+    rule_name                = %[1]q
+    target_vault_name        = aws_backup_vault.test.name
+    schedule                 = "cron(0 12 * * ? *)"
+    enable_continuous_backup = true
+
+    lifecycle {
+      delete_after = 35
+    }
   }
 }
 `, rName)

@@ -20,6 +20,7 @@ import (
 var routeValidDestinations = []string{
 	"destination_cidr_block",
 	"destination_ipv6_cidr_block",
+	"destination_prefix_list_id",
 }
 
 var routeValidTargets = []string{
@@ -69,7 +70,6 @@ func resourceAwsRoute() *schema.Resource {
 					validateIpv4CIDRNetworkAddress,
 				),
 			},
-
 			"destination_ipv6_cidr_block": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -80,11 +80,10 @@ func resourceAwsRoute() *schema.Resource {
 				),
 				DiffSuppressFunc: suppressEqualCIDRBlockDiffs,
 			},
-
-			// TODO This is a target once we have Managed Prefix List support.
 			"destination_prefix_list_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			//
@@ -96,60 +95,54 @@ func resourceAwsRoute() *schema.Resource {
 				ExactlyOneOf:  routeValidTargets,
 				ConflictsWith: []string{"destination_ipv6_cidr_block"}, // IPv4 destinations only.
 			},
-
 			"egress_only_gateway_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ExactlyOneOf:  routeValidTargets,
 				ConflictsWith: []string{"destination_cidr_block"}, // IPv6 destinations only.
 			},
-
 			"gateway_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ExactlyOneOf: routeValidTargets,
 			},
-
 			"instance_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: routeValidTargets,
 			},
-
 			"local_gateway_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ExactlyOneOf: routeValidTargets,
 			},
-
 			"nat_gateway_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ExactlyOneOf:  routeValidTargets,
 				ConflictsWith: []string{"destination_ipv6_cidr_block"}, // IPv4 destinations only.
 			},
-
 			"network_interface_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: routeValidTargets,
 			},
-
 			"transit_gateway_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ExactlyOneOf: routeValidTargets,
 			},
-
 			"vpc_endpoint_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ExactlyOneOf:  routeValidTargets,
-				ConflictsWith: []string{"destination_ipv6_cidr_block"}, // IPv4 destinations only.
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: routeValidTargets,
+				ConflictsWith: []string{
+					"destination_ipv6_cidr_block", // IPv4 destinations only.
+					"destination_prefix_list_id",  // "Cannot create or replace a prefix list route targeting a VPC Endpoint."
+				},
 			},
-
 			"vpc_peering_connection_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -163,12 +156,10 @@ func resourceAwsRoute() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"origin": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"state": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -206,6 +197,9 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	case "destination_ipv6_cidr_block":
 		input.DestinationIpv6CidrBlock = destination
 		routeFinder = finder.RouteByIPv6Destination
+	case "destination_prefix_list_id":
+		input.DestinationPrefixListId = destination
+		routeFinder = finder.RouteByPrefixListIDDestination
 	default:
 		return fmt.Errorf("error creating Route: unexpected route destination attribute: %q", destinationAttributeKey)
 	}
@@ -285,7 +279,7 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if tfresource.NotFound(err) {
-		return fmt.Errorf("Route in Route Table (%s) with destination (%s) not found", routeTableID, destination)
+		return fmt.Errorf("route in Route Table (%s) with destination (%s) not found", routeTableID, destination)
 	}
 
 	d.SetId(tfec2.RouteCreateID(routeTableID, destination))
@@ -309,6 +303,8 @@ func resourceAwsRouteRead(d *schema.ResourceData, meta interface{}) error {
 		routeFinder = finder.RouteByIPv4Destination
 	case "destination_ipv6_cidr_block":
 		routeFinder = finder.RouteByIPv6Destination
+	case "destination_prefix_list_id":
+		routeFinder = finder.RouteByPrefixListIDDestination
 	default:
 		return fmt.Errorf("error reading Route: unexpected route destination attribute: %q", destinationAttributeKey)
 	}
@@ -378,6 +374,8 @@ func resourceAwsRouteUpdate(d *schema.ResourceData, meta interface{}) error {
 		input.DestinationCidrBlock = destination
 	case "destination_ipv6_cidr_block":
 		input.DestinationIpv6CidrBlock = destination
+	case "destination_prefix_list_id":
+		input.DestinationPrefixListId = destination
 	default:
 		return fmt.Errorf("error updating Route: unexpected route destination attribute: %q", destinationAttributeKey)
 	}
@@ -436,6 +434,8 @@ func resourceAwsRouteDelete(d *schema.ResourceData, meta interface{}) error {
 		input.DestinationCidrBlock = destination
 	case "destination_ipv6_cidr_block":
 		input.DestinationIpv6CidrBlock = destination
+	case "destination_prefix_list_id":
+		input.DestinationPrefixListId = destination
 	default:
 		return fmt.Errorf("error deleting Route: unexpected route destination attribute: %q", destinationAttributeKey)
 	}
@@ -490,9 +490,12 @@ func resourceAwsRouteImport(d *schema.ResourceData, meta interface{}) ([]*schema
 	d.Set("route_table_id", routeTableID)
 	if strings.Contains(destination, ":") {
 		d.Set("destination_ipv6_cidr_block", destination)
-	} else {
+	} else if strings.Contains(destination, ".") {
 		d.Set("destination_cidr_block", destination)
+	} else {
+		d.Set("destination_prefix_list_id", destination)
 	}
+
 	d.SetId(tfec2.RouteCreateID(routeTableID, destination))
 
 	return []*schema.ResourceData{d}, nil

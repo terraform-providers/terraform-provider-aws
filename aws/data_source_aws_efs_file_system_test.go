@@ -70,6 +70,27 @@ func TestAccDataSourceAwsEfsFileSystem_name(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAwsEfsFileSystem_availabilityZone(t *testing.T) {
+	dataSourceName := "data.aws_efs_file_system.test"
+	resourceName := "aws_efs_file_system.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, efs.EndpointsID),
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsEfsFileSystemAvailabilityZoneConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccDataSourceAwsEfsFileSystemCheck(dataSourceName, resourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "availability_zone_id", resourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "availability_zone_name", resourceName, "availability_zone_name"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAwsEfsFileSystem_NonExistent(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,6 +156,25 @@ data "aws_efs_file_system" "test" {
 
 const testAccDataSourceAwsEfsFileSystemIDConfig = `
 resource "aws_efs_file_system" "test" {}
+
+data "aws_efs_file_system" "test" {
+  file_system_id = aws_efs_file_system.test.id
+}
+`
+
+const testAccDataSourceAwsEfsFileSystemAvailabilityZoneConfig = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_efs_file_system" "test" {
+  availability_zone_name = data.aws_availability_zones.available.names[0]
+}
 
 data "aws_efs_file_system" "test" {
   file_system_id = aws_efs_file_system.test.id

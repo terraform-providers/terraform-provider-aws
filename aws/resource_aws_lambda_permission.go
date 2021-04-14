@@ -363,8 +363,12 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 
 	statement, err := getLambdaPolicyStatement(resp, d.Id())
 
-	if err != nil {
+	if tfresource.NotFound(err) {
 		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error getting Lambda Permission (%s) statement after deletion: %w", d.Id(), err)
 	}
 
 	if statement != nil {

@@ -299,7 +299,7 @@ func resourceAwsAppsyncGraphqlApiRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
-	if err := d.Set("xray_enabled", aws.BoolValue(resp.GraphqlApi.XrayEnabled)); err != nil {
+	if err := d.Set("xray_enabled", resp.GraphqlApi.XrayEnabled); err != nil {
 		return fmt.Errorf("error setting xray_enabled: %s", err)
 	}
 

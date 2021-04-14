@@ -22,6 +22,14 @@ func dataSourceAwsEfsFileSystem() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"availability_zone_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"availability_zone_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"creation_token": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -109,6 +117,8 @@ func dataSourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) er
 	fs := describeResp.FileSystems[0]
 
 	d.SetId(aws.StringValue(fs.FileSystemId))
+	d.Set("availability_zone_id", fs.AvailabilityZoneId)
+	d.Set("availability_zone_name", fs.AvailabilityZoneName)
 	d.Set("creation_token", fs.CreationToken)
 	d.Set("performance_mode", fs.PerformanceMode)
 

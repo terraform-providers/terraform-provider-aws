@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_codedeploy_app: Add `arn`, `linked_to_github`, `github_account_name`, `application_id` attributes
+```
+
+```release-note:enhancement
+resource/aws_codedeploy_app: Add `tags` argument
+```
+
+```release-note:enhancement
+resource/aws_codedeploy_app: Add plan time validation for `name`
+```

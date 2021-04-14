@@ -102,8 +102,8 @@ func dataSourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(aws.StringValue(resp.RegexPatternSet.Id))
-	d.Set("arn", aws.StringValue(resp.RegexPatternSet.ARN))
-	d.Set("description", aws.StringValue(resp.RegexPatternSet.Description))
+	d.Set("arn", resp.RegexPatternSet.ARN)
+	d.Set("description", resp.RegexPatternSet.Description)
 
 	if err := d.Set("regular_expression", flattenWafv2RegexPatternSet(resp.RegexPatternSet.RegularExpressionList)); err != nil {
 		return fmt.Errorf("Error setting regular_expression: %w", err)

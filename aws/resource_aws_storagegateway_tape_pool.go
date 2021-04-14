@@ -117,10 +117,10 @@ func resourceAwsStorageGatewayTapePoolRead(d *schema.ResourceData, meta interfac
 
 	poolArn := aws.StringValue(pool.PoolARN)
 	d.Set("arn", poolArn)
-	d.Set("pool_name", aws.StringValue(pool.PoolName))
-	d.Set("retention_lock_time_in_days", aws.Int64Value(pool.RetentionLockTimeInDays))
-	d.Set("retention_lock_type", aws.StringValue(pool.RetentionLockType))
-	d.Set("storage_class", aws.StringValue(pool.StorageClass))
+	d.Set("pool_name", pool.PoolName)
+	d.Set("retention_lock_time_in_days", pool.RetentionLockTimeInDays)
+	d.Set("retention_lock_type", pool.RetentionLockType)
+	d.Set("storage_class", pool.StorageClass)
 
 	tags, err := keyvaluetags.StoragegatewayListTags(conn, poolArn)
 	if err != nil {

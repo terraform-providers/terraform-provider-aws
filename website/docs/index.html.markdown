@@ -254,6 +254,7 @@ This functionality is only supported in the following resources:
     - [`aws_apigatewayv2_stage` resource](/docs/providers/aws/r/apigatewayv2_stage.html)
     - [`aws_athena_workgroup` resource](/docs/providers/aws/r/athena_workgroup.html)
     - [`aws_budgets_budget` resource](/docs/providers/aws/r/budgets_budget.html)
+    - [`aws_codedeploy_app` resource](/docs/providers/aws/r/codedeploy_app.html)
     - [`aws_cognito_identity_pool` resource](/docs/providers/aws/r/cognito_identity_pool.html)
     - [`aws_cognito_user_pools` data source](/docs/providers/aws/d/cognito_user_pools.html)
     - [`aws_default_vpc_dhcp_options`](/docs/providers/aws/r/default_vpc_dhcp_options.html)

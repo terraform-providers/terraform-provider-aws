@@ -1,0 +1,15 @@
+```release-note:bug
+resource/aws_secretsmanager_secret: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_secretsmanager_secret_policy: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_secretsmanager_secret_rotation: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_secretsmanager_secret_version: Handle read-after-create eventual consistency
+```

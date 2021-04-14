@@ -138,11 +138,11 @@ func expandEcsVolumes(configured []interface{}) []*ecs.Volume {
 			}
 
 			if v, ok := config["driver_opts"].(map[string]interface{}); ok && len(v) > 0 {
-				l.DockerVolumeConfiguration.DriverOpts = stringMapToPointers(v)
+				l.DockerVolumeConfiguration.DriverOpts = expandStringMap(v)
 			}
 
 			if v, ok := config["labels"].(map[string]interface{}); ok && len(v) > 0 {
-				l.DockerVolumeConfiguration.Labels = stringMapToPointers(v)
+				l.DockerVolumeConfiguration.Labels = expandStringMap(v)
 			}
 		}
 
@@ -955,10 +955,25 @@ func flattenNeptuneParameters(list []*neptune.Parameter) []map[string]interface{
 }
 
 // Flattens an array of Parameters into a []map[string]interface{}
-func flattenDocDBParameters(list []*docdb.Parameter) []map[string]interface{} {
+func flattenDocDBParameters(list []*docdb.Parameter, parameterList []interface{}) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, i := range list {
 		if i.ParameterValue != nil {
+			name := aws.StringValue(i.ParameterName)
+
+			// Check if any non-user parameters are specified in the configuration.
+			parameterFound := false
+			for _, configParameter := range parameterList {
+				if configParameter.(map[string]interface{})["name"] == name {
+					parameterFound = true
+				}
+			}
+
+			// Skip parameters that are not user defined or specified in the configuration.
+			if aws.StringValue(i.Source) != "user" && !parameterFound {
+				continue
+			}
+
 			result = append(result, map[string]interface{}{
 				"apply_method": aws.StringValue(i.ApplyMethod),
 				"name":         aws.StringValue(i.ParameterName),
@@ -1009,6 +1024,15 @@ func expandFloat64Map(m map[string]interface{}) map[string]*float64 {
 		float64Map[k] = aws.Float64(v.(float64))
 	}
 	return float64Map
+}
+
+// Expands a map of string to interface to a map of string to *string
+func expandStringMap(m map[string]interface{}) map[string]*string {
+	stringMap := make(map[string]*string, len(m))
+	for k, v := range m {
+		stringMap[k] = aws.String(v.(string))
+	}
+	return stringMap
 }
 
 // Takes the result of schema.Set of strings and returns a []*string
@@ -1358,6 +1382,20 @@ func expandESDomainEndpointOptions(l []interface{}) *elasticsearch.DomainEndpoin
 		domainEndpointOptions.TLSSecurityPolicy = aws.String(v)
 	}
 
+	if customEndpointEnabled, ok := m["custom_endpoint_enabled"]; ok {
+		domainEndpointOptions.CustomEndpointEnabled = aws.Bool(customEndpointEnabled.(bool))
+
+		if customEndpointEnabled.(bool) {
+			if v, ok := m["custom_endpoint"].(string); ok && v != "" {
+				domainEndpointOptions.CustomEndpoint = aws.String(v)
+			}
+
+			if v, ok := m["custom_endpoint_certificate_arn"].(string); ok && v != "" {
+				domainEndpointOptions.CustomEndpointCertificateArn = aws.String(v)
+			}
+		}
+	}
+
 	return domainEndpointOptions
 }
 
@@ -1367,8 +1405,17 @@ func flattenESDomainEndpointOptions(domainEndpointOptions *elasticsearch.DomainE
 	}
 
 	m := map[string]interface{}{
-		"enforce_https":       aws.BoolValue(domainEndpointOptions.EnforceHTTPS),
-		"tls_security_policy": aws.StringValue(domainEndpointOptions.TLSSecurityPolicy),
+		"enforce_https":           aws.BoolValue(domainEndpointOptions.EnforceHTTPS),
+		"tls_security_policy":     aws.StringValue(domainEndpointOptions.TLSSecurityPolicy),
+		"custom_endpoint_enabled": aws.BoolValue(domainEndpointOptions.CustomEndpointEnabled),
+	}
+	if aws.BoolValue(domainEndpointOptions.CustomEndpointEnabled) {
+		if domainEndpointOptions.CustomEndpoint != nil {
+			m["custom_endpoint"] = aws.StringValue(domainEndpointOptions.CustomEndpoint)
+		}
+		if domainEndpointOptions.CustomEndpointCertificateArn != nil {
+			m["custom_endpoint_certificate_arn"] = aws.StringValue(domainEndpointOptions.CustomEndpointCertificateArn)
+		}
 	}
 
 	return []interface{}{m}
@@ -1542,14 +1589,6 @@ func pointersMapToStringList(pointers map[string]*string) map[string]interface{}
 	list := make(map[string]interface{}, len(pointers))
 	for i, v := range pointers {
 		list[i] = *v
-	}
-	return list
-}
-
-func stringMapToPointers(m map[string]interface{}) map[string]*string {
-	list := make(map[string]*string, len(m))
-	for i, v := range m {
-		list[i] = aws.String(v.(string))
 	}
 	return list
 }
@@ -3609,114 +3648,6 @@ func flattenResourceLifecycleConfig(rlc *elasticbeanstalk.ApplicationResourceLif
 	return result
 }
 
-func diffDynamoDbGSI(oldGsi, newGsi []interface{}, billingMode string) (ops []*dynamodb.GlobalSecondaryIndexUpdate, e error) {
-	// Transform slices into maps
-	oldGsis := make(map[string]interface{})
-	for _, gsidata := range oldGsi {
-		m := gsidata.(map[string]interface{})
-		oldGsis[m["name"].(string)] = m
-	}
-	newGsis := make(map[string]interface{})
-	for _, gsidata := range newGsi {
-		m := gsidata.(map[string]interface{})
-		// validate throughput input early, to avoid unnecessary processing
-		if e = validateDynamoDbProvisionedThroughput(m, billingMode); e != nil {
-			return
-		}
-		newGsis[m["name"].(string)] = m
-	}
-
-	for _, data := range newGsi {
-		newMap := data.(map[string]interface{})
-		newName := newMap["name"].(string)
-
-		if _, exists := oldGsis[newName]; !exists {
-			m := data.(map[string]interface{})
-			idxName := m["name"].(string)
-
-			ops = append(ops, &dynamodb.GlobalSecondaryIndexUpdate{
-				Create: &dynamodb.CreateGlobalSecondaryIndexAction{
-					IndexName:             aws.String(idxName),
-					KeySchema:             expandDynamoDbKeySchema(m),
-					ProvisionedThroughput: expandDynamoDbProvisionedThroughput(m, billingMode),
-					Projection:            expandDynamoDbProjection(m),
-				},
-			})
-		}
-	}
-
-	for _, data := range oldGsi {
-		oldMap := data.(map[string]interface{})
-		oldName := oldMap["name"].(string)
-
-		newData, exists := newGsis[oldName]
-		if exists {
-			newMap := newData.(map[string]interface{})
-			idxName := newMap["name"].(string)
-
-			oldWriteCapacity, oldReadCapacity := oldMap["write_capacity"].(int), oldMap["read_capacity"].(int)
-			newWriteCapacity, newReadCapacity := newMap["write_capacity"].(int), newMap["read_capacity"].(int)
-			capacityChanged := (oldWriteCapacity != newWriteCapacity || oldReadCapacity != newReadCapacity)
-
-			// pluck non_key_attributes from oldAttributes and newAttributes as reflect.DeepEquals will compare
-			// ordinal of elements in its equality (which we actually don't care about)
-			nonKeyAttributesChanged := checkIfNonKeyAttributesChanged(oldMap, newMap)
-
-			oldAttributes, err := stripCapacityAttributes(oldMap)
-			if err != nil {
-				return ops, err
-			}
-			oldAttributes, err = stripNonKeyAttributes(oldAttributes)
-			if err != nil {
-				return ops, err
-			}
-			newAttributes, err := stripCapacityAttributes(newMap)
-			if err != nil {
-				return ops, err
-			}
-			newAttributes, err = stripNonKeyAttributes(newAttributes)
-			if err != nil {
-				return ops, err
-			}
-			otherAttributesChanged := nonKeyAttributesChanged || !reflect.DeepEqual(oldAttributes, newAttributes)
-
-			if capacityChanged && !otherAttributesChanged {
-				update := &dynamodb.GlobalSecondaryIndexUpdate{
-					Update: &dynamodb.UpdateGlobalSecondaryIndexAction{
-						IndexName:             aws.String(idxName),
-						ProvisionedThroughput: expandDynamoDbProvisionedThroughput(newMap, billingMode),
-					},
-				}
-				ops = append(ops, update)
-			} else if otherAttributesChanged {
-				// Other attributes cannot be updated
-				ops = append(ops, &dynamodb.GlobalSecondaryIndexUpdate{
-					Delete: &dynamodb.DeleteGlobalSecondaryIndexAction{
-						IndexName: aws.String(idxName),
-					},
-				})
-
-				ops = append(ops, &dynamodb.GlobalSecondaryIndexUpdate{
-					Create: &dynamodb.CreateGlobalSecondaryIndexAction{
-						IndexName:             aws.String(idxName),
-						KeySchema:             expandDynamoDbKeySchema(newMap),
-						ProvisionedThroughput: expandDynamoDbProvisionedThroughput(newMap, billingMode),
-						Projection:            expandDynamoDbProjection(newMap),
-					},
-				})
-			}
-		} else {
-			idxName := oldName
-			ops = append(ops, &dynamodb.GlobalSecondaryIndexUpdate{
-				Delete: &dynamodb.DeleteGlobalSecondaryIndexAction{
-					IndexName: aws.String(idxName),
-				},
-			})
-		}
-	}
-	return ops, nil
-}
-
 func stripNonKeyAttributes(in map[string]interface{}) (map[string]interface{}, error) {
 	mapCopy, err := copystructure.Copy(in)
 	if err != nil {
@@ -3757,319 +3688,6 @@ func stripCapacityAttributes(in map[string]interface{}) (map[string]interface{},
 }
 
 // Expanders + flatteners
-
-func flattenDynamoDbTtl(ttlOutput *dynamodb.DescribeTimeToLiveOutput) []interface{} {
-	m := map[string]interface{}{
-		"enabled": false,
-	}
-
-	if ttlOutput == nil || ttlOutput.TimeToLiveDescription == nil {
-		return []interface{}{m}
-	}
-
-	ttlDesc := ttlOutput.TimeToLiveDescription
-
-	m["attribute_name"] = aws.StringValue(ttlDesc.AttributeName)
-	m["enabled"] = (aws.StringValue(ttlDesc.TimeToLiveStatus) == dynamodb.TimeToLiveStatusEnabled)
-
-	return []interface{}{m}
-}
-
-func flattenDynamoDbPitr(pitrDesc *dynamodb.DescribeContinuousBackupsOutput) []interface{} {
-	m := map[string]interface{}{
-		"enabled": false,
-	}
-
-	if pitrDesc == nil {
-		return []interface{}{m}
-	}
-
-	if pitrDesc.ContinuousBackupsDescription != nil {
-		pitr := pitrDesc.ContinuousBackupsDescription.PointInTimeRecoveryDescription
-		if pitr != nil {
-			m["enabled"] = (*pitr.PointInTimeRecoveryStatus == dynamodb.PointInTimeRecoveryStatusEnabled)
-		}
-	}
-
-	return []interface{}{m}
-}
-
-func flattenAwsDynamoDbReplicaDescriptions(apiObjects []*dynamodb.ReplicaDescription) []interface{} {
-	if len(apiObjects) == 0 {
-		return nil
-	}
-
-	var tfList []interface{}
-
-	for _, apiObject := range apiObjects {
-		tfMap := map[string]interface{}{
-			"region_name": aws.StringValue(apiObject.RegionName),
-		}
-
-		tfList = append(tfList, tfMap)
-	}
-
-	return tfList
-}
-
-func flattenAwsDynamoDbTableResource(d *schema.ResourceData, table *dynamodb.TableDescription) error {
-	d.Set("billing_mode", dynamodb.BillingModeProvisioned)
-	if table.BillingModeSummary != nil {
-		d.Set("billing_mode", table.BillingModeSummary.BillingMode)
-	}
-
-	d.Set("write_capacity", table.ProvisionedThroughput.WriteCapacityUnits)
-	d.Set("read_capacity", table.ProvisionedThroughput.ReadCapacityUnits)
-
-	attributes := make([]interface{}, len(table.AttributeDefinitions))
-	for i, attrdef := range table.AttributeDefinitions {
-		attributes[i] = map[string]string{
-			"name": aws.StringValue(attrdef.AttributeName),
-			"type": aws.StringValue(attrdef.AttributeType),
-		}
-	}
-
-	d.Set("attribute", attributes)
-	d.Set("name", table.TableName)
-
-	for _, attribute := range table.KeySchema {
-		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeHash {
-			d.Set("hash_key", attribute.AttributeName)
-		}
-
-		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
-			d.Set("range_key", attribute.AttributeName)
-		}
-	}
-
-	lsiList := make([]map[string]interface{}, 0, len(table.LocalSecondaryIndexes))
-	for _, lsiObject := range table.LocalSecondaryIndexes {
-		lsi := map[string]interface{}{
-			"name":            aws.StringValue(lsiObject.IndexName),
-			"projection_type": aws.StringValue(lsiObject.Projection.ProjectionType),
-		}
-
-		for _, attribute := range lsiObject.KeySchema {
-			if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
-				lsi["range_key"] = aws.StringValue(attribute.AttributeName)
-			}
-		}
-		nkaList := make([]string, len(lsiObject.Projection.NonKeyAttributes))
-		for i, nka := range lsiObject.Projection.NonKeyAttributes {
-			nkaList[i] = aws.StringValue(nka)
-		}
-		lsi["non_key_attributes"] = nkaList
-
-		lsiList = append(lsiList, lsi)
-	}
-
-	err := d.Set("local_secondary_index", lsiList)
-	if err != nil {
-		return err
-	}
-
-	gsiList := make([]map[string]interface{}, len(table.GlobalSecondaryIndexes))
-	for i, gsiObject := range table.GlobalSecondaryIndexes {
-		gsi := map[string]interface{}{
-			"write_capacity": aws.Int64Value(gsiObject.ProvisionedThroughput.WriteCapacityUnits),
-			"read_capacity":  aws.Int64Value(gsiObject.ProvisionedThroughput.ReadCapacityUnits),
-			"name":           aws.StringValue(gsiObject.IndexName),
-		}
-
-		for _, attribute := range gsiObject.KeySchema {
-			if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeHash {
-				gsi["hash_key"] = aws.StringValue(attribute.AttributeName)
-			}
-
-			if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
-				gsi["range_key"] = aws.StringValue(attribute.AttributeName)
-			}
-		}
-
-		gsi["projection_type"] = aws.StringValue(gsiObject.Projection.ProjectionType)
-
-		nonKeyAttrs := make([]string, len(gsiObject.Projection.NonKeyAttributes))
-		for i, nonKeyAttr := range gsiObject.Projection.NonKeyAttributes {
-			nonKeyAttrs[i] = aws.StringValue(nonKeyAttr)
-		}
-		gsi["non_key_attributes"] = nonKeyAttrs
-
-		gsiList[i] = gsi
-	}
-
-	if table.StreamSpecification != nil {
-		d.Set("stream_view_type", table.StreamSpecification.StreamViewType)
-		d.Set("stream_enabled", table.StreamSpecification.StreamEnabled)
-	} else {
-		d.Set("stream_view_type", "")
-		d.Set("stream_enabled", false)
-	}
-
-	d.Set("stream_arn", table.LatestStreamArn)
-	d.Set("stream_label", table.LatestStreamLabel)
-
-	err = d.Set("global_secondary_index", gsiList)
-	if err != nil {
-		return err
-	}
-
-	sseOptions := []map[string]interface{}{}
-	if sseDescription := table.SSEDescription; sseDescription != nil {
-		sseOptions = []map[string]interface{}{{
-			"enabled":     aws.StringValue(sseDescription.Status) == dynamodb.SSEStatusEnabled,
-			"kms_key_arn": aws.StringValue(sseDescription.KMSMasterKeyArn),
-		}}
-	}
-	err = d.Set("server_side_encryption", sseOptions)
-	if err != nil {
-		return err
-	}
-
-	err = d.Set("replica", flattenAwsDynamoDbReplicaDescriptions(table.Replicas))
-	if err != nil {
-		return err
-	}
-
-	d.Set("arn", table.TableArn)
-
-	return nil
-}
-
-func expandDynamoDbAttributes(cfg []interface{}) []*dynamodb.AttributeDefinition {
-	attributes := make([]*dynamodb.AttributeDefinition, len(cfg))
-	for i, attribute := range cfg {
-		attr := attribute.(map[string]interface{})
-		attributes[i] = &dynamodb.AttributeDefinition{
-			AttributeName: aws.String(attr["name"].(string)),
-			AttributeType: aws.String(attr["type"].(string)),
-		}
-	}
-	return attributes
-}
-
-// TODO: Get rid of keySchemaM - the user should just explicitly define
-// this in the config, we shouldn't magically be setting it like this.
-// Removal will however require config change, hence BC. :/
-func expandDynamoDbLocalSecondaryIndexes(cfg []interface{}, keySchemaM map[string]interface{}) []*dynamodb.LocalSecondaryIndex {
-	indexes := make([]*dynamodb.LocalSecondaryIndex, len(cfg))
-	for i, lsi := range cfg {
-		m := lsi.(map[string]interface{})
-		idxName := m["name"].(string)
-
-		// TODO: See https://github.com/hashicorp/terraform-provider-aws/issues/3176
-		if _, ok := m["hash_key"]; !ok {
-			m["hash_key"] = keySchemaM["hash_key"]
-		}
-
-		indexes[i] = &dynamodb.LocalSecondaryIndex{
-			IndexName:  aws.String(idxName),
-			KeySchema:  expandDynamoDbKeySchema(m),
-			Projection: expandDynamoDbProjection(m),
-		}
-	}
-	return indexes
-}
-
-func expandDynamoDbGlobalSecondaryIndex(data map[string]interface{}, billingMode string) *dynamodb.GlobalSecondaryIndex {
-	return &dynamodb.GlobalSecondaryIndex{
-		IndexName:             aws.String(data["name"].(string)),
-		KeySchema:             expandDynamoDbKeySchema(data),
-		Projection:            expandDynamoDbProjection(data),
-		ProvisionedThroughput: expandDynamoDbProvisionedThroughput(data, billingMode),
-	}
-}
-
-func validateDynamoDbProvisionedThroughput(data map[string]interface{}, billingMode string) error {
-	// if billing mode is PAY_PER_REQUEST, don't need to validate the throughput settings
-	if billingMode == dynamodb.BillingModePayPerRequest {
-		return nil
-	}
-
-	writeCapacity, writeCapacitySet := data["write_capacity"].(int)
-	readCapacity, readCapacitySet := data["read_capacity"].(int)
-
-	if !writeCapacitySet || !readCapacitySet {
-		return fmt.Errorf("Read and Write capacity should be set when billing mode is %s", dynamodb.BillingModeProvisioned)
-	}
-
-	if writeCapacity < 1 {
-		return fmt.Errorf("Write capacity must be > 0 when billing mode is %s", dynamodb.BillingModeProvisioned)
-	}
-
-	if readCapacity < 1 {
-		return fmt.Errorf("Read capacity must be > 0 when billing mode is %s", dynamodb.BillingModeProvisioned)
-	}
-
-	return nil
-}
-
-func expandDynamoDbProvisionedThroughput(data map[string]interface{}, billingMode string) *dynamodb.ProvisionedThroughput {
-
-	if billingMode == dynamodb.BillingModePayPerRequest {
-		return nil
-	}
-
-	return &dynamodb.ProvisionedThroughput{
-		WriteCapacityUnits: aws.Int64(int64(data["write_capacity"].(int))),
-		ReadCapacityUnits:  aws.Int64(int64(data["read_capacity"].(int))),
-	}
-}
-
-func expandDynamoDbProjection(data map[string]interface{}) *dynamodb.Projection {
-	projection := &dynamodb.Projection{
-		ProjectionType: aws.String(data["projection_type"].(string)),
-	}
-
-	if v, ok := data["non_key_attributes"].([]interface{}); ok && len(v) > 0 {
-		projection.NonKeyAttributes = expandStringList(v)
-	}
-
-	if v, ok := data["non_key_attributes"].(*schema.Set); ok && v.Len() > 0 {
-		projection.NonKeyAttributes = expandStringSet(v)
-	}
-
-	return projection
-}
-
-func expandDynamoDbKeySchema(data map[string]interface{}) []*dynamodb.KeySchemaElement {
-	keySchema := []*dynamodb.KeySchemaElement{}
-
-	if v, ok := data["hash_key"]; ok && v != nil && v != "" {
-		keySchema = append(keySchema, &dynamodb.KeySchemaElement{
-			AttributeName: aws.String(v.(string)),
-			KeyType:       aws.String(dynamodb.KeyTypeHash),
-		})
-	}
-
-	if v, ok := data["range_key"]; ok && v != nil && v != "" {
-		keySchema = append(keySchema, &dynamodb.KeySchemaElement{
-			AttributeName: aws.String(v.(string)),
-			KeyType:       aws.String(dynamodb.KeyTypeRange),
-		})
-	}
-
-	return keySchema
-}
-
-func expandDynamoDbEncryptAtRestOptions(vOptions []interface{}) *dynamodb.SSESpecification {
-	options := &dynamodb.SSESpecification{}
-
-	enabled := false
-	if len(vOptions) > 0 {
-		mOptions := vOptions[0].(map[string]interface{})
-
-		enabled = mOptions["enabled"].(bool)
-		if enabled {
-			if vKmsKeyArn, ok := mOptions["kms_key_arn"].(string); ok && vKmsKeyArn != "" {
-				options.KMSMasterKeyId = aws.String(vKmsKeyArn)
-				options.SSEType = aws.String(dynamodb.SSETypeKms)
-			}
-		}
-	}
-	options.Enabled = aws.Bool(enabled)
-
-	return options
-}
 
 func expandDynamoDbTableItemAttributes(input string) (map[string]*dynamodb.AttributeValue, error) {
 	var attributes map[string]*dynamodb.AttributeValue
@@ -4745,7 +4363,79 @@ func expandAppmeshVirtualNodeSpec(vSpec []interface{}) *appmesh.VirtualNodeSpec 
 						certificate.File = file
 					}
 
+					if vSds, ok := mCertificate["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+						sds := &appmesh.ListenerTlsSdsCertificate{}
+
+						mSds := vSds[0].(map[string]interface{})
+
+						if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+							sds.SecretName = aws.String(vSecretName)
+						}
+
+						certificate.Sds = sds
+					}
+
 					tls.Certificate = certificate
+				}
+
+				if vValidation, ok := mTls["validation"].([]interface{}); ok && len(vValidation) > 0 && vValidation[0] != nil {
+					validation := &appmesh.ListenerTlsValidationContext{}
+
+					mValidation := vValidation[0].(map[string]interface{})
+
+					if vSubjectAlternativeNames, ok := mValidation["subject_alternative_names"].([]interface{}); ok && len(vSubjectAlternativeNames) > 0 && vSubjectAlternativeNames[0] != nil {
+						subjectAlternativeNames := &appmesh.SubjectAlternativeNames{}
+
+						mSubjectAlternativeNames := vSubjectAlternativeNames[0].(map[string]interface{})
+
+						if vMatch, ok := mSubjectAlternativeNames["match"].([]interface{}); ok && len(vMatch) > 0 && vMatch[0] != nil {
+							match := &appmesh.SubjectAlternativeNameMatchers{}
+
+							mMatch := vMatch[0].(map[string]interface{})
+
+							if vExact, ok := mMatch["exact"].(*schema.Set); ok && vExact.Len() > 0 {
+								match.Exact = expandStringSet(vExact)
+							}
+
+							subjectAlternativeNames.Match = match
+						}
+
+						validation.SubjectAlternativeNames = subjectAlternativeNames
+					}
+
+					if vTrust, ok := mValidation["trust"].([]interface{}); ok && len(vTrust) > 0 && vTrust[0] != nil {
+						trust := &appmesh.ListenerTlsValidationContextTrust{}
+
+						mTrust := vTrust[0].(map[string]interface{})
+
+						if vFile, ok := mTrust["file"].([]interface{}); ok && len(vFile) > 0 && vFile[0] != nil {
+							file := &appmesh.TlsValidationContextFileTrust{}
+
+							mFile := vFile[0].(map[string]interface{})
+
+							if vCertificateChain, ok := mFile["certificate_chain"].(string); ok && vCertificateChain != "" {
+								file.CertificateChain = aws.String(vCertificateChain)
+							}
+
+							trust.File = file
+						}
+
+						if vSds, ok := mTrust["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+							sds := &appmesh.TlsValidationContextSdsTrust{}
+
+							mSds := vSds[0].(map[string]interface{})
+
+							if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+								sds.SecretName = aws.String(vSecretName)
+							}
+
+							trust.Sds = sds
+						}
+
+						validation.Trust = trust
+					}
+
+					tls.Validation = validation
 				}
 
 				listener.Tls = tls
@@ -4977,7 +4667,57 @@ func flattenAppmeshVirtualNodeSpec(spec *appmesh.VirtualNodeSpec) []interface{} 
 					mCertificate["file"] = []interface{}{mFile}
 				}
 
+				if sds := certificate.Sds; sds != nil {
+					mSds := map[string]interface{}{
+						"secret_name": aws.StringValue(sds.SecretName),
+					}
+
+					mCertificate["sds"] = []interface{}{mSds}
+				}
+
 				mTls["certificate"] = []interface{}{mCertificate}
+			}
+
+			if validation := tls.Validation; validation != nil {
+				mValidation := map[string]interface{}{}
+
+				if subjectAlternativeNames := validation.SubjectAlternativeNames; subjectAlternativeNames != nil {
+					mSubjectAlternativeNames := map[string]interface{}{}
+
+					if match := subjectAlternativeNames.Match; match != nil {
+						mMatch := map[string]interface{}{
+							"exact": flattenStringSet(match.Exact),
+						}
+
+						mSubjectAlternativeNames["match"] = []interface{}{mMatch}
+					}
+
+					mValidation["subject_alternative_names"] = []interface{}{mSubjectAlternativeNames}
+				}
+
+				if trust := validation.Trust; trust != nil {
+					mTrust := map[string]interface{}{}
+
+					if file := trust.File; file != nil {
+						mFile := map[string]interface{}{
+							"certificate_chain": aws.StringValue(file.CertificateChain),
+						}
+
+						mTrust["file"] = []interface{}{mFile}
+					}
+
+					if sds := trust.Sds; sds != nil {
+						mSds := map[string]interface{}{
+							"secret_name": aws.StringValue(sds.SecretName),
+						}
+
+						mTrust["sds"] = []interface{}{mSds}
+					}
+
+					mValidation["trust"] = []interface{}{mTrust}
+				}
+
+				mTls["validation"] = []interface{}{mValidation}
 			}
 
 			mListener["tls"] = []interface{}{mTls}
@@ -5053,6 +4793,41 @@ func expandAppmeshClientPolicy(vClientPolicy []interface{}) *appmesh.ClientPolic
 
 		mTls := vTls[0].(map[string]interface{})
 
+		if vCertificate, ok := mTls["certificate"].([]interface{}); ok && len(vCertificate) > 0 && vCertificate[0] != nil {
+			certificate := &appmesh.ClientTlsCertificate{}
+
+			mCertificate := vCertificate[0].(map[string]interface{})
+
+			if vFile, ok := mCertificate["file"].([]interface{}); ok && len(vFile) > 0 && vFile[0] != nil {
+				file := &appmesh.ListenerTlsFileCertificate{}
+
+				mFile := vFile[0].(map[string]interface{})
+
+				if vCertificateChain, ok := mFile["certificate_chain"].(string); ok && vCertificateChain != "" {
+					file.CertificateChain = aws.String(vCertificateChain)
+				}
+				if vPrivateKey, ok := mFile["private_key"].(string); ok && vPrivateKey != "" {
+					file.PrivateKey = aws.String(vPrivateKey)
+				}
+
+				certificate.File = file
+			}
+
+			if vSds, ok := mCertificate["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+				sds := &appmesh.ListenerTlsSdsCertificate{}
+
+				mSds := vSds[0].(map[string]interface{})
+
+				if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+					sds.SecretName = aws.String(vSecretName)
+				}
+
+				certificate.Sds = sds
+			}
+
+			tls.Certificate = certificate
+		}
+
 		if vEnforce, ok := mTls["enforce"].(bool); ok {
 			tls.Enforce = aws.Bool(vEnforce)
 		}
@@ -5065,6 +4840,26 @@ func expandAppmeshClientPolicy(vClientPolicy []interface{}) *appmesh.ClientPolic
 			validation := &appmesh.TlsValidationContext{}
 
 			mValidation := vValidation[0].(map[string]interface{})
+
+			if vSubjectAlternativeNames, ok := mValidation["subject_alternative_names"].([]interface{}); ok && len(vSubjectAlternativeNames) > 0 && vSubjectAlternativeNames[0] != nil {
+				subjectAlternativeNames := &appmesh.SubjectAlternativeNames{}
+
+				mSubjectAlternativeNames := vSubjectAlternativeNames[0].(map[string]interface{})
+
+				if vMatch, ok := mSubjectAlternativeNames["match"].([]interface{}); ok && len(vMatch) > 0 && vMatch[0] != nil {
+					match := &appmesh.SubjectAlternativeNameMatchers{}
+
+					mMatch := vMatch[0].(map[string]interface{})
+
+					if vExact, ok := mMatch["exact"].(*schema.Set); ok && vExact.Len() > 0 {
+						match.Exact = expandStringSet(vExact)
+					}
+
+					subjectAlternativeNames.Match = match
+				}
+
+				validation.SubjectAlternativeNames = subjectAlternativeNames
+			}
 
 			if vTrust, ok := mValidation["trust"].([]interface{}); ok && len(vTrust) > 0 && vTrust[0] != nil {
 				trust := &appmesh.TlsValidationContextTrust{}
@@ -5095,35 +4890,17 @@ func expandAppmeshClientPolicy(vClientPolicy []interface{}) *appmesh.ClientPolic
 					trust.File = file
 				}
 
-				// if vSds, ok := mTrust["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
-				// 	sds := &appmesh.TlsValidationContextSdsTrust{}
+				if vSds, ok := mTrust["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+					sds := &appmesh.TlsValidationContextSdsTrust{}
 
-				// 	mSds := vSds[0].(map[string]interface{})
+					mSds := vSds[0].(map[string]interface{})
 
-				// 	if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
-				// 		sds.SecretName = aws.String(vSecretName)
-				// 	}
+					if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+						sds.SecretName = aws.String(vSecretName)
+					}
 
-				// 	if vSource, ok := mSds["source"].([]interface{}); ok && len(vSource) > 0 && vSource[0] != nil {
-				// 		source := &appmesh.SdsSource{}
-
-				// 		mSource := vSource[0].(map[string]interface{})
-
-				// 		if vUnixDomainSocket, ok := mSource["unix_domain_socket"].([]interface{}); ok && len(vUnixDomainSocket) > 0 && vUnixDomainSocket[0] != nil {
-				// 			unixDomainSocket := &appmesh.SdsUnixDomainSocketSource{}
-
-				// 			mUnixDomainSocket := vUnixDomainSocket[0].(map[string]interface{})
-
-				// 			if vPath, ok := mUnixDomainSocket["path"].(string); ok && vPath != "" {
-				// 				unixDomainSocket.Path = aws.String(vPath)
-				// 			}
-
-				// 			source.UnixDomainSocket = unixDomainSocket
-				// 		}
-				// 	}
-
-				// 	trust.Sds = sds
-				// }
+					trust.Sds = sds
+				}
 
 				validation.Trust = trust
 			}
@@ -5150,8 +4927,45 @@ func flattenAppmeshClientPolicy(clientPolicy *appmesh.ClientPolicy) []interface{
 			"ports":   flattenInt64Set(tls.Ports),
 		}
 
+		if certificate := tls.Certificate; certificate != nil {
+			mCertificate := map[string]interface{}{}
+
+			if file := certificate.File; file != nil {
+				mFile := map[string]interface{}{
+					"certificate_chain": aws.StringValue(file.CertificateChain),
+					"private_key":       aws.StringValue(file.PrivateKey),
+				}
+
+				mCertificate["file"] = []interface{}{mFile}
+			}
+
+			if sds := certificate.Sds; sds != nil {
+				mSds := map[string]interface{}{
+					"secret_name": aws.StringValue(sds.SecretName),
+				}
+
+				mCertificate["sds"] = []interface{}{mSds}
+			}
+
+			mTls["certificate"] = []interface{}{mCertificate}
+		}
+
 		if validation := tls.Validation; validation != nil {
 			mValidation := map[string]interface{}{}
+
+			if subjectAlternativeNames := validation.SubjectAlternativeNames; subjectAlternativeNames != nil {
+				mSubjectAlternativeNames := map[string]interface{}{}
+
+				if match := subjectAlternativeNames.Match; match != nil {
+					mMatch := map[string]interface{}{
+						"exact": flattenStringSet(match.Exact),
+					}
+
+					mSubjectAlternativeNames["match"] = []interface{}{mMatch}
+				}
+
+				mValidation["subject_alternative_names"] = []interface{}{mSubjectAlternativeNames}
+			}
 
 			if trust := validation.Trust; trust != nil {
 				mTrust := map[string]interface{}{}
@@ -5172,27 +4986,13 @@ func flattenAppmeshClientPolicy(clientPolicy *appmesh.ClientPolicy) []interface{
 					mTrust["file"] = []interface{}{mFile}
 				}
 
-				// if sds := trust.Sds; sds != nil {
-				// 	mSds := map[string]interface{}{
-				// 		"secret_name": aws.StringValue(sds.SecretName),
-				// 	}
+				if sds := trust.Sds; sds != nil {
+					mSds := map[string]interface{}{
+						"secret_name": aws.StringValue(sds.SecretName),
+					}
 
-				// 	if source := sds.Source; source != nil {
-				// 		mSource := map[string]interface{}{}
-
-				// 		if unixDomainSocket := source.UnixDomainSocket; unixDomainSocket != nil {
-				// 			mUnixDomainSocket := map[string]interface{}{
-				// 				"path": aws.StringValue(unixDomainSocket.Path),
-				// 			}
-
-				// 			mSource["unix_domain_socket"] = []interface{}{mUnixDomainSocket}
-				// 		}
-
-				// 		mSds["source"] = []interface{}{mSource}
-				// 	}
-
-				// 	mTrust["sds"] = []interface{}{mSds}
-				// }
+					mTrust["sds"] = []interface{}{mSds}
+				}
 
 				mValidation["trust"] = []interface{}{mTrust}
 			}

@@ -165,6 +165,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 The `replica` configuration block supports the following arguments:
 
 * `region_name` - (Required) Region name of the replica.
+* `kms_key_arn` - (Optional) The ARN of the CMK that should be used for the AWS KMS encryption.
 
 #### `server_side_encryption`
 

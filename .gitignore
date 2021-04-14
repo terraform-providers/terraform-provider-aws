@@ -30,6 +30,7 @@ website/node_modules
 log.txt
 markdown-link-check*.txt
 changelog.tmp
+terraform-provider-aws
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate

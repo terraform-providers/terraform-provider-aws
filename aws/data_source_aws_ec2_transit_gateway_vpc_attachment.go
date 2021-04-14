@@ -107,9 +107,9 @@ func dataSourceAwsEc2TransitGatewayVpcAttachmentRead(d *schema.ResourceData, met
 		return fmt.Errorf("error setting tags: %w", err)
 	}
 
-	d.Set("transit_gateway_id", aws.StringValue(transitGatewayVpcAttachment.TransitGatewayId))
-	d.Set("vpc_id", aws.StringValue(transitGatewayVpcAttachment.VpcId))
-	d.Set("vpc_owner_id", aws.StringValue(transitGatewayVpcAttachment.VpcOwnerId))
+	d.Set("transit_gateway_id", transitGatewayVpcAttachment.TransitGatewayId)
+	d.Set("vpc_id", transitGatewayVpcAttachment.VpcId)
+	d.Set("vpc_owner_id", transitGatewayVpcAttachment.VpcOwnerId)
 
 	d.SetId(aws.StringValue(transitGatewayVpcAttachment.TransitGatewayAttachmentId))
 

@@ -142,15 +142,15 @@ func dataSourceAwsWorkspacesWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(aws.StringValue(workspace.WorkspaceId))
-	d.Set("bundle_id", aws.StringValue(workspace.BundleId))
-	d.Set("directory_id", aws.StringValue(workspace.DirectoryId))
-	d.Set("ip_address", aws.StringValue(workspace.IpAddress))
-	d.Set("computer_name", aws.StringValue(workspace.ComputerName))
-	d.Set("state", aws.StringValue(workspace.State))
-	d.Set("root_volume_encryption_enabled", aws.BoolValue(workspace.RootVolumeEncryptionEnabled))
-	d.Set("user_name", aws.StringValue(workspace.UserName))
-	d.Set("user_volume_encryption_enabled", aws.BoolValue(workspace.UserVolumeEncryptionEnabled))
-	d.Set("volume_encryption_key", aws.StringValue(workspace.VolumeEncryptionKey))
+	d.Set("bundle_id", workspace.BundleId)
+	d.Set("directory_id", workspace.DirectoryId)
+	d.Set("ip_address", workspace.IpAddress)
+	d.Set("computer_name", workspace.ComputerName)
+	d.Set("state", workspace.State)
+	d.Set("root_volume_encryption_enabled", workspace.RootVolumeEncryptionEnabled)
+	d.Set("user_name", workspace.UserName)
+	d.Set("user_volume_encryption_enabled", workspace.UserVolumeEncryptionEnabled)
+	d.Set("volume_encryption_key", workspace.VolumeEncryptionKey)
 	if err := d.Set("workspace_properties", flattenWorkspaceProperties(workspace.WorkspaceProperties)); err != nil {
 		return fmt.Errorf("error setting workspace properties: %w", err)
 	}

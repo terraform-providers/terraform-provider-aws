@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -67,6 +68,10 @@ func testAccCheckAWSEc2TransitGatewayRouteTablePropagationExists(resourceName st
 
 		if propagation == nil {
 			return fmt.Errorf("EC2 Transit Gateway Route Table Propagation not found")
+		}
+
+		if aws.StringValue(propagation.State) != ec2.TransitGatewayPropagationStateEnabled {
+			return fmt.Errorf("EC2 Transit Gateway Route Table Propagation not in enabled state: %s", aws.StringValue(propagation.State))
 		}
 
 		*transitGatewayRouteTablePropagation = *propagation

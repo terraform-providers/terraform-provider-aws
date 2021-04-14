@@ -42,7 +42,7 @@ func testSweepElasticacheClusters(region string) error {
 	input := &elasticache.DescribeCacheClustersInput{
 		ShowCacheClustersNotInReplicationGroups: aws.Bool(true),
 	}
-	err = conn.DescribeCacheClustersPages(input, func(page *elasticache.DescribeCacheClustersOutput, isLast bool) bool {
+	err = conn.DescribeCacheClustersPages(input, func(page *elasticache.DescribeCacheClustersOutput, lastPage bool) bool {
 		if len(page.CacheClusters) == 0 {
 			log.Print("[DEBUG] No ElastiCache Replicaton Groups to sweep")
 			return false
@@ -63,7 +63,7 @@ func testSweepElasticacheClusters(region string) error {
 				sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error deleting ElastiCache Cache Cluster (%s): waiting for completion: %w", id, err))
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping ElastiCache Cluster sweep for %s: %s", region, err)

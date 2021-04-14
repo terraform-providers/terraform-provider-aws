@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	SubscriptionCreateTimeout              = 2 * time.Minute
 	SubscriptionPendingConfirmationTimeout = 2 * time.Minute
 	SubscriptionDeleteTimeout              = 2 * time.Minute
 )

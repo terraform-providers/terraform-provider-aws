@@ -26,9 +26,9 @@ func testSweepAppmeshRoutes(region string) error {
 	}
 	conn := client.(*AWSClient).appmeshconn
 
-	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, isLast bool) bool {
+	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, mesh := range page.Meshes {
@@ -37,9 +37,9 @@ func testSweepAppmeshRoutes(region string) error {
 			}
 			meshName := aws.StringValue(mesh.MeshName)
 
-			err := conn.ListVirtualRoutersPages(listVirtualRoutersInput, func(page *appmesh.ListVirtualRoutersOutput, isLast bool) bool {
+			err := conn.ListVirtualRoutersPages(listVirtualRoutersInput, func(page *appmesh.ListVirtualRoutersOutput, lastPage bool) bool {
 				if page == nil {
-					return !isLast
+					return !lastPage
 				}
 
 				for _, virtualRouter := range page.VirtualRouters {
@@ -49,9 +49,9 @@ func testSweepAppmeshRoutes(region string) error {
 					}
 					virtualRouterName := aws.StringValue(virtualRouter.VirtualRouterName)
 
-					err := conn.ListRoutesPages(listRoutesInput, func(page *appmesh.ListRoutesOutput, isLast bool) bool {
+					err := conn.ListRoutesPages(listRoutesInput, func(page *appmesh.ListRoutesOutput, lastPage bool) bool {
 						if page == nil {
-							return !isLast
+							return !lastPage
 						}
 
 						for _, route := range page.Routes {
@@ -70,7 +70,7 @@ func testSweepAppmeshRoutes(region string) error {
 							}
 						}
 
-						return !isLast
+						return !lastPage
 					})
 
 					if err != nil {
@@ -78,7 +78,7 @@ func testSweepAppmeshRoutes(region string) error {
 					}
 				}
 
-				return !isLast
+				return !lastPage
 			})
 
 			if err != nil {
@@ -86,7 +86,7 @@ func testSweepAppmeshRoutes(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -1110,7 +1110,6 @@ func testAccAwsAppmeshRoute_httpHeader(t *testing.T) {
 					}),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.method", "POST"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.prefix", "/"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.scheme", "http"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.priority", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.tcp_route.#", "0"),
@@ -1152,7 +1151,6 @@ func testAccAwsAppmeshRoute_httpHeader(t *testing.T) {
 					}),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.method", "PUT"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.prefix", "/path"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.scheme", "https"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.priority", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.tcp_route.#", "0"),
@@ -2245,7 +2243,6 @@ resource "aws_appmesh_route" "test" {
       match {
         prefix = "/"
         method = "POST"
-        scheme = "http"
 
         header {
           name = "X-Testing1"
@@ -2276,7 +2273,6 @@ resource "aws_appmesh_route" "test" {
       match {
         prefix = "/path"
         method = "PUT"
-        scheme = "https"
 
         header {
           name   = "X-Testing1"

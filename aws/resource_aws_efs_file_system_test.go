@@ -126,6 +126,35 @@ func TestAccAWSEFSFileSystem_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSEFSFileSystem_availabilityZoneName(t *testing.T) {
+	var desc efs.FileSystemDescription
+	resourceName := "aws_efs_file_system.test"
+	rName := acctest.RandomWithPrefix("tf-acc")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, efs.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckEfsFileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEFSFileSystemConfigAvailabilityZoneName(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEfsFileSystem(resourceName, &desc),
+					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_name"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"creation_token"},
+			},
+		},
+	})
+}
+
 func TestAccAWSEFSFileSystem_tags(t *testing.T) {
 	var desc efs.FileSystemDescription
 	rName := acctest.RandomWithPrefix("tf-acc-tags")
@@ -625,6 +654,24 @@ func testAccAWSEFSFileSystemConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
   creation_token = %q
+}
+`, rName)
+}
+
+func testAccAWSEFSFileSystemConfigAvailabilityZoneName(rName string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_efs_file_system" "test" {
+  creation_token         = %q
+  availability_zone_name = data.aws_availability_zones.available.names[0]
 }
 `, rName)
 }

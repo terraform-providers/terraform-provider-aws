@@ -168,7 +168,7 @@ func resourceAwsGlueDevEndpointCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("arguments"); ok {
-		input.Arguments = stringMapToPointers(v.(map[string]interface{}))
+		input.Arguments = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("extra_jars_s3_path"); ok {

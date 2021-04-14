@@ -141,7 +141,8 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enforce_https": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
+							Default:  true,
 						},
 						"tls_security_policy": {
 							Type:     schema.TypeString,
@@ -151,6 +152,22 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 								elasticsearch.TLSSecurityPolicyPolicyMinTls10201907,
 								elasticsearch.TLSSecurityPolicyPolicyMinTls12201907,
 							}, false),
+						},
+						"custom_endpoint_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"custom_endpoint": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: isCustomEndpointDisabled,
+						},
+						"custom_endpoint_certificate_arn": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateFunc:     validateArn,
+							DiffSuppressFunc: isCustomEndpointDisabled,
 						},
 					},
 				},
@@ -451,7 +468,7 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("advanced_options"); ok {
-		input.AdvancedOptions = stringMapToPointers(v.(map[string]interface{}))
+		input.AdvancedOptions = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("advanced_security_options"); ok {
@@ -743,7 +760,7 @@ func resourceAwsElasticSearchDomainRead(d *schema.ResourceData, meta interface{}
 		}
 	} else {
 		if ds.Endpoint != nil {
-			d.Set("endpoint", aws.StringValue(ds.Endpoint))
+			d.Set("endpoint", ds.Endpoint)
 			d.Set("kibana_endpoint", getKibanaEndpoint(d))
 		}
 		if ds.Endpoints != nil {
@@ -804,7 +821,7 @@ func resourceAwsElasticSearchDomainUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if d.HasChange("advanced_options") {
-		input.AdvancedOptions = stringMapToPointers(d.Get("advanced_options").(map[string]interface{}))
+		input.AdvancedOptions = expandStringMap(d.Get("advanced_options").(map[string]interface{}))
 	}
 
 	if d.HasChange("advanced_security_options") {
@@ -1034,6 +1051,15 @@ func isDedicatedMasterDisabled(k, old, new string, d *schema.ResourceData) bool 
 	if ok {
 		clusterConfig := v.([]interface{})[0].(map[string]interface{})
 		return !clusterConfig["dedicated_master_enabled"].(bool)
+	}
+	return false
+}
+
+func isCustomEndpointDisabled(k, old, new string, d *schema.ResourceData) bool {
+	v, ok := d.GetOk("domain_endpoint_options")
+	if ok {
+		domainEndpointOptions := v.([]interface{})[0].(map[string]interface{})
+		return !domainEndpointOptions["custom_endpoint_enabled"].(bool)
 	}
 	return false
 }

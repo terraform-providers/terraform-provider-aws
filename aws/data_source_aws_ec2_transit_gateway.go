@@ -110,7 +110,7 @@ func dataSourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}
 		return errors.New("error reading EC2 Transit Gateway: missing options")
 	}
 
-	d.Set("amazon_side_asn", aws.Int64Value(transitGateway.Options.AmazonSideAsn))
+	d.Set("amazon_side_asn", transitGateway.Options.AmazonSideAsn)
 	d.Set("arn", transitGateway.TransitGatewayArn)
 	d.Set("association_default_route_table_id", transitGateway.Options.AssociationDefaultRouteTableId)
 	d.Set("auto_accept_shared_attachments", transitGateway.Options.AutoAcceptSharedAttachments)

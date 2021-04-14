@@ -169,6 +169,33 @@ func TestValidateCloudWatchEventRuleName(t *testing.T) {
 	}
 }
 
+func TestValidateCloudWatchEventBusNameOrARN(t *testing.T) {
+	validNames := []string{
+		"HelloWorl_d",
+		"hello-world",
+		"hello.World0125",
+		"aws.partner/mongodb.com/stitch.trigger/something",
+		"arn:aws:events:us-east-1:123456789012:event-bus/default", // lintignore:AWSAT003,AWSAT005
+	}
+	for _, v := range validNames {
+		_, errors := validateCloudWatchEventBusNameOrARN(v, "name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid CW event rule name: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"special@character",
+		"arn:aw:events:us-east-1:123456789012:event-bus/default", // lintignore:AWSAT003,AWSAT005
+	}
+	for _, v := range invalidNames {
+		_, errors := validateCloudWatchEventBusNameOrARN(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid CW event rule name", v)
+		}
+	}
+}
+
 func TestValidateLambdaFunctionName(t *testing.T) {
 	validNames := []string{
 		"arn:aws:lambda:us-west-2:123456789012:function:ThumbNail",            //lintignore:AWSAT003,AWSAT005

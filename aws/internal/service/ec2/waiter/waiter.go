@@ -257,6 +257,49 @@ const (
 	NetworkAclEntryPropagationTimeout = 5 * time.Minute
 )
 
+const (
+	RouteTableReadyTimeout   = 10 * time.Minute
+	RouteTableDeletedTimeout = 5 * time.Minute
+	RouteTableUpdateTimeout  = 5 * time.Minute
+
+	RouteTableNotFoundChecks = 40
+)
+
+func RouteTableReady(conn *ec2.EC2, id string) (*ec2.RouteTable, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:        []string{},
+		Target:         []string{RouteTableStatusReady},
+		Refresh:        RouteTableStatus(conn, id),
+		Timeout:        RouteTableReadyTimeout,
+		NotFoundChecks: RouteTableNotFoundChecks,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.RouteTable); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func RouteTableDeleted(conn *ec2.EC2, id string) (*ec2.RouteTable, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{RouteTableStatusReady},
+		Target:  []string{},
+		Refresh: RouteTableStatus(conn, id),
+		Timeout: RouteTableDeletedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.RouteTable); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
 func SecurityGroupCreated(conn *ec2.EC2, id string, timeout time.Duration) (*ec2.SecurityGroup, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{SecurityGroupStatusNotFound},
@@ -368,6 +411,48 @@ func TransitGatewayPrefixListReferenceStateUpdated(conn *ec2.EC2, transitGateway
 	outputRaw, err := stateConf.WaitForState()
 
 	if output, ok := outputRaw.(*ec2.TransitGatewayPrefixListReference); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+const (
+	TransitGatewayRouteTablePropagationTimeout = 5 * time.Minute
+)
+
+func TransitGatewayRouteTablePropagationStateEnabled(conn *ec2.EC2, transitGatewayRouteTableID string, transitGatewayAttachmentID string) (*ec2.TransitGatewayRouteTablePropagation, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.TransitGatewayPropagationStateEnabling},
+		Target:  []string{ec2.TransitGatewayPropagationStateEnabled},
+		Timeout: TransitGatewayRouteTablePropagationTimeout,
+		Refresh: TransitGatewayRouteTablePropagationState(conn, transitGatewayRouteTableID, transitGatewayAttachmentID),
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.TransitGatewayRouteTablePropagation); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func TransitGatewayRouteTablePropagationStateDisabled(conn *ec2.EC2, transitGatewayRouteTableID string, transitGatewayAttachmentID string) (*ec2.TransitGatewayRouteTablePropagation, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.TransitGatewayPropagationStateDisabling},
+		Target:  []string{},
+		Timeout: TransitGatewayRouteTablePropagationTimeout,
+		Refresh: TransitGatewayRouteTablePropagationState(conn, transitGatewayRouteTableID, transitGatewayAttachmentID),
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidRouteTableIDNotFound) {
+		return nil, nil
+	}
+
+	if output, ok := outputRaw.(*ec2.TransitGatewayRouteTablePropagation); ok {
 		return output, err
 	}
 

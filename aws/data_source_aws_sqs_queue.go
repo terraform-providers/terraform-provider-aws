@@ -53,7 +53,7 @@ func dataSourceAwsSqsQueueRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error getting queue attributes: %w", err)
 	}
 
-	d.Set("arn", aws.StringValue(attributesOutput.Attributes[sqs.QueueAttributeNameQueueArn]))
+	d.Set("arn", attributesOutput.Attributes[sqs.QueueAttributeNameQueueArn])
 	d.Set("url", queueURL)
 	d.SetId(queueURL)
 

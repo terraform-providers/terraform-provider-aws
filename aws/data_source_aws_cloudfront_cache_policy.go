@@ -156,7 +156,7 @@ func dataSourceAwsCloudFrontCachePolicyRead(d *schema.ResourceData, meta interfa
 		if err != nil {
 			return fmt.Errorf("unable to retrieve cache policy with ID %s: %s", d.Id(), err.Error())
 		}
-		d.Set("etag", aws.StringValue(resp.ETag))
+		d.Set("etag", resp.ETag)
 
 		setCloudFrontCachePolicy(d, resp.CachePolicy.CachePolicyConfig)
 	}

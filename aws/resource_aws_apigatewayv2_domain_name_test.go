@@ -33,9 +33,9 @@ func testSweepAPIGatewayV2DomainNames(region string) error {
 	input := &apigatewayv2.GetDomainNamesInput{}
 	var sweeperErrs *multierror.Error
 
-	err = lister.GetDomainNamesPages(conn, input, func(page *apigatewayv2.GetDomainNamesOutput, isLast bool) bool {
+	err = lister.GetDomainNamesPages(conn, input, func(page *apigatewayv2.GetDomainNamesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, domainName := range page.Items {
@@ -51,7 +51,7 @@ func testSweepAPIGatewayV2DomainNames(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

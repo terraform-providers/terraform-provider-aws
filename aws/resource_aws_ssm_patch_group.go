@@ -93,7 +93,7 @@ func resourceAwsSsmPatchGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("baseline_id", groupBaselineId)
-	d.Set("patch_group", aws.StringValue(group.PatchGroup))
+	d.Set("patch_group", group.PatchGroup)
 
 	return nil
 

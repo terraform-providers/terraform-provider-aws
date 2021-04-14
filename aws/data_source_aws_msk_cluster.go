@@ -102,13 +102,13 @@ func dataSourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error reading MSK Cluster (%s) bootstrap brokers: %w", aws.StringValue(cluster.ClusterArn), err)
 	}
 
-	d.Set("arn", aws.StringValue(cluster.ClusterArn))
+	d.Set("arn", cluster.ClusterArn)
 	d.Set("bootstrap_brokers", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerString)))
 	d.Set("bootstrap_brokers_sasl_scram", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringSaslScram)))
 	d.Set("bootstrap_brokers_tls", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringTls)))
-	d.Set("cluster_name", aws.StringValue(cluster.ClusterName))
-	d.Set("kafka_version", aws.StringValue(cluster.CurrentBrokerSoftwareInfo.KafkaVersion))
-	d.Set("number_of_broker_nodes", aws.Int64Value(cluster.NumberOfBrokerNodes))
+	d.Set("cluster_name", cluster.ClusterName)
+	d.Set("kafka_version", cluster.CurrentBrokerSoftwareInfo.KafkaVersion)
+	d.Set("number_of_broker_nodes", cluster.NumberOfBrokerNodes)
 
 	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)

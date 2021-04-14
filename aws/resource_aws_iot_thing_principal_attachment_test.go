@@ -2,14 +2,89 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_iot_thing_principal_attachment", &resource.Sweeper{
+		Name: "aws_iot_thing_principal_attachment",
+		F:    testSweepIotThingPrincipalAttachments,
+	})
+}
+
+func testSweepIotThingPrincipalAttachments(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).iotconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
+	input := &iot.ListThingsInput{}
+
+	err = conn.ListThingsPages(input, func(page *iot.ListThingsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, thing := range page.Things {
+			input := &iot.ListThingPrincipalsInput{
+				ThingName: thing.ThingName,
+			}
+
+			err := conn.ListThingPrincipalsPages(input, func(page *iot.ListThingPrincipalsOutput, lastPage bool) bool {
+				if page == nil {
+					return !lastPage
+				}
+
+				for _, principal := range page.Principals {
+					r := resourceAwsIotThingPrincipalAttachment()
+					d := r.Data(nil)
+
+					d.SetId(fmt.Sprintf("%s|%s", aws.StringValue(thing.ThingName), aws.StringValue(principal)))
+					d.Set("principal", principal)
+					d.Set("thing", thing.ThingName)
+
+					sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
+				}
+
+				return !lastPage
+			})
+
+			if err != nil {
+				errs = multierror.Append(errs, fmt.Errorf("error listing IoT Thing Principal Attachment for %s: %w", region, err))
+			}
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error listing IoT Thing Principal Attachment for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping IoT Thing Principal Attachment for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping IoT Thing Principal Attachment sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
+}
 
 func TestAccAWSIotThingPrincipalAttachment_basic(t *testing.T) {
 	thingName := acctest.RandomWithPrefix("tf-acc")

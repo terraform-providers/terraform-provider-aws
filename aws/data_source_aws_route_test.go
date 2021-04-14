@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -133,6 +134,58 @@ func TestAccAWSRouteDataSource_CarrierGatewayID(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "route_table_id", dataSourceName, "route_table_id"),
 					resource.TestCheckResourceAttrPair(resourceName, "carrier_gateway_id", dataSourceName, "carrier_gateway_id"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRouteDataSource_DestinationPrefixListId(t *testing.T) {
+	dataSourceName := "data.aws_route.test"
+	resourceName := "aws_route.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckEc2ManagedPrefixList(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRouteDataSourceConfigPrefixListNatGateway(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(resourceName, "destination_prefix_list_id", dataSourceName, "destination_prefix_list_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "nat_gateway_id", dataSourceName, "nat_gateway_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "route_table_id", dataSourceName, "route_table_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRouteDataSource_GatewayVpcEndpoint(t *testing.T) {
+	var routeTable ec2.RouteTable
+	var vpce ec2.VpcEndpoint
+	rtResourceName := "aws_route_table.test"
+	vpceResourceName := "aws_vpc_endpoint.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRouteDataSourceConfigGatewayVpcEndpointNoDataSource(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(rtResourceName, &routeTable),
+					testAccCheckVpcEndpointExists(vpceResourceName, &vpce),
+					testAccCheckAWSRouteTableWaitForVpcEndpointRoute(&routeTable, &vpce),
+				),
+			},
+			{
+				Config:      testAccAWSRouteDataSourceConfigGatewayVpcEndpointWithDataSource(rName),
+				ExpectError: regexp.MustCompile(`No routes matching supplied arguments found in Route Table`),
 			},
 		},
 	})
@@ -413,4 +466,121 @@ data "aws_route" "test" {
   carrier_gateway_id = aws_route.test.carrier_gateway_id
 }
 `, rName)
+}
+
+func testAccAWSRouteDataSourceConfigPrefixListNatGateway(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "test" {
+  cidr_block = "10.1.1.0/24"
+  vpc_id     = aws_vpc.test.id
+
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_internet_gateway" "test" {
+  vpc_id = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_eip" "test" {
+  vpc = true
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_nat_gateway" "test" {
+  allocation_id = aws_eip.test.id
+  subnet_id     = aws_subnet.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+
+  depends_on = [aws_internet_gateway.test]
+}
+
+resource "aws_ec2_managed_prefix_list" "test" {
+  address_family = "IPv4"
+  max_entries    = 1
+  name           = %[1]q
+}
+
+resource "aws_route_table" "test" {
+  vpc_id = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_route" "test" {
+  route_table_id             = aws_route_table.test.id
+  destination_prefix_list_id = aws_ec2_managed_prefix_list.test.id
+  nat_gateway_id             = aws_nat_gateway.test.id
+}
+
+data "aws_route" "test" {
+  route_table_id             = aws_route.test.route_table_id
+  destination_prefix_list_id = aws_route.test.destination_prefix_list_id
+  nat_gateway_id             = aws_route.test.nat_gateway_id
+}
+`, rName)
+}
+
+func testAccAWSRouteDataSourceConfigGatewayVpcEndpointNoDataSource(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+data "aws_region" "current" {}
+
+resource "aws_vpc_endpoint" "test" {
+  vpc_id          = aws_vpc.test.id
+  service_name    = "com.amazonaws.${data.aws_region.current.name}.s3"
+  route_table_ids = [aws_route_table.test.id]
+}
+
+resource "aws_route_table" "test" {
+  vpc_id = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName)
+}
+
+func testAccAWSRouteDataSourceConfigGatewayVpcEndpointWithDataSource(rName string) string {
+	return composeConfig(testAccAWSRouteDataSourceConfigGatewayVpcEndpointNoDataSource(rName), `
+data "aws_prefix_list" "test" {
+  name = aws_vpc_endpoint.test.service_name
+}
+
+data "aws_route" "test" {
+  route_table_id             = aws_route_table.test.id
+  destination_prefix_list_id = data.aws_prefix_list.test.id
+}
+  `)
 }

@@ -74,8 +74,9 @@ func testAccCheckAWSCloudwatchLogDestinationDestroy(s *terraform.State) error {
 			continue
 		}
 		_, exists, err := lookupCloudWatchLogDestination(conn, rs.Primary.ID, nil)
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading CloudWatch Log Destination (%s): %w", rs.Primary.ID, err)
 		}
 
 		if exists {

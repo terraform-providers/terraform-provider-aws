@@ -437,10 +437,10 @@ func expandKmsGrantConstraints(configured *schema.Set) *kms.GrantConstraints {
 	for _, raw := range configured.List() {
 		data := raw.(map[string]interface{})
 		if contextEq, ok := data["encryption_context_equals"]; ok {
-			constraint.SetEncryptionContextEquals(stringMapToPointers(contextEq.(map[string]interface{})))
+			constraint.SetEncryptionContextEquals(expandStringMap(contextEq.(map[string]interface{})))
 		}
 		if contextSub, ok := data["encryption_context_subset"]; ok {
-			constraint.SetEncryptionContextSubset(stringMapToPointers(contextSub.(map[string]interface{})))
+			constraint.SetEncryptionContextSubset(expandStringMap(contextSub.(map[string]interface{})))
 		}
 	}
 
@@ -480,12 +480,12 @@ func resourceKmsGrantConstraintsHash(v interface{}) int {
 
 	if v, ok := m["encryption_context_equals"]; ok {
 		if len(v.(map[string]interface{})) > 0 {
-			buf.WriteString(fmt.Sprintf("encryption_context_equals-%s-", sortedConcatStringMap(stringMapToPointers(v.(map[string]interface{})))))
+			buf.WriteString(fmt.Sprintf("encryption_context_equals-%s-", sortedConcatStringMap(expandStringMap(v.(map[string]interface{})))))
 		}
 	}
 	if v, ok := m["encryption_context_subset"]; ok {
 		if len(v.(map[string]interface{})) > 0 {
-			buf.WriteString(fmt.Sprintf("encryption_context_subset-%s-", sortedConcatStringMap(stringMapToPointers(v.(map[string]interface{})))))
+			buf.WriteString(fmt.Sprintf("encryption_context_subset-%s-", sortedConcatStringMap(expandStringMap(v.(map[string]interface{})))))
 		}
 	}
 

@@ -51,7 +51,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - Full ARN of the repository.
 * `id` - The repository name.
 * `registry_id` - The registry ID where the repository was created.
-* `repository_url` - The URL of the repository.
+* `repository_uri` - The URI of the repository.
 
 ## Timeouts
 

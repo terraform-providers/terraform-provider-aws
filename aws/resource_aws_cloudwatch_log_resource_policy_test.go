@@ -133,8 +133,9 @@ func testAccCheckCloudWatchLogResourcePolicyDestroy(s *terraform.State) error {
 		}
 
 		_, exists, err := lookupCloudWatchLogResourcePolicy(conn, rs.Primary.ID, nil)
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading CloudWatch Log Resource Policy (%s): %w", rs.Primary.ID, err)
 		}
 
 		if exists {

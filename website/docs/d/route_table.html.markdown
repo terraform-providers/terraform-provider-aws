@@ -68,6 +68,7 @@ When relevant, routes are also exported with the following attributes:
 For destinations:
 
 * `cidr_block` - CIDR block of the route.
+* `destination_prefix_list_id` - The ID of a [managed prefix list](ec2_managed_prefix_list.html) destination of the route.
 * `ipv6_cidr_block` - IPv6 CIDR block of the route.
 
 For targets:

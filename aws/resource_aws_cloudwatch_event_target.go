@@ -41,7 +41,7 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCloudWatchEventBusName,
+				ValidateFunc: validateCloudWatchEventBusNameOrARN,
 				Default:      tfevents.DefaultEventBusName,
 			},
 
@@ -49,7 +49,7 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCloudWatchEventRuleName,
+				ValidateFunc: validateCloudWatchEventBusNameOrARN,
 			},
 
 			"target_id": {

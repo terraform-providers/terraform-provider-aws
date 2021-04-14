@@ -142,10 +142,10 @@ func resourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error getting WAFv2 RegexPatternSet")
 	}
 
-	d.Set("name", aws.StringValue(resp.RegexPatternSet.Name))
-	d.Set("description", aws.StringValue(resp.RegexPatternSet.Description))
-	d.Set("arn", aws.StringValue(resp.RegexPatternSet.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.RegexPatternSet.Name)
+	d.Set("description", resp.RegexPatternSet.Description)
+	d.Set("arn", resp.RegexPatternSet.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("regular_expression", flattenWafv2RegexPatternSet(resp.RegexPatternSet.RegularExpressionList)); err != nil {
 		return fmt.Errorf("Error setting regular_expression: %s", err)

@@ -1230,44 +1230,42 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(aws.StringValue(sfr.SpotFleetRequestId))
-	d.Set("spot_request_state", aws.StringValue(sfr.SpotFleetRequestState))
+	d.Set("spot_request_state", sfr.SpotFleetRequestState)
 
 	config := sfr.SpotFleetRequestConfig
 
 	if config.AllocationStrategy != nil {
-		d.Set("allocation_strategy", aws.StringValue(config.AllocationStrategy))
+		d.Set("allocation_strategy", config.AllocationStrategy)
 	}
 
 	if config.InstancePoolsToUseCount != nil {
-		d.Set("instance_pools_to_use_count", aws.Int64Value(config.InstancePoolsToUseCount))
+		d.Set("instance_pools_to_use_count", config.InstancePoolsToUseCount)
 	}
 
 	if config.ClientToken != nil {
-		d.Set("client_token", aws.StringValue(config.ClientToken))
+		d.Set("client_token", config.ClientToken)
 	}
 
 	if config.ExcessCapacityTerminationPolicy != nil {
-		d.Set("excess_capacity_termination_policy",
-			aws.StringValue(config.ExcessCapacityTerminationPolicy))
+		d.Set("excess_capacity_termination_policy", config.ExcessCapacityTerminationPolicy)
 	}
 
 	if config.IamFleetRole != nil {
-		d.Set("iam_fleet_role", aws.StringValue(config.IamFleetRole))
+		d.Set("iam_fleet_role", config.IamFleetRole)
 	}
 
 	d.Set("spot_maintenance_strategies", flattenSpotMaintenanceStrategies(config.SpotMaintenanceStrategies))
 
 	if config.SpotPrice != nil {
-		d.Set("spot_price", aws.StringValue(config.SpotPrice))
+		d.Set("spot_price", config.SpotPrice)
 	}
 
 	if config.TargetCapacity != nil {
-		d.Set("target_capacity", aws.Int64Value(config.TargetCapacity))
+		d.Set("target_capacity", config.TargetCapacity)
 	}
 
 	if config.TerminateInstancesWithExpiration != nil {
-		d.Set("terminate_instances_with_expiration",
-			aws.BoolValue(config.TerminateInstancesWithExpiration))
+		d.Set("terminate_instances_with_expiration", config.TerminateInstancesWithExpiration)
 	}
 
 	if config.ValidFrom != nil {

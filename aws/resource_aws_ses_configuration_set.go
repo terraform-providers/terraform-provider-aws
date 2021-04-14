@@ -107,7 +107,7 @@ func resourceAwsSesConfigurationSetRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting delivery_options: %w", err)
 	}
 
-	d.Set("name", aws.StringValue(response.ConfigurationSet.Name))
+	d.Set("name", response.ConfigurationSet.Name)
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,

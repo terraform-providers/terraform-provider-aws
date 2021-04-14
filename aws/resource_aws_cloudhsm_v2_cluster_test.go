@@ -3,13 +3,15 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudhsmv2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudhsmv2/finder"
 )
 
 func init() {
@@ -25,66 +27,86 @@ func testSweepCloudhsmv2Clusters(region string) error {
 		return fmt.Errorf("error getting client: %s", err)
 	}
 	conn := client.(*AWSClient).cloudhsmv2conn
+	sweepResources := make([]*testSweepResource, 0)
+	var errors *multierror.Error
 
 	input := &cloudhsmv2.DescribeClustersInput{}
 
 	err = conn.DescribeClustersPages(input, func(page *cloudhsmv2.DescribeClustersOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
 		for _, cluster := range page.Clusters {
-			clusterID := aws.StringValue(cluster.ClusterId)
-			input := &cloudhsmv2.DeleteClusterInput{
-				ClusterId: cluster.ClusterId,
-			}
-
-			for _, hsm := range cluster.Hsms {
-				hsmID := aws.StringValue(hsm.HsmId)
-				input := &cloudhsmv2.DeleteHsmInput{
-					ClusterId: cluster.ClusterId,
-					HsmId:     hsm.HsmId,
-				}
-
-				log.Printf("[INFO] Deleting CloudHSMv2 Cluster (%s) HSM: %s", clusterID, hsmID)
-				_, err := conn.DeleteHsm(input)
-
-				if err != nil {
-					log.Printf("[ERROR] Error deleting CloudHSMv2 Cluster (%s) HSM (%s): %s", clusterID, hsmID, err)
-					continue
-				}
-
-				if err := waitForCloudhsmv2HsmDeletion(conn, hsmID, 120*time.Minute); err != nil {
-					log.Printf("[ERROR] Error waiting for CloudHSMv2 Cluster (%s) HSM (%s) deletion: %s", clusterID, hsmID, err)
-				}
-			}
-
-			log.Printf("[INFO] Deleting CloudHSMv2 Cluster: %s", clusterID)
-			_, err := conn.DeleteCluster(input)
-
-			if err != nil {
-				log.Printf("[ERROR] Error deleting CloudHSMv2 Cluster (%s): %s", clusterID, err)
+			if cluster == nil {
 				continue
 			}
 
-			if err := waitForCloudhsmv2ClusterDeletion(conn, clusterID, 120*time.Minute); err != nil {
-				log.Printf("[ERROR] Error waiting for CloudHSMv2 Cluster (%s) deletion: %s", clusterID, err)
-			}
+			r := resourceAwsCloudHsmV2Cluster()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(cluster.ClusterId))
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping CloudHSMv2 Cluster sweep for %s: %s", region, err)
+	if err != nil {
+		errors = multierror.Append(errors, fmt.Errorf("error describing CloudHSMv2 Clusters: %w", err))
+	}
+
+	if len(sweepResources) > 0 {
+		// any errors didn't prevent gathering of some work, so do it
+		if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+			errors = multierror.Append(errors, fmt.Errorf("error sweeping CloudHSMv2 Clusters for %s: %w", region, err))
+		}
+	}
+
+	if testSweepSkipSweepError(errors.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping CloudHSMv2 Cluster sweep for %s: %s", region, errors)
 		return nil
 	}
 
-	if err != nil {
-		return fmt.Errorf("error describing CloudHSMv2 Clusters: %s", err)
-	}
-
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func TestAccAWSCloudHsmV2Cluster_basic(t *testing.T) {
-	resourceName := "aws_cloudhsm_v2_cluster.cluster"
+	resourceName := "aws_cloudhsm_v2_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudhsmv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudHsmV2ClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudHsmV2ClusterConfig(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCloudHsmV2ClusterExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "cluster_id", regexp.MustCompile(`^cluster-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "cluster_state", cloudhsmv2.ClusterStateUninitialized),
+					resource.TestCheckResourceAttr(resourceName, "hsm_type", "hsm1.medium"),
+					resource.TestMatchResourceAttr(resourceName, "security_group_id", regexp.MustCompile(`^sg-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "source_backup_identifier", ""),
+					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "2"),
+					resource.TestCheckTypeSetElemAttrPair(resourceName, "subnet_ids.*", "aws_subnet.test.0", "id"),
+					resource.TestCheckTypeSetElemAttrPair(resourceName, "subnet_ids.*", "aws_subnet.test.1", "id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrPair(resourceName, "vpc_id", "aws_vpc.test", "id"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"cluster_certificates"},
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudHsmV2Cluster_disappears(t *testing.T) {
+	resourceName := "aws_cloudhsm_v2_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -96,18 +118,11 @@ func TestAccAWSCloudHsmV2Cluster_basic(t *testing.T) {
 				Config: testAccAWSCloudHsmV2ClusterConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloudHsmV2ClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "cluster_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "security_group_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cluster_state"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudHsmV2Cluster(), resourceName),
+					// Verify Delete error handling
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudHsmV2Cluster(), resourceName),
 				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cluster_certificates"},
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -160,11 +175,6 @@ func TestAccAWSCloudHsmV2Cluster_Tags(t *testing.T) {
 
 func testAccAWSCloudHsmV2ClusterConfigBase() string {
 	return `
-variable "subnets" {
-  default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = list(string)
-}
-
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -174,33 +184,25 @@ data "aws_availability_zones" "available" {
   }
 }
 
-resource "aws_vpc" "cloudhsm_v2_test_vpc" {
+resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-
-  tags = {
-    Name = "terraform-testacc-aws_cloudhsm_v2_cluster-resource-basic"
-  }
 }
 
-resource "aws_subnet" "cloudhsm_v2_test_subnets" {
-  count                   = 2
-  vpc_id                  = aws_vpc.cloudhsm_v2_test_vpc.id
-  cidr_block              = element(var.subnets, count.index)
-  map_public_ip_on_launch = false
-  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
+resource "aws_subnet" "test" {
+  count = 2
 
-  tags = {
-    Name = "tf-acc-aws_cloudhsm_v2_cluster-resource-basic"
-  }
+  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)
+  vpc_id            = aws_vpc.test.id
 }
 `
 }
 
 func testAccAWSCloudHsmV2ClusterConfig() string {
 	return composeConfig(testAccAWSCloudHsmV2ClusterConfigBase(), `
-resource "aws_cloudhsm_v2_cluster" "cluster" {
+resource "aws_cloudhsm_v2_cluster" "test" {
   hsm_type   = "hsm1.medium"
-  subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets.*.id[0], aws_subnet.cloudhsm_v2_test_subnets.*.id[1]]
+  subnet_ids = aws_subnet.test[*].id
 }
 `)
 }
@@ -209,7 +211,7 @@ func testAccAWSCloudHsmV2ClusterConfigTags1(tagKey1, tagValue1 string) string {
 	return composeConfig(testAccAWSCloudHsmV2ClusterConfigBase(), fmt.Sprintf(`
 resource "aws_cloudhsm_v2_cluster" "test" {
   hsm_type   = "hsm1.medium"
-  subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets.*.id[0], aws_subnet.cloudhsm_v2_test_subnets.*.id[1]]
+  subnet_ids = aws_subnet.test[*].id
 
   tags = {
     %[1]q = %[2]q
@@ -222,7 +224,7 @@ func testAccAWSCloudHsmV2ClusterConfigTags2(tagKey1, tagValue1, tagKey2, tagValu
 	return composeConfig(testAccAWSCloudHsmV2ClusterConfigBase(), fmt.Sprintf(`
 resource "aws_cloudhsm_v2_cluster" "test" {
   hsm_type   = "hsm1.medium"
-  subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets.*.id[0], aws_subnet.cloudhsm_v2_test_subnets.*.id[1]]
+  subnet_ids = aws_subnet.test[*].id
 
   tags = {
     %[1]q = %[2]q
@@ -233,11 +235,13 @@ resource "aws_cloudhsm_v2_cluster" "test" {
 }
 
 func testAccCheckAWSCloudHsmV2ClusterDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).cloudhsmv2conn
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_cloudhsm_v2_cluster" {
 			continue
 		}
-		cluster, err := describeCloudHsmV2Cluster(testAccProvider.Meta().(*AWSClient).cloudhsmv2conn, rs.Primary.ID)
+		cluster, err := finder.Cluster(conn, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -259,7 +263,7 @@ func testAccCheckAWSCloudHsmV2ClusterExists(name string) resource.TestCheckFunc 
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		_, err := describeCloudHsmV2Cluster(conn, it.Primary.ID)
+		_, err := finder.Cluster(conn, it.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("CloudHSM cluster not found: %s", err)

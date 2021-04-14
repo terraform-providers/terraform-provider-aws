@@ -224,10 +224,10 @@ func setParametersConfig(parametersConfig *cloudfront.ParametersInCacheKeyAndFor
 }
 
 func setCloudFrontCachePolicy(d *schema.ResourceData, cachePolicy *cloudfront.CachePolicyConfig) {
-	d.Set("comment", aws.StringValue(cachePolicy.Comment))
-	d.Set("default_ttl", aws.Int64Value(cachePolicy.DefaultTTL))
-	d.Set("max_ttl", aws.Int64Value(cachePolicy.MaxTTL))
-	d.Set("min_ttl", aws.Int64Value(cachePolicy.MinTTL))
-	d.Set("name", aws.StringValue(cachePolicy.Name))
+	d.Set("comment", cachePolicy.Comment)
+	d.Set("default_ttl", cachePolicy.DefaultTTL)
+	d.Set("max_ttl", cachePolicy.MaxTTL)
+	d.Set("min_ttl", cachePolicy.MinTTL)
+	d.Set("name", cachePolicy.Name)
 	d.Set("parameters_in_cache_key_and_forwarded_to_origin", setParametersConfig(cachePolicy.ParametersInCacheKeyAndForwardedToOrigin))
 }

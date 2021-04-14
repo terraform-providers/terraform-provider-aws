@@ -416,7 +416,7 @@ func TestAccAWSS3Bucket_ignoreTags(t *testing.T) {
 	})
 }
 
-func TestAccAWSS3MultiBucket_withTags(t *testing.T) {
+func TestAccAWSS3Bucket_withTags(t *testing.T) {
 	rInt := acctest.RandInt()
 	resourceName := "aws_s3_bucket.bucket1"
 
@@ -999,6 +999,38 @@ func TestAccAWSS3Bucket_disableDefaultEncryption_whenDefaultEncryptionIsEnabled(
 					testAccCheckAWSS3BucketExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "server_side_encryption_configuration.#", "0"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3Bucket_bucketKeyEnabled(t *testing.T) {
+	bucketName := acctest.RandomWithPrefix("tf-test-bucket")
+	resourceName := "aws_s3_bucket.arbitrary"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, s3.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketKeyEnabled(bucketName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption_configuration.0.rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption_configuration.0.rule.0.apply_server_side_encryption_by_default.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption_configuration.0.rule.0.apply_server_side_encryption_by_default.0.sse_algorithm", "aws:kms"),
+					resource.TestMatchResourceAttr(resourceName, "server_side_encryption_configuration.0.rule.0.apply_server_side_encryption_by_default.0.kms_master_key_id", regexp.MustCompile("^arn")),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption_configuration.0.rule.0.bucket_key_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"force_destroy", "acl"},
 			},
 		},
 	})
@@ -3537,6 +3569,29 @@ resource "aws_s3_bucket" "arbitrary" {
         kms_master_key_id = aws_kms_key.arbitrary.arn
         sse_algorithm     = "aws:kms"
       }
+    }
+  }
+}
+`, bucketName)
+}
+
+func testAccAWSS3BucketKeyEnabled(bucketName string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "arbitrary" {
+  description             = "KMS Key for Bucket %[1]s"
+  deletion_window_in_days = 7
+}
+
+resource "aws_s3_bucket" "arbitrary" {
+  bucket = %[1]q
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = aws_kms_key.arbitrary.arn
+        sse_algorithm     = "aws:kms"
+      }
+      bucket_key_enabled = true
     }
   }
 }

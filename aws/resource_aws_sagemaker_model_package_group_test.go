@@ -7,9 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	tfsagemaker "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sagemaker"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sagemaker/finder"
 )
 
@@ -190,8 +192,13 @@ func testAccCheckAWSSagemakerModelPackageGroupDestroy(s *terraform.State) error 
 		}
 
 		ModelPackageGroup, err := finder.ModelPackageGroupByName(conn, rs.Primary.ID)
+
+		if tfawserr.ErrMessageContains(err, tfsagemaker.ErrCodeValidationException, "does not exist") {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker Model Package Group (%s): %w", rs.Primary.ID, err)
 		}
 
 		if aws.StringValue(ModelPackageGroup.ModelPackageGroupName) == rs.Primary.ID {
