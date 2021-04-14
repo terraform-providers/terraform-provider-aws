@@ -187,26 +187,24 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								directoryservice.RadiusAuthenticationProtocolPap,
-								directoryservice.RadiusAuthenticationProtocolChap,
-								directoryservice.RadiusAuthenticationProtocolMsChapv1,
-								directoryservice.RadiusAuthenticationProtocolMsChapv2,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(directoryservice.RadiusAuthenticationProtocol_Values(), false),
 						},
 						"label": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 64),
 						},
 						"port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
 						},
 						"retries": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 10),
 						},
 						"servers": {
 							Type:     schema.TypeSet,
@@ -215,13 +213,15 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Set:      schema.HashString,
 						},
 						"timeout": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20),
 						},
 						"secret": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringLenBetween(8, 512),
 						},
 						"same_username": {
 							Type:     schema.TypeBool,

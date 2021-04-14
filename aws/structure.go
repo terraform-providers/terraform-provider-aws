@@ -1744,13 +1744,13 @@ func flattenDSRadiusSettings(
 
 	settings := make(map[string]interface{})
 
-	settings["protocol"] = *s.AuthenticationProtocol
-	settings["label"] = *s.DisplayLabel
-	settings["port"] = *s.RadiusPort
-	settings["retries"] = *s.RadiusRetries
-	settings["servers"] = schema.NewSet(schema.HashString, flattenStringList(s.RadiusServers))
-	settings["timeout"] = *s.RadiusTimeout
-	settings["same_username"] = *s.UseSameUsername
+	settings["protocol"] = aws.StringValue(s.AuthenticationProtocol)
+	settings["label"] = aws.StringValue(s.DisplayLabel)
+	settings["port"] = aws.Int64Value(s.RadiusPort)
+	settings["retries"] = aws.Int64Value(s.RadiusRetries)
+	settings["servers"] = flattenStringSet(s.RadiusServers)
+	settings["timeout"] = aws.Int64Value(s.RadiusTimeout)
+	settings["same_username"] = aws.BoolValue(s.UseSameUsername)
 	settings["secret"] = radiusSecret
 
 	return []map[string]interface{}{settings}

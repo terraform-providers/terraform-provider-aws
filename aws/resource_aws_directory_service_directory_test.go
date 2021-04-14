@@ -314,6 +314,7 @@ func TestAccAWSDirectoryServiceDirectory_microsoftStandard_withRadiusMfa(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDirectoryService(t) },
+		ErrorCheck:   testAccErrorCheck(t, directoryservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDirectoryServiceDirectoryDestroy,
 		Steps: []resource.TestStep{
@@ -702,46 +703,46 @@ resource "aws_directory_service_directory" "test" {
 
 const testAccDirectoryServiceDirectoryConfig_microsoftStandard_withRadiusMfa = testAccDirectoryServiceDirectoryConfigBase + `
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
-  password = "SuperSecretPassw0rd"
-  type = "MicrosoftAD"
-  edition = "Standard"
-  vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+	name     = "corp.notexample.com"
+	password = "SuperSecretPassw0rd"
+	type     = "MicrosoftAD"
+	edition  = "Standard"
+	vpc_settings {
+	  vpc_id     = aws_vpc.test.id
+	  subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
+	}
+	radius_settings {
+	  protocol = "PAP"
+	  label    = "MyRadius"
+	  port     = 1812
+	  retries  = 4
+	  servers  = ["10.0.1.5"]
+	  timeout  = 1
+	  secret   = "12345678"
+	}
   }
-  radius_settings {
-    protocol = "PAP"
-    label = "MyRadius"
-    port = 1812
-    retries = 4
-    servers = ["10.0.1.5"]
-    timeout = 1
-    secret = "12345678"
-  }
-}
 `
 
 const testAccDirectoryServiceDirectoryConfig_microsoftStandard_withRadiusMfa_update = testAccDirectoryServiceDirectoryConfigBase + `
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
-  password = "SuperSecretPassw0rd"
-  type = "MicrosoftAD"
-  edition = "Standard"
-  vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+	name     = "corp.notexample.com"
+	password = "SuperSecretPassw0rd"
+	type     = "MicrosoftAD"
+	edition  = "Standard"
+	vpc_settings {
+	  vpc_id     = aws_vpc.test.id
+	  subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
+	}
+	radius_settings {
+	  protocol = "CHAP"
+	  label    = "MyRadiusTest"
+	  port     = 1813
+	  retries  = 3
+	  servers  = ["10.0.1.6", "10.0.1.7"]
+	  timeout  = 10
+	  secret   = "abcdefgh"
+	}
   }
-  radius_settings {
-    protocol = "CHAP"
-    label = "MyRadiusTest"
-    port = 1813
-    retries = 3
-    servers = ["10.0.1.6", "10.0.1.7"]
-    timeout = 10
-    secret = "abcdefgh"
-  }
-}
 `
 
 func testAccDirectoryServiceDirectoryConfig_withAlias(alias string) string {
