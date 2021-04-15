@@ -155,8 +155,8 @@ The following arguments are supported:
 
 **radius_settings** supports the following:
 
-* `protocol` - (Required) The protocol specified for your RADIUS endpoints.
-* `label` - (Required) Display label
+* `protocol` - (Required) The protocol specified for your RADIUS endpoints. Valid Values: PAP | CHAP | MS-CHAPv1 | MS-CHAPv2
+* `label` - (Required) Display label.
 * `port` - (Required) The port that your RADIUS server is using for communications.
 * `retries` - (Required) The maximum number of times that communication with the RADIUS server is attempted.
 * `servers` - (Required) An array of strings that contains the IP addresses of the RADIUS server endpoints, or the IP addresses of your RADIUS server load balancer.

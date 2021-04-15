@@ -209,8 +209,11 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 						"servers": {
 							Type:     schema.TypeSet,
 							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringLenBetween(1, 256),
+							},
+							Set: schema.HashString,
 						},
 						"timeout": {
 							Type:         schema.TypeInt,
