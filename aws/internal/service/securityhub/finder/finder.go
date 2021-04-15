@@ -30,3 +30,21 @@ func AdminAccount(conn *securityhub.SecurityHub, adminAccountID string) (*securi
 
 	return result, err
 }
+
+// EnabledStandards returns a list of the standards that are currently enabled.
+func EnabledStandardsSubscriptions(conn *securityhub.SecurityHub) ([]*securityhub.StandardsSubscription, error) {
+	input := &securityhub.GetEnabledStandardsInput{}
+	var results []*securityhub.StandardsSubscription
+
+	err := conn.GetEnabledStandardsPages(input, func(page *securityhub.GetEnabledStandardsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		results = append(results, page.StandardsSubscriptions...)
+
+		return !lastPage
+	})
+
+	return results, err
+}

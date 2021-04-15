@@ -98,13 +98,13 @@ const testAccAWSSecurityHubStandardsSubscriptionConfig_empty = `
 resource "aws_securityhub_account" "example" {}
 `
 
-const testAccAWSSecurityHubStandardsSubscriptionConfig_basic = `
+var testAccAWSSecurityHubStandardsSubscriptionConfig_basic = fmt.Sprintf(`
 resource "aws_securityhub_account" "example" {}
 
 data "aws_partition" "current" {}
 
 resource "aws_securityhub_standards_subscription" "example" {
   depends_on    = [aws_securityhub_account.example]
-  standards_arn = "arn:${data.aws_partition.current.partition}:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0"
+  standards_arn = "arn:${data.aws_partition.current.partition}:securityhub:%s::standards/pci-dss/v/3.2.1"
 }
-`
+`, testAccGetRegion())

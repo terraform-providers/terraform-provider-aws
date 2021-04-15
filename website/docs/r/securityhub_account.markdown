@@ -20,7 +20,7 @@ resource "aws_securityhub_account" "example" {}
 
 ## Argument Reference
 
-The resource does not support any arguments.
+* `enable_default_standards` - (Optional) Whether to enable the security standards that Security Hub has designated as automatically enabled including: ` AWS Foundational Security Best Practices v1.0.0` and `CIS AWS Foundations Benchmark v1.2.0`. Defaults to `true`.
 
 ## Attributes Reference
 
