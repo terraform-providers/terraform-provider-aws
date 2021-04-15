@@ -225,6 +225,7 @@ func TestAccAWSRDSCluster_AllowMajorVersionUpgradeWithCustomParameterGroups(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSClusterDestroy,
 		Steps: []resource.TestStep{
