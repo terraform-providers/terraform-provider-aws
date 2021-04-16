@@ -516,7 +516,7 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 	}
 
 	// Block devices
-	if err := readBlockDevices(d, instance, conn); err != nil {
+	if err := readBlockDevices(d, instance, conn, ignoreTagsConfig); err != nil {
 		return err
 	}
 	if _, ok := d.GetOk("ephemeral_block_device"); !ok {

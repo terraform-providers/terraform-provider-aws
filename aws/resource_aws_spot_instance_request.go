@@ -381,7 +381,7 @@ func readInstance(d *schema.ResourceData, meta interface{}) error {
 			"host": *instance.PrivateIpAddress,
 		})
 	}
-	if err := readBlockDevices(d, instance, conn); err != nil {
+	if err := readBlockDevices(d, instance, conn, meta.(*AWSClient).IgnoreTagsConfig); err != nil {
 		return err
 	}
 
