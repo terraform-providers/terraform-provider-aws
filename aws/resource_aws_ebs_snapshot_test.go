@@ -164,6 +164,34 @@ func TestAccAWSEBSSnapshot_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSEBSSnapshot_Outpost(t *testing.T) {
+	var v ec2.Snapshot
+	rName := fmt.Sprintf("tf-acc-ebs-snapshot-desc-%s", acctest.RandString(7))
+	outpostDataSourceName := "data.aws_outposts_outpost.test"
+	resourceName := "aws_ebs_snapshot.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsSnapshotConfigOutpost(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
+					resource.TestCheckResourceAttrPair(resourceName, "outpost_arn", outpostDataSourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckSnapshotExists(n string, v *ec2.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -369,6 +397,39 @@ resource "aws_ebs_volume" "test" {
 
 resource "aws_ebs_snapshot" "test" {
   volume_id = aws_ebs_volume.test.id
+}
+`, rName)
+}
+
+func testAccAwsEbsSnapshotConfigOutpost(rName string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+resource "aws_ebs_volume" "description_test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = 1
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_ebs_snapshot" "test" {
+  volume_id   = aws_ebs_volume.description_test.id
+  outpost_arn = data.aws_outposts_outpost.test.arn
 }
 `, rName)
 }

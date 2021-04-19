@@ -67,6 +67,10 @@ func resourceAwsEbsSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"outpost_arn": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"tags": tagsSchema(),
 		},
 	}
@@ -81,6 +85,10 @@ func resourceAwsEbsSnapshotCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 	if v, ok := d.GetOk("description"); ok {
 		request.Description = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("outpost_arn"); ok {
+		request.OutpostArn = aws.String(v.(string))
 	}
 
 	var res *ec2.Snapshot
@@ -145,6 +153,7 @@ func resourceAwsEbsSnapshotRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("encrypted", snapshot.Encrypted)
 	d.Set("owner_alias", snapshot.OwnerAlias)
 	d.Set("volume_id", snapshot.VolumeId)
+	d.Set("outpost_arn", snapshot.OutpostArn)
 	d.Set("data_encryption_key_id", snapshot.DataEncryptionKeyId)
 	d.Set("kms_key_id", snapshot.KmsKeyId)
 	d.Set("volume_size", snapshot.VolumeSize)
