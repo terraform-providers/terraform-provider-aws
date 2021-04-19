@@ -407,6 +407,11 @@ func resourceAwsDbInstance() *schema.Resource {
 				Optional: true,
 			},
 
+			"replicate_source_db_create": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"replicas": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -569,6 +574,12 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("replicate_source_db"); ok {
+		// Read replicate_source_db that should be used for create
+		var replicate_source_db = v
+		if attr, ok := d.GetOk("replicate_source_db_create"); ok {
+			replicate_source_db = attr
+		}
+
 		opts := rds.CreateDBInstanceReadReplicaInput{
 			AutoMinorVersionUpgrade:    aws.Bool(d.Get("auto_minor_version_upgrade").(bool)),
 			CopyTagsToSnapshot:         aws.Bool(d.Get("copy_tags_to_snapshot").(bool)),
@@ -576,7 +587,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			DBInstanceClass:            aws.String(d.Get("instance_class").(string)),
 			DBInstanceIdentifier:       aws.String(identifier),
 			PubliclyAccessible:         aws.Bool(d.Get("publicly_accessible").(bool)),
-			SourceDBInstanceIdentifier: aws.String(v.(string)),
+			SourceDBInstanceIdentifier: aws.String(replicate_source_db.(string)),
 			Tags:                       tags,
 		}
 
@@ -623,7 +634,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 		if attr, ok := d.GetOk("kms_key_id"); ok {
 			opts.KmsKeyId = aws.String(attr.(string))
-			if arnParts := strings.Split(v.(string), ":"); len(arnParts) >= 4 {
+			if arnParts := strings.Split(replicate_source_db.(string), ":"); len(arnParts) >= 4 {
 				opts.SourceRegion = aws.String(arnParts[3])
 			}
 		}
