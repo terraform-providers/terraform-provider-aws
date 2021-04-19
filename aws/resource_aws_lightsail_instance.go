@@ -15,6 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
+const (
+	// ResourceTypeInstance is a ResourceType value used for updating the ipAddressType for instances
+	ResourceTypeInstance = "Instance"
+)
+
 func resourceAwsLightsailInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsLightsailInstanceCreate,
@@ -65,6 +70,12 @@ func resourceAwsLightsailInstance() *schema.Resource {
 					}
 					return false
 				},
+			},
+
+			"ip_address_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "dualstack",
 			},
 
 			// cannot be retrieved from the API
@@ -145,6 +156,10 @@ func resourceAwsLightsailInstanceCreate(d *schema.ResourceData, meta interface{}
 		req.Tags = keyvaluetags.New(v).IgnoreAws().LightsailTags()
 	}
 
+	if v, ok := d.GetOk("ip_address_type"); ok {
+		req.IpAddressType = aws.String(v.(string))
+	}
+
 	resp, err := conn.CreateInstances(&req)
 	if err != nil {
 		return err
@@ -219,12 +234,16 @@ func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) 
 	// Deprecated: AWS Go SDK v1.36.25 removed Ipv6Address field
 	if len(i.Ipv6Addresses) > 0 {
 		d.Set("ipv6_address", i.Ipv6Addresses[0])
+	} else {
+		// Setting empty value if no address returned
+		d.Set("ipv6_address", "")
 	}
 
 	d.Set("ipv6_addresses", aws.StringValueSlice(i.Ipv6Addresses))
 	d.Set("is_static_ip", i.IsStaticIp)
 	d.Set("private_ip_address", i.PrivateIpAddress)
 	d.Set("public_ip_address", i.PublicIpAddress)
+	d.Set("ip_address_type", i.IpAddressType)
 
 	if err := d.Set("tags", keyvaluetags.LightsailKeyValueTags(i.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
@@ -272,6 +291,18 @@ func resourceAwsLightsailInstanceUpdate(d *schema.ResourceData, meta interface{}
 
 		if err := keyvaluetags.LightsailUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Lightsail Instance (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("ip_address_type") {
+		_, err := conn.SetIpAddressType(&lightsail.SetIpAddressTypeInput{
+			ResourceName:  aws.String(d.Id()),
+			ResourceType:  aws.String(ResourceTypeInstance),
+			IpAddressType: aws.String(d.Get("ip_address_type").(string)),
+		})
+		d.Set("ip_address_type", d.Get("ip_address_type").(string))
+		if err != nil {
+			return err
 		}
 	}
 

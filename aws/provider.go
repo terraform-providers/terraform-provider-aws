@@ -331,6 +331,7 @@ func Provider() *schema.Provider {
 			"aws_lex_bot":                                    dataSourceAwsLexBot(),
 			"aws_lex_intent":                                 dataSourceAwsLexIntent(),
 			"aws_lex_slot_type":                              dataSourceAwsLexSlotType(),
+			"aws_lightsail_instance":                         dataSourceAwsLightsailInstance(),
 			"aws_mq_broker":                                  dataSourceAwsMqBroker(),
 			"aws_msk_cluster":                                dataSourceAwsMskCluster(),
 			"aws_msk_configuration":                          dataSourceAwsMskConfiguration(),

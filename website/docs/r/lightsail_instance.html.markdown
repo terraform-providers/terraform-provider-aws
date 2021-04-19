@@ -43,6 +43,7 @@ instance (see list below)
 Lightsail console (cannot use `aws_key_pair` at this time)
 * `user_data` - (Optional) launch script to configure server with additional user data
 * `tags` - (Optional) A map of tags to assign to the resource. To create a key-only tag, use an empty string as the value.
+* `ip_address_type` - The IP address type of the Lightsail Instance. Valid Values: `dualstack` | `ipv4`.
 
 ## Availability Zones
 Lightsail currently supports the following Availability Zones (e.g. `us-east-1a`):
@@ -104,6 +105,7 @@ In addition to all arguments above, the following attributes are exported:
 * `created_at` - The timestamp when the instance was created.
 * `ipv6_address` - (**Deprecated**) The first IPv6 address of the Lightsail instance. Use `ipv6_addresses` attribute instead.
 * `ipv6_addresses` - List of IPv6 addresses for the Lightsail instance.
+* `ip_address_type` - The IP address type of the Lightsail Instance.
 
 ## Import
 
