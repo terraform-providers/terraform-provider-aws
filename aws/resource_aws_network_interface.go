@@ -2,6 +2,7 @@ package aws
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"math"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -52,16 +54,32 @@ func resourceAwsNetworkInterface() *schema.Resource {
 			},
 
 			"private_ips": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"private_ip_list"},
 			},
 
 			"private_ips_count": {
-				Type:     schema.TypeInt,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"private_ip_list"},
+			},
+
+			"private_ip_list": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"private_ips", "private_ips_count"},
+			},
+
+			"private_ip_list_enabled": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"security_groups": {
@@ -115,7 +133,7 @@ func resourceAwsNetworkInterface() *schema.Resource {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"ipv6_addresses"},
+				ConflictsWith: []string{"ipv6_addresses", "ipv6_address_list"},
 			},
 			"ipv6_addresses": {
 				Type:     schema.TypeSet,
@@ -125,9 +143,143 @@ func resourceAwsNetworkInterface() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPv6Address,
 				},
-				ConflictsWith: []string{"ipv6_address_count"},
+				ConflictsWith: []string{"ipv6_address_count", "ipv6_address_list"},
+			},
+			"ipv6_address_list": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"ipv6_addresses", "ipv6_address_count"},
+			},
+			"ipv6_address_list_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 		},
+		CustomizeDiff: customdiff.Sequence(
+			customdiff.ForceNewIf("private_ips", func(_ context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				private_ip_list_enabled := d.Get("private_ip_list_enabled").(bool)
+				if private_ip_list_enabled {
+					return false
+				}
+				_, new := d.GetChange("private_ips")
+				if new != nil {
+					old_primary_ip := ""
+					if v, ok := d.GetOk("private_ip_list"); ok {
+						for _, ip := range v.([]interface{}) {
+							old_primary_ip = ip.(string)
+							break
+						}
+					}
+					for _, ip := range new.(*schema.Set).List() {
+						// no need for new resource if we still have the primary ip
+						if old_primary_ip == ip.(string) {
+							return false
+						}
+					}
+					// new primary ip requires a new resource
+					return true
+				} else {
+					return false
+				}
+			}),
+			customdiff.ForceNewIf("private_ip_list", func(_ context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				private_ip_list_enabled := d.Get("private_ip_list_enabled").(bool)
+				if !private_ip_list_enabled {
+					return false
+				}
+				old, new := d.GetChange("private_ip_list")
+				if old != nil && new != nil {
+					old_primary_ip := ""
+					new_primary_ip := ""
+					for _, ip := range old.([]interface{}) {
+						old_primary_ip = ip.(string)
+						break
+					}
+					for _, ip := range new.([]interface{}) {
+						new_primary_ip = ip.(string)
+						break
+					}
+
+					// change in primary private ip requires a new resource
+					return old_primary_ip != new_primary_ip
+				} else {
+					return false
+				}
+			}),
+			customdiff.ComputedIf("private_ips", func(_ context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
+				if !diff.Get("private_ip_list_enabled").(bool) {
+					// it is not computed if we are actively updating it
+					if diff.HasChange("private_ips") {
+						return false
+					} else {
+						return diff.HasChange("private_ips_count")
+					}
+				} else {
+					return diff.HasChange("private_ip_list")
+				}
+			}),
+			customdiff.ComputedIf("private_ips_count", func(_ context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
+				if !diff.Get("private_ip_list_enabled").(bool) {
+					// it is not computed if we are actively updating it
+					if diff.HasChange("private_ips_count") {
+						return false
+					} else {
+						// compute the new count if private_ips change
+						return diff.HasChange("private_ips")
+					}
+				} else {
+					// compute the new count if private_ip_list changes
+					return diff.HasChange("private_ip_list")
+				}
+			}),
+			customdiff.ComputedIf("private_ip_list", func(_ context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
+				if diff.Get("private_ip_list_enabled").(bool) {
+					// if the list is controlling it does not need to be computed
+					return false
+				} else {
+					// list is not controlling so compute new list if private_ips or private_ips_count changes
+					return diff.HasChange("private_ips") || diff.HasChange("private_ips_count") || diff.HasChange("private_ip_list")
+				}
+			}),
+			customdiff.ComputedIf("ipv6_addresses", func(_ context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
+				if !diff.Get("ipv6_address_list_enabled").(bool) {
+					// it is not computed if we are actively updating it
+					if diff.HasChange("private_ips") {
+						return false
+					} else {
+						return diff.HasChange("ipv6_address_count")
+					}
+				} else {
+					return diff.HasChange("ipv6_address_list")
+				}
+			}),
+			customdiff.ComputedIf("ipv6_address_count", func(_ context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
+				if !diff.Get("ipv6_address_list_enabled").(bool) {
+					// it is not computed if we are actively updating it
+					if diff.HasChange("ipv6_address_count") {
+						return false
+					} else {
+						// compute the new count if ipv6_addresses change
+						return diff.HasChange("ipv6_addresses")
+					}
+				} else {
+					// compute the new count if ipv6_address_list changes
+					return diff.HasChange("ipv6_address_list")
+				}
+			}),
+			customdiff.ComputedIf("ipv6_address_list", func(_ context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
+				if diff.Get("ipv6_address_list_enabled").(bool) {
+					// if the list is controlling it does not need to be computed
+					return false
+				} else {
+					// list is not controlling so compute new list if anything changes
+					return diff.HasChange("ipv6_addresses") || diff.HasChange("ipv6_address_count") || diff.HasChange("ipv6_address_list")
+				}
+			}),
+		),
 	}
 }
 
@@ -144,16 +296,40 @@ func resourceAwsNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 		request.Groups = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("private_ips"); ok && v.(*schema.Set).Len() > 0 {
-		request.PrivateIpAddresses = expandPrivateIPAddresses(v.(*schema.Set).List())
+	if d.Get("private_ip_list_enabled").(bool) {
+		if v, ok := d.GetOk("private_ip_list"); ok && len(v.([]interface{})) > 0 {
+			request.PrivateIpAddresses = expandPrivateIPAddresses(v.([]interface{}))
+		}
+	} else {
+		if v, ok := d.GetOk("private_ips"); ok && v.(*schema.Set).Len() > 0 {
+			private_ips := v.(*schema.Set).List()
+			// total includes the primary
+			total_private_ips := len(private_ips)
+			// private_ips_count is for secondaries
+			if v, ok := d.GetOk("private_ips_count"); ok {
+				// reduce total count if necessary
+				if v.(int)+1 < total_private_ips {
+					total_private_ips = v.(int) + 1
+				}
+			}
+			// truncate the list
+			count_limited_ips := make([]interface{}, total_private_ips)
+			for i, ip := range private_ips {
+				count_limited_ips[i] = ip.(string)
+				if i == total_private_ips-1 {
+					break
+				}
+			}
+			request.PrivateIpAddresses = expandPrivateIPAddresses(count_limited_ips)
+		} else {
+			if v, ok := d.GetOk("private_ips_count"); ok {
+				request.SecondaryPrivateIpAddressCount = aws.Int64(int64(v.(int)))
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("description"); ok {
 		request.Description = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("private_ips_count"); ok {
-		request.SecondaryPrivateIpAddressCount = aws.Int64(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("ipv6_address_count"); ok {
@@ -174,6 +350,25 @@ func resourceAwsNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 
 	if err := waitForNetworkInterfaceCreation(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return fmt.Errorf("error waiting for Network Interface (%s) creation: %s", d.Id(), err)
+	}
+
+	if !d.Get("private_ip_list_enabled").(bool) {
+		// add more ips to match the count
+		if v, ok := d.GetOk("private_ips"); ok && v.(*schema.Set).Len() > 0 {
+			total_private_ips := v.(*schema.Set).Len()
+			if private_ips_count, ok := d.GetOk("private_ips_count"); ok {
+				if private_ips_count.(int)+1 > total_private_ips {
+					input := &ec2.AssignPrivateIpAddressesInput{
+						NetworkInterfaceId:             aws.String(d.Id()),
+						SecondaryPrivateIpAddressCount: aws.Int64(int64(private_ips_count.(int) + 1 - total_private_ips)),
+					}
+					_, err := conn.AssignPrivateIpAddresses(input)
+					if err != nil {
+						return fmt.Errorf("Failure to assign Private IPs: %s", err)
+					}
+				}
+			}
+		}
 	}
 
 	//Default value is enabled
@@ -253,6 +448,10 @@ func resourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("private_ips_count", len(eni.PrivateIpAddresses)-1)
 
+	if err := d.Set("private_ip_list", flattenNetworkInterfacesPrivateIPAddresses(eni.PrivateIpAddresses)); err != nil {
+		return fmt.Errorf("error setting private_ip_list: %s", err)
+	}
+
 	if err := d.Set("security_groups", flattenGroupIdentifiers(eni.Groups)); err != nil {
 		return fmt.Errorf("error setting security_groups: %s", err)
 	}
@@ -263,6 +462,10 @@ func resourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	if err := d.Set("ipv6_addresses", flattenEc2NetworkInterfaceIpv6Address(eni.Ipv6Addresses)); err != nil {
 		return fmt.Errorf("error setting ipv6 addresses: %s", err)
+	}
+
+	if err := d.Set("ipv6_address_list", flattenEc2NetworkInterfaceIpv6Address(eni.Ipv6Addresses)); err != nil {
+		return fmt.Errorf("error setting ipv6 address list: %s", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(eni.TagSet).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
@@ -326,6 +529,7 @@ func resourceAwsNetworkInterfaceDetach(oa *schema.Set, meta interface{}, eniId s
 
 func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	private_ips_net_change := 0
 
 	if d.HasChange("attachment") {
 		oa, na := d.GetChange("attachment")
@@ -351,7 +555,7 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("private_ips") {
+	if d.HasChange("private_ips") && !d.Get("private_ip_list_enabled").(bool) {
 		o, n := d.GetChange("private_ips")
 		if o == nil {
 			o = new(schema.Set)
@@ -374,6 +578,7 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 			if err != nil {
 				return fmt.Errorf("Failure to unassign Private IPs: %s", err)
 			}
+			private_ips_net_change -= unassignIps.Len()
 		}
 
 		// Assign new IP addresses
@@ -387,10 +592,63 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 			if err != nil {
 				return fmt.Errorf("Failure to assign Private IPs: %s", err)
 			}
+			private_ips_net_change += assignIps.Len()
 		}
 	}
 
-	if d.HasChange("ipv6_addresses") {
+	if d.HasChange("private_ip_list") && d.Get("private_ip_list_enabled").(bool) {
+		o, n := d.GetChange("private_ip_list")
+		if o == nil {
+			o = make([]string, 0)
+		}
+		if n == nil {
+			n = make([]string, 0)
+		}
+		if len(o.([]interface{}))-1 > 0 {
+			privateIpsToUnassign := make([]interface{}, len(o.([]interface{}))-1)
+			idx := 0
+			for i, ip := range o.([]interface{}) {
+				// skip primary private ip address
+				if i == 0 {
+					continue
+				}
+				privateIpsToUnassign[idx] = ip
+				log.Printf("[INFO] Unassigning private ip %s", ip)
+				idx += 1
+			}
+
+			// Unassign the secondary IP addresses
+			input := &ec2.UnassignPrivateIpAddressesInput{
+				NetworkInterfaceId: aws.String(d.Id()),
+				PrivateIpAddresses: expandStringList(privateIpsToUnassign),
+			}
+			_, err := conn.UnassignPrivateIpAddresses(input)
+			if err != nil {
+				return fmt.Errorf("Failure to unassign Private IPs: %s", err)
+			}
+		}
+
+		// Assign each ip one-by-one in order to retain order
+		for i, ip := range n.([]interface{}) {
+			// skip primary private ip address
+			if i == 0 {
+				continue
+			}
+			privateIpToAssign := []interface{}{ip}
+			log.Printf("[INFO] Assigning private ip %s", ip)
+
+			input := &ec2.AssignPrivateIpAddressesInput{
+				NetworkInterfaceId: aws.String(d.Id()),
+				PrivateIpAddresses: expandStringList(privateIpToAssign),
+			}
+			_, err := conn.AssignPrivateIpAddresses(input)
+			if err != nil {
+				return fmt.Errorf("Failure to assign Private IPs: %s", err)
+			}
+		}
+	}
+
+	if d.HasChange("ipv6_addresses") && !d.Get("ipv6_address_list_enabled").(bool) {
 		o, n := d.GetChange("ipv6_addresses")
 		if o == nil {
 			o = new(schema.Set)
@@ -429,7 +687,7 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("ipv6_address_count") {
+	if d.HasChange("ipv6_address_count") && !d.Get("ipv6_address_list_enabled").(bool) {
 		o, n := d.GetChange("ipv6_address_count")
 		ipv6Addresses := d.Get("ipv6_addresses").(*schema.Set).List()
 
@@ -462,6 +720,50 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if d.HasChange("ipv6_address_list") && d.Get("ipv6_address_list_enabled").(bool) {
+		o, n := d.GetChange("ipv6_address_list")
+		if o == nil {
+			o = make([]string, 0)
+		}
+		if n == nil {
+			n = make([]string, 0)
+		}
+
+		// Unassign old IPV6 addresses
+		if len(o.([]interface{})) > 0 {
+			unassignIps := make([]interface{}, len(o.([]interface{})))
+			for i, ip := range o.([]interface{}) {
+				unassignIps[i] = ip
+				log.Printf("[INFO] Unassigning ipv6 address %s", ip)
+			}
+
+			log.Printf("[INFO] Unassigning ipv6 addresses")
+			input := &ec2.UnassignIpv6AddressesInput{
+				NetworkInterfaceId: aws.String(d.Id()),
+				Ipv6Addresses:      expandStringList(unassignIps),
+			}
+			_, err := conn.UnassignIpv6Addresses(input)
+			if err != nil {
+				return fmt.Errorf("failure to unassign IPV6 Addresses: %s", err)
+			}
+		}
+
+		// Assign each ip one-by-one in order to retain order
+		for _, ip := range n.([]interface{}) {
+			privateIpToAssign := []interface{}{ip}
+			log.Printf("[INFO] Assigning ipv6 address %s", ip)
+
+			input := &ec2.AssignIpv6AddressesInput{
+				NetworkInterfaceId: aws.String(d.Id()),
+				Ipv6Addresses:      expandStringList(privateIpToAssign),
+			}
+			_, err := conn.AssignIpv6Addresses(input)
+			if err != nil {
+				return fmt.Errorf("Failure to assign IPV6 Addresses: %s", err)
+			}
+		}
+	}
+
 	if d.HasChange("source_dest_check") {
 		request := &ec2.ModifyNetworkInterfaceAttributeInput{
 			NetworkInterfaceId: aws.String(d.Id()),
@@ -474,7 +776,7 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("private_ips_count") {
+	if d.HasChange("private_ips_count") && !d.Get("private_ip_list_enabled").(bool) {
 		o, n := d.GetChange("private_ips_count")
 		privateIPs := d.Get("private_ips").(*schema.Set).List()
 		privateIPsFiltered := privateIPs[:0]
@@ -488,7 +790,7 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 
 		if o != nil && n != nil && n != len(privateIPsFiltered) {
 
-			diff := n.(int) - o.(int)
+			diff := n.(int) - o.(int) - private_ips_net_change
 
 			// Surplus of IPs, add the diff
 			if diff > 0 {

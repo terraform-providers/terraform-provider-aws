@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -93,9 +94,10 @@ func TestAccAWSENI_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 		},
 	})
@@ -123,9 +125,10 @@ func TestAccAWSENI_ipv6(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIIPV6MultipleConfig(rName),
@@ -170,9 +173,10 @@ func TestAccAWSENI_tags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENITagsConfig2(rName, "key1", "value1updated", "key2", "value2"),
@@ -215,9 +219,10 @@ func TestAccAWSENI_ipv6_count(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIIPV6CountConfig(2, rName),
@@ -285,9 +290,10 @@ func TestAccAWSENI_updatedDescription(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIConfigUpdatedDescription(),
@@ -321,9 +327,10 @@ func TestAccAWSENI_attached(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 		},
 	})
@@ -350,9 +357,10 @@ func TestAccAWSENI_ignoreExternalAttachment(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 		},
 	})
@@ -377,9 +385,10 @@ func TestAccAWSENI_sourceDestCheck(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIConfigWithSourceDestCheck(true),
@@ -418,9 +427,10 @@ func TestAccAWSENI_computedIPs(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 		},
 	})
@@ -444,9 +454,10 @@ func TestAccAWSENI_PrivateIpsCount(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIConfigPrivateIpsCount(2),
@@ -456,9 +467,10 @@ func TestAccAWSENI_PrivateIpsCount(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIConfigPrivateIpsCount(0),
@@ -468,9 +480,10 @@ func TestAccAWSENI_PrivateIpsCount(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 			{
 				Config: testAccAWSENIConfigPrivateIpsCount(1),
@@ -480,11 +493,166 @@ func TestAccAWSENI_PrivateIpsCount(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
 			},
 		},
+	})
+}
+
+type privateIpListTestConfigData struct {
+	private_ips             []string
+	private_ips_count       string
+	private_ip_list_enabled string
+	private_ip_list         []string
+	replacesInterface       bool
+}
+
+func TestAccAWSENI_PrivateIpsSet(t *testing.T) {
+	var networkInterface, lastInterface ec2.NetworkInterface
+	resourceName := "aws_network_interface.test"
+
+	testConfigs := []privateIpListTestConfigData{
+
+		{[]string{"44", "59", "123"}, "", "", []string{}, false},       // Configuration with three private_ips
+		{[]string{"123", "44", "59"}, "", "", []string{}, false},       // Change order of private_ips
+		{[]string{"123", "12", "59", "44"}, "", "", []string{}, false}, // Add secondaries to private_ips
+		{[]string{"123", "59", "44"}, "", "", []string{}, false},       // Remove secondaries from private_ips
+		{[]string{"123", "59", "57"}, "", "", []string{}, true},        // Remove primary
+		{[]string{}, "4", "", []string{}, false},                       // Use count to add IPs
+		{[]string{"44", "57"}, "", "", []string{}, false},              // Change list, retain primary
+		{[]string{"44", "57", "123", "12"}, "", "", []string{}, false}, // Add to secondaries
+		{[]string{"17"}, "", "", []string{}, true},                     // New list
+		{[]string{"17", "45", "89"}, "", "", []string{}, false},        // Add secondaries
+	}
+
+	testSteps := make([]resource.TestStep, len(testConfigs)*2)
+	testSteps[0] = resource.TestStep{
+		Config: testAccAWSENIConfigPrivateIpList(testConfigs[0], resourceName),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckAWSENIExists(resourceName, &networkInterface),
+			testAccCheckAWSENIPrivateIpList(testConfigs[0], &networkInterface),
+			testAccCheckAWSENIExists(resourceName, &lastInterface),
+		),
+	}
+	testSteps[1] = resource.TestStep{
+		ResourceName:            resourceName,
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
+	}
+
+	for i, testConfig := range testConfigs {
+		if i == 0 {
+			continue
+		}
+		if testConfig.replacesInterface {
+			testSteps[i*2] = resource.TestStep{
+				Config: testAccAWSENIConfigPrivateIpList(testConfigs[i], resourceName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSENIExists(resourceName, &networkInterface),
+					testAccCheckAWSENIPrivateIpList(testConfigs[i], &networkInterface),
+					testAccCheckAWSENIDifferent(&lastInterface, &networkInterface), // different
+					testAccCheckAWSENIExists(resourceName, &lastInterface),
+				),
+			}
+		} else {
+			testSteps[i*2] = resource.TestStep{
+				Config: testAccAWSENIConfigPrivateIpList(testConfigs[i], resourceName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSENIExists(resourceName, &networkInterface),
+					testAccCheckAWSENIPrivateIpList(testConfigs[i], &networkInterface),
+					testAccCheckAWSENISame(&lastInterface, &networkInterface), // same
+					testAccCheckAWSENIExists(resourceName, &lastInterface),
+				),
+			}
+		}
+		// import check
+		testSteps[i*2+1] = testSteps[1]
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSENIDestroy,
+		Steps:        testSteps,
+	})
+}
+
+func TestAccAWSENI_PrivateIpList(t *testing.T) {
+	var networkInterface, lastInterface ec2.NetworkInterface
+	resourceName := "aws_network_interface.test"
+
+	// private_ips, private_ips_count, private_ip_list_enabed, private_ip_list, replacesInterface
+	testConfigs := []privateIpListTestConfigData{
+		{[]string{"17"}, "", "", []string{}, true},                               // Build a set incrementally in order
+		{[]string{"17", "45"}, "", "", []string{}, false},                        //   Add to set
+		{[]string{"17", "45", "89"}, "", "", []string{}, false},                  //   Add to set
+		{[]string{"17", "45", "89", "122"}, "", "", []string{}, false},           //   Add to set
+		{[]string{}, "", "true", []string{"17", "45", "89", "122"}, false},       // Change from set to list using same order
+		{[]string{}, "", "true", []string{"17", "89", "45", "122"}, false},       // Change order of private_ip_list
+		{[]string{}, "", "true", []string{"17", "89", "45"}, false},              // Remove secondaries from end
+		{[]string{}, "", "true", []string{"17", "89", "45", "123"}, false},       // Add secondaries to end
+		{[]string{}, "", "true", []string{"17", "89", "77", "45", "123"}, false}, // Add secondaries to middle
+		{[]string{}, "", "true", []string{"17", "89", "123"}, false},             // Remove secondaries from middle
+		{[]string{}, "4", "", []string{}, false},                                 // Use count to add IPs
+		{[]string{}, "", "true", []string{"59", "123", "44"}, true},              // Change to specific list - forces new
+		{[]string{}, "", "true", []string{"123", "59", "44"}, true},              // Change first of private_ip_list - forces new
+		{[]string{"123", "59", "44"}, "", "", []string{}, false},                 // Change from list to set using same set
+	}
+
+	testSteps := make([]resource.TestStep, len(testConfigs)*2)
+	testSteps[0] = resource.TestStep{
+		Config: testAccAWSENIConfigPrivateIpList(testConfigs[0], resourceName),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckAWSENIExists(resourceName, &networkInterface),
+			testAccCheckAWSENIPrivateIpList(testConfigs[0], &networkInterface),
+			testAccCheckAWSENIExists(resourceName, &lastInterface),
+		),
+	}
+	testSteps[1] = resource.TestStep{
+		ResourceName:            resourceName,
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"private_ip_list_enabled", "ipv6_address_list_enabled"},
+	}
+
+	for i, testConfig := range testConfigs {
+		if i == 0 {
+			continue
+		}
+		if testConfig.replacesInterface {
+			testSteps[i*2] = resource.TestStep{
+				Config: testAccAWSENIConfigPrivateIpList(testConfigs[i], resourceName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSENIExists(resourceName, &networkInterface),
+					testAccCheckAWSENIPrivateIpList(testConfigs[i], &networkInterface),
+					testAccCheckAWSENIDifferent(&lastInterface, &networkInterface), // different
+					testAccCheckAWSENIExists(resourceName, &lastInterface),
+				),
+			}
+		} else {
+			testSteps[i*2] = resource.TestStep{
+				Config: testAccAWSENIConfigPrivateIpList(testConfigs[i], resourceName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSENIExists(resourceName, &networkInterface),
+					testAccCheckAWSENIPrivateIpList(testConfigs[i], &networkInterface),
+					testAccCheckAWSENISame(&lastInterface, &networkInterface), // same
+					testAccCheckAWSENIExists(resourceName, &lastInterface),
+				),
+			}
+		}
+		// import check
+		testSteps[i*2+1] = testSteps[1]
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSENIDestroy,
+		Steps:        testSteps,
 	})
 }
 
@@ -637,6 +805,54 @@ func testAccCheckAWSENIMakeExternalAttachment(n string, conf *ec2.NetworkInterfa
 	}
 }
 
+func testAccCheckAWSENIPrivateIpList(testConfig privateIpListTestConfigData, iface *ec2.NetworkInterface) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		havePrivateIps := flattenNetworkInterfacesPrivateIPAddresses(iface.PrivateIpAddresses)
+	PRIVATE_IPS_LOOP:
+		// every IP from private_ips should be present on the interface
+		for _, needIp := range testConfig.private_ips {
+			for _, haveIp := range havePrivateIps {
+				if haveIp == "172.16.10."+needIp {
+					continue PRIVATE_IPS_LOOP
+				}
+			}
+			return fmt.Errorf("expected ip 172.16.10.%s to be in interface set %s", needIp, strings.Join(havePrivateIps, ","))
+		}
+		// every configured IP should be present on the interface
+		for needIdx, needIp := range testConfig.private_ip_list {
+			if len(havePrivateIps) <= needIdx || "172.16.10."+needIp != havePrivateIps[needIdx] {
+				return fmt.Errorf("expected ip 172.16.10.%s to be at %d in the list %s", needIp, needIdx, strings.Join(havePrivateIps, ","))
+			}
+		}
+		// number of ips configured should match interface
+		if len(testConfig.private_ips) > 0 && len(testConfig.private_ips) != len(havePrivateIps) {
+			return fmt.Errorf("expected %s got %s", strings.Join(testConfig.private_ips, ","), strings.Join(havePrivateIps, ","))
+		}
+		if len(testConfig.private_ip_list) > 0 && len(testConfig.private_ip_list) != len(havePrivateIps) {
+			return fmt.Errorf("expected %s got %s", strings.Join(testConfig.private_ip_list, ","), strings.Join(havePrivateIps, ","))
+		}
+		return nil
+	}
+}
+
+func testAccCheckAWSENISame(iface1 *ec2.NetworkInterface, iface2 *ec2.NetworkInterface) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(iface1.NetworkInterfaceId) != aws.StringValue(iface2.NetworkInterfaceId) {
+			return fmt.Errorf("Interface %s should not have been replaced with %s", aws.StringValue(iface1.NetworkInterfaceId), aws.StringValue(iface2.NetworkInterfaceId))
+		}
+		return nil
+	}
+}
+
+func testAccCheckAWSENIDifferent(iface1 *ec2.NetworkInterface, iface2 *ec2.NetworkInterface) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(iface1.NetworkInterfaceId) == aws.StringValue(iface2.NetworkInterfaceId) {
+			return fmt.Errorf("Interface %s should have been replaced, have %s", aws.StringValue(iface1.NetworkInterfaceId), aws.StringValue(iface2.NetworkInterfaceId))
+		}
+		return nil
+	}
+}
+
 func testAccAWSENIConfig() string {
 	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
@@ -759,6 +975,45 @@ resource "aws_network_interface" "test" {
   description        = "Managed by Terraform"
 }
 `, ipCount)
+}
+
+func testAccAWSENIConfigPrivateIpList(testConfig privateIpListTestConfigData, rName string) string {
+	var config strings.Builder
+
+	config.WriteString(fmt.Sprintf(`
+%s "aws_network_interface" "test" {
+  subnet_id          = aws_subnet.test.id
+  security_groups    = [aws_security_group.test.id]
+  description        = "Managed by Terraform"
+`, "resource"))
+
+	if len(testConfig.private_ips) > 0 {
+		config.WriteString("  private_ips = [\n")
+		for _, ip := range testConfig.private_ips {
+			config.WriteString(fmt.Sprintf("  \"172.16.10.%s\",\n", ip))
+		}
+		config.WriteString("]\n")
+	}
+
+	if testConfig.private_ips_count != "" {
+		config.WriteString(fmt.Sprintf("  private_ips_count = %s\n", testConfig.private_ips_count))
+	}
+
+	if testConfig.private_ip_list_enabled != "" {
+		config.WriteString(fmt.Sprintf("  private_ip_list_enabled = %s\n", testConfig.private_ip_list_enabled))
+	}
+	config.WriteString("  ipv6_address_list_enabled = false\n")
+
+	if len(testConfig.private_ip_list) > 0 {
+		config.WriteString("  private_ip_list = [\n")
+		for _, ip := range testConfig.private_ip_list {
+			config.WriteString(fmt.Sprintf("  \"172.16.10.%s\",\n", ip))
+		}
+		config.WriteString("]\n")
+	}
+
+	config.WriteString("}\n")
+	return testAccAWSENIIPV6ConfigBase(rName) + config.String()
 }
 
 func testAccAWSENIConfigUpdatedDescription() string {
