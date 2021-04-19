@@ -32,6 +32,10 @@ func resourceAwsS3BucketObject() *schema.Resource {
 		Update: resourceAwsS3BucketObjectUpdate,
 		Delete: resourceAwsS3BucketObjectDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: importState,
+		},
+
 		CustomizeDiff: resourceAwsS3BucketObjectCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
@@ -309,6 +313,41 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsS3BucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAwsS3BucketObjectPut(d, meta)
+}
+
+func importState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	id := d.Id()
+
+	if strings.HasPrefix(id, "s3://") {
+		id = strings.TrimPrefix(id, "s3://")
+	}
+
+	if len(id) < 1 || !strings.Contains(id, "/") {
+		return []*schema.ResourceData{d}, fmt.Errorf("id %s should be in format <bucket>/<key> or s3://<bucket>/<key>", id)
+	}
+	parts := strings.Split(id, "/")
+
+	if len(parts) < 2 {
+		return []*schema.ResourceData{d}, fmt.Errorf("id %s should be in format <bucket>/<key> or s3://<bucket>/<key>", id)
+	}
+
+	bucket := parts[0]
+	key := strings.Join(parts[1:], "/")
+
+	d.SetId(key)
+	if err := d.Set("bucket", bucket); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
+
+	if err := d.Set("key", key); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
+
+	if err := resourceAwsS3BucketObjectRead(d, meta); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) error {
