@@ -88,6 +88,7 @@ func TestAccAwsSecretsManagerSecret_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rotation_lambda_arn", ""),
 					resource.TestCheckResourceAttr(resourceName, "rotation_rules.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "force_overwrite_replica_secret", "false"),
 				),
 			},
 			{
@@ -152,6 +153,40 @@ func TestAccAwsSecretsManagerSecret_Description(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSecretsManagerSecretExists(resourceName, &secret),
 					resource.TestCheckResourceAttr(resourceName, "description", "description2"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"recovery_window_in_days"},
+			},
+		},
+	})
+}
+
+func TestAccAwsSecretsManagerSecret_OverwriteReplica(t *testing.T) {
+	var secret secretsmanager.DescribeSecretOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_secretsmanager_secret.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsSecretsManagerSecretConfig_OverwriteReplica(rName, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretExists(resourceName, &secret),
+					resource.TestCheckResourceAttr(resourceName, "force_overwrite_replica_secret", "true"),
+				),
+			},
+			{
+				Config: testAccAwsSecretsManagerSecretConfig_OverwriteReplica(rName, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretExists(resourceName, &secret),
+					resource.TestCheckResourceAttr(resourceName, "force_overwrite_replica_secret", "false"),
 				),
 			},
 			{
@@ -535,6 +570,15 @@ resource "aws_secretsmanager_secret" "test" {
   name        = "%s"
 }
 `, description, rName)
+}
+
+func testAccAwsSecretsManagerSecretConfig_OverwriteReplica(rName, force_overwrite_replica_secret string) string {
+	return fmt.Sprintf(`
+resource "aws_secretsmanager_secret" "test" {
+  force_overwrite_replica_secret = "%s"
+  name        = "%s"
+}
+`, force_overwrite_replica_secret, rName)
 }
 
 func testAccAwsSecretsManagerSecretConfig_Name(rName string) string {
