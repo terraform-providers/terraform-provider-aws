@@ -279,6 +279,48 @@ func TestAccAWSIoTTopicRule_firehose_separator(t *testing.T) {
 	})
 }
 
+func TestAccAWSIoTTopicRule_http(t *testing.T) {
+	rName := acctest.RandString(5)
+	resourceName := "aws_iot_topic_rule.rule"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSIoTTopicRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIoTTopicRule_http(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTTopicRuleExists("aws_iot_topic_rule.rule"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSIoTTopicRule_http_confirmation_url(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTTopicRuleExists("aws_iot_topic_rule.rule"),
+				),
+			},
+			{
+				Config: testAccAWSIoTTopicRule_http_headers(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTTopicRuleExists("aws_iot_topic_rule.rule"),
+				),
+			},
+			{
+				Config: testAccAWSIoTTopicRule_http_errorAction(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTTopicRuleExists("aws_iot_topic_rule.rule"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSIoTTopicRule_kinesis(t *testing.T) {
 	rName := acctest.RandString(5)
 	resourceName := "aws_iot_topic_rule.rule"
@@ -859,6 +901,85 @@ resource "aws_iot_topic_rule" "rule" {
   }
 }
 `, rName, separator)
+}
+
+func testAccAWSIoTTopicRule_http(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iot_topic_rule" "rule" {
+  name        = "test_rule_%[1]s"
+  description = "Example rule"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
+  sql_version = "2015-10-08"
+
+  http {
+    url = "https://foo.bar/ingress"
+  }
+}
+`, rName)
+}
+
+func testAccAWSIoTTopicRule_http_confirmation_url(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iot_topic_rule" "rule" {
+  name        = "test_rule_%[1]s"
+  description = "Example rule"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
+  sql_version = "2015-10-08"
+
+  http {
+    url              = "https://foo.bar/ingress"
+    confirmation_url = "https://foo.bar/"
+  }
+}
+`, rName)
+}
+
+func testAccAWSIoTTopicRule_http_headers(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iot_topic_rule" "rule" {
+  name        = "test_rule_%[1]s"
+  description = "Example rule"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
+  sql_version = "2015-10-08"
+
+  http {
+    url = "https://foo.bar/ingress"
+    http_header {
+      key   = "foo"
+      value = "bar"
+    }
+    http_header {
+      key   = "oof"
+      value = "rab"
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAWSIoTTopicRule_http_errorAction(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iot_topic_rule" "rule" {
+  name        = "test_rule_%[1]s"
+  description = "Example rule"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
+  sql_version = "2015-10-08"
+
+  http {
+    url = "https://foo.bar/ingress"
+  }
+
+  error_action {
+    http {
+      url = "https://bar.foo/error-ingress"
+    }
+  }
+}
+`, rName)
 }
 
 func testAccAWSIoTTopicRule_kinesis(rName string) string {

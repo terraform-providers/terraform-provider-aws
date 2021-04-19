@@ -88,7 +88,7 @@ EOF
 * `enabled` - (Required) Specifies whether the rule is enabled.
 * `sql` - (Required) The SQL statement used to query the topic. For more information, see AWS IoT SQL Reference (http://docs.aws.amazon.com/iot/latest/developerguide/iot-rules.html#aws-iot-sql-reference) in the AWS IoT Developer Guide.
 * `sql_version` - (Required) The version of the SQL rules engine to use when evaluating the rule.
-* `error_action` - (Optional) Configuration block with error action to be associated with the rule. See the documentation for `cloudwatch_alarm`, `cloudwatch_metric`, `dynamodb`, `dynamodbv2`, `elasticsearch`, `firehose`, `iot_analytics`, `iot_events`, `kinesis`, `lambda`, `republish`, `s3`, `step_functions`, `sns`, `sqs` configuration blocks for further configuration details.
+* `error_action` - (Optional) Configuration block with error action to be associated with the rule. See the documentation for `cloudwatch_alarm`, `cloudwatch_metric`, `dynamodb`, `dynamodbv2`, `elasticsearch`, `firehose`, `http`, `iot_analytics`, `iot_events`, `kinesis`, `lambda`, `republish`, `s3`, `step_functions`, `sns`, `sqs` configuration blocks for further configuration details.
 * `tags` - (Optional) Key-value map of resource tags
 
 The `cloudwatch_alarm` object takes the following arguments:
@@ -139,6 +139,17 @@ The `firehose` object takes the following arguments:
 * `delivery_stream_name` - (Required) The delivery stream name.
 * `role_arn` - (Required) The IAM role ARN that grants access to the Amazon Kinesis Firehose stream.
 * `separator` - (Optional) A character separator that is used to separate records written to the Firehose stream. Valid values are: '\n' (newline), '\t' (tab), '\r\n' (Windows newline), ',' (comma).
+
+The `http` object takes the following arguments:
+
+* `url` - (Required) The HTTPS URL.
+* `confirmation_url` - (Optional) The HTTPS URL used to verify ownership of `url`.
+* `http_header` - (Optional) Custom HTTP header IoT Core should send. It is possible to define more than one custom header.
+
+The `http_header` object takes the following arguments:
+
+* `key` - (Required) The name of the HTTP header.
+* `value` - (Required) The value of the HTTP header.
 
 The `kinesis` object takes the following arguments:
 
