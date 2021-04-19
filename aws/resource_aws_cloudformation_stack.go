@@ -84,6 +84,12 @@ func resourceAwsCloudFormationStack() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"use_previous_values": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
 			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -321,6 +327,36 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 	// Parameters must be present whether they are changed or not
 	if v, ok := d.GetOk("parameters"); ok {
 		input.Parameters = expandCloudFormationParameters(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("use_previous_values"); ok {
+		usePreviousValues := v.(*schema.Set)
+
+		for _, param := range input.Parameters {
+			if param.ParameterKey == nil {
+				continue
+			}
+
+			// If parameters are passed explicitly AND set to use previous values,
+			// override parameter values. Ultimately, the user should probably remove
+			// these values from "parameters" to avoid messy plans.
+			if usePreviousValues.Contains(*param.ParameterKey) {
+				param.ParameterValue = nil
+				param.SetUsePreviousValue(true)
+				usePreviousValues.Remove(*param.ParameterKey)
+			}
+		}
+
+		// Anything that's still left in the set must not come from Terraform resource, so we
+		// need to create parameters to explicitly tell CloudFormation to use their previous
+		// values.
+		for _, el := range usePreviousValues.List() {
+			input.Parameters = append(input.Parameters, &cloudformation.Parameter{
+				ParameterKey:     aws.String(el.(string)),
+				UsePreviousValue: aws.Bool(true),
+			})
+		}
+
 	}
 
 	if v, ok := d.GetOk("tags"); ok {

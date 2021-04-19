@@ -60,6 +60,7 @@ The following arguments are supported:
 * `on_failure` - (Optional) Action to be taken if stack creation fails. This must be
   one of: `DO_NOTHING`, `ROLLBACK`, or `DELETE`. Conflicts with `disable_rollback`.
 * `parameters` - (Optional) A map of Parameter structures that specify input parameters for the stack.
+* `use_previous_values` - (Optional) A list of stack parameters that should be explicitly set to use previous values when updating a stack. This prevents situations where a Terraform update to the stack removes values of parameters set somewhere else.
 * `policy_body` - (Optional) Structure containing the stack policy body.
   Conflicts w/ `policy_url`.
 * `policy_url` - (Optional) Location of a file containing the stack policy.
