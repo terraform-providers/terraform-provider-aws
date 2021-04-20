@@ -89,6 +89,7 @@ func TestAccAwsEc2ClientVpn_serial(t *testing.T) {
 			"msAD":              testAccAwsEc2ClientVpnEndpoint_msAD,
 			"mutualAuthAndMsAD": testAccAwsEc2ClientVpnEndpoint_mutualAuthAndMsAD,
 			"federated":         testAccAwsEc2ClientVpnEndpoint_federated,
+			"withClientConnect": testAccAwsEc2ClientVpnEndpoint_withClientConnectOptions,
 			"withLogGroup":      testAccAwsEc2ClientVpnEndpoint_withLogGroup,
 			"withDNSServers":    testAccAwsEc2ClientVpnEndpoint_withDNSServers,
 			"tags":              testAccAwsEc2ClientVpnEndpoint_tags,
@@ -266,6 +267,43 @@ func testAccAwsEc2ClientVpnEndpoint_federated(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccAwsEc2ClientVpnEndpoint_withClientConnectOptions(t *testing.T) {
+	var v1, v2 ec2.ClientVpnEndpoint
+	rStr := acctest.RandString(5)
+	resourceName := "aws_ec2_client_vpn_endpoint.test"
+	lambdaFunctionArn := "aws_lambda_function.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckClientVPNSyncronize(t); testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsEc2ClientVpnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEc2ClientVpnEndpointConfig(rStr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsEc2ClientVpnEndpointExists(resourceName, &v1),
+				),
+			},
+			{
+				Config: testAccEc2ClientVpnEndpointConfigWithClientConfig(rStr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsEc2ClientVpnEndpointExists(resourceName, &v2),
+					resource.TestCheckResourceAttr(resourceName, "client_connect_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "client_connect_options.0.enabled", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "client_connect_options.0.lambda_function_arn", lambdaFunctionArn, "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+
 }
 
 func testAccAwsEc2ClientVpnEndpoint_withLogGroup(t *testing.T) {
@@ -527,6 +565,35 @@ resource "aws_ec2_client_vpn_endpoint" "test" {
   }
 }
 `, rName)
+}
+
+func testAccEc2ClientVpnEndpointConfigWithClientConfig(rName string) string {
+	return testAccEc2ClientVpnEndpointConfigAcmCertificateBase() + fmt.Sprintf(`
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "AWSClientVPN-client_connect_handler_%s"
+  publish       = false
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.example"
+  runtime       = "nodejs12.x"
+}
+
+resource "aws_ec2_client_vpn_endpoint" "test" {
+  description            = "terraform-testacc-clientvpn-%s"
+  server_certificate_arn = aws_acm_certificate.test.arn
+  client_cidr_block      = "10.0.0.0/16"
+
+  authentication_options {
+    type                       = "certificate-authentication"
+    root_certificate_chain_arn = aws_acm_certificate.test.arn
+  }
+
+  client_connect_options {
+    enabled             = true
+    lambda_function_arn = aws_lambda_function.test.arn
+  }
+}
+`, rName, rName)
 }
 
 func testAccEc2ClientVpnEndpointConfigWithLogGroup(rName string) string {

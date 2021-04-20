@@ -29,6 +29,11 @@ resource "aws_ec2_client_vpn_endpoint" "example" {
     cloudwatch_log_group  = aws_cloudwatch_log_group.lg.name
     cloudwatch_log_stream = aws_cloudwatch_log_stream.ls.name
   }
+
+  client_connect_options {
+    enabled             = true
+    lambda_function_arn = aws_lambda_function.example.arn
+  }
 }
 ```
 
@@ -39,6 +44,7 @@ The following arguments are supported:
 * `authentication_options` - (Required) Information about the authentication method to be used to authenticate clients.
 * `client_cidr_block` - (Required) The IPv4 address range, in CIDR notation, from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet is located, or the routes that you add manually. The address range cannot be changed after the Client VPN endpoint has been created. The CIDR block should be /22 or greater.
 * `connection_log_options` - (Required) Information about the client connection logging options.
+* `client_connect_options` - (Optional) Information about a client connect handler.
 * `description` - (Optional) Name of the repository.
 * `dns_servers` - (Optional) Information about the DNS servers to be used for DNS resolution. A Client VPN endpoint can have up to two DNS servers. If no DNS server is specified, the DNS address of the VPC that is to be associated with Client VPN endpoint is used as the DNS server.
 * `server_certificate_arn` - (Required) The ARN of the ACM server certificate.
@@ -58,11 +64,17 @@ One of the following arguments must be supplied:
 
 ### `connection_log_options` Argument Reference
 
-One of the following arguments must be supplied:
+one of the following arguments must be supplied:
 
-* `enabled` - (Required) Indicates whether connection logging is enabled.
-* `cloudwatch_log_group` - (Optional) The name of the CloudWatch Logs log group.
+* `enabled` - (required) indicates whether connection logging is enabled.
+* `cloudwatch_log_group` - (optional) the name of the cloudwatch logs log group.
 * `cloudwatch_log_stream` - (Optional) The name of the CloudWatch Logs log stream to which the connection data is published.
+
+### `client_connect_options` Argument reference
+
+* `enabled` - (required) indicates whether a client connect handler is enabled.
+* `lambda_function_arn` - (required) the arn of the lambda function that implements a client connect handler.
+
 
 ## Attributes Reference
 

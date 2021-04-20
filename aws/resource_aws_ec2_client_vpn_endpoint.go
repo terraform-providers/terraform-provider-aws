@@ -96,6 +96,24 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 					},
 				},
 			},
+			"client_connect_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"lambda_function_arn": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
+						},
+					},
+				},
+			},
 			"connection_log_options": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -164,6 +182,19 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 			authRequests = append(authRequests, authReq)
 		}
 		req.AuthenticationOptions = authRequests
+	}
+
+	if v, ok := d.GetOk("client_connect_options"); ok {
+		clientConnSet := v.([]interface{})
+		attrs := clientConnSet[0].(map[string]interface{})
+		clientConnOpts := &ec2.ClientConnectOptions{
+			Enabled: aws.Bool(attrs["enabled"].(bool)),
+		}
+		if attrs["enabled"].(bool) && attrs["lambda_function_arn"].(string) != "" {
+			clientConnOpts.LambdaFunctionArn = aws.String(attrs["lambda_function_arn"].(string))
+		}
+
+		req.ClientConnectOptions = clientConnOpts
 	}
 
 	if v, ok := d.GetOk("connection_log_options"); ok {
@@ -243,6 +274,11 @@ func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting authentication_options: %w", err)
 	}
 
+	err = d.Set("client_connect_options", flattenClientConnectOptions(result.ClientVpnEndpoints[0].ClientConnectOptions))
+	if err != nil {
+		return fmt.Errorf("error setting client_connect_options: %w", err)
+	}
+
 	err = d.Set("connection_log_options", flattenConnLoggingConfig(result.ClientVpnEndpoints[0].ConnectionLogOptions))
 	if err != nil {
 		return fmt.Errorf("error setting connection_log_options: %w", err)
@@ -312,6 +348,21 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 		req.SplitTunnel = aws.Bool(d.Get("split_tunnel").(bool))
 	}
 
+	if d.HasChange("client_connect_options") {
+		if v, ok := d.GetOk("client_connect_options"); ok {
+			clientConnSet := v.([]interface{})
+			attrs := clientConnSet[0].(map[string]interface{})
+			clientConnOpts := &ec2.ClientConnectOptions{
+				Enabled: aws.Bool(attrs["enabled"].(bool)),
+			}
+			if attrs["enabled"].(bool) && attrs["lambda_function_arn"].(string) != "" {
+				clientConnOpts.LambdaFunctionArn = aws.String(attrs["lambda_function_arn"].(string))
+			}
+
+			req.ClientConnectOptions = clientConnOpts
+		}
+	}
+
 	if d.HasChange("connection_log_options") {
 		if v, ok := d.GetOk("connection_log_options"); ok {
 			connSet := v.([]interface{})
@@ -345,6 +396,15 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	return resourceAwsEc2ClientVpnEndpointRead(d, meta)
+}
+
+func flattenClientConnectOptions(copts *ec2.ClientConnectResponseOptions) []map[string]interface{} {
+	m := make(map[string]interface{})
+	if copts.LambdaFunctionArn != nil {
+		m["lambda_function_arn"] = *copts.LambdaFunctionArn
+	}
+	m["enabled"] = *copts.Enabled
+	return []map[string]interface{}{m}
 }
 
 func flattenConnLoggingConfig(lopts *ec2.ConnectionLogResponseOptions) []map[string]interface{} {
