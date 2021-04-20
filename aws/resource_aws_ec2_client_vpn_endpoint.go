@@ -50,6 +50,15 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"self_service_portal": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  ec2.SelfServicePortalDisabled,
+				ValidateFunc: validation.StringInSlice([]string{
+					ec2.SelfServicePortalEnabled,
+					ec2.SelfServicePortalDisabled,
+				}, false),
+			},
 			"transport_protocol": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -77,6 +86,12 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 							}, false),
 						},
 						"saml_provider_arn": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateArn,
+						},
+						"self_service_saml_provider_arn": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
@@ -147,6 +162,10 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("description"); ok {
 		req.Description = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("self_service_portal"); ok {
+		req.SelfServicePortal = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("dns_servers"); ok {
@@ -238,6 +257,13 @@ func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{
 	}
 	d.Set("split_tunnel", result.ClientVpnEndpoints[0].SplitTunnel)
 
+	self_service_portal := ec2.SelfServicePortalDisabled
+	if result.ClientVpnEndpoints[0].SelfServicePortalUrl != nil && *(result.ClientVpnEndpoints[0].SelfServicePortalUrl) != "" {
+		self_service_portal = ec2.SelfServicePortalEnabled
+	}
+
+	d.Set("self_service_portal", self_service_portal)
+
 	err = d.Set("authentication_options", flattenAuthOptsConfig(result.ClientVpnEndpoints[0].AuthenticationOptions))
 	if err != nil {
 		return fmt.Errorf("error setting authentication_options: %w", err)
@@ -312,6 +338,10 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 		req.SplitTunnel = aws.Bool(d.Get("split_tunnel").(bool))
 	}
 
+	if d.HasChange("self_service_portal") {
+		req.SelfServicePortal = aws.String(d.Get("self_service_portal").(string))
+	}
+
 	if d.HasChange("connection_log_options") {
 		if v, ok := d.GetOk("connection_log_options"); ok {
 			connSet := v.([]interface{})
@@ -370,6 +400,7 @@ func flattenAuthOptsConfig(aopts []*ec2.ClientVpnAuthentication) []map[string]in
 		}
 		if aopt.FederatedAuthentication != nil {
 			r["saml_provider_arn"] = aws.StringValue(aopt.FederatedAuthentication.SamlProviderArn)
+			r["self_service_saml_provider_arn"] = aws.StringValue(aopt.FederatedAuthentication.SelfServiceSamlProviderArn)
 		}
 		if aopt.ActiveDirectory != nil {
 			r["active_directory_id"] = aws.StringValue(aopt.ActiveDirectory.DirectoryId)
@@ -398,7 +429,8 @@ func expandEc2ClientVpnAuthenticationRequest(data map[string]interface{}) *ec2.C
 
 	if data["type"].(string) == ec2.ClientVpnAuthenticationTypeFederatedAuthentication {
 		req.FederatedAuthentication = &ec2.FederatedAuthenticationRequest{
-			SAMLProviderArn: aws.String(data["saml_provider_arn"].(string)),
+			SAMLProviderArn:            aws.String(data["saml_provider_arn"].(string)),
+			SelfServiceSAMLProviderArn: aws.String(data["self_service_saml_provider_arn"].(string)),
 		}
 	}
 
