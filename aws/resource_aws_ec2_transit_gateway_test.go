@@ -22,6 +22,7 @@ func init() {
 			"aws_dx_gateway_association",
 			"aws_ec2_transit_gateway_vpc_attachment",
 			"aws_ec2_transit_gateway_peering_attachment",
+			"aws_ec2_transit_gateway_multicast_domain",
 			"aws_vpn_connection",
 		},
 	})
@@ -130,6 +131,7 @@ func TestAccAWSEc2TransitGateway_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "default_route_table_propagation", ec2.DefaultRouteTablePropagationValueEnable),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "dns_support", ec2.DnsSupportValueEnable),
+					resource.TestCheckResourceAttr(resourceName, "multicast_support", ec2.MulticastSupportValueDisable),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "propagation_default_route_table_id"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),

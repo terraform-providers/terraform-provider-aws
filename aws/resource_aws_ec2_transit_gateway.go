@@ -91,6 +91,16 @@ func resourceAwsEc2TransitGateway() *schema.Resource {
 					ec2.DnsSupportValueEnable,
 				}, false),
 			},
+			"multicast_support": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  ec2.MulticastSupportValueDisable,
+				ValidateFunc: validation.StringInSlice([]string{
+					ec2.MulticastSupportValueDisable,
+					ec2.MulticastSupportValueEnable,
+				}, false),
+			},
 			"owner_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -122,6 +132,7 @@ func resourceAwsEc2TransitGatewayCreate(d *schema.ResourceData, meta interface{}
 			DefaultRouteTableAssociation: aws.String(d.Get("default_route_table_association").(string)),
 			DefaultRouteTablePropagation: aws.String(d.Get("default_route_table_propagation").(string)),
 			DnsSupport:                   aws.String(d.Get("dns_support").(string)),
+			MulticastSupport:             aws.String(d.Get("multicast_support").(string)),
 			VpnEcmpSupport:               aws.String(d.Get("vpn_ecmp_support").(string)),
 		},
 		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeTransitGateway),
@@ -190,6 +201,7 @@ func resourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("default_route_table_propagation", transitGateway.Options.DefaultRouteTablePropagation)
 	d.Set("description", transitGateway.Description)
 	d.Set("dns_support", transitGateway.Options.DnsSupport)
+	d.Set("multicast_support", transitGateway.Options.MulticastSupport)
 	d.Set("owner_id", transitGateway.OwnerId)
 	d.Set("propagation_default_route_table_id", transitGateway.Options.PropagationDefaultRouteTableId)
 

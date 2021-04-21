@@ -48,6 +48,10 @@ func dataSourceAwsEc2TransitGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"multicast_support": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"filter": dataSourceFiltersSchema(),
 			"id": {
 				Type:     schema.TypeString,
@@ -118,6 +122,7 @@ func dataSourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}
 	d.Set("default_route_table_propagation", transitGateway.Options.DefaultRouteTablePropagation)
 	d.Set("description", transitGateway.Description)
 	d.Set("dns_support", transitGateway.Options.DnsSupport)
+	d.Set("multicast_support", transitGateway.Options.MulticastSupport)
 	d.Set("owner_id", transitGateway.OwnerId)
 	d.Set("propagation_default_route_table_id", transitGateway.Options.PropagationDefaultRouteTableId)
 
