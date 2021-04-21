@@ -568,6 +568,12 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		d.Set("identifier", identifier)
 	}
 
+	if skipFinalSnapshot := d.Get("skip_final_snapshot").(bool); !skipFinalSnapshot {
+		if _, ok := d.GetOk("final_snapshot_identifier"); !ok {
+			return fmt.Errorf(`provider.aws: aws_db_instance: final_snapshot_idenfitier is required if skip_final_snapshot is False`)
+		}
+	}
+
 	if v, ok := d.GetOk("replicate_source_db"); ok {
 		opts := rds.CreateDBInstanceReadReplicaInput{
 			AutoMinorVersionUpgrade:    aws.Bool(d.Get("auto_minor_version_upgrade").(bool)),
@@ -1525,13 +1531,13 @@ func resourceAwsDbInstanceDelete(d *schema.ResourceData, meta interface{}) error
 
 	skipFinalSnapshot := d.Get("skip_final_snapshot").(bool)
 	opts.SkipFinalSnapshot = aws.Bool(skipFinalSnapshot)
+	finalSnapshotIdentifier := d.Get("final_snapshot_identifier").(string)
 
-	if !skipFinalSnapshot {
-		if name, present := d.GetOk("final_snapshot_identifier"); present {
-			opts.FinalDBSnapshotIdentifier = aws.String(name.(string))
-		} else {
-			return fmt.Errorf("DB Instance FinalSnapshotIdentifier is required when a final snapshot is required")
-		}
+	// Use user-provided snapshot identifier or default to a random one.
+	if !skipFinalSnapshot && finalSnapshotIdentifier != "" {
+		opts.FinalDBSnapshotIdentifier = aws.String(finalSnapshotIdentifier)
+	} else if !skipFinalSnapshot && finalSnapshotIdentifier == "" {
+		opts.FinalDBSnapshotIdentifier = aws.String(resource.PrefixedUniqueId("final-snapshot-"))
 	}
 
 	deleteAutomatedBackups := d.Get("delete_automated_backups").(bool)
@@ -1581,6 +1587,14 @@ func waitUntilAwsDbInstanceIsDeleted(id string, conn *rds.RDS, timeout time.Dura
 
 func resourceAwsDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+
+	if d.HasChanges("skip_final_snapshot", "final_snapshot_identifier") {
+		skipFinalSnapshot := d.Get("skip_final_snapshot").(bool)
+		finalSnapshotIdentifier := d.Get("final_snapshot_identifier").(string)
+		if !skipFinalSnapshot && finalSnapshotIdentifier == "" {
+			return fmt.Errorf(`provider.aws: aws_db_instance: final_snapshot_idenfitier is required if skip_final_snapshot is False`)
+		}
+	}
 
 	req := &rds.ModifyDBInstanceInput{
 		ApplyImmediately:     aws.Bool(d.Get("apply_immediately").(bool)),

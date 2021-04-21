@@ -338,6 +338,12 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 	conn := meta.(*AWSClient).redshiftconn
 	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags()
 
+	if skipFinalSnapshot := d.Get("skip_final_snapshot").(bool); !skipFinalSnapshot {
+		if _, ok := d.GetOk("final_snapshot_identifier"); !ok {
+			return fmt.Errorf(`provider.aws: aws_redshift_cluster: final_snapshot_idenfitier is required if skip_final_snapshot is False`)
+		}
+	}
+
 	if v, ok := d.GetOk("snapshot_identifier"); ok {
 		restoreOpts := &redshift.RestoreFromClusterSnapshotInput{
 			ClusterIdentifier:                aws.String(d.Get("cluster_identifier").(string)),
@@ -646,6 +652,14 @@ func resourceAwsRedshiftClusterRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsRedshiftClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 
+	if d.HasChanges("skip_final_snapshot", "final_snapshot_identifier") {
+		skipFinalSnapshot := d.Get("skip_final_snapshot").(bool)
+		finalSnapshotIdentifier := d.Get("final_snapshot_identifier").(string)
+		if !skipFinalSnapshot && finalSnapshotIdentifier == "" {
+			return fmt.Errorf(`provider.aws: aws_redshift_cluster: final_snapshot_idenfitier is required if skip_final_snapshot is False`)
+		}
+	}
+
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
@@ -880,13 +894,13 @@ func resourceAwsRedshiftClusterDelete(d *schema.ResourceData, meta interface{}) 
 
 	skipFinalSnapshot := d.Get("skip_final_snapshot").(bool)
 	deleteOpts.SkipFinalClusterSnapshot = aws.Bool(skipFinalSnapshot)
+	finalSnapshotIdentifier := d.Get("final_snapshot_identifier").(string)
 
-	if !skipFinalSnapshot {
-		if name, present := d.GetOk("final_snapshot_identifier"); present {
-			deleteOpts.FinalClusterSnapshotIdentifier = aws.String(name.(string))
-		} else {
-			return fmt.Errorf("Redshift Cluster Instance FinalSnapshotIdentifier is required when a final snapshot is required")
-		}
+	// Use user-provided snapshot identifier or default to a random one.
+	if !skipFinalSnapshot && finalSnapshotIdentifier != "" {
+		deleteOpts.FinalClusterSnapshotIdentifier = aws.String(finalSnapshotIdentifier)
+	} else if !skipFinalSnapshot && finalSnapshotIdentifier == "" {
+		deleteOpts.FinalClusterSnapshotIdentifier = aws.String(resource.PrefixedUniqueId("final-snapshot-"))
 	}
 
 	log.Printf("[DEBUG] Deleting Redshift Cluster: %s", deleteOpts)
