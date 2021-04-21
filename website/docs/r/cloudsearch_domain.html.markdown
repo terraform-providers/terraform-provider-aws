@@ -14,7 +14,7 @@ Provides an CloudSearch domain resource.
 
 ```terraform
 resource "aws_cloudsearch_domain" "my_domain" {
-  domain_name   = "test-domain"
+  name   = "test-domain"
   instance_type = "search.medium"
 
   index {
