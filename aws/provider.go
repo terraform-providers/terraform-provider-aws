@@ -1522,9 +1522,10 @@ func assumeRoleSchema() *schema.Schema {
 					ValidateFunc: validateArn,
 				},
 				"session_name": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "Identifier for the assumed role session.",
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "Identifier for the assumed role session.",
+					ValidateFunc: validateSessionName,
 				},
 				"tags": {
 					Type:        schema.TypeMap,

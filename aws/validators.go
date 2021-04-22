@@ -23,20 +23,23 @@ import (
 )
 
 const (
-	awsAccountIDRegexpInternalPattern = `(aws|\d{12})`
-	awsPartitionRegexpInternalPattern = `aws(-[a-z]+)*`
-	awsRegionRegexpInternalPattern    = `[a-z]{2}(-[a-z]+)+-\d`
+	awsAccountIDRegexpInternalPattern   = `(aws|\d{12})`
+	awsPartitionRegexpInternalPattern   = `aws(-[a-z]+)*`
+	awsRegionRegexpInternalPattern      = `[a-z]{2}(-[a-z]+)+-\d`
+	awsSessionNameRegexpInternalPattern = `[\w+=,.@-]*`
 )
 
 const (
-	awsAccountIDRegexpPattern = "^" + awsAccountIDRegexpInternalPattern + "$"
-	awsPartitionRegexpPattern = "^" + awsPartitionRegexpInternalPattern + "$"
-	awsRegionRegexpPattern    = "^" + awsRegionRegexpInternalPattern + "$"
+	awsAccountIDRegexpPattern   = "^" + awsAccountIDRegexpInternalPattern + "$"
+	awsPartitionRegexpPattern   = "^" + awsPartitionRegexpInternalPattern + "$"
+	awsRegionRegexpPattern      = "^" + awsRegionRegexpInternalPattern + "$"
+	awsSessionNameRegexpPattern = "^" + awsSessionNameRegexpInternalPattern + "$"
 )
 
 var awsAccountIDRegexp = regexp.MustCompile(awsAccountIDRegexpPattern)
 var awsPartitionRegexp = regexp.MustCompile(awsPartitionRegexpPattern)
 var awsRegionRegexp = regexp.MustCompile(awsRegionRegexpPattern)
+var awsSessionNameRegexp = regexp.MustCompile(awsSessionNameRegexpPattern)
 
 // validateTypeStringNullableBoolean provides custom error messaging for TypeString booleans
 // Some arguments require three values: true, false, and "" (unspecified).
@@ -674,6 +677,24 @@ func validatePrincipal(v interface{}, k string) (ws []string, errors []error) {
 	pattern := `\d{12}:(role|user)/`
 	if !regexp.MustCompile(pattern).MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q doesn't look like a user or role: %q", k, value))
+	}
+
+	return ws, errors
+}
+
+func validateSessionName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if value == "" {
+		return ws, errors
+	}
+
+	if len(value) > 64 {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid session name (maximum length is 64)", k, value))
+	}
+
+	if !awsSessionNameRegexp.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid session name (expecting to match regular expression: %s)", k, value, awsSessionNameRegexpPattern))
 	}
 
 	return ws, errors

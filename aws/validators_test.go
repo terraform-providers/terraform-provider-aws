@@ -385,6 +385,45 @@ func TestValidateArn(t *testing.T) {
 	}
 }
 
+func TestValidateSessionName(t *testing.T) {
+	v := ""
+	_, errors := validateArn(v, "arn")
+	if len(errors) != 0 {
+		t.Fatalf("%q should not be validated as a session name: %q", v, errors)
+	}
+
+	validSessionNames := []string{
+		"",
+		"test-session1",
+		"test-session2",
+		"test-session+3",
+		"test-session@4",
+		"test-session,5",
+		"test-session.6",
+		"test-session=7",
+		"test-session+8",
+		"test-session+=@,.9",
+	}
+	for _, v := range validSessionNames {
+		_, errors := validateSessionName(v, "session_name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid session name: %q", v, errors)
+		}
+	}
+
+	invalidSessionNames := []string{
+		"test session with spaces",
+		"test_session_with_invalid_symbol_*",
+		"session-session-with-a-very-very-very-very-very-long-name-longer-than-64",
+	}
+	for _, v := range invalidSessionNames {
+		_, errors := validateArn(v, "session_name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid session name", v)
+		}
+	}
+}
+
 func TestValidatePrincipal(t *testing.T) {
 	v := ""
 	_, errors := validatePrincipal(v, "arn")
