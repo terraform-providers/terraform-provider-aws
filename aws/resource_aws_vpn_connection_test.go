@@ -161,6 +161,166 @@ func TestAccAWSVpnConnection_TransitGatewayID(t *testing.T) {
 	})
 }
 
+func TestAccAWSVpnConnection_tunnelDefaults(t *testing.T) {
+	badCidrRangeErr := regexp.MustCompile(`expected \w+ to not be any of \[[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/30\s?]+\]`)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_vpn_connection.test"
+	var vpn ec2.VpnConnection
+
+	tunnel1 := TunnelOptions{
+		psk:                        "12345678",
+		tunnelCidr:                 "169.254.8.0/30",
+		dpdTimeoutAction:           "clear",
+		dpdTimeoutSeconds:          30,
+		ikeVersions:                "\"ikev1\", \"ikev2\"",
+		phase1DhGroupNumbers:       "2, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24",
+		phase1EncryptionAlgorithms: "\"AES128\", \"AES256\", \"AES128-GCM-16\", \"AES256-GCM-16\"",
+		phase1IntegrityAlgorithms:  "\"SHA1\", \"SHA2-256\", \"SHA2-384\", \"SHA2-512\"",
+		phase1LifetimeSeconds:      28800,
+		phase2DhGroupNumbers:       "2, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24",
+		phase2EncryptionAlgorithms: "\"AES128\", \"AES256\", \"AES128-GCM-16\", \"AES256-GCM-16\"",
+		phase2IntegrityAlgorithms:  "\"SHA1\", \"SHA2-256\", \"SHA2-384\", \"SHA2-512\"",
+		phase2LifetimeSeconds:      3600,
+		rekeyFuzzPercentage:        100,
+		rekeyMarginTimeSeconds:     540,
+		replayWindowSize:           1024,
+		startupAction:              "add",
+	}
+
+	tunnel2 := TunnelOptions{
+		psk:                        "abcdefgh",
+		tunnelCidr:                 "169.254.9.0/30",
+		dpdTimeoutAction:           "clear",
+		dpdTimeoutSeconds:          30,
+		ikeVersions:                "\"ikev1\", \"ikev2\"",
+		phase1DhGroupNumbers:       "2, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24",
+		phase1EncryptionAlgorithms: "\"AES128\", \"AES256\", \"AES128-GCM-16\", \"AES256-GCM-16\"",
+		phase1IntegrityAlgorithms:  "\"SHA1\", \"SHA2-256\", \"SHA2-384\", \"SHA2-512\"",
+		phase1LifetimeSeconds:      28800,
+		phase2DhGroupNumbers:       "2, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24",
+		phase2EncryptionAlgorithms: "\"AES128\", \"AES256\", \"AES128-GCM-16\", \"AES256-GCM-16\"",
+		phase2IntegrityAlgorithms:  "\"SHA1\", \"SHA2-256\", \"SHA2-384\", \"SHA2-512\"",
+		phase2LifetimeSeconds:      3600,
+		rekeyFuzzPercentage:        100,
+		rekeyMarginTimeSeconds:     540,
+		replayWindowSize:           1024,
+		startupAction:              "add",
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccAwsVpnConnectionDestroy,
+		Steps: []resource.TestStep{
+			// Checking CIDR blocks
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "not-a-cidr"),
+				ExpectError: regexp.MustCompile(`invalid CIDR address: not-a-cidr`),
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.254.0/31"),
+				ExpectError: regexp.MustCompile(`expected "\w+" to contain a network Value with between 30 and 30 significant bits`),
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "172.16.0.0/30"),
+				ExpectError: regexp.MustCompile(`must be within 169.254.0.0/16`),
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.0.0/30"),
+				ExpectError: badCidrRangeErr,
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.1.0/30"),
+				ExpectError: badCidrRangeErr,
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.2.0/30"),
+				ExpectError: badCidrRangeErr,
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.3.0/30"),
+				ExpectError: badCidrRangeErr,
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.4.0/30"),
+				ExpectError: badCidrRangeErr,
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.5.0/30"),
+				ExpectError: badCidrRangeErr,
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.169.252/30"),
+				ExpectError: badCidrRangeErr,
+			},
+
+			// Checking PreShared Key
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "1234567", "169.254.254.0/30"),
+				ExpectError: regexp.MustCompile(`expected length of \w+ to be in the range \(8 - 64\)`),
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, acctest.RandStringFromCharSet(65, acctest.CharSetAlpha), "169.254.254.0/30"),
+				ExpectError: regexp.MustCompile(`expected length of \w+ to be in the range \(8 - 64\)`),
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "01234567", "169.254.254.0/30"),
+				ExpectError: regexp.MustCompile(`cannot start with zero character`),
+			},
+			{
+				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "1234567!", "169.254.254.0/30"),
+				ExpectError: regexp.MustCompile(`can only contain alphanumeric, period and underscore characters`),
+			},
+
+			// Should pre-check:
+			// - local_ipv4_network_cidr
+			// - local_ipv6_network_cidr
+			// - remote_ipv4_network_cidr
+			// - remote_ipv6_network_cidr
+			// - tunnel_inside_ip_version
+			// - tunnel1_dpd_timeout_action
+			// - tunnel1_dpd_timeout_seconds
+			// - tunnel1_phase1_lifetime_seconds
+			// - tunnel1_phase2_lifetime_seconds
+			// - tunnel1_rekey_fuzz_percentage
+			// - tunnel1_rekey_margin_time_seconds
+			// - tunnel1_replay_window_size
+			// - tunnel1_startup_action
+			// - tunnel1_inside_cidr
+			// - tunnel1_inside_ipv6_cidr
+
+			//Try actual building
+			{
+				Config: testAccAwsVpnConnectionConfigTunnelDefaults(rBgpAsn, "192.168.1.1/32", "192.168.1.2/32", tunnel1, tunnel2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "static_routes_only", "false"),
+
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_dpd_timeout_seconds", "30"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_inside_cidr", "169.254.8.0/30"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_preshared_key", "12345678"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_phase1_lifetime_seconds", "28800"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_phase2_lifetime_seconds", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_rekey_fuzz_percentage", "100"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_rekey_margin_time_seconds", "540"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_replay_window_size", "1024"),
+
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_dpd_timeout_seconds", "30"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_inside_cidr", "169.254.9.0/30"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_preshared_key", "abcdefgh"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_phase1_lifetime_seconds", "28800"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_phase2_lifetime_seconds", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_rekey_fuzz_percentage", "100"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_rekey_margin_time_seconds", "540"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_replay_window_size", "1024"),
+				),
+			},
+			// TODO: Once #396, #3359, #5809 are fixed, an import test step should be added here
+		},
+	})
+}
+
 func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
 	badCidrRangeErr := regexp.MustCompile(`expected \w+ to not be any of \[[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/30\s?]+\]`)
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
@@ -736,6 +896,91 @@ resource "aws_vpn_connection" "test" {
   type                = aws_customer_gateway.test.type
 }
 `, rBgpAsn)
+}
+
+func testAccAwsVpnConnectionConfigTunnelDefaults(
+	rBgpAsn int,
+	localIpv4NetworkCidr string,
+	remoteIpv4NetworkCidr string,
+	tunnel1 TunnelOptions,
+	tunnel2 TunnelOptions,
+) string {
+	return fmt.Sprintf(`
+resource "aws_vpn_gateway" "vpn_gateway" {
+  tags = {
+    Name = "vpn_gateway"
+  }
+}
+
+resource "aws_customer_gateway" "customer_gateway" {
+  bgp_asn    = %d
+  ip_address = "178.0.0.1"
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "main-customer-gateway"
+  }
+}
+
+resource "aws_vpn_connection" "test" {
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
+  type                = "ipsec.1"
+  static_routes_only  = false
+
+  local_ipv4_network_cidr  = %[2]q
+  remote_ipv4_network_cidr = %[3]q
+
+  tunnel1_inside_cidr                  = %[4]q
+  tunnel1_preshared_key                = %[5]q
+  tunnel1_dpd_timeout_action           = %[6]q
+  tunnel1_ike_versions                 = [%[7]s]
+  tunnel1_phase1_dh_group_numbers      = [%[8]s]
+  tunnel1_phase1_encryption_algorithms = [%[9]s]
+  tunnel1_phase1_integrity_algorithms  = [%[10]s]
+  tunnel1_phase2_dh_group_numbers      = [%[11]s]
+  tunnel1_phase2_encryption_algorithms = [%[12]s]
+  tunnel1_phase2_integrity_algorithms  = [%[13]s]
+  tunnel1_startup_action               = %[14]q
+
+  tunnel2_inside_cidr                  = %[15]q
+  tunnel2_preshared_key                = %[16]q
+  tunnel2_dpd_timeout_action           = %[17]q
+  tunnel2_ike_versions                 = [%[18]s]
+  tunnel2_phase1_dh_group_numbers      = [%[19]s]
+  tunnel2_phase1_encryption_algorithms = [%[20]s]
+  tunnel2_phase1_integrity_algorithms  = [%[21]s]
+  tunnel2_phase2_dh_group_numbers      = [%[22]s]
+  tunnel2_phase2_encryption_algorithms = [%[23]s]
+  tunnel2_phase2_integrity_algorithms  = [%[24]s]
+  tunnel2_startup_action               = %[25]q
+}
+`,
+		rBgpAsn,
+		localIpv4NetworkCidr,
+		remoteIpv4NetworkCidr,
+		tunnel1.tunnelCidr,
+		tunnel1.psk,
+		tunnel1.dpdTimeoutAction,
+		tunnel1.ikeVersions,
+		tunnel1.phase1DhGroupNumbers,
+		tunnel1.phase1EncryptionAlgorithms,
+		tunnel1.phase1IntegrityAlgorithms,
+		tunnel1.phase2DhGroupNumbers,
+		tunnel1.phase2EncryptionAlgorithms,
+		tunnel1.phase2IntegrityAlgorithms,
+		tunnel1.startupAction,
+		tunnel2.tunnelCidr,
+		tunnel2.psk,
+		tunnel2.dpdTimeoutAction,
+		tunnel2.ikeVersions,
+		tunnel2.phase1DhGroupNumbers,
+		tunnel2.phase1EncryptionAlgorithms,
+		tunnel2.phase1IntegrityAlgorithms,
+		tunnel2.phase2DhGroupNumbers,
+		tunnel2.phase2EncryptionAlgorithms,
+		tunnel2.phase2IntegrityAlgorithms,
+		tunnel2.startupAction)
 }
 
 func testAccAwsVpnConnectionConfigTunnelOptions(

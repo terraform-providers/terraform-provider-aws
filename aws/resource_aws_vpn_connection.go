@@ -167,6 +167,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel1_dpd_timeout_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      30,
 				ValidateFunc: validateVpnConnectionTunnelDpdTimeoutSeconds(),
 			},
 
@@ -197,6 +198,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel1_phase1_lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      28800,
 				ValidateFunc: validateVpnConnectionTunnelPhase1LifetimeSeconds(),
 			},
 
@@ -221,24 +223,28 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel1_phase2_lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      3600,
 				ValidateFunc: validateVpnConnectionTunnelPhase2LifetimeSeconds(),
 			},
 
 			"tunnel1_rekey_fuzz_percentage": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      100,
 				ValidateFunc: validateVpnConnectionTunnelRekeyFuzzPercentage(),
 			},
 
 			"tunnel1_rekey_margin_time_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      540,
 				ValidateFunc: validateVpnConnectionTunnelRekeyMarginTimeSeconds(),
 			},
 
 			"tunnel1_replay_window_size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      1024,
 				ValidateFunc: validateVpnConnectionTunnelReplayWindowSize(),
 			},
 
@@ -283,6 +289,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel2_dpd_timeout_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      30,
 				ValidateFunc: validateVpnConnectionTunnelDpdTimeoutSeconds(),
 			},
 
@@ -313,6 +320,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel2_phase1_lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      28800,
 				ValidateFunc: validateVpnConnectionTunnelPhase1LifetimeSeconds(),
 			},
 
@@ -337,24 +345,28 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel2_phase2_lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      3600,
 				ValidateFunc: validateVpnConnectionTunnelPhase2LifetimeSeconds(),
 			},
 
 			"tunnel2_rekey_fuzz_percentage": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      100,
 				ValidateFunc: validateVpnConnectionTunnelRekeyFuzzPercentage(),
 			},
 
 			"tunnel2_rekey_margin_time_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      540,
 				ValidateFunc: validateVpnConnectionTunnelRekeyMarginTimeSeconds(),
 			},
 
 			"tunnel2_replay_window_size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      1024,
 				ValidateFunc: validateVpnConnectionTunnelReplayWindowSize(),
 			},
 
