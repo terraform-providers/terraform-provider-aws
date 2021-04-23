@@ -14,6 +14,7 @@ func TestAccAwsConnectInstanceDataSource_basic(t *testing.T) {
 	resourceName := "aws_connect_instance.foo"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, connect.EndpointsID),
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -51,6 +52,7 @@ func TestAccAwsConnectInstanceDataSource_alias(t *testing.T) {
 	resourceName := "aws_connect_instance.foo"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, connect.EndpointsID),
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

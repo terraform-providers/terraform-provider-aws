@@ -72,6 +72,7 @@ func TestAccAwsConnectInstance_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, connect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -110,6 +111,7 @@ func TestAccAwsConnectInstance_custom(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, connect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -148,6 +150,7 @@ func TestAccAwsConnectInstance_directory(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, connect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -203,6 +206,7 @@ func TestAccAwsConnectInstance_saml(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, connect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsConnectInstanceDestroy,
 		Steps: []resource.TestStep{
