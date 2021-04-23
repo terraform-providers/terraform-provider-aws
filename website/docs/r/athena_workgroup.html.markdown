@@ -12,7 +12,7 @@ Provides an Athena Workgroup.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_athena_workgroup" "example" {
   name = "example"
 

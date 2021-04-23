@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_glacier_vault: Prevent crash with `GetVaultAccessPolicy` API errors
+```
+
+```release-note:bug
+resource/aws_glacier_vault: Properly remove from state when resource does not exist
+```
+
+```release-note:enhancement
+resource/aws_glacier_vault: Add plan-time validation for `notification` configuration block `events` and `sns_topic_arn` arguments
+```

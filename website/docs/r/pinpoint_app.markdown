@@ -12,7 +12,7 @@ Provides a Pinpoint App resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_pinpoint_app" "example" {
   name = "test-app"
 

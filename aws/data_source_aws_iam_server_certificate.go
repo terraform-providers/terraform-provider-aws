@@ -119,7 +119,7 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing certificates: %s", err)
+		return fmt.Errorf("Error describing certificates: %w", err)
 	}
 
 	if len(metadatas) == 0 {

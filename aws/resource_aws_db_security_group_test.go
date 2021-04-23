@@ -19,6 +19,7 @@ func TestAccAWSDBSecurityGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, rds.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSDBSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -47,7 +48,7 @@ func TestAccAWSDBSecurityGroup_basic(t *testing.T) {
 }
 
 func testAccCheckAWSDBSecurityGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).rdsconn
+	conn := testAccProviderEc2Classic.Meta().(*AWSClient).rdsconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_db_security_group" {
@@ -114,7 +115,7 @@ func testAccCheckAWSDBSecurityGroupExists(n string, v *rds.DBSecurityGroup) reso
 			return fmt.Errorf("No DB Security Group ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).rdsconn
+		conn := testAccProviderEc2Classic.Meta().(*AWSClient).rdsconn
 
 		opts := rds.DescribeDBSecurityGroupsInput{
 			DBSecurityGroupName: aws.String(rs.Primary.ID),

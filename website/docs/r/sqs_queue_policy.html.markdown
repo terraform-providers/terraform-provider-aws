@@ -13,7 +13,7 @@ while referencing ARN of the queue within the policy.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sqs_queue" "q" {
   name = "examplequeue"
 }
@@ -50,6 +50,10 @@ The following arguments are supported:
 
 * `queue_url` - (Required) The URL of the SQS Queue to which to attach the policy
 * `policy` - (Required) The JSON policy for the SQS queue. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

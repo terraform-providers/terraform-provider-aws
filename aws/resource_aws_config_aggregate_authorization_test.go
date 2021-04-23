@@ -64,6 +64,7 @@ func TestAccAWSConfigAggregateAuthorization_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSConfigAggregateAuthorizationDestroy,
 		Steps: []resource.TestStep{
@@ -90,6 +91,7 @@ func TestAccAWSConfigAggregateAuthorization_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSConfigAggregateAuthorizationDestroy,
 		Steps: []resource.TestStep{

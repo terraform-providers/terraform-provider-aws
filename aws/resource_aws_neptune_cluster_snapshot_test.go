@@ -19,6 +19,7 @@ func TestAccAWSNeptuneClusterSnapshot_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, neptune.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNeptuneClusterSnapshotDestroy,
 		Steps: []resource.TestStep{

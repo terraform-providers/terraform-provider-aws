@@ -17,7 +17,7 @@ Provides an RDS DB option group resource. Documentation of the available options
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_option_group" "example" {
   name                     = "option-group-test-terraform"
   option_group_description = "Terraform Option Group"

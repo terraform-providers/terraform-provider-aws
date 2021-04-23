@@ -18,7 +18,7 @@ a particular domain name. An API stage can be associated with the domain name us
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_domain_name" "example" {
   domain_name = "ws-api.example.com"
 
@@ -32,7 +32,7 @@ resource "aws_apigatewayv2_domain_name" "example" {
 
 ### Associated Route 53 Resource Record
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_domain_name" "example" {
   domain_name = "http-api.example.com"
 

@@ -12,7 +12,7 @@ Provides a resource to manage an API Gateway Documentation Version.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_api_gateway_documentation_version" "example" {
   version     = "example_version"
   rest_api_id = aws_api_gateway_rest_api.example.id

@@ -1,0 +1,16 @@
+bug:
+  # General:
+  #   panic:
+  # AWS SDK Go:
+  #   ValidationException:.*failed to satisfy constraint: Member must not be null
+  # Terraform CLI:
+  #   Provider produced inconsistent final plan
+  #   Provider produced inconsistent result after apply
+  #   produced an invalid new value
+  #   produced an unexpected new value
+  # Terraform Plugin SDK:
+  #   doesn't support update
+  #   Invalid address to set
+  - "(doesn't support update|failed to satisfy constraint: Member must not be null|Invalid address to set|panic:|produced an (invalid|unexpected) new value|Provider produced inconsistent (final plan|result after apply))"
+crash:
+  - 'panic:'

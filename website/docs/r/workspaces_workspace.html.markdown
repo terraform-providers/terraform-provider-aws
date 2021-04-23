@@ -14,7 +14,7 @@ Provides a workspace in [AWS Workspaces](https://docs.aws.amazon.com/workspaces/
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_workspaces_bundle" "value_windows_10" {
   bundle_id = "wsb-bh8rsxt14" # Value with Windows 10 (English)
 }

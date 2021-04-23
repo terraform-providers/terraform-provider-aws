@@ -12,7 +12,7 @@ Provides a resource to manage AWS EMR Security Configurations
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_emr_security_configuration" "foo" {
   name = "emrsc_other"
 

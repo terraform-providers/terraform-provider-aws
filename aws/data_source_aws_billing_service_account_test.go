@@ -12,8 +12,9 @@ func TestAccAWSBillingServiceAccount_basic(t *testing.T) {
 	billingAccountID := "386209384616"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsBillingServiceAccountConfig,

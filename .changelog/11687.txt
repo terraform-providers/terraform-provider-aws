@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_cloudwatch_log_destination: Add plan time validation to `role_arn`, `name` and `target_arn`.
+```

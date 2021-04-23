@@ -12,7 +12,7 @@ Manages an Image Builder Distribution Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_imagebuilder_distribution_configuration" "example" {
   name = "example"
 

@@ -1308,37 +1308,6 @@ func TestValidateDmsEndpointId(t *testing.T) {
 	}
 }
 
-func TestValidateDmsCertificateId(t *testing.T) {
-	validIds := []string{
-		"tf-test-certificate-1",
-		"tfTestEndpoint",
-	}
-
-	for _, s := range validIds {
-		_, errors := validateDmsCertificateId(s, "certificate_id")
-		if len(errors) > 0 {
-			t.Fatalf("%q should be a valid certificate id: %v", s, errors)
-		}
-	}
-
-	invalidIds := []string{
-		"tf_test_certificate_1",
-		"tf.test.certificate.1",
-		"tf test certificate 1",
-		"tf-test-certificate-1!",
-		"tf-test-certificate-1-",
-		"tf-test-certificate--1",
-		"tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1tf-test-certificate-1",
-	}
-
-	for _, s := range invalidIds {
-		_, errors := validateDmsEndpointId(s, "certificate_id")
-		if len(errors) == 0 {
-			t.Fatalf("%q should not be a valid certificate id: %v", s, errors)
-		}
-	}
-}
-
 func TestValidateDmsReplicationInstanceId(t *testing.T) {
 	validIds := []string{
 		"tf-test-replication-instance-1",
@@ -3305,6 +3274,35 @@ func TestValidateUTCTimestamp(t *testing.T) {
 		_, errors := validateUTCTimestamp(f, "utc_timestamp")
 		if len(errors) == 0 {
 			t.Fatalf("expected the time %q to fail validation", f)
+		}
+	}
+}
+
+func TestValidateTypeStringIsDateOrInt(t *testing.T) {
+	validT := []string{
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05-07:00",
+		"1234",
+		"0",
+	}
+
+	for _, f := range validT {
+		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
+		if len(errors) > 0 {
+			t.Fatalf("expected the value %q to be either RFC 3339 or positive integer, got error %q", f, errors)
+		}
+	}
+
+	invalidT := []string{
+		"2018-03-01T00:00:00", // No time zone
+		"ABC",
+		"-789",
+	}
+
+	for _, f := range invalidT {
+		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
+		if len(errors) == 0 {
+			t.Fatalf("expected the value %q to fail validation", f)
 		}
 	}
 }

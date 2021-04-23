@@ -12,7 +12,7 @@ Provides a CodeBuild Report Groups Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_key" "example" {
   description             = "my test kms key"
   deletion_window_in_days = 7
@@ -65,6 +65,7 @@ The following arguments are supported:
 * `name` - (Required) The name of a Report Group.
 * `type` - (Required) The type of the Report Group. Valid value are `TEST` and `CODE_COVERAGE`.
 * `export_config` - (Required) Information about the destination where the raw data of this Report Group is exported. see [Export Config](#export-config) documented below.
+* `delete_reports` - (Optional) If `true`, deletes any reports that belong to a report group before deleting the report group. If `false`, you must delete any reports in the report group before deleting it. Default value is `false`.
 * `tags` - (Optional) Key-value mapping of resource tags
 
 ### Export Config

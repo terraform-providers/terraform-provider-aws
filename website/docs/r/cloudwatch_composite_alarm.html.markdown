@@ -14,7 +14,7 @@ Provides a CloudWatch Composite Alarm resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_composite_alarm" "example" {
   alarm_description = "This is a composite alarm!"
   alarm_name        = "example-composite-alarm"

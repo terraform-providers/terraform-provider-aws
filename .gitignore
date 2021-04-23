@@ -2,6 +2,8 @@
 *.exe
 .DS_Store
 example.tf
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
 terraform.tfplan
 terraform.tfstate
 bin/

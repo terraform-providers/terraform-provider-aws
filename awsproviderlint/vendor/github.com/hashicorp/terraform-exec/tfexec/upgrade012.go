@@ -40,7 +40,7 @@ func (tf *Terraform) Upgrade012(ctx context.Context, opts ...Upgrade012Option) e
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) upgrade012Cmd(ctx context.Context, opts ...Upgrade012Option) (*exec.Cmd, error) {

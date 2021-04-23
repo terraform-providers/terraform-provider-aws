@@ -14,7 +14,7 @@ Provides a Sagemaker Image resource.
 
 ### Basic usage
 
-```hcl
+```terraform
 resource "aws_sagemaker_image" "example" {
   image_name = "example"
   role_arn   = aws_iam_role.test.arn
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the Image.
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS to this Image.

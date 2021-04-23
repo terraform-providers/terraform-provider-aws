@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/finder"
 )
 
 func resourceAwsGlueCatalogTable() *schema.Resource {
@@ -107,6 +108,7 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 						"columns": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"comment": {
@@ -177,6 +179,50 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"schema_reference": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"schema_id": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"schema_arn": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validateArn,
+													ExactlyOneOf: []string{"storage_descriptor.0.schema_reference.0.schema_id.0.schema_arn", "storage_descriptor.0.schema_reference.0.schema_id.0.schema_name"},
+												},
+												"schema_name": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ExactlyOneOf: []string{"storage_descriptor.0.schema_reference.0.schema_id.0.schema_arn", "storage_descriptor.0.schema_reference.0.schema_id.0.schema_name"},
+												},
+												"registry_name": {
+													Type:          schema.TypeString,
+													Optional:      true,
+													ConflictsWith: []string{"storage_descriptor.0.schema_reference.0.schema_id.0.schema_arn"},
+												},
+											},
+										},
+									},
+									"schema_version_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ExactlyOneOf: []string{"storage_descriptor.0.schema_reference.0.schema_version_id", "storage_descriptor.0.schema_reference.0.schema_id"},
+									},
+									"schema_version_number": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 100000),
 									},
 								},
 							},
@@ -316,13 +362,7 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	input := &glue.GetTableInput{
-		CatalogId:    aws.String(catalogID),
-		DatabaseName: aws.String(dbName),
-		Name:         aws.String(name),
-	}
-
-	out, err := conn.GetTable(input)
+	out, err := finder.TableByName(conn, catalogID, dbName, name)
 	if err != nil {
 
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
@@ -548,6 +588,10 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 		storageDescriptor.StoredAsSubDirectories = aws.Bool(v.(bool))
 	}
 
+	if v, ok := s["schema_reference"]; ok {
+		storageDescriptor.SchemaReference = expandGlueTableSchemaReference(v.([]interface{}))
+	}
+
 	return storageDescriptor
 }
 
@@ -644,6 +688,52 @@ func expandGlueSkewedInfo(l []interface{}) *glue.SkewedInfo {
 	return skewedInfo
 }
 
+func expandGlueTableSchemaReference(l []interface{}) *glue.SchemaReference {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	s := l[0].(map[string]interface{})
+	schemaRef := &glue.SchemaReference{}
+
+	if v, ok := s["schema_version_id"].(string); ok && v != "" {
+		schemaRef.SchemaVersionId = aws.String(v)
+	}
+
+	if v, ok := s["schema_id"]; ok {
+		schemaRef.SchemaId = expandGlueTableSchemaReferenceSchemaID(v.([]interface{}))
+	}
+
+	if v, ok := s["schema_version_number"].(int); ok {
+		schemaRef.SchemaVersionNumber = aws.Int64(int64(v))
+	}
+
+	return schemaRef
+}
+
+func expandGlueTableSchemaReferenceSchemaID(l []interface{}) *glue.SchemaId {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	s := l[0].(map[string]interface{})
+	schemaID := &glue.SchemaId{}
+
+	if v, ok := s["registry_name"].(string); ok && v != "" {
+		schemaID.RegistryName = aws.String(v)
+	}
+
+	if v, ok := s["schema_name"].(string); ok && v != "" {
+		schemaID.SchemaName = aws.String(v)
+	}
+
+	if v, ok := s["schema_arn"].(string); ok && v != "" {
+		schemaID.SchemaArn = aws.String(v)
+	}
+
+	return schemaID
+}
+
 func flattenGlueStorageDescriptor(s *glue.StorageDescriptor) []map[string]interface{} {
 	if s == nil {
 		storageDescriptors := make([]map[string]interface{}, 0)
@@ -666,6 +756,10 @@ func flattenGlueStorageDescriptor(s *glue.StorageDescriptor) []map[string]interf
 	storageDescriptor["parameters"] = aws.StringValueMap(s.Parameters)
 	storageDescriptor["skewed_info"] = flattenGlueSkewedInfo(s.SkewedInfo)
 	storageDescriptor["stored_as_sub_directories"] = aws.BoolValue(s.StoredAsSubDirectories)
+
+	if s.SchemaReference != nil {
+		storageDescriptor["schema_reference"] = flattenGlueTableSchemaReference(s.SchemaReference)
+	}
 
 	storageDescriptors[0] = storageDescriptor
 
@@ -796,4 +890,58 @@ func flattenGlueSkewedInfo(s *glue.SkewedInfo) []map[string]interface{} {
 	skewedInfoSlice[0] = skewedInfo
 
 	return skewedInfoSlice
+}
+
+func flattenGlueTableSchemaReference(s *glue.SchemaReference) []map[string]interface{} {
+	if s == nil {
+		schemaReferenceInfoSlice := make([]map[string]interface{}, 0)
+		return schemaReferenceInfoSlice
+	}
+
+	schemaReferenceInfoSlice := make([]map[string]interface{}, 1)
+
+	schemaReferenceInfo := make(map[string]interface{})
+
+	if s.SchemaVersionId != nil {
+		schemaReferenceInfo["schema_version_id"] = aws.StringValue(s.SchemaVersionId)
+	}
+
+	if s.SchemaVersionNumber != nil {
+		schemaReferenceInfo["schema_version_number"] = aws.Int64Value(s.SchemaVersionNumber)
+	}
+
+	if s.SchemaId != nil {
+		schemaReferenceInfo["schema_id"] = flattenGlueTableSchemaReferenceSchemaID(s.SchemaId)
+	}
+
+	schemaReferenceInfoSlice[0] = schemaReferenceInfo
+
+	return schemaReferenceInfoSlice
+}
+
+func flattenGlueTableSchemaReferenceSchemaID(s *glue.SchemaId) []map[string]interface{} {
+	if s == nil {
+		schemaIDInfoSlice := make([]map[string]interface{}, 0)
+		return schemaIDInfoSlice
+	}
+
+	schemaIDInfoSlice := make([]map[string]interface{}, 1)
+
+	schemaIDInfo := make(map[string]interface{})
+
+	if s.RegistryName != nil {
+		schemaIDInfo["registry_name"] = aws.StringValue(s.RegistryName)
+	}
+
+	if s.SchemaArn != nil {
+		schemaIDInfo["schema_arn"] = aws.StringValue(s.SchemaArn)
+	}
+
+	if s.SchemaName != nil {
+		schemaIDInfo["schema_name"] = aws.StringValue(s.SchemaName)
+	}
+
+	schemaIDInfoSlice[0] = schemaIDInfo
+
+	return schemaIDInfoSlice
 }

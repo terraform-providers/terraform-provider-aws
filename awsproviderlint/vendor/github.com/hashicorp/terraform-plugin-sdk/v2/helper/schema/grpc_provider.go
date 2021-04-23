@@ -1152,6 +1152,9 @@ func pathToAttributePath(path cty.Path) *tftypes.AttributePath {
 		}
 	}
 
+	if len(steps) < 1 {
+		return nil
+	}
 	return &tftypes.AttributePath{Steps: steps}
 }
 

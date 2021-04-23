@@ -14,7 +14,7 @@ Manages an AWS Elasticsearch Domain.
 
 ### Basic Usage
 
-```hcl
+```terraform
 resource "aws_elasticsearch_domain" "example" {
   domain_name           = "example"
   elasticsearch_version = "1.5"
@@ -37,7 +37,7 @@ resource "aws_elasticsearch_domain" "example" {
 
 -> See also: [`aws_elasticsearch_domain_policy` resource](/docs/providers/aws/r/elasticsearch_domain_policy.html)
 
-```hcl
+```terraform
 variable "domain" {
   default = "tf-test"
 }
@@ -72,7 +72,7 @@ POLICY
 
 ### Log Publishing to CloudWatch Logs
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name = "example"
 }
@@ -113,7 +113,7 @@ resource "aws_elasticsearch_domain" "example" {
 
 ### VPC based ES
 
-```hcl
+```terraform
 variable "vpc" {}
 
 variable "domain" {

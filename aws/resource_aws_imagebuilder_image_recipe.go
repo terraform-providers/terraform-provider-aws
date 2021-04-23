@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfimagebuilder "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/imagebuilder"
 )
 
 func resourceAwsImageBuilderImageRecipe() *schema.Resource {
@@ -94,10 +95,11 @@ func resourceAwsImageBuilderImageRecipe() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 16000),
 									},
 									"volume_type": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringInSlice(imagebuilder.EbsVolumeType_Values(), false),
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										// https://github.com/hashicorp/terraform-provider-aws/issues/17274.
+										ValidateFunc: validation.StringInSlice(append(imagebuilder.EbsVolumeType_Values(), tfimagebuilder.EbsVolumeTypeGp3), false),
 									},
 								},
 							},

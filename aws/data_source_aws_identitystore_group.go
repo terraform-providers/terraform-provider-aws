@@ -94,11 +94,11 @@ func dataSourceAwsIdentityStoreGroupRead(d *schema.ResourceData, meta interface{
 	}
 
 	if len(results) == 0 {
-		return fmt.Errorf("no Identity Store Group found matching criteria; try different search")
+		return fmt.Errorf("no Identity Store Group found matching criteria\n%v; try different search", input.Filters)
 	}
 
 	if len(results) > 1 {
-		return fmt.Errorf("multiple Identity Store Groups found matching criteria; try different search")
+		return fmt.Errorf("multiple Identity Store Groups found matching criteria\n%v; try different search", input.Filters)
 	}
 
 	group := results[0]

@@ -14,7 +14,7 @@ Manages an NFS Location within AWS DataSync.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_location_nfs" "example" {
   server_hostname = "nfs.example.com"
   subdirectory    = "/exported/path"

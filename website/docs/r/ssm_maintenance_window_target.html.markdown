@@ -10,9 +10,11 @@ description: |-
 
 Provides an SSM Maintenance Window Target resource
 
-## Instance Target Example Usage
+## Example Usage
 
-```hcl
+### Instance Target
+
+```terraform
 resource "aws_ssm_maintenance_window" "window" {
   name     = "maintenance-window-webapp"
   schedule = "cron(0 16 ? * TUE *)"
@@ -33,9 +35,9 @@ resource "aws_ssm_maintenance_window_target" "target1" {
 }
 ```
 
-## Resource Group Target Example Usage
+### Resource Group Target
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window" "window" {
   name     = "maintenance-window-webapp"
   schedule = "cron(0 16 ? * TUE *)"

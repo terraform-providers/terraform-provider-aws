@@ -20,7 +20,7 @@ Manages an EC2 VPN connection. These objects can be connected to customer gatewa
 
 ### EC2 Transit Gateway
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway" "example" {}
 
 resource "aws_customer_gateway" "example" {
@@ -38,7 +38,7 @@ resource "aws_vpn_connection" "example" {
 
 ### Virtual Private Gateway
 
-```hcl
+```terraform
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
 }

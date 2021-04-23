@@ -14,7 +14,7 @@ Provides a SageMaker Feature Group resource.
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_sagemaker_feature_group" "example" {
   feature_group_name             = "example"
   record_identifier_feature_name = "example"

@@ -20,6 +20,7 @@ func TestAccAWSLakeFormationResource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationResourceDestroy,
 		Steps: []resource.TestStep{
@@ -41,6 +42,7 @@ func TestAccAWSLakeFormationResource_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationResourceDestroy,
 		Steps: []resource.TestStep{
@@ -67,6 +69,7 @@ func TestAccAWSLakeFormationResource_serviceLinkedRole(t *testing.T) {
 			testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t)
 			testAccPreCheckIamServiceLinkedRole(t, "/aws-service-role/lakeformation.amazonaws.com")
 		},
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationResourceDestroy,
 		Steps: []resource.TestStep{
@@ -92,6 +95,7 @@ func TestAccAWSLakeFormationResource_updateRoleToRole(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationResourceDestroy,
 		Steps: []resource.TestStep{
@@ -128,6 +132,7 @@ func TestAccAWSLakeFormationResource_updateSLRToRole(t *testing.T) {
 			testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t)
 			testAccPreCheckIamServiceLinkedRole(t, "/aws-service-role/lakeformation.amazonaws.com")
 		},
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationResourceDestroy,
 		Steps: []resource.TestStep{

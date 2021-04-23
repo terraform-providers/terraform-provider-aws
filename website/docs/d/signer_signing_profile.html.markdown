@@ -12,7 +12,7 @@ Provides information about a Signer Signing Profile.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_signer_signing_profile" "production_signing_profile" {
   name = "prod_profile_DdW3Mk1foYL88fajut4mTVFGpuwfd4ACO6ANL0D1uIj7lrn8adK"
 }

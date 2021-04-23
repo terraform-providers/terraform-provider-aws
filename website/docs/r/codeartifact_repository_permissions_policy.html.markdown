@@ -12,7 +12,7 @@ Provides a CodeArtifact Repostory Permissions Policy Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_key" "example" {
   description = "domain key"
 }

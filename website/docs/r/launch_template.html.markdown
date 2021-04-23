@@ -12,7 +12,7 @@ Provides an EC2 launch template resource. Can be used to create instances or aut
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_launch_template" "foo" {
   name = "foo"
 

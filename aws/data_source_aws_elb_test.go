@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -13,8 +14,9 @@ func TestAccDataSourceAWSELB_basic(t *testing.T) {
 	rName := fmt.Sprintf("TestAccDataSourceAWSELB-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, elb.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAWSELBConfigBasic(rName, t.Name()),
@@ -37,7 +39,7 @@ func TestAccDataSourceAWSELB_basic(t *testing.T) {
 }
 
 func testAccDataSourceAWSELBConfigBasic(rName, testName string) string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_elb" "elb_test" {
   name            = "%[1]s"
   internal        = true
@@ -60,7 +62,7 @@ resource "aws_elb" "elb_test" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 resource "aws_vpc" "elb_test" {
@@ -110,5 +112,5 @@ resource "aws_security_group" "elb_test" {
 data "aws_elb" "elb_test" {
   name = aws_elb.elb_test.name
 }
-`, rName, testName)
+`, rName, testName))
 }

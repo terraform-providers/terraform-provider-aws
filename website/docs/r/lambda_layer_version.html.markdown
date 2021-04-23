@@ -14,7 +14,7 @@ For information about Lambda Layers and how to use them, see [AWS Lambda Layers]
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lambda_layer_version" "lambda_layer" {
   filename   = "lambda_layer_payload.zip"
   layer_name = "lambda_layer_name"

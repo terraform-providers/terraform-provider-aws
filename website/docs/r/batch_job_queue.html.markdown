@@ -12,7 +12,7 @@ Provides a Batch Job Queue resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_batch_job_queue" "test_queue" {
   name     = "tf-test-batch-job-queue"
   state    = "ENABLED"

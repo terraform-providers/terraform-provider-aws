@@ -236,7 +236,7 @@ func getJobDefinition(conn *batch.Batch, arn string) (*batch.JobDefinition, erro
 	case numJobDefinitions == 0:
 		return nil, nil
 	case numJobDefinitions == 1:
-		if *resp.JobDefinitions[0].Status == "ACTIVE" {
+		if aws.StringValue(resp.JobDefinitions[0].Status) == "ACTIVE" {
 			return resp.JobDefinitions[0], nil
 		}
 		return nil, nil

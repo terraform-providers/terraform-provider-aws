@@ -28,7 +28,7 @@ to produce a fresh snapshot.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ami_from_instance" "example" {
   name               = "terraform-example"
   source_instance_id = "i-xxxxxxxx"
@@ -63,5 +63,5 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the created AMI.
 
 This resource also exports a full set of attributes corresponding to the arguments of the
-`aws_ami` resource, allowing the properties of the created AMI to be used elsewhere in the
+[`aws_ami`](/docs/providers/aws/r/ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
 configuration.

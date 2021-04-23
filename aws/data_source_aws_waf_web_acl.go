@@ -31,7 +31,7 @@ func dataSourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error 
 	for {
 		output, err := conn.ListWebACLs(input)
 		if err != nil {
-			return fmt.Errorf("error reading web ACLs: %s", err)
+			return fmt.Errorf("error reading web ACLs: %w", err)
 		}
 		for _, acl := range output.WebACLs {
 			if aws.StringValue(acl.Name) == name {

@@ -21,6 +21,7 @@ func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -62,6 +63,7 @@ func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
 		},
 	})
 }
+
 func testAccCheckAWSUserPolicyAttachmentDestroy(s *terraform.State) error {
 	return nil
 }
@@ -94,6 +96,7 @@ func testAccCheckAWSUserPolicyAttachmentExists(n string, c int, out *iam.ListAtt
 		return nil
 	}
 }
+
 func testAccCheckAWSUserPolicyAttachmentAttributes(policies []string, out *iam.ListAttachedUserPoliciesOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		matched := 0

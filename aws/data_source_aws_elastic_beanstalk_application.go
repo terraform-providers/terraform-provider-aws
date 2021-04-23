@@ -63,7 +63,7 @@ func dataSourceAwsElasticBeanstalkApplicationRead(d *schema.ResourceData, meta i
 		ApplicationNames: []*string{aws.String(name)},
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing Applications (%s): %s", name, err)
+		return fmt.Errorf("Error describing Applications (%s): %w", name, err)
 	}
 
 	if len(resp.Applications) > 1 || len(resp.Applications) < 1 {

@@ -140,7 +140,7 @@ func dataSourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta inter
 		ip, err := conn.ListResolverEndpointIpAddresses(params)
 
 		if err != nil {
-			return fmt.Errorf("error getting Route53 Resolver endpoint (%s) IP Addresses: %s", d.Id(), err)
+			return fmt.Errorf("error getting Route53 Resolver endpoint (%s) IP Addresses: %w", d.Id(), err)
 		}
 
 		for _, vIPAddresses := range ip.IpAddresses {

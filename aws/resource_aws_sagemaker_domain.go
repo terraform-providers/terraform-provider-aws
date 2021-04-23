@@ -122,7 +122,7 @@ func resourceAwsSagemakerDomain() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"default_resource_spec": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -151,7 +151,7 @@ func resourceAwsSagemakerDomain() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"default_resource_spec": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -180,7 +180,7 @@ func resourceAwsSagemakerDomain() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"default_resource_spec": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -341,6 +341,10 @@ func resourceAwsSagemakerDomainUpdate(d *schema.ResourceData, meta interface{}) 
 		_, err := conn.UpdateDomain(input)
 		if err != nil {
 			return fmt.Errorf("error updating SageMaker domain: %w", err)
+		}
+
+		if _, err := waiter.DomainInService(conn, d.Id()); err != nil {
+			return fmt.Errorf("error waiting for SageMaker domain (%s) to update: %w", d.Id(), err)
 		}
 	}
 

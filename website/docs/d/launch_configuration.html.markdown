@@ -12,7 +12,7 @@ Provides information about a Launch Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_launch_configuration" "ubuntu" {
   name = "test-launch-config"
 }

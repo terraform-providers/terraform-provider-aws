@@ -211,6 +211,7 @@ func TestAccAWSSnsPlatformApplication_basic(t *testing.T) {
 		t.Run(platform.Name, func(*testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:     func() { testAccPreCheck(t) },
+				ErrorCheck:   testAccErrorCheck(t, sns.EndpointsID),
 				Providers:    testAccProviders,
 				CheckDestroy: testAccCheckAWSSNSPlatformApplicationDestroy,
 				Steps: []resource.TestStep{
@@ -277,6 +278,7 @@ func TestAccAWSSnsPlatformApplication_basicAttributes(t *testing.T) {
 
 					resource.ParallelTest(t, resource.TestCase{
 						PreCheck:     func() { testAccPreCheck(t) },
+						ErrorCheck:   testAccErrorCheck(t, sns.EndpointsID),
 						Providers:    testAccProviders,
 						CheckDestroy: testAccCheckAWSSNSPlatformApplicationDestroy,
 						Steps: []resource.TestStep{
@@ -327,6 +329,7 @@ func TestAccAWSSnsPlatformApplication_iamRoleAttributes(t *testing.T) {
 
 					resource.ParallelTest(t, resource.TestCase{
 						PreCheck:     func() { testAccPreCheck(t) },
+						ErrorCheck:   testAccErrorCheck(t, sns.EndpointsID),
 						Providers:    testAccProviders,
 						CheckDestroy: testAccCheckAWSSNSPlatformApplicationDestroy,
 						Steps: []resource.TestStep{
@@ -379,6 +382,7 @@ func TestAccAWSSnsPlatformApplication_snsTopicAttributes(t *testing.T) {
 
 					resource.ParallelTest(t, resource.TestCase{
 						PreCheck:     func() { testAccPreCheck(t) },
+						ErrorCheck:   testAccErrorCheck(t, sns.EndpointsID),
 						Providers:    testAccProviders,
 						CheckDestroy: testAccCheckAWSSNSPlatformApplicationDestroy,
 						Steps: []resource.TestStep{

@@ -15,6 +15,7 @@ func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: "aws_vpn_gateway_route_propagation.foo",
 		Providers:     testAccProviders,
 		Steps: []resource.TestStep{

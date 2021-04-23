@@ -5,7 +5,11 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/securityhub/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSecurityHubAccount() *schema.Resource {
@@ -58,10 +62,30 @@ func resourceAwsSecurityHubAccountDelete(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).securityhubconn
 	log.Print("[DEBUG] Disabling Security Hub for account")
 
-	_, err := conn.DisableSecurityHub(&securityhub.DisableSecurityHubInput{})
+	err := resource.Retry(waiter.AdminAccountNotFoundTimeout, func() *resource.RetryError {
+		_, err := conn.DisableSecurityHub(&securityhub.DisableSecurityHubInput{})
+
+		if tfawserr.ErrMessageContains(err, securityhub.ErrCodeInvalidInputException, "Cannot disable Security Hub on the Security Hub administrator") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.DisableSecurityHub(&securityhub.DisableSecurityHubInput{})
+	}
+
+	if tfawserr.ErrCodeEquals(err, securityhub.ErrCodeResourceNotFoundException) {
+		return nil
+	}
 
 	if err != nil {
-		return fmt.Errorf("Error disabling Security Hub for account: %s", err)
+		return fmt.Errorf("Error disabling Security Hub for account: %w", err)
 	}
 
 	return nil

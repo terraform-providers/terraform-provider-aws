@@ -14,7 +14,7 @@ See the example below for creating a graph with four nodes (two triggers and two
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_workflow" "example" {
   name = "example"
 }

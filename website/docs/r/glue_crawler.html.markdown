@@ -14,7 +14,7 @@ Manages a Glue Crawler. More information can be found in the [AWS Glue Developer
 
 ### DynamoDB Target Example
 
-```hcl
+```terraform
 resource "aws_glue_crawler" "example" {
   database_name = aws_glue_catalog_database.example.name
   name          = "example"
@@ -28,7 +28,7 @@ resource "aws_glue_crawler" "example" {
 
 ### JDBC Target Example
 
-```hcl
+```terraform
 resource "aws_glue_crawler" "example" {
   database_name = aws_glue_catalog_database.example.name
   name          = "example"
@@ -43,7 +43,7 @@ resource "aws_glue_crawler" "example" {
 
 ### S3 Target Example
 
-```hcl
+```terraform
 resource "aws_glue_crawler" "example" {
   database_name = aws_glue_catalog_database.example.name
   name          = "example"
@@ -58,7 +58,7 @@ resource "aws_glue_crawler" "example" {
 
 ### Catalog Target Example
 
-```hcl
+```terraform
 resource "aws_glue_crawler" "example" {
   database_name = aws_glue_catalog_database.example.name
   name          = "example"
@@ -86,7 +86,7 @@ EOF
 
 ### MongoDB Target Example
 
-```hcl
+```terraform
 resource "aws_glue_crawler" "example" {
   database_name = aws_glue_catalog_database.example.name
   name          = "example"
@@ -101,7 +101,7 @@ resource "aws_glue_crawler" "example" {
 
 ### Configuration Settings Example
 
-```hcl
+```terraform
 resource "aws_glue_crawler" "events_crawler" {
   database_name = aws_glue_catalog_database.glue_database.name
   schedule      = "cron(0 1 * * ? *)"

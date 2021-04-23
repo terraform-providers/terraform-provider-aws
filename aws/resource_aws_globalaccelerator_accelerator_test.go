@@ -5,7 +5,6 @@ import (
 	"log"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
@@ -13,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func init() {
@@ -47,44 +48,15 @@ func testSweepGlobalAcceleratorAccelerators(region string) error {
 		for _, accelerator := range output.Accelerators {
 			arn := aws.StringValue(accelerator.AcceleratorArn)
 
-			errs := sweepGlobalAcceleratorListeners(conn, accelerator.AcceleratorArn)
+			errs := sweepGlobalAcceleratorListeners(client, accelerator.AcceleratorArn)
 			if errs != nil {
 				sweeperErrs = multierror.Append(sweeperErrs, errs)
 			}
 
-			if aws.BoolValue(accelerator.Enabled) {
-				input := &globalaccelerator.UpdateAcceleratorInput{
-					AcceleratorArn: accelerator.AcceleratorArn,
-					Enabled:        aws.Bool(false),
-				}
-
-				log.Printf("[INFO] Disabling Global Accelerator Accelerator: %s", arn)
-
-				_, err := conn.UpdateAccelerator(input)
-
-				if err != nil {
-					sweeperErr := fmt.Errorf("error disabling Global Accelerator Accelerator (%s): %s", arn, err)
-					log.Printf("[ERROR] %s", sweeperErr)
-					sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-					continue
-				}
-			}
-
-			// Global Accelerator accelerators need to be in `DEPLOYED` state before they can be deleted.
-			// Removing listeners or disabling can both set the state to `IN_PROGRESS`.
-			if err := resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, arn, 60*time.Minute); err != nil {
-				sweeperErr := fmt.Errorf("error waiting for Global Accelerator Accelerator (%s): %s", arn, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
-			}
-
-			input := &globalaccelerator.DeleteAcceleratorInput{
-				AcceleratorArn: accelerator.AcceleratorArn,
-			}
-
-			log.Printf("[INFO] Deleting Global Accelerator Accelerator: %s", arn)
-			_, err := conn.DeleteAccelerator(input)
+			r := resourceAwsGlobalAcceleratorAccelerator()
+			d := r.Data(nil)
+			d.SetId(arn)
+			err = r.Delete(d, client)
 
 			if err != nil {
 				sweeperErr := fmt.Errorf("error deleting Global Accelerator Accelerator (%s): %s", arn, err)
@@ -104,7 +76,8 @@ func testSweepGlobalAcceleratorAccelerators(region string) error {
 	return sweeperErrs.ErrorOrNil()
 }
 
-func sweepGlobalAcceleratorListeners(conn *globalaccelerator.GlobalAccelerator, acceleratorArn *string) *multierror.Error {
+func sweepGlobalAcceleratorListeners(client interface{}, acceleratorArn *string) *multierror.Error {
+	conn := client.(*AWSClient).globalacceleratorconn
 	var sweeperErrs *multierror.Error
 
 	log.Printf("[INFO] deleting Listeners for Accelerator %s", *acceleratorArn)
@@ -119,18 +92,20 @@ func sweepGlobalAcceleratorListeners(conn *globalaccelerator.GlobalAccelerator, 
 	}
 
 	for _, listener := range listenersOutput.Listeners {
-		errs := sweepGlobalAcceleratorEndpointGroups(conn, listener.ListenerArn)
+		errs := sweepGlobalAcceleratorEndpointGroups(client, listener.ListenerArn)
 		if errs != nil {
 			sweeperErrs = multierror.Append(sweeperErrs, errs)
 		}
 
-		input := &globalaccelerator.DeleteListenerInput{
-			ListenerArn: listener.ListenerArn,
-		}
-		_, err := conn.DeleteListener(input)
+		arn := aws.StringValue(listener.ListenerArn)
+
+		r := resourceAwsGlobalAcceleratorListener()
+		d := r.Data(nil)
+		d.SetId(arn)
+		err = r.Delete(d, client)
 
 		if err != nil {
-			sweeperErr := fmt.Errorf("error deleting Global Accelerator listener (%s): %s", *listener.ListenerArn, err)
+			sweeperErr := fmt.Errorf("error deleting Global Accelerator listener (%s): %s", arn, err)
 			log.Printf("[ERROR] %s", sweeperErr)
 			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
 			continue
@@ -140,7 +115,8 @@ func sweepGlobalAcceleratorListeners(conn *globalaccelerator.GlobalAccelerator, 
 	return sweeperErrs
 }
 
-func sweepGlobalAcceleratorEndpointGroups(conn *globalaccelerator.GlobalAccelerator, listenerArn *string) *multierror.Error {
+func sweepGlobalAcceleratorEndpointGroups(client interface{}, listenerArn *string) *multierror.Error {
+	conn := client.(*AWSClient).globalacceleratorconn
 	var sweeperErrs *multierror.Error
 
 	log.Printf("[INFO] deleting Endpoint Groups for Listener %s", *listenerArn)
@@ -155,13 +131,15 @@ func sweepGlobalAcceleratorEndpointGroups(conn *globalaccelerator.GlobalAccelera
 	}
 
 	for _, endpoint := range output.EndpointGroups {
-		input := &globalaccelerator.DeleteEndpointGroupInput{
-			EndpointGroupArn: endpoint.EndpointGroupArn,
-		}
-		_, err := conn.DeleteEndpointGroup(input)
+		arn := aws.StringValue(endpoint.EndpointGroupArn)
+
+		r := resourceAwsGlobalAcceleratorEndpointGroup()
+		d := r.Data(nil)
+		d.SetId(arn)
+		err = r.Delete(d, client)
 
 		if err != nil {
-			sweeperErr := fmt.Errorf("error deleting Global Accelerator endpoint group (%s): %s", *endpoint.EndpointGroupArn, err)
+			sweeperErr := fmt.Errorf("error deleting Global Accelerator endpoint group (%s): %s", arn, err)
 			log.Printf("[ERROR] %s", sweeperErr)
 			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
 			continue
@@ -172,69 +150,85 @@ func sweepGlobalAcceleratorEndpointGroups(conn *globalaccelerator.GlobalAccelera
 }
 
 func TestAccAwsGlobalAcceleratorAccelerator_basic(t *testing.T) {
-	resourceName := "aws_globalaccelerator_accelerator.example"
+	resourceName := "aws_globalaccelerator_accelerator.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	ipRegex := regexp.MustCompile(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
 	dnsNameRegex := regexp.MustCompile(`^a[a-f0-9]{16}\.awsglobalaccelerator\.com$`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
+		ErrorCheck:   testAccErrorCheck(t, globalaccelerator.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlobalAcceleratorAcceleratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGlobalAcceleratorAccelerator_basic(rName, false),
+				Config: testAccGlobalAcceleratorAcceleratorConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "IPV4"),
 					resource.TestCheckResourceAttr(resourceName, "attributes.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_s3_bucket", ""),
 					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_s3_prefix", ""),
 					resource.TestMatchResourceAttr(resourceName, "dns_name", dnsNameRegex),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "hosted_zone_id", "Z2BJ6XQ5FK7U4H"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "IPV4"),
 					resource.TestCheckResourceAttr(resourceName, "ip_sets.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "ip_sets.0.ip_addresses.#", "2"),
 					resource.TestMatchResourceAttr(resourceName, "ip_sets.0.ip_addresses.0", ipRegex),
 					resource.TestMatchResourceAttr(resourceName, "ip_sets.0.ip_addresses.1", ipRegex),
 					resource.TestCheckResourceAttr(resourceName, "ip_sets.0.ip_family", "IPv4"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsGlobalAcceleratorAccelerator_disappears(t *testing.T) {
+	resourceName := "aws_globalaccelerator_accelerator.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
+		ErrorCheck:   testAccErrorCheck(t, globalaccelerator.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlobalAcceleratorAcceleratorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGlobalAcceleratorAcceleratorConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsGlobalAcceleratorAccelerator(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccAwsGlobalAcceleratorAccelerator_update(t *testing.T) {
-	resourceName := "aws_globalaccelerator_accelerator.example"
+	resourceName := "aws_globalaccelerator_accelerator.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	newName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
+		ErrorCheck:   testAccErrorCheck(t, globalaccelerator.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlobalAcceleratorAcceleratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGlobalAcceleratorAccelerator_basic(rName, true),
+				Config: testAccGlobalAcceleratorAcceleratorConfigEnabled(rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-				),
-			},
-			{
-				Config: testAccGlobalAcceleratorAccelerator_basic(newName, false),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", newName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
@@ -242,26 +236,43 @@ func TestAccAwsGlobalAcceleratorAccelerator_update(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccGlobalAcceleratorAcceleratorConfigEnabled(newName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "name", newName),
+				),
+			},
+			{
+				Config: testAccGlobalAcceleratorAcceleratorConfigEnabled(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+				),
+			},
 		},
 	})
 }
 
 func TestAccAwsGlobalAcceleratorAccelerator_attributes(t *testing.T) {
-	resourceName := "aws_globalaccelerator_accelerator.example"
-	s3BucketResourceName := "aws_s3_bucket.example"
+	resourceName := "aws_globalaccelerator_accelerator.test"
+	s3BucketResourceName := "aws_s3_bucket.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
+		ErrorCheck:   testAccErrorCheck(t, globalaccelerator.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlobalAcceleratorAcceleratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGlobalAcceleratorAccelerator_attributes(rName),
+				Config: testAccGlobalAcceleratorAcceleratorConfigAttributes(rName, false, "flow-logs/"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "attributes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_enabled", "false"),
 					resource.TestCheckResourceAttrPair(resourceName, "attributes.0.flow_logs_s3_bucket", s3BucketResourceName, "bucket"),
 					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_s3_prefix", "flow-logs/"),
 				),
@@ -271,27 +282,57 @@ func TestAccAwsGlobalAcceleratorAccelerator_attributes(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccGlobalAcceleratorAcceleratorConfigAttributes(rName, true, "flow-logs/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_enabled", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "attributes.0.flow_logs_s3_bucket", s3BucketResourceName, "bucket"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_s3_prefix", "flow-logs/"),
+				),
+			},
+			{
+				Config: testAccGlobalAcceleratorAcceleratorConfigAttributes(rName, true, "flow-logs-updated/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_enabled", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "attributes.0.flow_logs_s3_bucket", s3BucketResourceName, "bucket"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_s3_prefix", "flow-logs-updated/"),
+				),
+			},
+			{
+				Config: testAccGlobalAcceleratorAcceleratorConfigAttributes(rName, false, "flow-logs/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_enabled", "false"),
+					resource.TestCheckResourceAttrPair(resourceName, "attributes.0.flow_logs_s3_bucket", s3BucketResourceName, "bucket"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.0.flow_logs_s3_prefix", "flow-logs/"),
+				),
+			},
 		},
 	})
 }
 
 func TestAccAwsGlobalAcceleratorAccelerator_tags(t *testing.T) {
-	resourceName := "aws_globalaccelerator_accelerator.example"
+	resourceName := "aws_globalaccelerator_accelerator.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
+		ErrorCheck:   testAccErrorCheck(t, globalaccelerator.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlobalAcceleratorAcceleratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGlobalAcceleratorAccelerator_tags(rName, false, "foo", "var"),
+				Config: testAccGlobalAcceleratorAcceleratorConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
-					resource.TestCheckResourceAttr(resourceName, "tags.foo", "var"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
 			},
 			{
@@ -300,18 +341,20 @@ func TestAccAwsGlobalAcceleratorAccelerator_tags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccGlobalAcceleratorAccelerator_tags(rName, false, "foo", "var2"),
+				Config: testAccGlobalAcceleratorAcceleratorConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.foo", "var2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 			{
-				Config: testAccGlobalAcceleratorAccelerator_basic(rName, false),
+				Config: testAccGlobalAcceleratorAcceleratorConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlobalAcceleratorAcceleratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -347,13 +390,10 @@ func testAccCheckGlobalAcceleratorAcceleratorExists(name string) resource.TestCh
 			return fmt.Errorf("No ID is set")
 		}
 
-		accelerator, err := resourceAwsGlobalAcceleratorAcceleratorRetrieve(conn, rs.Primary.ID)
+		_, err := finder.AcceleratorByARN(conn, rs.Primary.ID)
+
 		if err != nil {
 			return err
-		}
-
-		if accelerator == nil {
-			return fmt.Errorf("Global Accelerator accelerator not found")
 		}
 
 		return nil
@@ -368,60 +408,86 @@ func testAccCheckGlobalAcceleratorAcceleratorDestroy(s *terraform.State) error {
 			continue
 		}
 
-		accelerator, err := resourceAwsGlobalAcceleratorAcceleratorRetrieve(conn, rs.Primary.ID)
+		_, err := finder.AcceleratorByARN(conn, rs.Primary.ID)
+
+		if tfresource.NotFound(err) {
+			continue
+		}
+
 		if err != nil {
 			return err
 		}
 
-		if accelerator != nil {
-			return fmt.Errorf("Global Accelerator accelerator still exists")
-		}
+		return fmt.Errorf("Global Accelerator Accelerator %s still exists", rs.Primary.ID)
 	}
 	return nil
 }
 
-func testAccGlobalAcceleratorAccelerator_basic(rName string, enabled bool) string {
+func testAccGlobalAcceleratorAcceleratorConfig(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_globalaccelerator_accelerator" "example" {
-  name            = "%s"
-  ip_address_type = "IPV4"
-  enabled         = %t
-}
-`, rName, enabled)
-}
-
-func testAccGlobalAcceleratorAccelerator_attributes(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_s3_bucket" "example" {
-  bucket_prefix = "tf-test-globalaccelerator-"
-}
-
-resource "aws_globalaccelerator_accelerator" "example" {
-  name            = "%s"
-  ip_address_type = "IPV4"
-  enabled         = false
-
-  attributes {
-    flow_logs_enabled   = true
-    flow_logs_s3_bucket = aws_s3_bucket.example.bucket
-    flow_logs_s3_prefix = "flow-logs/"
-  }
+resource "aws_globalaccelerator_accelerator" "test" {
+  name = %[1]q
 }
 `, rName)
 }
 
-func testAccGlobalAcceleratorAccelerator_tags(rName string, enabled bool, tagKey string, tagValue string) string {
+func testAccGlobalAcceleratorAcceleratorConfigEnabled(rName string, enabled bool) string {
 	return fmt.Sprintf(`
-resource "aws_globalaccelerator_accelerator" "example" {
-  name            = "%s"
+resource "aws_globalaccelerator_accelerator" "test" {
+  name            = %[1]q
   ip_address_type = "IPV4"
-  enabled         = %t
+  enabled         = %[2]t
+}
+`, rName, enabled)
+}
 
-  tags = {
-    Name = "%[1]s"
+func testAccGlobalAcceleratorAcceleratorConfigAttributes(rName string, flowLogsEnabled bool, flowLogsPrefix string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  acl           = "private"
+  bucket        = %[1]q
+  force_destroy = true
+}
 
-    %[3]s = "%[4]s"
+resource "aws_globalaccelerator_accelerator" "test" {
+  name            = %[1]q
+  ip_address_type = "IPV4"
+  enabled         = false
+
+  attributes {
+    flow_logs_enabled   = %[2]t
+    flow_logs_s3_bucket = aws_s3_bucket.test.bucket
+    flow_logs_s3_prefix = %[3]q
   }
 }
-`, rName, enabled, tagKey, tagValue)
+`, rName, flowLogsEnabled, flowLogsPrefix)
+}
+
+func testAccGlobalAcceleratorAcceleratorConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_globalaccelerator_accelerator" "test" {
+  name            = %[1]q
+  ip_address_type = "IPV4"
+  enabled         = false
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccGlobalAcceleratorAcceleratorConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_globalaccelerator_accelerator" "test" {
+  name            = %[1]q
+  ip_address_type = "IPV4"
+  enabled         = false
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

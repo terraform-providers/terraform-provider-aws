@@ -12,7 +12,7 @@ Provides an AWS Elemental MediaPackage Channel.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_media_package_channel" "kittens" {
   channel_id  = "kitten-channel"
   description = "A channel dedicated to amusing videos of kittens."

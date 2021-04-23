@@ -14,7 +14,7 @@ Provides a Route53 Resolver rule.
 
 ### System rule
 
-```hcl
+```terraform
 resource "aws_route53_resolver_rule" "sys" {
   domain_name = "subdomain.example.com"
   rule_type   = "SYSTEM"
@@ -23,7 +23,7 @@ resource "aws_route53_resolver_rule" "sys" {
 
 ### Forward rule
 
-```hcl
+```terraform
 resource "aws_route53_resolver_rule" "fwd" {
   domain_name          = "example.com"
   name                 = "example"

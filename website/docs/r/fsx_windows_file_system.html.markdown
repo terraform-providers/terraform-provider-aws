@@ -18,7 +18,7 @@ Manages a FSx Windows File System. See the [FSx Windows Guide](https://docs.aws.
 
 Additional information for using AWS Directory Service with Windows File Systems can be found in the [FSx Windows Guide](https://docs.aws.amazon.com/fsx/latest/WindowsGuide/fsx-aws-managed-ad.html).
 
-```hcl
+```terraform
 resource "aws_fsx_windows_file_system" "example" {
   active_directory_id = aws_directory_service_directory.example.id
   kms_key_id          = aws_kms_key.example.arn
@@ -32,7 +32,7 @@ resource "aws_fsx_windows_file_system" "example" {
 
 Additional information for using AWS Directory Service with Windows File Systems can be found in the [FSx Windows Guide](https://docs.aws.amazon.com/fsx/latest/WindowsGuide/self-managed-AD.html).
 
-```hcl
+```terraform
 resource "aws_fsx_windows_file_system" "example" {
   kms_key_id          = aws_kms_key.example.arn
   storage_capacity    = 300
@@ -112,7 +112,7 @@ $ terraform import aws_fsx_windows_file_system.example fs-543ab12b1ca672f33
 
 Certain resource arguments, like `security_group_ids` and the `self_managed_active_directory` configuation block `password`, do not have a FSx API method for reading the information after creation. If these arguments are set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
-```hcl
+```terraform
 resource "aws_fsx_windows_file_system" "example" {
   # ... other configuration ...
 

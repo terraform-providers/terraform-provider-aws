@@ -60,7 +60,7 @@ func (tf *Terraform) StateMv(ctx context.Context, source string, destination str
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) stateMvCmd(ctx context.Context, source string, destination string, opts ...StateMvCmdOption) (*exec.Cmd, error) {

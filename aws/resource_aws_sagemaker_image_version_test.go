@@ -26,6 +26,7 @@ func TestAccAWSSagemakerImageVersion_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageVersionDestroy,
 		Steps: []resource.TestStep{
@@ -63,6 +64,7 @@ func TestAccAWSSagemakerImageVersion_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageVersionDestroy,
 		Steps: []resource.TestStep{
@@ -91,6 +93,7 @@ func TestAccAWSSagemakerImageVersion_disappears_image(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageVersionDestroy,
 		Steps: []resource.TestStep{

@@ -14,7 +14,7 @@ Provides an Elastic File System (EFS) File System resource.
 
 ### EFS File System w/ tags
 
-```hcl
+```terraform
 resource "aws_efs_file_system" "foo" {
   creation_token = "my-product"
 
@@ -26,7 +26,7 @@ resource "aws_efs_file_system" "foo" {
 
 ### Using lifecycle policy
 
-```hcl
+```terraform
 resource "aws_efs_file_system" "foo_with_lifecyle_policy" {
   creation_token = "my-product"
 

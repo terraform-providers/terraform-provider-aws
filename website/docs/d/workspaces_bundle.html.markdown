@@ -14,7 +14,7 @@ Retrieve information about an AWS WorkSpaces bundle.
 
 ### By ID
 
-```hcl
+```terraform
 data "aws_workspaces_bundle" "example" {
   bundle_id = "wsb-b0s22j3d7"
 }
@@ -22,7 +22,7 @@ data "aws_workspaces_bundle" "example" {
 
 ### By Owner & Name
 
-```hcl
+```terraform
 data "aws_workspaces_bundle" "example" {
   owner = "AMAZON"
   name  = "Value with Windows 10 and Office 2016"

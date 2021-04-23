@@ -94,6 +94,7 @@ func TestAccAWSVPCPeeringConnection_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"auto_accept"},
 
@@ -138,6 +139,7 @@ func TestAccAWSVPCPeeringConnection_plan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshIgnore: []string{"auto_accept"},
 
 		Providers:    testAccProviders,
@@ -165,6 +167,7 @@ func TestAccAWSVPCPeeringConnection_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"auto_accept"},
 
@@ -230,6 +233,7 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"auto_accept"},
 
@@ -389,6 +393,7 @@ func TestAccAWSVPCPeeringConnection_failedState(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshIgnore: []string{"auto_accept"},
 
 		Providers:    testAccProviders,
@@ -528,6 +533,7 @@ func TestAccAWSVPCPeeringConnection_peerRegionAutoAccept(t *testing.T) {
 			testAccPreCheck(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshIgnore:   []string{"auto_accept"},
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSVpcPeeringConnectionDestroy,
@@ -551,6 +557,7 @@ func TestAccAWSVPCPeeringConnection_region(t *testing.T) {
 			testAccPreCheck(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"auto_accept"},
 
@@ -583,6 +590,7 @@ func TestAccAWSVPCPeeringConnection_accept(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"auto_accept"},
 
@@ -650,6 +658,7 @@ func TestAccAWSVPCPeeringConnection_optionsNoAutoAccept(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{

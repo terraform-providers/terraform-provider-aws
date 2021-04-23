@@ -12,7 +12,7 @@ Retrieves the summary of a WAFv2 Web ACL.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_wafv2_web_acl" "example" {
   name  = "some-web-acl"
   scope = "REGIONAL"

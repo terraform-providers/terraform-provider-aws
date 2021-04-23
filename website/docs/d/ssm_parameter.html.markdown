@@ -12,7 +12,7 @@ Provides an SSM Parameter data source.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ssm_parameter" "foo" {
   name = "foo"
 }

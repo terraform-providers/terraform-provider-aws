@@ -31,7 +31,7 @@ the separate resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route_table" "r" {
   vpc_id = aws_vpc.default.id
 

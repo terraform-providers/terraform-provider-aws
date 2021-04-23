@@ -12,7 +12,7 @@ Manages a DocumentDB Cluster Parameter Group
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_docdb_cluster_parameter_group" "example" {
   family      = "docdb3.6"
   name        = "example"

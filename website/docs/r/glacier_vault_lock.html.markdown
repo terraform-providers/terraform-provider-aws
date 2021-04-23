@@ -18,7 +18,7 @@ Manages a Glacier Vault Lock. You can refer to the [Glacier Developer Guide](htt
 
 ### Testing Glacier Vault Lock Policy
 
-```hcl
+```terraform
 resource "aws_glacier_vault" "example" {
   name = "example"
 }
@@ -46,7 +46,7 @@ resource "aws_glacier_vault_lock" "example" {
 
 ### Permanently Applying Glacier Vault Lock Policy
 
-```hcl
+```terraform
 resource "aws_glacier_vault_lock" "example" {
   complete_lock = true
   policy        = data.aws_iam_policy_document.example.json

@@ -15,6 +15,7 @@ var (
 	tf0_7_7  = version.Must(version.NewVersion("0.7.7"))
 	tf0_12_0 = version.Must(version.NewVersion("0.12.0"))
 	tf0_13_0 = version.Must(version.NewVersion("0.13.0"))
+	tf0_15_0 = version.Must(version.NewVersion("0.15.0"))
 )
 
 // Version returns structured output from the terraform version command including both the Terraform CLI version
@@ -44,7 +45,7 @@ func (tf *Terraform) version(ctx context.Context) (*version.Version, map[string]
 	var outBuf bytes.Buffer
 	versionCmd.Stdout = &outBuf
 
-	err := tf.runTerraformCmd(versionCmd)
+	err := tf.runTerraformCmd(ctx, versionCmd)
 	if err != nil {
 		return nil, nil, err
 	}

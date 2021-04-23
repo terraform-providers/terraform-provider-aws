@@ -17,6 +17,7 @@ func TestAccAWSDmsReplicationTask_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsReplicationTaskDestroy,
 		Steps: []resource.TestStep{

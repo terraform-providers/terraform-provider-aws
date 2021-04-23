@@ -12,7 +12,7 @@ Provides a Direct Connect private virtual interface resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_private_virtual_interface" "foo" {
   connection_id = "dxcon-zzzzzzzz"
 

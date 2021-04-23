@@ -3,25 +3,30 @@ package schema
 import (
 	"go/ast"
 	"go/types"
+	"time"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
 )
 
 const (
 	ResourceFieldCreate             = `Create`
+	ResourceFieldCreateContext      = `CreateContext`
 	ResourceFieldCustomizeDiff      = `CustomizeDiff`
 	ResourceFieldDelete             = `Delete`
+	ResourceFieldDeleteContext      = `DeleteContext`
 	ResourceFieldDeprecationMessage = `DeprecationMessage`
 	ResourceFieldDescription        = `Description`
 	ResourceFieldExists             = `Exists`
 	ResourceFieldImporter           = `Importer`
 	ResourceFieldMigrateState       = `MigrateState`
 	ResourceFieldRead               = `Read`
+	ResourceFieldReadContext        = `ReadContext`
 	ResourceFieldSchema             = `Schema`
 	ResourceFieldSchemaVersion      = `SchemaVersion`
 	ResourceFieldStateUpgraders     = `StateUpgraders`
 	ResourceFieldTimeouts           = `Timeouts`
 	ResourceFieldUpdate             = `Update`
+	ResourceFieldUpdateContext      = `UpdateContext`
 
 	TypeNameResource = `Resource`
 )
@@ -35,6 +40,7 @@ type resourceType struct {
 	Description  string
 	MigrateState func(int, interface{}, interface{}) (interface{}, error)
 	Schema       map[string]*schemaType
+	Timeouts     resourceTimeoutType
 }
 
 // ResourceInfo represents all gathered Resource data for easier access
@@ -60,6 +66,43 @@ func NewResourceInfo(cl *ast.CompositeLit, info *types.Info) *ResourceInfo {
 
 	if kvExpr := result.Fields[ResourceFieldMigrateState]; kvExpr != nil && astutils.ExprValue(kvExpr.Value) != nil {
 		result.Resource.MigrateState = func(int, interface{}, interface{}) (interface{}, error) { return nil, nil }
+	}
+
+	if kvExpr := result.Fields[ResourceFieldTimeouts]; kvExpr != nil && astutils.ExprValue(kvExpr.Value) != nil {
+		if timeoutUexpr, ok := kvExpr.Value.(*ast.UnaryExpr); ok {
+			if timeoutClit, ok := timeoutUexpr.X.(*ast.CompositeLit); ok {
+				for _, expr := range timeoutClit.Elts {
+					switch elt := expr.(type) {
+					case *ast.KeyValueExpr:
+						var key string
+
+						switch keyExpr := elt.Key.(type) {
+						case *ast.Ident:
+							key = keyExpr.Name
+						}
+
+						if key == "" {
+							continue
+						}
+
+						if astutils.ExprValue(elt.Value) != nil {
+							switch key {
+							case "Create":
+								result.Resource.Timeouts.Create = new(time.Duration)
+							case "Read":
+								result.Resource.Timeouts.Read = new(time.Duration)
+							case "Update":
+								result.Resource.Timeouts.Update = new(time.Duration)
+							case "Delete":
+								result.Resource.Timeouts.Delete = new(time.Duration)
+							case "Default":
+								result.Resource.Timeouts.Default = new(time.Duration)
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if kvExpr := result.Fields[ResourceFieldSchema]; kvExpr != nil && astutils.ExprValue(kvExpr.Value) != nil {

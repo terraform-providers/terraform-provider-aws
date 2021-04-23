@@ -18,7 +18,7 @@ an LB Target Group for use in other resources, given LB Target Group name.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "lb_tg_arn" {
   type    = string
   default = ""

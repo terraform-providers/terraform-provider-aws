@@ -301,12 +301,24 @@ func resourceAwsAcmCertificateRead(d *schema.ResourceData, meta interface{}) err
 	return resource.Retry(AcmCertificateDnsValidationAssignmentTimeout, func() *resource.RetryError {
 		resp, err := acmconn.DescribeCertificate(params)
 
+		if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, acm.ErrCodeResourceNotFoundException) {
+			log.Printf("[WARN] ACM Certificate (%s) not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
 		if err != nil {
-			if isAWSErr(err, acm.ErrCodeResourceNotFoundException, "") {
-				d.SetId("")
-				return nil
-			}
-			return resource.NonRetryableError(fmt.Errorf("Error describing certificate: %s", err))
+			return resource.NonRetryableError(fmt.Errorf("error reading ACM Certificate (%s): %w", d.Id(), err))
+		}
+
+		if resp == nil || resp.Certificate == nil {
+			return resource.NonRetryableError(fmt.Errorf("error reading ACM Certificate (%s): empty response", d.Id()))
+		}
+
+		if !d.IsNewResource() && aws.StringValue(resp.Certificate.Status) == acm.CertificateStatusValidationTimedOut {
+			log.Printf("[WARN] ACM Certificate (%s) validation timed out, removing from state", d.Id())
+			d.SetId("")
+			return nil
 		}
 
 		d.Set("domain_name", resp.Certificate.DomainName)

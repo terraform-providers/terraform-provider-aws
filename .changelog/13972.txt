@@ -1,0 +1,8 @@
+```release-note:enhancement
+resource/aws_ses_configuration_set: Add `arn` attribute.
+```
+
+```release-note:enhancement
+resource/aws_ses_configuration_set: Add plan time validation to `name`.
+```
+

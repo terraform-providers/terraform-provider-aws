@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	gversion "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -173,9 +174,10 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"replication_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateReplicationGroupID,
 				ConflictsWith: []string{
 					"az_mode",
 					"engine_version",
@@ -695,12 +697,14 @@ func deleteElasticacheCacheCluster(conn *elasticache.ElastiCache, cacheClusterID
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 		_, err := conn.DeleteCacheCluster(input)
 		if err != nil {
-			// This will not be fixed by retrying
-			if isAWSErr(err, elasticache.ErrCodeInvalidCacheClusterStateFault, "serving as primary") {
+			if tfawserr.ErrMessageContains(err, elasticache.ErrCodeInvalidCacheClusterStateFault, "serving as primary") {
+				return resource.NonRetryableError(err)
+			}
+			if tfawserr.ErrMessageContains(err, elasticache.ErrCodeInvalidCacheClusterStateFault, "only member of a replication group") {
 				return resource.NonRetryableError(err)
 			}
 			// The cluster may be just snapshotting, so we retry until it's ready for deletion
-			if isAWSErr(err, elasticache.ErrCodeInvalidCacheClusterStateFault, "") {
+			if tfawserr.ErrCodeEquals(err, elasticache.ErrCodeInvalidCacheClusterStateFault) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)

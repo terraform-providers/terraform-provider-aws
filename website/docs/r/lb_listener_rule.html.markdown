@@ -14,7 +14,7 @@ Provides a Load Balancer Listener Rule resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lb" "front_end" {
   # ...
 }

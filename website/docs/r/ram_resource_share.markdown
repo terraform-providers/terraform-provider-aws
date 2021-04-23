@@ -12,7 +12,7 @@ Manages a Resource Access Manager (RAM) Resource Share. To associate principals 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ram_resource_share" "example" {
   name                      = "example"
   allow_external_principals = true

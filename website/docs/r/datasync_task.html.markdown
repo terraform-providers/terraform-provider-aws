@@ -12,7 +12,7 @@ Manages an AWS DataSync Task, which represents a configuration for synchronizati
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_task" "example" {
   destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = "example"

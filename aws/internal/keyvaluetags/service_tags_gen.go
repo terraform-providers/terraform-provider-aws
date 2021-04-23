@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/codedeploy"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
+	"github.com/aws/aws-sdk-go/service/codestarconnections"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/datapipeline"
@@ -1026,6 +1027,33 @@ func (tags KeyValueTags) CodepipelineTags() []*codepipeline.Tag {
 
 // CodepipelineKeyValueTags creates KeyValueTags from codepipeline service tags.
 func CodepipelineKeyValueTags(tags []*codepipeline.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// CodestarconnectionsTags returns codestarconnections service tags.
+func (tags KeyValueTags) CodestarconnectionsTags() []*codestarconnections.Tag {
+	result := make([]*codestarconnections.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &codestarconnections.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// CodestarconnectionsKeyValueTags creates KeyValueTags from codestarconnections service tags.
+func CodestarconnectionsKeyValueTags(tags []*codestarconnections.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {

@@ -12,7 +12,7 @@ Provides information about an RDS cluster.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_rds_cluster" "clusterName" {
   cluster_identifier = "clusterName"
 }

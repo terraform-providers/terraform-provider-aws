@@ -12,7 +12,7 @@ Get Lake Formation principals designated as data lake administrators and lists o
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lakeformation_data_lake_settings" "example" {
   catalog_id = "14916253649"
 }

@@ -12,10 +12,37 @@ Manages a revision of an ECS task definition to be used in `aws_ecs_service`.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ecs_task_definition" "service" {
-  family                = "service"
-  container_definitions = file("task-definitions/service.json")
+  family = "service"
+  container_definitions = jsonencode([
+    {
+      name      = "first"
+      image     = "service-first"
+      cpu       = 10
+      memory    = 512
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+        }
+      ]
+    },
+    {
+      name      = "second"
+      image     = "service-second"
+      cpu       = 10
+      memory    = 256
+      essential = true
+      portMappings = [
+        {
+          containerPort = 443
+          hostPort      = 443
+        }
+      ]
+    }
+  ])
 
   volume {
     name      = "service-storage"
@@ -29,45 +56,9 @@ resource "aws_ecs_task_definition" "service" {
 }
 ```
 
-The referenced `task-definitions/service.json` file contains a valid JSON document,
-which is shown below, and its content is going to be passed directly into the
-`container_definitions` attribute as a string. Please note that this example
-contains only a small subset of the available parameters.
-
-```json
-[
-  {
-    "name": "first",
-    "image": "service-first",
-    "cpu": 10,
-    "memory": 512,
-    "essential": true,
-    "portMappings": [
-      {
-        "containerPort": 80,
-        "hostPort": 80
-      }
-    ]
-  },
-  {
-    "name": "second",
-    "image": "service-second",
-    "cpu": 10,
-    "memory": 256,
-    "essential": true,
-    "portMappings": [
-      {
-        "containerPort": 443,
-        "hostPort": 443
-      }
-    ]
-  }
-]
-```
-
 ### With AppMesh Proxy
 
-```hcl
+```terraform
 resource "aws_ecs_task_definition" "service" {
   family                = "service"
   container_definitions = file("task-definitions/service.json")
@@ -135,7 +126,7 @@ For more information, see [Specifying a Docker volume in your Task Definition De
 
 ##### Example Usage
 
-```hcl
+```terraform
 resource "aws_ecs_task_definition" "service" {
   family                = "service"
   container_definitions = file("task-definitions/service.json")
@@ -172,7 +163,7 @@ For more information, see [Specifying an EFS volume in your Task Definition Deve
 
 ##### Example Usage
 
-```hcl
+```terraform
 resource "aws_ecs_task_definition" "service" {
   family                = "service"
   container_definitions = file("task-definitions/service.json")
@@ -217,7 +208,7 @@ Guide](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-query-
 
 ##### Example Usage
 
-```hcl
+```terraform
 resource "aws_ecs_task_definition" "test" {
   family                = "test"
   container_definitions = <<TASK_DEFINITION

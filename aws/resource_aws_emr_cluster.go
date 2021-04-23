@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -1868,7 +1868,7 @@ func readHttpJson(url string, target interface{}) error {
 }
 
 func readLocalJson(localFile string, target interface{}) error {
-	file, e := ioutil.ReadFile(localFile)
+	file, e := os.ReadFile(localFile)
 	if e != nil {
 		log.Printf("[ERROR] %s", e)
 		return e

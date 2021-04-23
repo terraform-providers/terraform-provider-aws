@@ -18,7 +18,7 @@ meta-parameter to make multiple instances and join them all to the same Neptune 
 
 The following example will create a neptune cluster with two neptune instances(one writer and one reader).
 
-```hcl
+```terraform
 resource "aws_neptune_cluster" "default" {
   cluster_identifier                  = "neptune-cluster-demo"
   engine                              = "neptune"

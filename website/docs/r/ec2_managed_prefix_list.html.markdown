@@ -20,7 +20,7 @@ as 20 rules for the security group.
 
 Basic usage
 
-```hcl
+```terraform
 resource "aws_ec2_managed_prefix_list" "example" {
   name           = "All VPC CIDR-s"
   address_family = "IPv4"

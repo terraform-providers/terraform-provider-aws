@@ -10,8 +10,9 @@ description: |-
 
 Provides a AWS Transfer User resource. Managing SSH keys can be accomplished with the [`aws_transfer_ssh_key` resource](/docs/providers/aws/r/transfer_ssh_key.html).
 
+## Example Usage
 
-```hcl
+```terraform
 resource "aws_transfer_server" "foo" {
   identity_provider_type = "SERVICE_MANAGED"
 
@@ -64,6 +65,12 @@ resource "aws_transfer_user" "foo" {
   server_id = aws_transfer_server.foo.id
   user_name = "tftestuser"
   role      = aws_iam_role.foo.arn
+
+  home_directory_type = "LOGICAL"
+  home_directory_mappings {
+    entry  = "/test.pdf"
+    target = "/bucket3/test-path/tftestuser.pdf"
+  }
 }
 ```
 

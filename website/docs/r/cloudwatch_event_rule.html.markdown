@@ -14,7 +14,7 @@ Provides an EventBridge Rule resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_rule" "console" {
   name        = "capture-aws-sign-in"
   description = "Capture each AWS Console Sign In"

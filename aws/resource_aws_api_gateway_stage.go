@@ -169,7 +169,7 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprintf("ags-%s-%s", d.Get("rest_api_id").(string), d.Get("stage_name").(string)))
 
-	if waitForCache && *out.CacheClusterStatus != apigateway.CacheClusterStatusNotAvailable {
+	if waitForCache && out != nil && aws.StringValue(out.CacheClusterStatus) != apigateway.CacheClusterStatusNotAvailable {
 		stateConf := &resource.StateChangeConf{
 			Pending: []string{
 				apigateway.CacheClusterStatusCreateInProgress,
@@ -229,7 +229,7 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("client_certificate_id", stage.ClientCertificateId)
 
-	if stage.CacheClusterStatus != nil && *stage.CacheClusterStatus == apigateway.CacheClusterStatusDeleteInProgress {
+	if aws.StringValue(stage.CacheClusterStatus) == apigateway.CacheClusterStatusDeleteInProgress {
 		d.Set("cache_cluster_enabled", false)
 		d.Set("cache_cluster_size", nil)
 	} else {
@@ -379,7 +379,7 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Updating API Gateway Stage failed: %s", err)
 	}
 
-	if waitForCache && *out.CacheClusterStatus != apigateway.CacheClusterStatusNotAvailable {
+	if waitForCache && out != nil && aws.StringValue(out.CacheClusterStatus) != apigateway.CacheClusterStatusNotAvailable {
 		stateConf := &resource.StateChangeConf{
 			Pending: []string{
 				apigateway.CacheClusterStatusCreateInProgress,

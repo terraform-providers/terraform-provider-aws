@@ -17,7 +17,7 @@ Use the navigation to the left to read about the available resources.
 
 Terraform 0.13 and later:
 
-```hcl
+```terraform
 terraform {
   required_providers {
     aws = {
@@ -40,7 +40,7 @@ resource "aws_vpc" "example" {
 
 Terraform 0.12 and earlier:
 
-```hcl
+```terraform
 # Configure the AWS Provider
 provider "aws" {
   version = "~> 3.0"
@@ -76,7 +76,7 @@ in-line in the AWS provider block:
 
 Usage:
 
-```hcl
+```terraform
 provider "aws" {
   region     = "us-west-2"
   access_key = "my-access-key"
@@ -94,7 +94,7 @@ will override the use of `AWS_SHARED_CREDENTIALS_FILE` and `AWS_PROFILE`.
 The `AWS_DEFAULT_REGION` and `AWS_SESSION_TOKEN` environment variables
 are also used, if applicable:
 
-```hcl
+```terraform
 provider "aws" {}
 ```
 
@@ -113,7 +113,7 @@ You can use an [AWS credentials or configuration file](https://docs.aws.amazon.c
 
 Usage:
 
-```hcl
+```terraform
 provider "aws" {
   region                  = "us-west-2"
   shared_credentials_file = "/Users/tf_user/.aws/creds"
@@ -158,7 +158,7 @@ using the supplied credentials.
 
 Usage:
 
-```hcl
+```terraform
 provider "aws" {
   assume_role {
     role_arn     = "arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME"
@@ -215,6 +215,14 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
   AWS account IDs to prevent you from mistakenly using the wrong one (and
   potentially end up destroying a live environment). Conflicts with
   `allowed_account_ids`.
+  
+* `default_tags` - (Optional) **NOTE: This functionality is in public preview and there are no compatibility promises with future versions of the Terraform AWS Provider until a general availability announcement.**
+Map of tags to apply across all resources handled by this provider (see the [Terraform multiple provider instances documentation](/docs/configuration/providers.html#alias-multiple-provider-instances) for more information about additional provider configurations).
+This is designed to replace redundant per-resource `tags` configurations. At this time, tags defined within this configuration block can be overridden with new values, but not excluded from specific resources. To override tag values defined within this configuration block, use the `tags` argument within a resource to configure new tag values for matching keys.
+See the [`default_tags`](#default_tags-configuration-block) Configuration Block section below for example usage and available arguments.
+This functionality is only supported in the following resources:
+    - `aws_subnet`
+    - `aws_vpc`
 
 * `ignore_tags` - (Optional) Configuration block with resource tag settings to ignore across all resources handled by this provider (except any individual service tag resources such as `aws_ec2_tag`) for situations where external systems are managing certain resource tags. Arguments to the configuration block are described below in the `ignore_tags` Configuration Block section. See the [Terraform multiple provider instances documentation](https://www.terraform.io/docs/configuration/providers.html#alias-multiple-provider-configurations) for more information about additional provider configurations.
 
@@ -241,13 +249,13 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_api_gateway_deployment` resource](/docs/providers/aws/r/api_gateway_deployment.html)
     - [`aws_api_gateway_rest_api` resource](/docs/providers/aws/r/api_gateway_rest_api.html)
     - [`aws_api_gateway_stage` resource](/docs/providers/aws/r/api_gateway_stage.html)
+    - [`aws_apigatewayv2_api` data source](/docs/providers/aws/d/apigatewayv2_api.html)
     - [`aws_apigatewayv2_api` resource](/docs/providers/aws/r/apigatewayv2_api.html)
     - [`aws_apigatewayv2_stage` resource](/docs/providers/aws/r/apigatewayv2_stage.html)
     - [`aws_athena_workgroup` resource](/docs/providers/aws/r/athena_workgroup.html)
     - [`aws_budgets_budget` resource](/docs/providers/aws/r/budgets_budget.html)
     - [`aws_cognito_identity_pool` resource](/docs/providers/aws/r/cognito_identity_pool.html)
     - [`aws_cognito_user_pools` data source](/docs/providers/aws/d/cognito_user_pools.html)
-    - [`aws_default_network_acl` resource](/docs/providers/aws/r/default_network_acl.html)
     - [`aws_default_vpc_dhcp_options`](/docs/providers/aws/r/default_vpc_dhcp_options.html)
     - [`aws_dms_event_subscription` resource](/docs/providers/aws/r/dms_event_subscription.html)
     - [`aws_dms_replication_subnet_group` resource](/docs/providers/aws/r/dms_replication_subnet_group.html)
@@ -263,17 +271,18 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_dx_public_virtual_interface` resource](/docs/providers/aws/r/dx_public_virtual_interface.html)
     - [`aws_dx_transit_virtual_interface` resource](/docs/providers/aws/r/dx_transit_virtual_interface.html)
     - [`aws_ebs_volume` data source](/docs/providers/aws/d/ebs_volume.html)
-    - [`aws_ec2_capacity_reservation` resource](/docs/providers/aws/r/ec2_capacity_reservation.html)
     - [`aws_ec2_client_vpn_endpoint` resource](/docs/providers/aws/r/ec2_client_vpn_endpoint.html)
+    - [`aws_ec2_traffic_mirror_filter` resource](/docs/providers/aws/r/ec2_traffic_mirror_filter.html)
+    - [`aws_ec2_traffic_mirror_filter_rule` resource](/docs/providers/aws/r/ec2_traffic_mirror_filter_rule.html)
     - [`aws_ec2_traffic_mirror_session` resource](/docs/providers/aws/r/ec2_traffic_mirror_session.html)
     - [`aws_ec2_traffic_mirror_target` resource](/docs/providers/aws/r/ec2_traffic_mirror_target.html)
-    - [`aws_ec2_transit_gateway_route_table` data source](/docs/providers/aws/d/ec2_transit_gateway_route_table.html)  
-    - [`aws_ec2_transit_gateway_route_table` resource](/docs/providers/aws/r/ec2_transit_gateway_route_table.html)  
+    - [`aws_ec2_transit_gateway_route_table` data source](/docs/providers/aws/d/ec2_transit_gateway_route_table.html)
+    - [`aws_ec2_transit_gateway_route_table` resource](/docs/providers/aws/r/ec2_transit_gateway_route_table.html)
     - [`aws_ecs_capacity_provider` resource (import)](/docs/providers/aws/r/ecs_capacity_provider.html)
     - [`aws_ecs_cluster` resource (import)](/docs/providers/aws/r/ecs_cluster.html)
     - [`aws_ecs_service` resource (import)](/docs/providers/aws/r/ecs_service.html)
     - [`aws_customer_gateway` data source](/docs/providers/aws/d/customer_gateway.html)
-    - [`aws_customer_gateway` resource](/docs/providers/aws/r/customer_gateway.html)  
+    - [`aws_customer_gateway` resource](/docs/providers/aws/r/customer_gateway.html)
     - [`aws_efs_access_point` data source](/docs/providers/aws/d/efs_access_point.html)
     - [`aws_efs_access_point` resource](/docs/providers/aws/r/efs_access_point.html)
     - [`aws_efs_file_system` data source](/docs/providers/aws/d/efs_file_system.html)
@@ -299,12 +308,9 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_guardduty_threatintelset` resource](/docs/providers/aws/r/guardduty_threatintelset.html)
     - [`aws_instance` data source](/docs/providers/aws/d/instance.html)
     - [`aws_instance` resource](/docs/providers/aws/r/instance.html)
-    - [`aws_internet_gateway` data source](/docs/providers/aws/d/internet_gateway.html)
-    - [`aws_internet_gateway` resource](/docs/providers/aws/r/internet_gateway.html)
     - [`aws_key_pair` resource](/docs/providers/aws/r/key_pair.html)
     - [`aws_launch_template` data source](/docs/providers/aws/d/launch_template.html)
     - [`aws_launch_template` resource](/docs/providers/aws/r/launch_template.html)
-    - [`aws_network_acl` resource](/docs/providers/aws/r/network_acl.html)
     - [`aws_placement_group` resource](/docs/providers/aws/r/placement_group.html)
     - [`aws_redshift_cluster` resource](/docs/providers/aws/r/redshift_cluster.html)
     - [`aws_redshift_event_subscription` resource](/docs/providers/aws/r/redshift_event_subscription.html)
@@ -313,22 +319,24 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_redshift_snapshot_schedule` resource](/docs/providers/aws/r/redshift_snapshot_schedule.html)
     - [`aws_redshift_subnet_group` resource](/docs/providers/aws/r/redshift_subnet_group.html)
     - [`aws_s3_account_public_access_block` resource](/docs/providers/aws/r/s3_account_public_access_block.html)
-    - [`aws_ses_domain_identity` resource](/docs/providers/aws/r/ses_domain_identity.html)
+    - [`aws_ses_active_receipt_rule_set` resource](/docs/providers/aws/r/ses_active_receipt_rule_set.html)
+    - [`aws_ses_configuration_set` resource](/docs/providers/aws/r/ses_configuration_set.html)
     - [`aws_ses_domain_identity_verification` resource](/docs/providers/aws/r/ses_domain_identity_verification.html)
+    - [`aws_ses_domain_identity` resource](/docs/providers/aws/r/ses_domain_identity.html)
     - [`aws_ses_email_identity` resource](/docs/providers/aws/r/ses_email_identity.html)
+    - [`aws_ses_event_destination` resource](/docs/providers/aws/r/ses_event_destination.html)
     - [`aws_ses_receipt_filter` resource](/docs/providers/aws/r/ses_receipt_filter.html)
+    - [`aws_ses_receipt_rule` resource](/docs/providers/aws/r/ses_receipt_rule.html)
+    - [`aws_ses_template` resource](/docs/providers/aws/r/ses_template.html)
     - [`aws_ssm_document` data source](/docs/providers/aws/d/ssm_document.html)
     - [`aws_ssm_document` resource](/docs/providers/aws/r/ssm_document.html)
     - [`aws_ssm_parameter` data source](/docs/providers/aws/d/ssm_parameter.html)
     - [`aws_ssm_parameter` resource](/docs/providers/aws/r/ssm_parameter.html)
-    - [`aws_vpc` data source](/docs/providers/aws/d/vpc.html)
-    - [`aws_vpc` resource](/docs/providers/aws/r/vpc.html)
-    - [`aws_vpc_dhcp_options` data source](/docs/providers/aws/d/vpc_dhcp_options.html)
-    - [`aws_vpc_dhcp_options` resource](/docs/providers/aws/r/vpc_dhcp_options.html)
-    - [`aws_vpc_endpoint` data source](/docs/providers/aws/d/vpc_endpoint.html)
-    - [`aws_vpc_endpoint` resource](/docs/providers/aws/r/vpc_endpoint.html)
+    - [`aws_synthetics_canary` resource](/docs/providers/aws/r/synthetics_canary.html)
     - [`aws_vpc_endpoint_service` data source](/docs/providers/aws/d/vpc_endpoint_service.html)
     - [`aws_vpc_endpoint_service` resource](/docs/providers/aws/r/vpc_endpoint_service.html)
+    - [`aws_vpc` data source](/docs/providers/aws/d/vpc.html)
+    - [`aws_vpc` resource](/docs/providers/aws/r/vpc.html)
     - [`aws_vpn_connection` resource](/docs/providers/aws/r/vpn_connection.html)
     - [`aws_vpn_gateway` data source](/docs/providers/aws/d/vpn_gateway.html)
     - [`aws_vpn_gateway` resource](/docs/providers/aws/r/vpn_gateway.html)
@@ -365,7 +373,7 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
 
 The `assume_role` configuration block supports the following optional arguments:
 
-* `duration_seconds` - (Optional) Number of seconds to restrict the assume role session duration.
+* `duration_seconds` - (Optional) Number of seconds to restrict the assume role session duration. You can provide a value from 900 seconds (15 minutes) up to the maximum session duration setting for the role.
 * `external_id` - (Optional) External identifier to use when assuming the role.
 * `policy` - (Optional) IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.
 * `policy_arns` - (Optional) Set of Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.
@@ -374,11 +382,144 @@ The `assume_role` configuration block supports the following optional arguments:
 * `tags` - (Optional) Map of assume role session tags.
 * `transitive_tag_keys` - (Optional) Set of assume role session tag keys to pass to any subsequent sessions.
 
+### default_tags Configuration Block
+
+Example: Resource with provider default tags
+
+```terraform
+provider "aws" {
+  default_tags {
+    tags = {
+      Environment = "Test"
+      Name        = "Provider Tag"
+    }
+  }
+}
+
+resource "aws_vpc" "example" {
+  # ..other configuration...
+}
+
+output "vpc_resource_level_tags" {
+  value = aws_vpc.example.tags
+}
+
+output "vpc_all_tags" {
+  value = aws_vpc.example.tags_all
+}
+```
+
+Outputs:
+
+```console
+$ terraform apply
+...
+Outputs:
+
+vpc_all_tags = tomap({
+  "Environment" = "Test"
+  "Name" = "Provider Tag"
+})
+```
+
+Example: Resource with tags and provider default tags
+
+```terraform
+provider "aws" {
+  default_tags {
+    tags = {
+      Environment = "Test"
+      Name        = "Provider Tag"
+    }
+  }
+}
+
+resource "aws_vpc" "example" {
+  # ..other configuration...
+  tags = {
+    Owner = "example"
+  }
+}
+
+output "vpc_resource_level_tags" {
+  value = aws_vpc.example.tags
+}
+
+output "vpc_all_tags" {
+  value = aws_vpc.example.tags_all
+}
+```
+
+Outputs:
+
+```console
+$ terraform apply
+...
+Outputs:
+
+vpc_all_tags = tomap({
+  "Environment" = "Test"
+  "Name" = "Provider Tag"
+  "Owner" = "example"
+})
+vpc_resource_level_tags = tomap({
+  "Owner" = "example"
+})
+```
+
+Example: Resource overriding provider default tags
+
+```terraform
+provider "aws" {
+  default_tags {
+    tags = {
+      Environment = "Test"
+      Name        = "Provider Tag"
+    }
+  }
+}
+
+resource "aws_vpc" "example" {
+  # ..other configuration...
+  tags = {
+    Environment = "Production"
+  }
+}
+
+output "vpc_resource_level_tags" {
+  value = aws_vpc.example.tags
+}
+
+output "vpc_all_tags" {
+  value = aws_vpc.example.tags_all
+}
+```
+
+Outputs:
+
+```console
+$ terraform apply
+...
+Outputs:
+
+vpc_all_tags = tomap({
+  "Environment" = "Production"
+  "Name" = "Provider Tag"
+})
+vpc_resource_level_tags = tomap({
+  "Environment" = "Production"
+})
+```
+
+The `default_tags` configuration block supports the following argument:
+
+* `tags` - (Optional) **NOTE: This functionality is in public preview and only supported by the [`aws_subnet`](/docs/providers/aws/r/subnet.html) and [`aws_vpc`](/docs/providers/aws/r/vpc.html) resources.** Key-value map of tags to apply to all resources.
+
 ### ignore_tags Configuration Block
 
 Example:
 
-```hcl
+```terraform
 provider "aws" {
   ignore_tags {
     keys = ["TagKey1"]

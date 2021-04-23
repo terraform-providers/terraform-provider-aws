@@ -12,7 +12,7 @@ Provides a Connection of Direct Connect.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_connection" "hoge" {
   name      = "tf-dx-connection"
   bandwidth = "1Gbps"

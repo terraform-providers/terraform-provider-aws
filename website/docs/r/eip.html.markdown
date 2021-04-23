@@ -18,7 +18,7 @@ Provides an Elastic IP resource.
 
 Single EIP associated with an instance:
 
-```hcl
+```terraform
 resource "aws_eip" "lb" {
   instance = aws_instance.web.id
   vpc      = true
@@ -27,7 +27,7 @@ resource "aws_eip" "lb" {
 
 Multiple EIPs associated with a single network interface:
 
-```hcl
+```terraform
 resource "aws_network_interface" "multi-ip" {
   subnet_id   = aws_subnet.main.id
   private_ips = ["10.0.0.10", "10.0.0.11"]
@@ -48,7 +48,7 @@ resource "aws_eip" "two" {
 
 Attaching an EIP to an Instance with a pre-assigned private ip (VPC Only):
 
-```hcl
+```terraform
 resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -86,7 +86,7 @@ resource "aws_eip" "bar" {
 
 Allocating EIP from the BYOIP pool:
 
-```hcl
+```terraform
 resource "aws_eip" "byoip-ip" {
   vpc              = true
   public_ipv4_pool = "ipv4pool-ec2-012345"

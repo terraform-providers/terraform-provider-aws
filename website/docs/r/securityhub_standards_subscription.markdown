@@ -12,7 +12,7 @@ Subscribes to a Security Hub standard.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_standards_subscription" "cis" {

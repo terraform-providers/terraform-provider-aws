@@ -12,7 +12,7 @@ Provides details about a specific Amazon Lex Intent.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lex_intent" "order_flowers" {
   name    = "OrderFlowers"
   version = "$LATEST"

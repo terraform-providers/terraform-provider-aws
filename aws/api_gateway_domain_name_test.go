@@ -37,16 +37,16 @@ var testAccProviderApigatewayEdgeDomainNameConfigure sync.Once
 func testAccPreCheckApigatewayEdgeDomainName(t *testing.T) {
 	testAccPartitionHasServicePreCheck(apigateway.EndpointsID, t)
 
+	region := testAccGetApigatewayEdgeDomainNameRegion()
+
+	if region == "" {
+		t.Skip("API Gateway Domain Name not available in this AWS Partition")
+	}
+
 	// Since we are outside the scope of the Terraform configuration we must
 	// call Configure() to properly initialize the provider configuration.
 	testAccProviderApigatewayEdgeDomainNameConfigure.Do(func() {
 		testAccProviderApigatewayEdgeDomainName = Provider()
-
-		region := testAccGetApigatewayEdgeDomainNameRegion()
-
-		if region == "" {
-			t.Skip("API Gateway Domain Name not available in this AWS Partition")
-		}
 
 		config := map[string]interface{}{
 			"region": region,

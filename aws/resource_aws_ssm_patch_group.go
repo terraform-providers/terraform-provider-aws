@@ -3,10 +3,13 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ssm/finder"
 )
 
 func resourceAwsSsmPatchGroup() *schema.Resource {
@@ -14,6 +17,15 @@ func resourceAwsSsmPatchGroup() *schema.Resource {
 		Create: resourceAwsSsmPatchGroupCreate,
 		Read:   resourceAwsSsmPatchGroupRead,
 		Delete: resourceAwsSsmPatchGroupDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceAwsSsmPatchGroupV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceAwsSsmPatchGroupStateUpgradeV0,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"baseline_id": {
@@ -31,66 +43,93 @@ func resourceAwsSsmPatchGroup() *schema.Resource {
 }
 
 func resourceAwsSsmPatchGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
+
+	baselineId := d.Get("baseline_id").(string)
+	patchGroup := d.Get("patch_group").(string)
 
 	params := &ssm.RegisterPatchBaselineForPatchGroupInput{
-		BaselineId: aws.String(d.Get("baseline_id").(string)),
-		PatchGroup: aws.String(d.Get("patch_group").(string)),
+		BaselineId: aws.String(baselineId),
+		PatchGroup: aws.String(patchGroup),
 	}
 
-	resp, err := ssmconn.RegisterPatchBaselineForPatchGroup(params)
+	resp, err := conn.RegisterPatchBaselineForPatchGroup(params)
 	if err != nil {
-		return err
+		return fmt.Errorf("error registering SSM Patch Baseline (%s) for Patch Group (%s): %w", baselineId, patchGroup, err)
 	}
 
-	d.SetId(aws.StringValue(resp.PatchGroup))
+	d.SetId(fmt.Sprintf("%s,%s", aws.StringValue(resp.PatchGroup), aws.StringValue(resp.BaselineId)))
+
 	return resourceAwsSsmPatchGroupRead(d, meta)
 }
 
 func resourceAwsSsmPatchGroupRead(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
 
-	params := &ssm.DescribePatchGroupsInput{}
-
-	resp, err := ssmconn.DescribePatchGroups(params)
+	patchGroup, baselineId, err := parseSsmPatchGroupId(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("error parsing SSM Patch Group ID (%s): %w", d.Id(), err)
 	}
 
-	found := false
-	for _, t := range resp.Mappings {
-		if *t.PatchGroup == d.Id() {
-			found = true
+	group, err := finder.PatchGroup(conn, patchGroup, baselineId)
 
-			d.Set("patch_group", t.PatchGroup)
-			d.Set("baseline_id", t.BaselineIdentity.BaselineId)
+	if err != nil {
+		return fmt.Errorf("error reading SSM Patch Group (%s): %w", d.Id(), err)
+	}
+
+	if group == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading SSM Patch Group (%s): not found after creation", d.Id())
 		}
-	}
 
-	if !found {
-		log.Printf("[INFO] Patch Group not found. Removing from state")
+		log.Printf("[WARN] SSM Patch Group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
+
+	var groupBaselineId string
+	if group.BaselineIdentity != nil {
+		groupBaselineId = aws.StringValue(group.BaselineIdentity.BaselineId)
+	}
+
+	d.Set("baseline_id", groupBaselineId)
+	d.Set("patch_group", aws.StringValue(group.PatchGroup))
 
 	return nil
 
 }
 
 func resourceAwsSsmPatchGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
 
-	log.Printf("[INFO] Deleting SSM Patch Group: %s", d.Id())
-
-	params := &ssm.DeregisterPatchBaselineForPatchGroupInput{
-		BaselineId: aws.String(d.Get("baseline_id").(string)),
-		PatchGroup: aws.String(d.Get("patch_group").(string)),
+	patchGroup, baselineId, err := parseSsmPatchGroupId(d.Id())
+	if err != nil {
+		return fmt.Errorf("error parsing SSM Patch Group ID (%s): %w", d.Id(), err)
 	}
 
-	_, err := ssmconn.DeregisterPatchBaselineForPatchGroup(params)
+	params := &ssm.DeregisterPatchBaselineForPatchGroupInput{
+		BaselineId: aws.String(baselineId),
+		PatchGroup: aws.String(patchGroup),
+	}
+
+	_, err = conn.DeregisterPatchBaselineForPatchGroup(params)
+
 	if err != nil {
-		return fmt.Errorf("error deregistering SSM Patch Group (%s): %s", d.Id(), err)
+		if tfawserr.ErrCodeEquals(err, ssm.ErrCodeDoesNotExistException) {
+			return nil
+		}
+		return fmt.Errorf("error deregistering SSM Patch Baseline (%s) for Patch Group (%s): %w", baselineId, patchGroup, err)
 	}
 
 	return nil
+}
+
+func parseSsmPatchGroupId(id string) (string, string, error) {
+	parts := strings.SplitN(id, ",", 2)
+
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", fmt.Errorf("please make sure ID is in format PATCH_GROUP,BASELINE_ID")
+	}
+
+	return parts[0], parts[1], nil
 }

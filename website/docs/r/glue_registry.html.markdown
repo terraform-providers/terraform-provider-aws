@@ -12,7 +12,7 @@ Provides a Glue Registry resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_registry" "example" {
   registry_name = "example"
 }

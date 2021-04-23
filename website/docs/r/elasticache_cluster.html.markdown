@@ -32,7 +32,7 @@ for more information.
 
 ### Memcached Cluster
 
-```hcl
+```terraform
 resource "aws_elasticache_cluster" "example" {
   cluster_id           = "cluster-example"
   engine               = "memcached"
@@ -45,7 +45,7 @@ resource "aws_elasticache_cluster" "example" {
 
 ### Redis Instance
 
-```hcl
+```terraform
 resource "aws_elasticache_cluster" "example" {
   cluster_id           = "cluster-example"
   engine               = "redis"
@@ -61,7 +61,7 @@ resource "aws_elasticache_cluster" "example" {
 
 These inherit their settings from the replication group.
 
-```hcl
+```terraform
 resource "aws_elasticache_cluster" "replica" {
   cluster_id           = "cluster-example"
   replication_group_id = aws_elasticache_replication_group.example.id
@@ -87,9 +87,7 @@ in the AWS Documentation center for supported versions
 on the cache cluster is performed. The format is `ddd:hh24:mi-ddd:hh24:mi` (24H Clock UTC).
 The minimum maintenance window is a 60 minute period. Example: `sun:05:00-sun:09:00`
 
-* `node_type` – (Required unless `replication_group_id` is provided) The compute and memory capacity of the nodes. See
-[Available Cache Node Types](https://aws.amazon.com/elasticache/pricing/#Available_node_types) for
-supported node types. For Memcached, changing this value will re-create the resource.
+* `node_type` – (Required unless `replication_group_id` is provided) The instance class used. See AWS documentation for information on [supported node types for Redis](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheNodes.SupportedTypes.html) and [guidance on selecting node types for Redis](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/nodes-select-size.html). See AWS documentation for information on [supported node types for Memcached](https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/CacheNodes.SupportedTypes.html) and [guidance on selecting node types for Memcached](https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/nodes-select-size.html). For Memcached, changing this value will re-create the resource.
 
 * `num_cache_nodes` – (Required unless `replication_group_id` is provided) The initial number of cache nodes that the
 cache cluster will have. For Redis, this value must be 1. For Memcached, this

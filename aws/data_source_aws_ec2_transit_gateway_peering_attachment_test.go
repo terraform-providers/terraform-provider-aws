@@ -3,6 +3,7 @@ package aws
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -19,6 +20,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_sameAccount(t
 			testAccPreCheckAWSEc2TransitGateway(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -35,6 +37,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_sameAccount(t
 		},
 	})
 }
+
 func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_differentAccount(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -48,6 +51,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_differentAcco
 			testAccMultipleRegionPreCheck(t, 2)
 			testAccAlternateAccountPreCheck(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -63,6 +67,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Filter_differentAcco
 		},
 	})
 }
+
 func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_sameAccount(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -74,6 +79,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_sameAccount(t *te
 			testAccPreCheckAWSEc2TransitGateway(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -90,6 +96,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_sameAccount(t *te
 		},
 	})
 }
+
 func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_differentAccount(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -103,6 +110,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_differentAccount(
 			testAccMultipleRegionPreCheck(t, 2)
 			testAccAlternateAccountPreCheck(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -118,6 +126,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_ID_differentAccount(
 		},
 	})
 }
+
 func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Tags(t *testing.T) {
 	var providers []*schema.Provider
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -129,6 +138,7 @@ func TestAccAWSEc2TransitGatewayPeeringAttachmentDataSource_Tags(t *testing.T) {
 			testAccPreCheckAWSEc2TransitGateway(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{

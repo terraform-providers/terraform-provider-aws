@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -14,8 +15,9 @@ func TestAccAWSDataSourceIAMPolicyDocument_basic(t *testing.T) {
 	// acceptance test, but just instantiating the AWS provider requires
 	// some AWS API calls, and so this needs valid AWS credentials to work.
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentConfig,
@@ -34,8 +36,9 @@ func TestAccAWSDataSourceIAMPolicyDocument_source(t *testing.T) {
 	// acceptance test, but just instantiating the AWS provider requires
 	// some AWS API calls, and so this needs valid AWS credentials to work.
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentSourceConfig,
@@ -57,10 +60,29 @@ func TestAccAWSDataSourceIAMPolicyDocument_source(t *testing.T) {
 	})
 }
 
+func TestAccAWSDataSourceIAMPolicyDocument_sourceList(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIAMPolicyDocumentSourceListConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.aws_iam_policy_document.test_source_list", "json",
+						testAccAWSIAMPolicyDocumentSourceListExpectedJSON,
+					),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDataSourceIAMPolicyDocument_sourceConflicting(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentSourceConflictingConfig,
@@ -74,10 +96,25 @@ func TestAccAWSDataSourceIAMPolicyDocument_sourceConflicting(t *testing.T) {
 	})
 }
 
+func TestAccAWSDataSourceIAMPolicyDocument_sourceListConflicting(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSIAMPolicyDocumentSourceListConflictingConfig,
+				ExpectError: regexp.MustCompile(`duplicate Sid (.*?)`),
+			},
+		},
+	})
+}
+
 func TestAccAWSDataSourceIAMPolicyDocument_override(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentOverrideConfig,
@@ -91,10 +128,29 @@ func TestAccAWSDataSourceIAMPolicyDocument_override(t *testing.T) {
 	})
 }
 
+func TestAccAWSDataSourceIAMPolicyDocument_overrideList(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIAMPolicyDocumentOverrideListConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.aws_iam_policy_document.test_override_list", "json",
+						testAccAWSIAMPolicyDocumentOverrideListExpectedJSON,
+					),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDataSourceIAMPolicyDocument_noStatementMerge(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentNoStatementMergeConfig,
@@ -110,8 +166,9 @@ func TestAccAWSDataSourceIAMPolicyDocument_noStatementMerge(t *testing.T) {
 
 func TestAccAWSDataSourceIAMPolicyDocument_noStatementOverride(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentNoStatementOverrideConfig,
@@ -127,12 +184,13 @@ func TestAccAWSDataSourceIAMPolicyDocument_noStatementOverride(t *testing.T) {
 
 func TestAccAWSDataSourceIAMPolicyDocument_duplicateSid(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSIAMPolicyDocumentDuplicateSidConfig,
-				ExpectError: regexp.MustCompile(`Found duplicate sid`),
+				ExpectError: regexp.MustCompile(`duplicate Sid`),
 			},
 			{
 				Config: testAccAWSIAMPolicyDocumentDuplicateBlankSidConfig,
@@ -147,12 +205,13 @@ func TestAccAWSDataSourceIAMPolicyDocument_duplicateSid(t *testing.T) {
 }
 
 // Reference: https://github.com/hashicorp/terraform-provider-aws/issues/10777
-func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_StringAndSlice(t *testing.T) {
+func TestAccAWSDataSourceIAMPolicyDocument_statementPrincipalIdentifiers_stringAndSlice(t *testing.T) {
 	dataSourceName := "data.aws_iam_policy_document.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersStringAndSlice,
@@ -165,12 +224,13 @@ func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_Strin
 }
 
 // Reference: https://github.com/hashicorp/terraform-provider-aws/issues/10777
-func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_MultiplePrincipals(t *testing.T) {
+func TestAccAWSDataSourceIAMPolicyDocument_statementPrincipalIdentifiers_multiplePrincipals(t *testing.T) {
 	dataSourceName := "data.aws_iam_policy_document.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionPreCheck(endpoints.AwsPartitionID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionPreCheck(endpoints.AwsPartitionID, t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals,
@@ -182,12 +242,13 @@ func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_Multi
 	})
 }
 
-func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_MultiplePrincipalsGov(t *testing.T) {
+func TestAccAWSDataSourceIAMPolicyDocument_statementPrincipalIdentifiers_multiplePrincipalsGov(t *testing.T) {
 	dataSourceName := "data.aws_iam_policy_document.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionPreCheck(endpoints.AwsUsGovPartitionID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionPreCheck(endpoints.AwsUsGovPartitionID, t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals,
@@ -199,10 +260,11 @@ func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_Multi
 	})
 }
 
-func TestAccAWSDataSourceIAMPolicyDocument_Version_20081017(t *testing.T) {
+func TestAccAWSDataSourceIAMPolicyDocument_version20081017(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, iam.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSIAMPolicyDocumentDataSourceConfigVersion20081017ConversionCondition,
@@ -265,6 +327,7 @@ data "aws_iam_policy_document" "test" {
       variable = "s3:prefix"
       values = [
         "home/",
+        "",
         "home/&{aws:username}/",
       ]
     }
@@ -346,8 +409,9 @@ func testAccAWSIAMPolicyDocumentExpectedJSON() string {
       "Condition": {
         "StringLike": {
           "s3:prefix": [
-            "home/${aws:username}/",
-            "home/"
+            "home/",
+            "",
+            "home/${aws:username}/"
           ]
         }
       }
@@ -513,8 +577,8 @@ func testAccAWSIAMPolicyDocumentSourceExpectedJSON() string {
       "Condition": {
         "StringLike": {
           "s3:prefix": [
-            "home/${aws:username}/",
-            "home/"
+            "home/",
+            "home/${aws:username}/"
           ]
         }
       }
@@ -563,6 +627,73 @@ func testAccAWSIAMPolicyDocumentSourceExpectedJSON() string {
   ]
 }`, testAccGetPartition())
 }
+
+var testAccAWSIAMPolicyDocumentSourceListConfig = `
+data "aws_iam_policy_document" "policy_a" {
+  statement {
+    sid     = ""
+    effect  = "Allow"
+    actions = ["foo:ActionOne"]
+  }
+
+  statement {
+    sid     = "validSidOne"
+    effect  = "Allow"
+    actions = ["bar:ActionOne"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_b" {
+  statement {
+    sid     = "validSidTwo"
+    effect  = "Deny"
+    actions = ["foo:ActionTwo"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_c" {
+  statement {
+    sid     = ""
+    effect  = "Allow"
+    actions = ["bar:ActionTwo"]
+  }
+}
+
+data "aws_iam_policy_document" "test_source_list" {
+  version = "2012-10-17"
+
+  source_policy_documents = [
+    data.aws_iam_policy_document.policy_a.json,
+    data.aws_iam_policy_document.policy_b.json,
+    data.aws_iam_policy_document.policy_c.json
+  ]
+}
+`
+var testAccAWSIAMPolicyDocumentSourceListExpectedJSON = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": "foo:ActionOne"
+    },
+    {
+      "Sid": "validSidOne",
+      "Effect": "Allow",
+      "Action": "bar:ActionOne"
+    },
+    {
+      "Sid": "validSidTwo",
+      "Effect": "Deny",
+      "Action": "foo:ActionTwo"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": "bar:ActionTwo"
+    }
+  ]
+}`
 
 var testAccAWSIAMPolicyDocumentSourceBlankConfig = `
 data "aws_iam_policy_document" "test_source_blank" {
@@ -620,6 +751,48 @@ var testAccAWSIAMPolicyDocumentSourceConflictingExpectedJSON = `{
   ]
 }`
 
+var testAccAWSIAMPolicyDocumentSourceListConflictingConfig = `
+data "aws_iam_policy_document" "policy_a" {
+  statement {
+    sid     = ""
+    effect  = "Allow"
+    actions = ["foo:ActionOne"]
+  }
+
+  statement {
+    sid     = "conflictSid"
+    effect  = "Allow"
+    actions = ["bar:ActionOne"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_b" {
+  statement {
+    sid     = "validSid"
+    effect  = "Deny"
+    actions = ["foo:ActionTwo"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_c" {
+  statement {
+    sid     = "conflictSid"
+    effect  = "Allow"
+    actions = ["bar:ActionTwo"]
+  }
+}
+
+data "aws_iam_policy_document" "test_source_list_conflicting" {
+  version = "2012-10-17"
+
+  source_policy_documents = [
+    data.aws_iam_policy_document.policy_a.json,
+    data.aws_iam_policy_document.policy_b.json,
+    data.aws_iam_policy_document.policy_c.json
+  ]
+}
+`
+
 var testAccAWSIAMPolicyDocumentOverrideConfig = `
 data "aws_partition" "current" {}
 
@@ -667,6 +840,69 @@ var testAccAWSIAMPolicyDocumentOverrideExpectedJSON = `{
       "Effect": "Allow",
       "Action": "s3:*",
       "Resource": "*"
+    }
+  ]
+}`
+
+var testAccAWSIAMPolicyDocumentOverrideListConfig = `
+data "aws_iam_policy_document" "policy_a" {
+  statement {
+    sid     = ""
+    effect  = "Allow"
+    actions = ["foo:ActionOne"]
+  }
+
+  statement {
+    sid     = "overrideSid"
+    effect  = "Allow"
+    actions = ["bar:ActionOne"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_b" {
+  statement {
+    sid     = "validSid"
+    effect  = "Deny"
+    actions = ["foo:ActionTwo"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_c" {
+  statement {
+    sid     = "overrideSid"
+    effect  = "Deny"
+    actions = ["bar:ActionOne"]
+  }
+}
+
+data "aws_iam_policy_document" "test_override_list" {
+  version = "2012-10-17"
+
+  override_policy_documents = [
+    data.aws_iam_policy_document.policy_a.json,
+    data.aws_iam_policy_document.policy_b.json,
+    data.aws_iam_policy_document.policy_c.json
+  ]
+}
+`
+
+var testAccAWSIAMPolicyDocumentOverrideListExpectedJSON = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": "foo:ActionOne"
+    },
+    {
+      "Sid": "overrideSid",
+      "Effect": "Deny",
+      "Action": "bar:ActionOne"
+    },
+    {
+      "Sid": "validSid",
+      "Effect": "Deny",
+      "Action": "foo:ActionTwo"
     }
   ]
 }`

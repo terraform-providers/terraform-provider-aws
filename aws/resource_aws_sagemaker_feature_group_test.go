@@ -65,6 +65,7 @@ func TestAccAWSSagemakerFeatureGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -100,6 +101,7 @@ func TestAccAWSSagemakerFeatureGroup_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -127,6 +129,7 @@ func TestAccAWSSagemakerFeatureGroup_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -174,6 +177,7 @@ func TestAccAWSSagemakerFeatureGroup_multipleFeatures(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -205,6 +209,7 @@ func TestAccAWSSagemakerFeatureGroup_onlineConfigSecurityConfig(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -235,6 +240,7 @@ func TestAccAWSSagemakerFeatureGroup_offlineConfig_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -266,6 +272,7 @@ func TestAccAWSSagemakerFeatureGroup_offlineConfig_createCatalog(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -301,6 +308,7 @@ func TestAccAWSSagemakerFeatureGroup_offlineConfig_providedCatalog(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{
@@ -335,6 +343,7 @@ func TestAccAWSSagemakerFeatureGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerFeatureGroupDestroy,
 		Steps: []resource.TestStep{

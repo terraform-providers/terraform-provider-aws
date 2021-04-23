@@ -13,7 +13,7 @@ which Terraform is working.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_partition" "current" {}
 
 data "aws_iam_policy_document" "s3_policy" {

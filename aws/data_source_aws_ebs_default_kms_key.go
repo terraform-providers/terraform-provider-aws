@@ -24,7 +24,7 @@ func dataSourceAwsEbsDefaultKmsKeyRead(d *schema.ResourceData, meta interface{})
 
 	res, err := conn.GetEbsDefaultKmsKeyId(&ec2.GetEbsDefaultKmsKeyIdInput{})
 	if err != nil {
-		return fmt.Errorf("Error reading EBS default KMS key: %q", err)
+		return fmt.Errorf("Error reading EBS default KMS key: %w", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)

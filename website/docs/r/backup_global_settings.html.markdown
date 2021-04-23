@@ -12,7 +12,7 @@ Provides an AWS Backup Global Settings resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_backup_global_settings" "test" {
   global_settings = {
     "isCrossAccountBackupEnabled" = "true"

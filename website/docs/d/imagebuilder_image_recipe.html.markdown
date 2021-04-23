@@ -12,7 +12,7 @@ Provides details about an Image Builder Image Recipe.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_imagebuilder_image_recipe" "example" {
   arn = "arn:aws:imagebuilder:us-east-1:aws:image-recipe/example/1.0.0"
 }

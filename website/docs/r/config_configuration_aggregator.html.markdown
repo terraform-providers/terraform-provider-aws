@@ -14,7 +14,7 @@ Manages an AWS Config Configuration Aggregator
 
 ### Account Based Aggregation
 
-```hcl
+```terraform
 resource "aws_config_configuration_aggregator" "account" {
   name = "example"
 
@@ -27,7 +27,7 @@ resource "aws_config_configuration_aggregator" "account" {
 
 ### Organization Based Aggregation
 
-```hcl
+```terraform
 resource "aws_config_configuration_aggregator" "organization" {
   depends_on = [aws_iam_role_policy_attachment.organization]
 

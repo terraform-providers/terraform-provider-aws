@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -15,11 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-)
-
-var guardDutyFilterCriterionValidateFunc = validation.Any(
-	validation.IsRFC3339Time,
-	validation.StringMatch(regexp.MustCompile(`^\d+$`), "must be an integer value"),
 )
 
 func resourceAwsGuardDutyFilter() *schema.Resource {
@@ -85,22 +79,22 @@ func resourceAwsGuardDutyFilter() *schema.Resource {
 									"greater_than": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: guardDutyFilterCriterionValidateFunc,
+										ValidateFunc: validateTypeStringIsDateOrPositiveInt,
 									},
 									"greater_than_or_equal": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: guardDutyFilterCriterionValidateFunc,
+										ValidateFunc: validateTypeStringIsDateOrPositiveInt,
 									},
 									"less_than": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: guardDutyFilterCriterionValidateFunc,
+										ValidateFunc: validateTypeStringIsDateOrPositiveInt,
 									},
 									"less_than_or_equal": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: guardDutyFilterCriterionValidateFunc,
+										ValidateFunc: validateTypeStringIsDateOrPositiveInt,
 									},
 								},
 							},
@@ -374,11 +368,7 @@ func expandConditionIntField(field, v string) (int64, error) {
 		return date.UnixNano() / 1000000, nil
 	}
 
-	i, err := strconv.ParseInt(v, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return i, nil
+	return strconv.ParseInt(v, 10, 64)
 }
 
 func flattenFindingCriteria(findingCriteriaRemote *guardduty.FindingCriteria) []interface{} {

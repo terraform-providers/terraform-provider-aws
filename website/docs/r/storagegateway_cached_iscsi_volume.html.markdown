@@ -20,7 +20,7 @@ Manages an AWS Storage Gateway cached iSCSI volume.
 
 ### Create Empty Cached iSCSI Volume
 
-```hcl
+```terraform
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = aws_storagegateway_cache.example.gateway_arn
   network_interface_id = aws_instance.example.private_ip
@@ -31,7 +31,7 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
 
 ### Create Cached iSCSI Volume From Snapshot
 
-```hcl
+```terraform
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = aws_storagegateway_cache.example.gateway_arn
   network_interface_id = aws_instance.example.private_ip
@@ -43,7 +43,7 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
 
 ### Create Cached iSCSI Volume From Source Volume
 
-```hcl
+```terraform
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = aws_storagegateway_cache.example.gateway_arn
   network_interface_id = aws_instance.example.private_ip

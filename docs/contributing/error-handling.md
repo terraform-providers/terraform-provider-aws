@@ -4,6 +4,8 @@ _Please Note: This documentation is intended for Terraform AWS Provider code dev
 
 The Terraform AWS Provider codebase bridges the implementation of a [Terraform Plugin](https://www.terraform.io/docs/extend/how-terraform-works.html) and an AWS API client to support AWS operations and data types as Terraform Resources. An important aspect of performing resource and remote actions is properly handling those operations, but those operations are not guaranteed to succeed every time. Some common examples include where network connections are unreliable, necessary permissions are not properly setup, incorrect Terraform configurations, or the remote system responds unexpectedly. All these situations lead to an unexpected workflow action that must be surfaced to the Terraform user interface for operators to troubleshoot. This guide is intended to explain and show various Terraform AWS Provider code implementations that are considered best practice for surfacing these issues properly to operators and code maintainers.
 
+For further details about how the AWS Go SDK and the Terraform AWS Provider resource logic handle retryable errors, see the [Retries and Waiters documentation](retries-and-waiters.md).
+
 - [General Guidelines and Helpers](#general-guidelines-and-helpers)
     - [Naming and Check Style](#naming-and-check-style)
     - [Wrap Errors](#wrap-errors)
@@ -60,6 +62,8 @@ For most use cases in this codebase, this means if code is receiving an error an
 ```go
 return fmt.Errorf("adding some additional message: %w", err)
 ```
+
+This type of error wrapping should be applied to all Terraform resource logic. It should also be applied to any nested functions that contains two or more error conditions (e.g. a function that calls an update API and waits for the update to finish) so practitioners and code maintainers have a clear idea which generated the error. When returning errors in those situations, it is important to only include necessary additional context. Resource logic will typically include the information such as the type of operation and resource identifier (e.g. `error updating Service Thing (%s): %w`), so these messages can be more terse such as `error waiting for completion: %w`.
 
 ### AWS Go SDK Errors
 
@@ -198,7 +202,7 @@ func resourceServiceThingRead(d *schema.ResourceData, meta interface{}) error {
 }
 ```
 
-Future documentation will show how to properly retry the remote operation for a short period of time until it is successful to remove the error completely.
+If the remote system is not strongly read-after-write consistent, see the [Retries and Waiters documentation on Resource Lifecycle Retries](retries-and-waiters.md#resource-lifecycle-retries) for how to prevent consistency-type errors.
 
 #### Creation Error Message Context
 
@@ -274,7 +278,7 @@ if err != nil {
 }
 ```
 
-Code that also uses waiters or other operations that return errors should follow a similar pattern:
+Code that also uses [waiters](retries-and-waiters.md) or other operations that return errors should follow a similar pattern:
 
 ```go
 if _, err := waiter.VpcDeleted(conn, d.Id()); err != nil {

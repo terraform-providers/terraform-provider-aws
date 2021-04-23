@@ -16,7 +16,7 @@ for more information.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new GitLab Lightsail Instance
 resource "aws_lightsail_instance" "gitlab_test" {
   name              = "custom_gitlab"

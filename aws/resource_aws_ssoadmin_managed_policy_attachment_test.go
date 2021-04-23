@@ -20,6 +20,7 @@ func TestAccAWSSSOAdminManagedPolicyAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminManagedPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -50,6 +51,7 @@ func TestAccAWSSSOAdminManagedPolicyAttachment_forceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminManagedPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -85,6 +87,7 @@ func TestAccAWSSSOAdminManagedPolicyAttachment_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminManagedPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -107,6 +110,7 @@ func TestAccAWSSSOAdminManagedPolicyAttachment_disappears_permissionSet(t *testi
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminManagedPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -130,6 +134,7 @@ func TestAccAWSSSOAdminManagedPolicyAttachment_multipleManagedPolicies(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminManagedPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{

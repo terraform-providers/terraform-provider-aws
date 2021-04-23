@@ -12,7 +12,7 @@ Manages a single EBS volume.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
   size              = 40
@@ -23,7 +23,7 @@ resource "aws_ebs_volume" "example" {
 }
 ```
 
-~> **NOTE**: One of `size` or `snapshot_id` is required when specifying an EBS volume
+~> **NOTE**: At least one of `size` or `snapshot_id` is required when specifying an EBS volume
 
 ## Argument Reference
 

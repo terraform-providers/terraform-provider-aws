@@ -13,7 +13,7 @@ A transit virtual interface is a VLAN that transports traffic from a [Direct Con
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_gateway" "example" {
   name            = "tf-dxg-example"
   amazon_side_asn = 64512

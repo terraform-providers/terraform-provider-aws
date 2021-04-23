@@ -67,7 +67,7 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	_, err := conn.HeadBucket(input)
 
 	if err != nil {
-		return fmt.Errorf("Failed getting S3 bucket: %s Bucket: %q", err, bucket)
+		return fmt.Errorf("Failed getting S3 bucket (%s): %w", bucket, err)
 	}
 
 	d.SetId(bucket)
@@ -81,7 +81,7 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 
 	err = bucketLocation(meta.(*AWSClient), d, bucket)
 	if err != nil {
-		return fmt.Errorf("error getting S3 Bucket location: %s", err)
+		return fmt.Errorf("error getting S3 Bucket location: %w", err)
 	}
 
 	regionalDomainName, err := BucketRegionalDomainName(bucket, d.Get("region").(string))

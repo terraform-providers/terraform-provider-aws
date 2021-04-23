@@ -26,7 +26,7 @@ a conflict of rule settings and will overwrite rules.
 
 Basic usage
 
-```hcl
+```terraform
 resource "aws_security_group_rule" "example" {
   type              = "ingress"
   from_port         = 0
@@ -64,7 +64,7 @@ AWS are associated with a prefix list name, or service name, that is linked to a
 
 Prefix list IDs are exported on VPC Endpoints, so you can use this format:
 
-```hcl
+```terraform
 resource "aws_security_group_rule" "allow_all" {
   type              = "egress"
   to_port           = 0

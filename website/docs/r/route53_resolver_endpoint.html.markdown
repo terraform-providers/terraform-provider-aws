@@ -12,7 +12,7 @@ Provides a Route 53 Resolver endpoint resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route53_resolver_endpoint" "foo" {
   name      = "foo"
   direction = "INBOUND"

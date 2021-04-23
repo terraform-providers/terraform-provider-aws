@@ -28,7 +28,7 @@ This guide outlines how to get started with customizing endpoints, the available
 
 To configure the Terraform AWS Provider to use customized endpoints, it can be done within `provider` declarations using the `endpoints` configuration block, e.g.
 
-```hcl
+```terraform
 provider "aws" {
   # ... potentially other provider configuration ...
 
@@ -65,6 +65,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>appstream</code></li>
   <li><code>appsync</code></li>
   <li><code>athena</code></li>
+  <li><code>auditmanager</code></li>
   <li><code>autoscaling</code></li>
   <li><code>autoscalingplans</code></li>
   <li><code>backup</code></li>
@@ -113,6 +114,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>elastictranscoder</code></li>
   <li><code>elb</code></li>
   <li><code>emr</code></li>
+  <li><code>emrcontainers</code></li>
   <li><code>es</code></li>
   <li><code>firehose</code></li>
   <li><code>fms</code></li>
@@ -163,6 +165,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>personalize</code></li>
   <li><code>pinpoint</code></li>
   <li><code>pricing</code></li>
+  <li><code>prometheusservice</code></li>
   <li><code>qldb</code></li>
   <li><code>quicksight</code></li>
   <li><code>ram</code></li>
@@ -219,7 +222,7 @@ The Amazon DynamoDB service offers a downloadable version for writing and testin
 
 An example provider configuration:
 
-```hcl
+```terraform
 provider "aws" {
   access_key                  = "mock_access_key"
   region                      = "us-east-1"
@@ -240,7 +243,7 @@ provider "aws" {
 
 An example provider configuration:
 
-```hcl
+```terraform
 provider "aws" {
   access_key                  = "mock_access_key"
   region                      = "us-east-1"
@@ -255,6 +258,7 @@ provider "aws" {
     cloudformation = "http://localhost:4581"
     cloudwatch     = "http://localhost:4582"
     dynamodb       = "http://localhost:4569"
+    ec2            = "http://localhost:4597"
     es             = "http://localhost:4578"
     firehose       = "http://localhost:4573"
     iam            = "http://localhost:4593"

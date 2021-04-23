@@ -10,7 +10,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iot_topic_rule" "rule" {
   name        = "MyRule"
   description = "Example rule"

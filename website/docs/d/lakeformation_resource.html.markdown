@@ -12,7 +12,7 @@ Provides details about a Lake Formation resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lakeformation_resource" "example" {
   arn = "arn:aws:s3:::tf-acc-test-9151654063908211878"
 }

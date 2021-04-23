@@ -16,7 +16,7 @@ Manages an asynchronous invocation configuration for a Lambda Function or Alias.
 
 ~> **NOTE:** Ensure the Lambda Function IAM Role has necessary permissions for the destination, such as `sqs:SendMessage` or `sns:Publish`, otherwise the API will return a generic `InvalidParameterValueException: The destination ARN arn:PARTITION:SERVICE:REGION:ACCOUNT:RESOURCE is invalid.` error.
 
-```hcl
+```terraform
 resource "aws_lambda_function_event_invoke_config" "example" {
   function_name = aws_lambda_alias.example.function_name
 
@@ -34,7 +34,7 @@ resource "aws_lambda_function_event_invoke_config" "example" {
 
 ### Error Handling Configuration
 
-```hcl
+```terraform
 resource "aws_lambda_function_event_invoke_config" "example" {
   function_name                = aws_lambda_alias.example.function_name
   maximum_event_age_in_seconds = 60
@@ -44,7 +44,7 @@ resource "aws_lambda_function_event_invoke_config" "example" {
 
 ### Configuration for Alias Name
 
-```hcl
+```terraform
 resource "aws_lambda_function_event_invoke_config" "example" {
   function_name = aws_lambda_alias.example.function_name
   qualifier     = aws_lambda_alias.example.name
@@ -55,7 +55,7 @@ resource "aws_lambda_function_event_invoke_config" "example" {
 
 ### Configuration for Function Latest Unpublished Version
 
-```hcl
+```terraform
 resource "aws_lambda_function_event_invoke_config" "example" {
   function_name = aws_lambda_function.example.function_name
   qualifier     = "$LATEST"
@@ -66,7 +66,7 @@ resource "aws_lambda_function_event_invoke_config" "example" {
 
 ### Configuration for Function Published Version
 
-```hcl
+```terraform
 resource "aws_lambda_function_event_invoke_config" "example" {
   function_name = aws_lambda_function.example.function_name
   qualifier     = aws_lambda_function.example.version

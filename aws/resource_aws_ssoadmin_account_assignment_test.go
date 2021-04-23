@@ -143,6 +143,7 @@ func TestAccAWSSSOAdminAccountAssignment_Basic_Group(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreGroupName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminAccountAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -175,6 +176,7 @@ func TestAccAWSSSOAdminAccountAssignment_Basic_User(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreUserName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminAccountAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -207,6 +209,7 @@ func TestAccAWSSSOAdminAccountAssignment_Disappears(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreGroupName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminAccountAssignmentDestroy,
 		Steps: []resource.TestStep{

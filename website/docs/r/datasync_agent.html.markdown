@@ -14,7 +14,7 @@ Manages an AWS DataSync Agent deployed on premises.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_agent" "example" {
   ip_address = "1.2.3.4"
   name       = "example"

@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -166,9 +167,10 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 							ForceNew: true,
 						},
 						"projection_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(dynamodb.ProjectionType_Values(), false),
 						},
 						"non_key_attributes": {
 							Type:     schema.TypeList,
@@ -211,8 +213,9 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 							Optional: true,
 						},
 						"projection_type": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(dynamodb.ProjectionType_Values(), false),
 						},
 						"non_key_attributes": {
 							Type:     schema.TypeSet,
@@ -1283,4 +1286,67 @@ func isDynamoDbTableOptionDisabled(v interface{}) bool {
 	}
 	e := options[0].(map[string]interface{})["enabled"]
 	return !e.(bool)
+}
+
+func validateDynamoDbTableAttributes(d *schema.ResourceDiff) error {
+	// Collect all indexed attributes
+	primaryHashKey := d.Get("hash_key").(string)
+	indexedAttributes := map[string]bool{
+		primaryHashKey: true,
+	}
+	if v, ok := d.GetOk("range_key"); ok {
+		indexedAttributes[v.(string)] = true
+	}
+	if v, ok := d.GetOk("local_secondary_index"); ok {
+		indexes := v.(*schema.Set).List()
+		for _, idx := range indexes {
+			index := idx.(map[string]interface{})
+			rangeKey := index["range_key"].(string)
+			indexedAttributes[rangeKey] = true
+		}
+	}
+	if v, ok := d.GetOk("global_secondary_index"); ok {
+		indexes := v.(*schema.Set).List()
+		for _, idx := range indexes {
+			index := idx.(map[string]interface{})
+
+			hashKey := index["hash_key"].(string)
+			indexedAttributes[hashKey] = true
+
+			if rk, ok := index["range_key"].(string); ok && rk != "" {
+				indexedAttributes[rk] = true
+			}
+		}
+	}
+
+	// Check if all indexed attributes have an attribute definition
+	attributes := d.Get("attribute").(*schema.Set).List()
+	unindexedAttributes := []string{}
+	for _, attr := range attributes {
+		attribute := attr.(map[string]interface{})
+		attrName := attribute["name"].(string)
+
+		if _, ok := indexedAttributes[attrName]; !ok {
+			unindexedAttributes = append(unindexedAttributes, attrName)
+		} else {
+			delete(indexedAttributes, attrName)
+		}
+	}
+
+	var err *multierror.Error
+
+	if len(unindexedAttributes) > 0 {
+		err = multierror.Append(err, fmt.Errorf("All attributes must be indexed. Unused attributes: %q", unindexedAttributes))
+	}
+
+	if len(indexedAttributes) > 0 {
+		missingIndexes := []string{}
+		for index := range indexedAttributes {
+			missingIndexes = append(missingIndexes, index)
+		}
+
+		err = multierror.Append(err, fmt.Errorf("All indexes must match a defined attribute. Unmatched indexes: %q", missingIndexes))
+	}
+
+	return err.ErrorOrNil()
 }

@@ -19,6 +19,7 @@ func TestAccAwsCurReportDefinition_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -54,6 +55,7 @@ func TestAccAwsCurReportDefinition_textOrCsv(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -92,6 +94,7 @@ func TestAccAwsCurReportDefinition_parquet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -129,6 +132,7 @@ func TestAccAwsCurReportDefinition_athena(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -167,6 +171,7 @@ func TestAccAwsCurReportDefinition_refresh(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -205,6 +210,7 @@ func TestAccAwsCurReportDefinition_overwrite(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{

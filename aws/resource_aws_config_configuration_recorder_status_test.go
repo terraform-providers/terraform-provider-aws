@@ -19,6 +19,7 @@ func testAccConfigConfigurationRecorderStatus_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigConfigurationRecorderStatusDestroy,
 		Steps: []resource.TestStep{
@@ -44,6 +45,7 @@ func testAccConfigConfigurationRecorderStatus_startEnabled(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigConfigurationRecorderStatusDestroy,
 		Steps: []resource.TestStep{
@@ -87,6 +89,7 @@ func testAccConfigConfigurationRecorderStatus_importBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigConfigurationRecorderStatusDestroy,
 		Steps: []resource.TestStep{

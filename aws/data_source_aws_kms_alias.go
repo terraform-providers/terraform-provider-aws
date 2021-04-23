@@ -43,7 +43,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Reading KMS Alias: %s", params)
 	err := conn.ListAliasesPages(params, func(page *kms.ListAliasesOutput, lastPage bool) bool {
 		for _, entity := range page.Aliases {
-			if *entity.AliasName == target {
+			if aws.StringValue(entity.AliasName) == target {
 				alias = entity
 				return false
 			}
@@ -52,7 +52,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error fetch KMS alias list: %s", err)
+		return fmt.Errorf("Error fetch KMS alias list: %w", err)
 	}
 
 	if alias == nil {
@@ -78,7 +78,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resp, err := conn.DescribeKey(req)
 	if err != nil {
-		return fmt.Errorf("Error calling KMS DescribeKey: %s", err)
+		return fmt.Errorf("Error calling KMS DescribeKey: %w", err)
 	}
 
 	d.Set("target_key_arn", resp.KeyMetadata.Arn)

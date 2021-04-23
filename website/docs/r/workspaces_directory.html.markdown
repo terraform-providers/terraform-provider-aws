@@ -14,7 +14,7 @@ Provides a WorkSpaces directory in AWS WorkSpaces Service.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_workspaces_directory" "example" {
   directory_id = aws_directory_service_directory.example.id
   subnet_ids = [
@@ -128,7 +128,7 @@ resource "aws_subnet" "example_d" {
 
 ### IP Groups
 
-```hcl
+```terraform
 resource "aws_workspaces_directory" "example" {
   directory_id = aws_directory_service_directory.example.id
 
@@ -142,7 +142,7 @@ resource "aws_workspaces_ip_group" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 

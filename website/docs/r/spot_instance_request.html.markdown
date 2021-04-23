@@ -34,7 +34,7 @@ for more information.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Request a spot instance at $0.03
 resource "aws_spot_instance_request" "cheap_worker" {
   ami           = "ami-1234"

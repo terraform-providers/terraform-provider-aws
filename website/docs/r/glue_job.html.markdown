@@ -16,7 +16,7 @@ Provides a Glue Job resource.
 
 ### Python Job
 
-```hcl
+```terraform
 resource "aws_glue_job" "example" {
   name     = "example"
   role_arn = aws_iam_role.example.arn
@@ -29,7 +29,7 @@ resource "aws_glue_job" "example" {
 
 ### Scala Job
 
-```hcl
+```terraform
 resource "aws_glue_job" "example" {
   name     = "example"
   role_arn = aws_iam_role.example.arn
@@ -46,7 +46,7 @@ resource "aws_glue_job" "example" {
 
 ### Enabling CloudWatch Logs and Metrics
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name              = "example"
   retention_in_days = 14

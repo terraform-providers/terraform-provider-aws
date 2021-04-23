@@ -12,7 +12,7 @@ Provides a resource to create a VPC Internet Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 -> **Note:** It's recommended to denote that the AWS Instance or Elastic IP depends on the Internet Gateway. For example:
 
-```hcl
+```terraform
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 }

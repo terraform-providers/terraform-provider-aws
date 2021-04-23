@@ -13,7 +13,7 @@ Provides a resource to manage a GuardDuty IPSet.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_ipset" "example" {
   activate    = true
   detector_id = aws_guardduty_detector.primary.id

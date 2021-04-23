@@ -12,7 +12,7 @@ Provides an AWS App Mesh gateway route resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_appmesh_gateway_route" "example" {
   name                 = "example-gateway-route"
   mesh_name            = "example-service-mesh"

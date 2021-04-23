@@ -26,6 +26,10 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -121,7 +125,19 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 					return hashcode.String(buf.String())
 				},
 			},
+			"hypervisor": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"image_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_owner_alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -141,6 +157,22 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"ramdisk_id": {
 				Type:     schema.TypeString,
@@ -169,11 +201,11 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Computed: true,
 			},
 			"tags": tagsSchema(),
-			"virtualization_type": {
+			"usage_operation": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"arn": {
+			"virtualization_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -191,9 +223,9 @@ func resourceAwsAmiFromInstanceCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*AWSClient).ec2conn
 
 	req := &ec2.CreateImageInput{
-		Name:        aws.String(d.Get("name").(string)),
 		Description: aws.String(d.Get("description").(string)),
 		InstanceId:  aws.String(d.Get("source_instance_id").(string)),
+		Name:        aws.String(d.Get("name").(string)),
 		NoReboot:    aws.Bool(d.Get("snapshot_without_reboot").(bool)),
 	}
 

@@ -12,7 +12,7 @@ Use this data source to get information about an AWS Serverless Application Repo
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_serverlessapplicationrepository_application" "example" {
   application_id = "arn:aws:serverlessrepo:us-east-1:123456789012:applications/ExampleApplication"
 }

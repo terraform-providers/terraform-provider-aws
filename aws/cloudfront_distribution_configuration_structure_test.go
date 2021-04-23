@@ -12,6 +12,7 @@ import (
 func defaultCacheBehaviorConf() map[string]interface{} {
 	return map[string]interface{}{
 		"viewer_protocol_policy":      "allow-all",
+		"cache_policy_id":             "",
 		"target_origin_id":            "myS3Origin",
 		"forwarded_values":            []interface{}{forwardedValuesConf()},
 		"min_ttl":                     0,
@@ -21,9 +22,11 @@ func defaultCacheBehaviorConf() map[string]interface{} {
 		"smooth_streaming":            false,
 		"default_ttl":                 86400,
 		"allowed_methods":             allowedMethodsConf(),
+		"origin_request_policy_id":    "ABCD1234",
 		"cached_methods":              cachedMethodsConf(),
 		"compress":                    true,
 		"field_level_encryption_id":   "",
+		"realtime_log_config_arn":     "",
 	}
 }
 

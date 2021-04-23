@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/envvar"
 )
 
 func TestAccAWSCodePipeline_basic(t *testing.T) {
@@ -27,6 +27,7 @@ func TestAccAWSCodePipeline_basic(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t)
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -131,6 +132,7 @@ func TestAccAWSCodePipeline_disappears(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t)
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -157,6 +159,7 @@ func TestAccAWSCodePipeline_emptyStageArtifacts(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t)
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -198,6 +201,7 @@ func TestAccAWSCodePipeline_deployWithServiceRole(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t)
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -230,6 +234,7 @@ func TestAccAWSCodePipeline_tags(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t)
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -288,6 +293,7 @@ func TestAccAWSCodePipeline_multiregion_basic(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t, testAccGetAlternateRegion())
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, codepipeline.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -329,6 +335,7 @@ func TestAccAWSCodePipeline_multiregion_Update(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t, testAccGetAlternateRegion())
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, codepipeline.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -384,6 +391,7 @@ func TestAccAWSCodePipeline_multiregion_ConvertSingleRegion(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t, testAccGetAlternateRegion())
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, codepipeline.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -446,6 +454,7 @@ func TestAccAWSCodePipeline_WithNamespace(t *testing.T) {
 			testAccPreCheckAWSCodePipelineSupported(t)
 			testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -467,17 +476,18 @@ func TestAccAWSCodePipeline_WithNamespace(t *testing.T) {
 }
 
 func TestAccAWSCodePipeline_WithGitHubv1SourceAction(t *testing.T) {
+	githubToken := envvar.TestSkipIfEmpty(t, envvar.GithubToken, "token with GitHub permissions to repository for CodePipeline source configuration")
+
 	var v codepipeline.PipelineDeclaration
 	name := acctest.RandString(10)
 	resourceName := "aws_codepipeline.test"
-	githubToken := os.Getenv("GITHUB_TOKEN")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccEnvironmentVariableSetPreCheck("GITHUB_TOKEN", t)
 			testAccPreCheckAWSCodePipelineSupported(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, codepipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{

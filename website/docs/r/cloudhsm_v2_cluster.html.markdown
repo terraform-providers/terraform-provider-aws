@@ -23,7 +23,7 @@ To initialize cluster, you have to add an HSM instance to the cluster, then sign
 
 The following example below creates a CloudHSM cluster.
 
-```hcl
+```terraform
 provider "aws" {
   region = var.aws_region
 }

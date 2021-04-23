@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -282,7 +283,7 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("object_lock_retain_until_date"); ok {
-		putInput.ObjectLockRetainUntilDate = expandS3ObjectLockRetainUntilDate(v.(string))
+		putInput.ObjectLockRetainUntilDate = expandS3ObjectDate(v.(string))
 	}
 
 	if _, err := s3conn.PutObject(putInput); err != nil {
@@ -342,24 +343,12 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("website_redirect", resp.WebsiteRedirectLocation)
 	d.Set("object_lock_legal_hold_status", resp.ObjectLockLegalHoldStatus)
 	d.Set("object_lock_mode", resp.ObjectLockMode)
-	d.Set("object_lock_retain_until_date", flattenS3ObjectLockRetainUntilDate(resp.ObjectLockRetainUntilDate))
+	d.Set("object_lock_retain_until_date", flattenS3ObjectDate(resp.ObjectLockRetainUntilDate))
 
-	// Only set non-default KMS key ID (one that doesn't match default)
-	if resp.SSEKMSKeyId != nil {
-		// retrieve S3 KMS Default Master Key
-		kmsconn := meta.(*AWSClient).kmsconn
-		kmsresp, err := kmsconn.DescribeKey(&kms.DescribeKeyInput{
-			KeyId: aws.String("alias/aws/s3"),
-		})
-		if err != nil {
-			return fmt.Errorf("Failed to describe default S3 KMS key (alias/aws/s3): %s", err)
-		}
-
-		if *resp.SSEKMSKeyId != *kmsresp.KeyMetadata.Arn {
-			log.Printf("[DEBUG] S3 object is encrypted using a non-default KMS Key ID: %s", *resp.SSEKMSKeyId)
-			d.Set("kms_key_id", resp.SSEKMSKeyId)
-		}
+	if err := resourceAwsS3BucketObjectSetKMS(d, meta, resp.SSEKMSKeyId); err != nil {
+		return fmt.Errorf("bucket object KMS: %w", err)
 	}
+
 	// See https://forums.aws.amazon.com/thread.jspa?threadID=44003
 	d.Set("etag", strings.Trim(aws.StringValue(resp.ETag), `"`))
 
@@ -426,15 +415,15 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 			Key:    aws.String(key),
 			Retention: &s3.ObjectLockRetention{
 				Mode:            aws.String(d.Get("object_lock_mode").(string)),
-				RetainUntilDate: expandS3ObjectLockRetainUntilDate(d.Get("object_lock_retain_until_date").(string)),
+				RetainUntilDate: expandS3ObjectDate(d.Get("object_lock_retain_until_date").(string)),
 			},
 		}
 
 		// Bypass required to lower or clear retain-until date.
 		if d.HasChange("object_lock_retain_until_date") {
 			oraw, nraw := d.GetChange("object_lock_retain_until_date")
-			o := expandS3ObjectLockRetainUntilDate(oraw.(string))
-			n := expandS3ObjectLockRetainUntilDate(nraw.(string))
+			o := expandS3ObjectDate(oraw.(string))
+			n := expandS3ObjectDate(nraw.(string))
 			if n == nil || (o != nil && n.Before(*o)) {
 				req.BypassGovernanceRetention = aws.Bool(true)
 			}
@@ -462,8 +451,10 @@ func resourceAwsS3BucketObjectDelete(d *schema.ResourceData, meta interface{}) e
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
-	// We are effectively ignoring any leading '/' in the key name as aws.Config.DisableRestProtocolURICleaning is false
-	key = strings.TrimPrefix(key, "/")
+	// We are effectively ignoring all leading '/'s in the key name and
+	// treating multiple '/'s as a single '/' as aws.Config.DisableRestProtocolURICleaning is false
+	key = strings.TrimLeft(key, "/")
+	key = regexp.MustCompile(`/+`).ReplaceAllString(key, "/")
 
 	var err error
 	if _, ok := d.GetOk("version_id"); ok {
@@ -474,6 +465,27 @@ func resourceAwsS3BucketObjectDelete(d *schema.ResourceData, meta interface{}) e
 
 	if err != nil {
 		return fmt.Errorf("error deleting S3 Bucket (%s) Object (%s): %s", bucket, key, err)
+	}
+
+	return nil
+}
+
+func resourceAwsS3BucketObjectSetKMS(d *schema.ResourceData, meta interface{}, sseKMSKeyId *string) error {
+	// Only set non-default KMS key ID (one that doesn't match default)
+	if sseKMSKeyId != nil {
+		// retrieve S3 KMS Default Master Key
+		kmsconn := meta.(*AWSClient).kmsconn
+		kmsresp, err := kmsconn.DescribeKey(&kms.DescribeKeyInput{
+			KeyId: aws.String("alias/aws/s3"),
+		})
+		if err != nil {
+			return fmt.Errorf("Failed to describe default S3 KMS key (alias/aws/s3): %s", err)
+		}
+
+		if *sseKMSKeyId != *kmsresp.KeyMetadata.Arn {
+			log.Printf("[DEBUG] S3 object is encrypted using a non-default KMS Key ID: %s", *sseKMSKeyId)
+			d.Set("kms_key_id", sseKMSKeyId)
+		}
 	}
 
 	return nil
@@ -690,7 +702,7 @@ func deleteS3ObjectVersion(conn *s3.S3, b, k, v string, force bool) error {
 	return err
 }
 
-func expandS3ObjectLockRetainUntilDate(v string) *time.Time {
+func expandS3ObjectDate(v string) *time.Time {
 	t, err := time.Parse(time.RFC3339, v)
 	if err != nil {
 		return nil
@@ -699,7 +711,7 @@ func expandS3ObjectLockRetainUntilDate(v string) *time.Time {
 	return aws.Time(t)
 }
 
-func flattenS3ObjectLockRetainUntilDate(t *time.Time) string {
+func flattenS3ObjectDate(t *time.Time) string {
 	if t == nil {
 		return ""
 	}

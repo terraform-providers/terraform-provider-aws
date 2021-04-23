@@ -16,7 +16,7 @@ Provides a Load Balancer Listener resource.
 
 ### Forward Action
 
-```hcl
+```terraform
 resource "aws_lb" "front_end" {
   # ...
 }
@@ -41,7 +41,7 @@ resource "aws_lb_listener" "front_end" {
 
 ### Redirect Action
 
-```hcl
+```terraform
 resource "aws_lb" "front_end" {
   # ...
 }
@@ -65,7 +65,7 @@ resource "aws_lb_listener" "front_end" {
 
 ### Fixed-response Action
 
-```hcl
+```terraform
 resource "aws_lb" "front_end" {
   # ...
 }
@@ -89,7 +89,7 @@ resource "aws_lb_listener" "front_end" {
 
 ### Authenticate-cognito Action
 
-```hcl
+```terraform
 resource "aws_lb" "front_end" {
   # ...
 }
@@ -134,7 +134,7 @@ resource "aws_lb_listener" "front_end" {
 
 ### Authenticate-oidc Action
 
-```hcl
+```terraform
 resource "aws_lb" "front_end" {
   # ...
 }
@@ -170,7 +170,7 @@ resource "aws_lb_listener" "front_end" {
 
 ### Gateway Load Balancer Listener
 
-```hcl
+```terraform
 resource "aws_lb" "example" {
   load_balancer_type = "gateway"
   name               = "example"

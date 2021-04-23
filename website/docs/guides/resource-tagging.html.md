@@ -26,7 +26,7 @@ Many AWS services implement [resource tags](https://docs.aws.amazon.com/general/
 
 Terraform AWS Provider resources that support resource tags implement a consistent argument named `tags` which accepts a key-value map, e.g.
 
-```hcl
+```terraform
 resource "aws_vpc" "example" {
   # ... other configuration ...
 
@@ -40,7 +40,7 @@ The tags for the resource are wholly managed by Terraform except tag keys beginn
 
 For most environments and use cases, this is the typical implementation pattern, whether it be in a standalone Terraform configuration or within a [Terraform Module](https://www.terraform.io/docs/modules/). The Terraform configuration language also enables less repetitive configurations via [variables](https://www.terraform.io/docs/configuration/variables.html), [locals](https://www.terraform.io/docs/configuration/locals.html), or potentially a combination of these, e.g.
 
-```hcl
+```terraform
 # Terraform 0.12 and later syntax
 variable "additional_tags" {
   default     = {}
@@ -71,7 +71,7 @@ All Terraform resources support the [`lifecycle` configuration block `ignore_cha
 
 In this example, the `Name` tag will be added to the VPC on resource creation, however any external changes to the `Name` tag value or the addition/removal of any tag (including the `Name` tag) will be ignored:
 
-```hcl
+```terraform
 # Terraform 0.12 and later syntax
 resource "aws_vpc" "example" {
   # ... other configuration ...
@@ -88,7 +88,7 @@ resource "aws_vpc" "example" {
 
 In this example, the `Name` and `Owner` tags will be added to the VPC on resource creation, however any external changes to the value of the `Name` tag will be ignored while any changes to other tags (including the `Owner` tag and any additions) will still be proposed:
 
-```hcl
+```terraform
 # Terraform 0.12 and later syntax
 resource "aws_vpc" "example" {
   # ... other configuration ...
@@ -110,7 +110,7 @@ As of version 2.60.0 of the Terraform AWS Provider, there is support for ignorin
 
 In this example, all resources will ignore any addition of the `LastScanned` tag:
 
-```hcl
+```terraform
 provider "aws" {
   # ... potentially other configuration ...
 
@@ -122,7 +122,7 @@ provider "aws" {
 
 In this example, all resources will ignore any addition of tags with the `kubernetes.io/` prefix, such as `kubernetes.io/cluster/name` or `kubernetes.io/role/elb`:
 
-```hcl
+```terraform
 provider "aws" {
   # ... potentially other configuration ...
 
@@ -144,7 +144,7 @@ Certain Terraform AWS Provider services support a special resource for managing 
 
 -> Not all services supported by the Terraform AWS Provider implement these resources. Browse the Terraform AWS Provider resource documentation pages for a resource with a type ending in `_tag`. If there is a use case where this type of resource is missing, a [feature request](https://github.com/hashicorp/terraform-provider-aws/issues/new?labels=enhancement&template=Feature_Request.md) can be submitted.
 
-```hcl
+```terraform
 # Terraform 0.12 and later syntax
 # ... other configuration ...
 
@@ -157,7 +157,7 @@ resource "aws_ec2_tag" "example" {
 
 To manage multiple tags for a resource in this scenario, [`for_each`](https://www.terraform.io/docs/configuration/meta-arguments/for_each.html) can be used:
 
-```hcl
+```terraform
 # Terraform 0.12 and later syntax
 # ... other configuration ...
 

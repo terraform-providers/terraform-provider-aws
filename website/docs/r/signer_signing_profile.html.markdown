@@ -12,7 +12,7 @@ Creates a Signer Signing Profile. A signing profile contains information about t
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_signer_signing_profile" "test_sp" {
   platform_id = "AWSLambda-SHA384-ECDSA"
 }

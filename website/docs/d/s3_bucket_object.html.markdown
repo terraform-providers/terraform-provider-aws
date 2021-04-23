@@ -18,7 +18,7 @@ _optionally_ (see below) content of an object stored inside S3 bucket.
 The following example retrieves a text object (which must have a `Content-Type`
 value starting with `text/`) and uses it as the `user_data` for an EC2 instance:
 
-```hcl
+```terraform
 data "aws_s3_bucket_object" "bootstrap_script" {
   bucket = "ourcorp-deploy-config"
   key    = "ec2-bootstrap-script.sh"
@@ -37,7 +37,7 @@ to AWS Lambda for use as a function implementation. More information about
 Lambda functions is available in the documentation for
 [`aws_lambda_function`](/docs/providers/aws/r/lambda_function.html).
 
-```hcl
+```terraform
 data "aws_s3_bucket_object" "lambda" {
   bucket = "ourcorp-lambda-functions"
   key    = "hello-world.zip"

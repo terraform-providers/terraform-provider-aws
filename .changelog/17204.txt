@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_lb_cookie_stickiness_policy: Allow zero value for `cookie_expiration_period`
+```

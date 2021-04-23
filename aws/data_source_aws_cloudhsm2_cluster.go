@@ -94,7 +94,7 @@ func dataSourceCloudHsmV2ClusterRead(d *schema.ResourceData, meta interface{}) e
 	out, err := conn.DescribeClusters(input)
 
 	if err != nil {
-		return fmt.Errorf("error describing CloudHSM v2 Cluster: %s", err)
+		return fmt.Errorf("error describing CloudHSM v2 Cluster: %w", err)
 	}
 
 	var cluster *cloudhsmv2.Cluster
@@ -114,7 +114,7 @@ func dataSourceCloudHsmV2ClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("security_group_id", cluster.SecurityGroup)
 	d.Set("cluster_state", cluster.State)
 	if err := d.Set("cluster_certificates", readCloudHsmV2ClusterCertificates(cluster)); err != nil {
-		return fmt.Errorf("error setting cluster_certificates: %s", err)
+		return fmt.Errorf("error setting cluster_certificates: %w", err)
 	}
 
 	var subnets []string
@@ -123,7 +123,7 @@ func dataSourceCloudHsmV2ClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("subnet_ids", subnets); err != nil {
-		return fmt.Errorf("[DEBUG] Error saving Subnet IDs to state for CloudHSM v2 Cluster (%s): %s", d.Id(), err)
+		return fmt.Errorf("[DEBUG] Error saving Subnet IDs to state for CloudHSM v2 Cluster (%s): %w", d.Id(), err)
 	}
 
 	return nil

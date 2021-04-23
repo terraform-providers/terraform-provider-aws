@@ -12,7 +12,7 @@ Provides a Resource Group.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_resourcegroups_group" "test" {
   name = "test-group"
 

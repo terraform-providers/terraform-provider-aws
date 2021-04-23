@@ -13,7 +13,7 @@ This resource accepts ownership of a public virtual interface created by another
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   # Creator's credentials.
 }

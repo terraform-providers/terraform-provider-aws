@@ -68,7 +68,7 @@ func dataSourceAwsVpcsRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(meta.(*AWSClient).region)
 
 	if err := d.Set("ids", vpcs); err != nil {
-		return fmt.Errorf("Error setting vpc ids: %s", err)
+		return fmt.Errorf("error setting vpc ids: %w", err)
 	}
 
 	return nil

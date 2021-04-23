@@ -26,6 +26,10 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -91,6 +95,16 @@ func resourceAwsAmiCopy() *schema.Resource {
 					return hashcode.String(buf.String())
 				},
 			},
+			"ena_support": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"encrypted": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 			"ephemeral_block_device": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -117,17 +131,19 @@ func resourceAwsAmiCopy() *schema.Resource {
 					return hashcode.String(buf.String())
 				},
 			},
-			"ena_support": {
-				Type:     schema.TypeBool,
+			"hypervisor": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"encrypted": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
 			"image_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_owner_alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -154,6 +170,22 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"ramdisk_id": {
 				Type:     schema.TypeString,
@@ -186,7 +218,7 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"arn": {
+			"usage_operation": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -204,11 +236,11 @@ func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
 
 	req := &ec2.CopyImageInput{
-		Name:          aws.String(d.Get("name").(string)),
 		Description:   aws.String(d.Get("description").(string)),
+		Encrypted:     aws.Bool(d.Get("encrypted").(bool)),
+		Name:          aws.String(d.Get("name").(string)),
 		SourceImageId: aws.String(d.Get("source_ami_id").(string)),
 		SourceRegion:  aws.String(d.Get("source_ami_region").(string)),
-		Encrypted:     aws.Bool(d.Get("encrypted").(bool)),
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok {

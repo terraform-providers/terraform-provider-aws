@@ -12,7 +12,7 @@ Manages an S3 Location within AWS DataSync.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_location_s3" "example" {
   s3_bucket_arn = aws_s3_bucket.example.arn
   subdirectory  = "/example/prefix"

@@ -171,7 +171,8 @@ func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 }
 
 func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]string, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, tf.execPath, args...)
+	cmd := exec.Command(tf.execPath, args...)
+
 	cmd.Env = tf.buildEnv(mergeEnv)
 	cmd.Dir = tf.workingDir
 
@@ -180,11 +181,11 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]
 	return cmd
 }
 
-func (tf *Terraform) runTerraformCmdJSON(cmd *exec.Cmd, v interface{}) error {
+func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v interface{}) error {
 	var outbuf = bytes.Buffer{}
 	cmd.Stdout = mergeWriters(cmd.Stdout, &outbuf)
 
-	err := tf.runTerraformCmd(cmd)
+	err := tf.runTerraformCmd(ctx, cmd)
 	if err != nil {
 		return err
 	}
@@ -192,19 +193,6 @@ func (tf *Terraform) runTerraformCmdJSON(cmd *exec.Cmd, v interface{}) error {
 	dec := json.NewDecoder(&outbuf)
 	dec.UseNumber()
 	return dec.Decode(v)
-}
-
-func (tf *Terraform) runTerraformCmd(cmd *exec.Cmd) error {
-	var errBuf strings.Builder
-
-	cmd.Stdout = mergeWriters(cmd.Stdout, tf.stdout)
-	cmd.Stderr = mergeWriters(cmd.Stderr, tf.stderr, &errBuf)
-
-	err := cmd.Run()
-	if err != nil {
-		return tf.parseError(err, errBuf.String())
-	}
-	return nil
 }
 
 // mergeUserAgent does some minor deduplication to ensure we aren't

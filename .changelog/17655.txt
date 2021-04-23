@@ -1,0 +1,3 @@
+```release-notes:note
+provider: The default development, testing and building of the Terraform AWS Provider is now done with Go 1.16. This version of Go adds support for `darwin/arm64` (Apple Silicon) but deprecates support for macOS 10.12 (Sierra).
+```

@@ -13,7 +13,7 @@ Provides an Amazon Lex Slot Type resource. For more information see
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lex_slot_type" "flower_types" {
   create_version = true
   description    = "Types of flowers to order"

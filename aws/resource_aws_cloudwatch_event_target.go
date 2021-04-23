@@ -248,6 +248,40 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 					},
 				},
 			},
+
+			"retry_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"maximum_event_age_in_seconds": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(60),
+						},
+						"maximum_retry_attempts": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"dead_letter_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"arn": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -350,6 +384,18 @@ func resourceAwsCloudWatchEventTargetRead(d *schema.ResourceData, meta interface
 		}
 	}
 
+	if t.RetryPolicy != nil {
+		if err := d.Set("retry_policy", flatternAwsCloudWatchEventTargetRetryPolicy(t.RetryPolicy)); err != nil {
+			return fmt.Errorf("Error setting retry_policy error: #{err}")
+		}
+	}
+
+	if t.DeadLetterConfig != nil {
+		if err := d.Set("dead_letter_config", flatternAwsCloudWatchEventTargetDeadLetterConfig(t.DeadLetterConfig)); err != nil {
+			return fmt.Errorf("Error setting dead_letter_config error: #{err}")
+		}
+	}
+
 	return nil
 }
 
@@ -434,6 +480,14 @@ func buildPutTargetInputStruct(d *schema.ResourceData) *events.PutTargetsInput {
 		e.InputTransformer = expandAwsCloudWatchEventTransformerParameters(v.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("retry_policy"); ok {
+		e.RetryPolicy = expandAwsCloudWatchEventRetryPolicyParameters(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("dead_letter_config"); ok {
+		e.DeadLetterConfig = expandAwsCloudWatchEventDeadLetterConfigParameters(v.([]interface{}))
+	}
+
 	input := events.PutTargetsInput{
 		Rule:    aws.String(d.Get("rule").(string)),
 		Targets: []*events.Target{e},
@@ -485,6 +539,39 @@ func expandAwsCloudWatchEventTargetEcsParameters(config []interface{}) *events.E
 
 	return ecsParameters
 }
+
+func expandAwsCloudWatchEventRetryPolicyParameters(rp []interface{}) *events.RetryPolicy {
+	retryPolicy := &events.RetryPolicy{}
+
+	for _, v := range rp {
+		params := v.(map[string]interface{})
+
+		if val, ok := params["maximum_event_age_in_seconds"].(int); ok {
+			retryPolicy.MaximumEventAgeInSeconds = aws.Int64(int64(val))
+		}
+
+		if val, ok := params["maximum_retry_attempts"].(int); ok {
+			retryPolicy.MaximumRetryAttempts = aws.Int64(int64(val))
+		}
+	}
+
+	return retryPolicy
+}
+
+func expandAwsCloudWatchEventDeadLetterConfigParameters(dlp []interface{}) *events.DeadLetterConfig {
+	deadLetterConfig := &events.DeadLetterConfig{}
+
+	for _, v := range dlp {
+		params := v.(map[string]interface{})
+
+		if val, ok := params["arn"].(string); ok && val != "" {
+			deadLetterConfig.Arn = aws.String(val)
+		}
+	}
+
+	return deadLetterConfig
+}
+
 func expandAwsCloudWatchEventTargetEcsParametersNetworkConfiguration(nc []interface{}) *events.NetworkConfiguration {
 	if len(nc) == 0 {
 		return nil
@@ -653,6 +740,25 @@ func flattenAwsCloudWatchInputTransformer(inputTransformer *events.InputTransfor
 	}
 	config["input_template"] = aws.StringValue(inputTransformer.InputTemplate)
 	config["input_paths"] = inputPathsMap
+
+	result := []map[string]interface{}{config}
+	return result
+}
+
+func flatternAwsCloudWatchEventTargetRetryPolicy(rp *events.RetryPolicy) []map[string]interface{} {
+	config := make(map[string]interface{})
+
+	config["maximum_event_age_in_seconds"] = aws.Int64Value(rp.MaximumEventAgeInSeconds)
+	config["maximum_retry_attempts"] = aws.Int64Value(rp.MaximumRetryAttempts)
+
+	result := []map[string]interface{}{config}
+	return result
+}
+
+func flatternAwsCloudWatchEventTargetDeadLetterConfig(dlc *events.DeadLetterConfig) []map[string]interface{} {
+	config := make(map[string]interface{})
+
+	config["arn"] = aws.StringValue(dlc.Arn)
 
 	result := []map[string]interface{}{config}
 	return result

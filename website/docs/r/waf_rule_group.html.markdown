@@ -12,7 +12,7 @@ Provides a WAF Rule Group Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_rule" "example" {
   name        = "example"
   metric_name = "example"

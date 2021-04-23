@@ -12,7 +12,7 @@ Authorizes a VPC in a peer account to be associated with a local Route53 Hosted 
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
 }
 

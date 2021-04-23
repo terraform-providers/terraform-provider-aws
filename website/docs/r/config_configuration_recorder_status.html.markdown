@@ -14,7 +14,7 @@ Manages status (recording / stopped) of an AWS Config Configuration Recorder.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_config_configuration_recorder_status" "foo" {
   name       = aws_config_configuration_recorder.foo.name
   is_enabled = true
@@ -90,6 +90,10 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the recorder
 * `is_enabled` - (Required) Whether the configuration recorder should be enabled or disabled.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

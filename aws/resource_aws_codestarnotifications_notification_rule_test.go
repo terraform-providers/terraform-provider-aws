@@ -18,6 +18,7 @@ func TestAccAWSCodeStarNotificationsNotificationRule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarnotifications.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarnotifications.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarNotificationsNotificationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -48,6 +49,7 @@ func TestAccAWSCodeStarNotificationsNotificationRule_Status(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarnotifications.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarnotifications.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarNotificationsNotificationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -84,6 +86,7 @@ func TestAccAWSCodeStarNotificationsNotificationRule_Targets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarnotifications.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarnotifications.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarNotificationsNotificationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -120,6 +123,7 @@ func TestAccAWSCodeStarNotificationsNotificationRule_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarnotifications.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarnotifications.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarNotificationsNotificationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -162,6 +166,7 @@ func TestAccAWSCodeStarNotificationsNotificationRule_EventTypeIds(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarnotifications.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarnotifications.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarNotificationsNotificationRuleDestroy,
 		Steps: []resource.TestStep{

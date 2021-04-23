@@ -22,7 +22,7 @@ To work around this you can either create each environment in a separate AWS acc
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "default" {
   bucket = "tftest.applicationversion.bucket"
 }

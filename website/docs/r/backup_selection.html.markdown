@@ -18,7 +18,7 @@ Manages selection conditions for AWS Backup plan resources.
 
 The below example creates an IAM role with the default managed IAM Policy for allowing AWS Backup to create backups.
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name               = "example"
   assume_role_policy = <<POLICY
@@ -51,7 +51,7 @@ resource "aws_backup_selection" "example" {
 
 ### Selecting Backups By Tag
 
-```hcl
+```terraform
 resource "aws_backup_selection" "example" {
   iam_role_arn = aws_iam_role.example.arn
   name         = "tf_example_backup_selection"
@@ -67,7 +67,7 @@ resource "aws_backup_selection" "example" {
 
 ### Selecting Backups By Resource
 
-```hcl
+```terraform
 resource "aws_backup_selection" "example" {
   iam_role_arn = aws_iam_role.example.arn
   name         = "tf_example_backup_selection"

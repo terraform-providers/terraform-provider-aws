@@ -12,7 +12,7 @@ Provides an Elastic File System (EFS) File System Policy resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_efs_file_system" "fs" {
   creation_token = "my-product"
 }

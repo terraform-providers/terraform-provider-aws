@@ -12,7 +12,7 @@ Manages a Direct Connect Gateway Association Proposal, typically for enabling cr
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_gateway_association_proposal" "example" {
   dx_gateway_id               = aws_dx_gateway.example.id
   dx_gateway_owner_account_id = aws_dx_gateway.example.owner_account_id

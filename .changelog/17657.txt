@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_ssm_document: Add plan time validation for `attachments_source`, `attachments_source.name`, `attachments_source.values`, `target_type`, `version_name`
+```
+
+```release-note:enhancement
+resource/aws_ssm_document: Wait for document to be created/update/deleted
+```
+
+```release-note:enhancement
+resource/aws_ssm_document: Support all valid values for `document_type`
+```

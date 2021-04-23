@@ -194,6 +194,31 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 													Type:     schema.TypeString,
 													Optional: true,
 												},
+												"launch_template_specification": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"launch_template_id": {
+																Type:     schema.TypeString,
+																Optional: true,
+																Computed: true,
+															},
+															"launch_template_name": {
+																Type:     schema.TypeString,
+																Optional: true,
+																Computed: true,
+															},
+															"version": {
+																Type:     schema.TypeString,
+																Optional: true,
+																Default:  "$Default",
+															},
+														},
+													},
+												},
 												"weighted_capacity": {
 													Type:         schema.TypeString,
 													Optional:     true,
@@ -1279,7 +1304,7 @@ func resourceAwsAutoscalingGroupDelete(d *schema.ResourceData, meta interface{})
 		log.Printf("[WARN] Auto Scaling Group (%s) not found, removing from state", d.Id())
 		return nil
 	}
-	if len(g.Instances) > 0 || *g.DesiredCapacity > 0 {
+	if len(g.Instances) > 0 || aws.Int64Value(g.DesiredCapacity) > 0 {
 		if err := resourceAwsAutoscalingGroupDrain(d, meta); err != nil {
 			return err
 		}
@@ -1363,7 +1388,11 @@ func getAwsAutoscalingGroup(asgName string, conn *autoscaling.AutoScaling) (*aut
 
 	// Search for the Auto Scaling Group
 	for idx, asc := range describeGroups.AutoScalingGroups {
-		if *asc.AutoScalingGroupName == asgName {
+		if asc == nil {
+			continue
+		}
+
+		if aws.StringValue(asc.AutoScalingGroupName) == asgName {
 			return describeGroups.AutoScalingGroups[idx], nil
 		}
 	}
@@ -1546,17 +1575,17 @@ func getELBInstanceStates(g *autoscaling.Group, meta interface{}) (map[string]ma
 	elbconn := meta.(*AWSClient).elbconn
 
 	for _, lbName := range g.LoadBalancerNames {
-		lbInstanceStates[*lbName] = make(map[string]string)
+		lbInstanceStates[aws.StringValue(lbName)] = make(map[string]string)
 		opts := &elb.DescribeInstanceHealthInput{LoadBalancerName: lbName}
 		r, err := elbconn.DescribeInstanceHealth(opts)
 		if err != nil {
 			return nil, err
 		}
 		for _, is := range r.InstanceStates {
-			if is.InstanceId == nil || is.State == nil {
+			if is == nil || is.InstanceId == nil || is.State == nil {
 				continue
 			}
-			lbInstanceStates[*lbName][*is.InstanceId] = *is.State
+			lbInstanceStates[aws.StringValue(lbName)][aws.StringValue(is.InstanceId)] = aws.StringValue(is.State)
 		}
 	}
 
@@ -1575,17 +1604,17 @@ func getTargetGroupInstanceStates(g *autoscaling.Group, meta interface{}) (map[s
 	elbv2conn := meta.(*AWSClient).elbv2conn
 
 	for _, targetGroupARN := range g.TargetGroupARNs {
-		targetInstanceStates[*targetGroupARN] = make(map[string]string)
+		targetInstanceStates[aws.StringValue(targetGroupARN)] = make(map[string]string)
 		opts := &elbv2.DescribeTargetHealthInput{TargetGroupArn: targetGroupARN}
 		r, err := elbv2conn.DescribeTargetHealth(opts)
 		if err != nil {
 			return nil, err
 		}
 		for _, desc := range r.TargetHealthDescriptions {
-			if desc.Target == nil || desc.Target.Id == nil || desc.TargetHealth == nil || desc.TargetHealth.State == nil {
+			if desc == nil || desc.Target == nil || desc.Target.Id == nil || desc.TargetHealth == nil || desc.TargetHealth.State == nil {
 				continue
 			}
-			targetInstanceStates[*targetGroupARN][*desc.Target.Id] = *desc.TargetHealth.State
+			targetInstanceStates[aws.StringValue(targetGroupARN)][aws.StringValue(desc.Target.Id)] = aws.StringValue(desc.TargetHealth.State)
 		}
 	}
 
@@ -1676,6 +1705,10 @@ func expandAutoScalingLaunchTemplateOverride(m map[string]interface{}) *autoscal
 
 	if v, ok := m["instance_type"]; ok && v.(string) != "" {
 		launchTemplateOverrides.InstanceType = aws.String(v.(string))
+	}
+
+	if v, ok := m["launch_template_specification"]; ok && v.([]interface{}) != nil {
+		launchTemplateOverrides.LaunchTemplateSpecification = expandAutoScalingLaunchTemplateSpecification(m["launch_template_specification"].([]interface{}))
 	}
 
 	if v, ok := m["weighted_capacity"]; ok && v.(string) != "" {
@@ -1769,8 +1802,9 @@ func flattenAutoScalingLaunchTemplateOverrides(launchTemplateOverrides []*autosc
 			continue
 		}
 		m := map[string]interface{}{
-			"instance_type":     aws.StringValue(launchTemplateOverride.InstanceType),
-			"weighted_capacity": aws.StringValue(launchTemplateOverride.WeightedCapacity),
+			"instance_type":                 aws.StringValue(launchTemplateOverride.InstanceType),
+			"launch_template_specification": flattenAutoScalingLaunchTemplateSpecification(launchTemplateOverride.LaunchTemplateSpecification),
+			"weighted_capacity":             aws.StringValue(launchTemplateOverride.WeightedCapacity),
 		}
 		l[i] = m
 	}

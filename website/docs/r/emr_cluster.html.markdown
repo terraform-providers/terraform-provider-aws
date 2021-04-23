@@ -16,7 +16,7 @@ To configure [Instance Groups](https://docs.aws.amazon.com/emr/latest/Management
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
@@ -148,7 +148,7 @@ example Terraform configuration at the bottom of this page.
 
 ## Instance Fleet
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
   master_instance_fleet {
@@ -245,7 +245,7 @@ is implemented as a step. It is highly recommended to utilize the
 [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` if other
 steps are being managed outside of Terraform.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -270,7 +270,7 @@ resource "aws_emr_cluster" "example" {
 
 Available in EMR version 5.23.0 and later, an EMR Cluster can be launched with three master nodes for high availability. Additional information about this functionality and its requirements can be found in the [EMR Management Guide](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan-ha.html).
 
-```hcl
+```terraform
 # This configuration is for illustrative purposes and highlights
 # only relevant configurations for working with this functionality.
 
@@ -340,7 +340,7 @@ The following arguments are supported:
 ~> **NOTE on configurations_json:** If the `Configurations` value is empty then you should skip
 the `Configurations` field instead of providing empty list as value `"Configurations": []`.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "cluster" {
   # ... other configuration ...
 
@@ -543,7 +543,7 @@ In addition to all arguments above, the following attributes are exported:
 boot an example EMR Cluster. It is not meant to display best practices. Please
 use at your own risk.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
@@ -852,7 +852,7 @@ $ terraform import aws_emr_cluster.cluster j-123456ABCDEF
 
 Since the API does not return the actual values for Kerberos configurations, environments with those Terraform configurations will need to use the [`lifecycle` configuration block `ignore_changes` argument](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) available to all Terraform resources to prevent perpetual differences, e.g.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 

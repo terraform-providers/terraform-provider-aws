@@ -12,7 +12,7 @@ Provides a Data Pipeline resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datapipeline_pipeline" "default" {
   name = "tf-pipeline-default"
 }

@@ -12,7 +12,7 @@ Manages an AWS Storage Gateway NFS File Share.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_storagegateway_nfs_file_share" "example" {
   client_list  = ["0.0.0.0/0"]
   gateway_arn  = aws_storagegateway_gateway.example.arn

@@ -45,6 +45,7 @@ func testAccAwsDxTransitVirtualInterface_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxTransitVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -117,6 +118,7 @@ func testAccAwsDxTransitVirtualInterface_Tags(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxTransitVirtualInterfaceDestroy,
 		Steps: []resource.TestStep{

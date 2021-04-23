@@ -16,7 +16,7 @@ Be sure to give the data firehose a name that starts with the prefix `aws-waf-lo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafv2_web_acl_logging_configuration" "example" {
   log_destination_configs = [aws_kinesis_firehose_delivery_stream.example.arn]
   resource_arn            = aws_wafv2_web_acl.example.arn
@@ -38,13 +38,15 @@ The following arguments are supported:
 
 The `redacted_fields` block supports the following arguments:
 
-* `all_query_arguments` - (Optional) Redact all query arguments.
-* `body` - (Optional) Redact the request body, which immediately follows the request headers.
-* `method` - (Optional) Redact the HTTP method. The method indicates the type of operation that the request is asking the origin to perform.
-* `query_string` - (Optional) Redact the query string. This is the part of a URL that appears after a `?` character, if any.
+~> **NOTE:** Only one of `method`, `query_string`, `single_header` or `uri_path` can be specified.
+
+* `all_query_arguments` - (Optional, **DEPRECATED**) Redact all query arguments.
+* `body` - (Optional, **DEPRECATED**) Redact the request body, which immediately follows the request headers.
+* `method` - (Optional) Redact the HTTP method. Must be specified as an empty configuration block `{}`. The method indicates the type of operation that the request is asking the origin to perform.
+* `query_string` - (Optional) Redact the query string. Must be specified as an empty configuration block `{}`. This is the part of a URL that appears after a `?` character, if any.
 * `single_header` - (Optional) Redact a single header. See [Single Header](#single-header) below for details.
-* `single_query_argument` - (Optional) Redact a single query argument. See [Single Query Argument](#single-query-argument) below for details.
-* `uri_path` - (Optional) Redact the request URI path. This is the part of a web request that identifies a resource, for example, `/images/daily-ad.jpg`.
+* `single_query_argument` - (Optional, **DEPRECATED**) Redact a single query argument. See [Single Query Argument](#single-query-argument) below for details.
+* `uri_path` - (Optional) Redact the request URI path. Must be specified as an empty configuration block `{}`. This is the part of a web request that identifies a resource, for example, `/images/daily-ad.jpg`.
 
 ### Single Header
 
@@ -54,7 +56,7 @@ The `single_header` block supports the following arguments:
 
 * `name` - (Optional) The name of the query header to redact. This setting must be provided as lower case characters.
 
-### Single Query Argument
+### Single Query Argument (**DEPRECATED**)
 
 Redact a single query argument. Provide the name of the query argument to redact, such as `UserName` or `SalesRegion` (provided as lowercase strings).
 
@@ -74,3 +76,4 @@ WAFv2 Web ACL Logging Configurations can be imported using the WAFv2 Web ACL ARN
 
 ```
 $ terraform import aws_wafv2_web_acl_logging_configuration.example arn:aws:wafv2:us-west-2:123456789012:regional/webacl/test-logs/a1b2c3d4-5678-90ab-cdef
+```

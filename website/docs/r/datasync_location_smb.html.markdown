@@ -14,7 +14,7 @@ Manages a SMB Location within AWS DataSync.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_location_smb" "example" {
   server_hostname = "smb.example.com"
   subdirectory    = "/exported/path"

@@ -83,6 +83,7 @@ func TestAccAwsNetworkFirewallRuleGroup_basic_rulesSourceList(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -120,6 +121,7 @@ func TestAccAwsNetworkFirewallRuleGroup_basic_statefulRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -166,6 +168,7 @@ func TestAccAwsNetworkFirewallRuleGroup_basic_statelessRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -208,6 +211,7 @@ func TestAccAwsNetworkFirewallRuleGroup_basic_rules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -243,6 +247,7 @@ func TestAccAwsNetworkFirewallRuleGroup_statelessRuleWithCustomAction(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -290,6 +295,7 @@ func TestAccAwsNetworkFirewallRuleGroup_updateRulesSourceList(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -334,6 +340,7 @@ func TestAccAwsNetworkFirewallRuleGroup_rulesSourceAndRuleVariables(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -412,6 +419,7 @@ func TestAccAwsNetworkFirewallRuleGroup_updateStatefulRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -457,6 +465,7 @@ func TestAccAwsNetworkFirewallRuleGroup_updateMultipleStatefulRules(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -537,6 +546,7 @@ func TestAccAwsNetworkFirewallRuleGroup_statefulRule_action(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -596,6 +606,7 @@ func TestAccAwsNetworkFirewallRuleGroup_statefulRule_header(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -655,6 +666,7 @@ func TestAccAwsNetworkFirewallRuleGroup_updateStatelessRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -703,6 +715,7 @@ func TestAccAwsNetworkFirewallRuleGroup_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{
@@ -745,6 +758,7 @@ func TestAccAwsNetworkFirewallRuleGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		ErrorCheck:   testAccErrorCheck(t, networkfirewall.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
 		Steps: []resource.TestStep{

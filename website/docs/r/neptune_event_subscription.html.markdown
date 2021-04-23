@@ -10,7 +10,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_neptune_cluster" "default" {
   cluster_identifier                  = "neptune-cluster-demo"
   engine                              = "neptune"
@@ -55,7 +55,7 @@ resource "aws_neptune_event_subscription" "default" {
   ]
 
   tags = {
-    "env" = "test"
+    env = "test"
   }
 }
 ```
@@ -73,9 +73,9 @@ The following arguments are supported:
 * `source_type` - (Optional) The type of source that will be generating the events. Valid options are `db-instance`, `db-security-group`, `db-parameter-group`, `db-snapshot`, `db-cluster` or `db-cluster-snapshot`. If not set, all sources will be subscribed to.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
-## Attributes
+## Attributes Reference
 
-The following additional atttributes are provided:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the Neptune event notification subscription.
 * `arn` - The Amazon Resource Name of the Neptune event notification subscription.

@@ -136,7 +136,7 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	if err := d.Set("compute_type", computeType); err != nil {
-		return fmt.Errorf("error setting compute_type: %s", err)
+		return fmt.Errorf("error setting compute_type: %w", err)
 	}
 
 	rootStorage := make([]map[string]interface{}, 1)
@@ -146,7 +146,7 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	if err := d.Set("root_storage", rootStorage); err != nil {
-		return fmt.Errorf("error setting root_storage: %s", err)
+		return fmt.Errorf("error setting root_storage: %w", err)
 	}
 
 	userStorage := make([]map[string]interface{}, 1)
@@ -156,7 +156,7 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	if err := d.Set("user_storage", userStorage); err != nil {
-		return fmt.Errorf("error setting user_storage: %s", err)
+		return fmt.Errorf("error setting user_storage: %w", err)
 	}
 
 	return nil

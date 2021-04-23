@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_fms_policy: Update `resource_type_list` plan-time validation to include `AWS::EC2::VPC`.
+```

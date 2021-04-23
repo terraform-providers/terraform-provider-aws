@@ -12,7 +12,7 @@ Manages the accepter's side of an EC2 Transit Gateway Peering Attachment.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway_peering_attachment_accepter" "example" {
   transit_gateway_attachment_id = aws_ec2_transit_gateway_peering_attachment.example.id
 

@@ -12,7 +12,7 @@ Manages an EC2 Local Gateway Route Table VPC Association. More information can b
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_local_gateway_route_table" "example" {
   outpost_arn = "arn:aws:outposts:us-west-2:123456789012:outpost/op-1234567890abcdef"
 }

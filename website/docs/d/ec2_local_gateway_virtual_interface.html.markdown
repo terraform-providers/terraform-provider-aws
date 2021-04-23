@@ -12,7 +12,7 @@ Provides details about an EC2 Local Gateway Virtual Interface. More information 
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_local_gateway_virtual_interface" "example" {
   for_each = data.aws_ec2_local_gateway_virtual_interface_group.example.local_gateway_virtual_interface_ids
 

@@ -16,7 +16,7 @@ Manages S3 account-level Public Access Block configuration. For more information
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_account_public_access_block" "example" {
   block_public_acls   = true
   block_public_policy = true

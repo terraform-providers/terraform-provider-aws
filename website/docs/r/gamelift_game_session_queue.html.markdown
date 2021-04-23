@@ -12,7 +12,7 @@ Provides an Gamelift Game Session Queue resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_game_session_queue" "test" {
   name = "example-session-queue"
 

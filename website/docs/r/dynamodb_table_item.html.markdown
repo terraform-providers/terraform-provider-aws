@@ -15,7 +15,7 @@ Provides a DynamoDB table item resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dynamodb_table_item" "example" {
   table_name = aws_dynamodb_table.example.name
   hash_key   = aws_dynamodb_table.example.hash_key

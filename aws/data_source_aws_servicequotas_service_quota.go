@@ -87,7 +87,7 @@ func dataSourceAwsServiceQuotasServiceQuotaRead(d *schema.ResourceData, meta int
 		})
 
 		if err != nil {
-			return fmt.Errorf("error listing Service (%s) Quotas: %s", serviceCode, err)
+			return fmt.Errorf("error listing Service (%s) Quotas: %w", serviceCode, err)
 		}
 
 		if serviceQuota == nil {
@@ -102,7 +102,7 @@ func dataSourceAwsServiceQuotasServiceQuotaRead(d *schema.ResourceData, meta int
 		output, err := conn.GetServiceQuota(input)
 
 		if err != nil {
-			return fmt.Errorf("error getting Service (%s) Quota (%s): %s", serviceCode, quotaCode, err)
+			return fmt.Errorf("error getting Service (%s) Quota (%s): %w", serviceCode, quotaCode, err)
 		}
 
 		if output == nil {
@@ -120,7 +120,7 @@ func dataSourceAwsServiceQuotasServiceQuotaRead(d *schema.ResourceData, meta int
 	output, err := conn.GetAWSDefaultServiceQuota(input)
 
 	if err != nil {
-		return fmt.Errorf("error getting Service (%s) Default Quota (%s): %s", serviceCode, aws.StringValue(serviceQuota.QuotaCode), err)
+		return fmt.Errorf("error getting Service (%s) Default Quota (%s): %w", serviceCode, aws.StringValue(serviceQuota.QuotaCode), err)
 	}
 
 	if output == nil {

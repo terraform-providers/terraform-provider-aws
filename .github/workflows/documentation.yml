@@ -2,7 +2,7 @@ name: Documentation Checks
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     paths:
       - .markdownlinkcheck.json
@@ -10,9 +10,6 @@ on:
       - .github/workflows/documentation.yml
       - .go-version
       - docs/**
-
-env:
-  GO111MODULE: on
 
 jobs:
   markdown-link-check:

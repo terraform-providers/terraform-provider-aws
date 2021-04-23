@@ -15,7 +15,7 @@ exports specified in the [Output](http://docs.aws.amazon.com/AWSCloudFormation/l
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_cloudformation_export" "subnet_id" {
   name = "mySubnetIdExportName"
 }

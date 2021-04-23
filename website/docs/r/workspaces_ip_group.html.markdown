@@ -12,7 +12,7 @@ Provides an IP access control group in AWS WorkSpaces Service
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_workspaces_ip_group" "contractors" {
   name        = "Contractors"
   description = "Contractors IP access control group"

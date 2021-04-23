@@ -13,7 +13,7 @@ Provides a resource to manage a GuardDuty ThreatIntelSet.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_detector" "primary" {
   enable = true
 }

@@ -13,7 +13,7 @@ For examples of custom route table association and propagation, see the [EC2 Tra
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   alias  = "local"
   region = "us-east-1"

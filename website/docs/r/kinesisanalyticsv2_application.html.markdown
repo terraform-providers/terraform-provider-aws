@@ -17,7 +17,7 @@ This resource can be used to manage both Kinesis Data Analytics for SQL applicat
 
 ### Apache Flink Application
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example-flink-application"
 }
@@ -92,7 +92,7 @@ resource "aws_kinesisanalyticsv2_application" "example" {
 
 ### SQL Application
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name = "example-sql-application"
 }
@@ -215,7 +215,7 @@ resource "aws_kinesisanalyticsv2_application" "example" {
 
 ### VPC Configuration
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example-flink-application"
 }

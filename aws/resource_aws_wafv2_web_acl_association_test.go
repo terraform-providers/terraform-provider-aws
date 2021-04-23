@@ -22,6 +22,7 @@ func TestAccAwsWafv2WebACLAssociation_basic(t *testing.T) {
 			testAccAPIGatewayTypeEDGEPreCheck(t)
 			testAccPreCheckAWSWafv2ScopeRegional(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2WebACLAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -53,6 +54,7 @@ func TestAccAwsWafv2WebACLAssociation_Disappears(t *testing.T) {
 			testAccAPIGatewayTypeEDGEPreCheck(t)
 			testAccPreCheckAWSWafv2ScopeRegional(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, wafv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafv2WebACLAssociationDestroy,
 		Steps: []resource.TestStep{

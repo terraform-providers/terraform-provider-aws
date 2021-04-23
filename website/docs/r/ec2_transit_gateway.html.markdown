@@ -12,7 +12,7 @@ Manages an EC2 Transit Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway" "example" {
   description = "example"
 }

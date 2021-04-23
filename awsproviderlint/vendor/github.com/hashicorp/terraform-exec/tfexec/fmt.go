@@ -63,7 +63,7 @@ func (tf *Terraform) Format(ctx context.Context, unformatted io.Reader, formatte
 	cmd.Stdin = unformatted
 	cmd.Stdout = mergeWriters(cmd.Stdout, formatted)
 
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 // FormatWrite attempts to format and modify all config files in the working or selected (via DirOption) directory.
@@ -82,7 +82,7 @@ func (tf *Terraform) FormatWrite(ctx context.Context, opts ...FormatOption) erro
 		return err
 	}
 
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 // FormatCheck returns true if the config files in the working or selected (via DirOption) directory are already formatted.
@@ -104,7 +104,7 @@ func (tf *Terraform) FormatCheck(ctx context.Context, opts ...FormatOption) (boo
 	var outBuf bytes.Buffer
 	cmd.Stdout = mergeWriters(cmd.Stdout, &outBuf)
 
-	err = tf.runTerraformCmd(cmd)
+	err = tf.runTerraformCmd(ctx, cmd)
 	if err == nil {
 		return true, nil, nil
 	}

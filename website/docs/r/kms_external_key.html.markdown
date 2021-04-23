@@ -14,7 +14,7 @@ Manages a KMS Customer Master Key that uses external key material. To instead ma
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_external_key" "example" {
   description = "KMS EXTERNAL for AMI encryption"
 }

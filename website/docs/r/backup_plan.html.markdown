@@ -12,7 +12,7 @@ Provides an AWS Backup plan resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_backup_plan" "example" {
   name = "tf_example_backup_plan"
 
@@ -67,8 +67,8 @@ For **copy_action** the following attributes are supported:
 ### Advanced Backup Setting Arguments
 For `advanced_backup_setting` the following attibutes are supported:
 
-* `backup_options` - (Optional) Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs. Set to `{ WindowsVSS = "enabled" }` to enable Windows VSS backup option and create a VSS Windows backup.
-* `resource_type` - (Optional) The type of AWS resource to be backed up. For VSS Windows backups, the only supported resource type is Amazon EC2. Valid values: `EC2`.
+* `backup_options` - (Required) Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs. Set to `{ WindowsVSS = "enabled" }` to enable Windows VSS backup option and create a VSS Windows backup.
+* `resource_type` - (Required) The type of AWS resource to be backed up. For VSS Windows backups, the only supported resource type is Amazon EC2. Valid values: `EC2`.
 
 ## Attributes Reference
 

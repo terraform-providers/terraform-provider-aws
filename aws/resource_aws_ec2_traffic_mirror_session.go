@@ -35,6 +35,10 @@ func resourceAwsEc2TrafficMirrorSession() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"packet_length": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -217,14 +221,14 @@ func resourceAwsEc2TrafficMirrorSessionRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
+	d.Set("owner_id", session.OwnerId)
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
+		AccountID: aws.StringValue(session.OwnerId),
 		Resource:  fmt.Sprintf("traffic-mirror-session/%s", d.Id()),
 	}.String()
-
 	d.Set("arn", arn)
 
 	return nil

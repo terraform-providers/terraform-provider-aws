@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsElasticTranscoderPipeline() *schema.Resource {
@@ -51,6 +52,10 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 						"storage_class": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Standard",
+								"ReducedRedundancy",
+							}, false),
 						},
 					},
 				},
@@ -64,7 +69,15 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 						"access": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Read",
+									"ReadAcp",
+									"WriteAcp",
+									"FullControl",
+								}, false),
+							},
 						},
 						"grantee": {
 							Type:     schema.TypeString,
@@ -73,6 +86,11 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 						"grantee_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Canonical",
+								"Email",
+								"Group",
+							}, false),
 						},
 					},
 				},
@@ -88,17 +106,11 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !regexp.MustCompile(`^[.0-9A-Za-z-_]+$`).MatchString(value) {
-						errors = append(errors, fmt.Errorf(
-							"only alphanumeric characters, hyphens, underscores, and periods allowed in %q", k))
-					}
-					if len(value) > 40 {
-						errors = append(errors, fmt.Errorf("%q cannot be longer than 40 characters", k))
-					}
-					return
-				},
+				ValidateFunc: validation.All(
+					validation.StringMatch(regexp.MustCompile(`^[.0-9A-Za-z-_]+$`),
+						"only alphanumeric characters, hyphens, underscores, and periods allowed"),
+					validation.StringLenBetween(1, 40),
+				),
 			},
 
 			"notifications": {
@@ -108,20 +120,24 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"completed": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
 						},
 						"error": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
 						},
 						"progressing": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
 						},
 						"warning": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
 						},
 					},
 				},
@@ -160,6 +176,10 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 						"storage_class": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Standard",
+								"ReducedRedundancy",
+							}, false),
 						},
 					},
 				},
@@ -173,7 +193,15 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 						"access": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Read",
+									"ReadAcp",
+									"WriteAcp",
+									"FullControl",
+								}, false),
+							},
 						},
 						"grantee": {
 							Type:     schema.TypeString,
@@ -182,6 +210,11 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 						"grantee_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Canonical",
+								"Email",
+								"Group",
+							}, false),
 						},
 					},
 				},
@@ -408,7 +441,8 @@ func resourceAwsElasticTranscoderPipelineUpdate(d *schema.ResourceData, meta int
 	}
 
 	for _, w := range output.Warnings {
-		log.Printf("[WARN] Elastic Transcoder Pipeline %v: %v", *w.Code, *w.Message)
+		log.Printf("[WARN] Elastic Transcoder Pipeline %v: %v", aws.StringValue(w.Code),
+			aws.StringValue(w.Message))
 	}
 
 	return resourceAwsElasticTranscoderPipelineRead(d, meta)

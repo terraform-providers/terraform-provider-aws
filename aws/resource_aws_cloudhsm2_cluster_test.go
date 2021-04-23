@@ -88,6 +88,7 @@ func TestAccAWSCloudHsmV2Cluster_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudhsmv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudHsmV2ClusterDestroy,
 		Steps: []resource.TestStep{
@@ -117,6 +118,7 @@ func TestAccAWSCloudHsmV2Cluster_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudhsmv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudHsmV2ClusterDestroy,
 		Steps: []resource.TestStep{
@@ -160,7 +162,7 @@ func testAccAWSCloudHsmV2ClusterConfigBase() string {
 	return `
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -195,16 +197,16 @@ resource "aws_subnet" "cloudhsm_v2_test_subnets" {
 }
 
 func testAccAWSCloudHsmV2ClusterConfig() string {
-	return testAccAWSCloudHsmV2ClusterConfigBase() + `
+	return composeConfig(testAccAWSCloudHsmV2ClusterConfigBase(), `
 resource "aws_cloudhsm_v2_cluster" "cluster" {
   hsm_type   = "hsm1.medium"
   subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets.*.id[0], aws_subnet.cloudhsm_v2_test_subnets.*.id[1]]
 }
-`
+`)
 }
 
 func testAccAWSCloudHsmV2ClusterConfigTags1(tagKey1, tagValue1 string) string {
-	return testAccAWSCloudHsmV2ClusterConfigBase() + fmt.Sprintf(`
+	return composeConfig(testAccAWSCloudHsmV2ClusterConfigBase(), fmt.Sprintf(`
 resource "aws_cloudhsm_v2_cluster" "test" {
   hsm_type   = "hsm1.medium"
   subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets.*.id[0], aws_subnet.cloudhsm_v2_test_subnets.*.id[1]]
@@ -213,11 +215,11 @@ resource "aws_cloudhsm_v2_cluster" "test" {
     %[1]q = %[2]q
   }
 }
-`, tagKey1, tagValue1)
+`, tagKey1, tagValue1))
 }
 
 func testAccAWSCloudHsmV2ClusterConfigTags2(tagKey1, tagValue1, tagKey2, tagValue2 string) string {
-	return testAccAWSCloudHsmV2ClusterConfigBase() + fmt.Sprintf(`
+	return composeConfig(testAccAWSCloudHsmV2ClusterConfigBase(), fmt.Sprintf(`
 resource "aws_cloudhsm_v2_cluster" "test" {
   hsm_type   = "hsm1.medium"
   subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets.*.id[0], aws_subnet.cloudhsm_v2_test_subnets.*.id[1]]
@@ -227,7 +229,7 @@ resource "aws_cloudhsm_v2_cluster" "test" {
     %[3]q = %[4]q
   }
 }
-`, tagKey1, tagValue1, tagKey2, tagValue2)
+`, tagKey1, tagValue1, tagKey2, tagValue2))
 }
 
 func testAccCheckAWSCloudHsmV2ClusterDestroy(s *terraform.State) error {

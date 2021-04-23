@@ -22,7 +22,7 @@ resource](/docs/providers/aws/r/secretsmanager_secret_policy.html) as shown belo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_msk_scram_secret_association" "example" {
   cluster_arn     = aws_msk_cluster.example.arn
   secret_arn_list = [aws_secretsmanager_secret.example.arn]

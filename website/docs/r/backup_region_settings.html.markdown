@@ -12,7 +12,7 @@ Provides an AWS Backup Region Settings resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_backup_region_settings" "test" {
   resource_type_opt_in_preference = {
     "DynamoDB"        = true

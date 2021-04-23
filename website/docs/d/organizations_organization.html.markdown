@@ -14,7 +14,7 @@ Get information about the organization that the user's account belongs to
 
 ### List all account IDs for the organization
 
-```hcl
+```terraform
 data "aws_organizations_organization" "example" {}
 
 output "account_ids" {
@@ -24,7 +24,7 @@ output "account_ids" {
 
 ### SNS topic that can be interacted by the organization only
 
-```hcl
+```terraform
 data "aws_organizations_organization" "example" {}
 
 resource "aws_sns_topic" "sns_topic" {

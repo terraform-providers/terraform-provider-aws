@@ -16,7 +16,7 @@ Manages a CloudFormation StackSet. StackSets allow CloudFormation templates to b
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "AWSCloudFormationStackSetAdministrationRole_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]

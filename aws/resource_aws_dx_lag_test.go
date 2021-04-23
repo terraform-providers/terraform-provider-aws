@@ -2,14 +2,81 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_dx_lag", &resource.Sweeper{
+		Name:         "aws_dx_lag",
+		F:            testSweepDxLags,
+		Dependencies: []string{"aws_dx_connection"},
+	})
+}
+
+func testSweepDxLags(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).dxconn
+
+	var sweeperErrs *multierror.Error
+
+	input := &directconnect.DescribeLagsInput{}
+
+	// DescribeLags has no pagination support
+	output, err := conn.DescribeLags(input)
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Direct Connect LAG sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
+	}
+
+	if err != nil {
+		sweeperErr := fmt.Errorf("error listing Direct Connect LAGs for %s: %w", region, err)
+		log.Printf("[ERROR] %s", sweeperErr)
+		sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+		return sweeperErrs.ErrorOrNil()
+	}
+
+	if output == nil {
+		log.Printf("[WARN] Skipping Direct Connect LAG sweep for %s: empty response", region)
+		return sweeperErrs.ErrorOrNil()
+	}
+
+	for _, lag := range output.Lags {
+		if lag == nil {
+			continue
+		}
+
+		id := aws.StringValue(lag.LagId)
+
+		r := resourceAwsDxLag()
+		d := r.Data(nil)
+		d.SetId(id)
+
+		err = r.Delete(d, client)
+
+		if err != nil {
+			sweeperErr := fmt.Errorf("error deleting Direct Connect LAG (%s): %w", id, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
+		}
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSDxLag_basic(t *testing.T) {
 	lagName1 := fmt.Sprintf("tf-dx-lag-%s", acctest.RandString(5))
@@ -18,6 +85,7 @@ func TestAccAWSDxLag_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxLagDestroy,
 		Steps: []resource.TestStep{
@@ -57,6 +125,7 @@ func TestAccAWSDxLag_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxLagDestroy,
 		Steps: []resource.TestStep{

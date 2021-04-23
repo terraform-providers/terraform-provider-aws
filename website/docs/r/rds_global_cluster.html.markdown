@@ -16,7 +16,7 @@ More information about Aurora global databases can be found in the [Aurora User 
 
 ### New Global Cluster
 
-```hcl
+```terraform
 provider "aws" {
   alias  = "primary"
   region = "us-east-2"
@@ -65,7 +65,7 @@ resource "aws_rds_cluster_instance" "secondary" {
 
 ### New Global Cluster From Existing DB Cluster
 
-```hcl
+```terraform
 resource "aws_rds_cluster" "example" {
   # ... other configuration ...
 
@@ -123,7 +123,7 @@ Certain resource arguments, like `force_destroy`, only exist within Terraform. I
 
 Certain resource arguments, like `source_db_cluster_identifier`, do not have an API method for reading the information after creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
-```hcl
+```terraform
 resource "aws_rds_global_cluster" "example" {
   # ... other configuration ...
 

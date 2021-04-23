@@ -1,0 +1,7 @@
+```release-note:note
+data-source/aws_route53_zone: The Route 53 `ListResourceRecordSets` API call has been implemented to support the `name_servers` attribute for private Hosted Zones similar to the resource implementation. Environments using restrictive IAM permissions may require updates.
+```
+
+```release-note:bug
+data-source/aws_route53_zone: Ensure `name_servers` is populated for private Hosted Zones
+```

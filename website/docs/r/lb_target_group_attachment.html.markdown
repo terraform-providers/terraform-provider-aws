@@ -15,7 +15,7 @@ Provides the ability to register instances and containers with an Application Lo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lb_target_group_attachment" "test" {
   target_group_arn = aws_lb_target_group.test.arn
   target_id        = aws_instance.test.id
@@ -33,7 +33,7 @@ resource "aws_instance" "test" {
 
 ## Usage with lambda
 
-```hcl
+```terraform
 resource "aws_lambda_permission" "with_lb" {
   statement_id  = "AllowExecutionFromlb"
   action        = "lambda:InvokeFunction"

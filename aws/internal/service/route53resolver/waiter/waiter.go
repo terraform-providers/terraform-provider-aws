@@ -117,8 +117,8 @@ func DnssecConfigCreated(conn *route53resolver.Route53Resolver, dnssecConfigID s
 	return nil, err
 }
 
-// DnssecConfigCreated waits for a DnssecConfig to return DELETED
-func DnssecConfigDeleted(conn *route53resolver.Route53Resolver, dnssecConfigID string) (*route53resolver.ResolverDnssecConfig, error) {
+// DnssecConfigDisabled waits for a DnssecConfig to return DISABLED
+func DnssecConfigDisabled(conn *route53resolver.Route53Resolver, dnssecConfigID string) (*route53resolver.ResolverDnssecConfig, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{route53resolver.ResolverDNSSECValidationStatusDisabling},
 		Target:  []string{route53resolver.ResolverDNSSECValidationStatusDisabled},

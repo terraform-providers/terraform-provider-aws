@@ -18,7 +18,7 @@ Provides an RDS DB parameter group resource .Documentation of the available para
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_parameter_group" "default" {
   name   = "rds-pg"
   family = "mysql5.6"

@@ -2,12 +2,14 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsCloudWatchLogDestination() *schema.Resource {
@@ -29,16 +31,22 @@ func resourceAwsCloudWatchLogDestination() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.Any(
+					validation.StringLenBetween(1, 512),
+					validation.StringMatch(regexp.MustCompile(`[^:*]*`), ""),
+				),
 			},
 
 			"role_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 
 			"target_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 
 			"arn": {
@@ -53,21 +61,20 @@ func resourceAwsCloudWatchLogDestinationPut(d *schema.ResourceData, meta interfa
 	conn := meta.(*AWSClient).cloudwatchlogsconn
 
 	name := d.Get("name").(string)
-	role_arn := d.Get("role_arn").(string)
-	target_arn := d.Get("target_arn").(string)
+	roleArn := d.Get("role_arn").(string)
+	targetArn := d.Get("target_arn").(string)
 
 	params := &cloudwatchlogs.PutDestinationInput{
 		DestinationName: aws.String(name),
-		RoleArn:         aws.String(role_arn),
-		TargetArn:       aws.String(target_arn),
+		RoleArn:         aws.String(roleArn),
+		TargetArn:       aws.String(targetArn),
 	}
 
-	var resp *cloudwatchlogs.PutDestinationOutput
 	var err error
 	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		resp, err = conn.PutDestination(params)
+		_, err = conn.PutDestination(params)
 
-		if isAWSErr(err, cloudwatchlogs.ErrCodeInvalidParameterException, "Could not deliver test message to specified") {
+		if isAWSErr(err, cloudwatchlogs.ErrCodeInvalidParameterException, "") {
 			return resource.RetryableError(err)
 		}
 		if err != nil {
@@ -76,20 +83,20 @@ func resourceAwsCloudWatchLogDestinationPut(d *schema.ResourceData, meta interfa
 		return nil
 	})
 	if isResourceTimeoutError(err) {
-		resp, err = conn.PutDestination(params)
+		_, err = conn.PutDestination(params)
 	}
 	if err != nil {
 		return fmt.Errorf("Error putting cloudwatch log destination: %s", err)
 	}
 	d.SetId(name)
-	d.Set("arn", resp.Destination.Arn)
-	return nil
+
+	return resourceAwsCloudWatchLogDestinationRead(d, meta)
 }
 
 func resourceAwsCloudWatchLogDestinationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatchlogsconn
-	name := d.Get("name").(string)
-	destination, exists, err := lookupCloudWatchLogDestination(conn, name, nil)
+
+	destination, exists, err := lookupCloudWatchLogDestination(conn, d.Id(), nil)
 	if err != nil {
 		return err
 	}
@@ -99,7 +106,6 @@ func resourceAwsCloudWatchLogDestinationRead(d *schema.ResourceData, meta interf
 		return nil
 	}
 
-	d.SetId(name)
 	d.Set("arn", destination.Arn)
 	d.Set("role_arn", destination.RoleArn)
 	d.Set("target_arn", destination.TargetArn)
@@ -110,14 +116,12 @@ func resourceAwsCloudWatchLogDestinationRead(d *schema.ResourceData, meta interf
 func resourceAwsCloudWatchLogDestinationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatchlogsconn
 
-	name := d.Get("name").(string)
-
 	params := &cloudwatchlogs.DeleteDestinationInput{
-		DestinationName: aws.String(name),
+		DestinationName: aws.String(d.Id()),
 	}
 	_, err := conn.DeleteDestination(params)
 	if err != nil {
-		return fmt.Errorf("Error deleting Destination with name %s", name)
+		return fmt.Errorf("Error deleting Destination with name %s", d.Id())
 	}
 
 	return nil

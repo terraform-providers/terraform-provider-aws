@@ -16,7 +16,7 @@ Provides a Pinpoint ADM (Amazon Device Messaging) Channel resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_pinpoint_app" "app" {}
 
 resource "aws_pinpoint_adm_channel" "channel" {
@@ -36,6 +36,10 @@ The following arguments are supported:
 * `client_id` - (Required) Client ID (part of OAuth Credentials) obtained via Amazon Developer Account.
 * `client_secret` - (Required) Client Secret (part of OAuth Credentials) obtained via Amazon Developer Account.
 * `enabled` - (Optional) Specifies whether to enable the channel. Defaults to `true`.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

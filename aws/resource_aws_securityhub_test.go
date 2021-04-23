@@ -19,6 +19,13 @@ func TestAccAWSSecurityHub_serial(t *testing.T) {
 			"Description": testAccAwsSecurityHubActionTarget_Description,
 			"Name":        testAccAwsSecurityHubActionTarget_Name,
 		},
+		"InviteAccepter": {
+			"basic": testAccAWSSecurityHubInviteAccepter_basic,
+		},
+		"OrganizationAdminAccount": {
+			"basic":      testAccAwsSecurityHubOrganizationAdminAccount_basic,
+			"disappears": testAccAwsSecurityHubOrganizationAdminAccount_disappears,
+		},
 		"ProductSubscription": {
 			"basic": testAccAWSSecurityHubProductSubscription_basic,
 		},

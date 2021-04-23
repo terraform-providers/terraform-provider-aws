@@ -11,7 +11,7 @@ Get all direct child organizational units under a parent organizational unit. Th
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_organizations_organization" "org" {}
 
 data "aws_organizations_organizational_units" "ou" {

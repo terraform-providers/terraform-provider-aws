@@ -12,7 +12,7 @@ Provides information about an Elastic File System (EFS) File System.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "file_system_id" {
   type    = string
   default = ""

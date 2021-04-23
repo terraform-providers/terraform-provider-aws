@@ -121,9 +121,9 @@ func resourceAwsInternetGatewayRead(d *schema.ResourceData, meta interface{}) er
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
+		AccountID: aws.StringValue(ig.OwnerId),
 		Resource:  fmt.Sprintf("internet-gateway/%s", d.Id()),
 	}.String()
 

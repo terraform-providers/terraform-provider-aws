@@ -16,7 +16,7 @@ Provides a resource to create an EventBridge permission to support cross-account
 
 ### Account Access
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_permission" "DevAccountAccess" {
   principal    = "123456789012"
   statement_id = "DevAccountAccess"
@@ -25,7 +25,7 @@ resource "aws_cloudwatch_event_permission" "DevAccountAccess" {
 
 ### Organization Access
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_permission" "OrganizationAccess" {
   principal    = "*"
   statement_id = "OrganizationAccess"

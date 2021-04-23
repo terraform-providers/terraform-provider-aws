@@ -103,6 +103,7 @@ Implementing name generation support for Terraform AWS Provider resources requir
 "name_prefix": {
   Type:          schema.TypeString,
   Optional:      true,
+  Computed:      true,
   ForceNew:      true,
   ConflictsWith: []string{"name"},
 },
@@ -120,7 +121,7 @@ name := naming.Generate(d.Get("name").(string), d.Get("name_prefix").(string))
 
 ```go
 d.Set("name", resp.Name)
-d.Set("name_prefix", aws.StringValue(naming.NamePrefixFromName(aws.StringValue(resp.Name))))
+d.Set("name_prefix", naming.NamePrefixFromName(aws.StringValue(resp.Name)))
 ```
 
 ### Resource Name Generation Testing Implementation
@@ -135,6 +136,7 @@ func TestAccAWSServiceThing_Name_Generated(t *testing.T) {
 
   resource.ParallelTest(t, resource.TestCase{
     PreCheck:     func() { testAccPreCheck(t) },
+    ErrorCheck:   testAccErrorCheck(t, service.EndpointsID),
     Providers:    testAccProviders,
     CheckDestroy: testAccCheckAWSServiceThingDestroy,
     Steps: []resource.TestStep{
@@ -143,6 +145,7 @@ func TestAccAWSServiceThing_Name_Generated(t *testing.T) {
         Check: resource.ComposeTestCheckFunc(
           testAccCheckAWSServiceThingExists(resourceName, &thing),
           naming.TestCheckResourceAttrNameGenerated(resourceName, "name"),
+          resource.TestCheckResourceAttr(resourceName, "name_prefix", "terraform-"),
         ),
       },
       // If the resource supports import:
@@ -161,6 +164,7 @@ func TestAccAWSServiceThing_NamePrefix(t *testing.T) {
 
   resource.ParallelTest(t, resource.TestCase{
     PreCheck:     func() { testAccPreCheck(t) },
+    ErrorCheck:   testAccErrorCheck(t, service.EndpointsID),
     Providers:    testAccProviders,
     CheckDestroy: testAccCheckAWSServiceThingDestroy,
     Steps: []resource.TestStep{
@@ -169,6 +173,7 @@ func TestAccAWSServiceThing_NamePrefix(t *testing.T) {
         Check: resource.ComposeTestCheckFunc(
           testAccCheckAWSServiceThingExists(resourceName, &thing),
           naming.TestCheckResourceAttrNameFromPrefix(resourceName, "name", "tf-acc-test-prefix-"),
+          resource.TestCheckResourceAttr(resourceName, "name_prefix", "tf-acc-test-prefix-"),
         ),
       },
       // If the resource supports import:
@@ -216,15 +221,7 @@ resource "aws_service_thing" "test" {
 
 ## Adding Resource Policy Support
 
-Some AWS components support [resource-based IAM policies](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_identity-vs-resource.html) to control permissions. When implementing this support in the Terraform AWS Provider, we typically prefer creating a separate resource, `aws_{SERVICE}_{THING}_policy` (e.g. `aws_s3_bucket_policy`) for a few reasons:
-
-- Many of these policies require the Amazon Resource Name (ARN) of the resource in the policy itself. It is difficult to workaround this requirement with custom difference handling within a self-contained resource.
-- Sometimes policies between two resources need to be written where they cross-reference each other resource's ARN within each policy. Without a separate resource, this introduces a configuration cycle.
-- Splitting the resources allows operators to logically split their infrastructure on purely operational and security boundaries with separate configurations/modules.
-- Splitting the resources prevents any separate policy API calls from needing to be permitted in the main resource in environments with restrictive IAM permissions, which can be undesirable.
-
-See the [New Resource section](#new-resource) for more information about implementing the separate resource.
-
+Some AWS components support [resource-based IAM policies](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_identity-vs-resource.html) to control permissions. When implementing this support in the Terraform AWS Provider, we typically prefer creating a separate resource, `aws_{SERVICE}_{THING}_policy` (e.g. `aws_s3_bucket_policy`). See the [New Resource section](#new-resource) for more information about implementing the separate resource and the [Provider Design page](provider-design.md) for rationale.
 ## Adding Resource Tagging Support
 
 AWS provides key-value metadata across many services and resources, which can be used for a variety of use cases including billing, ownership, and more. See the [AWS Tagging Strategy page](https://aws.amazon.com/answers/account-management/aws-tagging-strategies/) for more information about tagging at a high level.
@@ -313,7 +310,7 @@ More details about this code generation, including fixes for potential error mes
   ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
   if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-    return fmt.Errorf("error setting tags: %s", err)
+    return fmt.Errorf("error setting tags: %w", err)
   }
   ```
 
@@ -330,7 +327,7 @@ More details about this code generation, including fixes for potential error mes
   }
 
   if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-    return fmt.Errorf("error setting tags: %s", err)
+    return fmt.Errorf("error setting tags: %w", err)
   }
   ```
 
@@ -358,6 +355,7 @@ More details about this code generation, including fixes for potential error mes
 
     resource.ParallelTest(t, resource.TestCase{
       PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+      ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
       Providers:    testAccProviders,
       CheckDestroy: testAccCheckAWSEksClusterDestroy,
       Steps: []resource.TestStep{
@@ -446,6 +444,8 @@ More details about this code generation, including fixes for potential error mes
   ```
 
 ## New Resource
+
+_Before submitting this type of contribution, it is highly recommended to read and understand the other pages of the [Contributing Guide](../CONTRIBUTING.md)._
 
 Implementing a new resource is a good way to learn more about how Terraform
 interacts with upstream APIs. There are plenty of examples to draw from in the

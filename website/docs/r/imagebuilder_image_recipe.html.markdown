@@ -12,7 +12,7 @@ Manages an Image Builder Image Recipe.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_imagebuilder_image_recipe" "example" {
   block_device_mapping {
     device_name = "/dev/xvdb"

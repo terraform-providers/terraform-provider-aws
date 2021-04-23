@@ -12,7 +12,7 @@ Provides a Cloud9 EC2 Development Environment.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloud9_environment_ec2" "example" {
   instance_type = "t2.micro"
   name          = "example-env"

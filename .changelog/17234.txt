@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_api_gateway_method_settings: Prevent confusing Terraform error on resource disappearance during creation
+```
+
+```release-note:bug
+resource/aws_api_gateway_method_settings: Ignore non-existent resource errors during deletion
+```

@@ -28,9 +28,9 @@ which is currently in use (eg, by [`aws_lb_listener`](lb_listener.html)).
 
 ## Example Usage
 
-### Certificate creation
+### Create Certificate
 
-```hcl
+```terraform
 resource "aws_acm_certificate" "cert" {
   domain_name       = "example.com"
   validation_method = "DNS"
@@ -45,9 +45,9 @@ resource "aws_acm_certificate" "cert" {
 }
 ```
 
-### Importing an existing certificate
+### Existing Certificate Body Import
 
-```hcl
+```terraform
 resource "tls_private_key" "example" {
   algorithm = "RSA"
 }
@@ -80,7 +80,7 @@ resource "aws_acm_certificate" "cert" {
 
 See the [`aws_acm_certificate_validation` resource](acm_certificate_validation.html) for a full example of performing DNS validation.
 
-```hcl
+```terraform
 resource "aws_route53_record" "example" {
   for_each = {
     for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
@@ -114,7 +114,7 @@ The following arguments are supported:
     * `certificate_chain` - (Optional) The certificate's PEM-formatted chain
 * Creating a private CA issued certificate
     * `domain_name` - (Required) A domain name for which the certificate should be issued
-    * `certificate_authority_arn` - (Required) ARN of an ACMPCA
+    * `certificate_authority_arn` - (Required) ARN of an ACM PCA
     * `subject_alternative_names` - (Optional) Set of domains that should be SANs in the issued certificate. To remove all elements of a previously configured list, set this value equal to an empty list (`[]`) or use the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) to trigger recreation.
 * `tags` - (Optional) A map of tags to assign to the resource.
 

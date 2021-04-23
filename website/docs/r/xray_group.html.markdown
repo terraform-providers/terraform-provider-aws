@@ -12,7 +12,7 @@ Creates and manages an AWS XRay Group.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_xray_group" "example" {
   group_name        = "example"
   filter_expression = "responsetime > 5"

@@ -10,8 +10,9 @@ description: |-
 
 Provides a AWS Transfer Server resource.
 
+## Example Usage
 
-```hcl
+```terraform
 resource "aws_transfer_server" "example" {
   identity_provider_type = "SERVICE_MANAGED"
   logging_role           = aws_iam_role.example.arn

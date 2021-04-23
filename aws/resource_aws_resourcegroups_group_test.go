@@ -35,6 +35,7 @@ func TestAccAWSResourceGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, resourcegroups.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSResourceGroupDestroy,
 		Steps: []resource.TestStep{
@@ -72,6 +73,7 @@ func TestAccAWSResourceGroup_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, resourcegroups.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSResourceGroupDestroy,
 		Steps: []resource.TestStep{

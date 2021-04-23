@@ -3,7 +3,6 @@ package naming
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -28,11 +27,6 @@ func Generate(name string, namePrefix string) string {
 	return resource.UniqueId()
 }
 
-// HasResourceUniqueIdPrefix returns true if the string has the built-in unique ID prefix
-func HasResourceUniqueIdPrefix(s string) bool {
-	return strings.HasPrefix(s, resource.UniqueIdPrefix)
-}
-
 // HasResourceUniqueIdSuffix returns true if the string has the built-in unique ID suffix
 func HasResourceUniqueIdSuffix(s string) bool {
 	return resourceUniqueIDSuffixRegexp.MatchString(s)
@@ -41,21 +35,14 @@ func HasResourceUniqueIdSuffix(s string) bool {
 // NamePrefixFromName returns a name prefix if the string matches prefix criteria
 //
 // The input to this function must be strictly the "name" and not any
-// additional information such as a full Amazon Resource Name (ARN). The output
-// is suitable for custom resource Importer State functions after nil checking
-// to ensure differences are not reported with ImportStateVerify testing, e.g.
+// additional information such as a full Amazon Resource Name (ARN).
 //
-// if namePrefix := naming.NamePrefixFromName(d.Id()); namePrefix != nil {
-//   d.Set("name_prefix", namePrefix)
-// }
+// An expected usage might be:
+//
+//   d.Set("name_prefix", naming.NamePrefixFromName(d.Id()))
+//
 func NamePrefixFromName(name string) *string {
 	if !HasResourceUniqueIdSuffix(name) {
-		return nil
-	}
-
-	// If the name begins with terraform-, then the name may have been fully
-	// generated (e.g. omitting both name and name_prefix arguments)
-	if HasResourceUniqueIdPrefix(name) {
 		return nil
 	}
 
@@ -77,7 +64,7 @@ func TestCheckResourceAttrNameFromPrefix(resourceName string, attributeName stri
 		attributeMatch, err := regexp.Compile(nameRegexpPattern)
 
 		if err != nil {
-			return fmt.Errorf("Unable to compile name regexp (%s): %s", nameRegexpPattern, err)
+			return fmt.Errorf("Unable to compile name regexp (%s): %w", nameRegexpPattern, err)
 		}
 
 		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)

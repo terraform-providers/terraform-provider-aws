@@ -16,7 +16,7 @@ Manages an AWS Storage Gateway SMB File Share.
 
 ~> **NOTE:** The gateway must have already joined the Active Directory domain prior to SMB file share creation. e.g. via "SMB Settings" in the AWS Storage Gateway console or `smb_active_directory_settings` in the [`aws_storagegateway_gateway` resource](/docs/providers/aws/r/storagegateway_gateway.html).
 
-```hcl
+```terraform
 resource "aws_storagegateway_smb_file_share" "example" {
   authentication = "ActiveDirectory"
   gateway_arn    = aws_storagegateway_gateway.example.arn
@@ -29,7 +29,7 @@ resource "aws_storagegateway_smb_file_share" "example" {
 
 ~> **NOTE:** The gateway must have already had the SMB guest password set prior to SMB file share creation. e.g. via "SMB Settings" in the AWS Storage Gateway console or `smb_guest_password` in the [`aws_storagegateway_gateway` resource](/docs/providers/aws/r/storagegateway_gateway.html).
 
-```hcl
+```terraform
 resource "aws_storagegateway_smb_file_share" "example" {
   authentication = "GuestAccess"
   gateway_arn    = aws_storagegateway_gateway.example.arn

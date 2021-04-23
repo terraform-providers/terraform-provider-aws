@@ -5,6 +5,8 @@ https://github.com/kubernetes-sigs/aws-iam-authenticator/blob/7547c74e660f8d34d9
 With the following modifications:
 
  - Fix staticcheck reports
+ - Ignore errorlint reports
+ - Refactor deprecated io/ioutil in Go 1.16
 */
 
 package token
@@ -16,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -49,7 +50,7 @@ func errorContains(t *testing.T, err error, expectedErr string) {
 
 func assertSTSError(t *testing.T, err error) {
 	t.Helper()
-	if _, ok := err.(STSError); !ok {
+	if _, ok := err.(STSError); !ok { // nolint:errorlint
 		t.Errorf("Expected err %v to be an STSError but was not", err)
 	}
 }
@@ -68,7 +69,7 @@ func toToken(url string) string {
 func newVerifier(statusCode int, body string, err error) Verifier {
 	var rc io.ReadCloser
 	if body != "" {
-		rc = ioutil.NopCloser(bytes.NewReader([]byte(body)))
+		rc = io.NopCloser(bytes.NewReader([]byte(body)))
 	}
 	return tokenVerifier{
 		client: &http.Client{

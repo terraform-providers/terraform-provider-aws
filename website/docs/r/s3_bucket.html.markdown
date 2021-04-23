@@ -10,13 +10,13 @@ description: |-
 
 Provides a S3 bucket resource.
 
--> This functionality is for managing S3 in an AWS Partition. To manage [S3 on Outposts](https://docs.aws.amazon.com/AmazonS3/latest/dev/S3onOutposts.html), see the [`aws_s3control_bucket` resource](/docs/providers/aws/r/s3control_bucket.html).
+-> This functionality is for managing S3 in an AWS Partition. To manage [S3 on Outposts](https://docs.aws.amazon.com/AmazonS3/latest/dev/S3onOutposts.html), see the [`aws_s3control_bucket`](/docs/providers/aws/r/s3control_bucket.html) resource.
 
 ## Example Usage
 
 ### Private Bucket w/ Tags
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "b" {
   bucket = "my-tf-test-bucket"
   acl    = "private"
@@ -30,7 +30,7 @@ resource "aws_s3_bucket" "b" {
 
 ### Static Website Hosting
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "b" {
   bucket = "s3-website-test.hashicorp.com"
   acl    = "public-read"
@@ -56,7 +56,7 @@ EOF
 
 ### Using CORS
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "b" {
   bucket = "s3-website-test.hashicorp.com"
   acl    = "public-read"
@@ -73,7 +73,7 @@ resource "aws_s3_bucket" "b" {
 
 ### Using versioning
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "b" {
   bucket = "my-tf-test-bucket"
   acl    = "private"
@@ -86,7 +86,7 @@ resource "aws_s3_bucket" "b" {
 
 ### Enable Logging
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "my-tf-log-bucket"
   acl    = "log-delivery-write"
@@ -105,7 +105,7 @@ resource "aws_s3_bucket" "b" {
 
 ### Using object lifecycle
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "bucket" {
   bucket = "my-bucket"
   acl    = "private"
@@ -117,8 +117,8 @@ resource "aws_s3_bucket" "bucket" {
     prefix = "log/"
 
     tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
+      rule      = "log"
+      autoclean = "true"
     }
 
     transition {
@@ -178,7 +178,7 @@ resource "aws_s3_bucket" "versioning_bucket" {
 
 ### Using replication configuration
 
-```hcl
+```terraform
 provider "aws" {
   region = "eu-west-1"
 }
@@ -289,7 +289,7 @@ resource "aws_s3_bucket" "bucket" {
 
 ### Enable Default Server Side Encryption
 
-```hcl
+```terraform
 resource "aws_kms_key" "mykey" {
   description             = "This key is used to encrypt bucket objects"
   deletion_window_in_days = 10
@@ -311,7 +311,7 @@ resource "aws_s3_bucket" "mybucket" {
 
 ### Using ACL policy grants
 
-```hcl
+```terraform
 data "aws_canonical_user_id" "current_user" {}
 
 resource "aws_s3_bucket" "bucket" {
@@ -403,7 +403,7 @@ The `expiration` object supports the following
 
 * `date` (Optional) Specifies the date after which you want the corresponding action to take effect.
 * `days` (Optional) Specifies the number of days after object creation when the specific rule action takes effect.
-* `expired_object_delete_marker` (Optional) On a versioned bucket (versioning-enabled or versioning-suspended bucket), you can add this element in the lifecycle configuration to direct Amazon S3 to delete expired object delete markers.
+* `expired_object_delete_marker` (Optional) On a versioned bucket (versioning-enabled or versioning-suspended bucket), you can add this element in the lifecycle configuration to direct Amazon S3 to delete expired object delete markers. This cannot be specified with Days or Date in a Lifecycle Expiration Policy.
 
 The `transition` object supports the following
 
@@ -442,6 +442,8 @@ Replication configuration V1 supports filtering based on only the `prefix` attri
 * For a specific rule, `prefix` conflicts with `filter`
 * If any rule has `filter` specified then they all must
 * `priority` is optional (with a default value of `0`) but must be unique between multiple rules
+
+~> **NOTE:** Replication to multiple destination buckets requires that `priority` is specified in the `rules` object. If the corresponding rule requires no filter, an empty configuration block `filter {}` must be specified.
 
 The `destination` object supports the following:
 
@@ -482,7 +484,7 @@ The `apply_server_side_encryption_by_default` object supports the following:
 
 The `grant` object supports the following:
 
-* `id` - (optional) Canonical user id to grant for. Used only when `type` is `CanonicalUser`.  
+* `id` - (optional) Canonical user id to grant for. Used only when `type` is `CanonicalUser`.
 * `type` - (required) - Type of grantee to apply for. Valid values are `CanonicalUser` and `Group`. `AmazonCustomerByEmail` is not supported.
 * `permissions` - (required) List of permissions to apply for grantee. Valid values are `READ`, `WRITE`, `READ_ACP`, `WRITE_ACP`, `FULL_CONTROL`.
 * `uri` - (optional) Uri address to grant for. Used only when `type` is `Group`.

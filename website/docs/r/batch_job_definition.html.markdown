@@ -12,7 +12,7 @@ Provides a Batch Job Definition resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_batch_job_definition" "test" {
   name = "tf_test_batch_job_definition"
   type = "container"

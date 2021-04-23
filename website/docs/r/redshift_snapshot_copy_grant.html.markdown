@@ -14,7 +14,7 @@ Note that the grant must exist in the destination region, and not in the region 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_redshift_snapshot_copy_grant" "test" {
   snapshot_copy_grant_name = "my-grant"
 }

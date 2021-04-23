@@ -16,7 +16,7 @@ Provides a resource to manage AWS Certificate Manager Private Certificate Author
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_acmpca_certificate_authority" "example" {
   certificate_authority_configuration {
     key_algorithm     = "RSA_4096"
@@ -33,7 +33,7 @@ resource "aws_acmpca_certificate_authority" "example" {
 
 ### Enable Certificate Revocation List
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example"
 }

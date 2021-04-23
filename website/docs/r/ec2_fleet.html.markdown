@@ -12,7 +12,7 @@ Provides a resource to manage EC2 Fleets.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_fleet" "example" {
   launch_template_config {
     launch_template_specification {
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 Example:
 
-```hcl
+```terraform
 resource "aws_ec2_fleet" "example" {
   # ... other configuration ...
 

@@ -54,7 +54,7 @@ func dataSourceAwsSnsTopicsRead(d *schema.ResourceData, meta interface{}) error 
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing topics: %s", err)
+		return fmt.Errorf("Error describing topics: %w", err)
 	}
 
 	if len(arns) == 0 {

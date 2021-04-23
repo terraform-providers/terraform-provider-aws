@@ -50,6 +50,7 @@ func TestAccAWSALBTargetGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -92,6 +93,7 @@ func TestAccAWSALBTargetGroup_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -112,6 +114,7 @@ func TestAccAWSALBTargetGroup_generatedName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -133,6 +136,7 @@ func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -161,6 +165,7 @@ func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -189,6 +194,7 @@ func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -217,6 +223,7 @@ func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -243,6 +250,7 @@ func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -274,6 +282,7 @@ func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -336,6 +345,7 @@ func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -421,6 +431,7 @@ func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -449,6 +460,7 @@ func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
@@ -552,6 +564,7 @@ func TestAccAWSALBTargetGroup_lambda(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
@@ -585,6 +598,7 @@ func TestAccAWSALBTargetGroup_lambdaMultiValueHeadersEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{
@@ -632,6 +646,7 @@ func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSALBTargetGroupDestroy,
 		Steps: []resource.TestStep{

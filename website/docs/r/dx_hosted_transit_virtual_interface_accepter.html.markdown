@@ -15,7 +15,7 @@ This resource accepts ownership of a transit virtual interface created by anothe
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   # Creator's credentials.
 }

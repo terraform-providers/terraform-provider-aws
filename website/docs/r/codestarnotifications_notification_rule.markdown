@@ -12,7 +12,7 @@ Provides a CodeStar Notifications Rule.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_codecommit_repository" "code" {
   repository_name = "example-code-repo"
 }

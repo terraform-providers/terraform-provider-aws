@@ -14,7 +14,7 @@ Manages an Amazon API Gateway Version 2 [model](https://docs.aws.amazon.com/apig
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_model" "example" {
   api_id       = aws_apigatewayv2_api.example.id
   content_type = "application/json"

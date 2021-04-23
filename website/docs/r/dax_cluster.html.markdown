@@ -12,7 +12,7 @@ Provides a DAX Cluster resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dax_cluster" "bar" {
   cluster_name       = "cluster-example"
   iam_role_arn       = data.aws_iam_role.example.arn

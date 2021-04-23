@@ -12,7 +12,7 @@ Provides an OpsWorks custom layer resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_opsworks_custom_layer" "custlayer" {
   name       = "My Awesome Custom Layer"
   short_name = "awesome"

@@ -15,6 +15,7 @@ func testAccAWSSecurityHubStandardsSubscription_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, securityhub.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityHubAccountDestroy,
 		Steps: []resource.TestStep{

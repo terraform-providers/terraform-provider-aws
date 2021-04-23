@@ -13,7 +13,7 @@ Provides additional routes for AWS Client VPN endpoints. For more information on
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_client_vpn_route" "example" {
   client_vpn_endpoint_id = aws_ec2_client_vpn_endpoint.example.id
   destination_cidr_block = "0.0.0.0/0"

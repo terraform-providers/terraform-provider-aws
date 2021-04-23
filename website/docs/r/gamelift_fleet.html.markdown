@@ -12,7 +12,7 @@ Provides a Gamelift Fleet resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_fleet" "example" {
   build_id          = aws_gamelift_build.example.id
   ec2_instance_type = "t2.micro"

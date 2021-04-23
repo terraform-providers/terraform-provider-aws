@@ -12,7 +12,7 @@ Use this data source to get information about a Network Interface.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_network_interface" "bar" {
   id = "eni-01234567"
 }

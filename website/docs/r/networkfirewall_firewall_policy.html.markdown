@@ -12,7 +12,7 @@ Provides an AWS Network Firewall Firewall Policy Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_networkfirewall_firewall_policy" "example" {
   name = "example"
 
@@ -34,7 +34,7 @@ resource "aws_networkfirewall_firewall_policy" "example" {
 
 ## Policy with a Custom Action for Stateless Inspection
 
-```hcl
+```terraform
 resource "aws_networkfirewall_firewall_policy" "test" {
   name = "example"
 

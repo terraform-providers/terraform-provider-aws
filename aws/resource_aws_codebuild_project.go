@@ -402,9 +402,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"resource": {
-										Type:      schema.TypeString,
-										Sensitive: true,
-										Optional:  true,
+										Type:       schema.TypeString,
+										Sensitive:  true,
+										Optional:   true,
+										Deprecated: "Use the aws_codebuild_source_credential resource instead",
 									},
 									"type": {
 										Type:     schema.TypeString,
@@ -412,9 +413,11 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											codebuild.SourceAuthTypeOauth,
 										}, false),
+										Deprecated: "Use the aws_codebuild_source_credential resource instead",
 									},
 								},
 							},
+							Deprecated: "Use the aws_codebuild_source_credential resource instead",
 						},
 						"buildspec": {
 							Type:     schema.TypeString,
@@ -486,9 +489,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"resource": {
-										Type:      schema.TypeString,
-										Sensitive: true,
-										Optional:  true,
+										Type:       schema.TypeString,
+										Sensitive:  true,
+										Optional:   true,
+										Deprecated: "Use the aws_codebuild_source_credential resource instead",
 									},
 									"type": {
 										Type:     schema.TypeString,
@@ -496,9 +500,11 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											codebuild.SourceAuthTypeOauth,
 										}, false),
+										Deprecated: "Use the aws_codebuild_source_credential resource instead",
 									},
 								},
 							},
+							Deprecated: "Use the aws_codebuild_source_credential resource instead",
 						},
 						"buildspec": {
 							Type:     schema.TypeString,

@@ -12,7 +12,7 @@ Provides a DMS (Data Migration Service) replication instance resource. DMS repli
 
 ## Example Usage
 
-```hcl
+```terraform
 # Database Migration Service requires the below IAM Roles to be created before
 # replication instances can be created. See the DMS Documentation for
 # additional information: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#CHAP_Security.APIRole

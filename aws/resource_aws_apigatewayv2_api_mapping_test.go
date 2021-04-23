@@ -43,6 +43,7 @@ func TestAccAWSAPIGatewayV2ApiMapping_basic(t *testing.T) {
 func testAccAWSAPIGatewayV2ApiMapping_createCertificate(t *testing.T, rName string, certificateArn *string) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -67,6 +68,7 @@ func testAccAWSAPIGatewayV2ApiMapping_basic(t *testing.T, rName string, certific
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiMappingDestroy,
 		Steps: []resource.TestStep{
@@ -94,6 +96,7 @@ func testAccAWSAPIGatewayV2ApiMapping_disappears(t *testing.T, rName string, cer
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiMappingDestroy,
 		Steps: []resource.TestStep{
@@ -118,6 +121,7 @@ func testAccAWSAPIGatewayV2ApiMapping_ApiMappingKey(t *testing.T, rName string, 
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiMappingDestroy,
 		Steps: []resource.TestStep{

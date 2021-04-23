@@ -66,6 +66,10 @@ func DnssecConfigStatus(conn *route53resolver.Route53Resolver, dnssecConfigID st
 	return func() (interface{}, string, error) {
 		dnssecConfig, err := finder.ResolverDnssecConfigByID(conn, dnssecConfigID)
 
+		if tfawserr.ErrCodeEquals(err, route53resolver.ErrCodeResourceNotFoundException) {
+			return nil, resolverDnssecConfigStatusNotFound, nil
+		}
+
 		if err != nil {
 			return nil, resolverDnssecConfigStatusUnknown, err
 		}

@@ -15,6 +15,7 @@ func TestAccAWSNetworkInterfaceAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: "aws_network_interface.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSENIDestroy,

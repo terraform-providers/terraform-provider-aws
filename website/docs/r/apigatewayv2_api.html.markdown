@@ -16,7 +16,7 @@ Manages an Amazon API Gateway Version 2 API.
 
 ### Basic WebSocket API
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_api" "example" {
   name                       = "example-websocket-api"
   protocol_type              = "WEBSOCKET"
@@ -26,7 +26,7 @@ resource "aws_apigatewayv2_api" "example" {
 
 ### Basic HTTP API
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_api" "example" {
   name          = "example-http-api"
   protocol_type = "HTTP"

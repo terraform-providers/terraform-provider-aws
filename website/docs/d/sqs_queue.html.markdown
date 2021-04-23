@@ -14,7 +14,7 @@ the ARNs as input.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_sqs_queue" "example" {
   name = "queue"
 }

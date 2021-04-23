@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -11,13 +12,15 @@ import (
 func TestAccAWSEcsServiceDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_ecs_service.test"
 	resourceName := "aws_ecs_service.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ecs.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsEcsServiceDataSourceConfig,
+				Config: testAccCheckAwsEcsServiceDataSourceConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceName, "id", dataSourceName, "arn"),
 					resource.TestCheckResourceAttrPair(resourceName, "desired_count", dataSourceName, "desired_count"),
@@ -31,13 +34,14 @@ func TestAccAWSEcsServiceDataSource_basic(t *testing.T) {
 	})
 }
 
-var testAccCheckAwsEcsServiceDataSourceConfig = fmt.Sprintf(`
+func testAccCheckAwsEcsServiceDataSourceConfig(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-  name = "tf-acc-%d"
+  name = %[1]q
 }
 
 resource "aws_ecs_task_definition" "test" {
-  family = "mongodb"
+  family = %[1]q
 
   container_definitions = <<DEFINITION
 [
@@ -64,4 +68,5 @@ data "aws_ecs_service" "test" {
   service_name = aws_ecs_service.test.name
   cluster_arn  = aws_ecs_cluster.test.arn
 }
-`, acctest.RandInt())
+`, rName)
+}

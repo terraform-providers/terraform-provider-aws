@@ -22,7 +22,7 @@ block until the new AMI is available for use on new instances.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ami_copy" "example" {
   name              = "terraform-example"
   description       = "A copy of ami-xxxxxxxx"
@@ -66,5 +66,5 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the created AMI.
 
 This resource also exports a full set of attributes corresponding to the arguments of the
-[`aws_ami`](ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
+[`aws_ami`](/docs/providers/aws/r/ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
 configuration.

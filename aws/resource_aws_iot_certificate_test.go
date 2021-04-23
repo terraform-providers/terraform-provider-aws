@@ -14,6 +14,7 @@ import (
 func TestAccAWSIoTCertificate_csr(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iot.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIoTCertificateDestroy_basic,
 		Steps: []resource.TestStep{
@@ -35,6 +36,7 @@ func TestAccAWSIoTCertificate_csr(t *testing.T) {
 func TestAccAWSIoTCertificate_keys_certificate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iot.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIoTCertificateDestroy_basic,
 		Steps: []resource.TestStep{

@@ -15,11 +15,16 @@ Provides a DMS (Data Migration Service) certificate resource. DMS certificates c
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new certificate
 resource "aws_dms_certificate" "test" {
   certificate_id  = "test-dms-certificate-tf"
   certificate_pem = "..."
+
+  tags = {
+    Name = "test"
+  }
+
 }
 ```
 
@@ -32,7 +37,8 @@ The following arguments are supported:
     - Must contain from 1 to 255 alphanumeric characters and hyphens.
 
 * `certificate_pem` - (Optional) The contents of the .pem X.509 certificate file for the certificate. Either `certificate_pem` or `certificate_wallet` must be set.
-* `certificate_wallet` - (Optional) The contents of the Oracle Wallet certificate for use with SSL. Either `certificate_pem` or `certificate_wallet` must be set.
+* `certificate_wallet` - (Optional) The contents of the Oracle Wallet certificate for use with SSL, provided as a base64-encoded String. Either `certificate_pem` or `certificate_wallet` must be set.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

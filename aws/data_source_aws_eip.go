@@ -112,7 +112,7 @@ func dataSourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := conn.DescribeAddresses(req)
 	if err != nil {
-		return fmt.Errorf("error describing EC2 Address: %s", err)
+		return fmt.Errorf("error describing EC2 Address: %w", err)
 	}
 	if resp == nil || len(resp.Addresses) == 0 {
 		return fmt.Errorf("no matching Elastic IP found")
@@ -136,16 +136,16 @@ func dataSourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("network_interface_id", eip.NetworkInterfaceId)
 	d.Set("network_interface_owner_id", eip.NetworkInterfaceOwnerId)
 
-	region := *conn.Config.Region
+	region := aws.StringValue(conn.Config.Region)
 
 	d.Set("private_ip", eip.PrivateIpAddress)
 	if eip.PrivateIpAddress != nil {
-		d.Set("private_dns", fmt.Sprintf("ip-%s.%s", resourceAwsEc2DashIP(*eip.PrivateIpAddress), resourceAwsEc2RegionalPrivateDnsSuffix(region)))
+		d.Set("private_dns", fmt.Sprintf("ip-%s.%s", resourceAwsEc2DashIP(aws.StringValue(eip.PrivateIpAddress)), resourceAwsEc2RegionalPrivateDnsSuffix(region)))
 	}
 
 	d.Set("public_ip", eip.PublicIp)
 	if eip.PublicIp != nil {
-		d.Set("public_dns", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("ec2-%s.%s", resourceAwsEc2DashIP(*eip.PublicIp), resourceAwsEc2RegionalPublicDnsSuffix(region))))
+		d.Set("public_dns", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("ec2-%s.%s", resourceAwsEc2DashIP(aws.StringValue(eip.PublicIp)), resourceAwsEc2RegionalPublicDnsSuffix(region))))
 	}
 	d.Set("public_ipv4_pool", eip.PublicIpv4Pool)
 	d.Set("carrier_ip", eip.CarrierIp)
@@ -153,7 +153,7 @@ func dataSourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("customer_owned_ip", eip.CustomerOwnedIp)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(eip.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

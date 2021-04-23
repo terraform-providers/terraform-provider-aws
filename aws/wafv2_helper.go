@@ -21,6 +21,18 @@ func wafv2EmptySchema() *schema.Schema {
 	}
 }
 
+func wafv2EmptySchemaDeprecated() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{},
+		},
+		Deprecated: "Not supported by WAFv2 API",
+	}
+}
+
 func wafv2RootStatementSchema(level int) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,

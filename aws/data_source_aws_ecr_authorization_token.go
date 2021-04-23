@@ -56,7 +56,7 @@ func dataSourceAwsEcrAuthorizationTokenRead(d *schema.ResourceData, meta interfa
 	log.Printf("[DEBUG] Getting ECR authorization token")
 	out, err := conn.GetAuthorizationToken(params)
 	if err != nil {
-		return fmt.Errorf("error getting ECR authorization token: %s", err)
+		return fmt.Errorf("error getting ECR authorization token: %w", err)
 	}
 	log.Printf("[DEBUG] Received ECR AuthorizationData %v", out.AuthorizationData)
 	authorizationData := out.AuthorizationData[0]
@@ -66,7 +66,7 @@ func dataSourceAwsEcrAuthorizationTokenRead(d *schema.ResourceData, meta interfa
 	authBytes, err := base64.URLEncoding.DecodeString(authorizationToken)
 	if err != nil {
 		d.SetId("")
-		return fmt.Errorf("error decoding ECR authorization token: %s", err)
+		return fmt.Errorf("error decoding ECR authorization token: %w", err)
 	}
 	basicAuthorization := strings.Split(string(authBytes), ":")
 	if len(basicAuthorization) != 2 {

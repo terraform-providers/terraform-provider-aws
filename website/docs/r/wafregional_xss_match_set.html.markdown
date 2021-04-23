@@ -12,7 +12,7 @@ Provides a WAF Regional XSS Match Set Resource for use with Application Load Bal
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_xss_match_set" "xss_match_set" {
   name = "xss_match_set"
 

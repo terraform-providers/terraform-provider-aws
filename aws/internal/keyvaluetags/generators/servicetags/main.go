@@ -34,6 +34,7 @@ var sliceServiceNames = []string{
 	"codebuild",
 	"codedeploy",
 	"codepipeline",
+	"codestarconnections",
 	"configservice",
 	"databasemigrationservice",
 	"datapipeline",

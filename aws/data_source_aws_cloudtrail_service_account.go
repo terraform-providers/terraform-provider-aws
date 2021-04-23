@@ -16,7 +16,7 @@ var cloudTrailServiceAccountPerRegionMap = map[string]string{
 	endpoints.ApEast1RegionID:      "119688915426",
 	endpoints.ApNortheast1RegionID: "216624486486",
 	endpoints.ApNortheast2RegionID: "492519147666",
-	"ap-northeast-3":               "765225791966", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApNortheast3RegionID: "765225791966",
 	endpoints.ApSouth1RegionID:     "977081816279",
 	endpoints.ApSoutheast1RegionID: "903692715234",
 	endpoints.ApSoutheast2RegionID: "284668455005",

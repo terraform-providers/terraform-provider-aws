@@ -25,7 +25,7 @@ a conflict of rule settings and will overwrite rules.
 
 Basic usage
 
-```hcl
+```terraform
 resource "aws_security_group" "allow_tls" {
   name        = "allow_tls"
   description = "Allow TLS inbound traffic"
@@ -116,7 +116,7 @@ specifically re-create it if you desire that rule. We feel this leads to fewer
 surprises in terms of controlling your egress rules. If you desire this rule to
 be in place, you can use this `egress` block:
 
-```hcl
+```terraform
 resource "aws_security_group" "example" {
   # ... other configuration ...
 
@@ -136,7 +136,7 @@ Prefix Lists are either managed by AWS internally, or created by the customer us
 AWS are associated with a prefix list name, or service name, that is linked to a specific region.
 Prefix list IDs are exported on VPC Endpoints, so you can use this format:
 
-```hcl
+```terraform
 resource "aws_security_group" "example" {
   # ... other configuration ...
 

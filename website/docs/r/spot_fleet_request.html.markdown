@@ -15,7 +15,7 @@ instances to be requested on the Spot market.
 
 ### Using launch specifications
 
-```hcl
+```terraform
 # Request a Spot fleet
 resource "aws_spot_fleet_request" "cheap_compute" {
   iam_fleet_role      = "arn:aws:iam::12345678:role/spot-fleet"
@@ -56,7 +56,7 @@ resource "aws_spot_fleet_request" "cheap_compute" {
 
 ### Using launch templates
 
-```hcl
+```terraform
 resource "aws_launch_template" "foo" {
   name          = "launch-template"
   image_id      = "ami-516b9131"
@@ -86,7 +86,7 @@ launch configuration block. If you want to specify multiple values, then separat
 
 ### Using multiple launch specifications
 
-```hcl
+```terraform
 resource "aws_spot_fleet_request" "foo" {
   iam_fleet_role  = "arn:aws:iam::12345678:role/spot-fleet"
   spot_price      = "0.005"
@@ -112,7 +112,7 @@ resource "aws_spot_fleet_request" "foo" {
 
 ### Using multiple launch configurations
 
-```hcl
+```terraform
 data "aws_subnet_ids" "example" {
   vpc_id = var.vpc_id
 }

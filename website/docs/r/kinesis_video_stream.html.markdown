@@ -14,7 +14,7 @@ For more details, see the [Amazon Kinesis Documentation][1].
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kinesis_video_stream" "default" {
   name                    = "terraform-kinesis-video-stream"
   data_retention_in_hours = 1

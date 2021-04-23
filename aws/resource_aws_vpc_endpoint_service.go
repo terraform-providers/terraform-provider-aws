@@ -9,9 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 )
 
 func resourceAwsVpcEndpointService() *schema.Resource {
@@ -193,7 +195,7 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc-endpoint-service/%s", d.Id()),
@@ -340,20 +342,30 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 func resourceAwsVpcEndpointServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf("[DEBUG] Deleting VPC Endpoint Service: %s", d.Id())
-	_, err := conn.DeleteVpcEndpointServiceConfigurations(&ec2.DeleteVpcEndpointServiceConfigurationsInput{
+	input := &ec2.DeleteVpcEndpointServiceConfigurationsInput{
 		ServiceIds: aws.StringSlice([]string{d.Id()}),
-	})
+	}
+
+	output, err := conn.DeleteVpcEndpointServiceConfigurations(input)
+
+	if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointServiceIdNotFound) {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidVpcEndpointServiceId.NotFound", "") {
-			log.Printf("[DEBUG] VPC Endpoint Service %s is already gone", d.Id())
-		} else {
-			return fmt.Errorf("Error deleting VPC Endpoint Service: %s", err.Error())
+		return fmt.Errorf("error deleting EC2 VPC Endpoint Service (%s): %w", d.Id(), err)
+	}
+
+	if output != nil && len(output.Unsuccessful) > 0 {
+		err := tfec2.UnsuccessfulItemsError(output.Unsuccessful)
+
+		if err != nil {
+			return fmt.Errorf("error deleting EC2 VPC Endpoint Service (%s): %w", d.Id(), err)
 		}
 	}
 
 	if err := waitForVpcEndpointServiceDeletion(conn, d.Id()); err != nil {
-		return fmt.Errorf("Error waiting for VPC Endpoint Service %s to delete: %s", d.Id(), err.Error())
+		return fmt.Errorf("error waiting for EC2 VPC Endpoint Service (%s) to delete: %w", d.Id(), err)
 	}
 
 	return nil

@@ -162,37 +162,34 @@ func resourceAwsGlueCatalogDatabaseRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error reading Glue Catalog Database: %s", err.Error())
 	}
 
+	database := out.Database
 	databaseArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Service:   "glue",
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("database/%s", aws.StringValue(out.Database.Name)),
+		Resource:  fmt.Sprintf("database/%s", aws.StringValue(database.Name)),
 	}.String()
 	d.Set("arn", databaseArn)
-
-	d.Set("name", out.Database.Name)
-	d.Set("catalog_id", catalogID)
-	d.Set("description", out.Database.Description)
-	d.Set("location_uri", out.Database.LocationUri)
-	d.Set("parameters", aws.StringValueMap(out.Database.Parameters))
+	d.Set("name", database.Name)
+	d.Set("catalog_id", database.CatalogId)
+	d.Set("description", database.Description)
+	d.Set("location_uri", database.LocationUri)
+	d.Set("parameters", aws.StringValueMap(database.Parameters))
 
 	return nil
 }
 
 func resourceAwsGlueCatalogDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
-	catalogID, name, err := readAwsGlueCatalogID(d.Id())
-	if err != nil {
-		return err
-	}
 
-	log.Printf("[DEBUG] Glue Catalog Database: %s:%s", catalogID, name)
-	_, err = conn.DeleteDatabase(&glue.DeleteDatabaseInput{
-		Name: aws.String(name),
+	log.Printf("[DEBUG] Glue Catalog Database: %s", d.Id())
+	_, err := conn.DeleteDatabase(&glue.DeleteDatabaseInput{
+		Name:      aws.String(d.Get("name").(string)),
+		CatalogId: aws.String(d.Get("catalog_id").(string)),
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting Glue Catalog Database: %s", err.Error())
+		return fmt.Errorf("Error deleting Glue Catalog Database: %w", err)
 	}
 	return nil
 }

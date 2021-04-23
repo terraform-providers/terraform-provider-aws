@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_instance: Prevent error with `iam_instance_profile` containing additional forward slashes from path
+```

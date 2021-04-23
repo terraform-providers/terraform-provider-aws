@@ -12,7 +12,7 @@ Provides a Glue User Defined Function Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_catalog_database" "example" {
   name = "my_database"
 }

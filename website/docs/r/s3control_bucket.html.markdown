@@ -14,7 +14,7 @@ Provides a resource to manage an S3 Control Bucket.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3control_bucket" "example" {
   bucket     = "example"
   outpost_id = data.aws_outposts_outpost.example.id

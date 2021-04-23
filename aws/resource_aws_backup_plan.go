@@ -126,12 +126,12 @@ func resourceAwsBackupPlan() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"backup_options": {
 							Type:     schema.TypeMap,
-							Optional: true,
+							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"resource_type": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"EC2",
 							}, false),
@@ -339,6 +339,12 @@ func expandBackupPlanAdvancedBackupSettings(vAdvancedBackupSettings *schema.Set)
 		}
 		if v, ok := mAdvancedBackupSetting["resource_type"].(string); ok && v != "" {
 			advancedBackupSetting.ResourceType = aws.String(v)
+		}
+
+		// https://github.com/hashicorp/terraform-plugin-sdk/issues/588
+		// Map in Set may add empty element. Ignore it.
+		if advancedBackupSetting.ResourceType == nil {
+			continue
 		}
 
 		advancedBackupSettings = append(advancedBackupSettings, advancedBackupSetting)

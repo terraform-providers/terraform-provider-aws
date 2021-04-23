@@ -14,7 +14,7 @@ Choose a role that has read/write access to the chosen Amazon S3 path or use the
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_s3_bucket" "example" {
   bucket = "an-example-bucket"
 }

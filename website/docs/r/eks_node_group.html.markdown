@@ -12,7 +12,7 @@ Manages an EKS Node Group, which can provision and optionally update an Auto Sca
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_eks_node_group" "example" {
   cluster_name    = aws_eks_cluster.example.name
   node_group_name = "example"
@@ -39,7 +39,7 @@ resource "aws_eks_node_group" "example" {
 
 You can utilize the generic Terraform resource [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` to create an EKS Node Group with an initial size of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
 
-```hcl
+```terraform
 resource "aws_eks_node_group" "example" {
   # ... other configurations ...
 
@@ -59,7 +59,7 @@ resource "aws_eks_node_group" "example" {
 
 ### Example IAM Role for EKS Node Group
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "eks-node-group-example"
 
@@ -93,7 +93,7 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEC2ContainerRegistryRea
 
 ### Example Subnets for EKS Node Group
 
-```hcl
+```terraform
 data "aws_availability_zones" "available" {
   state = "available"
 }

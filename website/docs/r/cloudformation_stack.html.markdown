@@ -12,7 +12,7 @@ Provides a CloudFormation Stack resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudformation_stack" "network" {
   name = "networking-stack"
 

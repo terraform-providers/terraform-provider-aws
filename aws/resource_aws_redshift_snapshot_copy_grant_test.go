@@ -17,6 +17,7 @@ func TestAccAWSRedshiftSnapshotCopyGrant_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSnapshotCopyGrantDestroy,
 		Steps: []resource.TestStep{
@@ -44,6 +45,7 @@ func TestAccAWSRedshiftSnapshotCopyGrant_Update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSnapshotCopyGrantDestroy,
 		Steps: []resource.TestStep{
@@ -87,6 +89,7 @@ func TestAccAWSRedshiftSnapshotCopyGrant_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSnapshotCopyGrantDestroy,
 		Steps: []resource.TestStep{

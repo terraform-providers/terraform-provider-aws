@@ -40,9 +40,11 @@ from the validation resource where it will be available after the resource creat
 
 ## Example Usage
 
+An end-to-end example of a REST API configured with OpenAPI can be found in the [`/examples/api-gateway-rest-api-openapi` directory within the GitHub repository](https://github.com/hashicorp/terraform-provider-aws/tree/main/examples/api-gateway-rest-api-openapi).
+
 ### Edge Optimized (ACM Certificate)
 
-```hcl
+```terraform
 resource "aws_api_gateway_domain_name" "example" {
   certificate_arn = aws_acm_certificate_validation.example.certificate_arn
   domain_name     = "api.example.com"
@@ -65,7 +67,7 @@ resource "aws_route53_record" "example" {
 
 ### Edge Optimized (IAM Certificate)
 
-```hcl
+```terraform
 resource "aws_api_gateway_domain_name" "example" {
   domain_name = "api.example.com"
 
@@ -93,7 +95,7 @@ resource "aws_route53_record" "example" {
 
 ### Regional (ACM Certificate)
 
-```hcl
+```terraform
 resource "aws_api_gateway_domain_name" "example" {
   domain_name              = "api.example.com"
   regional_certificate_arn = aws_acm_certificate_validation.example.certificate_arn
@@ -120,7 +122,7 @@ resource "aws_route53_record" "example" {
 
 ### Regional (IAM Certificate)
 
-```hcl
+```terraform
 resource "aws_api_gateway_domain_name" "example" {
   certificate_body          = file("${path.module}/example.com/example.crt")
   certificate_chain         = file("${path.module}/example.com/ca.crt")

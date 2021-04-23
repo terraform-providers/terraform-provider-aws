@@ -24,7 +24,7 @@ When RAM Sharing with AWS Organizations is not enabled:
 
 ### AWS Account ID
 
-```hcl
+```terraform
 resource "aws_ram_resource_share" "example" {
   # ... other configuration ...
   allow_external_principals = true
@@ -38,7 +38,7 @@ resource "aws_ram_principal_association" "example" {
 
 ### AWS Organization
 
-```hcl
+```terraform
 resource "aws_ram_principal_association" "example" {
   principal          = aws_organizations_organization.example.arn
   resource_share_arn = aws_ram_resource_share.example.arn

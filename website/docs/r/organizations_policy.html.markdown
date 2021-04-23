@@ -12,7 +12,7 @@ Provides a resource to manage an [AWS Organizations policy](https://docs.aws.ama
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_organizations_policy" "example" {
   name = "example"
 

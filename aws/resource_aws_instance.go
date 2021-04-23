@@ -23,6 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	tfiam "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
@@ -813,7 +814,18 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("private_dns", instance.PrivateDnsName)
 	d.Set("private_ip", instance.PrivateIpAddress)
 	d.Set("outpost_arn", instance.OutpostArn)
-	d.Set("iam_instance_profile", iamInstanceProfileArnToName(instance.IamInstanceProfile))
+
+	if instance.IamInstanceProfile != nil && instance.IamInstanceProfile.Arn != nil {
+		name, err := tfiam.InstanceProfileARNToName(aws.StringValue(instance.IamInstanceProfile.Arn))
+
+		if err != nil {
+			return fmt.Errorf("error setting iam_instance_profile: %w", err)
+		}
+
+		d.Set("iam_instance_profile", name)
+	} else {
+		d.Set("iam_instance_profile", nil)
+	}
 
 	// Set configured Network Interface Device Index Slice
 	// We only want to read, and populate state for the configured network_interface attachments. Otherwise, other
@@ -939,7 +951,7 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("instance/%s", d.Id()),
 	}
@@ -1108,6 +1120,10 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 					return err
 				}
 			}
+		}
+
+		if _, err := waiter.InstanceIamInstanceProfileUpdated(conn, d.Id(), d.Get("iam_instance_profile").(string)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Instance (%s) IAM Instance Profile update: %w", d.Id(), err)
 		}
 	}
 
@@ -1987,7 +2003,8 @@ func readBlockDeviceMappingsFromConfig(d *schema.ResourceData, conn *ec2.EC2) ([
 						// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/12667
 						return nil, fmt.Errorf("error creating resource: iops attribute not supported for ebs_block_device with volume_type %s", v)
 					}
-				} else if throughput, ok := bd["throughput"].(int); ok && throughput > 0 {
+				}
+				if throughput, ok := bd["throughput"].(int); ok && throughput > 0 {
 					// `throughput` is only valid for gp3
 					if ec2.VolumeTypeGp3 == strings.ToLower(v) {
 						ebs.Throughput = aws.Int64(int64(throughput))
@@ -2061,7 +2078,8 @@ func readBlockDeviceMappingsFromConfig(d *schema.ResourceData, conn *ec2.EC2) ([
 						// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/12667
 						return nil, fmt.Errorf("error creating resource: iops attribute not supported for root_block_device with volume_type %s", v)
 					}
-				} else if throughput, ok := bd["throughput"].(int); ok && throughput > 0 {
+				}
+				if throughput, ok := bd["throughput"].(int); ok && throughput > 0 {
 					// throughput is only valid for gp3
 					if ec2.VolumeTypeGp3 == strings.ToLower(v) {
 						ebs.Throughput = aws.Int64(int64(throughput))
@@ -2464,14 +2482,6 @@ func waitForInstanceDeletion(conn *ec2.EC2, id string, timeout time.Duration) er
 	}
 
 	return nil
-}
-
-func iamInstanceProfileArnToName(ip *ec2.IamInstanceProfile) string {
-	if ip == nil || ip.Arn == nil {
-		return ""
-	}
-	parts := strings.Split(aws.StringValue(ip.Arn), "/")
-	return parts[len(parts)-1]
 }
 
 func userDataHashSum(user_data string) string {

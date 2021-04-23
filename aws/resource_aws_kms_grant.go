@@ -59,18 +59,8 @@ func resourceAwsKmsGrant() *schema.Resource {
 				Type: schema.TypeSet,
 				Set:  schema.HashString,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						kms.GrantOperationCreateGrant,
-						kms.GrantOperationDecrypt,
-						kms.GrantOperationDescribeKey,
-						kms.GrantOperationEncrypt,
-						kms.GrantOperationGenerateDataKey,
-						kms.GrantOperationGenerateDataKeyWithoutPlaintext,
-						kms.GrantOperationReEncryptFrom,
-						kms.GrantOperationReEncryptTo,
-						kms.GrantOperationRetireGrant,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(kms.GrantOperation_Values(), false),
 				},
 				Required: true,
 				ForceNew: true,
@@ -155,8 +145,6 @@ func resourceAwsKmsGrantCreate(d *schema.ResourceData, meta interface{}) error {
 		input.GrantTokens = expandStringSet(v.(*schema.Set))
 	}
 
-	log.Printf("[DEBUG]: Adding new KMS Grant: %s", input)
-
 	var out *kms.CreateGrantOutput
 
 	err := resource.Retry(3*time.Minute, func() *resource.RetryError {
@@ -171,10 +159,8 @@ func resourceAwsKmsGrantCreate(d *schema.ResourceData, meta interface{}) error {
 				isAWSErr(err, kms.ErrCodeInternalException, "") ||
 				isAWSErr(err, kms.ErrCodeInvalidArnException, "") {
 				return resource.RetryableError(
-					fmt.Errorf("Error adding new KMS Grant for key: %s, retrying %s",
-						*input.KeyId, err))
+					fmt.Errorf("error creating KMS Grant for Key (%s), retrying: %w", keyId, err))
 			}
-			log.Printf("[ERROR] An error occurred creating new AWS KMS Grant: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -185,11 +171,10 @@ func resourceAwsKmsGrantCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error creating KMS grant: %s", err)
+		return fmt.Errorf("error creating KMS Grant for Key (%s): %w", keyId, err)
 	}
 
-	log.Printf("[DEBUG] Created new KMS Grant: %s", *out.GrantId)
-	d.SetId(fmt.Sprintf("%s:%s", keyId, *out.GrantId))
+	d.SetId(fmt.Sprintf("%s:%s", keyId, aws.StringValue(out.GrantId)))
 	d.Set("grant_id", out.GrantId)
 	d.Set("grant_token", out.GrantToken)
 
@@ -204,12 +189,11 @@ func resourceAwsKmsGrantRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	log.Printf("[DEBUG] Looking for grant id: %s", grantId)
 	grant, err := findKmsGrantByIdWithRetry(conn, keyId, grantId)
 
 	if err != nil {
 		if isResourceNotFoundError(err) {
-			log.Printf("[WARN] %s KMS grant id not found for key id %s, removing from state file", grantId, keyId)
+			log.Printf("[WARN] KMS Grant (%s) not found for Key (%s), removing from state file", grantId, keyId)
 			d.SetId("")
 			return nil
 		}
@@ -217,7 +201,7 @@ func resourceAwsKmsGrantRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if grant == nil {
-		log.Printf("[WARN] %s KMS grant id not found for key id %s, removing from state file", grantId, keyId)
+		log.Printf("[WARN] KMS Grant (%s) not found for Key (%s), removing from state file", grantId, keyId)
 		d.SetId("")
 		return nil
 	}
@@ -245,7 +229,7 @@ func resourceAwsKmsGrantRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("operations", aws.StringValueSlice(grant.Operations)); err != nil {
 		log.Printf("[DEBUG] Error setting operations for grant %s with error %s", grantId, err)
 	}
-	if *grant.Name != "" {
+	if aws.StringValue(grant.Name) != "" {
 		d.Set("name", grant.Name)
 	}
 	if grant.Constraints != nil {
@@ -402,7 +386,7 @@ func findKmsGrantById(conn *kms.KMS, keyId string, grantId string, marker *strin
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error listing KMS Grants: %s", err)
+		return nil, fmt.Errorf("error listing KMS Grants: %w", err)
 	}
 
 	grant = getKmsGrantById(out.Grants, grantId)

@@ -12,7 +12,7 @@ Manages a Neptune Cluster Parameter Group
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_neptune_cluster_parameter_group" "example" {
   family      = "neptune1"
   name        = "example"

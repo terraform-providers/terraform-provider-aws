@@ -12,7 +12,7 @@ Provides a CodePipeline Webhook.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_codepipeline" "bar" {
   name     = "tf-test-pipeline"
   role_arn = aws_iam_role.bar.arn

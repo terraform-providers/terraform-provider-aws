@@ -34,16 +34,16 @@ var testAccProviderRoute53QueryLogConfigure sync.Once
 func testAccPreCheckRoute53QueryLog(t *testing.T) {
 	testAccPartitionHasServicePreCheck(route53.EndpointsID, t)
 
+	region := testAccGetRoute53QueryLogRegion()
+
+	if region == "" {
+		t.Skip("Route 53 Query Log not available in this AWS Partition")
+	}
+
 	// Since we are outside the scope of the Terraform configuration we must
 	// call Configure() to properly initialize the provider configuration.
 	testAccProviderRoute53QueryLogConfigure.Do(func() {
 		testAccProviderRoute53QueryLog = Provider()
-
-		region := testAccGetRoute53QueryLogRegion()
-
-		if region == "" {
-			t.Skip("Route 53 Query Log not available in this AWS Partition")
-		}
 
 		config := map[string]interface{}{
 			"region": region,

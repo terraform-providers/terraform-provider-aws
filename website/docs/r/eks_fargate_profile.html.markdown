@@ -12,7 +12,7 @@ Manages an EKS Fargate Profile.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_eks_fargate_profile" "example" {
   cluster_name           = aws_eks_cluster.example.name
   fargate_profile_name   = "example"
@@ -27,7 +27,7 @@ resource "aws_eks_fargate_profile" "example" {
 
 ### Example IAM Role for EKS Fargate Profile
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "eks-fargate-profile-example"
 

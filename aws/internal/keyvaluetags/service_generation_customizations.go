@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/codedeploy"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
+	"github.com/aws/aws-sdk-go/service/codestarconnections"
 	"github.com/aws/aws-sdk-go/service/codestarnotifications"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -176,6 +177,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(codedeploy.New)
 	case "codepipeline":
 		funcType = reflect.TypeOf(codepipeline.New)
+	case "codestarconnections":
+		funcType = reflect.TypeOf(codestarconnections.New)
 	case "codestarnotifications":
 		funcType = reflect.TypeOf(codestarnotifications.New)
 	case "cognitoidentity":

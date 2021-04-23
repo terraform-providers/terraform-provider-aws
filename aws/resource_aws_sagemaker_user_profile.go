@@ -310,9 +310,12 @@ func resourceAwsSagemakerUserProfileUpdate(d *schema.ResourceData, meta interfac
 	conn := meta.(*AWSClient).sagemakerconn
 
 	if d.HasChange("user_settings") {
+		domainID := d.Get("domain_id").(string)
+		userProfileName := d.Get("user_profile_name").(string)
+
 		input := &sagemaker.UpdateUserProfileInput{
-			UserProfileName: aws.String(d.Get("user_profile_name").(string)),
-			DomainId:        aws.String(d.Get("domain_id").(string)),
+			UserProfileName: aws.String(userProfileName),
+			DomainId:        aws.String(domainID),
 			UserSettings:    expandSagemakerDomainDefaultUserSettings(d.Get("user_settings").([]interface{})),
 		}
 
@@ -320,6 +323,10 @@ func resourceAwsSagemakerUserProfileUpdate(d *schema.ResourceData, meta interfac
 		_, err := conn.UpdateUserProfile(input)
 		if err != nil {
 			return fmt.Errorf("error updating SageMaker User Profile: %w", err)
+		}
+
+		if _, err := waiter.UserProfileInService(conn, domainID, userProfileName); err != nil {
+			return fmt.Errorf("error waiting for SageMaker User Profile (%s) to update: %w", d.Id(), err)
 		}
 	}
 

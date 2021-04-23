@@ -35,7 +35,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/macie"
-	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
@@ -983,6 +982,16 @@ func expandStringList(configured []interface{}) []*string {
 	return vs
 }
 
+func expandStringListKeepEmpty(configured []interface{}) []*string {
+	vs := make([]*string, 0, len(configured))
+	for _, v := range configured {
+		if val, ok := v.(string); ok {
+			vs = append(vs, aws.String(val))
+		}
+	}
+	return vs
+}
+
 // Takes the result of flatmap.Expand for an array of int64
 // and returns a []*int64
 func expandInt64List(configured []interface{}) []*int64 {
@@ -1004,7 +1013,7 @@ func expandFloat64Map(m map[string]interface{}) map[string]*float64 {
 
 // Takes the result of schema.Set of strings and returns a []*string
 func expandStringSet(configured *schema.Set) []*string {
-	return expandStringList(configured.List())
+	return expandStringList(configured.List()) // nosemgrep: helper-schema-Set-extraneous-expandStringList-with-List
 }
 
 // Takes the result of schema.Set of strings and returns a []*int64
@@ -1024,7 +1033,7 @@ func flattenStringList(list []*string) []interface{} {
 }
 
 func flattenStringSet(list []*string) *schema.Set {
-	return schema.NewSet(schema.HashString, flattenStringList(list))
+	return schema.NewSet(schema.HashString, flattenStringList(list)) // nosemgrep: helper-schema-Set-extraneous-NewSet-with-flattenStringList
 }
 
 // hashStringCaseInsensitive hashes strings in a case insensitive manner.
@@ -2361,6 +2370,10 @@ func flattenCognitoUserPoolEmailConfiguration(s *cognitoidentityprovider.EmailCo
 		m["email_sending_account"] = *s.EmailSendingAccount
 	}
 
+	if s.ConfigurationSet != nil {
+		m["configuration_set"] = *s.ConfigurationSet
+	}
+
 	if len(m) > 0 {
 		return []map[string]interface{}{m}
 	}
@@ -3564,167 +3577,6 @@ func canonicalXML(s string) (string, error) {
 	re := regexp.MustCompile(`\s`)
 	results := re.ReplaceAllString(rawString, "")
 	return results, nil
-}
-
-func expandMqUsers(cfg []interface{}) []*mq.User {
-	users := make([]*mq.User, len(cfg))
-	for i, m := range cfg {
-		u := m.(map[string]interface{})
-		user := mq.User{
-			Username: aws.String(u["username"].(string)),
-			Password: aws.String(u["password"].(string)),
-		}
-		if v, ok := u["console_access"]; ok {
-			user.ConsoleAccess = aws.Bool(v.(bool))
-		}
-		if v, ok := u["groups"]; ok {
-			user.Groups = expandStringSet(v.(*schema.Set))
-		}
-		users[i] = &user
-	}
-	return users
-}
-
-// We use cfgdUsers to get & set the password
-func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
-	existingPairs := make(map[string]string)
-	for _, u := range cfgUsers {
-		user := u.(map[string]interface{})
-		username := user["username"].(string)
-		existingPairs[username] = user["password"].(string)
-	}
-
-	out := make([]interface{}, 0)
-	for _, u := range users {
-		m := map[string]interface{}{
-			"username": *u.Username,
-		}
-		password := ""
-		if p, ok := existingPairs[*u.Username]; ok {
-			password = p
-		}
-		if password != "" {
-			m["password"] = password
-		}
-		if u.ConsoleAccess != nil {
-			m["console_access"] = *u.ConsoleAccess
-		}
-		if len(u.Groups) > 0 {
-			m["groups"] = flattenStringSet(u.Groups)
-		}
-		out = append(out, m)
-	}
-	return schema.NewSet(resourceAwsMqUserHash, out)
-}
-
-func expandMqWeeklyStartTime(cfg []interface{}) *mq.WeeklyStartTime {
-	if len(cfg) < 1 {
-		return nil
-	}
-
-	m := cfg[0].(map[string]interface{})
-	return &mq.WeeklyStartTime{
-		DayOfWeek: aws.String(m["day_of_week"].(string)),
-		TimeOfDay: aws.String(m["time_of_day"].(string)),
-		TimeZone:  aws.String(m["time_zone"].(string)),
-	}
-}
-
-func flattenMqWeeklyStartTime(wst *mq.WeeklyStartTime) []interface{} {
-	if wst == nil {
-		return []interface{}{}
-	}
-	m := make(map[string]interface{})
-	if wst.DayOfWeek != nil {
-		m["day_of_week"] = *wst.DayOfWeek
-	}
-	if wst.TimeOfDay != nil {
-		m["time_of_day"] = *wst.TimeOfDay
-	}
-	if wst.TimeZone != nil {
-		m["time_zone"] = *wst.TimeZone
-	}
-	return []interface{}{m}
-}
-
-func expandMqConfigurationId(cfg []interface{}) *mq.ConfigurationId {
-	if len(cfg) < 1 {
-		return nil
-	}
-
-	m := cfg[0].(map[string]interface{})
-	out := mq.ConfigurationId{
-		Id: aws.String(m["id"].(string)),
-	}
-	if v, ok := m["revision"].(int); ok && v > 0 {
-		out.Revision = aws.Int64(int64(v))
-	}
-
-	return &out
-}
-
-func flattenMqConfigurationId(cid *mq.ConfigurationId) []interface{} {
-	if cid == nil {
-		return []interface{}{}
-	}
-	m := make(map[string]interface{})
-	if cid.Id != nil {
-		m["id"] = *cid.Id
-	}
-	if cid.Revision != nil {
-		m["revision"] = *cid.Revision
-	}
-	return []interface{}{m}
-}
-
-func flattenMqBrokerInstances(instances []*mq.BrokerInstance) []interface{} {
-	if len(instances) == 0 {
-		return []interface{}{}
-	}
-	l := make([]interface{}, len(instances))
-	for i, instance := range instances {
-		m := make(map[string]interface{})
-		if instance.ConsoleURL != nil {
-			m["console_url"] = *instance.ConsoleURL
-		}
-		if len(instance.Endpoints) > 0 {
-			m["endpoints"] = aws.StringValueSlice(instance.Endpoints)
-		}
-		if instance.IpAddress != nil {
-			m["ip_address"] = *instance.IpAddress
-		}
-		l[i] = m
-	}
-
-	return l
-}
-
-func flattenMqLogs(logs *mq.LogsSummary) []interface{} {
-	if logs == nil {
-		return []interface{}{}
-	}
-
-	m := map[string]interface{}{
-		"general": aws.BoolValue(logs.General),
-		"audit":   aws.BoolValue(logs.Audit),
-	}
-
-	return []interface{}{m}
-}
-
-func expandMqLogs(l []interface{}) *mq.Logs {
-	if len(l) == 0 || l[0] == nil {
-		return nil
-	}
-
-	m := l[0].(map[string]interface{})
-
-	logs := &mq.Logs{
-		Audit:   aws.Bool(m["audit"].(bool)),
-		General: aws.Bool(m["general"].(bool)),
-	}
-
-	return logs
 }
 
 func flattenResourceLifecycleConfig(rlc *elasticbeanstalk.ApplicationResourceLifecycleConfig) []map[string]interface{} {

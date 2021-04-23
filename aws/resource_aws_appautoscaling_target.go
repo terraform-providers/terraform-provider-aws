@@ -191,7 +191,11 @@ func getAwsAppautoscalingTarget(resourceId, namespace, dimension string,
 	}
 
 	for idx, tgt := range describeTargets.ScalableTargets {
-		if *tgt.ResourceId == resourceId && *tgt.ScalableDimension == dimension {
+		if tgt == nil {
+			continue
+		}
+
+		if aws.StringValue(tgt.ResourceId) == resourceId && aws.StringValue(tgt.ScalableDimension) == dimension {
 			return describeTargets.ScalableTargets[idx], nil
 		}
 	}

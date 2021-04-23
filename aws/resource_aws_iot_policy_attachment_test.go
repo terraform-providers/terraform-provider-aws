@@ -17,6 +17,7 @@ func TestAccAWSIotPolicyAttachment_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iot.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIotPolicyAttchmentDestroy,
 		Steps: []resource.TestStep{

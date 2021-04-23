@@ -24,7 +24,7 @@ func dataSourceAwsEbsEncryptionByDefaultRead(d *schema.ResourceData, meta interf
 
 	res, err := conn.GetEbsEncryptionByDefault(&ec2.GetEbsEncryptionByDefaultInput{})
 	if err != nil {
-		return fmt.Errorf("Error reading default EBS encryption toggle: %q", err)
+		return fmt.Errorf("Error reading default EBS encryption toggle: %w", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)

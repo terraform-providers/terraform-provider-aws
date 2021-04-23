@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_codestarconnections_connection: Add `tags` argument
+```

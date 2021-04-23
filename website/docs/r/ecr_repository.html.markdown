@@ -12,7 +12,7 @@ Provides an Elastic Container Registry Repository.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name                 = "bar"
   image_tag_mutability = "MUTABLE"

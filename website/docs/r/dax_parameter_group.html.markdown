@@ -12,7 +12,7 @@ Provides a DAX Parameter Group resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dax_parameter_group" "example" {
   name = "example"
 

@@ -13,7 +13,7 @@ Provides a Route53 health check.
 
 ### Connectivity and HTTP Status Code Check
 
-```hcl
+```terraform
 resource "aws_route53_health_check" "example" {
   fqdn              = "example.com"
   port              = 80
@@ -30,7 +30,7 @@ resource "aws_route53_health_check" "example" {
 
 ### Connectivity and String Matching Check
 
-```hcl
+```terraform
 resource "aws_route53_health_check" "example" {
   failure_threshold = "5"
   fqdn              = "example.com"
@@ -44,7 +44,7 @@ resource "aws_route53_health_check" "example" {
 
 ### Aggregate Check
 
-```hcl
+```terraform
 resource "aws_route53_health_check" "parent" {
   type                   = "CALCULATED"
   child_health_threshold = 1
@@ -58,7 +58,7 @@ resource "aws_route53_health_check" "parent" {
 
 ### CloudWatch Alarm Check
 
-```hcl
+```terraform
 resource "aws_cloudwatch_metric_alarm" "foobar" {
   alarm_name          = "terraform-test-foobar5"
   comparison_operator = "GreaterThanOrEqualToThreshold"

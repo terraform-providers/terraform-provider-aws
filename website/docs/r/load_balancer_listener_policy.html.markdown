@@ -11,9 +11,11 @@ description: |-
 Attaches a load balancer policy to an ELB Listener.
 
 
-## Example Usage for Custom Policy
+## Example Usage
 
-```hcl
+### Custom Policy
+
+```terraform
 resource "aws_elb" "wu-tang" {
   name               = "wu-tang"
   availability_zones = ["us-east-1a"]
@@ -59,9 +61,9 @@ resource "aws_load_balancer_listener_policy" "wu-tang-listener-policies-443" {
 
 This example shows how to customize the TLS settings of an HTTPS listener.
 
-## Example Usage for AWS Predefined Security Policy
+### AWS Predefined Security Policy
 
-```hcl
+```terraform
 resource "aws_elb" "wu-tang" {
   name               = "wu-tang"
   availability_zones = ["us-east-1a"]
