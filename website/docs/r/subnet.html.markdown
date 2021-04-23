@@ -74,7 +74,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_subnet` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_subnet` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `10m`) How long to wait for a subnet to be created.

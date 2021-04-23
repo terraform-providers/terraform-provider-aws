@@ -1476,6 +1476,7 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 4096),
+							Sensitive:    true,
 						},
 
 						"role_arn": {

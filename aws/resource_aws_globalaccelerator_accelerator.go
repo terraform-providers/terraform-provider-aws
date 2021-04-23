@@ -29,6 +29,11 @@ func resourceAwsGlobalAcceleratorAccelerator() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -128,13 +133,13 @@ func resourceAwsGlobalAcceleratorAcceleratorCreate(d *schema.ResourceData, meta 
 
 	d.SetId(aws.StringValue(resp.Accelerator.AcceleratorArn))
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Id())
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return err
 	}
 
 	if v := d.Get("attributes").([]interface{}); len(v) > 0 {
-		err = resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn, d.Id(), v[0].(map[string]interface{}))
+		err = resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn, d.Id(), d.Timeout(schema.TimeoutUpdate), v[0].(map[string]interface{}))
 		if err != nil {
 			return err
 		}
@@ -279,7 +284,7 @@ func resourceAwsGlobalAcceleratorAcceleratorUpdate(d *schema.ResourceData, meta 
 			return fmt.Errorf("Error updating Global Accelerator accelerator: %s", err)
 		}
 
-		err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Id())
+		err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Id(), d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return err
 		}
@@ -287,7 +292,7 @@ func resourceAwsGlobalAcceleratorAcceleratorUpdate(d *schema.ResourceData, meta 
 
 	if d.HasChange("attributes") {
 		if v := d.Get("attributes").([]interface{}); len(v) > 0 {
-			err := resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn, d.Id(), v[0].(map[string]interface{}))
+			err := resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn, d.Id(), d.Timeout(schema.TimeoutUpdate), v[0].(map[string]interface{}))
 			if err != nil {
 				return err
 			}
@@ -305,12 +310,12 @@ func resourceAwsGlobalAcceleratorAcceleratorUpdate(d *schema.ResourceData, meta 
 	return resourceAwsGlobalAcceleratorAcceleratorRead(d, meta)
 }
 
-func resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn *globalaccelerator.GlobalAccelerator, acceleratorArn string) error {
+func resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn *globalaccelerator.GlobalAccelerator, acceleratorArn string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{globalaccelerator.AcceleratorStatusInProgress},
 		Target:  []string{globalaccelerator.AcceleratorStatusDeployed},
 		Refresh: resourceAwsGlobalAcceleratorAcceleratorStateRefreshFunc(conn, acceleratorArn),
-		Timeout: 10 * time.Minute,
+		Timeout: timeout,
 	}
 
 	log.Printf("[DEBUG] Waiting for Global Accelerator accelerator (%s) availability", acceleratorArn)
@@ -322,7 +327,7 @@ func resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn *globalacc
 	return nil
 }
 
-func resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn *globalaccelerator.GlobalAccelerator, acceleratorArn string, attributes map[string]interface{}) error {
+func resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn *globalaccelerator.GlobalAccelerator, acceleratorArn string, timeout time.Duration, attributes map[string]interface{}) error {
 	opts := &globalaccelerator.UpdateAcceleratorAttributesInput{
 		AcceleratorArn:  aws.String(acceleratorArn),
 		FlowLogsEnabled: aws.Bool(attributes["flow_logs_enabled"].(bool)),
@@ -341,6 +346,10 @@ func resourceAwsGlobalAcceleratorAcceleratorUpdateAttributes(conn *globalacceler
 	_, err := conn.UpdateAcceleratorAttributes(opts)
 	if err != nil {
 		return fmt.Errorf("Error updating Global Accelerator accelerator attributes: %s", err)
+	}
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, timeout)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -362,7 +371,7 @@ func resourceAwsGlobalAcceleratorAcceleratorDelete(d *schema.ResourceData, meta 
 			return fmt.Errorf("Error disabling Global Accelerator accelerator: %s", err)
 		}
 
-		err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Id())
+		err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Id(), d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return err
 		}

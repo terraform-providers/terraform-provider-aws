@@ -92,6 +92,7 @@ var sliceServiceNames = []string{
 	"sfn",
 	"sns",
 	"ssm",
+	"ssoadmin",
 	"storagegateway",
 	"swf",
 	"transfer",

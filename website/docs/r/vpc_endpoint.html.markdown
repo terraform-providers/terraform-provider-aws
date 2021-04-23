@@ -128,7 +128,7 @@ Defaults to `false`.
 ### Timeouts
 
 `aws_vpc_endpoint` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating a VPC endpoint
 - `update` - (Default `10 minutes`) Used for VPC endpoint modifications

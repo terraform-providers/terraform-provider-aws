@@ -1,73 +1,82 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/directoryservice/lister"
 )
 
 func init() {
 	resource.AddTestSweepers("aws_directory_service_directory", &resource.Sweeper{
-		Name:         "aws_directory_service_directory",
-		F:            testSweepDirectoryServiceDirectories,
-		Dependencies: []string{"aws_fsx_windows_file_system", "aws_workspaces_directory"},
+		Name: "aws_directory_service_directory",
+		F:    testSweepDirectoryServiceDirectories,
+		Dependencies: []string{
+			"aws_db_instance",
+			"aws_fsx_windows_file_system",
+			"aws_workspaces_directory",
+		},
 	})
 }
 
 func testSweepDirectoryServiceDirectories(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
+
 	conn := client.(*AWSClient).dsconn
 
+	var sweeperErrs *multierror.Error
+
 	input := &directoryservice.DescribeDirectoriesInput{}
-	for {
-		resp, err := conn.DescribeDirectories(input)
 
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping Directory Service Directory sweep for %s: %s", region, err)
-			return nil
+	err = lister.DescribeDirectoriesPagesWithContext(context.TODO(), conn, input, func(page *directoryservice.DescribeDirectoriesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if err != nil {
-			return fmt.Errorf("error listing Directory Service Directories: %s", err)
-		}
-
-		for _, directory := range resp.DirectoryDescriptions {
+		for _, directory := range page.DirectoryDescriptions {
 			id := aws.StringValue(directory.DirectoryId)
 
-			deleteDirectoryInput := directoryservice.DeleteDirectoryInput{
-				DirectoryId: directory.DirectoryId,
-			}
+			r := resourceAwsDirectoryServiceDirectory()
+			d := r.Data(nil)
+			d.SetId(id)
 
-			log.Printf("[INFO] Deleting Directory Service Directory: %s", deleteDirectoryInput)
-			_, err := conn.DeleteDirectory(&deleteDirectoryInput)
-			if err != nil {
-				return fmt.Errorf("error deleting Directory Service Directory (%s): %s", id, err)
-			}
+			err := r.Delete(d, client)
 
-			log.Printf("[INFO] Waiting for Directory Service Directory (%q) to be deleted", id)
-			err = waitForDirectoryServiceDirectoryDeletion(conn, id)
 			if err != nil {
-				return fmt.Errorf("error waiting for Directory Service (%s) to be deleted: %s", id, err)
+				sweeperErr := fmt.Errorf("error deleting Directory Service Directory (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
 			}
 		}
 
-		if resp.NextToken == nil {
-			break
-		}
+		return !lastPage
+	})
 
-		input.NextToken = resp.NextToken
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Directory Service Directory sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
 	}
 
-	return nil
+	if err != nil {
+		sweeperErr := fmt.Errorf("error listing Directory Service Directories: %w", err)
+		log.Printf("[ERROR] %s", sweeperErr)
+		sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+	}
+
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSDirectoryServiceDirectory_basic(t *testing.T) {

@@ -88,7 +88,7 @@ type SchemaDescriptionKind string
 
 const (
 	// SchemaDescriptionKindPlain indicates a string in plain text format.
-	SchemaDescriptionKindPlain SchemaDescriptionKind = "plaintext"
+	SchemaDescriptionKindPlain SchemaDescriptionKind = "plain"
 
 	// SchemaDescriptionKindMarkdown indicates a Markdown string and may need to be
 	// processed prior to presentation.

@@ -60,7 +60,7 @@ func resourceAwsKinesisStream() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      24,
-				ValidateFunc: validation.IntBetween(24, 168),
+				ValidateFunc: validation.IntBetween(24, 8760),
 			},
 
 			"shard_level_metrics": {
@@ -399,12 +399,9 @@ func updateKinesisShardLevelMetrics(conn *kinesis.Kinesis, d *schema.ResourceDat
 
 	disableMetrics := os.Difference(ns)
 	if disableMetrics.Len() != 0 {
-		metrics := disableMetrics.List()
-		log.Printf("[DEBUG] Disabling shard level metrics %v for stream %s", metrics, sn)
-
 		props := &kinesis.DisableEnhancedMonitoringInput{
 			StreamName:        aws.String(sn),
-			ShardLevelMetrics: expandStringList(metrics),
+			ShardLevelMetrics: expandStringSet(disableMetrics),
 		}
 
 		_, err := conn.DisableEnhancedMonitoring(props)
@@ -418,12 +415,9 @@ func updateKinesisShardLevelMetrics(conn *kinesis.Kinesis, d *schema.ResourceDat
 
 	enabledMetrics := ns.Difference(os)
 	if enabledMetrics.Len() != 0 {
-		metrics := enabledMetrics.List()
-		log.Printf("[DEBUG] Enabling shard level metrics %v for stream %s", metrics, sn)
-
 		props := &kinesis.EnableEnhancedMonitoringInput{
 			StreamName:        aws.String(sn),
-			ShardLevelMetrics: expandStringList(metrics),
+			ShardLevelMetrics: expandStringSet(enabledMetrics),
 		}
 
 		_, err := conn.EnableEnhancedMonitoring(props)

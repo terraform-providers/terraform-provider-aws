@@ -102,12 +102,12 @@ data "aws_codeartifact_repository_endpoint" "test" {
 func testAccCheckAWSCodeArtifactRepositoryEndpointOwnerConfig(rName string) string {
 	return composeConfig(
 		testAccCheckAWSCodeArtifactRepositoryEndpointBaseConfig(rName),
-		fmt.Sprintf(`
+		`
 data "aws_codeartifact_repository_endpoint" "test" {
   domain       = aws_codeartifact_domain.test.domain
   repository   = aws_codeartifact_repository.test.repository
   domain_owner = aws_codeartifact_domain.test.owner
   format       = "npm"
 }
-`))
+`)
 }

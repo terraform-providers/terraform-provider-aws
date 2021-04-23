@@ -147,11 +147,11 @@ func resourceAwsSsmPatchBaselineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("approved_patches"); ok && v.(*schema.Set).Len() > 0 {
-		params.ApprovedPatches = expandStringList(v.(*schema.Set).List())
+		params.ApprovedPatches = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("rejected_patches"); ok && v.(*schema.Set).Len() > 0 {
-		params.RejectedPatches = expandStringList(v.(*schema.Set).List())
+		params.RejectedPatches = expandStringSet(v.(*schema.Set))
 	}
 
 	if _, ok := d.GetOk("global_filter"); ok {
@@ -187,11 +187,11 @@ func resourceAwsSsmPatchBaselineUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("approved_patches") {
-		params.ApprovedPatches = expandStringList(d.Get("approved_patches").(*schema.Set).List())
+		params.ApprovedPatches = expandStringSet(d.Get("approved_patches").(*schema.Set))
 	}
 
 	if d.HasChange("rejected_patches") {
-		params.RejectedPatches = expandStringList(d.Get("rejected_patches").(*schema.Set).List())
+		params.RejectedPatches = expandStringSet(d.Get("rejected_patches").(*schema.Set))
 	}
 
 	if d.HasChange("approved_patches_compliance_level") {

@@ -626,7 +626,7 @@ func buildReceiptRule(d *schema.ResourceData) *ses.ReceiptRule {
 	}
 
 	if v, ok := d.GetOk("recipients"); ok {
-		receiptRule.Recipients = expandStringList(v.(*schema.Set).List())
+		receiptRule.Recipients = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("scan_enabled"); ok {

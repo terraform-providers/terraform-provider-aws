@@ -267,7 +267,7 @@ resources that the for_each depends on.
 
 The `domain_validation_options` attribute is now a set type and the resource will attempt to populate the information necessary during the planning phase to handle the above situation in most environments without workarounds. This change also prevents Terraform from showing unexpected differences if the API returns the results in varying order.
 
-Configuration references to this attribute will likely require updates since sets cannot be indexed (e.g. `domain_validation_options[0]` or the older `domain_validation_options.0.` syntax will return errors). If the `domain_validation_options` list previously contained only a single element like the two examples just shown, it may be possible to wrap these references using the [`tolist()` function](/docs/configuration/functions/tolist.html) (e.g. `tolist(aws_acm_certificate.example.domain_validation_options)[0]`) as a quick configuration update, however given the complexity and workarounds required with the previous `domain_validation_options` attribute implementation, different environments will require different configuration updates and migration steps. Below is a more advanced example. Further questions on potential update steps can be submitted to the [community forums](https://discuss.hashicorp.com/c/terraform-providers/tf-aws/33).
+Configuration references to this attribute will likely require updates since sets cannot be indexed (e.g. `domain_validation_options[0]` or the older `domain_validation_options.0.` syntax will return errors). If the `domain_validation_options` list previously contained only a single element like the two examples just shown, it may be possible to wrap these references using the [`tolist()` function](https://www.terraform.io/docs/configuration/functions/tolist.html) (e.g. `tolist(aws_acm_certificate.example.domain_validation_options)[0]`) as a quick configuration update, however given the complexity and workarounds required with the previous `domain_validation_options` attribute implementation, different environments will require different configuration updates and migration steps. Below is a more advanced example. Further questions on potential update steps can be submitted to the [community forums](https://discuss.hashicorp.com/c/terraform-providers/tf-aws/33).
 
 For example, given this previous configuration using a `count` based resource approach that may have been used in certain environments:
 
@@ -318,7 +318,7 @@ Error: Invalid index
 This value does not have any indices.
 ```
 
-Since the `domain_validation_options` attribute changed from a list to a set and sets cannot be indexed in Terraform, the recommendation is to update the configuration to use the more stable [resource `for_each` support](/docs/configuration/resources.html#for_each-multiple-resource-instances-defined-by-a-map-or-set-of-strings) instead of [`count`](/docs/configuration/resources.html#count-multiple-resource-instances-by-count). Note the slight change in the `validation_record_fqdns` syntax as well.
+Since the `domain_validation_options` attribute changed from a list to a set and sets cannot be indexed in Terraform, the recommendation is to update the configuration to use the more stable [resource `for_each` support](https://www.terraform.io/docs/configuration/meta-arguments/for_each.html) instead of [`count`](https://www.terraform.io/docs/configuration/meta-arguments/count.html). Note the slight change in the `validation_record_fqdns` syntax as well.
 
 ```hcl
 resource "aws_route53_record" "existing" {
@@ -480,11 +480,11 @@ Terraform will perform the following actions:
 Plan: 5 to add, 0 to change, 5 to destroy.
 ```
 
-Due to the type of configuration change, Terraform does not know that the previous `aws_route53_record` resources (indexed by number in the existing state) and the new resources (indexed by domain names in the updated configuration) are equivalent. Typically in this situation, the [`terraform state mv` command](/docs/commands/state/mv.html) can be used to reduce the plan to show no changes. This is done by associating the count index (e.g. `[1]`) with the equivalent domain name index (e.g. `["existing2.example.com"]`), making one of the four commands to fix the above example: `terraform state mv 'aws_route53_record.existing[1]' 'aws_route53_record.existing["existing2.example.com"]'`. It is recommended to use this `terraform state mv` update process where possible to reduce chances of unexpected behaviors or changes in an environment.
+Due to the type of configuration change, Terraform does not know that the previous `aws_route53_record` resources (indexed by number in the existing state) and the new resources (indexed by domain names in the updated configuration) are equivalent. Typically in this situation, the [`terraform state mv` command](https://www.terraform.io/docs/commands/state/mv.html) can be used to reduce the plan to show no changes. This is done by associating the count index (e.g. `[1]`) with the equivalent domain name index (e.g. `["existing2.example.com"]`), making one of the four commands to fix the above example: `terraform state mv 'aws_route53_record.existing[1]' 'aws_route53_record.existing["existing2.example.com"]'`. It is recommended to use this `terraform state mv` update process where possible to reduce chances of unexpected behaviors or changes in an environment.
 
 If using `terraform state mv` to reduce the plan to show no changes, no additional steps are required.
 
-In larger or more complex environments though, this process can be tedius to match the old resource address to the new resource address and run all the necessary `terraform state mv` commands. Instead, since the `aws_route53_record` resource implements the `allow_overwrite = true` argument, it is possible to just remove the old `aws_route53_record` resources from the Terraform state using the [`terraform state rm` command](/docs/commands/state/rm.html). In this case, Terraform will leave the existing records in Route 53 and plan to just overwrite the existing validation records with the same exact (previous) values.
+In larger or more complex environments though, this process can be tedius to match the old resource address to the new resource address and run all the necessary `terraform state mv` commands. Instead, since the `aws_route53_record` resource implements the `allow_overwrite = true` argument, it is possible to just remove the old `aws_route53_record` resources from the Terraform state using the [`terraform state rm` command](https://www.terraform.io/docs/commands/state/rm.html). In this case, Terraform will leave the existing records in Route 53 and plan to just overwrite the existing validation records with the same exact (previous) values.
 
 -> This guide is showing the simpler `terraform state rm` option below as a potential shortcut in this specific situation, however in most other cases `terraform state mv` is required to change from `count` based resources to `for_each` based resources and properly match the existing Terraform state to the updated Terraform configuration.
 
@@ -623,7 +623,7 @@ resource "aws_autoscaling_group" "example" {
 }
 ```
 
-If `aws_autoscaling_attachment` resources reference your ASG configurations, you will need to add the [`lifecycle` configuration block](/docs/configuration/resources.html#lifecycle-lifecycle-customizations) with an `ignore_changes` argument to prevent Terraform non-empty plans (i.e. forcing resource update) during the next state refresh.
+If `aws_autoscaling_attachment` resources reference your ASG configurations, you will need to add the [`lifecycle` configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with an `ignore_changes` argument to prevent Terraform non-empty plans (i.e. forcing resource update) during the next state refresh.
 
 For example, given this previous configuration:
 
@@ -843,7 +843,7 @@ resource "aws_cognito_user_pool" "example" {
 
 ### Removal of Automatic aws_dx_gateway_association Import
 
-Previously when importing the `aws_dx_gateway` resource with the [`terraform import` command](/docs/commands/import.html), the Terraform AWS Provider would automatically attempt to import an associated `aws_dx_gateway_association` resource(s) as well. This automatic resource import has been removed. Use the [`aws_dx_gateway_association` resource import](/docs/providers/aws/r/dx_gateway_association.html#import) to import those resources separately.
+Previously when importing the `aws_dx_gateway` resource with the [`terraform import` command](https://www.terraform.io/docs/commands/import.html), the Terraform AWS Provider would automatically attempt to import an associated `aws_dx_gateway_association` resource(s) as well. This automatic resource import has been removed. Use the [`aws_dx_gateway_association` resource import](/docs/providers/aws/r/dx_gateway_association.html#import) to import those resources separately.
 
 ## Resource: aws_dx_gateway_association
 
@@ -1070,7 +1070,7 @@ resource "aws_glue_job" "example" {
 
 ### ses_smtp_password Attribute Removal
 
-In many regions today and in all regions after October 1, 2020, the [SES API will only accept version 4 signatures](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/using-ses-api-authentication.html). If referencing the `ses_smtp_password` attribute, switch your Terraform configuration to the `ses_smtp_password_v4` attribute instead. Please note that this signature is based on the region of the Terraform AWS Provider. If you need the SES v4 password in multiple regions, it may require using [multiple provider instances](/docs/configuration/providers.html#alias-multiple-provider-instances).
+In many regions today and in all regions after October 1, 2020, the [SES API will only accept version 4 signatures](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/using-ses-api-authentication.html). If referencing the `ses_smtp_password` attribute, switch your Terraform configuration to the `ses_smtp_password_v4` attribute instead. Please note that this signature is based on the region of the Terraform AWS Provider. If you need the SES v4 password in multiple regions, it may require using [multiple provider instances](https://www.terraform.io/docs/configuration/providers.html#alias-multiple-provider-configurations).
 
 ## Resource: aws_iam_instance_profile
 
@@ -1232,7 +1232,7 @@ While the returned value will omit the trailing period, use of configurations wi
 
 ### Removal of Automatic aws_s3_bucket_policy Import
 
-Previously when importing the `aws_s3_bucket` resource with the [`terraform import` command](/docs/commands/import.html), the Terraform AWS Provider would automatically attempt to import an associated `aws_s3_bucket_policy` resource as well. This automatic resource import has been removed. Use the [`aws_s3_bucket_policy` resource import](/docs/providers/aws/r/s3_bucket_policy.html#import) to import that resource separately.
+Previously when importing the `aws_s3_bucket` resource with the [`terraform import` command](https://www.terraform.io/docs/commands/import.html), the Terraform AWS Provider would automatically attempt to import an associated `aws_s3_bucket_policy` resource as well. This automatic resource import has been removed. Use the [`aws_s3_bucket_policy` resource import](/docs/providers/aws/r/s3_bucket_policy.html#import) to import that resource separately.
 
 ### region Attribute Is Now Read-Only
 
@@ -1284,7 +1284,7 @@ resource "aws_s3_bucket_metric" "example" {
 
 ### Removal of Automatic aws_security_group_rule Import
 
-Previously when importing the `aws_security_group` resource with the [`terraform import` command](/docs/commands/import.html), the Terraform AWS Provider would automatically attempt to import an associated `aws_security_group_rule` resource(s) as well. This automatic resource import has been removed. Use the [`aws_security_group_rule` resource import](/docs/providers/aws/r/security_group_rule.html#import) to import those resources separately.
+Previously when importing the `aws_security_group` resource with the [`terraform import` command](https://www.terraform.io/docs/commands/import.html), the Terraform AWS Provider would automatically attempt to import an associated `aws_security_group_rule` resource(s) as well. This automatic resource import has been removed. Use the [`aws_security_group_rule` resource import](/docs/providers/aws/r/security_group_rule.html#import) to import those resources separately.
 
 ## Resource: aws_sns_platform_application
 
@@ -1296,7 +1296,7 @@ Previously when the `platform_credential` and `platform_principal` arguments wer
 
 ### valid_until Argument No Longer Uses 24 Hour Default
 
-Previously when the `valid_until` argument was not configured, the resource would default to a 24 hour request. This behavior has been removed and allows for non-expiring requests. To recreate the old behavior, the [`time_offset` resource](/docs/providers/time/r/offset.html) can potentially be used.
+Previously when the `valid_until` argument was not configured, the resource would default to a 24 hour request. This behavior has been removed and allows for non-expiring requests. To recreate the old behavior, the [`time_offset` resource](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/offset) can potentially be used.
 
 ## Resource: aws_ssm_maintenance_window_task
 

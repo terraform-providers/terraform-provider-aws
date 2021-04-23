@@ -90,7 +90,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_apigatewayv2_domain_name` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_apigatewayv2_domain_name` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `update` - (Default `60 minutes`) Used for updating the domain name
 

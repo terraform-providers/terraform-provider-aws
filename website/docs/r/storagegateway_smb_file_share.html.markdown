@@ -83,7 +83,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_storagegateway_smb_file_share` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_storagegateway_smb_file_share` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for file share creation.
 * `update` - (Default `10m`) How long to wait for file share updates.

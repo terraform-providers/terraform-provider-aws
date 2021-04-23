@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/workspaces/waiter"
 )
@@ -104,6 +105,51 @@ func resourceAwsWorkspacesDirectory() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"tags": tagsSchema(),
+			"workspace_access_properties": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"device_type_android": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+						"device_type_chromeos": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+						"device_type_ios": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+						"device_type_osx": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+						"device_type_web": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+						"device_type_windows": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+						"device_type_zeroclient": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.AccessPropertyValue_Values(), false),
+						},
+					},
+				},
+			},
 			"workspace_creation_properties": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -184,9 +230,21 @@ func resourceAwsWorkspacesDirectoryCreate(d *schema.ResourceData, meta interface
 			SelfservicePermissions: expandSelfServicePermissions(v.([]interface{})),
 		})
 		if err != nil {
-			return fmt.Errorf("error setting WorkSpaces Directory (%s) self service permissions: %w", directoryID, err)
+			return fmt.Errorf("error setting WorkSpaces Directory (%s) self-service permissions: %w", directoryID, err)
 		}
 		log.Printf("[INFO] Modified WorkSpaces Directory (%s) self-service permissions", directoryID)
+	}
+
+	if v, ok := d.GetOk("workspace_access_properties"); ok {
+		log.Printf("[DEBUG] Modifying WorkSpaces Directory (%s) access properties", directoryID)
+		_, err := conn.ModifyWorkspaceAccessProperties(&workspaces.ModifyWorkspaceAccessPropertiesInput{
+			ResourceId:                aws.String(directoryID),
+			WorkspaceAccessProperties: expandWorkspaceAccessProperties(v.([]interface{})),
+		})
+		if err != nil {
+			return fmt.Errorf("error setting WorkSpaces Directory (%s) access properties: %w", directoryID, err)
+		}
+		log.Printf("[INFO] Modified WorkSpaces Directory (%s) access properties", directoryID)
 	}
 
 	if v, ok := d.GetOk("workspace_creation_properties"); ok {
@@ -247,6 +305,10 @@ func resourceAwsWorkspacesDirectoryRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting self_service_permissions: %w", err)
 	}
 
+	if err := d.Set("workspace_access_properties", flattenWorkspaceAccessProperties(directory.WorkspaceAccessProperties)); err != nil {
+		return fmt.Errorf("error setting workspace_access_properties: %w", err)
+	}
+
 	if err := d.Set("workspace_creation_properties", flattenWorkspaceCreationProperties(directory.WorkspaceCreationProperties)); err != nil {
 		return fmt.Errorf("error setting workspace_creation_properties: %w", err)
 	}
@@ -286,6 +348,20 @@ func resourceAwsWorkspacesDirectoryUpdate(d *schema.ResourceData, meta interface
 			return fmt.Errorf("error updating WorkSpaces Directory (%s) self service permissions: %w", d.Id(), err)
 		}
 		log.Printf("[INFO] Modified WorkSpaces Directory (%s) self-service permissions", d.Id())
+	}
+
+	if d.HasChange("workspace_access_properties") {
+		log.Printf("[DEBUG] Modifying WorkSpaces Directory (%s) access properties", d.Id())
+		properties := d.Get("workspace_access_properties").([]interface{})
+
+		_, err := conn.ModifyWorkspaceAccessProperties(&workspaces.ModifyWorkspaceAccessPropertiesInput{
+			ResourceId:                aws.String(d.Id()),
+			WorkspaceAccessProperties: expandWorkspaceAccessProperties(properties),
+		})
+		if err != nil {
+			return fmt.Errorf("error updating WorkSpaces Directory (%s) access properties: %w", d.Id(), err)
+		}
+		log.Printf("[INFO] Modified WorkSpaces Directory (%s) access properties", d.Id())
 	}
 
 	if d.HasChange("workspace_creation_properties") {
@@ -370,6 +446,46 @@ func workspacesDirectoryDelete(id string, conn *workspaces.WorkSpaces) error {
 	return nil
 }
 
+func expandWorkspaceAccessProperties(properties []interface{}) *workspaces.WorkspaceAccessProperties {
+	if len(properties) == 0 || properties[0] == nil {
+		return nil
+	}
+
+	result := &workspaces.WorkspaceAccessProperties{}
+
+	p := properties[0].(map[string]interface{})
+
+	if p["device_type_android"].(string) != "" {
+		result.DeviceTypeAndroid = aws.String(p["device_type_android"].(string))
+	}
+
+	if p["device_type_chromeos"].(string) != "" {
+		result.DeviceTypeChromeOs = aws.String(p["device_type_chromeos"].(string))
+	}
+
+	if p["device_type_ios"].(string) != "" {
+		result.DeviceTypeIos = aws.String(p["device_type_ios"].(string))
+	}
+
+	if p["device_type_osx"].(string) != "" {
+		result.DeviceTypeOsx = aws.String(p["device_type_osx"].(string))
+	}
+
+	if p["device_type_web"].(string) != "" {
+		result.DeviceTypeWeb = aws.String(p["device_type_web"].(string))
+	}
+
+	if p["device_type_windows"].(string) != "" {
+		result.DeviceTypeWindows = aws.String(p["device_type_windows"].(string))
+	}
+
+	if p["device_type_zeroclient"].(string) != "" {
+		result.DeviceTypeZeroClient = aws.String(p["device_type_zeroclient"].(string))
+	}
+
+	return result
+}
+
 func expandSelfServicePermissions(permissions []interface{}) *workspaces.SelfservicePermissions {
 	if len(permissions) == 0 || permissions[0] == nil {
 		return nil
@@ -434,6 +550,24 @@ func expandWorkspaceCreationProperties(properties []interface{}) *workspaces.Wor
 	}
 
 	return result
+}
+
+func flattenWorkspaceAccessProperties(properties *workspaces.WorkspaceAccessProperties) []interface{} {
+	if properties == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"device_type_android":    aws.StringValue(properties.DeviceTypeAndroid),
+			"device_type_chromeos":   aws.StringValue(properties.DeviceTypeChromeOs),
+			"device_type_ios":        aws.StringValue(properties.DeviceTypeIos),
+			"device_type_osx":        aws.StringValue(properties.DeviceTypeOsx),
+			"device_type_web":        aws.StringValue(properties.DeviceTypeWeb),
+			"device_type_windows":    aws.StringValue(properties.DeviceTypeWindows),
+			"device_type_zeroclient": aws.StringValue(properties.DeviceTypeZeroClient),
+		},
+	}
 }
 
 func flattenSelfServicePermissions(permissions *workspaces.SelfservicePermissions) []interface{} {

@@ -11,7 +11,7 @@ description: |-
 Provides a Pinpoint ADM (Amazon Device Messaging) Channel resource.
 
 ~> **Note:** All arguments including the Client ID and Client Secret will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 
 ## Example Usage

@@ -80,6 +80,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssoadmin"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/aws/aws-sdk-go/service/swf"
 	"github.com/aws/aws-sdk-go/service/transfer"
@@ -2623,6 +2624,33 @@ func (tags KeyValueTags) SsmTags() []*ssm.Tag {
 
 // SsmKeyValueTags creates KeyValueTags from ssm service tags.
 func SsmKeyValueTags(tags []*ssm.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// SsoadminTags returns ssoadmin service tags.
+func (tags KeyValueTags) SsoadminTags() []*ssoadmin.Tag {
+	result := make([]*ssoadmin.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &ssoadmin.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// SsoadminKeyValueTags creates KeyValueTags from ssoadmin service tags.
+func SsoadminKeyValueTags(tags []*ssoadmin.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {

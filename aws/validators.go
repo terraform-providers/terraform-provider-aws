@@ -97,8 +97,8 @@ func validateTransferServerID(v interface{}, k string) (ws []string, errors []er
 func validateTransferUserName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	// https://docs.aws.amazon.com/transfer/latest/userguide/API_CreateUser.html
-	if !regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_-]{2,31}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("Invalid %q: must be between 3 and 32 alphanumeric or special characters hyphen and underscore. However, %q cannot begin with a hyphen", k, k))
+	if !regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_-]{2,99}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("Invalid %q: must be between 3 and 100 alphanumeric or special characters hyphen and underscore. However, %q cannot begin with a hyphen", k, k))
 	}
 	return
 }
@@ -658,6 +658,25 @@ func validateAwsAccountId(v interface{}, k string) (ws []string, errors []error)
 	}
 
 	return
+}
+
+func validatePrincipal(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if value == "IAM_ALLOWED_PRINCIPALS" {
+		return ws, errors
+	}
+
+	wsARN, errorsARN := validateArn(v, k)
+	ws = append(ws, wsARN...)
+	errors = append(errors, errorsARN...)
+
+	pattern := `\d{12}:(role|user)/`
+	if !regexp.MustCompile(pattern).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q doesn't look like a user or role: %q", k, value))
+	}
+
+	return ws, errors
 }
 
 func validateArn(v interface{}, k string) (ws []string, errors []error) {

@@ -4,12 +4,16 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const (
 	// Maximum amount of time to wait for EC2 Instance attribute modifications to propagate
 	InstanceAttributePropagationTimeout = 2 * time.Minute
+
+	// General timeout for EC2 resource creations to propagate
+	PropagationTimeout = 2 * time.Minute
 )
 
 const (
@@ -283,4 +287,63 @@ func VpnGatewayVpcAttachmentDetached(conn *ec2.EC2, vpnGatewayID, vpcID string) 
 	}
 
 	return nil, err
+}
+
+const (
+	ManagedPrefixListTimeout = 15 * time.Minute
+)
+
+func ManagedPrefixListCreated(conn *ec2.EC2, prefixListId string) (*ec2.ManagedPrefixList, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.PrefixListStateCreateInProgress},
+		Target:  []string{ec2.PrefixListStateCreateComplete},
+		Timeout: ManagedPrefixListTimeout,
+		Refresh: ManagedPrefixListState(conn, prefixListId),
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.ManagedPrefixList); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func ManagedPrefixListModified(conn *ec2.EC2, prefixListId string) (*ec2.ManagedPrefixList, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.PrefixListStateModifyInProgress},
+		Target:  []string{ec2.PrefixListStateModifyComplete},
+		Timeout: ManagedPrefixListTimeout,
+		Refresh: ManagedPrefixListState(conn, prefixListId),
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.ManagedPrefixList); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func ManagedPrefixListDeleted(conn *ec2.EC2, prefixListId string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.PrefixListStateDeleteInProgress},
+		Target:  []string{ec2.PrefixListStateDeleteComplete},
+		Timeout: ManagedPrefixListTimeout,
+		Refresh: ManagedPrefixListState(conn, prefixListId),
+	}
+
+	_, err := stateConf.WaitForState()
+
+	if tfawserr.ErrCodeEquals(err, "InvalidPrefixListID.NotFound") {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

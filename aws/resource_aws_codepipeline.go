@@ -10,6 +10,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -59,11 +61,9 @@ func resourceAwsCodePipeline() *schema.Resource {
 							Required: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codepipeline.ArtifactStoreTypeS3,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codepipeline.ArtifactStoreType_Values(), false),
 						},
 						"encryption_key": {
 							Type:     schema.TypeList,
@@ -76,11 +76,9 @@ func resourceAwsCodePipeline() *schema.Resource {
 										Required: true,
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codepipeline.EncryptionKeyTypeKms,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(codepipeline.EncryptionKeyType_Values(), false),
 									},
 								},
 							},
@@ -115,29 +113,19 @@ func resourceAwsCodePipeline() *schema.Resource {
 										DiffSuppressFunc: suppressCodePipelineStageActionConfiguration,
 									},
 									"category": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codepipeline.ActionCategorySource,
-											codepipeline.ActionCategoryBuild,
-											codepipeline.ActionCategoryDeploy,
-											codepipeline.ActionCategoryTest,
-											codepipeline.ActionCategoryInvoke,
-											codepipeline.ActionCategoryApproval,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(codepipeline.ActionCategory_Values(), false),
 									},
 									"owner": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codepipeline.ActionOwnerAws,
-											codepipeline.ActionOwnerThirdParty,
-											codepipeline.ActionOwnerCustom,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(codepipeline.ActionOwner_Values(), false),
 									},
 									"provider": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: resourceAwsCodePipelineValidateActionProvider,
 									},
 									"version": {
 										Type:     schema.TypeString,
@@ -425,8 +413,7 @@ func flattenAwsCodePipelineStageActions(si int, actions []*codepipeline.ActionDe
 				if _, ok := config[CodePipelineGitHubActionConfigurationOAuthToken]; ok {
 					// The AWS API returns "****" for the OAuthToken value. Pull the value from the configuration.
 					addr := fmt.Sprintf("stage.%d.action.%d.configuration.OAuthToken", si, ai)
-					hash := hashCodePipelineGitHubToken(d.Get(addr).(string))
-					config[CodePipelineGitHubActionConfigurationOAuthToken] = hash
+					config[CodePipelineGitHubActionConfigurationOAuthToken] = d.Get(addr).(string)
 				}
 			}
 
@@ -618,6 +605,25 @@ func resourceAwsCodePipelineDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return err
+}
+
+func resourceAwsCodePipelineValidateActionProvider(i interface{}, path cty.Path) diag.Diagnostics {
+	v, ok := i.(string)
+	if !ok {
+		return diag.Errorf("expected type to be string")
+	}
+
+	if v == CodePipelineProviderGitHub {
+		return diag.Diagnostics{
+			diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "The CodePipeline GitHub version 1 action provider is deprecated.",
+				Detail:   "Use a GitHub version 2 action (with a CodeStar Connection `aws_codestarconnections_connection`) instead. See https://docs.aws.amazon.com/codepipeline/latest/userguide/update-github-action-connections.html",
+			},
+		}
+	}
+
+	return nil
 }
 
 func suppressCodePipelineStageActionConfiguration(k, old, new string, d *schema.ResourceData) bool {

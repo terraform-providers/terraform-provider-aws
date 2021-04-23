@@ -1045,7 +1045,7 @@ resource "aws_fsx_windows_file_system" "test" {
 }
 
 func testAccAwsFsxWindowsFileSystemConfigSubnetIds2() string {
-	return testAccAwsFsxWindowsFileSystemConfigBase() + fmt.Sprintf(`
+	return composeConfig(testAccAwsFsxWindowsFileSystemConfigBase(), `
 resource "aws_fsx_windows_file_system" "test" {
   active_directory_id = aws_directory_service_directory.test.id
   skip_final_backup   = true

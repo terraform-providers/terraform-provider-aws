@@ -99,6 +99,7 @@ func TestAccAWSVpcEndpointService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "allowed_principals.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "manages_vpc_endpoints", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name_configuration.#", "0"),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`vpc-endpoint-service/vpce-svc-.+`)),
 				),
 			},
@@ -250,6 +251,44 @@ func TestAccAWSVpcEndpointService_tags(t *testing.T) {
 					testAccCheckVpcEndpointServiceExists(resourceName, &svcCfg),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSVpcEndpointService_private_dns_name(t *testing.T) {
+	var svcCfg ec2.ServiceConfiguration
+	resourceName := "aws_vpc_endpoint_service.test"
+	rName1 := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcEndpointServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVpcEndpointServiceConfigPrivateDnsName(rName1, rName2, "example.com"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcEndpointServiceExists(resourceName, &svcCfg),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name", "example.com"),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name_configuration.0.type", "TXT"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccVpcEndpointServiceConfigPrivateDnsName(rName1, rName2, "changed.com"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcEndpointServiceExists(resourceName, &svcCfg),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name", "changed.com"),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_dns_name_configuration.0.type", "TXT"),
 				),
 			},
 		},
@@ -524,4 +563,19 @@ resource "aws_vpc_endpoint_service" "test" {
   }
 }
 `, tagKey1, tagValue1, tagKey2, tagValue2))
+}
+
+func testAccVpcEndpointServiceConfigPrivateDnsName(rName1, rName2, dnsName string) string {
+	return composeConfig(
+		testAccVpcEndpointServiceConfig_base(rName1, rName2),
+		fmt.Sprintf(`
+resource "aws_vpc_endpoint_service" "test" {
+  acceptance_required = false
+  private_dns_name    = "%s"
+
+  network_load_balancer_arns = [
+    aws_lb.test1.arn,
+  ]
+}
+`, dnsName))
 }

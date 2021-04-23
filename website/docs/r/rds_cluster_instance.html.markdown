@@ -58,7 +58,7 @@ The following arguments are supported:
 For information on the difference between the available Aurora MySQL engines
 see [Comparison between Aurora MySQL 1 and Aurora MySQL 2](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/AuroraMySQL.Updates.20180206.html)
 in the Amazon RDS User Guide.
-* `engine_version` - (Optional) The database engine version. When managing the engine version in the cluster, it is recommended to add the [lifecycle `ignore_changes` configuration](/docs/configuration/resources.html#ignore_changes) for this argument to prevent Terraform from proposing changes to the instance engine version directly.
+* `engine_version` - (Optional) The database engine version. When managing the engine version in the cluster, it is recommended to add the [lifecycle `ignore_changes` configuration](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) for this argument to prevent Terraform from proposing changes to the instance engine version directly.
 * `instance_class` - (Required) The instance class to use. For details on CPU
 and memory, see [Scaling Aurora DB Instances][4]. Aurora uses `db.*` instance classes/types. Please see [AWS Documentation][7] for currently available instance classes and complete details.
 * `publicly_accessible` - (Optional) Bool to control if instance is publicly accessible.
@@ -108,14 +108,14 @@ In addition to all arguments above, the following attributes are exported:
 [2]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Aurora.html
 [3]: /docs/providers/aws/r/rds_cluster.html
 [4]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Aurora.Managing.html
-[5]: /docs/configuration/resources.html#count
+[5]: https://www.terraform.io/docs/configuration/meta-arguments/count.html
 [6]: https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html
 [7]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
 
 ## Timeouts
 
 `aws_rds_cluster_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `90 minutes`) Used for Creating Instances, Replicas, and
 restoring from Snapshots

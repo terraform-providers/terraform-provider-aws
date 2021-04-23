@@ -37,6 +37,7 @@ data "aws_workspaces_directory" "example" {
 * `subnet_ids` - The identifiers of the subnets where the directory resides.
 * `tags` – A map of tags assigned to the WorkSpaces directory.
 * `workspace_creation_properties` – The default properties that are used for creating WorkSpaces. Defined below.
+* `workspace_access_properties` – (Optional) Specifies which devices and operating systems users can use to access their WorkSpaces. Defined below.
 * `workspace_security_group_id` - The identifier of the security group that is assigned to new WorkSpaces. Defined below.
 
 ### self_service_permissions
@@ -46,6 +47,16 @@ data "aws_workspaces_directory" "example" {
 * `rebuild_workspace` – Whether WorkSpaces directory users can rebuild the operating system of a workspace to its original state.
 * `restart_workspace` – Whether WorkSpaces directory users can restart their workspace.
 * `switch_running_mode` – Whether WorkSpaces directory users can switch the running mode of their workspace.
+
+### workspace_access_properties
+
+* `device_type_android` – (Optional) Indicates whether users can use Android devices to access their WorkSpaces.
+* `device_type_chromeos` – (Optional) Indicates whether users can use Chromebooks to access their WorkSpaces.
+* `device_type_ios` – (Optional) Indicates whether users can use iOS devices to access their WorkSpaces.
+* `device_type_osx` – (Optional) Indicates whether users can use macOS clients to access their WorkSpaces.
+* `device_type_web` – (Optional) Indicates whether users can access their WorkSpaces through a web browser.
+* `device_type_windows` – (Optional) Indicates whether users can use Windows clients to access their WorkSpaces.
+* `device_type_zeroclient` – (Optional) Indicates whether users can use zero client devices to access their WorkSpaces.
 
 ### workspace_creation_properties
 

@@ -304,8 +304,8 @@ func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if attr := d.Get("availability_zones").(*schema.Set); attr.Len() > 0 {
-		createDbClusterInput.AvailabilityZones = expandStringList(attr.List())
-		restoreDBClusterFromSnapshotInput.AvailabilityZones = expandStringList(attr.List())
+		createDbClusterInput.AvailabilityZones = expandStringSet(attr)
+		restoreDBClusterFromSnapshotInput.AvailabilityZones = expandStringSet(attr)
 	}
 
 	if attr, ok := d.GetOk("backup_retention_period"); ok {
@@ -316,8 +316,8 @@ func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if attr := d.Get("enable_cloudwatch_logs_exports").(*schema.Set); attr.Len() > 0 {
-		createDbClusterInput.EnableCloudwatchLogsExports = expandStringList(attr.List())
-		restoreDBClusterFromSnapshotInput.EnableCloudwatchLogsExports = expandStringList(attr.List())
+		createDbClusterInput.EnableCloudwatchLogsExports = expandStringSet(attr)
+		restoreDBClusterFromSnapshotInput.EnableCloudwatchLogsExports = expandStringSet(attr)
 	}
 
 	if attr, ok := d.GetOk("engine_version"); ok {
@@ -359,11 +359,11 @@ func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if attr := d.Get("vpc_security_group_ids").(*schema.Set); attr.Len() > 0 {
-		createDbClusterInput.VpcSecurityGroupIds = expandStringList(attr.List())
+		createDbClusterInput.VpcSecurityGroupIds = expandStringSet(attr)
 		if restoreDBClusterFromSnapshot {
 			clusterUpdate = true
 		}
-		restoreDBClusterFromSnapshotInput.VpcSecurityGroupIds = expandStringList(attr.List())
+		restoreDBClusterFromSnapshotInput.VpcSecurityGroupIds = expandStringSet(attr)
 	}
 
 	if restoreDBClusterFromSnapshot {
@@ -552,7 +552,7 @@ func resourceAwsNeptuneClusterUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("vpc_security_group_ids") {
 		if attr := d.Get("vpc_security_group_ids").(*schema.Set); attr.Len() > 0 {
-			req.VpcSecurityGroupIds = expandStringList(attr.List())
+			req.VpcSecurityGroupIds = expandStringSet(attr)
 		} else {
 			req.VpcSecurityGroupIds = []*string{}
 		}
@@ -567,13 +567,13 @@ func resourceAwsNeptuneClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		disableLogTypes := old.(*schema.Set).Difference(new.(*schema.Set))
 
 		if disableLogTypes.Len() > 0 {
-			logs.SetDisableLogTypes(expandStringList(disableLogTypes.List()))
+			logs.SetDisableLogTypes(expandStringSet(disableLogTypes))
 		}
 
 		enableLogTypes := new.(*schema.Set).Difference(old.(*schema.Set))
 
 		if enableLogTypes.Len() > 0 {
-			logs.SetEnableLogTypes(expandStringList(enableLogTypes.List()))
+			logs.SetEnableLogTypes(expandStringSet(enableLogTypes))
 		}
 
 		req.CloudwatchLogsExportConfiguration = logs

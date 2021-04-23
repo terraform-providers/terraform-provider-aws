@@ -149,3 +149,20 @@ func VpnGatewayByID(conn *ec2.EC2, id string) (*ec2.VpnGateway, error) {
 
 	return output.VpnGateways[0], nil
 }
+
+func ManagedPrefixListByID(conn *ec2.EC2, id string) (*ec2.ManagedPrefixList, error) {
+	input := &ec2.DescribeManagedPrefixListsInput{
+		PrefixListIds: aws.StringSlice([]string{id}),
+	}
+
+	output, err := conn.DescribeManagedPrefixLists(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.PrefixLists) == 0 {
+		return nil, nil
+	}
+
+	return output.PrefixLists[0], nil
+}

@@ -84,7 +84,7 @@ will be exported as an attribute once the resource is created.
 ## Timeouts
 
 `aws_route` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `2 minutes`) Used for route creation
 - `delete` - (Default `5 minutes`) Used for route deletion

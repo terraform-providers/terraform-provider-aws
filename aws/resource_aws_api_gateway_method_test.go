@@ -198,6 +198,40 @@ func TestAccAWSAPIGatewayMethod_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayMethod_OperationName(t *testing.T) {
+	var conf apigateway.Method
+	rInt := acctest.RandInt()
+	resourceName := "aws_api_gateway_method.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayMethodDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayMethodConfigOperationName(rInt, "getTest"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "operation_name", "getTest"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayMethodConfigOperationName(rInt, "describeTest"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "operation_name", "describeTest"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAPIGatewayMethodAttributes(conf *apigateway.Method) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if *conf.HttpMethod != "GET" {
@@ -724,4 +758,35 @@ resource "aws_api_gateway_method" "test" {
   }
 }
 `, rInt)
+}
+
+func testAccAWSAPIGatewayMethodConfigOperationName(rInt int, operationName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = "tf-acc-test-apig-method-custom-op-name-%[1]d"
+}
+
+resource "aws_api_gateway_resource" "test" {
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
+  path_part   = "test"
+}
+
+resource "aws_api_gateway_method" "test" {
+  authorization  = "NONE"
+  http_method    = "GET"
+  operation_name = %[2]q
+  resource_id    = aws_api_gateway_resource.test.id
+  rest_api_id    = aws_api_gateway_rest_api.test.id
+
+  request_models = {
+    "application/json" = "Error"
+  }
+
+  request_parameters = {
+    "method.request.header.Content-Type" = false
+    "method.request.querystring.page"    = true
+  }
+}
+`, rInt, operationName)
 }

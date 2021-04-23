@@ -250,7 +250,7 @@ data "aws_route" "test" {
 }
 
 func testAccAWSRouteDataSourceConfigLocalGatewayID() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ec2_local_gateways" "all" {}
 data "aws_ec2_local_gateway" "first" {
   id = tolist(data.aws_ec2_local_gateways.all.ids)[0]
@@ -286,5 +286,5 @@ data "aws_route" "by_local_gateway_id" {
   local_gateway_id = data.aws_ec2_local_gateway.first.id
   depends_on       = [aws_route.test]
 }
-`)
+`
 }

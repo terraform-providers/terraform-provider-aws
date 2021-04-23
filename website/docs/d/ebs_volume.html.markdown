@@ -57,5 +57,6 @@ In addition to all arguments above, the following attributes are exported:
 * `volume_type` - The type of EBS volume.
 * `kms_key_id` - The ARN for the KMS encryption key.
 * `tags` - A map of tags for the resource.
+* `throughput` - The throughput that the volume supports, in MiB/s.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-volumes.html

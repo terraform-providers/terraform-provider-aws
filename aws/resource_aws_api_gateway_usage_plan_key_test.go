@@ -16,8 +16,9 @@ import (
 func TestAccAWSAPIGatewayUsagePlanKey_basic(t *testing.T) {
 	var conf apigateway.UsagePlanKey
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	updatedName := acctest.RandomWithPrefix("tf-acc-test-updated")
-	resourceName := "aws_api_gateway_usage_plan_key.main"
+	apiGatewayApiKeyResourceName := "aws_api_gateway_api_key.test"
+	apiGatewayUsagePlanResourceName := "aws_api_gateway_usage_plan.test"
+	resourceName := "aws_api_gateway_usage_plan_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
@@ -25,15 +26,14 @@ func TestAccAWSAPIGatewayUsagePlanKey_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayUsagePlanKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSApiGatewayUsagePlanKeyBasicConfig(rName),
+				Config: testAccAWSApiGatewayUsagePlanKeyConfigKeyTypeApiKey(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanKeyExists(resourceName, &conf),
+					resource.TestCheckResourceAttrPair(resourceName, "key_id", apiGatewayApiKeyResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "key_type", "API_KEY"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_type"),
-					resource.TestCheckResourceAttrSet(resourceName, "usage_plan_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttr(resourceName, "value", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "usage_plan_id", apiGatewayUsagePlanResourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "value"),
 				),
 			},
 			{
@@ -42,30 +42,6 @@ func TestAccAWSAPIGatewayUsagePlanKey_basic(t *testing.T) {
 				ImportStateIdFunc: testAccCheckAWSAPIGatewayUsagePlanKeyImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
-			{
-				Config: testAccAWSApiGatewayUsagePlanKeyBasicUpdatedConfig(updatedName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayUsagePlanKeyExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "key_type", "API_KEY"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_type"),
-					resource.TestCheckResourceAttrSet(resourceName, "usage_plan_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttr(resourceName, "value", ""),
-				),
-			},
-			{
-				Config: testAccAWSApiGatewayUsagePlanKeyBasicConfig(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayUsagePlanKeyExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "key_type", "API_KEY"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_type"),
-					resource.TestCheckResourceAttrSet(resourceName, "usage_plan_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttr(resourceName, "value", ""),
-				),
-			},
 		},
 	})
 }
@@ -73,7 +49,7 @@ func TestAccAWSAPIGatewayUsagePlanKey_basic(t *testing.T) {
 func TestAccAWSAPIGatewayUsagePlanKey_disappears(t *testing.T) {
 	var conf apigateway.UsagePlanKey
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	resourceName := "aws_api_gateway_usage_plan_key.main"
+	resourceName := "aws_api_gateway_usage_plan_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
@@ -81,12 +57,40 @@ func TestAccAWSAPIGatewayUsagePlanKey_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayUsagePlanKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSApiGatewayUsagePlanKeyBasicConfig(rName),
+				Config: testAccAWSApiGatewayUsagePlanKeyConfigKeyTypeApiKey(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanKeyExists(resourceName, &conf),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayUsagePlanKey(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayUsagePlanKey_KeyId_Concurrency(t *testing.T) {
+	var conf apigateway.UsagePlanKey
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayUsagePlanKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSApiGatewayUsagePlanKeyConfigKeyIdConcurrency(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.0", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.1", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.2", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.3", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.4", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.5", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.6", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.7", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.8", &conf),
+					testAccCheckAWSAPIGatewayUsagePlanKeyExists("aws_api_gateway_usage_plan_key.test.9", &conf),
+				),
 			},
 		},
 	})
@@ -171,7 +175,7 @@ func testAccCheckAWSAPIGatewayUsagePlanKeyImportStateIdFunc(resourceName string)
 	}
 }
 
-func testAccAWSAPIGatewayUsagePlanKeyConfig(rName string) string {
+func testAccAWSAPIGatewayUsagePlanKeyConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
   name = "%[1]s"
@@ -215,30 +219,25 @@ resource "aws_api_gateway_integration_response" "test" {
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = [aws_api_gateway_integration.test]
+  depends_on = [aws_api_gateway_integration_response.test]
 
+  description = "This is a test"
   rest_api_id = aws_api_gateway_rest_api.test.id
   stage_name  = "test"
-  description = "This is a test"
-
-  variables = {
-    "a" = "2"
-  }
+}
+`, rName)
 }
 
-resource "aws_api_gateway_deployment" "foo" {
-  depends_on = [
-    aws_api_gateway_deployment.test,
-    aws_api_gateway_integration.test,
-  ]
-
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  stage_name  = "foo"
-  description = "This is a prod stage"
+func testAccAWSApiGatewayUsagePlanKeyConfigKeyTypeApiKey(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayUsagePlanKeyConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_api_gateway_api_key" "test" {
+  name = %[1]q
 }
 
-resource "aws_api_gateway_usage_plan" "main" {
-  name = "%[1]s"
+resource "aws_api_gateway_usage_plan" "test" {
+  name = %[1]q
 
   api_stages {
     api_id = aws_api_gateway_rest_api.test.id
@@ -246,37 +245,39 @@ resource "aws_api_gateway_usage_plan" "main" {
   }
 }
 
-resource "aws_api_gateway_usage_plan" "secondary" {
-  name = "secondary-%[1]s"
+resource "aws_api_gateway_usage_plan_key" "test" {
+  key_id        = aws_api_gateway_api_key.test.id
+  key_type      = "API_KEY"
+  usage_plan_id = aws_api_gateway_usage_plan.test.id
+}
+`, rName))
+}
+
+func testAccAWSApiGatewayUsagePlanKeyConfigKeyIdConcurrency(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayUsagePlanKeyConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_api_gateway_api_key" "test" {
+  count = 10
+
+  name = "%[1]s-${count.index}"
+}
+
+resource "aws_api_gateway_usage_plan" "test" {
+  name = %[1]q
 
   api_stages {
     api_id = aws_api_gateway_rest_api.test.id
-    stage  = aws_api_gateway_deployment.foo.stage_name
+    stage  = aws_api_gateway_deployment.test.stage_name
   }
 }
 
-resource "aws_api_gateway_api_key" "mykey" {
-  name = "demo-%[1]s"
-}
-`, rName)
-}
+resource "aws_api_gateway_usage_plan_key" "test" {
+  count = 10
 
-func testAccAWSApiGatewayUsagePlanKeyBasicConfig(rName string) string {
-	return fmt.Sprintf(testAccAWSAPIGatewayUsagePlanKeyConfig(rName) + `
-resource "aws_api_gateway_usage_plan_key" "main" {
-  key_id        = aws_api_gateway_api_key.mykey.id
+  key_id        = aws_api_gateway_api_key.test[count.index].id
   key_type      = "API_KEY"
-  usage_plan_id = aws_api_gateway_usage_plan.main.id
+  usage_plan_id = aws_api_gateway_usage_plan.test.id
 }
-`)
-}
-
-func testAccAWSApiGatewayUsagePlanKeyBasicUpdatedConfig(rName string) string {
-	return fmt.Sprintf(testAccAWSAPIGatewayUsagePlanKeyConfig(rName) + `
-resource "aws_api_gateway_usage_plan_key" "main" {
-  key_id        = aws_api_gateway_api_key.mykey.id
-  key_type      = "API_KEY"
-  usage_plan_id = aws_api_gateway_usage_plan.secondary.id
-}
-`)
+`, rName))
 }

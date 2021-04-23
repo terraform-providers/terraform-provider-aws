@@ -450,6 +450,8 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 
 	if v, ok := d.GetOk("partition_keys"); ok {
 		tableInput.PartitionKeys = expandGlueColumns(v.([]interface{}))
+	} else {
+		tableInput.PartitionKeys = []*glue.Column{}
 	}
 
 	if v, ok := d.GetOk("view_original_text"); ok {

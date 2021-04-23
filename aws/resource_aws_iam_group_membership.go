@@ -43,7 +43,7 @@ func resourceAwsIamGroupMembershipCreate(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).iamconn
 
 	group := d.Get("group").(string)
-	userList := expandStringList(d.Get("users").(*schema.Set).List())
+	userList := expandStringSet(d.Get("users").(*schema.Set))
 
 	if err := addUsersToGroup(conn, userList, group); err != nil {
 		return err
@@ -110,8 +110,8 @@ func resourceAwsIamGroupMembershipUpdate(d *schema.ResourceData, meta interface{
 
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
-		remove := expandStringList(os.Difference(ns).List())
-		add := expandStringList(ns.Difference(os).List())
+		remove := expandStringSet(os.Difference(ns))
+		add := expandStringSet(ns.Difference(os))
 
 		if err := removeUsersFromGroup(conn, remove, group); err != nil {
 			return err
@@ -127,7 +127,7 @@ func resourceAwsIamGroupMembershipUpdate(d *schema.ResourceData, meta interface{
 
 func resourceAwsIamGroupMembershipDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
-	userList := expandStringList(d.Get("users").(*schema.Set).List())
+	userList := expandStringSet(d.Get("users").(*schema.Set))
 	group := d.Get("group").(string)
 
 	err := removeUsersFromGroup(conn, userList, group)

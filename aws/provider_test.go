@@ -486,6 +486,25 @@ func testAccCheckResourceAttrRegionalARNIgnoreRegionAndAccount(resourceName, att
 	}
 }
 
+// testAccMatchResourceAttrGlobalARNNoAccount ensures the Terraform state regexp matches a formatted ARN without region or account ID
+func testAccMatchResourceAttrGlobalARNNoAccount(resourceName, attributeName, arnService string, arnResourceRegexp *regexp.Regexp) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		arnRegexp := arn.ARN{
+			Partition: testAccGetPartition(),
+			Resource:  arnResourceRegexp.String(),
+			Service:   arnService,
+		}.String()
+
+		attributeMatch, err := regexp.Compile(arnRegexp)
+
+		if err != nil {
+			return fmt.Errorf("Unable to compile ARN regexp (%s): %s", arnRegexp, err)
+		}
+
+		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)
+	}
+}
+
 // testAccCheckResourceAttrRfc3339 ensures the Terraform state matches a RFC3339 value
 // This TestCheckFunc will likely be moved to the Terraform Plugin SDK in the future.
 func testAccCheckResourceAttrRfc3339(resourceName, attributeName string) resource.TestCheckFunc {
@@ -776,6 +795,12 @@ func testAccPreCheckIamServiceLinkedRole(t *testing.T, pathPrefix string) {
 
 	if role == nil {
 		t.Skipf("skipping tests; missing IAM service-linked role %s. Please create the role and retry", pathPrefix)
+	}
+}
+
+func testAccEnvironmentVariableSetPreCheck(variable string, t *testing.T) {
+	if os.Getenv(variable) == "" {
+		t.Skipf("skipping tests; environment variable %s must be set", variable)
 	}
 }
 

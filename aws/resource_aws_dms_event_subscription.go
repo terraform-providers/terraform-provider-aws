@@ -91,11 +91,11 @@ func resourceAwsDmsEventSubscriptionCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("event_categories"); ok {
-		request.EventCategories = expandStringList(v.(*schema.Set).List())
+		request.EventCategories = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("source_ids"); ok {
-		request.SourceIds = expandStringList(v.(*schema.Set).List())
+		request.SourceIds = expandStringSet(v.(*schema.Set))
 	}
 
 	_, err := conn.CreateEventSubscription(request)
@@ -135,7 +135,7 @@ func resourceAwsDmsEventSubscriptionUpdate(d *schema.ResourceData, meta interfac
 		}
 
 		if v, ok := d.GetOk("event_categories"); ok {
-			request.EventCategories = expandStringList(v.(*schema.Set).List())
+			request.EventCategories = expandStringSet(v.(*schema.Set))
 		}
 
 		_, err := conn.ModifyEventSubscription(request)

@@ -1,12 +1,14 @@
 package plugin
 
 import (
+	"log"
+
 	hclog "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/server"
+	tf5server "github.com/hashicorp/terraform-plugin-go/tfprotov5/server"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -43,11 +45,31 @@ type ServeOpts struct {
 	// plugin's lifecycle and communicate connection information. See the
 	// go-plugin GoDoc for more information.
 	TestConfig *plugin.ServeTestConfig
+
+	// Set NoLogOutputOverride to not override the log output with an hclog
+	// adapter. This should only be used when running the plugin in
+	// acceptance tests.
+	NoLogOutputOverride bool
 }
 
 // Serve serves a plugin. This function never returns and should be the final
 // function called in the main function of the plugin.
 func Serve(opts *ServeOpts) {
+	if !opts.NoLogOutputOverride {
+		// In order to allow go-plugin to correctly pass log-levels through to
+		// terraform, we need to use an hclog.Logger with JSON output. We can
+		// inject this into the std `log` package here, so existing providers will
+		// make use of it automatically.
+		logger := hclog.New(&hclog.LoggerOptions{
+			// We send all output to terraform. Go-plugin will take the output and
+			// pass it through another hclog.Logger on the client side where it can
+			// be filtered.
+			Level:      hclog.Trace,
+			JSONFormat: true,
+		})
+		log.SetOutput(logger.StandardWriter(&hclog.StandardLoggerOptions{InferLevels: true}))
+	}
+
 	// since the plugins may not yet be aware of the new protocol, we
 	// automatically wrap the plugins in the grpc shims.
 	if opts.GRPCProviderFunc == nil && opts.ProviderFunc != nil {

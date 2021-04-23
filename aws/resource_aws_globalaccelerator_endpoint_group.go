@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
@@ -22,6 +23,12 @@ func resourceAwsGlobalAcceleratorEndpointGroup() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -199,7 +206,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, d.Timeout(schema.TimeoutCreate))
 
 	if err != nil {
 		return err
@@ -311,7 +318,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, d.Timeout(schema.TimeoutUpdate))
 
 	if err != nil {
 		return err
@@ -343,7 +350,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, d.Timeout(schema.TimeoutDelete))
 
 	if err != nil {
 		return err

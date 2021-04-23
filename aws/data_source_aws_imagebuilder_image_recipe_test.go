@@ -32,6 +32,7 @@ func TestAccAwsImageBuilderImageRecipeDataSource_Arn(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "platform", resourceName, "platform"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "tags.%", resourceName, "tags.%"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "version", resourceName, "version"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "working_directory", resourceName, "working_directory"),
 				),
 			},
 		},

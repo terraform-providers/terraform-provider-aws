@@ -111,6 +111,7 @@ var serviceNames = []string{
 	"sns",
 	"sqs",
 	"ssm",
+	"ssoadmin",
 	"storagegateway",
 	"swf",
 	"transfer",

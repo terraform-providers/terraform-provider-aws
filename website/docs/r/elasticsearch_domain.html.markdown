@@ -223,6 +223,7 @@ The following arguments are supported:
 * `snapshot_options` - (Optional) Snapshot related options, see below.
 * `vpc_options` - (Optional) VPC related options, see below. Adding or removing this configuration forces a new resource ([documentation](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-limitations)).
 * `log_publishing_options` - (Optional) Options for publishing slow  and application logs to CloudWatch Logs. This block can be declared multiple times, for each log_type, within the same resource.
+* `cognito_options` - (Optional) Options for authenticating Kibana with Cognito. See below.
 * `elasticsearch_version` - (Optional) The version of Elasticsearch to deploy. Defaults to `1.5`
 * `domain_endpoint_options` - (Optional) Domain endpoint HTTP(S) related options. See below.
 * `tags` - (Optional) A map of tags to assign to the resource
@@ -321,7 +322,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_elasticsearch_domain` provides the following [Timeouts](/docs/configuration/resources.html#operation-timeouts) configuration options:
+`aws_elasticsearch_domain` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `update` - (Optional, Default: `60m`) How long to wait for updates.
 

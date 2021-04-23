@@ -76,7 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Timeouts
 
-`aws_db_proxy_default_target_group` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_db_proxy_default_target_group` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Timeout for modifying DB proxy target group on creation.
 - `update` - (Default `30 minutes`) Timeout for modifying DB proxy target group on update.

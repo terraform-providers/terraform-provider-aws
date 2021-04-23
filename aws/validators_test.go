@@ -359,6 +359,50 @@ func TestValidateArn(t *testing.T) {
 	}
 }
 
+func TestValidatePrincipal(t *testing.T) {
+	v := ""
+	_, errors := validatePrincipal(v, "arn")
+	if len(errors) == 0 {
+		t.Fatalf("%q should not be validated as a principal %d: %q", v, len(errors), errors)
+	}
+
+	validNames := []string{
+		"IAM_ALLOWED_PRINCIPALS", // Special principal
+		"arn:aws-us-gov:iam::357342307427:role/tf-acc-test-3217321001347236965",          // lintignore:AWSAT005          // IAM Role
+		"arn:aws:iam::123456789012:user/David",                                           // lintignore:AWSAT005          // IAM User
+		"arn:aws-us-gov:iam:us-west-2:357342307427:role/tf-acc-test-3217321001347236965", // lintignore:AWSAT003,AWSAT005 // Non-global IAM Role?
+		"arn:aws:iam:us-east-1:123456789012:user/David",                                  // lintignore:AWSAT003,AWSAT005 // Non-global IAM User?
+	}
+	for _, v := range validNames {
+		_, errors := validatePrincipal(v, "arn")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid principal: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"IAM_NOT_ALLOWED_PRINCIPALS", // doesn't exist
+		"arn",
+		"123456789012",
+		"arn:aws",
+		"arn:aws:logs",            //lintignore:AWSAT005
+		"arn:aws:logs:region:*:*", //lintignore:AWSAT005
+		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",                                 // lintignore:AWSAT005          // not a user or role
+		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // lintignore:AWSAT005          // not a user or role
+		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws-us-gov:ec2:us-gov-west-1:123456789012:instance/i-12345678",                // lintignore:AWSAT003,AWSAT005 // not a user or role
+		"arn:aws-us-gov:s3:::bucket/object",                                                // lintignore:AWSAT005          // not a user or role
+	}
+	for _, v := range invalidNames {
+		_, errors := validatePrincipal(v, "arn")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid principal", v)
+		}
+	}
+}
+
 func TestValidateEC2AutomateARN(t *testing.T) {
 	validNames := []string{
 		"arn:aws:automate:us-east-1:ec2:reboot",    //lintignore:AWSAT003,AWSAT005

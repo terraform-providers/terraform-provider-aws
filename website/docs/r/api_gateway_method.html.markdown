@@ -82,6 +82,7 @@ The following arguments are supported:
 * `authorizer_id` - (Optional) The authorizer id to be used when the authorization is `CUSTOM` or `COGNITO_USER_POOLS`
 * `authorization_scopes` - (Optional) The authorization scopes used when the authorization is `COGNITO_USER_POOLS`
 * `api_key_required` - (Optional) Specify if the method requires an API key
+* `operation_name` - (Optional) The function name that will be given to the method when generating an SDK through API Gateway. If omitted, API Gateway will generate a function name based on the resource path and HTTP verb.
 * `request_models` - (Optional) A map of the API models used for the request's content type
   where key is the content type (e.g. `application/json`)
   and value is either `Error`, `Empty` (built-in models) or `aws_api_gateway_model`'s `name`.

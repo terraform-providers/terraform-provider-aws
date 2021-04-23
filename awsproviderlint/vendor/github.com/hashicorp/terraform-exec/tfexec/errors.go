@@ -11,7 +11,7 @@ import (
 var (
 	// The "Required variable not set:" case is for 0.11
 	missingVarErrRegexp  = regexp.MustCompile(`Error: No value for required variable|Error: Required variable not set:`)
-	missingVarNameRegexp = regexp.MustCompile(`The root module input variable "(.+)" is not set, and has no default|Error: Required variable not set: (.+)`)
+	missingVarNameRegexp = regexp.MustCompile(`The root module input variable\s"(.+)"\sis\snot\sset,\sand\shas\sno\sdefault|Error: Required variable not set: (.+)`)
 
 	usageRegexp = regexp.MustCompile(`Too many command line arguments|^Usage: .*Options:.*|Error: Invalid -\d+ option`)
 
@@ -26,10 +26,12 @@ var (
 
 	tfVersionMismatchErrRegexp        = regexp.MustCompile(`Error: The currently running version of Terraform doesn't meet the|Error: Unsupported Terraform Core version`)
 	tfVersionMismatchConstraintRegexp = regexp.MustCompile(`required_version = "(.+)"|Required version: (.+)\b`)
+	configInvalidErrRegexp            = regexp.MustCompile(`There are some problems with the configuration, described below.`)
 )
 
 func (tf *Terraform) parseError(err error, stderr string) error {
-	if _, ok := err.(*exec.ExitError); !ok {
+	ee, ok := err.(*exec.ExitError)
+	if !ok {
 		return err
 	}
 
@@ -86,8 +88,23 @@ func (tf *Terraform) parseError(err error, stderr string) error {
 		if len(submatches) == 2 {
 			return &ErrWorkspaceExists{submatches[1]}
 		}
+	case configInvalidErrRegexp.MatchString(stderr):
+		return &ErrConfigInvalid{stderr: stderr}
+	}
+	errString := strings.TrimSpace(stderr)
+	if errString == "" {
+		// if stderr is empty, return the ExitError directly, as it will have a better message
+		return ee
 	}
 	return errors.New(stderr)
+}
+
+type ErrConfigInvalid struct {
+	stderr string
+}
+
+func (e *ErrConfigInvalid) Error() string {
+	return "configuration is invalid"
 }
 
 type ErrNoSuitableBinary struct {

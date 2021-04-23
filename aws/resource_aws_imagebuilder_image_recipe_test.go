@@ -506,6 +506,31 @@ func TestAccAwsImageBuilderImageRecipe_Tags(t *testing.T) {
 	})
 }
 
+func TestAccAwsImageBuilderImageRecipe_WorkingDirectory(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_imagebuilder_image_recipe.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsImageBuilderImageRecipeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsImageBuilderImageRecipeConfigWorkingDirectory(rName, "/tmp"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsImageBuilderImageRecipeExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "working_directory", "/tmp"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAwsImageBuilderImageRecipeDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).imagebuilderconn
 
@@ -919,4 +944,21 @@ resource "aws_imagebuilder_image_recipe" "test" {
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2))
+}
+
+func testAccAwsImageBuilderImageRecipeConfigWorkingDirectory(rName string, workingDirectory string) string {
+	return composeConfig(
+		testAccAwsImageBuilderImageRecipeConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_imagebuilder_image_recipe" "test" {
+  component {
+    component_arn = aws_imagebuilder_component.test.arn
+  }
+
+  name              = %[1]q
+  parent_image      = "arn:${data.aws_partition.current.partition}:imagebuilder:${data.aws_region.current.name}:aws:image/amazon-linux-2-x86/x.x.x"
+  version           = "1.0.0"
+  working_directory = %[2]q
+}
+`, rName, workingDirectory))
 }

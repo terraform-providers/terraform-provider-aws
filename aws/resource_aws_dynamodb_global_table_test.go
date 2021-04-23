@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -159,8 +160,21 @@ func testAccPreCheckAWSDynamodbGlobalTable(t *testing.T) {
 }
 
 // testAccDynamoDBGlobalTablePreCheck checks if aws_dynamodb_global_table (version 2017.11.29) can be used and skips test if not.
+// Region availability for Version 2017.11.29: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html
 func testAccDynamoDBGlobalTablePreCheck(t *testing.T) {
-	supportRegionsSort := []string{"ap-northeast-1", "ap-northeast-2", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "eu-west-1", "eu-west-2", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+	supportRegionsSort := []string{
+		endpoints.ApNortheast1RegionID,
+		endpoints.ApNortheast2RegionID,
+		endpoints.ApSoutheast1RegionID,
+		endpoints.ApSoutheast2RegionID,
+		endpoints.EuCentral1RegionID,
+		endpoints.EuWest1RegionID,
+		endpoints.EuWest2RegionID,
+		endpoints.UsEast1RegionID,
+		endpoints.UsEast2RegionID,
+		endpoints.UsWest1RegionID,
+		endpoints.UsWest2RegionID,
+	}
 
 	if testAccGetRegion() != supportRegionsSort[sort.SearchStrings(supportRegionsSort, testAccGetRegion())] {
 		t.Skipf("skipping test; aws_dynamodb_global_table (DynamoDB v2017.11.29) not supported in region %s", testAccGetRegion())

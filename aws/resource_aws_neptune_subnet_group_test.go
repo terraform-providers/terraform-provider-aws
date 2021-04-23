@@ -274,7 +274,7 @@ resource "aws_neptune_subnet_group" "foo" {
 }
 
 func testAccNeptuneSubnetGroupConfig_namePrefix() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -307,11 +307,11 @@ resource "aws_neptune_subnet_group" "test" {
   name_prefix = "tf_test-"
   subnet_ids  = [aws_subnet.a.id, aws_subnet.b.id]
 }
-`))
+`)
 }
 
 func testAccNeptuneSubnetGroupConfig_generatedName() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -343,5 +343,5 @@ resource "aws_subnet" "b" {
 resource "aws_neptune_subnet_group" "test" {
   subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
-`))
+`)
 }

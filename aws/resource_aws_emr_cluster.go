@@ -978,6 +978,18 @@ func resourceAwsEMRClusterRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := emrconn.DescribeCluster(req)
 	if err != nil {
+		// After a Cluster has been terminated for an indeterminate period of time,
+		// the EMR API will return this type of error:
+		//   InvalidRequestException: Cluster id 'j-XXX' is not valid.
+		// If this causes issues with masking other legitimate request errors, the
+		// handling should be updated for deeper inspection of the special error type
+		// which includes an accurate error code:
+		//   ErrorCode: "NoSuchCluster",
+		if isAWSErr(err, emr.ErrCodeInvalidRequestException, "is not valid") {
+			log.Printf("[DEBUG] EMR Cluster (%s) not found", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading EMR cluster: %s", err)
 	}
 

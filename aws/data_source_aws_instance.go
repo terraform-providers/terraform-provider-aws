@@ -208,6 +208,13 @@ func dataSourceAwsInstance() *schema.Resource {
 							Computed: true,
 						},
 
+						"tags": tagsSchemaComputed(),
+
+						"throughput": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -260,6 +267,13 @@ func dataSourceAwsInstance() *schema.Resource {
 
 						"kms_key_id": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tags": tagsSchemaComputed(),
+
+						"throughput": {
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 

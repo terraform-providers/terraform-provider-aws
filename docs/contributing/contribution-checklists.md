@@ -478,9 +478,7 @@ guidelines.
      `CreateThing`, `DeleteThing`, `DescribeThing`, and `ModifyThing` the name
      of the resource would end in `_thing`.
 
-- [ ] __Arguments_and_Attributes__: The HCL for arguments and attributes should
-   mimic the types and structs presented by the AWS API. API arguments should be
-   converted from `CamelCase` to `camel_case`.
+- [ ] __Arguments_and_Attributes__: The HCL for arguments and attributes should mimic the types and structs presented by the AWS API. API arguments should be converted from `CamelCase` to `camel_case`. The resource logic for handling these should follow the recommended implementations in the [Data Handling and Conversion](data-handling-and-conversion.md) documentation.
 - [ ] __Documentation__: Each data source and resource gets a page in the Terraform
    documentation, which lives at `website/docs/d/<service>_<name>.html.markdown` and
    `website/docs/r/<service>_<name>.html.markdown` respectively.

@@ -50,6 +50,10 @@ gencheck:
 	@git diff --compact-summary --exit-code || \
 		(echo; echo "Unexpected difference in directories after code generation. Run 'make gen' command and commit."; exit 1)
 
+generate-changelog:
+	@echo "==> Generating changelog..."
+	@sh -c "'$(CURDIR)/scripts/generate-changelog.sh'"
+
 depscheck:
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
@@ -87,7 +91,6 @@ golangci-lint:
 awsproviderlint:
 	@awsproviderlint \
 		-c 1 \
-		-AWSAT003=false \
 		-AWSAT006=false \
 		-AWSV001=false \
 		-R001=false \
@@ -116,6 +119,7 @@ tools:
 	cd tools && GO111MODULE=on go install github.com/katbyte/terrafmt
 	cd tools && GO111MODULE=on go install github.com/terraform-linters/tflint
 	cd tools && GO111MODULE=on go install github.com/pavius/impi/cmd/impi
+	cd tools && GO111MODULE=on go install github.com/hashicorp/go-changelog/cmd/changelog-build
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -150,4 +154,4 @@ website-lint-fix:
 	@docker run -v $(PWD):/markdown 06kellyjac/markdownlint-cli --fix website/docs/
 	@terrafmt fmt ./website --pattern '*.markdown'
 
-.PHONY: awsproviderlint build gen golangci-lint sweep test testacc fmt fmtcheck lint tools test-compile website-link-check website-lint website-lint-fix depscheck docscheck
+.PHONY: awsproviderlint build gen generate-changelog golangci-lint sweep test testacc fmt fmtcheck lint tools test-compile website-link-check website-lint website-lint-fix depscheck docscheck

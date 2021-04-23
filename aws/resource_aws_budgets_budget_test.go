@@ -409,7 +409,7 @@ func testAccAWSBudgetsBudgetConfigUpdate(name string) budgets.Budget {
 		},
 		CostFilters: map[string][]*string{
 			"AZ": {
-				aws.String("us-east-2"),
+				aws.String(testAccGetAlternateRegion()),
 			},
 		},
 		CostTypes: &budgets.CostTypes{
@@ -444,7 +444,7 @@ func testAccAWSBudgetsBudgetConfigDefaults(name string) budgets.Budget {
 		},
 		CostFilters: map[string][]*string{
 			"AZ": {
-				aws.String("us-east-1"),
+				aws.String(testAccGetRegion()),
 			},
 		},
 		CostTypes: &budgets.CostTypes{

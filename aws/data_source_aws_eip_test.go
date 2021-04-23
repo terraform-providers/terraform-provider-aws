@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsEip_Filter(t *testing.T) {
+func TestAccDataSourceAWSEIP_Filter(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -18,7 +18,7 @@ func TestAccDataSourceAwsEip_Filter(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigFilter(rName),
+				Config: testAccDataSourceAWSEIPConfigFilter(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "public_dns", resourceName, "public_dns"),
@@ -29,7 +29,7 @@ func TestAccDataSourceAwsEip_Filter(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsEip_Id(t *testing.T) {
+func TestAccDataSourceAWSEIP_Id(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
@@ -38,7 +38,7 @@ func TestAccDataSourceAwsEip_Id(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigId,
+				Config: testAccDataSourceAWSEIPConfigId,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "public_dns", resourceName, "public_dns"),
@@ -48,7 +48,7 @@ func TestAccDataSourceAwsEip_Id(t *testing.T) {
 		},
 	})
 }
-func TestAccDataSourceAwsEip_PublicIP_EC2Classic(t *testing.T) {
+func TestAccDataSourceAWSEIP_PublicIP_EC2Classic(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
@@ -57,7 +57,7 @@ func TestAccDataSourceAwsEip_PublicIP_EC2Classic(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigPublicIpEc2Classic(),
+				Config: testAccDataSourceAWSEIPConfigPublicIpEc2Classic(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "public_dns", resourceName, "public_dns"),
@@ -68,7 +68,7 @@ func TestAccDataSourceAwsEip_PublicIP_EC2Classic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsEip_PublicIP_VPC(t *testing.T) {
+func TestAccDataSourceAWSEIP_PublicIP_VPC(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
@@ -77,7 +77,7 @@ func TestAccDataSourceAwsEip_PublicIP_VPC(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigPublicIpVpc,
+				Config: testAccDataSourceAWSEIPConfigPublicIpVpc,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "public_dns", resourceName, "public_dns"),
@@ -89,7 +89,7 @@ func TestAccDataSourceAwsEip_PublicIP_VPC(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsEip_Tags(t *testing.T) {
+func TestAccDataSourceAWSEIP_Tags(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -99,7 +99,7 @@ func TestAccDataSourceAwsEip_Tags(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigTags(rName),
+				Config: testAccDataSourceAWSEIPConfigTags(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "public_dns", resourceName, "public_dns"),
@@ -110,7 +110,7 @@ func TestAccDataSourceAwsEip_Tags(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsEip_NetworkInterface(t *testing.T) {
+func TestAccDataSourceAWSEIP_NetworkInterface(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
@@ -119,7 +119,7 @@ func TestAccDataSourceAwsEip_NetworkInterface(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigNetworkInterface,
+				Config: testAccDataSourceAWSEIPConfigNetworkInterface,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "network_interface_id", resourceName, "network_interface"),
@@ -132,7 +132,7 @@ func TestAccDataSourceAwsEip_NetworkInterface(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsEip_Instance(t *testing.T) {
+func TestAccDataSourceAWSEIP_Instance(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
@@ -141,7 +141,7 @@ func TestAccDataSourceAwsEip_Instance(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigInstance,
+				Config: testAccDataSourceAWSEIPConfigInstance,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "instance_id", resourceName, "instance"),
@@ -206,7 +206,7 @@ data "aws_eip" "test" {
 `
 }
 
-func testAccDataSourceAwsEipConfigFilter(rName string) string {
+func testAccDataSourceAWSEIPConfigFilter(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_eip" "test" {
   vpc = true
@@ -225,7 +225,7 @@ data "aws_eip" "test" {
 `, rName)
 }
 
-const testAccDataSourceAwsEipConfigId = `
+const testAccDataSourceAWSEIPConfigId = `
 resource "aws_eip" "test" {
   vpc = true
 }
@@ -235,7 +235,7 @@ data "aws_eip" "test" {
 }
 `
 
-func testAccDataSourceAwsEipConfigPublicIpEc2Classic() string {
+func testAccDataSourceAWSEIPConfigPublicIpEc2Classic() string {
 	return composeConfig(
 		testAccEc2ClassicRegionProviderConfig(),
 		`
@@ -247,7 +247,7 @@ data "aws_eip" "test" {
 `)
 }
 
-const testAccDataSourceAwsEipConfigPublicIpVpc = `
+const testAccDataSourceAWSEIPConfigPublicIpVpc = `
 resource "aws_eip" "test" {
   vpc = true
 }
@@ -257,7 +257,7 @@ data "aws_eip" "test" {
 }
 `
 
-func testAccDataSourceAwsEipConfigTags(rName string) string {
+func testAccDataSourceAWSEIPConfigTags(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_eip" "test" {
   vpc = true
@@ -275,7 +275,7 @@ data "aws_eip" "test" {
 `, rName)
 }
 
-const testAccDataSourceAwsEipConfigNetworkInterface = `
+const testAccDataSourceAWSEIPConfigNetworkInterface = `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 }
@@ -306,7 +306,8 @@ data "aws_eip" "test" {
 }
 `
 
-var testAccDataSourceAwsEipConfigInstance = testAccAvailableAZsNoOptInDefaultExcludeConfig() + `
+var testAccDataSourceAWSEIPConfigInstance = composeConfig(
+	testAccAvailableAZsNoOptInDefaultExcludeConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.2.0.0/16"
 }
@@ -347,7 +348,7 @@ data "aws_eip" "test" {
     values = [aws_eip.test.instance]
   }
 }
-`
+`)
 
 func testAccDataSourceAWSEIPConfigCarrierIP(rName string) string {
 	return composeConfig(

@@ -97,6 +97,36 @@ func TestAccAWSAPIGatewayAuthorizer_cognito(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/16613
+func TestAccAWSAPIGatewayAuthorizer_cognito_authorizerCredentials(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_authorizer.test"
+	iamRoleResourceName := "aws_iam_role.lambda"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayAuthorizerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayAuthorizerConfig_cognitoAuthorizerCredentials(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(resourceName, "authorizer_credentials", iamRoleResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "type", "COGNITO_USER_POOLS"),
+					resource.TestCheckResourceAttr(resourceName, "provider_arns.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayAuthorizerImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayAuthorizer_switchAuthType(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_api_gateway_authorizer.test"
@@ -485,6 +515,49 @@ resource "aws_api_gateway_authorizer" "test" {
   type          = "COGNITO_USER_POOLS"
   rest_api_id   = aws_api_gateway_rest_api.test.id
   provider_arns = aws_cognito_user_pool.test[*].arn
+}
+`, rName)
+}
+
+func testAccAWSAPIGatewayAuthorizerConfig_cognitoAuthorizerCredentials(rName string) string {
+	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+resource "aws_iam_role" "lambda" {
+  name = "%[1]s-lambda"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.${data.aws_partition.current.dns_suffix}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+}
+
+resource "aws_cognito_user_pool" "test" {
+  count = 2
+  name  = "%[1]s-${count.index}"
+}
+
+resource "aws_api_gateway_authorizer" "test" {
+  authorizer_credentials = aws_iam_role.lambda.arn
+  name                   = %[1]q
+  type                   = "COGNITO_USER_POOLS"
+  rest_api_id            = aws_api_gateway_rest_api.test.id
+  provider_arns          = aws_cognito_user_pool.test[*].arn
 }
 `, rName)
 }

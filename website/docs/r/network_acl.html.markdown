@@ -54,9 +54,9 @@ The following arguments are supported:
 * `vpc_id` - (Required) The ID of the associated VPC.
 * `subnet_ids` - (Optional) A list of Subnet IDs to apply the ACL to
 * `ingress` - (Optional) Specifies an ingress rule. Parameters defined below.
-  This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+  This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
 * `egress` - (Optional) Specifies an egress rule. Parameters defined below.
-  This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+  This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
 * `tags` - (Optional) A map of tags to assign to the resource.
 
 Both `egress` and `ingress` support the following keys:

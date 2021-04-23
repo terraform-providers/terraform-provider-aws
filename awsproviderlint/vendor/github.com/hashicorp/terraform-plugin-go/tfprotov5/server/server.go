@@ -135,6 +135,7 @@ func (s *server) stoppableContext(ctx context.Context) context.Context {
 func New(serve tfprotov5.ProviderServer) tfplugin5.ProviderServer {
 	return &server{
 		downstream: serve,
+		stopCh:     make(chan struct{}),
 	}
 }
 

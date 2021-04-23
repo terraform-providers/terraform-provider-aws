@@ -46,7 +46,7 @@ func resourceAwsLoadBalancerListenerPoliciesCreate(d *schema.ResourceData, meta 
 
 	policyNames := []*string{}
 	if v, ok := d.GetOk("policy_names"); ok {
-		policyNames = expandStringList(v.(*schema.Set).List())
+		policyNames = expandStringSet(v.(*schema.Set))
 	}
 
 	setOpts := &elb.SetLoadBalancerPoliciesOfListenerInput{

@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-version"
@@ -85,15 +84,10 @@ func NewTerraform(workingDir string, execPath string) (*Terraform, error) {
 // from os.Environ. Attempting to set environment variables that should be managed manually will
 // result in ErrManualEnvVar being returned.
 func (tf *Terraform) SetEnv(env map[string]string) error {
-	for k := range env {
-		if strings.HasPrefix(k, varEnvVarPrefix) {
-			return fmt.Errorf("variables should be passed using the Var option: %w", &ErrManualEnvVar{k})
-		}
-		for _, p := range prohibitedEnvVars {
-			if p == k {
-				return &ErrManualEnvVar{k}
-			}
-		}
+	prohibited := ProhibitedEnv(env)
+	if len(prohibited) > 0 {
+		// just error on the first instance
+		return &ErrManualEnvVar{prohibited[0]}
 	}
 
 	tf.env = env

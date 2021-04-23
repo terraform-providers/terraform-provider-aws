@@ -137,7 +137,7 @@ resource "aws_glue_data_catalog_encryption_settings" "test" {
 }
 
 func testAccAWSDataCatalogEncryptionSettingsNonEncryptedConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_glue_data_catalog_encryption_settings" "test" {
   data_catalog_encryption_settings {
     connection_password_encryption {
@@ -149,5 +149,5 @@ resource "aws_glue_data_catalog_encryption_settings" "test" {
     }
   }
 }
-`)
+`
 }

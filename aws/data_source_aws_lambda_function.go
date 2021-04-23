@@ -313,22 +313,25 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	// Get Code Signing Config Output
-	// If code signing config output exists, set it to that value, otherwise set it empty.
-	codeSigningConfigInput := &lambda.GetFunctionCodeSigningConfigInput{
-		FunctionName: aws.String(d.Get("function_name").(string)),
+	// Get Code Signing Config Output.
+	// Code Signing is only supported on zip packaged lambda functions.
+	var codeSigningConfigArn string
+
+	if aws.StringValue(function.PackageType) == lambda.PackageTypeZip {
+		codeSigningConfigInput := &lambda.GetFunctionCodeSigningConfigInput{
+			FunctionName: function.FunctionName,
+		}
+		getCodeSigningConfigOutput, err := conn.GetFunctionCodeSigningConfig(codeSigningConfigInput)
+		if err != nil {
+			return fmt.Errorf("error getting Lambda Function (%s) Code Signing Config: %w", aws.StringValue(function.FunctionName), err)
+		}
+
+		if getCodeSigningConfigOutput != nil {
+			codeSigningConfigArn = aws.StringValue(getCodeSigningConfigOutput.CodeSigningConfigArn)
+		}
 	}
 
-	getCodeSigningConfigOutput, err := conn.GetFunctionCodeSigningConfig(codeSigningConfigInput)
-	if err != nil {
-		return fmt.Errorf("error getting Lambda Function (%s) Code Signing Config: %w", aws.StringValue(function.FunctionName), err)
-	}
-
-	if getCodeSigningConfigOutput == nil || getCodeSigningConfigOutput.CodeSigningConfigArn == nil {
-		d.Set("code_signing_config_arn", "")
-	} else {
-		d.Set("code_signing_config_arn", getCodeSigningConfigOutput.CodeSigningConfigArn)
-	}
+	d.Set("code_signing_config_arn", codeSigningConfigArn)
 
 	d.SetId(aws.StringValue(function.FunctionName))
 

@@ -370,11 +370,11 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v := d.Get("cluster_security_groups").(*schema.Set); v.Len() > 0 {
-			restoreOpts.ClusterSecurityGroups = expandStringList(v.List())
+			restoreOpts.ClusterSecurityGroups = expandStringSet(v)
 		}
 
 		if v := d.Get("vpc_security_group_ids").(*schema.Set); v.Len() > 0 {
-			restoreOpts.VpcSecurityGroupIds = expandStringList(v.List())
+			restoreOpts.VpcSecurityGroupIds = expandStringSet(v)
 		}
 
 		if v, ok := d.GetOk("preferred_maintenance_window"); ok {
@@ -394,7 +394,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v, ok := d.GetOk("iam_roles"); ok {
-			restoreOpts.IamRoles = expandStringList(v.(*schema.Set).List())
+			restoreOpts.IamRoles = expandStringSet(v.(*schema.Set))
 		}
 
 		log.Printf("[DEBUG] Redshift Cluster restore cluster options: %s", restoreOpts)
@@ -438,11 +438,11 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v := d.Get("cluster_security_groups").(*schema.Set); v.Len() > 0 {
-			createOpts.ClusterSecurityGroups = expandStringList(v.List())
+			createOpts.ClusterSecurityGroups = expandStringSet(v)
 		}
 
 		if v := d.Get("vpc_security_group_ids").(*schema.Set); v.Len() > 0 {
-			createOpts.VpcSecurityGroupIds = expandStringList(v.List())
+			createOpts.VpcSecurityGroupIds = expandStringSet(v)
 		}
 
 		if v, ok := d.GetOk("cluster_subnet_group_name"); ok {
@@ -478,7 +478,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if v, ok := d.GetOk("iam_roles"); ok {
-			createOpts.IamRoles = expandStringList(v.(*schema.Set).List())
+			createOpts.IamRoles = expandStringSet(v.(*schema.Set))
 		}
 
 		log.Printf("[DEBUG] Redshift Cluster create options: %s", createOpts)
@@ -675,12 +675,12 @@ func resourceAwsRedshiftClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("cluster_security_groups") {
-		req.ClusterSecurityGroups = expandStringList(d.Get("cluster_security_groups").(*schema.Set).List())
+		req.ClusterSecurityGroups = expandStringSet(d.Get("cluster_security_groups").(*schema.Set))
 		requestUpdate = true
 	}
 
 	if d.HasChange("vpc_security_group_ids") {
-		req.VpcSecurityGroupIds = expandStringList(d.Get("vpc_security_group_ids").(*schema.Set).List())
+		req.VpcSecurityGroupIds = expandStringSet(d.Get("vpc_security_group_ids").(*schema.Set))
 		requestUpdate = true
 	}
 
@@ -755,14 +755,14 @@ func resourceAwsRedshiftClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		removeIams := os.Difference(ns).List()
-		addIams := ns.Difference(os).List()
+		removeIams := os.Difference(ns)
+		addIams := ns.Difference(os)
 
 		log.Printf("[INFO] Building Redshift Modify Cluster IAM Role Options")
 		req := &redshift.ModifyClusterIamRolesInput{
 			ClusterIdentifier: aws.String(d.Id()),
-			AddIamRoles:       expandStringList(addIams),
-			RemoveIamRoles:    expandStringList(removeIams),
+			AddIamRoles:       expandStringSet(addIams),
+			RemoveIamRoles:    expandStringSet(removeIams),
 		}
 
 		log.Printf("[INFO] Modifying Redshift Cluster IAM Roles: %s", d.Id())

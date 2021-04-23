@@ -23,7 +23,7 @@ resource "aws_api_gateway_gateway_response" "test" {
   response_type = "UNAUTHORIZED"
 
   response_templates = {
-    "application/json" = "{'message':$context.error.messageString}"
+    "application/json" = "{\"message\":$context.error.messageString}"
   }
 
   response_parameters = {

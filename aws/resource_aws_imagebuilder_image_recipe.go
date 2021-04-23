@@ -170,6 +170,12 @@ func resourceAwsImageBuilderImageRecipe() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 128),
 			},
+			"working_directory": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1024),
+			},
 		},
 	}
 }
@@ -207,6 +213,9 @@ func resourceAwsImageBuilderImageRecipeCreate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("version"); ok {
 		input.SemanticVersion = aws.String(v.(string))
+	}
+	if v, ok := d.GetOk("working_directory"); ok {
+		input.WorkingDirectory = aws.String(v.(string))
 	}
 
 	output, err := conn.CreateImageRecipe(input)
@@ -261,6 +270,7 @@ func resourceAwsImageBuilderImageRecipeRead(d *schema.ResourceData, meta interfa
 	d.Set("platform", imageRecipe.Platform)
 	d.Set("tags", keyvaluetags.ImagebuilderKeyValueTags(imageRecipe.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	d.Set("version", imageRecipe.Version)
+	d.Set("working_directory", imageRecipe.WorkingDirectory)
 
 	return nil
 }

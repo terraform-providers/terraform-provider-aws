@@ -442,7 +442,7 @@ func TestAccAWSDBInstance_FinalSnapshotIdentifier(t *testing.T) {
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// testAccCheckAWSDBInstanceSnapshot verifies a database snapshot is
-		// created, and subequently deletes it
+		// created, and subsequently deletes it
 		CheckDestroy: testAccCheckAWSDBInstanceSnapshot,
 		Steps: []resource.TestStep{
 			{
@@ -3079,7 +3079,7 @@ func testAccAWSDBInstanceConfig_orderableClassSQLServerEx() string {
 }
 
 func testAccAWSDBInstanceConfig_basic() string {
-	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), fmt.Sprintf(`
+	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), `
 resource "aws_db_instance" "bar" {
   allocated_storage       = 10
   backup_retention_period = 0
@@ -3097,11 +3097,11 @@ resource "aws_db_instance" "bar" {
   # validation error).
   maintenance_window = "Fri:09:00-Fri:09:30"
 }
-`))
+`)
 }
 
 func testAccAWSDBInstanceConfig_namePrefix() string {
-	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), fmt.Sprintf(`
+	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), `
 resource "aws_db_instance" "test" {
   allocated_storage   = 10
   engine              = data.aws_rds_orderable_db_instance.test.engine
@@ -3112,11 +3112,11 @@ resource "aws_db_instance" "test" {
   skip_final_snapshot = true
   username            = "root"
 }
-`))
+`)
 }
 
 func testAccAWSDBInstanceConfig_generatedName() string {
-	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), fmt.Sprintf(`
+	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), `
 resource "aws_db_instance" "test" {
   allocated_storage   = 10
   engine              = data.aws_rds_orderable_db_instance.test.engine
@@ -3126,7 +3126,7 @@ resource "aws_db_instance" "test" {
   skip_final_snapshot = true
   username            = "root"
 }
-`))
+`)
 }
 
 func testAccAWSDBInstanceConfig_KmsKeyId(rInt int) string {
@@ -3190,7 +3190,7 @@ resource "aws_db_instance" "bar" {
 }
 
 func testAccAWSDBInstanceConfig_WithCACertificateIdentifier() string {
-	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), fmt.Sprintf(`
+	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), `
 data "aws_rds_certificate" "latest" {
   latest_valid_till = true
 }
@@ -3206,7 +3206,7 @@ resource "aws_db_instance" "bar" {
   skip_final_snapshot = true
   username            = "foo"
 }
-`))
+`)
 }
 
 func testAccAWSDBInstanceConfig_WithOptionGroup(rName string) string {

@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -70,11 +71,11 @@ func shimOutputState(so *tfjson.StateOutput) (*terraform.OutputState, error) {
 				elements[i] = el.(bool)
 			}
 			os.Value = elements
-		// unmarshalled number from JSON will always be float64
-		case float64:
+		// unmarshalled number from JSON will always be json.Number
+		case json.Number:
 			elements := make([]interface{}, len(v))
 			for i, el := range v {
-				elements[i] = el.(float64)
+				elements[i] = el.(json.Number)
 			}
 			os.Value = elements
 		case []interface{}:
@@ -93,10 +94,10 @@ func shimOutputState(so *tfjson.StateOutput) (*terraform.OutputState, error) {
 		os.Type = "string"
 		os.Value = strconv.FormatBool(v)
 		return os, nil
-	// unmarshalled number from JSON will always be float64
-	case float64:
+	// unmarshalled number from JSON will always be json.Number
+	case json.Number:
 		os.Type = "string"
-		os.Value = strconv.FormatFloat(v, 'f', -1, 64)
+		os.Value = v.String()
 		return os, nil
 	}
 
@@ -155,8 +156,13 @@ func shimResourceStateKey(res *tfjson.StateResource) (string, error) {
 
 	var index int
 	switch idx := res.Index.(type) {
-	case float64:
-		index = int(idx)
+	case json.Number:
+		i, err := idx.Int64()
+		if err != nil {
+			return "", fmt.Errorf("unexpected index value (%q) for %q, ",
+				idx, res.Address)
+		}
+		index = int(i)
 	default:
 		return "", fmt.Errorf("unexpected index type (%T) for %q, "+
 			"for_each is not supported", res.Index, res.Address)
@@ -256,8 +262,8 @@ func (sf *shimmedFlatmap) AddEntry(key string, value interface{}) error {
 		return nil
 	case bool:
 		sf.m[key] = strconv.FormatBool(el)
-	case float64:
-		sf.m[key] = strconv.FormatFloat(el, 'f', -1, 64)
+	case json.Number:
+		sf.m[key] = el.String()
 	case string:
 		sf.m[key] = el
 	case map[string]interface{}:

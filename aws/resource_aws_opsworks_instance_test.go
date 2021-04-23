@@ -16,6 +16,7 @@ func TestAccAWSOpsworksInstance_basic(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 	var opsinst opsworks.Instance
 	resourceName := "aws_opsworks_instance.tf-acc"
+	dataSourceName := "data.aws_availability_zones.available"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
@@ -34,9 +35,9 @@ func TestAccAWSOpsworksInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "install_updates_on_boot", "true"),
 					resource.TestCheckResourceAttr(resourceName, "architecture", "x86_64"),
 					resource.TestCheckResourceAttr(resourceName, "tenancy", "default"),
-					resource.TestCheckResourceAttr(resourceName, "os", "Amazon Linux 2016.09"),      // inherited from opsworks_stack_test
-					resource.TestCheckResourceAttr(resourceName, "root_device_type", "ebs"),         // inherited from opsworks_stack_test
-					resource.TestCheckResourceAttr(resourceName, "availability_zone", "us-west-2a"), // inherited from opsworks_stack_test
+					resource.TestCheckResourceAttr(resourceName, "os", "Amazon Linux 2016.09"),                       // inherited from opsworks_stack_test
+					resource.TestCheckResourceAttr(resourceName, "root_device_type", "ebs"),                          // inherited from opsworks_stack_test
+					resource.TestCheckResourceAttrPair(resourceName, "availability_zone", dataSourceName, "names.0"), // inherited from opsworks_stack_test
 				),
 			},
 			{
@@ -145,9 +146,6 @@ func testAccCheckAWSOpsworksInstanceAttributes(
 		// Depending on the timing, the state could be requested or stopped
 		if *opsinst.Status != "stopped" && *opsinst.Status != "requested" {
 			return fmt.Errorf("Unexpected request status: %s", *opsinst.Status)
-		}
-		if *opsinst.AvailabilityZone != "us-west-2a" {
-			return fmt.Errorf("Unexpected availability zone: %s", *opsinst.AvailabilityZone)
 		}
 		if *opsinst.Architecture != "x86_64" {
 			return fmt.Errorf("Unexpected architecture: %s", *opsinst.Architecture)

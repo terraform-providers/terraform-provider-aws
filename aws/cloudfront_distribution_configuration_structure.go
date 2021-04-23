@@ -508,7 +508,7 @@ func flattenCookieNames(cn *cloudfront.CookieNames) []interface{} {
 func expandAllowedMethods(s *schema.Set) *cloudfront.AllowedMethods {
 	return &cloudfront.AllowedMethods{
 		Quantity: aws.Int64(int64(s.Len())),
-		Items:    expandStringList(s.List()),
+		Items:    expandStringSet(s),
 	}
 }
 
@@ -522,7 +522,7 @@ func flattenAllowedMethods(am *cloudfront.AllowedMethods) *schema.Set {
 func expandCachedMethods(s *schema.Set) *cloudfront.CachedMethods {
 	return &cloudfront.CachedMethods{
 		Quantity: aws.Int64(int64(s.Len())),
-		Items:    expandStringList(s.List()),
+		Items:    expandStringSet(s),
 	}
 }
 
@@ -1000,14 +1000,12 @@ func flattenLoggingConfig(lc *cloudfront.LoggingConfig) []interface{} {
 	return []interface{}{m}
 }
 
-func expandAliases(as *schema.Set) *cloudfront.Aliases {
-	s := as.List()
-	var aliases cloudfront.Aliases
-	if len(s) > 0 {
-		aliases.Quantity = aws.Int64(int64(len(s)))
-		aliases.Items = expandStringList(s)
-	} else {
-		aliases.Quantity = aws.Int64(0)
+func expandAliases(s *schema.Set) *cloudfront.Aliases {
+	aliases := cloudfront.Aliases{
+		Quantity: aws.Int64(int64(s.Len())),
+	}
+	if s.Len() > 0 {
+		aliases.Items = expandStringSet(s)
 	}
 	return &aliases
 }

@@ -37,7 +37,7 @@ The following arguments are supported:
 ### Timeouts
 
 `aws_vpc_endpoint_subnet_association` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating the association
 - `delete` - (Default `10 minutes`) Used for destroying the association

@@ -48,6 +48,7 @@ The following attributes are optional:
 * `block_device_mapping` - (Optional) Configuration block(s) with block device mappings for the the image recipe. Detailed below.
 * `description` - (Optional) Description of the image recipe.
 * `tags` - (Optional) Key-value map of resource tags for the image recipe.
+* `working_directory` - (Optional) The working directory to be used during build and test workflows.
 
 ### block_device_mapping
 

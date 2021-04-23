@@ -10,7 +10,7 @@ description: |-
 
 Manages a KMS Customer Master Key that uses external key material. To instead manage a KMS Customer Master Key where AWS automatically generates and potentially rotates key material, see the [`aws_kms_key` resource](/docs/providers/aws/r/kms_key.html).
 
-~> **Note:** All arguments including the key material will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the key material will be stored in the raw state as plain-text. [Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 

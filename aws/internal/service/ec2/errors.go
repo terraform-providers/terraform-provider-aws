@@ -9,6 +9,10 @@ const (
 )
 
 const (
+	ErrCodeInvalidPrefixListIDNotFound = "InvalidPrefixListID.NotFound"
+)
+
+const (
 	ErrCodeClientVpnEndpointIdNotFound        = "InvalidClientVpnEndpointId.NotFound"
 	ErrCodeClientVpnAuthorizationRuleNotFound = "InvalidClientVpnEndpointAuthorizationRuleNotFound"
 	ErrCodeClientVpnAssociationIdNotFound     = "InvalidClientVpnAssociationId.NotFound"

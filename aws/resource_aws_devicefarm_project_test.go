@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/devicefarm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -18,7 +19,13 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 	resourceName := "aws_devicefarm_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t)
+			// Currently, DeviceFarm is only supported in us-west-2
+			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
+			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{
@@ -45,7 +52,13 @@ func TestAccAWSDeviceFarmProject_disappears(t *testing.T) {
 	resourceName := "aws_devicefarm_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t)
+			// Currently, DeviceFarm is only supported in us-west-2
+			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
+			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{

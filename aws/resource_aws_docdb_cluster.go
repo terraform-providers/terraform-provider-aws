@@ -288,7 +288,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if attr := d.Get("availability_zones").(*schema.Set); attr.Len() > 0 {
-			opts.AvailabilityZones = expandStringList(attr.List())
+			opts.AvailabilityZones = expandStringSet(attr)
 		}
 
 		if attr, ok := d.GetOk("backup_retention_period"); ok {
@@ -332,7 +332,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if attr := d.Get("vpc_security_group_ids").(*schema.Set); attr.Len() > 0 {
-			opts.VpcSecurityGroupIds = expandStringList(attr.List())
+			opts.VpcSecurityGroupIds = expandStringSet(attr)
 		}
 
 		log.Printf("[DEBUG] DocDB Cluster restore from snapshot configuration: %s", opts)
@@ -387,11 +387,11 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if attr := d.Get("vpc_security_group_ids").(*schema.Set); attr.Len() > 0 {
-			createOpts.VpcSecurityGroupIds = expandStringList(attr.List())
+			createOpts.VpcSecurityGroupIds = expandStringSet(attr)
 		}
 
 		if attr := d.Get("availability_zones").(*schema.Set); attr.Len() > 0 {
-			createOpts.AvailabilityZones = expandStringList(attr.List())
+			createOpts.AvailabilityZones = expandStringSet(attr)
 		}
 
 		if v, ok := d.GetOk("backup_retention_period"); ok {
@@ -602,7 +602,7 @@ func resourceAwsDocDBClusterUpdate(d *schema.ResourceData, meta interface{}) err
 
 	if d.HasChange("vpc_security_group_ids") {
 		if attr := d.Get("vpc_security_group_ids").(*schema.Set); attr.Len() > 0 {
-			req.VpcSecurityGroupIds = expandStringList(attr.List())
+			req.VpcSecurityGroupIds = expandStringSet(attr)
 		} else {
 			req.VpcSecurityGroupIds = []*string{}
 		}

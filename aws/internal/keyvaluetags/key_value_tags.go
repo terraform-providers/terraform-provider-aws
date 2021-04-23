@@ -242,7 +242,7 @@ func (tags KeyValueTags) Keys() []string {
 // ListofMap returns a list of flattened tags.
 // Compatible with setting Terraform state for strongly typed configuration blocks.
 func (tags KeyValueTags) ListofMap() []map[string]interface{} {
-	result := make([]map[string]interface{}, len(tags))
+	result := make([]map[string]interface{}, 0, len(tags))
 
 	for k, v := range tags {
 		m := map[string]interface{}{

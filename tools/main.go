@@ -8,4 +8,5 @@ import (
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/katbyte/terrafmt"
 	_ "github.com/terraform-linters/tflint"
+	_ "github.com/hashicorp/go-changelog/cmd/changelog-build"	
 )

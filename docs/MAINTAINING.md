@@ -13,7 +13,6 @@
             - [tfproviderlint Updates](#tfproviderlint-updates)
             - [yaml.v2 Updates](#yaml-v2-updates)
     - [Pull Request Merge Process](#pull-request-merge-process)
-    - [Pull Request Types to CHANGELOG](#pull-request-types-to-changelog)
 - [Breaking Changes](#breaking-changes)
 - [Branch Dictionary](#branch-dictionary)
 - [Environment Variable Dictionary](#environment-variable-dictionary)
@@ -312,28 +311,6 @@ Run the acceptance testing pattern, `TestAccAWSCloudFormationStack(_dataSource)?
 The fix for this has been merged and will release with version X.Y.Z of the Terraform AWS Provider, expected in the XXX timeframe.
 ```
 
-### Pull Request Types to CHANGELOG
-
-The CHANGELOG is intended to show operator-impacting changes to the codebase for a particular version. If every change or commit to the code resulted in an entry, the CHANGELOG would become less useful for operators. The lists below are general guidelines on when a decision needs to be made to decide whether a change should have an entry.
-
-#### Changes that should have a CHANGELOG entry
-
-- New Resources and Data Sources
-- New full-length documentation guides (e.g. EKS Getting Started Guide, IAM Policy Documents with Terraform)
-- Resource and provider bug fixes
-- Resource and provider enhancements
-- Deprecations
-- Removals
-
-#### Changes that may have a CHANGELOG entry
-
-- Dependency updates: If the update contains relevant bug fixes or enhancements that affect operators, those should be called out.
-
-#### Changes that should _not_ have a CHANGELOG entry
-
-- Resource and provider documentation updates
-- Testing updates
-
 ## Breaking Changes
 
 When breaking changes to the provider are necessary we release them in a major version. If an issue or PR necessitates a breaking change, then the following procedure should be observed:
@@ -404,12 +381,16 @@ Environment variables (beyond standard AWS Go SDK ones) used by acceptance testi
 | `AWS_EC2_EIP_PUBLIC_IPV4_POOL` | Identifier for EC2 Public IPv4 Pool for EC2 EIP testing. |
 | `AWS_GUARDDUTY_MEMBER_ACCOUNT_ID` | Identifier of AWS Account for GuardDuty Member testing. **DEPRECATED:** Should be replaced with standard alternate account handling for tests. |
 | `AWS_GUARDDUTY_MEMBER_EMAIL` | Email address for GuardDuty Member testing. **DEPRECATED:** It may be possible to use a placeholder email address instead. |
+| `AWS_LAMBDA_IMAGE_LATEST_ID` | ECR repository image URI (tagged as `latest`) for Lambda container image acceptance tests.
+| `AWS_LAMBDA_IMAGE_V1_ID` | ECR repository image URI (tagged as `v1`) for Lambda container image acceptance tests.
+| `AWS_LAMBDA_IMAGE_V2_ID` | ECR repository image URI (tagged as `v2`) for Lambda container image acceptance tests.
 | `DX_CONNECTION_ID` | Identifier for Direct Connect Connection testing. |
 | `DX_VIRTUAL_INTERFACE_ID` | Identifier for Direct Connect Virtual Interface testing. |
 | `EC2_SECURITY_GROUP_RULES_PER_GROUP_LIMIT` | EC2 Quota for Rules per Security Group. Defaults to 50. **DEPRECATED:** Can be augmented or replaced with Service Quotas lookup. |
 | `GCM_API_KEY` | API Key for Google Cloud Messaging in Pinpoint and SNS Platform Application testing. |
 | `GITHUB_TOKEN` | GitHub token for CodePipeline testing. |
 | `MACIE_MEMBER_ACCOUNT_ID` | Identifier of AWS Account for Macie Member testing. **DEPRECATED:** Should be replaced with standard alternate account handling for tests. |
+| `SAGEMAKER_IMAGE_VERSION_BASE_IMAGE` | Sagemaker base image to use for tests. |
 | `SERVICEQUOTAS_INCREASE_ON_CREATE_QUOTA_CODE` | Quota Code for Service Quotas testing (submits support case). |
 | `SERVICEQUOTAS_INCREASE_ON_CREATE_SERVICE_CODE` | Service Code for Service Quotas testing (submits support case). |
 | `SERVICEQUOTAS_INCREASE_ON_CREATE_VALUE` | Value of quota increase for Service Quotas testing (submits support case). |

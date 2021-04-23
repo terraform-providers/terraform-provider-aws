@@ -140,7 +140,7 @@ The following arguments are supported:
 * `window_id` - (Required) The Id of the maintenance window to register the task with.
 * `max_concurrency` - (Required) The maximum number of targets this task can be run for in parallel.
 * `max_errors` - (Required) The maximum number of errors allowed before this task stops being scheduled.
-* `task_type` - (Required) The type of task being registered. The only allowed value is `RUN_COMMAND`.
+* `task_type` - (Required) The type of task being registered. Valid values: `AUTOMATION`, `LAMBDA`, `RUN_COMMAND` or `STEP_FUNCTIONS`.
 * `task_arn` - (Required) The ARN of the task to execute.
 * `service_role_arn` - (Required) The role that should be assumed when executing the task.
 * `name` - (Optional) The name of the maintenance window task.

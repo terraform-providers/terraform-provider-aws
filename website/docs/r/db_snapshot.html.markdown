@@ -64,7 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_db_snapshot` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_db_snapshot` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `read` - (Default `20 minutes`)  Length of time to wait for the snapshot to become available
 

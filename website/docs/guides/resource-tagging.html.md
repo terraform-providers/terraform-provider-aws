@@ -38,7 +38,7 @@ resource "aws_vpc" "example" {
 
 The tags for the resource are wholly managed by Terraform except tag keys beginning with `aws:` as these are managed by AWS services and cannot typically be edited or deleted. Any non-AWS tags added to the VPC outside of Terraform will be proposed for removal on the next Terraform execution. Missing tags or those with incorrect values from the Terraform configuration will be proposed for addition or update on the next Terraform execution. Advanced patterns that can adjust these behaviors for special use cases, such as Terraform AWS Provider configurations that affect all resources and the ability to manage resource tags for resources not managed by Terraform, can be found later in this guide.
 
-For most environments and use cases, this is the typical implementation pattern, whether it be in a standalone Terraform configuration or within a [Terraform Module](/docs/modules/). The Terraform configuration language also enables less repetitive configurations via [variables](/docs/configuration/variables.html), [locals](/docs/configuration/locals.html), or potentially a combination of these, e.g.
+For most environments and use cases, this is the typical implementation pattern, whether it be in a standalone Terraform configuration or within a [Terraform Module](https://www.terraform.io/docs/modules/). The Terraform configuration language also enables less repetitive configurations via [variables](https://www.terraform.io/docs/configuration/variables.html), [locals](https://www.terraform.io/docs/configuration/locals.html), or potentially a combination of these, e.g.
 
 ```hcl
 # Terraform 0.12 and later syntax
@@ -67,7 +67,7 @@ Systems outside of Terraform may automatically interact with the tagging associa
 
 ### Ignoring Changes in Individual Resources
 
-All Terraform resources support the [`lifecycle` configuration block `ignore_changes` argument](/docs/configuration/resources.html#ignore_changes), which can be used to explicitly ignore all tags changes on a resource beyond an initial configuration or individual tag values.
+All Terraform resources support the [`lifecycle` configuration block `ignore_changes` argument](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes), which can be used to explicitly ignore all tags changes on a resource beyond an initial configuration or individual tag values.
 
 In this example, the `Name` tag will be added to the VPC on resource creation, however any external changes to the `Name` tag value or the addition/removal of any tag (including the `Name` tag) will be ignored:
 
@@ -155,7 +155,7 @@ resource "aws_ec2_tag" "example" {
 }
 ```
 
-To manage multiple tags for a resource in this scenario, [`for_each`](/docs/configuration/resources.html#for_each-multiple-resource-instances-defined-by-a-map-or-set-of-strings) can be used:
+To manage multiple tags for a resource in this scenario, [`for_each`](https://www.terraform.io/docs/configuration/meta-arguments/for_each.html) can be used:
 
 ```hcl
 # Terraform 0.12 and later syntax

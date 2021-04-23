@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/organizations"
@@ -618,29 +617,6 @@ func TestExpandRedshiftParameters(t *testing.T) {
 	}
 }
 
-func TestExpandElasticacheParameters(t *testing.T) {
-	expanded := []interface{}{
-		map[string]interface{}{
-			"name":         "activerehashing",
-			"value":        "yes",
-			"apply_method": "immediate",
-		},
-	}
-	parameters := expandElastiCacheParameters(expanded)
-
-	expected := &elasticache.ParameterNameValue{
-		ParameterName:  aws.String("activerehashing"),
-		ParameterValue: aws.String("yes"),
-	}
-
-	if !reflect.DeepEqual(parameters[0], expected) {
-		t.Fatalf(
-			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			parameters[0],
-			expected)
-	}
-}
-
 func TestExpandStepAdjustments(t *testing.T) {
 	expanded := []interface{}{
 		map[string]interface{}{
@@ -720,35 +696,6 @@ func TestFlattenRedshiftParameters(t *testing.T) {
 
 	for _, tc := range cases {
 		output := flattenRedshiftParameters(tc.Input)
-		if !reflect.DeepEqual(output, tc.Output) {
-			t.Fatalf("Got:\n\n%#v\n\nExpected:\n\n%#v", output, tc.Output)
-		}
-	}
-}
-
-func TestFlattenElasticacheParameters(t *testing.T) {
-	cases := []struct {
-		Input  []*elasticache.Parameter
-		Output []map[string]interface{}
-	}{
-		{
-			Input: []*elasticache.Parameter{
-				{
-					ParameterName:  aws.String("activerehashing"),
-					ParameterValue: aws.String("yes"),
-				},
-			},
-			Output: []map[string]interface{}{
-				{
-					"name":  "activerehashing",
-					"value": "yes",
-				},
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		output := flattenElastiCacheParameters(tc.Input)
 		if !reflect.DeepEqual(output, tc.Output) {
 			t.Fatalf("Got:\n\n%#v\n\nExpected:\n\n%#v", output, tc.Output)
 		}

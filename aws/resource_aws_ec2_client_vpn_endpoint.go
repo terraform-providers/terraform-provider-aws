@@ -150,7 +150,7 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("dns_servers"); ok {
-		req.DnsServers = expandStringList(v.(*schema.Set).List())
+		req.DnsServers = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("authentication_options"); ok {
@@ -288,7 +288,7 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("dns_servers") {
-		dnsValue := expandStringList(d.Get("dns_servers").(*schema.Set).List())
+		dnsValue := expandStringSet(d.Get("dns_servers").(*schema.Set))
 		var enabledValue *bool
 
 		if len(dnsValue) > 0 {

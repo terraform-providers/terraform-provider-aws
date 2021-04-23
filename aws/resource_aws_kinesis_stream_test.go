@@ -293,7 +293,7 @@ func TestAccAWSKinesisStream_retentionPeriod(t *testing.T) {
 					testAccCheckKinesisStreamExists(resourceName, &stream),
 					testAccCheckAWSKinesisStreamAttributes(&stream),
 					resource.TestCheckResourceAttr(
-						resourceName, "retention_period", "100"),
+						resourceName, "retention_period", "8760"),
 				),
 			},
 
@@ -663,7 +663,7 @@ func testAccKinesisStreamConfigUpdateRetentionPeriod(rInt int) string {
 resource "aws_kinesis_stream" "test" {
   name             = "terraform-kinesis-test-%d"
   shard_count      = 2
-  retention_period = 100
+  retention_period = 8760
 
   tags = {
     Name = "tf-test"

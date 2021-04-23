@@ -300,7 +300,7 @@ jobs:
       - name: goreleaser build
         uses: goreleaser/goreleaser-action@v2
         with:
-          args: build --snapshot --timeout 1h
+          args: build --snapshot --timeout 2h
 
   semgrep:
     runs-on: ubuntu-latest

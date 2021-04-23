@@ -15,4 +15,9 @@ ability to merge PRs and respond to issues.
 - [Issue Reporting and Lifecycle](contributing/issue-reporting-and-lifecycle.md)
 - [Pull Request Submission and Lifecycle](contributing/pullrequest-submission-and-lifecycle.md)
 - [Contribution Types and Checklists](contributing/contribution-checklists.md)
+
+This documentation also contains reference material specific to certain functionality:
+
 - [Running and Writing Acceptance Tests](contributing/running-and-writing-acceptance-tests.md)
+- [Data Handling and Conversion](contributing/data-handling-and-conversion.md)
+- [Error Handling](contributing/error-handling.md)

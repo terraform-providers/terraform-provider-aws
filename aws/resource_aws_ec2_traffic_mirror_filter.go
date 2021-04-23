@@ -86,14 +86,14 @@ func resourceAwsEc2TrafficMirrorFilterUpdate(d *schema.ResourceData, meta interf
 		}
 
 		o, n := d.GetChange("network_services")
-		newServices := n.(*schema.Set).Difference(o.(*schema.Set)).List()
-		if len(newServices) > 0 {
-			input.AddNetworkServices = expandStringList(newServices)
+		newServices := n.(*schema.Set).Difference(o.(*schema.Set))
+		if newServices.Len() > 0 {
+			input.AddNetworkServices = expandStringSet(newServices)
 		}
 
-		removeServices := o.(*schema.Set).Difference(n.(*schema.Set)).List()
-		if len(removeServices) > 0 {
-			input.RemoveNetworkServices = expandStringList(removeServices)
+		removeServices := o.(*schema.Set).Difference(n.(*schema.Set))
+		if removeServices.Len() > 0 {
+			input.RemoveNetworkServices = expandStringSet(removeServices)
 		}
 
 		_, err := conn.ModifyTrafficMirrorFilterNetworkServices(input)

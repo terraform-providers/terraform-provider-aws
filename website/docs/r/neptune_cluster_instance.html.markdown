@@ -75,12 +75,12 @@ In addition to all arguments above, the following attributes are exported:
 * `storage_encrypted` - Specifies whether the neptune cluster is encrypted.
 * `writer` – Boolean indicating if this instance is writable. `False` indicates this instance is a read replica.
 
-[1]: /docs/configuration/resources.html#count
+[1]: https://www.terraform.io/docs/configuration/meta-arguments/count.html
 
 ## Timeouts
 
 `aws_neptune_cluster_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `90 minutes`) How long to wait for creating instances to become available.
 - `update` - (Default `90 minutes`) How long to wait for updating instances to complete updates.

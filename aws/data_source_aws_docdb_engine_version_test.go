@@ -103,15 +103,15 @@ data "aws_docdb_engine_version" "test" {
 }
 
 func testAccAWSDocDBEngineVersionDataSourcePreferredConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_docdb_engine_version" "test" {
   preferred_versions = ["34.6.1", "3.6.0", "2.6.0"]
 }
-`)
+`
 }
 
 func testAccAWSDocDBEngineVersionDataSourceDefaultOnlyConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_docdb_engine_version" "test" {}
-`)
+`
 }

@@ -46,7 +46,7 @@ func resourceAwsLoadBalancerBackendServerPoliciesCreate(d *schema.ResourceData, 
 
 	policyNames := []*string{}
 	if v, ok := d.GetOk("policy_names"); ok {
-		policyNames = expandStringList(v.(*schema.Set).List())
+		policyNames = expandStringSet(v.(*schema.Set))
 	}
 
 	setOpts := &elb.SetLoadBalancerPoliciesForBackendServerInput{

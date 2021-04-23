@@ -10,7 +10,7 @@ description: |-
 
 Provides an API Gateway REST API Policy.
 
--> **Note:** Amazon API Gateway Version 1 resources are used for creating and deploying REST APIs. To create and deploy WebSocket and HTTP APIs, use Amazon API Gateway Version 2 [resources](https://www.terraform.io/docs/providers/aws/r/apigatewayv2_api.html).
+-> **Note:** Amazon API Gateway Version 1 resources are used for creating and deploying REST APIs. To create and deploy WebSocket and HTTP APIs, use Amazon API Gateway Version 2 [resources](/docs/providers/aws/r/apigatewayv2_api.html).
 
 ## Example Usage
 
@@ -34,7 +34,7 @@ resource "aws_api_gateway_rest_api_policy" "test" {
         "AWS": "*"
       },
       "Action": "execute-api:Invoke",
-      "Resource": "${aws_api_gateway_rest_api.test.arn}",
+      "Resource": "${aws_api_gateway_rest_api.test.execution_arn}",
       "Condition": {
         "IpAddress": {
           "aws:SourceIp": "123.123.123.123/32"

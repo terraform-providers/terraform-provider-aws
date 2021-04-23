@@ -48,7 +48,7 @@ The Elasticache work will begin with a research spike to ensure that the we can 
 
 - [#14959](https://github.com/hashicorp/terraform-provider-aws/issues/14959): Research Spike: Elasticache Service Fixes and Improvements
 - [#12708](https://github.com/hashicorp/terraform-provider-aws/issues/12708): resource/aws_elasticache_replication_group: Add MultiAZ support
-- [#13517](https://github.com/hashicorp/terraform-provider-aws/issues/13517): Feature Request: `aws_elasticache_cluster` allow auto-minor-version-upgrade to be set
+- ~[#13517](https://github.com/hashicorp/terraform-provider-aws/issues/13517): Feature Request: `aws_elasticache_cluster` allow auto-minor-version-upgrade to be set~ This parameter is not enabled in the AWS API.
 - [#5118](https://github.com/hashicorp/terraform-provider-aws/issues/5118): support setting primary/replica AZ attributes inside NodeGroupConfiguration for RedisClusterModelEnabled
 
 ### Workflow Improvements

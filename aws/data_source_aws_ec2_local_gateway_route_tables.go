@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -45,26 +44,40 @@ func dataSourceAwsEc2LocalGatewayRouteTablesRead(d *schema.ResourceData, meta in
 		req.Filters = nil
 	}
 
-	log.Printf("[DEBUG] DescribeLocalGatewayRouteTables %s\n", req)
-	resp, err := conn.DescribeLocalGatewayRouteTables(req)
+	var localGatewayRouteTables []*ec2.LocalGatewayRouteTable
+
+	err := conn.DescribeLocalGatewayRouteTablesPages(req, func(page *ec2.DescribeLocalGatewayRouteTablesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		localGatewayRouteTables = append(localGatewayRouteTables, page.LocalGatewayRouteTables...)
+
+		return !lastPage
+	})
+
 	if err != nil {
 		return fmt.Errorf("error describing EC2 Local Gateway Route Tables: %w", err)
 	}
 
-	if resp == nil || len(resp.LocalGatewayRouteTables) == 0 {
-		return fmt.Errorf("no matching Local Gateway Route Table found")
+	if len(localGatewayRouteTables) == 0 {
+		return fmt.Errorf("no matching EC2 Local Gateway Route Tables found")
 	}
 
-	localgatewayroutetables := make([]string, 0)
+	var ids []string
 
-	for _, localgatewayroutetable := range resp.LocalGatewayRouteTables {
-		localgatewayroutetables = append(localgatewayroutetables, aws.StringValue(localgatewayroutetable.LocalGatewayRouteTableId))
+	for _, localGatewayRouteTable := range localGatewayRouteTables {
+		if localGatewayRouteTable == nil {
+			continue
+		}
+
+		ids = append(ids, aws.StringValue(localGatewayRouteTable.LocalGatewayRouteTableId))
 	}
 
 	d.SetId(meta.(*AWSClient).region)
 
-	if err := d.Set("ids", localgatewayroutetables); err != nil {
-		return fmt.Errorf("Error setting local gateway route table ids: %s", err)
+	if err := d.Set("ids", ids); err != nil {
+		return fmt.Errorf("error setting ids: %w", err)
 	}
 
 	return nil

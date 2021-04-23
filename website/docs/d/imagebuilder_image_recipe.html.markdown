@@ -48,5 +48,6 @@ In addition to all arguments above, the following attributes are exported:
 * `owner` - Owner of the image recipe.
 * `parent_image` - Platform of the image recipe.
 * `platform` - Platform of the image recipe.
-* `tags` - (Optional) Key-value map of resource tags for the image recipe.
+* `tags` - Key-value map of resource tags for the image recipe.
 * `version` - Version of the image recipe.
+* `working_directory` - The working directory used during build and test workflows.

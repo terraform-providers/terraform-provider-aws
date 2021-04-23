@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -67,7 +66,7 @@ func testAccPreCheckAwsEc2SpotPrice(t *testing.T) {
 }
 
 func testAccAwsEc2SpotPriceDataSourceConfig() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 data "aws_region" "current" {}
 
 data "aws_ec2_instance_type_offering" "test" {
@@ -91,7 +90,7 @@ data "aws_ec2_spot_price" "test" {
 }
 
 func testAccAwsEc2SpotPriceDataSourceFilterConfig() string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 data "aws_region" "current" {}
 
 data "aws_ec2_instance_type_offering" "test" {

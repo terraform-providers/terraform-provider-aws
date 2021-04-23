@@ -124,7 +124,7 @@ func testAccAutoScalingGroupDataResourceConfig_launchTemplate() string {
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
 		testAccAvailableAZsNoOptInConfig(),
 		testAccAvailableEc2InstanceTypeForAvailabilityZone("data.aws_availability_zones.available.names[0]", "t3.micro", "t2.micro"),
-		fmt.Sprintf(`
+		`
 data "aws_autoscaling_group" "test" {
   name = aws_autoscaling_group.test.name
 }
@@ -145,5 +145,5 @@ resource "aws_launch_template" "test" {
   image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = data.aws_ec2_instance_type_offering.available.instance_type
 }
-`))
+`)
 }

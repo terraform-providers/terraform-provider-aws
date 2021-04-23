@@ -111,7 +111,7 @@ func testAccAWSELBAttachmentCheckInstanceCount(conf *elb.LoadBalancerDescription
 
 // add one attachment
 func testAccAWSELBAttachmentConfig1() string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -146,7 +146,7 @@ resource "aws_elb_attachment" "foo1" {
 
 // add a second attachment
 func testAccAWSELBAttachmentConfig2() string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -191,7 +191,7 @@ resource "aws_elb_attachment" "foo2" {
 
 // swap attachments between resources
 func testAccAWSELBAttachmentConfig3() string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -236,7 +236,7 @@ resource "aws_elb_attachment" "foo2" {
 
 // destroy attachments
 func testAccAWSELBAttachmentConfig4() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -256,5 +256,5 @@ resource "aws_elb" "test" {
     lb_protocol       = "http"
   }
 }
-`)
+`
 }

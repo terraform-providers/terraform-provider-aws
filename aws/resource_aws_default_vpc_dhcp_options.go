@@ -3,8 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -37,13 +39,6 @@ func resourceAwsDefaultVpcDhcpOptions() *schema.Resource {
 func resourceAwsDefaultVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	var domainName string
-	awsRegion := meta.(*AWSClient).region
-	if awsRegion == "us-east-1" {
-		domainName = "ec2.internal"
-	} else {
-		domainName = awsRegion + ".compute.internal"
-	}
 	req := &ec2.DescribeDhcpOptionsInput{
 		Filters: []*ec2.Filter{
 			{
@@ -52,7 +47,7 @@ func resourceAwsDefaultVpcDhcpOptionsCreate(d *schema.ResourceData, meta interfa
 			},
 			{
 				Name:   aws.String("value"),
-				Values: aws.StringSlice([]string{domainName}),
+				Values: aws.StringSlice([]string{resourceAwsEc2RegionalPrivateDnsSuffix(meta.(*AWSClient).region)}),
 			},
 			{
 				Name:   aws.String("key"),
@@ -94,4 +89,24 @@ func resourceAwsDefaultVpcDhcpOptionsCreate(d *schema.ResourceData, meta interfa
 func resourceAwsDefaultVpcDhcpOptionsDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy Default DHCP Options Set. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
+}
+
+func resourceAwsEc2RegionalPrivateDnsSuffix(region string) string {
+	if region == endpoints.UsEast1RegionID {
+		return "ec2.internal"
+	}
+
+	return fmt.Sprintf("%s.compute.internal", region)
+}
+
+func resourceAwsEc2RegionalPublicDnsSuffix(region string) string {
+	if region == endpoints.UsEast1RegionID {
+		return "compute-1"
+	}
+
+	return fmt.Sprintf("%s.compute", region)
+}
+
+func resourceAwsEc2DashIP(ip string) string {
+	return strings.Replace(ip, ".", "-", -1)
 }

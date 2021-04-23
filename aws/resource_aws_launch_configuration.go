@@ -373,9 +373,7 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("security_groups"); ok {
-		createLaunchConfigurationOpts.SecurityGroups = expandStringList(
-			v.(*schema.Set).List(),
-		)
+		createLaunchConfigurationOpts.SecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("vpc_classic_link_id"); ok {
@@ -387,9 +385,7 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("vpc_classic_link_security_groups"); ok {
-		createLaunchConfigurationOpts.ClassicLinkVPCSecurityGroups = expandStringList(
-			v.(*schema.Set).List(),
-		)
+		createLaunchConfigurationOpts.ClassicLinkVPCSecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	var blockDevices []*autoscaling.BlockDeviceMapping

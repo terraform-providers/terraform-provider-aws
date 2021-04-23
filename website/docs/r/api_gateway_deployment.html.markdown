@@ -10,7 +10,7 @@ description: |-
 
 Provides an API Gateway REST Deployment.
 
-~> **Note:** This resource depends on having at least one `aws_api_gateway_integration` created in the REST API, which itself has other dependencies. To avoid race conditions when all resources are being created together, you need to add implicit resource references via the `triggers` argument or explicit resource references using the [resource `depends_on` meta-argument](/docs/configuration/resources.html#depends_on-explicit-resource-dependencies).
+~> **Note:** This resource depends on having at least one `aws_api_gateway_integration` created in the REST API, which itself has other dependencies. To avoid race conditions when all resources are being created together, you need to add implicit resource references via the `triggers` argument or explicit resource references using the [resource `depends_on` meta-argument](https://www.terraform.io/docs/configuration/meta-arguments/depends_on.html).
 
 -> It is recommended to enable the [resource `lifecycle` configuration block `create_before_destroy` argument](https://www.terraform.io/docs/configuration/resources.html#create_before_destroy) in this resource configuration to properly order redeployments in Terraform.
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 * `stage_name` - (Optional) The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment.
 * `description` - (Optional) The description of the deployment
 * `stage_description` - (Optional) The description of the stage
-* `triggers` - (Optional) A map of arbitrary keys and values that, when changed, will trigger a redeployment. To force a redeployment without changing these keys/values, use the [`terraform taint` command](/docs/commands/taint.html).
+* `triggers` - (Optional) A map of arbitrary keys and values that, when changed, will trigger a redeployment. To force a redeployment without changing these keys/values, use the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html).
 * `variables` - (Optional) A map that defines variables for the stage
 
 ## Attributes Reference

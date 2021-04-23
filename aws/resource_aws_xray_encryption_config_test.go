@@ -76,11 +76,11 @@ func testAccCheckXrayEncryptionConfigExists(n string, EncryptionConfig *xray.Enc
 }
 
 func testAccAWSXrayEncryptionConfigBasicConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_xray_encryption_config" "test" {
   type = "NONE"
 }
-`)
+`
 }
 
 func testAccAWSXrayEncryptionConfigWithKeyConfig() string {

@@ -74,16 +74,16 @@ Nested `ebs_block_device` blocks have the following structure:
 * `delete_on_termination` - (Optional) Boolean controlling whether the EBS volumes created to
   support each created instance will be deleted once that instance is terminated.
 * `encrypted` - (Optional) Boolean controlling whether the created EBS volumes will be encrypted. Can't be used with `snapshot_id`.
-* `iops` - (Required only when `volume_type` is "io1/io2") Number of I/O operations per second the
+* `iops` - (Required only when `volume_type` is `io1` or `io2`) Number of I/O operations per second the
   created volumes will support.
 * `snapshot_id` - (Optional) The id of an EBS snapshot that will be used to initialize the created
   EBS volumes. If set, the `volume_size` attribute must be at least as large as the referenced
   snapshot.
+* `throughput` - (Optional) The throughput that the EBS volume supports, in MiB/s. Only valid for `volume_type` of `gp3`.
 * `volume_size` - (Required unless `snapshot_id` is set) The size of created volumes in GiB.
   If `snapshot_id` is set and `volume_size` is omitted then the volume will have the same size
   as the selected snapshot.
-* `volume_type` - (Optional) The type of EBS volume to create. Can be one of "standard" (the
-  default), "io1", "io2" or "gp2".
+* `volume_type` - (Optional) The type of EBS volume to create. Can be `standard`, `gp2`, `gp3`, `io1`, `io2`, `sc1` or `st1` (Default: `standard`).
 * `kms_key_id` - (Optional) The full ARN of the AWS Key Management Service (AWS KMS) CMK to use when encrypting the snapshots of
 an image during a copy operation. This parameter is only required if you want to use a non-default CMK;
 if this parameter is not specified, the default CMK for EBS is used
@@ -98,7 +98,7 @@ Nested `ephemeral_block_device` blocks have the following structure:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 40 mins) Used when creating the AMI
 * `update` - (Defaults to 40 mins) Used when updating the AMI

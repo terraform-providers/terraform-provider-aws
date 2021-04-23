@@ -50,7 +50,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_kinesis_video_stream` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_kinesis_video_stream` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `5 minutes`)  Used for Creating a Kinesis Stream
 - `update` - (Default `120 minutes`) Used for Updating a Kinesis Stream

@@ -83,7 +83,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_eks_fargate_profile` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_eks_fargate_profile` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10 minutes`) How long to wait for the EKS Fargate Profile to be created.
 * `delete` - (Default `10 minutes`) How long to wait for the EKS Fargate Profile to be deleted.

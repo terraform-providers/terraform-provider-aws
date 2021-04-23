@@ -570,11 +570,11 @@ func testAccCheckAWSNeptuneClusterSnapshot(rName string) resource.TestCheckFunc 
 }
 
 func testAccAWSNeptuneClusterConfigBase() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 locals {
   availability_zone_names = slice(data.aws_availability_zones.available.names, 0, min(3, length(data.aws_availability_zones.available.names)))
 }
-`))
+`)
 }
 
 func testAccAWSNeptuneClusterConfig(rName string) string {

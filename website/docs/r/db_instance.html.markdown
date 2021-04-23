@@ -27,7 +27,7 @@ server reboots. See the AWS Docs on [RDS Maintenance][2] for more information.
 
 ~> **Note:** All arguments including the username and password will be stored in
 the raw state as plain-text. [Read more about sensitive data in
-state](/docs/state/sensitive-data.html).
+state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## RDS Instance Class Types
 Amazon RDS supports three types of instance classes: Standard, Memory Optimized,
@@ -120,7 +120,7 @@ For supported values, see the EngineVersion parameter in [API action CreateDBIns
 Note that for Amazon Aurora instances the engine version must match the [DB cluster](/docs/providers/aws/r/rds_cluster.html)'s engine version'.
 * `final_snapshot_identifier` - (Optional) The name of your final DB snapshot
 when this DB instance is deleted. Must be provided if `skip_final_snapshot` is
-set to `false`.
+set to `false`. The value must begin with a letter, only contain alphanumeric characters and hyphens, and not end with a hyphen or contain two consecutive hyphens. Must not be provided when deleting a read replica.
 * `iam_database_authentication_enabled` - (Optional) Specifies whether or
 mappings of AWS Identity and Access Management (IAM) accounts to database
 accounts is enabled.
@@ -212,7 +212,7 @@ standalone database.
 
 -> **Note:** You can restore to any point in time before the source DB instance's `latest_restorable_time` or a point up to the number of days specified in the source DB instance's `backup_retention_period`.
 For more information, please refer to the [Developer Guide](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html).
-This setting does not apply to `aurora-mysql` or `aurora-postgresql` DB engines. For Aurora, refer to the [`aws_rds_cluster` resource documentation](https://www.terraform.io/docs/providers/aws/r/rds_cluster.html#restore_in_time).
+This setting does not apply to `aurora-mysql` or `aurora-postgresql` DB engines. For Aurora, refer to the [`aws_rds_cluster` resource documentation](/docs/providers/aws/r/rds_cluster.html#restore_in_time).
 
 The `restore_to_point_in_time` block supports the following arguments:
 
@@ -248,7 +248,7 @@ This will not recreate the resource if the S3 object changes in some way.  It's 
 ### Timeouts
 
 `aws_db_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `40 minutes`) Used for Creating Instances, Replicas, and
 restoring from Snapshots.

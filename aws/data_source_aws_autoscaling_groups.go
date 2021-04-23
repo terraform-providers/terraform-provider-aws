@@ -122,7 +122,7 @@ func expandAsgTagFilters(in []interface{}) []*autoscaling.Filter {
 	out := make([]*autoscaling.Filter, len(in))
 	for i, filter := range in {
 		m := filter.(map[string]interface{})
-		values := expandStringList(m["values"].(*schema.Set).List())
+		values := expandStringSet(m["values"].(*schema.Set))
 
 		out[i] = &autoscaling.Filter{
 			Name:   aws.String(m["name"].(string)),

@@ -24,6 +24,12 @@ func resourceAwsGlobalAcceleratorListener() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"accelerator_arn": {
 				Type:     schema.TypeString,
@@ -96,7 +102,7 @@ func resourceAwsGlobalAcceleratorListenerCreate(d *schema.ResourceData, meta int
 		Pending: []string{globalaccelerator.AcceleratorStatusInProgress},
 		Target:  []string{globalaccelerator.AcceleratorStatusDeployed},
 		Refresh: resourceAwsGlobalAcceleratorAcceleratorStateRefreshFunc(conn, d.Get("accelerator_arn").(string)),
-		Timeout: 5 * time.Minute,
+		Timeout: d.Timeout(schema.TimeoutCreate),
 	}
 
 	log.Printf("[DEBUG] Waiting for Global Accelerator listener (%s) availability", d.Id())
@@ -211,7 +217,7 @@ func resourceAwsGlobalAcceleratorListenerUpdate(d *schema.ResourceData, meta int
 	}
 
 	// Creating a listener triggers the accelerator to change status to InPending
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Get("accelerator_arn").(string))
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Get("accelerator_arn").(string), d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return err
 	}
@@ -236,7 +242,7 @@ func resourceAwsGlobalAcceleratorListenerDelete(d *schema.ResourceData, meta int
 
 	// Deleting a listener triggers the accelerator to change status to InPending
 	// }
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Get("accelerator_arn").(string))
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, d.Get("accelerator_arn").(string), d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return err
 	}

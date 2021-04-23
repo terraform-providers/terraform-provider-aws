@@ -58,7 +58,7 @@ func resourceAwsDmsReplicationSubnetGroupCreate(d *schema.ResourceData, meta int
 	request := &dms.CreateReplicationSubnetGroupInput{
 		ReplicationSubnetGroupIdentifier:  aws.String(d.Get("replication_subnet_group_id").(string)),
 		ReplicationSubnetGroupDescription: aws.String(d.Get("replication_subnet_group_description").(string)),
-		SubnetIds:                         expandStringList(d.Get("subnet_ids").(*schema.Set).List()),
+		SubnetIds:                         expandStringSet(d.Get("subnet_ids").(*schema.Set)),
 		Tags:                              keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatabasemigrationserviceTags(),
 	}
 
@@ -129,7 +129,7 @@ func resourceAwsDmsReplicationSubnetGroupUpdate(d *schema.ResourceData, meta int
 	// changes to SubnetIds.
 	request := &dms.ModifyReplicationSubnetGroupInput{
 		ReplicationSubnetGroupIdentifier: aws.String(d.Get("replication_subnet_group_id").(string)),
-		SubnetIds:                        expandStringList(d.Get("subnet_ids").(*schema.Set).List()),
+		SubnetIds:                        expandStringSet(d.Get("subnet_ids").(*schema.Set)),
 	}
 
 	if d.HasChange("replication_subnet_group_description") {

@@ -166,7 +166,7 @@ The following arguments are supported:
 
 The `rule_group` block supports the following argument:
 
-* `rule_variables` - (Optional) A configuration block that defines additional settings available to use in the rules defined in the rule group. See [Rule Variables](#rule-variables) below for details.
+* `rule_variables` - (Optional) A configuration block that defines additional settings available to use in the rules defined in the rule group. Can only be specified for **stateful** rule groups. See [Rule Variables](#rule-variables) below for details.
 
 * `rules_source` - (Required) A configuration block that defines the stateful or stateless rules for the rule group. See [Rules Source](#rules-source) below for details.
 

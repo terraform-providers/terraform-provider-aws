@@ -34,6 +34,16 @@ resource "aws_workspaces_directory" "example" {
     switch_running_mode  = true
   }
 
+  workspace_access_properties {
+    device_type_android    = "ALLOW"
+    device_type_chromeos   = "ALLOW"
+    device_type_ios        = "ALLOW"
+    device_type_osx        = "ALLOW"
+    device_type_web        = "DENY"
+    device_type_windows    = "DENY"
+    device_type_zeroclient = "DENY"
+  }
+
   workspace_creation_properties {
     custom_security_group_id            = aws_security_group.example.id
     default_ou                          = "OU=AWS,DC=Workgroup,DC=Example,DC=com"
@@ -141,6 +151,7 @@ The following arguments are supported:
 * `ip_group_ids` - The identifiers of the IP access control groups associated with the directory.
 * `tags` – (Optional) A map of tags assigned to the WorkSpaces directory.
 * `self_service_permissions` – (Optional) Permissions to enable or disable self-service capabilities. Defined below.
+* `workspace_access_properties` – (Optional) Specifies which devices and operating systems users can use to access their WorkSpaces. Defined below.
 * `workspace_creation_properties` – (Optional) Default properties that are used for creating WorkSpaces. Defined below.
 
 ### self_service_permissions
@@ -150,6 +161,16 @@ The following arguments are supported:
 * `rebuild_workspace` – (Optional) Whether WorkSpaces directory users can rebuild the operating system of a workspace to its original state. Default `false`.
 * `restart_workspace` – (Optional) Whether WorkSpaces directory users can restart their workspace. Default `true`.
 * `switch_running_mode` – (Optional) Whether WorkSpaces directory users can switch the running mode of their workspace. Default `false`.
+
+### workspace_access_properties
+
+* `device_type_android` – (Optional) Indicates whether users can use Android devices to access their WorkSpaces.
+* `device_type_chromeos` – (Optional) Indicates whether users can use Chromebooks to access their WorkSpaces.
+* `device_type_ios` – (Optional) Indicates whether users can use iOS devices to access their WorkSpaces.
+* `device_type_osx` – (Optional) Indicates whether users can use macOS clients to access their WorkSpaces.
+* `device_type_web` – (Optional) Indicates whether users can access their WorkSpaces through a web browser.
+* `device_type_windows` – (Optional) Indicates whether users can use Windows clients to access their WorkSpaces.
+* `device_type_zeroclient` – (Optional) Indicates whether users can use zero client devices to access their WorkSpaces.
 
 ### workspace_creation_properties
 

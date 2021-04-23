@@ -81,13 +81,13 @@ In addition to all arguments above, the following attributes are exported:
 
 [1]: /docs/providers/aws/r/docdb_cluster.html
 [2]: https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-manage-performance.html#db-cluster-manage-scaling-instance
-[3]: /docs/configuration/resources.html#count
+[3]: https://www.terraform.io/docs/configuration/meta-arguments/count.html
 [4]: https://docs.aws.amazon.com/documentdb/latest/developerguide/db-instance-classes.html#db-instance-class-specs
 
 ## Timeouts
 
 `aws_docdb_cluster_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `90 minutes`) Used for Creating Instances, Replicas, and
 restoring from Snapshots

@@ -53,7 +53,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`acm_ses_domain_identity_verification` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`acm_ses_domain_identity_verification` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `45m`) How long to wait for a domain identity to be verified.

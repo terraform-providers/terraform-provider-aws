@@ -9,10 +9,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsIamRole() *schema.Resource {
@@ -311,34 +313,41 @@ func resourceAwsIamRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceAwsIamRoleDelete(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
-	// Roles cannot be destroyed when attached to an existing Instance Profile
-	if err := deleteAwsIamRoleInstanceProfiles(iamconn, d.Id()); err != nil {
-		return fmt.Errorf("error deleting IAM Role (%s) instance profiles: %s", d.Id(), err)
+	err := deleteAwsIamRole(conn, d.Id(), d.Get("force_detach_policies").(bool))
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("error deleting IAM Role (%s): %w", d.Id(), err)
 	}
 
-	if d.Get("force_detach_policies").(bool) {
-		// For managed policies
-		if err := deleteAwsIamRolePolicyAttachments(iamconn, d.Id()); err != nil {
-			return fmt.Errorf("error deleting IAM Role (%s) policy attachments: %s", d.Id(), err)
+	return nil
+}
+
+func deleteAwsIamRole(conn *iam.IAM, rolename string, forceDetach bool) error {
+	if err := deleteAwsIamRoleInstanceProfiles(conn, rolename); err != nil {
+		return fmt.Errorf("unable to detach instance profiles: %w", err)
+	}
+
+	if forceDetach {
+		if err := deleteAwsIamRolePolicyAttachments(conn, rolename); err != nil {
+			return fmt.Errorf("unable to detach policies: %w", err)
 		}
 
-		// For inline policies
-		if err := deleteAwsIamRolePolicies(iamconn, d.Id()); err != nil {
-			return fmt.Errorf("error deleting IAM Role (%s) policies: %s", d.Id(), err)
+		if err := deleteAwsIamRolePolicies(conn, rolename); err != nil {
+			return fmt.Errorf("unable to delete inline policies: %w", err)
 		}
 	}
 
 	deleteRoleInput := &iam.DeleteRoleInput{
-		RoleName: aws.String(d.Id()),
+		RoleName: aws.String(rolename),
 	}
-
-	// IAM is eventually consistent and deletion of attached policies may take time
-	err := resource.Retry(30*time.Second, func() *resource.RetryError {
-		_, err := iamconn.DeleteRole(deleteRoleInput)
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		_, err := conn.DeleteRole(deleteRoleInput)
 		if err != nil {
-			if isAWSErr(err, iam.ErrCodeDeleteConflictException, "") {
+			if tfawserr.ErrCodeEquals(err, iam.ErrCodeDeleteConflictException) {
 				return resource.RetryableError(err)
 			}
 
@@ -347,30 +356,21 @@ func resourceAwsIamRoleDelete(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	})
 	if isResourceTimeoutError(err) {
-		_, err = iamconn.DeleteRole(deleteRoleInput)
+		_, err = conn.DeleteRole(deleteRoleInput)
 	}
 
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-		return nil
-	}
-
-	if err != nil {
-		return fmt.Errorf("Error deleting IAM Role (%s): %s", d.Id(), err)
-	}
-	return nil
+	return err
 }
 
 func deleteAwsIamRoleInstanceProfiles(conn *iam.IAM, rolename string) error {
 	resp, err := conn.ListInstanceProfilesForRole(&iam.ListInstanceProfilesForRoleInput{
 		RoleName: aws.String(rolename),
 	})
-
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 		return nil
 	}
-
 	if err != nil {
-		return fmt.Errorf("Error listing Profiles for IAM Role (%s) when trying to delete: %s", rolename, err)
+		return err
 	}
 
 	// Loop and remove this Role from any Profiles
@@ -381,13 +381,11 @@ func deleteAwsIamRoleInstanceProfiles(conn *iam.IAM, rolename string) error {
 		}
 
 		_, err := conn.RemoveRoleFromInstanceProfile(input)
-
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 			continue
 		}
-
 		if err != nil {
-			return fmt.Errorf("Error deleting IAM Role (%s) Instance Profile (%s): %s", rolename, aws.StringValue(i.InstanceProfileName), err)
+			return err
 		}
 	}
 
@@ -406,14 +404,13 @@ func deleteAwsIamRolePolicyAttachments(conn *iam.IAM, rolename string) error {
 		}
 		return !lastPage
 	})
-
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 		return nil
 	}
-
 	if err != nil {
-		return fmt.Errorf("Error listing Policies for IAM Role (%s) when trying to delete: %s", rolename, err)
+		return err
 	}
+
 	for _, parn := range managedPolicies {
 		input := &iam.DetachRolePolicyInput{
 			PolicyArn: parn,
@@ -421,13 +418,11 @@ func deleteAwsIamRolePolicyAttachments(conn *iam.IAM, rolename string) error {
 		}
 
 		_, err = conn.DetachRolePolicy(input)
-
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 			continue
 		}
-
 		if err != nil {
-			return fmt.Errorf("Error deleting IAM Role %s: %s", rolename, err)
+			return err
 		}
 	}
 
@@ -444,9 +439,11 @@ func deleteAwsIamRolePolicies(conn *iam.IAM, rolename string) error {
 		inlinePolicies = append(inlinePolicies, page.PolicyNames...)
 		return !lastPage
 	})
-
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		return nil
+	}
 	if err != nil {
-		return fmt.Errorf("Error listing inline Policies for IAM Role (%s) when trying to delete: %s", rolename, err)
+		return err
 	}
 
 	for _, pname := range inlinePolicies {
@@ -456,13 +453,11 @@ func deleteAwsIamRolePolicies(conn *iam.IAM, rolename string) error {
 		}
 
 		_, err := conn.DeleteRolePolicy(input)
-
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			continue
+		if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return nil
 		}
-
 		if err != nil {
-			return fmt.Errorf("Error deleting inline policy of IAM Role %s: %s", rolename, err)
+			return err
 		}
 	}
 

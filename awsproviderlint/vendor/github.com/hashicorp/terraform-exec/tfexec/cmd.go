@@ -16,6 +16,7 @@ import (
 
 const (
 	checkpointDisableEnvVar  = "CHECKPOINT_DISABLE"
+	cliArgsEnvVar            = "TF_CLI_ARGS"
 	logEnvVar                = "TF_LOG"
 	inputEnvVar              = "TF_INPUT"
 	automationEnvVar         = "TF_IN_AUTOMATION"
@@ -26,10 +27,12 @@ const (
 	disablePluginTLSEnvVar   = "TF_DISABLE_PLUGIN_TLS"
 	skipProviderVerifyEnvVar = "TF_SKIP_PROVIDER_VERIFY"
 
-	varEnvVarPrefix = "TF_VAR_"
+	varEnvVarPrefix    = "TF_VAR_"
+	cliArgEnvVarPrefix = "TF_CLI_ARGS_"
 )
 
 var prohibitedEnvVars = []string{
+	cliArgsEnvVar,
 	inputEnvVar,
 	automationEnvVar,
 	logPathEnvVar,
@@ -39,6 +42,48 @@ var prohibitedEnvVars = []string{
 	workspaceEnvVar,
 	disablePluginTLSEnvVar,
 	skipProviderVerifyEnvVar,
+}
+
+var prohibitedEnvVarPrefixes = []string{
+	varEnvVarPrefix,
+	cliArgEnvVarPrefix,
+}
+
+func manualEnvVars(env map[string]string, cb func(k string)) {
+	for k := range env {
+		for _, p := range prohibitedEnvVars {
+			if p == k {
+				cb(k)
+				goto NextEnvVar
+			}
+		}
+		for _, prefix := range prohibitedEnvVarPrefixes {
+			if strings.HasPrefix(k, prefix) {
+				cb(k)
+				goto NextEnvVar
+			}
+		}
+	NextEnvVar:
+	}
+}
+
+// ProhibitedEnv returns a slice of environment variable keys that are not allowed
+// to be set manually from the passed environment.
+func ProhibitedEnv(env map[string]string) []string {
+	var p []string
+	manualEnvVars(env, func(k string) {
+		p = append(p, k)
+	})
+	return p
+}
+
+// CleanEnv removes any prohibited environment variables from an environment map.
+func CleanEnv(dirty map[string]string) map[string]string {
+	clean := dirty
+	manualEnvVars(clean, func(k string) {
+		delete(clean, k)
+	})
+	return clean
 }
 
 func envMap(environ []string) map[string]string {
@@ -144,7 +189,9 @@ func (tf *Terraform) runTerraformCmdJSON(cmd *exec.Cmd, v interface{}) error {
 		return err
 	}
 
-	return json.Unmarshal(outbuf.Bytes(), v)
+	dec := json.NewDecoder(&outbuf)
+	dec.UseNumber()
+	return dec.Decode(v)
 }
 
 func (tf *Terraform) runTerraformCmd(cmd *exec.Cmd) error {

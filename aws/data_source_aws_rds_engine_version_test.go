@@ -131,27 +131,27 @@ data "aws_rds_engine_version" "test" {
 }
 
 func testAccAWSRDSEngineVersionDataSourceUpgradeTargetsConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_rds_engine_version" "test" {
   engine  = "mysql"
   version = "5.7.17"
 }
-`)
+`
 }
 
 func testAccAWSRDSEngineVersionDataSourcePreferredConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_rds_engine_version" "test" {
   engine             = "mysql"
   preferred_versions = ["85.9.12", "5.7.19", "5.7.17"]
 }
-`)
+`
 }
 
 func testAccAWSRDSEngineVersionDataSourceDefaultOnlyConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_rds_engine_version" "test" {
   engine = "mysql"
 }
-`)
+`
 }

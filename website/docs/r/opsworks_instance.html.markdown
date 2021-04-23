@@ -110,7 +110,7 @@ identified by the `virtual_name` in the format `"ephemeral{0..N}"`.
 ~> **NOTE:** Currently, changes to `*_block_device` configuration of _existing_
 resources cannot be automatically detected by Terraform. After making updates
 to block device configuration, resource recreation can be manually triggered by
-using the [`taint` command](/docs/commands/taint.html).
+using the [`taint` command](https://www.terraform.io/docs/commands/taint.html).
 
 
 ## Attributes Reference
@@ -136,7 +136,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_opsworks_instance` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used when the instance is created. It should cover the time needed for the instance to start successfully.
 - `delete` - (Default `10 minutes`) Used when the instance is deleted. It should cover the time needed for the instance to stop successfully.

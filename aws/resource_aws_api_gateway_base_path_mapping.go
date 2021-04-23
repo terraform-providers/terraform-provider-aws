@@ -18,6 +18,7 @@ func resourceAwsApiGatewayBasePathMapping() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsApiGatewayBasePathMappingCreate,
 		Read:   resourceAwsApiGatewayBasePathMappingRead,
+		Update: resourceAwsApiGatewayBasePathMappingUpdate,
 		Delete: resourceAwsApiGatewayBasePathMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -27,17 +28,14 @@ func resourceAwsApiGatewayBasePathMapping() *schema.Resource {
 			"api_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"base_path": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"stage_name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"domain_name": {
 				Type:     schema.TypeString,
@@ -83,6 +81,66 @@ func resourceAwsApiGatewayBasePathMappingCreate(d *schema.ResourceData, meta int
 
 	id := fmt.Sprintf("%s/%s", d.Get("domain_name").(string), d.Get("base_path").(string))
 	d.SetId(id)
+
+	return resourceAwsApiGatewayBasePathMappingRead(d, meta)
+}
+
+func resourceAwsApiGatewayBasePathMappingUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).apigatewayconn
+
+	operations := make([]*apigateway.PatchOperation, 0)
+
+	if d.HasChange("stage_name") {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/stage"),
+			Value: aws.String(d.Get("stage_name").(string)),
+		})
+	}
+
+	if d.HasChange("api_id") {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/restapiId"),
+			Value: aws.String(d.Get("api_id").(string)),
+		})
+	}
+
+	if d.HasChange("base_path") {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/basePath"),
+			Value: aws.String(d.Get("base_path").(string)),
+		})
+	}
+
+	domainName, basePath, decodeErr := decodeApiGatewayBasePathMappingId(d.Id())
+	if decodeErr != nil {
+		return decodeErr
+	}
+
+	input := apigateway.UpdateBasePathMappingInput{
+		BasePath:        aws.String(basePath),
+		DomainName:      aws.String(domainName),
+		PatchOperations: operations,
+	}
+
+	log.Printf("[INFO] Updating API Gateway base path mapping: %s", input)
+
+	_, err := conn.UpdateBasePathMapping(&input)
+
+	if err != nil {
+		if err != nil {
+			return fmt.Errorf("Updating API Gateway base path mapping failed: %s", err)
+		}
+	}
+
+	if d.HasChange("base_path") {
+		id := fmt.Sprintf("%s/%s", d.Get("domain_name").(string), d.Get("base_path").(string))
+		d.SetId(id)
+	}
+
+	log.Printf("[DEBUG] API Gateway base path mapping updated: %s", d.Id())
 
 	return resourceAwsApiGatewayBasePathMappingRead(d, meta)
 }

@@ -286,7 +286,7 @@ func testAccWSDataSyncLocationFsxWindowsImportStateIdFunc(resourceName string) r
 }
 
 func testAccAWSDataSyncLocationFsxWindowsConfig() string {
-	return testAccAwsFsxWindowsFileSystemConfigSecurityGroupIds1() + fmt.Sprintf(`
+	return composeConfig(testAccAwsFsxWindowsFileSystemConfigSecurityGroupIds1(), `
 resource "aws_datasync_location_fsx_windows_file_system" "test" {
   fsx_filesystem_arn  = aws_fsx_windows_file_system.test.arn
   user                = "SomeUser"

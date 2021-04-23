@@ -19,6 +19,12 @@ const (
 
 	// Maximum amount of time to wait for a QueryLogConfig to be deleted
 	QueryLogConfigDeletedTimeout = 5 * time.Minute
+
+	// Maximum amount of time to wait for a DnssecConfig to return ENABLED
+	DnssecConfigCreatedTimeout = 5 * time.Minute
+
+	// Maximum amount of time to wait for a DnssecConfig to return DISABLED
+	DnssecConfigDeletedTimeout = 5 * time.Minute
 )
 
 // QueryLogConfigAssociationCreated waits for a QueryLogConfig to return ACTIVE
@@ -87,6 +93,42 @@ func QueryLogConfigDeleted(conn *route53resolver.Route53Resolver, queryLogConfig
 	outputRaw, err := stateConf.WaitForState()
 
 	if v, ok := outputRaw.(*route53resolver.ResolverQueryLogConfig); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// DnssecConfigCreated waits for a DnssecConfig to return ENABLED
+func DnssecConfigCreated(conn *route53resolver.Route53Resolver, dnssecConfigID string) (*route53resolver.ResolverDnssecConfig, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{route53resolver.ResolverDNSSECValidationStatusEnabling},
+		Target:  []string{route53resolver.ResolverDNSSECValidationStatusEnabled},
+		Refresh: DnssecConfigStatus(conn, dnssecConfigID),
+		Timeout: DnssecConfigCreatedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*route53resolver.ResolverDnssecConfig); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// DnssecConfigCreated waits for a DnssecConfig to return DELETED
+func DnssecConfigDeleted(conn *route53resolver.Route53Resolver, dnssecConfigID string) (*route53resolver.ResolverDnssecConfig, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{route53resolver.ResolverDNSSECValidationStatusDisabling},
+		Target:  []string{route53resolver.ResolverDNSSECValidationStatusDisabled},
+		Refresh: DnssecConfigStatus(conn, dnssecConfigID),
+		Timeout: DnssecConfigDeletedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*route53resolver.ResolverDnssecConfig); ok {
 		return v, err
 	}
 

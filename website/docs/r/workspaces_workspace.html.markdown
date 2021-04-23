@@ -66,7 +66,7 @@ The following arguments are supported:
 ### Timeouts
 
 `aws_workspaces_workspace` provides the following
-[Timeouts](/docs/configuration/resources.html#operation-timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Used for WorkSpace creation.
 - `update` - (Default `10 minutes`) Used for WorkSpace updating.

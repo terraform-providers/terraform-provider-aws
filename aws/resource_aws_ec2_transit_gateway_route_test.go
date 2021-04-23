@@ -234,7 +234,7 @@ func testAccCheckAWSEc2TransitGatewayRouteDisappears(transitGateway *ec2.Transit
 }
 
 func testAccAWSEc2TransitGatewayRouteConfigDestinationCidrBlock() string {
-	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
@@ -278,5 +278,5 @@ resource "aws_ec2_transit_gateway_route" "test_blackhole" {
   blackhole                      = true
   transit_gateway_route_table_id = aws_ec2_transit_gateway.test.association_default_route_table_id
 }
-`))
+`)
 }

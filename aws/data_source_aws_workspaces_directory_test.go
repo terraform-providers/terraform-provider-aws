@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -14,7 +15,12 @@ func TestAccDataSourceAwsWorkspacesDirectory_basic(t *testing.T) {
 	dataSourceName := "data.aws_workspaces_directory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckWorkspacesDirectory(t)
+			testAccPreCheckAWSDirectoryServiceSimpleDirectory(t)
+			testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole")
+		},
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -34,6 +40,14 @@ func TestAccDataSourceAwsWorkspacesDirectory_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "self_service_permissions.0.rebuild_workspace", resourceName, "self_service_permissions.0.rebuild_workspace"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "self_service_permissions.0.restart_workspace", resourceName, "self_service_permissions.0.restart_workspace"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "self_service_permissions.0.switch_running_mode", resourceName, "self_service_permissions.0.switch_running_mode"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.#", resourceName, "workspace_access_properties.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_android", resourceName, "workspace_access_properties.0.device_type_android"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_chromeos", resourceName, "workspace_access_properties.0.device_type_chromeos"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_ios", resourceName, "workspace_access_properties.0.device_type_ios"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_osx", resourceName, "workspace_access_properties.0.device_type_osx"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_web", resourceName, "workspace_access_properties.0.device_type_web"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_windows", resourceName, "workspace_access_properties.0.device_type_windows"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_access_properties.0.device_type_zeroclient", resourceName, "workspace_access_properties.0.device_type_zeroclient"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "subnet_ids.#", resourceName, "subnet_ids.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "tags.%", resourceName, "tags.%"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "workspace_creation_properties.#", resourceName, "workspace_creation_properties.#"),
@@ -52,7 +66,16 @@ func TestAccDataSourceAwsWorkspacesDirectory_basic(t *testing.T) {
 func testAccDataSourceAwsWorkspacesDirectoryConfig(rName string) string {
 	return composeConfig(
 		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
-		`
+		fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name   = "tf-testacc-workspaces-directory-%[1]s"
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "tf-testacc-workspaces-directory-%[1]s"
+  }
+}
+
 resource "aws_workspaces_directory" "test" {
   directory_id = aws_directory_service_directory.main.id
 
@@ -63,6 +86,28 @@ resource "aws_workspaces_directory" "test" {
     restart_workspace    = false
     switch_running_mode  = true
   }
+
+  workspace_access_properties {
+    device_type_android    = "ALLOW"
+    device_type_chromeos   = "ALLOW"
+    device_type_ios        = "ALLOW"
+    device_type_osx        = "ALLOW"
+    device_type_web        = "DENY"
+    device_type_windows    = "DENY"
+    device_type_zeroclient = "DENY"
+  }
+
+  workspace_creation_properties {
+    custom_security_group_id            = aws_security_group.test.id
+    default_ou                          = "OU=AWS,DC=Workgroup,DC=Example,DC=com"
+    enable_internet_access              = true
+    enable_maintenance_mode             = false
+    user_enabled_as_local_administrator = false
+  }
+
+  tags = {
+    Name = "tf-testacc-workspaces-directory-%[1]s"
+  }
 }
 
 data "aws_workspaces_directory" "test" {
@@ -72,5 +117,5 @@ data "aws_workspaces_directory" "test" {
 data "aws_iam_role" "workspaces-default" {
   name = "workspaces_DefaultRole"
 }
-`)
+`, rName))
 }

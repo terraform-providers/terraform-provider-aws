@@ -1991,7 +1991,7 @@ resource "aws_route_table" "test" {
 // See https://docs.aws.amazon.com/vpc/latest/userguide/VPC_NAT_Instance.html#nat-instance-ami.
 // The data source is named 'amzn-ami-nat-instance'.
 func testAccLatestAmazonNatInstanceAmiConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ami" "amzn-ami-nat-instance" {
   most_recent = true
   owners      = ["amazon"]
@@ -2001,5 +2001,5 @@ data "aws_ami" "amzn-ami-nat-instance" {
     values = ["amzn-ami-vpc-nat-*"]
   }
 }
-`)
+`
 }

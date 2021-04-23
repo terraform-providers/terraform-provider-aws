@@ -289,7 +289,7 @@ func resourceAwsLexIntentCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if v, ok := d.GetOk("sample_utterances"); ok {
-		input.SampleUtterances = expandStringList(v.(*schema.Set).List())
+		input.SampleUtterances = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("slot"); ok {
@@ -440,7 +440,7 @@ func resourceAwsLexIntentUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if v, ok := d.GetOk("sample_utterances"); ok {
-		input.SampleUtterances = expandStringList(v.(*schema.Set).List())
+		input.SampleUtterances = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("slot"); ok {

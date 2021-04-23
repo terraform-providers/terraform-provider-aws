@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_elasticache_replication_group: Correctly update computed `member_clusters` values
+```

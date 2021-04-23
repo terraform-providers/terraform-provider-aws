@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
@@ -71,7 +72,7 @@ func testSweepGlobalAcceleratorAccelerators(region string) error {
 
 			// Global Accelerator accelerators need to be in `DEPLOYED` state before they can be deleted.
 			// Removing listeners or disabling can both set the state to `IN_PROGRESS`.
-			if err := resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, arn); err != nil {
+			if err := resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, arn, 60*time.Minute); err != nil {
 				sweeperErr := fmt.Errorf("error waiting for Global Accelerator Accelerator (%s): %s", arn, err)
 				log.Printf("[ERROR] %s", sweeperErr)
 				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)

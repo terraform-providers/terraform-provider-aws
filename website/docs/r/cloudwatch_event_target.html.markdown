@@ -288,8 +288,8 @@ resource "aws_cloudwatch_event_rule" "example" {
 
 -> **Note:** In order to be able to have your AWS Lambda function or
    SNS topic invoked by an EventBridge rule, you must setup the right permissions
-   using [`aws_lambda_permission`](https://www.terraform.io/docs/providers/aws/r/lambda_permission.html)
-   or [`aws_sns_topic.policy`](https://www.terraform.io/docs/providers/aws/r/sns_topic.html#policy).
+   using [`aws_lambda_permission`](/docs/providers/aws/r/lambda_permission.html)
+   or [`aws_sns_topic.policy`](/docs/providers/aws/r/sns_topic.html#policy).
    More info [here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/resource-based-policies-cwe.html).
 
 The following arguments are supported:

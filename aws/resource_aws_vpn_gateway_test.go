@@ -614,7 +614,7 @@ resource "aws_vpn_gateway" "test2" {
 `
 
 func testAccVpnGatewayConfigWithAZ() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -631,7 +631,7 @@ resource "aws_vpn_gateway" "test" {
     Name = "terraform-testacc-vpn-gateway-with-az"
   }
 }
-`))
+`)
 }
 
 const testAccVpnGatewayConfigWithASN = `

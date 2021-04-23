@@ -58,6 +58,13 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Amazon Resource Name (ARN) of the endpoint group.
 * `arn` - The Amazon Resource Name (ARN) of the endpoint group.
 
+`aws_globalaccelerator_endpoint_group` provides the following
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+
+* `create` - (Default `30 minutes`) How long to wait for the Global Accelerator Endpoint Group to be created.
+* `update` - (Default `30 minutes`) How long to wait for the Global Accelerator Endpoint Group to be updated.
+* `delete` - (Default `30 minutes`) How long to wait for the Global Accelerator Endpoint Group to be deleted.
+
 ## Import
 
 Global Accelerator endpoint groups can be imported using the `id`, e.g.

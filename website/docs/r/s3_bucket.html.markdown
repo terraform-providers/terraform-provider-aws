@@ -397,7 +397,7 @@ The `lifecycle_rule` object supports the following:
 * `noncurrent_version_expiration` - (Optional) Specifies when noncurrent object versions expire (documented below).
 * `noncurrent_version_transition` - (Optional) Specifies when noncurrent object versions transitions (documented below).
 
-At least one of `expiration`, `transition`, `noncurrent_version_expiration`, `noncurrent_version_transition` must be specified.
+At least one of `abort_incomplete_multipart_upload_days`, `expiration`, `transition`, `noncurrent_version_expiration`, `noncurrent_version_transition` must be specified.
 
 The `expiration` object supports the following
 

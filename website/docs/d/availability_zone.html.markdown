@@ -93,6 +93,11 @@ In addition to all arguments above, the following attributes are exported:
 
 * `group_name` - For Availability Zones, this is the same value as the Region name. For Local Zones, the name of the associated group, for example `us-west-2-lax-1`.
 * `name_suffix` - The part of the AZ name that appears after the region name, uniquely identifying the AZ within its region.
+For Availability Zones this is usually a single letter, for example `a` for the `us-west-2a` zone.
+For Local and Wavelength Zones this is a longer string, for example `wl1-sfo-wlz-1` for the `us-west-2-wl1-sfo-wlz-1` zone.
 * `network_border_group` - The name of the location from which the address is advertised.
 * `opt_in_status` - For Availability Zones, this always has the value of `opt-in-not-required`. For Local Zones, this is the opt in status. The possible values are `opted-in` and `not-opted-in`.
+* `parent_zone_id` - The ID of the zone that handles some of the Local Zone or Wavelength Zone control plane operations, such as API calls.
+* `parent_zone_name` - The name of the zone that handles some of the Local Zone or Wavelength Zone control plane operations, such as API calls.
 * `region` - The region where the selected availability zone resides. This is always the region selected on the provider, since this data source searches only within that region.
+* `zone_type` - The type of zone. Values are `availability-zone`, `local-zone`, and `wavelength-zone`.

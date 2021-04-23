@@ -222,7 +222,7 @@ identified by the `virtual_name` in the format `"ephemeral{0..N}"`.
 ~> **NOTE:** Changes to `*_block_device` configuration of _existing_ resources
 cannot currently be detected by Terraform. After updating to block device
 configuration, resource recreation can be manually triggered by using the
-[`taint` command](/docs/commands/taint.html).
+[`taint` command](https://www.terraform.io/docs/commands/taint.html).
 
 ## Attributes Reference
 
@@ -233,7 +233,7 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - The name of the launch configuration.
 
 [1]: /docs/providers/aws/r/autoscaling_group.html
-[2]: /docs/configuration/resources.html#lifecycle
+[2]: https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html
 [3]: /docs/providers/aws/r/spot_instance_request.html
 
 ## Import

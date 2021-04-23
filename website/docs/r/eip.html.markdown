@@ -135,7 +135,7 @@ In addition to all arguments above, the following attributes are exported:
 ~> **Note:** The resource computes the `public_dns` and `private_dns` attributes according to the [VPC DNS Guide](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-hostnames) as they are not available with the EC2 API.
 
 ## Timeouts
-`aws_eip` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_eip` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `read` - (Default `15 minutes`) How long to wait querying for information about EIPs.
 - `update` - (Default `5 minutes`) How long to wait for an EIP to be updated.

@@ -223,7 +223,7 @@ large files efficiently.
 * `description` - (Optional) Description of what your Lambda Function does.
 * `layers` - (Optional) List of Lambda Layer Version ARNs (maximum of 5) to attach to your Lambda Function. See [Lambda Layers][10]
 * `memory_size` - (Optional) Amount of memory in MB your Lambda Function can use at runtime. Defaults to `128`. See [Limits][5]
-* `runtime` - (Required) See [Runtimes][6] for valid values.
+* `runtime` - (Optional) See [Runtimes][6] for valid values.
 * `timeout` - (Optional) The amount of time your Lambda Function has to run in seconds. Defaults to `3`. See [Limits][5]
 * `reserved_concurrent_executions` - (Optional) The amount of reserved concurrent executions for this lambda function. A value of `0` disables lambda from being triggered and `-1` removes any concurrency limitations. Defaults to Unreserved Concurrency Limits `-1`. See [Managing Concurrency][9]
 * `publish` - (Optional) Whether to publish creation/change as new Lambda Function Version. Defaults to `false`.
@@ -305,7 +305,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_lambda_function` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_lambda_function` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for slow uploads or EC2 throttling errors.
 

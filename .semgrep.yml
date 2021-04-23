@@ -59,6 +59,34 @@ rules:
     pattern: 'd.SetId(*$VALUE)'
     severity: WARNING
 
+  - id: helper-schema-Set-extraneous-NewSet-with-flattenStringList
+    languages: [go]
+    message: Prefer `flattenStringSet()` function for casting a list of string pointers to a set
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern: schema.NewSet(schema.HashString, flattenStringList($APIOBJECT))
+      - pattern-not-inside: func flattenStringSet(list []*string) *schema.Set { ... }
+    severity: WARNING
+    
+  - id: helper-schema-Set-extraneous-expandStringList-with-List
+    languages: [go]
+    message: Prefer `expandStringSet()` function for casting a set to a list of string pointers
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: expandStringList($SET.List())
+        - pattern: |
+            $LIST := $SET.List()
+            ...
+            expandStringList($LIST)
+      - pattern-not-inside: func expandStringSet(configured *schema.Set) []*string { ... }
+    severity: WARNING
+
+
   - id: helper-schema-ResourceData-GetOk-with-extraneous-conditional
     languages: [go]
     message: Zero value conditional check after `d.GetOk()` is extraneous
@@ -116,4 +144,24 @@ rules:
           if tfresource.TimedOut($ERR) { ... }
           ...
           return ...
+    severity: WARNING
+
+  - id: is-not-found-error
+    languages: [go]
+    message: Check for resource.NotFoundError errors with tfresource.NotFound()
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - patterns:
+          - pattern: |
+              var $CAST *resource.NotFoundError
+              ...
+              errors.As($ERR, &$CAST)
+          - pattern-not-inside: func NotFound(err error) bool { ... }
+        - patterns:
+          - pattern: |
+              $X, $Y := $ERR.(*resource.NotFoundError)
+          - pattern-not-inside: func isResourceNotFoundError(err error) bool { ... }
     severity: WARNING

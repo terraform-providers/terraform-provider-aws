@@ -22,12 +22,14 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
 				Config: testAccDataSourceAwsElasticacheReplicationGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "auth_token_enabled", "false"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "automatic_failover_enabled", resourceName, "automatic_failover_enabled"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "member_clusters.#", resourceName, "member_clusters.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "node_type", resourceName, "node_type"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "number_cache_clusters", resourceName, "number_cache_clusters"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "port", resourceName, "port"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "primary_endpoint_address", resourceName, "primary_endpoint_address"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "reader_endpoint_address", resourceName, "reader_endpoint_address"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "replication_group_description", resourceName, "replication_group_description"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "replication_group_id", resourceName, "replication_group_id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "snapshot_window", resourceName, "snapshot_window"),
@@ -70,7 +72,7 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_NonExistent(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccDataSourceAwsElasticacheReplicationGroupConfig_NonExistent,
-				ExpectError: regexp.MustCompile(`not found`),
+				ExpectError: regexp.MustCompile(`couldn't find resource`),
 			},
 		},
 	})

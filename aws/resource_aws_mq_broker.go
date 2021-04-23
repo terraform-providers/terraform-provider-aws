@@ -286,7 +286,7 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 		input.MaintenanceWindowStartTime = expandMqWeeklyStartTime(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("subnet_ids"); ok {
-		input.SubnetIds = expandStringList(v.(*schema.Set).List())
+		input.SubnetIds = expandStringSet(v.(*schema.Set))
 	}
 	if v, ok := d.GetOk("tags"); ok {
 		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().MqTags()

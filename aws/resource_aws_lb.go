@@ -274,11 +274,11 @@ func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("security_groups"); ok {
-		elbOpts.SecurityGroups = expandStringList(v.(*schema.Set).List())
+		elbOpts.SecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("subnets"); ok {
-		elbOpts.Subnets = expandStringList(v.(*schema.Set).List())
+		elbOpts.Subnets = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("subnet_mapping"); ok {
@@ -455,7 +455,7 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("security_groups") {
-		sgs := expandStringList(d.Get("security_groups").(*schema.Set).List())
+		sgs := expandStringSet(d.Get("security_groups").(*schema.Set))
 
 		params := &elbv2.SetSecurityGroupsInput{
 			LoadBalancerArn: aws.String(d.Id()),
@@ -473,7 +473,7 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	// resource is just created, so we don't attempt if it is a newly created
 	// resource.
 	if d.HasChange("subnets") && !d.IsNewResource() {
-		subnets := expandStringList(d.Get("subnets").(*schema.Set).List())
+		subnets := expandStringSet(d.Get("subnets").(*schema.Set))
 
 		params := &elbv2.SetSubnetsInput{
 			LoadBalancerArn: aws.String(d.Id()),

@@ -31,16 +31,17 @@ The following arguments are supported:
 
 * `availability_zone` - (Required) The AZ where the EBS volume will exist.
 * `encrypted` - (Optional) If true, the disk will be encrypted.
-* `iops` - (Optional) The amount of IOPS to provision for the disk. Only valid for `type` of `io1` or `io2`.
+* `iops` - (Optional) The amount of IOPS to provision for the disk. Only valid for `type` of `io1`, `io2` or `gp3`.
 * `multi_attach_enabled` - (Optional) Specifies whether to enable Amazon EBS Multi-Attach. Multi-Attach is supported exclusively on `io1` volumes.
 * `size` - (Optional) The size of the drive in GiBs.
 * `snapshot_id` (Optional) A snapshot to base the EBS volume off of.
 * `outpost_arn` - (Optional) The Amazon Resource Name (ARN) of the Outpost.
-* `type` - (Optional) The type of EBS volume. Can be "standard", "gp2", "io1", "io2", "sc1" or "st1" (Default: "gp2").
+* `type` - (Optional) The type of EBS volume. Can be `standard`, `gp2`, `gp3`, `io1`, `io2`, `sc1` or `st1` (Default: `gp2`).
 * `kms_key_id` - (Optional) The ARN for the KMS encryption key. When specifying `kms_key_id`, `encrypted` needs to be set to true.
 * `tags` - (Optional) A map of tags to assign to the resource.
+* `throughput` - (Optional) The throughput that the volume supports, in MiB/s. Only valid for `type` of `gp3`.
 
-~> **NOTE**: When changing the `size`, `iops` or `type` of an instance, there are [considerations](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/considerations.html) to be aware of that Amazon have written about this.
+~> **NOTE**: When changing the `size`, `iops` or `type` of an instance, there are [considerations](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/considerations.html) to be aware of.
 
 ## Attributes Reference
 

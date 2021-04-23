@@ -123,7 +123,7 @@ func TestAccAWSSignerSigningProfilePermission_StatementPrefix(t *testing.T) {
 	profileResourceName := "aws_signer_signing_profile.test_sp"
 	rString := acctest.RandString(53)
 	profileName := fmt.Sprintf("tf_acc_spp_%s", rString)
-	statementNamePrefix := fmt.Sprintf("tf_acc_spp_statement_")
+	statementNamePrefix := "tf_acc_spp_statement_"
 
 	//var conf signer.GetSigningProfileOutput
 	var sppconf signer.ListProfilePermissionsOutput

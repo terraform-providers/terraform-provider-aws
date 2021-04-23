@@ -70,7 +70,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Timeouts
 
-`aws_db_proxy` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_db_proxy` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Used for creating DB proxies.
 - `update` - (Default `30 minutes`) Used for modifying DB proxies.

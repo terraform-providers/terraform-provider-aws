@@ -114,7 +114,7 @@ func TestAccAWSLambdaCodeSigningConfig_UpdatePublishers(t *testing.T) {
 }
 
 func testAccAWSLambdaCodeSigningConfigUpdatePublishers() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_signer_signing_profile" "test1" {
   platform_id = "AWSLambda-SHA384-ECDSA"
 }
@@ -129,11 +129,11 @@ resource "aws_lambda_code_signing_config" "code_signing_config" {
       aws_signer_signing_profile.test1.version_arn
     ]
   }
-}`)
+}`
 }
 
 func testAccAWSLambdaCodeSigningConfigUpdatePolicy() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_signer_signing_profile" "test1" {
   platform_id = "AWSLambda-SHA384-ECDSA"
 }
@@ -153,11 +153,11 @@ resource "aws_lambda_code_signing_config" "code_signing_config" {
   policies {
     untrusted_artifact_on_deployment = "Enforce"
   }
-}`)
+}`
 }
 
 func testAccAWSLambdaCodeSigningConfigBasic() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_signer_signing_profile" "test1" {
   platform_id = "AWSLambda-SHA384-ECDSA"
 }
@@ -179,7 +179,7 @@ resource "aws_lambda_code_signing_config" "code_signing_config" {
   }
 
   description = "Code Signing Config for test account"
-}`)
+}`
 }
 
 func testAccCheckAwsCodeSigningConfigExists(n string, mapping *lambda.GetCodeSigningConfigOutput) resource.TestCheckFunc {

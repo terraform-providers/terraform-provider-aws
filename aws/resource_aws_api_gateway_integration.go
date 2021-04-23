@@ -150,6 +150,21 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 				ValidateFunc: validation.IntBetween(50, 29000),
 				Default:      29000,
 			},
+
+			"tls_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 0,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"insecure_skip_verification": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -207,7 +222,7 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 
 	var cacheKeyParameters []*string
 	if v, ok := d.GetOk("cache_key_parameters"); ok {
-		cacheKeyParameters = expandStringList(v.(*schema.Set).List())
+		cacheKeyParameters = expandStringSet(v.(*schema.Set))
 	}
 
 	var cacheNamespace *string
@@ -222,6 +237,11 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 	var timeoutInMillis *int64
 	if v, ok := d.GetOk("timeout_milliseconds"); ok {
 		timeoutInMillis = aws.Int64(int64(v.(int)))
+	}
+
+	var tlsConfig *apigateway.TlsConfig
+	if v, ok := d.GetOk("tls_config"); ok {
+		tlsConfig = expandApiGatewayTlsConfig(v.([]interface{}))
 	}
 
 	_, err := conn.PutIntegration(&apigateway.PutIntegrationInput{
@@ -241,6 +261,7 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 		ConnectionType:        connectionType,
 		ConnectionId:          connectionId,
 		TimeoutInMillis:       timeoutInMillis,
+		TlsConfig:             tlsConfig,
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Integration: %s", err)
@@ -300,6 +321,10 @@ func resourceAwsApiGatewayIntegrationRead(d *schema.ResourceData, meta interface
 	d.Set("timeout_milliseconds", integration.TimeoutInMillis)
 	d.Set("type", integration.Type)
 	d.Set("uri", integration.Uri)
+
+	if err := d.Set("tls_config", flattenApiGatewayTlsConfig(integration.TlsConfig)); err != nil {
+		return fmt.Errorf("error setting tls_config: %s", err)
+	}
 
 	return nil
 }
@@ -464,6 +489,18 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 		})
 	}
 
+	if d.HasChange("tls_config") {
+		if v, ok := d.GetOk("tls_config"); ok && len(v.([]interface{})) > 0 {
+			m := v.([]interface{})[0].(map[string]interface{})
+
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/tlsConfig/insecureSkipVerification"),
+				Value: aws.String(strconv.FormatBool(m["insecure_skip_verification"].(bool))),
+			})
+		}
+	}
+
 	params := &apigateway.UpdateIntegrationInput{
 		HttpMethod:      aws.String(d.Get("http_method").(string)),
 		ResourceId:      aws.String(d.Get("resource_id").(string)),
@@ -500,4 +537,28 @@ func resourceAwsApiGatewayIntegrationDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func expandApiGatewayTlsConfig(vConfig []interface{}) *apigateway.TlsConfig {
+	config := &apigateway.TlsConfig{}
+
+	if len(vConfig) == 0 || vConfig[0] == nil {
+		return config
+	}
+	mConfig := vConfig[0].(map[string]interface{})
+
+	if insecureSkipVerification, ok := mConfig["insecure_skip_verification"].(bool); ok {
+		config.InsecureSkipVerification = aws.Bool(insecureSkipVerification)
+	}
+	return config
+}
+
+func flattenApiGatewayTlsConfig(config *apigateway.TlsConfig) []interface{} {
+	if config == nil {
+		return nil
+	}
+
+	return []interface{}{map[string]interface{}{
+		"insecure_skip_verification": aws.BoolValue(config.InsecureSkipVerification),
+	}}
 }

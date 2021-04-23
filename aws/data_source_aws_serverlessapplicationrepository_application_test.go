@@ -11,13 +11,14 @@ import (
 
 func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Basic(t *testing.T) {
 	datasourceName := "data.aws_serverlessapplicationrepository_application.secrets_manager_postgres_single_user_rotator"
+	appARN := testAccAwsServerlessApplicationRepositoryCloudFormationApplicationID()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig,
+				Config: testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig(appARN),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceID(datasourceName),
 					resource.TestCheckResourceAttr(datasourceName, "name", "SecretsManagerRDSPostgreSQLRotationSingleUser"),
@@ -28,7 +29,7 @@ func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Basic(t *tes
 				),
 			},
 			{
-				Config:      testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_NonExistent,
+				Config:      testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_NonExistent(),
 				ExpectError: regexp.MustCompile(`error getting Serverless Application Repository application`),
 			},
 		},
@@ -36,6 +37,7 @@ func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Basic(t *tes
 }
 func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Versioned(t *testing.T) {
 	datasourceName := "data.aws_serverlessapplicationrepository_application.secrets_manager_postgres_single_user_rotator"
+	appARN := testAccAwsServerlessApplicationRepositoryCloudFormationApplicationID()
 
 	const (
 		version1 = "1.0.13"
@@ -47,7 +49,7 @@ func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Versioned(t 
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned(version1),
+				Config: testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned(appARN, version1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceID(datasourceName),
 					resource.TestCheckResourceAttr(datasourceName, "name", "SecretsManagerRDSPostgreSQLRotationSingleUser"),
@@ -58,7 +60,7 @@ func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Versioned(t 
 				),
 			},
 			{
-				Config: testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned(version2),
+				Config: testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned(appARN, version2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceID(datasourceName),
 					resource.TestCheckResourceAttr(datasourceName, "name", "SecretsManagerRDSPostgreSQLRotationSingleUser"),
@@ -71,7 +73,7 @@ func TestAccDataSourceAwsServerlessApplicationRepositoryApplication_Versioned(t 
 				),
 			},
 			{
-				Config:      testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned_NonExistent,
+				Config:      testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned_NonExistent(appARN),
 				ExpectError: regexp.MustCompile(`error getting Serverless Application Repository application`),
 			},
 		},
@@ -92,36 +94,42 @@ func testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceID(n str
 	}
 }
 
-const testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig = testAccCheckAwsServerlessApplicationRepositoryPostgresSingleUserRotatorApplication + `
+func testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig(appARN string) string {
+	return fmt.Sprintf(`
 data "aws_serverlessapplicationrepository_application" "secrets_manager_postgres_single_user_rotator" {
-  application_id = local.postgres_single_user_rotator_arn
+  application_id = %[1]q
 }
-`
+`, appARN)
+}
 
-const testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_NonExistent = `
+func testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_NonExistent() string {
+	return `
+data "aws_caller_identity" "current" {}
+
+data "aws_partition" "current" {}
+
+data "aws_region" "current" {}
+
 data "aws_serverlessapplicationrepository_application" "no_such_function" {
   application_id = "arn:${data.aws_partition.current.partition}:serverlessrepo:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:applications/ThisFunctionDoesNotExist"
 }
-
-data "aws_caller_identity" "current" {}
-data "aws_partition" "current" {}
-data "aws_region" "current" {}
 `
-
-func testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned(version string) string {
-	return composeConfig(
-		testAccCheckAwsServerlessApplicationRepositoryPostgresSingleUserRotatorApplication,
-		fmt.Sprintf(`
-data "aws_serverlessapplicationrepository_application" "secrets_manager_postgres_single_user_rotator" {
-  application_id   = local.postgres_single_user_rotator_arn
-  semantic_version = "%[1]s"
-}
-`, version))
 }
 
-const testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned_NonExistent = testAccCheckAwsServerlessApplicationRepositoryPostgresSingleUserRotatorApplication + `
+func testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned(appARN, version string) string {
+	return fmt.Sprintf(`
 data "aws_serverlessapplicationrepository_application" "secrets_manager_postgres_single_user_rotator" {
-  application_id   = local.postgres_single_user_rotator_arn
+  application_id   = %[1]q
+  semantic_version = %[2]q
+}
+`, appARN, version)
+}
+
+func testAccCheckAwsServerlessApplicationRepositoryApplicationDataSourceConfig_Versioned_NonExistent(appARN string) string {
+	return fmt.Sprintf(`
+data "aws_serverlessapplicationrepository_application" "secrets_manager_postgres_single_user_rotator" {
+  application_id   = %[1]q
   semantic_version = "42.13.7"
 }
-`
+`, appARN)
+}

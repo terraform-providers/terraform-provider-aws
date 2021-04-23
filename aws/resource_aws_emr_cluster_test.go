@@ -1644,9 +1644,9 @@ func testAccAWSEmrComposeConfig(mapPublicIPOnLaunch bool, config ...string) stri
 }
 
 func testAccAWSEmrClusterConfigCurrentPartition() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_partition" "current" {}
-`)
+`
 }
 
 func testAccAWSEmrClusterConfig_bootstrap(r string) string {

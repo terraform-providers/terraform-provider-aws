@@ -261,7 +261,11 @@ func TestAccAWSGameliftFleet_basic(t *testing.T) {
 	resourceName := "aws_gamelift_fleet.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftFleetDestroy,
 		Steps: []resource.TestStep{
@@ -338,7 +342,11 @@ func TestAccAWSGameliftFleet_tags(t *testing.T) {
 	resourceName := "aws_gamelift_fleet.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftFleetDestroy,
 		Steps: []resource.TestStep{
@@ -403,7 +411,11 @@ func TestAccAWSGameliftFleet_allFields(t *testing.T) {
 	resourceName := "aws_gamelift_fleet.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftFleetDestroy,
 		Steps: []resource.TestStep{
@@ -516,7 +528,11 @@ func TestAccAWSGameliftFleet_disappears(t *testing.T) {
 	resourceName := "aws_gamelift_fleet.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftFleetDestroy,
 		Steps: []resource.TestStep{

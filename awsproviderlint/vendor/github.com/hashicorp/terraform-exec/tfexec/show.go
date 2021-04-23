@@ -49,6 +49,7 @@ func (tf *Terraform) Show(ctx context.Context, opts ...ShowOption) (*tfjson.Stat
 	showCmd := tf.showCmd(ctx, true, mergeEnv)
 
 	var ret tfjson.State
+	ret.UseJSONNumber(true)
 	err = tf.runTerraformCmdJSON(showCmd, &ret)
 	if err != nil {
 		return nil, err
@@ -91,6 +92,7 @@ func (tf *Terraform) ShowStateFile(ctx context.Context, statePath string, opts .
 	showCmd := tf.showCmd(ctx, true, mergeEnv, statePath)
 
 	var ret tfjson.State
+	ret.UseJSONNumber(true)
 	err = tf.runTerraformCmdJSON(showCmd, &ret)
 	if err != nil {
 		return nil, err

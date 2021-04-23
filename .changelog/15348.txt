@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_elasticache_replication_group: Adds `arn` attribute
+```
+
+```release-note:enhancement
+resource/aws_elasticache_replication_group: Adds `arn` attribute
+```

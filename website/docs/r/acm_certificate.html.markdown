@@ -142,7 +142,7 @@ Domain validation objects export the following attributes:
 * `resource_record_type` - The type of DNS record to create
 * `resource_record_value` - The value the DNS record needs to have
 
-[1]: /docs/configuration/resources.html#lifecycle
+[1]: https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html
 
 ## Import
 

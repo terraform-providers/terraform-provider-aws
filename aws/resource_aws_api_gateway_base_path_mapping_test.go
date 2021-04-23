@@ -120,6 +120,55 @@ func TestAccAWSAPIGatewayBasePathMapping_BasePath_Empty(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayBasePathMapping_updates(t *testing.T) {
+	var confFirst, conf apigateway.BasePathMapping
+	resourceName := "aws_api_gateway_base_path_mapping.test"
+	name := fmt.Sprintf("tf-acc-%s.terraformtest.com", acctest.RandString(8))
+
+	key := tlsRsaPrivateKeyPem(2048)
+	certificate := tlsRsaX509SelfSignedCertificatePem(key, name)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayBasePathDestroy(name),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayBasePathConfigBasePath(name, key, certificate, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayBasePathExists(resourceName, &confFirst),
+					testAccCheckAWSAPIGatewayBasePathStageAttribute(&confFirst, "test"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayBasePathConfigBasePathAltStageAndAPI(name, key, certificate, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayBasePathExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayBasePathBasePathAttribute(&conf, "(none)"),
+					testAccCheckAWSAPIGatewayBasePathStageAttribute(&conf, "test2"),
+					testAccCheckAWSAPIGatewayRestApiIdAttributeHasChanged(&conf, &confFirst),
+					resource.TestCheckResourceAttr(resourceName, "stage_name", "test2"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayBasePathConfigBasePathAltStageAndAPI(name, key, certificate, "thing"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayBasePathExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayBasePathBasePathAttribute(&conf, "thing"),
+					testAccCheckAWSAPIGatewayBasePathStageAttribute(&conf, "test2"),
+					resource.TestCheckResourceAttr(resourceName, "stage_name", "test2"),
+					resource.TestCheckResourceAttr(resourceName, "base_path", "thing"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayBasePathMapping_disappears(t *testing.T) {
 	var conf apigateway.BasePathMapping
 
@@ -213,6 +262,45 @@ func testAccCheckAWSAPIGatewayBasePathDestroy(name string) resource.TestCheckFun
 	}
 }
 
+func testAccCheckAWSAPIGatewayBasePathStageAttribute(conf *apigateway.BasePathMapping, basePath string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if conf.Stage == nil {
+			return fmt.Errorf("attribute Stage should not be nil")
+		}
+		if *conf.Stage != basePath {
+			return fmt.Errorf("unexpected value Stage: %s", *conf.Stage)
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSAPIGatewayRestApiIdAttributeHasChanged(conf *apigateway.BasePathMapping, previousConf *apigateway.BasePathMapping) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if conf.RestApiId == nil {
+			return fmt.Errorf("attribute RestApiId should not be nil")
+		}
+		if *conf.RestApiId == *previousConf.RestApiId {
+			return fmt.Errorf("expected RestApiId to have changed")
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSAPIGatewayBasePathBasePathAttribute(conf *apigateway.BasePathMapping, basePath string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if conf.Stage == nil {
+			return fmt.Errorf("attribute Stage should not be nil")
+		}
+		if *conf.BasePath != basePath {
+			return fmt.Errorf("unexpected value Stage: %s", *conf.BasePath)
+		}
+
+		return nil
+	}
+}
+
 func testAccAWSAPIGatewayBasePathConfigBase(domainName, key, certificate string) string {
 	return fmt.Sprintf(`
 resource "aws_acm_certificate" "test" {
@@ -273,6 +361,66 @@ resource "aws_api_gateway_base_path_mapping" "test" {
   api_id      = aws_api_gateway_rest_api.test.id
   base_path   = %[1]q
   stage_name  = aws_api_gateway_deployment.test.stage_name
+  domain_name = aws_api_gateway_domain_name.test.domain_name
+}
+`, basePath)
+}
+
+func testAccAWSAPIGatewayBasePathConfigBasePathAltStageAndAPI(domainName, key, certificate, basePath string) string {
+	return testAccAWSAPIGatewayBasePathConfigBase(domainName, key, certificate) + fmt.Sprintf(`
+
+resource "aws_api_gateway_rest_api" "test2" {
+  name        = "tf-acc-apigateway-base-path-mapping-alt"
+  description = "Terraform Acceptance Tests"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+
+resource "aws_api_gateway_stage" "test2" {
+
+  depends_on = [
+    aws_api_gateway_deployment.test
+  ]
+
+  stage_name    = "test2"
+  rest_api_id   = aws_api_gateway_rest_api.test2.id
+  deployment_id = aws_api_gateway_deployment.test2.id
+}
+
+resource "aws_api_gateway_resource" "test2" {
+  rest_api_id = aws_api_gateway_rest_api.test2.id
+  parent_id   = aws_api_gateway_rest_api.test2.root_resource_id
+  path_part   = "tf-acc"
+}
+
+resource "aws_api_gateway_method" "test2" {
+  rest_api_id   = aws_api_gateway_rest_api.test2.id
+  resource_id   = aws_api_gateway_resource.test2.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "test2" {
+  rest_api_id = aws_api_gateway_rest_api.test2.id
+  resource_id = aws_api_gateway_resource.test2.id
+  http_method = aws_api_gateway_method.test2.http_method
+  type        = "MOCK"
+}
+
+
+resource "aws_api_gateway_deployment" "test2" {
+  rest_api_id = aws_api_gateway_rest_api.test2.id
+  stage_name  = "test"
+  depends_on  = [aws_api_gateway_integration.test2]
+}
+
+resource "aws_api_gateway_base_path_mapping" "test" {
+  api_id      = aws_api_gateway_rest_api.test2.id
+  base_path   = %[1]q
+  stage_name  = aws_api_gateway_stage.test2.stage_name
   domain_name = aws_api_gateway_domain_name.test.domain_name
 }
 `, basePath)

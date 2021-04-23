@@ -190,15 +190,11 @@ func resourceAwsMskCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"client_broker": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										Default:  kafka.ClientBrokerTls,
-										ValidateFunc: validation.StringInSlice([]string{
-											kafka.ClientBrokerPlaintext,
-											kafka.ClientBrokerTlsPlaintext,
-											kafka.ClientBrokerTls,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      kafka.ClientBrokerTls,
+										ValidateFunc: validation.StringInSlice(kafka.ClientBroker_Values(), false),
 									},
 									"in_cluster": {
 										Type:     schema.TypeBool,
@@ -213,14 +209,10 @@ func resourceAwsMskCluster() *schema.Resource {
 				},
 			},
 			"enhanced_monitoring": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  kafka.EnhancedMonitoringDefault,
-				ValidateFunc: validation.StringInSlice([]string{
-					kafka.EnhancedMonitoringDefault,
-					kafka.EnhancedMonitoringPerBroker,
-					kafka.EnhancedMonitoringPerTopicPerBroker,
-				}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      kafka.EnhancedMonitoringDefault,
+				ValidateFunc: validation.StringInSlice(kafka.EnhancedMonitoring_Values(), true),
 			},
 			"kafka_version": {
 				Type:         schema.TypeString,

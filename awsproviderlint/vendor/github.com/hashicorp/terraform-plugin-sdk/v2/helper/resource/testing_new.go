@@ -114,7 +114,7 @@ func runNewTest(t testing.T, c TestCase, helper *plugintest.Helper) {
 					t.Fatalf("Step %d/%d error running import, expected an error with pattern (%s), no match on: %s", i+1, len(c.Steps), step.ExpectError.String(), err)
 				}
 			} else {
-				if c.ErrorCheck != nil {
+				if err != nil && c.ErrorCheck != nil {
 					err = c.ErrorCheck(err)
 				}
 				if err != nil {
@@ -134,7 +134,7 @@ func runNewTest(t testing.T, c TestCase, helper *plugintest.Helper) {
 					t.Fatalf("Step %d/%d, expected an error with pattern, no match on: %s", i+1, len(c.Steps), err)
 				}
 			} else {
-				if c.ErrorCheck != nil {
+				if err != nil && c.ErrorCheck != nil {
 					err = c.ErrorCheck(err)
 				}
 				if err != nil {

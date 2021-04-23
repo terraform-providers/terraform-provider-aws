@@ -145,6 +145,9 @@ func TestAccAwsNetworkFirewallRuleGroup_basic_statefulRule(t *testing.T) {
 						"header.0.source_port":      "53",
 						"rule_option.#":             "1",
 					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*.rule_option.*", map[string]string{
+						"keyword": "sid:1",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -401,6 +404,8 @@ func TestAccAwsNetworkFirewallRuleGroup_rulesSourceAndRuleVariables(t *testing.T
 	})
 }
 
+// TestAccAwsNetworkFirewallRuleGroup_updateStatefulRule validates
+// in-place updates to a single stateful_rule configuration block
 func TestAccAwsNetworkFirewallRuleGroup_updateStatefulRule(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_networkfirewall_rule_group.test"
@@ -431,6 +436,147 @@ func TestAccAwsNetworkFirewallRuleGroup_updateStatefulRule(t *testing.T) {
 						"header.0.source":           "124.1.1.24/32",
 						"header.0.source_port":      "1001",
 						"rule_option.#":             "1",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// TestAccAwsNetworkFirewallRuleGroup_updateMultipleStatefulRules validates
+// in-place updates to stateful_rule configuration blocks
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/16868
+func TestAccAwsNetworkFirewallRuleGroup_updateMultipleStatefulRules(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_networkfirewall_rule_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccNetworkFirewallRuleGroup_basic_statefulRule(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsNetworkFirewallRuleGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_group.0.rules_source.0.stateful_rule.#", "1"),
+				),
+			},
+			{
+				Config: testAccNetworkFirewallRuleGroup_multipleStatefulRules(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsNetworkFirewallRuleGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_group.0.rules_source.0.stateful_rule.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*", map[string]string{
+						"action":                    networkfirewall.StatefulActionPass,
+						"header.#":                  "1",
+						"header.0.destination":      "124.1.1.24/32",
+						"header.0.destination_port": "53",
+						"header.0.direction":        networkfirewall.StatefulRuleDirectionAny,
+						"header.0.protocol":         networkfirewall.StatefulRuleProtocolTcp,
+						"header.0.source":           "1.2.3.4/32",
+						"header.0.source_port":      "53",
+						"rule_option.#":             "1",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*", map[string]string{
+						"action":                    networkfirewall.StatefulActionAlert,
+						"header.#":                  "1",
+						"header.0.destination":      networkfirewall.StatefulRuleDirectionAny,
+						"header.0.destination_port": networkfirewall.StatefulRuleDirectionAny,
+						"header.0.direction":        networkfirewall.StatefulRuleDirectionAny,
+						"header.0.protocol":         networkfirewall.StatefulRuleProtocolIp,
+						"header.0.source":           networkfirewall.StatefulRuleDirectionAny,
+						"header.0.source_port":      networkfirewall.StatefulRuleDirectionAny,
+						"rule_option.#":             "1",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccNetworkFirewallRuleGroup_updateStatefulRule(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsNetworkFirewallRuleGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_group.0.rules_source.0.stateful_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*", map[string]string{
+						"action":                    networkfirewall.StatefulActionDrop,
+						"header.#":                  "1",
+						"header.0.destination":      "1.2.3.4/32",
+						"header.0.destination_port": "1001",
+						"header.0.direction":        networkfirewall.StatefulRuleDirectionForward,
+						"header.0.protocol":         networkfirewall.StatefulRuleProtocolIp,
+						"header.0.source":           "124.1.1.24/32",
+						"header.0.source_port":      "1001",
+						"rule_option.#":             "1",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// TestAccAwsNetworkFirewallRuleGroup_statefulRule_action validates in-place
+// updates to the "action" argument within 1 stateful_rule configuration block
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/16868
+func TestAccAwsNetworkFirewallRuleGroup_statefulRule_action(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_networkfirewall_rule_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAwsNetworkFirewall(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsNetworkFirewallRuleGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccNetworkFirewallRuleGroup_statefulRule_action(rName, networkfirewall.StatefulActionAlert),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsNetworkFirewallRuleGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_group.0.rules_source.0.stateful_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*", map[string]string{
+						"action": networkfirewall.StatefulActionAlert,
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccNetworkFirewallRuleGroup_statefulRule_action(rName, networkfirewall.StatefulActionPass),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsNetworkFirewallRuleGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_group.0.rules_source.0.stateful_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*", map[string]string{
+						"action": networkfirewall.StatefulActionPass,
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccNetworkFirewallRuleGroup_statefulRule_action(rName, networkfirewall.StatefulActionDrop),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsNetworkFirewallRuleGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_group.0.rules_source.0.stateful_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule_group.0.rules_source.0.stateful_rule.*", map[string]string{
+						"action": networkfirewall.StatefulActionDrop,
 					}),
 				),
 			},
@@ -794,6 +940,35 @@ resource "aws_networkfirewall_rule_group" "test" {
 `, rName)
 }
 
+func testAccNetworkFirewallRuleGroup_statefulRule_action(rName, action string) string {
+	return fmt.Sprintf(`
+resource "aws_networkfirewall_rule_group" "test" {
+  capacity    = 100
+  name        = %[1]q
+  description = %[1]q
+  type        = "STATEFUL"
+  rule_group {
+    rules_source {
+      stateful_rule {
+        action = %q
+        header {
+          destination      = "124.1.1.24/32"
+          destination_port = 53
+          direction        = "ANY"
+          protocol         = "TCP"
+          source           = "1.2.3.4/32"
+          source_port      = 53
+        }
+        rule_option {
+          keyword = "sid:1"
+        }
+      }
+    }
+  }
+}
+`, rName, action)
+}
+
 func testAccNetworkFirewallRuleGroup_statefulRule_header(rName, dstPort, srcPort string) string {
 	return fmt.Sprintf(`
 resource "aws_networkfirewall_rule_group" "test" {
@@ -842,7 +1017,49 @@ resource "aws_networkfirewall_rule_group" "test" {
           source_port      = 1001
         }
         rule_option {
+          keyword = "sid:1;rev:2"
+        }
+      }
+    }
+  }
+}
+`, rName)
+}
+
+func testAccNetworkFirewallRuleGroup_multipleStatefulRules(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_networkfirewall_rule_group" "test" {
+  capacity = 100
+  name     = %[1]q
+  type     = "STATEFUL"
+  rule_group {
+    rules_source {
+      stateful_rule {
+        action = "PASS"
+        header {
+          destination      = "124.1.1.24/32"
+          destination_port = 53
+          direction        = "ANY"
+          protocol         = "TCP"
+          source           = "1.2.3.4/32"
+          source_port      = 53
+        }
+        rule_option {
           keyword = "sid:1"
+        }
+      }
+      stateful_rule {
+        action = "ALERT"
+        header {
+          destination      = "ANY"
+          destination_port = "ANY"
+          direction        = "ANY"
+          protocol         = "IP"
+          source           = "ANY"
+          source_port      = "ANY"
+        }
+        rule_option {
+          keyword = "sid:2"
         }
       }
     }
