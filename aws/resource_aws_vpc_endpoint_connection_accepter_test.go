@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccVpcEndpointServiceAccepter_crossAccount(t *testing.T) {
@@ -22,6 +24,7 @@ func TestAccVpcEndpointServiceAccepter_crossAccount(t *testing.T) {
 		},
 		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
+		CheckDestroy:      testAccCheckAwsVpcEndpointServiceAccepterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVpcEndpointServiceAccepterConfig_crossAccount(rName),
@@ -37,6 +40,45 @@ func TestAccVpcEndpointServiceAccepter_crossAccount(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccCheckAwsVpcEndpointServiceAccepterDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_vpc_endpoint_connection_accepter" {
+			continue
+		}
+
+		svcID := rs.Primary.Attributes["service_id"]
+		vpceID := rs.Primary.Attributes["endpoint_id"]
+
+		input := &ec2.DescribeVpcEndpointConnectionsInput{
+			Filters: buildEC2AttributeFilterList(map[string]string{"service-id": svcID}),
+		}
+
+		var foundAvailable bool
+
+		paginator := func(page *ec2.DescribeVpcEndpointConnectionsOutput, lastPage bool) bool {
+			for _, c := range page.VpcEndpointConnections {
+				if aws.StringValue(c.VpcEndpointId) == vpceID && aws.StringValue(c.VpcEndpointState) == "available" {
+					foundAvailable = true
+					return false
+				}
+			}
+			return !lastPage
+		}
+
+		if err := conn.DescribeVpcEndpointConnectionsPages(input, paginator); err != nil {
+			return err
+		}
+
+		if foundAvailable {
+			return fmt.Errorf("AWS VPC Endpoint Service (%s) still has connection from AWS VPC Endpoint (%s) in available status", svcID, vpceID)
+		}
+	}
+
+	return nil
 }
 
 func testAccVpcEndpointServiceAccepterConfig_crossAccount(rName string) string {
