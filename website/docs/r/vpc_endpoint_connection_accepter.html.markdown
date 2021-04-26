@@ -58,5 +58,5 @@ In addition to all arguments above, the following attributes are exported:
 VPC Endpoint Services can be imported using ID of the connection, which is the `VPC Endpoint Service ID` and `VPC Endpoint ID` separated by underscore (`_`). e.g.
 
 ```
-$ terraform import aws_vpc_endpoint_connection_accepter.foo vpce-010601a6db371e263_vpce-svc-0f97a19d3fa8220bc
+$ terraform import aws_vpc_endpoint_connection_accepter.foo vpce-svc-0f97a19d3fa8220bc_vpce-010601a6db371e263
 ```
