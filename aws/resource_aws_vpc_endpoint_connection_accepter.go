@@ -83,7 +83,7 @@ func resourceAwsVpcEndpointConnectionAccepterCreate(d *schema.ResourceData, meta
 		return fmt.Errorf("error waiting for VPC Endpoint (%s) to be accepted by VPC Endpoint Service (%s): %s", vpceID, svcID, err)
 	}
 
-	d.Set("state", aws.StringValue(vpceConn.(ec2.VpcEndpointConnection).VpcEndpointState))
+	d.Set("state", vpceConn.(ec2.VpcEndpointConnection).VpcEndpointState)
 
 	return resourceAwsVpcEndpointConnectionAccepterRead(d, meta)
 }
@@ -139,7 +139,7 @@ func resourceAwsVpcEndpointConnectionAccepterRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error reading VPC Endpoint Connection from VPC Endpoint Service (%s) to VPC Endpoint (%s): %s", svcID, vpceID, err)
 	}
 
-	d.Set("state", aws.StringValue(vpceConn.(ec2.VpcEndpointConnection).VpcEndpointState))
+	d.Set("state", vpceConn.(ec2.VpcEndpointConnection).VpcEndpointState)
 
 	return nil
 }

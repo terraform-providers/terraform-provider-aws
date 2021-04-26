@@ -221,6 +221,8 @@ resource "aws_lb" "test" {
   }
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_vpc_endpoint_service" "test" {
   acceptance_required = true
 
@@ -229,7 +231,7 @@ resource "aws_vpc_endpoint_service" "test" {
   ]
 
   allowed_principals = [
-    "arn:aws:iam::${data.aws_caller_identity.alternate.account_id}:root",
+    "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.alternate.account_id}:root",
   ]
 }
 
