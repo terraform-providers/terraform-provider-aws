@@ -432,7 +432,7 @@ rules:
           }
       - metavariable-regex:
           metavariable: "$FUNC"
-          regex: "^resourceAws\\w*(Create|Put|Set|Upsert|Enable|Disable)$"
+          regex: "^resourceAws\\w*(Create|Put|Set|Upsert|Enable)$"
     severity: WARNING
 
   - id: calling-SetId-in-resource-update-or-delete
@@ -449,5 +449,5 @@ rules:
           }
       - metavariable-regex:
           metavariable: "$FUNC"
-          regex: "^resourceAws\\w*(Update|Delete)$"
+          regex: "^resourceAws\\w*(Update|Delete|Disable)$"
     severity: WARNING
