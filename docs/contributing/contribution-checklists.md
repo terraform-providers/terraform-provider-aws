@@ -553,10 +553,10 @@ More details about this code generation, including fixes for potential error mes
 
 ## Adding Resource Filtering Support
 
-AWS provides filtering across many services and resources, which can be used when listing resources of that type, for example in the implementation of a data source.
-See the [EC2 Listing and filtering your resources page](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Filtering.html#Filtering_Resources_CLI) for information about how filtering can be used with EC2 resources.
+AWS provides server-side filtering across many services and resources, which can be used when listing resources of that type, for example in the implementation of a data source.
+See the [EC2 Listing and filtering your resources page](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Filtering.html#Filtering_Resources_CLI) for information about how server-side filtering can be used with EC2 resources.
 
-Implementing filtering support for Terraform AWS Provider resources requires the following, each with its own section below:
+Implementing server-side filtering support for Terraform AWS Provider resources requires the following, each with its own section below:
 
 - [ ] _Generated Service Filtering Code_: In the internal code generators (e.g. `aws/internal/namevaluesfilters`), implementation and customization of how a service handles filtering, which is standardized for the resources.
 - [ ] _Resource Filtering Code Implementation_: In the resource's equivalent data source code (e.g. `aws/data_source_aws_service_thing.go`), implementation of `filter` schema attribute, along with handling in the `Read` function.
