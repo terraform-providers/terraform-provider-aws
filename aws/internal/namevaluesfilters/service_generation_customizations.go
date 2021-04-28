@@ -13,6 +13,8 @@ func ServiceFilterPackage(serviceName string) string {
 // ServiceFilterType determines the service filter type.
 func ServiceFilterType(serviceName string) string {
 	switch serviceName {
+	case "resourcegroupstaggingapi":
+		return "TagFilter"
 	default:
 		return "Filter"
 	}
@@ -21,6 +23,8 @@ func ServiceFilterType(serviceName string) string {
 // ServiceFilterTypeNameField determines the service filter type name field.
 func ServiceFilterTypeNameField(serviceName string) string {
 	switch serviceName {
+	case "resourcegroupstaggingapi":
+		return "Key"
 	default:
 		return "Name"
 	}

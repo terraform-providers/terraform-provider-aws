@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/licensemanager"
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 )
 
@@ -253,6 +254,28 @@ func (filters NameValuesFilters) RdsFilters() []*rds.Filter {
 	for k, v := range m {
 		filter := &rds.Filter{
 			Name:   aws.String(k),
+			Values: aws.StringSlice(v),
+		}
+
+		result = append(result, filter)
+	}
+
+	return result
+}
+
+// ResourcegroupstaggingapiFilters returns resourcegroupstaggingapi service filters.
+func (filters NameValuesFilters) ResourcegroupstaggingapiFilters() []*resourcegroupstaggingapi.TagFilter {
+	m := filters.Map()
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	result := make([]*resourcegroupstaggingapi.TagFilter, 0, len(m))
+
+	for k, v := range m {
+		filter := &resourcegroupstaggingapi.TagFilter{
+			Key:    aws.String(k),
 			Values: aws.StringSlice(v),
 		}
 
