@@ -46,11 +46,11 @@ func dataSourceAwsDxLocationRead(d *schema.ResourceData, meta interface{}) error
 	location, err := finder.LocationByCode(conn, locationCode)
 
 	if tfresource.NotFound(err) {
-		return fmt.Errorf("no Direct Connection location matched; change the search criteria and try again")
+		return fmt.Errorf("no Direct Connect location matched; change the search criteria and try again")
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading Direct Connection location (%s): %w", locationCode, err)
+		return fmt.Errorf("error reading Direct Connect location (%s): %w", locationCode, err)
 	}
 
 	d.SetId(locationCode)
