@@ -13,6 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+func init() {
+	RegisterServiceErrorCheckFunc(codebuild.EndpointsID, testAccErrorCheckSkipCodebuild)
+}
+
+func testAccErrorCheckSkipCodebuild(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"InvalidInputException: Region",
+	)
+}
+
 // This is used for testing aws_codebuild_webhook as well as aws_codebuild_project.
 // The Terraform AWS user must have done the manual Bitbucket OAuth dance for this
 // functionality to work. Additionally, the Bitbucket user that the Terraform AWS
@@ -608,6 +618,54 @@ func TestAccAWSCodeBuildProject_LogsConfig_S3Logs(t *testing.T) {
 	})
 }
 
+func TestAccAWSCodeBuildProject_BuildBatchConfig(t *testing.T) {
+	var project codebuild.Project
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codebuild_project.test"
+
+	if testAccGetPartition() == "aws-us-gov" {
+		t.Skip("CodeBuild Project build batch config is not supported in GovCloud partition")
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		ErrorCheck:   testAccErrorCheck(t, codebuild.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeBuildProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeBuildProjectConfig_BuildBatchConfig(rName, true, "BUILD_GENERAL1_SMALL", 10, 5),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.combine_artifacts", "true"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.0.compute_types_allowed.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.0.compute_types_allowed.0", "BUILD_GENERAL1_SMALL"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.0.maximum_builds_allowed", "10"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.timeout_in_mins", "5"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_BuildBatchConfig(rName, false, "BUILD_GENERAL1_MEDIUM", 20, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.combine_artifacts", "false"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.0.compute_types_allowed.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.0.compute_types_allowed.0", "BUILD_GENERAL1_MEDIUM"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.restrictions.0.maximum_builds_allowed", "20"),
+					resource.TestCheckResourceAttr(resourceName, "build_batch_config.0.timeout_in_mins", "10"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSCodeBuildProject_Source_GitCloneDepth(t *testing.T) {
 	var project codebuild.Project
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -757,6 +815,7 @@ func TestAccAWSCodeBuildProject_SecondarySources_GitSubmodulesConfig_CodeCommit(
 				Config: testAccAWSCodeBuildProjectConfig_SecondarySources_GitSubmodulesConfig_CodeCommit(rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "secondary_sources.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "secondary_sources.*", map[string]string{
 						"source_identifier":                        "secondarySource1",
 						"git_submodules_config.#":                  "1",
@@ -778,6 +837,7 @@ func TestAccAWSCodeBuildProject_SecondarySources_GitSubmodulesConfig_CodeCommit(
 				Config: testAccAWSCodeBuildProjectConfig_SecondarySources_GitSubmodulesConfig_CodeCommit(rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "secondary_sources.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "secondary_sources.*", map[string]string{
 						"source_identifier":                        "secondarySource1",
 						"git_submodules_config.#":                  "1",
@@ -788,6 +848,13 @@ func TestAccAWSCodeBuildProject_SecondarySources_GitSubmodulesConfig_CodeCommit(
 						"git_submodules_config.#":                  "1",
 						"git_submodules_config.0.fetch_submodules": "false",
 					}),
+				),
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_SecondarySources_none(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "secondary_sources.#", "0"),
 				),
 			},
 		},
@@ -853,6 +920,36 @@ func TestAccAWSCodeBuildProject_SecondarySources_GitSubmodulesConfig_GitHubEnter
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCodeBuildProject_Source_BuildStatusConfig_GitHubEnterprise(t *testing.T) {
+	var project codebuild.Project
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codebuild_project.test"
+
+	if testAccGetPartition() == "aws-us-gov" {
+		t.Skip("CodeBuild Project build status config is not supported in GovCloud partition")
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		ErrorCheck:   testAccErrorCheck(t, codebuild.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeBuildProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeBuildProjectConfig_Source_BuildStatusConfig_GitHubEnterprise(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -1698,6 +1795,13 @@ func TestAccAWSCodeBuildProject_SecondaryArtifacts(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccAWSCodebuildProjectConfig_SecondaryArtifacts_none(rName, bName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "secondary_artifacts.#", "0"),
+				),
+			},
 		},
 	})
 }
@@ -2122,6 +2226,40 @@ func TestAWSCodeBuildProject_nameValidation(t *testing.T) {
 			t.Fatalf("Expected the AWS CodeBuild project name to trigger a validation error - %s", errors)
 		}
 	}
+}
+
+func TestAccAWSCodeBuildProject_ConcurrentBuildLimit(t *testing.T) {
+	var project codebuild.Project
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codebuild_project.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		Providers:    testAccProviders,
+		ErrorCheck:   testAccErrorCheck(t, codebuild.EndpointsID),
+		CheckDestroy: testAccCheckAWSCodeBuildProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeBuildProjectConfig_ConcurrentBuildLimit(rName, 4),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "concurrent_build_limit", "4"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_ConcurrentBuildLimit(rName, 12),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
+					resource.TestCheckResourceAttr(resourceName, "concurrent_build_limit", "12"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAWSCodeBuildProject_Environment_RegistryCredential(t *testing.T) {
@@ -2825,6 +2963,42 @@ resource "aws_codebuild_project" "test" {
 `, rName, status, gName, sName))
 }
 
+func testAccAWSCodeBuildProjectConfig_BuildBatchConfig(rName string, combineArtifacts bool, computeTypesAllowed string, maximumBuildsAllowed, timeoutInMins int) string {
+	return composeConfig(testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName), fmt.Sprintf(`
+resource "aws_codebuild_project" "test" {
+  name         = %[1]q
+  service_role = aws_iam_role.test.arn
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "2"
+    type         = "LINUX_CONTAINER"
+  }
+
+  source {
+    location = "https://github.com/hashicorp/packer.git"
+    type     = "GITHUB"
+  }
+
+  build_batch_config {
+    combine_artifacts = %[2]t
+
+    restrictions {
+      compute_types_allowed  = [%[3]q]
+      maximum_builds_allowed = %[4]d
+    }
+
+    service_role    = aws_iam_role.test.arn
+    timeout_in_mins = %[5]d
+  }
+}
+`, rName, combineArtifacts, computeTypesAllowed, maximumBuildsAllowed, timeoutInMins))
+}
+
 func testAccAWSCodeBuildProjectConfig_LogsConfig_S3Logs(rName, bName, status, location string, encryptionDisabled bool) string {
 	return composeConfig(
 		testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName),
@@ -3008,6 +3182,34 @@ resource "aws_codebuild_project" "test" {
     location          = "https://git-codecommit.region-id.amazonaws.com/v1/repos/third-repo-name"
     type              = "CODECOMMIT"
     source_identifier = "secondarySource2"
+
+    git_submodules_config {
+      fetch_submodules = %[2]t
+    }
+  }
+}
+`, rName, fetchSubmodules))
+}
+
+func testAccAWSCodeBuildProjectConfig_SecondarySources_none(rName string, fetchSubmodules bool) string {
+	return composeConfig(testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName), fmt.Sprintf(`
+resource "aws_codebuild_project" "test" {
+  name         = "%[1]s"
+  service_role = aws_iam_role.test.arn
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "2"
+    type         = "LINUX_CONTAINER"
+  }
+
+  source {
+    location = "https://git-codecommit.region-id.amazonaws.com/v1/repos/repo-name"
+    type     = "CODECOMMIT"
 
     git_submodules_config {
       fetch_submodules = %[2]t
@@ -3850,6 +4052,34 @@ resource "aws_codebuild_project" "test" {
 `, rName))
 }
 
+func testAccAWSCodebuildProjectConfig_SecondaryArtifacts_none(rName string, bName string) string {
+	return composeConfig(
+		testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName),
+		testAccAWSCodeBuildProjectConfig_Base_Bucket(bName),
+		fmt.Sprintf(`
+resource "aws_codebuild_project" "test" {
+  name         = "%s"
+  service_role = aws_iam_role.test.arn
+
+  artifacts {
+    location = aws_s3_bucket.test.bucket
+    type     = "S3"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "2"
+    type         = "LINUX_CONTAINER"
+  }
+
+  source {
+    type     = "GITHUB"
+    location = "https://github.com/hashicorp/packer.git"
+  }
+}
+`, rName))
+}
+
 func testAccAWSCodebuildProjectConfig_SecondaryArtifacts_ArtifactIdentifier(rName string, bName string, artifactIdentifier string) string {
 	return composeConfig(
 		testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName),
@@ -4196,4 +4426,58 @@ resource "aws_codebuild_project" "test" {
   }
 }
 `, rName))
+}
+
+func testAccAWSCodeBuildProjectConfig_Source_BuildStatusConfig_GitHubEnterprise(rName string) string {
+	return testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName) + fmt.Sprintf(`
+resource "aws_codebuild_project" "test" {
+  name         = "%s"
+  service_role = aws_iam_role.test.arn
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "2"
+    type         = "LINUX_CONTAINER"
+  }
+
+  source {
+    location = "https://example.com/organization/repository.git"
+    type     = "GITHUB_ENTERPRISE"
+
+    build_status_config {
+      context    = "codebuild"
+      target_url = "https://example.com/$${CODEBUILD_BUILD_ID}"
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAWSCodeBuildProjectConfig_ConcurrentBuildLimit(rName string, concurrentBuildLimit int) string {
+	return composeConfig(testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName), fmt.Sprintf(`
+resource "aws_codebuild_project" "test" {
+  concurrent_build_limit = %d
+  name                   = "%s"
+  service_role           = aws_iam_role.test.arn
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "2"
+    type         = "LINUX_CONTAINER"
+  }
+
+  source {
+    type     = "GITHUB"
+    location = "https://github.com/hashicorp/packer.git"
+  }
+}
+`, concurrentBuildLimit, rName))
 }

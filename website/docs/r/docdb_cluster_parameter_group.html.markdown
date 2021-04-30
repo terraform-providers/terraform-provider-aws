@@ -34,7 +34,7 @@ The following arguments are supported:
 * `family` - (Required, Forces new resource) The family of the documentDB cluster parameter group.
 * `description` - (Optional, Forces new resource) The description of the documentDB cluster parameter group. Defaults to "Managed by Terraform".
 * `parameter` - (Optional) A list of documentDB parameters to apply. Setting parameters to system default values may show a difference on imported resources.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Parameter blocks support the following:
 
@@ -48,7 +48,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The documentDB cluster parameter group name.
 * `arn` - The ARN of the documentDB cluster parameter group.
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

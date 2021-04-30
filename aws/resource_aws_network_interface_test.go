@@ -29,9 +29,9 @@ func testSweepEc2NetworkInterfaces(region string) error {
 	}
 	conn := client.(*AWSClient).ec2conn
 
-	err = conn.DescribeNetworkInterfacesPages(&ec2.DescribeNetworkInterfacesInput{}, func(page *ec2.DescribeNetworkInterfacesOutput, isLast bool) bool {
+	err = conn.DescribeNetworkInterfacesPages(&ec2.DescribeNetworkInterfacesInput{}, func(page *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, networkInterface := range page.NetworkInterfaces {
@@ -54,7 +54,7 @@ func testSweepEc2NetworkInterfaces(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"regexp"
 	"testing"
 
@@ -161,6 +162,90 @@ func TestAccAWSVpnConnection_TransitGatewayID(t *testing.T) {
 	})
 }
 
+func TestAccAWSVpnConnection_Tunnel1InsideCidr(t *testing.T) {
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_vpn_connection.test"
+	var vpn ec2.VpnConnection
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccAwsVpnConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsVpnConnectionConfigTunnel1InsideCidr(rBgpAsn, "169.254.8.0/30", "169.254.9.0/30"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_inside_cidr", "169.254.8.0/30"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_inside_cidr", "169.254.9.0/30"),
+				),
+			},
+			// NOTE: Import does not currently have access to the Terraform configuration,
+			//       so proper tunnel ordering is not guaranteed on import. The import
+			//       identifier could potentially be updated to accept optional tunnel
+			//       configuration information, however the format for this could be
+			//       confusing and/or difficult to implement.
+		},
+	})
+}
+
+func TestAccAWSVpnConnection_Tunnel1InsideIpv6Cidr(t *testing.T) {
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_vpn_connection.test"
+	var vpn ec2.VpnConnection
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccAwsVpnConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsVpnConnectionConfigTunnel1InsideIpv6Cidr(rBgpAsn, "fd00:2001:db8:2:2d1:81ff:fe41:d200/126", "fd00:2001:db8:2:2d1:81ff:fe41:d204/126"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_inside_ipv6_cidr", "fd00:2001:db8:2:2d1:81ff:fe41:d200/126"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_inside_ipv6_cidr", "fd00:2001:db8:2:2d1:81ff:fe41:d204/126"),
+				),
+			},
+			// NOTE: Import does not currently have access to the Terraform configuration,
+			//       so proper tunnel ordering is not guaranteed on import. The import
+			//       identifier could potentially be updated to accept optional tunnel
+			//       configuration information, however the format for this could be
+			//       confusing and/or difficult to implement.
+		},
+	})
+}
+
+func TestAccAWSVpnConnection_Tunnel1PresharedKey(t *testing.T) {
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_vpn_connection.test"
+	var vpn ec2.VpnConnection
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccAwsVpnConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsVpnConnectionConfigTunnel1PresharedKey(rBgpAsn, "tunnel1presharedkey", "tunnel2presharedkey"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "tunnel1_preshared_key", "tunnel1presharedkey"),
+					resource.TestCheckResourceAttr(resourceName, "tunnel2_preshared_key", "tunnel2presharedkey"),
+				),
+			},
+			// NOTE: Import does not currently have access to the Terraform configuration,
+			//       so proper tunnel ordering is not guaranteed on import. The import
+			//       identifier could potentially be updated to accept optional tunnel
+			//       configuration information, however the format for this could be
+			//       confusing and/or difficult to implement.
+		},
+	})
+}
+
 func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
 	badCidrRangeErr := regexp.MustCompile(`expected \w+ to not be any of \[[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/30\s?]+\]`)
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
@@ -305,7 +390,11 @@ func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tunnel2_preshared_key", "abcdefgh"),
 				),
 			},
-			// TODO: Once #396, #3359, #5809 are fixed, an import test step should be added here
+			// NOTE: Import does not currently have access to the Terraform configuration,
+			//       so proper tunnel ordering is not guaranteed on import. The import
+			//       identifier could potentially be updated to accept optional tunnel
+			//       configuration information, however the format for this could be
+			//       confusing and/or difficult to implement.
 		},
 	})
 }
@@ -535,50 +624,112 @@ func testAccAwsVpnConnectionExists(vpnConnectionResource string, vpnConnection *
 	}
 }
 
-func TestAWSVpnConnection_xmlconfig(t *testing.T) {
-	tunnelInfo, err := xmlConfigToTunnelInfo(testAccAwsVpnTunnelInfoXML)
-	if err != nil {
-		t.Fatalf("Error unmarshalling XML: %s", err)
+func TestXmlConfigToTunnelInfo(t *testing.T) {
+	testCases := []struct {
+		Name                  string
+		XML                   string
+		Tunnel1PreSharedKey   string
+		Tunnel1InsideCidr     string
+		Tunnel1InsideIpv6Cidr string
+		ExpectError           bool
+		ExpectTunnelInfo      TunnelInfo
+	}{
+		{
+			Name: "outside address sort",
+			XML:  testAccAwsVpnTunnelInfoXML,
+			ExpectTunnelInfo: TunnelInfo{
+				Tunnel1Address:          "1.1.1.1",
+				Tunnel1BGPASN:           "1111",
+				Tunnel1BGPHoldTime:      31,
+				Tunnel1CgwInsideAddress: "169.254.11.1",
+				Tunnel1PreSharedKey:     "FIRST_KEY",
+				Tunnel1VgwInsideAddress: "168.254.11.2",
+				Tunnel2Address:          "2.2.2.2",
+				Tunnel2BGPASN:           "2222",
+				Tunnel2BGPHoldTime:      32,
+				Tunnel2CgwInsideAddress: "169.254.12.1",
+				Tunnel2PreSharedKey:     "SECOND_KEY",
+				Tunnel2VgwInsideAddress: "169.254.12.2",
+			},
+		},
+		{
+			Name:                "Tunnel1PreSharedKey",
+			XML:                 testAccAwsVpnTunnelInfoXML,
+			Tunnel1PreSharedKey: "SECOND_KEY",
+			ExpectTunnelInfo: TunnelInfo{
+				Tunnel1Address:          "2.2.2.2",
+				Tunnel1BGPASN:           "2222",
+				Tunnel1BGPHoldTime:      32,
+				Tunnel1CgwInsideAddress: "169.254.12.1",
+				Tunnel1PreSharedKey:     "SECOND_KEY",
+				Tunnel1VgwInsideAddress: "169.254.12.2",
+				Tunnel2Address:          "1.1.1.1",
+				Tunnel2BGPASN:           "1111",
+				Tunnel2BGPHoldTime:      31,
+				Tunnel2CgwInsideAddress: "169.254.11.1",
+				Tunnel2PreSharedKey:     "FIRST_KEY",
+				Tunnel2VgwInsideAddress: "168.254.11.2",
+			},
+		},
+		{
+			Name:              "Tunnel1InsideCidr",
+			XML:               testAccAwsVpnTunnelInfoXML,
+			Tunnel1InsideCidr: "169.254.12.0/30",
+			ExpectTunnelInfo: TunnelInfo{
+				Tunnel1Address:          "2.2.2.2",
+				Tunnel1BGPASN:           "2222",
+				Tunnel1BGPHoldTime:      32,
+				Tunnel1CgwInsideAddress: "169.254.12.1",
+				Tunnel1PreSharedKey:     "SECOND_KEY",
+				Tunnel1VgwInsideAddress: "169.254.12.2",
+				Tunnel2Address:          "1.1.1.1",
+				Tunnel2BGPASN:           "1111",
+				Tunnel2BGPHoldTime:      31,
+				Tunnel2CgwInsideAddress: "169.254.11.1",
+				Tunnel2PreSharedKey:     "FIRST_KEY",
+				Tunnel2VgwInsideAddress: "168.254.11.2",
+			},
+		},
+		// IPv6 logic is equivalent to IPv4, so we can reuse configuration, expected, etc.
+		{
+			Name:                  "Tunnel1InsideIpv6Cidr",
+			XML:                   testAccAwsVpnTunnelInfoXML,
+			Tunnel1InsideIpv6Cidr: "169.254.12.1",
+			ExpectTunnelInfo: TunnelInfo{
+				Tunnel1Address:          "2.2.2.2",
+				Tunnel1BGPASN:           "2222",
+				Tunnel1BGPHoldTime:      32,
+				Tunnel1CgwInsideAddress: "169.254.12.1",
+				Tunnel1PreSharedKey:     "SECOND_KEY",
+				Tunnel1VgwInsideAddress: "169.254.12.2",
+				Tunnel2Address:          "1.1.1.1",
+				Tunnel2BGPASN:           "1111",
+				Tunnel2BGPHoldTime:      31,
+				Tunnel2CgwInsideAddress: "169.254.11.1",
+				Tunnel2PreSharedKey:     "FIRST_KEY",
+				Tunnel2VgwInsideAddress: "168.254.11.2",
+			},
+		},
 	}
-	if tunnelInfo.Tunnel1Address != "FIRST_ADDRESS" {
-		t.Fatalf("First address from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel1CgwInsideAddress != "FIRST_CGW_INSIDE_ADDRESS" {
-		t.Fatalf("First Customer Gateway inside address from tunnel" +
-			" XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel1VgwInsideAddress != "FIRST_VGW_INSIDE_ADDRESS" {
-		t.Fatalf("First VPN Gateway inside address from tunnel " +
-			" XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel1PreSharedKey != "FIRST_KEY" {
-		t.Fatalf("First key from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel1BGPASN != "FIRST_BGP_ASN" {
-		t.Fatalf("First bgp asn from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel1BGPHoldTime != 31 {
-		t.Fatalf("First bgp holdtime from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel2Address != "SECOND_ADDRESS" {
-		t.Fatalf("Second address from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel2CgwInsideAddress != "SECOND_CGW_INSIDE_ADDRESS" {
-		t.Fatalf("Second Customer Gateway inside address from tunnel" +
-			" XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel2VgwInsideAddress != "SECOND_VGW_INSIDE_ADDRESS" {
-		t.Fatalf("Second VPN Gateway inside address from tunnel " +
-			" XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel2PreSharedKey != "SECOND_KEY" {
-		t.Fatalf("Second key from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel2BGPASN != "SECOND_BGP_ASN" {
-		t.Fatalf("Second bgp asn from tunnel XML was incorrect.")
-	}
-	if tunnelInfo.Tunnel2BGPHoldTime != 32 {
-		t.Fatalf("Second bgp holdtime from tunnel XML was incorrect.")
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.Name, func(t *testing.T) {
+			tunnelInfo, err := xmlConfigToTunnelInfo(testCase.XML, testCase.Tunnel1PreSharedKey, testCase.Tunnel1InsideCidr, testCase.Tunnel1InsideIpv6Cidr)
+
+			if err == nil && testCase.ExpectError {
+				t.Fatalf("expected error, got none")
+			}
+
+			if err != nil && !testCase.ExpectError {
+				t.Fatalf("expected no error, got: %s", err)
+			}
+
+			if actual, expected := *tunnelInfo, testCase.ExpectTunnelInfo; !reflect.DeepEqual(actual, expected) { // nosemgrep: prefer-aws-go-sdk-pointer-conversion-assignment
+				t.Errorf("expected TunnelInfo:\n%+v\n\ngot:\n%+v\n\n", expected, actual)
+			}
+		})
 	}
 }
 
@@ -736,6 +887,67 @@ resource "aws_vpn_connection" "test" {
   type                = aws_customer_gateway.test.type
 }
 `, rBgpAsn)
+}
+
+func testAccAwsVpnConnectionConfigTunnel1InsideCidr(rBgpAsn int, tunnel1InsideCidr string, tunnel2InsideCidr string) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn    = %[1]d
+  ip_address = "178.0.0.1"
+  type       = "ipsec.1"
+}
+
+resource "aws_vpn_gateway" "test" {}
+
+resource "aws_vpn_connection" "test" {
+  customer_gateway_id = aws_customer_gateway.test.id
+  tunnel1_inside_cidr = %[2]q
+  tunnel2_inside_cidr = %[3]q
+  type                = "ipsec.1"
+  vpn_gateway_id      = aws_vpn_gateway.test.id
+}
+`, rBgpAsn, tunnel1InsideCidr, tunnel2InsideCidr)
+}
+
+func testAccAwsVpnConnectionConfigTunnel1InsideIpv6Cidr(rBgpAsn int, tunnel1InsideIpv6Cidr string, tunnel2InsideIpv6Cidr string) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn    = %[1]d
+  ip_address = "178.0.0.1"
+  type       = "ipsec.1"
+}
+
+resource "aws_ec2_transit_gateway" "test" {}
+
+resource "aws_vpn_connection" "test" {
+  customer_gateway_id      = aws_customer_gateway.test.id
+  transit_gateway_id       = aws_ec2_transit_gateway.test.id
+  tunnel_inside_ip_version = "ipv6"
+  tunnel1_inside_ipv6_cidr = %[2]q
+  tunnel2_inside_ipv6_cidr = %[3]q
+  type                     = "ipsec.1"
+}
+`, rBgpAsn, tunnel1InsideIpv6Cidr, tunnel2InsideIpv6Cidr)
+}
+
+func testAccAwsVpnConnectionConfigTunnel1PresharedKey(rBgpAsn int, tunnel1PresharedKey string, tunnel2PresharedKey string) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn    = %[1]d
+  ip_address = "178.0.0.1"
+  type       = "ipsec.1"
+}
+
+resource "aws_vpn_gateway" "test" {}
+
+resource "aws_vpn_connection" "test" {
+  customer_gateway_id   = aws_customer_gateway.test.id
+  tunnel1_preshared_key = %[2]q
+  tunnel2_preshared_key = %[3]q
+  type                  = "ipsec.1"
+  vpn_gateway_id        = aws_vpn_gateway.test.id
+}
+`, rBgpAsn, tunnel1PresharedKey, tunnel2PresharedKey)
 }
 
 func testAccAwsVpnConnectionConfigTunnelOptions(
@@ -916,25 +1128,25 @@ const testAccAwsVpnTunnelInfoXML = `
   <ipsec_tunnel>
     <customer_gateway>
       <tunnel_outside_address>
-        <ip_address>123.123.123.123</ip_address>
+        <ip_address>22.22.22.22</ip_address>
       </tunnel_outside_address>
       <tunnel_inside_address>
-        <ip_address>SECOND_CGW_INSIDE_ADDRESS</ip_address>
+        <ip_address>169.254.12.1</ip_address>
         <network_mask>255.255.255.252</network_mask>
         <network_cidr>30</network_cidr>
       </tunnel_inside_address>
     </customer_gateway>
     <vpn_gateway>
       <tunnel_outside_address>
-        <ip_address>SECOND_ADDRESS</ip_address>
+        <ip_address>2.2.2.2</ip_address>
       </tunnel_outside_address>
       <tunnel_inside_address>
-        <ip_address>SECOND_VGW_INSIDE_ADDRESS</ip_address>
+        <ip_address>169.254.12.2</ip_address>
         <network_mask>255.255.255.252</network_mask>
         <network_cidr>30</network_cidr>
       </tunnel_inside_address>
       <bgp>
-        <asn>SECOND_BGP_ASN</asn>
+        <asn>2222</asn>
         <hold_time>32</hold_time>
       </bgp>
     </vpn_gateway>
@@ -945,25 +1157,25 @@ const testAccAwsVpnTunnelInfoXML = `
   <ipsec_tunnel>
     <customer_gateway>
       <tunnel_outside_address>
-        <ip_address>123.123.123.123</ip_address>
+        <ip_address>11.11.11.11</ip_address>
       </tunnel_outside_address>
       <tunnel_inside_address>
-        <ip_address>FIRST_CGW_INSIDE_ADDRESS</ip_address>
+        <ip_address>169.254.11.1</ip_address>
         <network_mask>255.255.255.252</network_mask>
         <network_cidr>30</network_cidr>
       </tunnel_inside_address>
     </customer_gateway>
     <vpn_gateway>
       <tunnel_outside_address>
-        <ip_address>FIRST_ADDRESS</ip_address>
+        <ip_address>1.1.1.1</ip_address>
       </tunnel_outside_address>
       <tunnel_inside_address>
-        <ip_address>FIRST_VGW_INSIDE_ADDRESS</ip_address>
+        <ip_address>168.254.11.2</ip_address>
         <network_mask>255.255.255.252</network_mask>
         <network_cidr>30</network_cidr>
       </tunnel_inside_address>
       <bgp>
-        <asn>FIRST_BGP_ASN</asn>
+        <asn>1111</asn>
         <hold_time>31</hold_time>
       </bgp>
     </vpn_gateway>

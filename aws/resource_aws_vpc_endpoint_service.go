@@ -119,17 +119,22 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateVpcEndpointServiceConfigurationInput{
 		AcceptanceRequired: aws.Bool(d.Get("acceptance_required").(bool)),
-		TagSpecifications:  ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
+		TagSpecifications:  ec2TagSpecificationsFromKeyValueTags(tags, "vpc-endpoint-service"),
 	}
 	if v, ok := d.GetOk("private_dns_name"); ok {
 		req.PrivateDnsName = aws.String(v.(string))
@@ -175,6 +180,7 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	svcCfgRaw, state, err := vpcEndpointServiceStateRefresh(conn, d.Id())()
@@ -227,9 +233,16 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 	d.Set("service_name", svcCfg.ServiceName)
 	d.Set("service_type", svcCfg.ServiceType[0].ServiceType)
 	d.Set("state", svcCfg.ServiceState)
-	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(svcCfg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
-	if err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+
+	tags := keyvaluetags.Ec2KeyValueTags(svcCfg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	resp, err := conn.DescribeVpcEndpointServicePermissions(&ec2.DescribeVpcEndpointServicePermissionsInput{
@@ -328,8 +341,8 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 VPC Endpoint Service (%s) tags: %s", d.Id(), err)

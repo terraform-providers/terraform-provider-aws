@@ -3,6 +3,7 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
@@ -260,34 +261,77 @@ func dataSourceAwsLbListener() *schema.Resource {
 }
 
 func dataSourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
-	if _, ok := d.GetOk("arn"); ok {
-		d.SetId(d.Get("arn").(string))
-		//log.Printf("[DEBUG] read listener %s", d.Get("arn").(string))
-		return resourceAwsLbListenerRead(d, meta)
-	}
-
 	conn := meta.(*AWSClient).elbv2conn
-	lbArn, lbOk := d.GetOk("load_balancer_arn")
-	port, portOk := d.GetOk("port")
-	if !lbOk || !portOk {
-		return errors.New("both load_balancer_arn and port must be set")
-	}
-	resp, err := conn.DescribeListeners(&elbv2.DescribeListenersInput{
-		LoadBalancerArn: aws.String(lbArn.(string)),
-	})
-	if err != nil {
-		return err
-	}
-	if len(resp.Listeners) == 0 {
-		return fmt.Errorf("no listener exists for load balancer: %s", lbArn)
-	}
-	for _, listener := range resp.Listeners {
-		if aws.Int64Value(listener.Port) == int64(port.(int)) {
-			//log.Printf("[DEBUG] get listener arn for %s:%s: %s", lbArn, port, *listener.Port)
-			d.SetId(aws.StringValue(listener.ListenerArn))
-			return resourceAwsLbListenerRead(d, meta)
+
+	input := &elbv2.DescribeListenersInput{}
+
+	if v, ok := d.GetOk("arn"); ok {
+		input.ListenerArns = aws.StringSlice([]string{v.(string)})
+	} else {
+		lbArn, lbOk := d.GetOk("load_balancer_arn")
+		_, portOk := d.GetOk("port")
+
+		if !lbOk || !portOk {
+			return errors.New("both load_balancer_arn and port must be set")
 		}
+
+		input.LoadBalancerArn = aws.String(lbArn.(string))
 	}
 
-	return errors.New("failed to get listener arn with given arguments")
+	var results []*elbv2.Listener
+
+	err := conn.DescribeListenersPages(input, func(page *elbv2.DescribeListenersOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, l := range page.Listeners {
+			if l == nil {
+				continue
+			}
+
+			if v, ok := d.GetOk("port"); ok && v.(int) != int(aws.Int64Value(l.Port)) {
+				continue
+			}
+
+			results = append(results, l)
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		return fmt.Errorf("error reading Listener: %w", err)
+	}
+
+	if len(results) != 1 {
+		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(results))
+	}
+
+	listener := results[0]
+
+	d.SetId(aws.StringValue(listener.ListenerArn))
+	d.Set("arn", listener.ListenerArn)
+	d.Set("load_balancer_arn", listener.LoadBalancerArn)
+	d.Set("port", listener.Port)
+	d.Set("protocol", listener.Protocol)
+	d.Set("ssl_policy", listener.SslPolicy)
+
+	if listener.Certificates != nil && len(listener.Certificates) == 1 && listener.Certificates[0] != nil {
+		d.Set("certificate_arn", listener.Certificates[0].CertificateArn)
+	}
+
+	if listener.AlpnPolicy != nil && len(listener.AlpnPolicy) == 1 && listener.AlpnPolicy[0] != nil {
+		d.Set("alpn_policy", listener.AlpnPolicy[0])
+	}
+
+	sort.Slice(listener.DefaultActions, func(i, j int) bool {
+		return aws.Int64Value(listener.DefaultActions[i].Order) < aws.Int64Value(listener.DefaultActions[j].Order)
+	})
+
+	if err := d.Set("default_action", flattenLbListenerActions(d, listener.DefaultActions)); err != nil {
+		return fmt.Errorf("error setting default_action: %w", err)
+	}
+
+	return nil
 }

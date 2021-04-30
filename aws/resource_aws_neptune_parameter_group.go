@@ -76,19 +76,24 @@ func resourceAwsNeptuneParameterGroup() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNeptuneParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	createOpts := neptune.CreateDBParameterGroupInput{
 		DBParameterGroupName:   aws.String(d.Get("name").(string)),
 		DBParameterGroupFamily: aws.String(d.Get("family").(string)),
 		Description:            aws.String(d.Get("description").(string)),
-		Tags:                   keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().NeptuneTags(),
+		Tags:                   tags.IgnoreAws().NeptuneTags(),
 	}
 
 	log.Printf("[DEBUG] Create Neptune Parameter Group: %#v", createOpts)
@@ -106,6 +111,7 @@ func resourceAwsNeptuneParameterGroupCreate(d *schema.ResourceData, meta interfa
 
 func resourceAwsNeptuneParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := neptune.DescribeDBParameterGroupsInput{
@@ -163,8 +169,15 @@ func resourceAwsNeptuneParameterGroupRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error listing tags for Neptune Parameter Group (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -244,8 +257,8 @@ func resourceAwsNeptuneParameterGroupUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	if !d.IsNewResource() && d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if !d.IsNewResource() && d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.NeptuneUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Neptune Parameter Group (%s) tags: %s", d.Get("arn").(string), err)

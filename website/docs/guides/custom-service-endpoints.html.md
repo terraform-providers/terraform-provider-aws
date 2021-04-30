@@ -59,6 +59,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>acmpca</code></li>
   <li><code>amplify</code></li>
   <li><code>apigateway</code></li>
+  <li><code>appconfig</code></li>
   <li><code>applicationautoscaling</code></li>
   <li><code>applicationinsights</code></li>
   <li><code>appmesh</code></li>
@@ -96,6 +97,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>datapipeline</code></li>
   <li><code>datasync</code></li>
   <li><code>dax</code></li>
+  <li><code>detective</code></li>
   <li><code>devicefarm</code></li>
   <li><code>directconnect</code></li>
   <li><code>dlm</code></li>
@@ -172,7 +174,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>rds</code></li>
   <li><code>redshift</code></li>
   <li><code>resourcegroups</code></li>
-  <li><code>resourcegroupstaggingapi</code></li>  
+  <li><code>resourcegroupstaggingapi</code></li>
   <li><code>route53</code></li>
   <li><code>route53domains</code></li>
   <li><code>route53resolver</code></li>

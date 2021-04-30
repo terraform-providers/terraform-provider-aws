@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -32,7 +33,10 @@ func resourceAwsS3BucketObject() *schema.Resource {
 		Update: resourceAwsS3BucketObjectUpdate,
 		Delete: resourceAwsS3BucketObjectDelete,
 
-		CustomizeDiff: resourceAwsS3BucketObjectCustomizeDiff,
+		CustomizeDiff: customdiff.Sequence(
+			resourceAwsS3BucketObjectCustomizeDiff,
+			SetTagsDiff,
+		),
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -156,7 +160,8 @@ func resourceAwsS3BucketObject() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"website_redirect": {
 				Type:     schema.TypeString,
@@ -192,6 +197,8 @@ func resourceAwsS3BucketObject() *schema.Resource {
 
 func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var body io.ReadSeeker
 
@@ -250,7 +257,7 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		putInput.Metadata = stringMapToPointers(v.(map[string]interface{}))
+		putInput.Metadata = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("content_encoding"); ok {
@@ -278,9 +285,9 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 		putInput.ServerSideEncryption = aws.String(s3.ServerSideEncryptionAwsKms)
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+	if len(tags) > 0 {
 		// The tag-set must be encoded as URL Query parameters.
-		putInput.Tagging = aws.String(keyvaluetags.New(v).IgnoreAws().UrlEncode())
+		putInput.Tagging = aws.String(tags.IgnoreAws().UrlEncode())
 	}
 
 	if v, ok := d.GetOk("website_redirect"); ok {
@@ -313,6 +320,7 @@ func resourceAwsS3BucketObjectCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	bucket := d.Get("bucket").(string)
@@ -396,7 +404,7 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// Retry due to S3 eventual consistency
-	tags, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+	tagsRaw, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
 		return keyvaluetags.S3ObjectListTags(s3conn, bucket, key)
 	})
 
@@ -404,8 +412,21 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
 	}
 
-	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags, ok := tagsRaw.(keyvaluetags.KeyValueTags)
+
+	if !ok {
+		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): unable to convert tags", bucket, key)
+	}
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -471,8 +492,8 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.S3ObjectUpdateTags(conn, bucket, key, o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)

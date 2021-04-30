@@ -179,23 +179,28 @@ func resourceAwsNetworkAcl() *schema.Resource {
 				},
 				Set: resourceAwsNetworkAclEntryHash,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"owner_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNetworkAclCreate(d *schema.ResourceData, meta interface{}) error {
 
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Create the Network Acl
 	createOpts := &ec2.CreateNetworkAclInput{
 		VpcId:             aws.String(d.Get("vpc_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeNetworkAcl),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeNetworkAcl),
 	}
 
 	log.Printf("[DEBUG] Network Acl create config: %#v", createOpts)
@@ -263,6 +268,7 @@ func resourceAwsNetworkAclCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var networkAcl *ec2.NetworkAcl
@@ -334,8 +340,15 @@ func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("vpc_id", networkAcl.VpcId)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(networkAcl.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(networkAcl.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("owner_id", networkAcl.OwnerId)
@@ -448,8 +461,8 @@ func resourceAwsNetworkAclUpdate(d *schema.ResourceData, meta interface{}) error
 
 	}
 
-	if d.HasChange("tags") && !d.IsNewResource() {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") && !d.IsNewResource() {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Network ACL (%s) tags: %s", d.Id(), err)

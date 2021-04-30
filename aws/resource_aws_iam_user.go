@@ -67,13 +67,18 @@ func resourceAwsIamUser() *schema.Resource {
 				Default:     false,
 				Description: "Delete user even if it has non-Terraform-managed IAM access keys, login profile or MFA devices",
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 	path := d.Get("path").(string)
 
@@ -86,8 +91,8 @@ func resourceAwsIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 		request.PermissionsBoundary = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		request.Tags = keyvaluetags.New(v).IgnoreAws().IamTags()
+	if len(tags) > 0 {
+		request.Tags = tags.IgnoreAws().IamTags()
 	}
 
 	log.Println("[DEBUG] Create IAM User request:", request)
@@ -103,6 +108,7 @@ func resourceAwsIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsIamUserRead(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	request := &iam.GetUserInput{
@@ -153,8 +159,15 @@ func resourceAwsIamUserRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("unique_id", output.User.UserId)
 
-	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(output.User.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.IamKeyValueTags(output.User.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -209,8 +222,8 @@ func resourceAwsIamUserUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.IamUserUpdateTags(iamconn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating IAM User (%s) tags: %s", d.Id(), err)

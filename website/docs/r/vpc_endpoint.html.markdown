@@ -122,7 +122,7 @@ Defaults to `false`.
 * `route_table_ids` - (Optional) One or more route table IDs. Applicable for endpoints of type `Gateway`.
 * `subnet_ids` - (Optional) The ID of one or more subnets in which to create a network interface for the endpoint. Applicable for endpoints of type `GatewayLoadBalancer` and `Interface`.
 * `security_group_ids` - (Optional) The ID of one or more security groups to associate with the network interface. Required for endpoints of type `Interface`.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpc_endpoint_type` - (Optional) The VPC endpoint type, `Gateway`, `GatewayLoadBalancer`, or `Interface`. Defaults to `Gateway`.
 
 ### Timeouts
@@ -147,6 +147,7 @@ In addition to all arguments above, the following attributes are exported:
 * `prefix_list_id` - The prefix list ID of the exposed AWS service. Applicable for endpoints of type `Gateway`.
 * `requester_managed` -  Whether or not the VPC Endpoint is being managed by its service - `true` or `false`.
 * `state` - The state of the VPC endpoint.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 DNS blocks (for `dns_entry`) support the following attributes:
 

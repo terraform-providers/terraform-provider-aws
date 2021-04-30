@@ -13,9 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
+	tfsns "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sns"
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(sns.EndpointsID, testAccErrorCheckSkipSNS)
+
 	resource.AddTestSweepers("aws_sns_topic", &resource.Sweeper{
 		Name: "aws_sns_topic",
 		F:    testSweepSnsTopics,
@@ -50,9 +54,9 @@ func testSweepSnsTopics(region string) error {
 	conn := client.(*AWSClient).snsconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListTopicsPages(&sns.ListTopicsInput{}, func(page *sns.ListTopicsOutput, isLast bool) bool {
+	err = conn.ListTopicsPages(&sns.ListTopicsInput{}, func(page *sns.ListTopicsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, topic := range page.Topics {
@@ -73,7 +77,7 @@ func testSweepSnsTopics(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping SNS Topics sweep for %s: %s", region, err)
@@ -84,6 +88,13 @@ func testSweepSnsTopics(region string) error {
 	}
 
 	return sweeperErrs.ErrorOrNil()
+}
+
+func testAccErrorCheckSkipSNS(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"Invalid protocol type: firehose",
+		"Unknown attribute FifoTopic",
+	)
 }
 
 func TestAccAWSSNSTopic_basic(t *testing.T) {
@@ -98,9 +109,12 @@ func TestAccAWSSNSTopic_basic(t *testing.T) {
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSNSTopicConfig_withGeneratedName,
+				Config: testAccAWSSNSTopicConfigNameGenerated,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					naming.TestCheckResourceAttrNameGenerated(resourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", "terraform-"),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "false"),
 				),
 			},
 			{
@@ -112,10 +126,10 @@ func TestAccAWSSNSTopic_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSSNSTopic_name(t *testing.T) {
+func TestAccAWSSNSTopic_Name(t *testing.T) {
 	attributes := make(map[string]string)
 	resourceName := "aws_sns_topic.test"
-	rName := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -125,9 +139,11 @@ func TestAccAWSSNSTopic_name(t *testing.T) {
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSNSTopicConfig_withName(rName),
+				Config: testAccAWSSNSTopicConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "false"),
 				),
 			},
 			{
@@ -139,10 +155,10 @@ func TestAccAWSSNSTopic_name(t *testing.T) {
 	})
 }
 
-func TestAccAWSSNSTopic_namePrefix(t *testing.T) {
+func TestAccAWSSNSTopic_NamePrefix(t *testing.T) {
 	attributes := make(map[string]string)
 	resourceName := "aws_sns_topic.test"
-	startsWithPrefix := regexp.MustCompile("^terraform-test-topic-")
+	rName := "tf-acc-test-prefix-"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -152,17 +168,18 @@ func TestAccAWSSNSTopic_namePrefix(t *testing.T) {
 		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSNSTopicConfig_withNamePrefix(),
+				Config: testAccAWSSNSTopicConfigNamePrefix(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSNSTopicExists(resourceName, attributes),
-					resource.TestMatchResourceAttr(resourceName, "name", startsWithPrefix),
+					naming.TestCheckResourceAttrNameFromPrefix(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", rName),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "false"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"name_prefix"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -301,10 +318,152 @@ func TestAccAWSSNSTopic_deliveryStatus(t *testing.T) {
 	})
 }
 
-func TestAccAWSSNSTopic_encryption(t *testing.T) {
+func TestAccAWSSNSTopic_Name_Generated_FIFOTopic(t *testing.T) {
+	attributes := make(map[string]string)
+	resourceName := "aws_sns_topic.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSNSTopicConfigNameGeneratedFIFOTopic,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					naming.TestCheckResourceAttrNameWithSuffixGenerated(resourceName, "name", tfsns.FifoTopicNameSuffix),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", "terraform-"),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSNSTopic_Name_FIFOTopic(t *testing.T) {
+	attributes := make(map[string]string)
+	resourceName := "aws_sns_topic.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test") + tfsns.FifoTopicNameSuffix
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSNSTopicConfigNameFIFOTopic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSNSTopic_NamePrefix_FIFOTopic(t *testing.T) {
+	attributes := make(map[string]string)
+	resourceName := "aws_sns_topic.test"
+	rName := "tf-acc-test-prefix-"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSNSTopicConfigNamePrefixFIFOTopic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					naming.TestCheckResourceAttrNameWithSuffixFromPrefix(resourceName, "name", rName, tfsns.FifoTopicNameSuffix),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", rName),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSNSTopic_FIFOWithContentBasedDeduplication(t *testing.T) {
 	attributes := make(map[string]string)
 	resourceName := "aws_sns_topic.test"
 	rName := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSNSTopicConfigWithFIFOContentBasedDeduplication(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					resource.TestCheckResourceAttr(resourceName, "fifo_topic", "true"),
+					resource.TestCheckResourceAttr(resourceName, "content_based_deduplication", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			// Test attribute update
+			{
+				Config: testAccAWSSNSTopicConfigWithFIFOContentBasedDeduplication(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists(resourceName, attributes),
+					resource.TestCheckResourceAttr(resourceName, "content_based_deduplication", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSNSTopic_FIFOExpectContentBasedDeduplicationError(t *testing.T) {
+	rName := acctest.RandString(10)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, sns.EndpointsID),
+		IDRefreshName: "aws_sns_topic.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSSNSTopicExpectContentBasedDeduplicationError(rName),
+				ExpectError: regexp.MustCompile(`content-based deduplication can only be set for FIFO topics`),
+			},
+		},
+	})
+}
+
+func TestAccAWSSNSTopic_encryption(t *testing.T) {
+	attributes := make(map[string]string)
+	resourceName := "aws_sns_topic.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -326,7 +485,7 @@ func TestAccAWSSNSTopic_encryption(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSNSTopicConfig_withName(rName),
+				Config: testAccAWSSNSTopicConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSNSTopicExists(resourceName, attributes),
 					resource.TestCheckResourceAttr(resourceName, "kms_master_key_id", ""),
@@ -527,24 +686,48 @@ func testAccCheckAWSSNSTopicExists(n string, attributes map[string]string) resou
 	}
 }
 
-const testAccAWSSNSTopicConfig_withGeneratedName = `
+const testAccAWSSNSTopicConfigNameGenerated = `
 resource "aws_sns_topic" "test" {}
 `
 
-func testAccAWSSNSTopicConfig_withName(r string) string {
-	return fmt.Sprintf(`
+const testAccAWSSNSTopicConfigNameGeneratedFIFOTopic = `
 resource "aws_sns_topic" "test" {
-  name = "terraform-test-topic-%s"
-}
-`, r)
-}
-
-func testAccAWSSNSTopicConfig_withNamePrefix() string {
-	return `
-resource "aws_sns_topic" "test" {
-  name_prefix = "terraform-test-topic-"
+  fifo_topic = true
 }
 `
+
+func testAccAWSSNSTopicConfigName(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name = %[1]q
+}
+`, rName)
+}
+
+func testAccAWSSNSTopicConfigNameFIFOTopic(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name       = %[1]q
+  fifo_topic = true
+}
+`, rName)
+}
+
+func testAccAWSSNSTopicConfigNamePrefix(prefix string) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name_prefix = %[1]q
+}
+`, prefix)
+}
+
+func testAccAWSSNSTopicConfigNamePrefixFIFOTopic(prefix string) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name_prefix = %[1]q
+  fifo_topic  = true
+}
+`, prefix)
 }
 
 func testAccAWSSNSTopicWithPolicy(r string) string {
@@ -755,11 +938,30 @@ EOF
 `, r)
 }
 
-func testAccAWSSNSTopicConfig_withEncryption(r string) string {
+func testAccAWSSNSTopicConfig_withEncryption(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
-  name              = "terraform-test-topic-%s"
+  name              = %[1]q
   kms_master_key_id = "alias/aws/sns"
+}
+`, rName)
+}
+
+func testAccAWSSNSTopicConfigWithFIFOContentBasedDeduplication(r string, cbd bool) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name                        = "terraform-test-topic-%s.fifo"
+  fifo_topic                  = true
+  content_based_deduplication = %t
+}
+`, r, cbd)
+}
+
+func testAccAWSSNSTopicExpectContentBasedDeduplicationError(r string) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name                        = "terraform-test-topic-%s"
+  content_based_deduplication = true
 }
 `, r)
 }

@@ -315,12 +315,14 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validateArn,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 
 		CustomizeDiff: customdiff.Sequence(
 			checkHandlerRuntimeForZipFunction,
 			updateComputedAttributesOnPublish,
+			SetTagsDiff,
 		),
 	}
 }
@@ -373,6 +375,8 @@ func hasConfigChanges(d resourceDiffer) bool {
 // CreateFunction in the API / SDK
 func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lambdaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	functionName := d.Get("function_name").(string)
 	reservedConcurrentExecutions := d.Get("reserved_concurrent_executions").(int)
@@ -512,8 +516,8 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 		params.KMSKeyArn = aws.String(v.(string))
 	}
 
-	if v, exists := d.GetOk("tags"); exists {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().LambdaTags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().LambdaTags()
 	}
 
 	err := resource.Retry(waiter.LambdaFunctionCreateTimeout, func() *resource.RetryError { // nosem: helper-schema-resource-Retry-without-TimeoutError-check
@@ -624,6 +628,7 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 // GetFunction in the API / SDK
 func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lambdaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &lambda.GetFunctionInput{
@@ -657,8 +662,15 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 	// Tagging operations are permitted on Lambda functions only.
 	// Tags on aliases and versions are not supported.
 	if !qualifierExistance {
-		if err := d.Set("tags", keyvaluetags.LambdaKeyValueTags(getFunctionOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		tags := keyvaluetags.LambdaKeyValueTags(getFunctionOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+		//lintignore:AWSR002
+		if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 			return fmt.Errorf("error setting tags: %w", err)
+		}
+
+		if err := d.Set("tags_all", tags.Map()); err != nil {
+			return fmt.Errorf("error setting tags_all: %w", err)
 		}
 	}
 
@@ -931,8 +943,8 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.LambdaUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Lambda Function (%s) tags: %w", arn, err)

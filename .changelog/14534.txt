@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_codebuild_project: Add `build_batch_config` argument
+```

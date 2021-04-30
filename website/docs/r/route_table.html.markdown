@@ -72,7 +72,7 @@ The following arguments are supported:
 * `vpc_id` - (Required) The VPC ID.
 * `route` - (Optional) A list of route objects. Their keys are documented below. This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
 This means that omitting this argument is interpreted as ignoring any existing routes. To remove all managed routes an empty list should be specified. See the example above.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `propagating_vgws` - (Optional) A list of virtual gateways for propagation.
 
 ### route Argument Reference
@@ -108,6 +108,7 @@ attribute once the route resource is created.
 * `id` - The ID of the routing table.
 * `arn` - The ARN of the route table.
 * `owner_id` - The ID of the AWS account that owns the route table.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

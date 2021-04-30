@@ -47,21 +47,26 @@ func resourceAwsCodeStarConnectionsConnection() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(codestarconnections.ProviderType_Values(), false),
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCodeStarConnectionsConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codestarconnectionsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &codestarconnections.CreateConnectionInput{
 		ConnectionName: aws.String(d.Get("name").(string)),
 		ProviderType:   aws.String(d.Get("provider_type").(string)),
 	}
 
-	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CodestarconnectionsTags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().CodestarconnectionsTags()
 	}
 
 	resp, err := conn.CreateConnection(params)
@@ -76,6 +81,7 @@ func resourceAwsCodeStarConnectionsConnectionCreate(d *schema.ResourceData, meta
 
 func resourceAwsCodeStarConnectionsConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codestarconnectionsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	connection, err := finder.ConnectionByArn(conn, d.Id())
@@ -105,8 +111,15 @@ func resourceAwsCodeStarConnectionsConnectionRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error listing tags for CodeStar Connection (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags for CodeStar Connection (%s): %w", arn, err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -115,8 +128,8 @@ func resourceAwsCodeStarConnectionsConnectionRead(d *schema.ResourceData, meta i
 func resourceAwsCodeStarConnectionsConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codestarconnectionsconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CodestarconnectionsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error Codestar Connection (%s) tags: %w", d.Id(), err)

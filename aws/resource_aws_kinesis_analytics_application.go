@@ -29,6 +29,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 		Delete: resourceAwsKinesisAnalyticsApplicationDelete,
 
 		CustomizeDiff: customdiff.Sequence(
+			SetTagsDiff,
 			customdiff.ForceNewIfChange("inputs", func(_ context.Context, old, new, meta interface{}) bool {
 				// An existing input configuration cannot be deleted.
 				return len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0
@@ -603,6 +604,8 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"tags_all": tagsSchemaComputed(),
+
 			"version": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -613,6 +616,8 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 
 func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	applicationName := d.Get("name").(string)
 
 	input := &kinesisanalytics.CreateApplicationInput{
@@ -624,8 +629,8 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 		Outputs:                  expandKinesisAnalyticsOutputs(d.Get("outputs").(*schema.Set).List()),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().KinesisanalyticsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().KinesisanalyticsTags()
 	}
 
 	log.Printf("[DEBUG] Creating Kinesis Analytics Application: %s", input)
@@ -696,6 +701,7 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 
 func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	application, err := finder.ApplicationDetailByName(conn, d.Get("name").(string))
@@ -742,8 +748,15 @@ func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error listing tags for Kinesis Analytics Application (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -1095,9 +1108,9 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("tags") {
+	if d.HasChange("tags_all") {
 		arn := d.Get("arn").(string)
-		o, n := d.GetChange("tags")
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.KinesisanalyticsUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Kinesis Analytics Application (%s) tags: %s", arn, err)
 		}

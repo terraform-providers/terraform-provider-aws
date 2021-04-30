@@ -169,13 +169,18 @@ func resourceAwsCodePipeline() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCodePipelineCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	pipeline, err := expandAwsCodePipeline(d)
 	if err != nil {
@@ -183,7 +188,7 @@ func resourceAwsCodePipelineCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	params := &codepipeline.CreatePipelineInput{
 		Pipeline: pipeline,
-		Tags:     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodepipelineTags(),
+		Tags:     tags.IgnoreAws().CodepipelineTags(),
 	}
 
 	var resp *codepipeline.CreatePipelineOutput
@@ -348,7 +353,7 @@ func expandAwsCodePipelineActions(a []interface{}) []*codepipeline.ActionDeclara
 	for _, config := range a {
 		data := config.(map[string]interface{})
 
-		conf := stringMapToPointers(data["configuration"].(map[string]interface{}))
+		conf := expandStringMap(data["configuration"].(map[string]interface{}))
 
 		action := codepipeline.ActionDeclaration{
 			ActionTypeId: &codepipeline.ActionTypeId{
@@ -493,6 +498,7 @@ func flattenAwsCodePipelineActionsInputArtifacts(artifacts []*codepipeline.Input
 
 func resourceAwsCodePipelineRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetPipeline(&codepipeline.GetPipelineInput{
@@ -537,8 +543,15 @@ func resourceAwsCodePipelineRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for CodePipeline (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags for CodePipeline (%s): %w", arn, err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -561,8 +574,8 @@ func resourceAwsCodePipelineUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CodepipelineUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating CodePipeline (%s) tags: %w", arn, err)

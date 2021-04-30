@@ -507,7 +507,7 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		tableInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		tableInput.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	return tableInput
@@ -581,7 +581,7 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 	}
 
 	if v, ok := s["parameters"]; ok {
-		storageDescriptor.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		storageDescriptor.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := s["stored_as_sub_directories"]; ok {
@@ -613,7 +613,7 @@ func expandGlueColumns(columns []interface{}) []*glue.Column {
 		}
 
 		if v, ok := elementMap["parameters"]; ok {
-			column.Parameters = stringMapToPointers(v.(map[string]interface{}))
+			column.Parameters = expandStringMap(v.(map[string]interface{}))
 		}
 
 		columnSlice = append(columnSlice, column)
@@ -635,7 +635,7 @@ func expandGlueSerDeInfo(l []interface{}) *glue.SerDeInfo {
 	}
 
 	if v := s["parameters"]; len(v.(map[string]interface{})) > 0 {
-		serDeInfo.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		serDeInfo.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v := s["serialization_library"]; len(v.(string)) > 0 {
@@ -678,7 +678,7 @@ func expandGlueSkewedInfo(l []interface{}) *glue.SkewedInfo {
 	}
 
 	if v, ok := s["skewed_column_value_location_maps"]; ok {
-		skewedInfo.SkewedColumnValueLocationMaps = stringMapToPointers(v.(map[string]interface{}))
+		skewedInfo.SkewedColumnValueLocationMaps = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := s["skewed_column_values"]; ok {

@@ -25,6 +25,8 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
@@ -58,7 +60,7 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validateEKSClusterName,
 			},
 			"disk_size": {
 				Type:     schema.TypeInt,
@@ -209,7 +211,8 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"version": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -221,6 +224,8 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 
 func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	clusterName := d.Get("cluster_name").(string)
 	nodeGroupName := d.Get("node_group_name").(string)
 
@@ -249,7 +254,7 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if v := d.Get("labels").(map[string]interface{}); len(v) > 0 {
-		input.Labels = stringMapToPointers(v)
+		input.Labels = expandStringMap(v)
 	}
 
 	if v := d.Get("launch_template").([]interface{}); len(v) > 0 {
@@ -268,8 +273,8 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 		input.ScalingConfig = expandEksNodegroupScalingConfig(v)
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().EksTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EksTags()
 	}
 
 	if v, ok := d.GetOk("version"); ok {
@@ -302,6 +307,7 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterName, nodeGroupName, err := resourceAwsEksNodeGroupParseId(d.Id())
@@ -373,8 +379,15 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting subnets: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("version", nodeGroup.Version)
@@ -476,8 +489,8 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.EksUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

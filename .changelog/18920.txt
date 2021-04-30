@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_elasticache_cluster: Allows specifying Redis 6.x
+```
+
+```release-note:bug
+resource/aws_elasticache_replication_group: Allows specifying Redis 6.x
+```
+
+```release-note:enhancement
+resource/aws_elasticache_global_replication_group: Adds parameter `engine_version_actual` to match other ElastiCache resources
+```

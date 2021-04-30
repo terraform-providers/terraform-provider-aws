@@ -163,13 +163,18 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	log.Printf("[DEBUG] Creating API Gateway Domain Name")
 
 	params := &apigateway.CreateDomainNameInput{
@@ -213,8 +218,8 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 		params.SecurityPolicy = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ApigatewayTags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().ApigatewayTags()
 	}
 
 	domainName, err := conn.CreateDomainName(params)
@@ -229,6 +234,7 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading API Gateway Domain Name %s", d.Id())
@@ -246,8 +252,15 @@ func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(domainName.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.ApigatewayKeyValueTags(domainName.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -366,8 +379,8 @@ func resourceAwsApiGatewayDomainNameUpdate(d *schema.ResourceData, meta interfac
 	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Updating API Gateway Domain Name %s", d.Id())
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.ApigatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

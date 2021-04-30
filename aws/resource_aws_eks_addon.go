@@ -29,6 +29,8 @@ func resourceAwsEksAddon() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"addon_name": {
 				Type:         schema.TypeString,
@@ -40,7 +42,7 @@ func resourceAwsEksAddon() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validateEKSClusterName,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -73,13 +75,16 @@ func resourceAwsEksAddon() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchemaComputed(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEksAddonCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	clusterName := d.Get("cluster_name").(string)
 	addonName := d.Get("addon_name").(string)
@@ -102,8 +107,8 @@ func resourceAwsEksAddonCreate(ctx context.Context, d *schema.ResourceData, meta
 		input.ServiceAccountRoleArn = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().EksTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EksTags()
 	}
 
 	err := resource.RetryContext(ctx, 1*time.Minute, func() *resource.RetryError {
@@ -148,6 +153,7 @@ func resourceAwsEksAddonCreate(ctx context.Context, d *schema.ResourceData, meta
 
 func resourceAwsEksAddonRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterName, addonName, err := resourceAwsEksAddonParseId(d.Id())
@@ -186,8 +192,15 @@ func resourceAwsEksAddonRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set("created_at", aws.TimeValue(addon.CreatedAt).Format(time.RFC3339))
 	d.Set("modified_at", aws.TimeValue(addon.ModifiedAt).Format(time.RFC3339))
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(addon.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting tags attribute: %w", err))
+	tags := keyvaluetags.EksKeyValueTags(addon.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags: %w", err))
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags_all: %w", err))
 	}
 
 	return nil
@@ -217,8 +230,8 @@ func resourceAwsEksAddonUpdate(ctx context.Context, d *schema.ResourceData, meta
 		input.ResolveConflicts = aws.String(v.(string))
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.EksUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating tags: %w", err))
 		}

@@ -161,6 +161,7 @@ variable "service_labels" {
     "rds",
     "redshift",
     "resourcegroups",
+    "resourcegroupstaggingapi",
     "robomaker",
     "route53",
     "route53domains",

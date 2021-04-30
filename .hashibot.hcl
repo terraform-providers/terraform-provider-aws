@@ -117,6 +117,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
       "aws_api_gateway_v2_",
       "aws_apigatewayv2_",
     ],
+    "service/appconfig" = [
+      "aws_appconfig_",
+    ],
     "service/applicationautoscaling" = [
       "aws_appautoscaling_",
     ],
@@ -235,6 +238,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/dax" = [
       "aws_dax_",
+    ],
+    "service/detective" = [
+      "aws_detective_"
     ],
     "service/devicefarm" = [
       "aws_devicefarm_",
@@ -715,6 +721,11 @@ behavior "pull_request_path_labeler" "service_labels" {
       "**/api_gateway_v2_*",
       "**/apigatewayv2_*"
     ]
+    "service/appconfig" = [
+      "aws/internal/service/appconfig/**/*",
+      "**/*_appconfig_*",
+      "**/appconfig_*"
+    ]
     "service/applicationautoscaling" = [
       "aws/internal/service/applicationautoscaling/**/*",
       "**/*_appautoscaling_*",
@@ -921,6 +932,11 @@ behavior "pull_request_path_labeler" "service_labels" {
       "aws/internal/service/dax/**/*",
       "**/*_dax_*",
       "**/dax_*"
+    ]
+    "service/detective" = [
+      "aws/internal/service/detective/**/*",
+      "**/*_detective_*",
+      "**/detective_*"
     ]
     "service/devicefarm" = [
       "aws/internal/service/devicefarm/**/*",

@@ -207,6 +207,12 @@ func expandCloudFrontDefaultCacheBehavior(m map[string]interface{}) *cloudfront.
 		dcb.DefaultTTL = aws.Int64(int64(m["default_ttl"].(int)))
 	}
 
+	if v, ok := m["trusted_key_groups"]; ok {
+		dcb.TrustedKeyGroups = expandTrustedKeyGroups(v.([]interface{}))
+	} else {
+		dcb.TrustedKeyGroups = expandTrustedKeyGroups([]interface{}{})
+	}
+
 	if v, ok := m["trusted_signers"]; ok {
 		dcb.TrustedSigners = expandTrustedSigners(v.([]interface{}))
 	} else {
@@ -255,6 +261,12 @@ func expandCacheBehavior(m map[string]interface{}) *cloudfront.CacheBehavior {
 		cb.DefaultTTL = aws.Int64(int64(m["default_ttl"].(int)))
 	}
 
+	if v, ok := m["trusted_key_groups"]; ok {
+		cb.TrustedKeyGroups = expandTrustedKeyGroups(v.([]interface{}))
+	} else {
+		cb.TrustedKeyGroups = expandTrustedKeyGroups([]interface{}{})
+	}
+
 	if v, ok := m["trusted_signers"]; ok {
 		cb.TrustedSigners = expandTrustedSigners(v.([]interface{}))
 	} else {
@@ -299,6 +311,9 @@ func flattenCloudFrontDefaultCacheBehavior(dcb *cloudfront.DefaultCacheBehavior)
 	if dcb.ForwardedValues != nil {
 		m["forwarded_values"] = []interface{}{flattenForwardedValues(dcb.ForwardedValues)}
 	}
+	if len(dcb.TrustedKeyGroups.Items) > 0 {
+		m["trusted_key_groups"] = flattenTrustedKeyGroups(dcb.TrustedKeyGroups)
+	}
 	if len(dcb.TrustedSigners.Items) > 0 {
 		m["trusted_signers"] = flattenTrustedSigners(dcb.TrustedSigners)
 	}
@@ -339,6 +354,9 @@ func flattenCacheBehavior(cb *cloudfront.CacheBehavior) map[string]interface{} {
 	if cb.ForwardedValues != nil {
 		m["forwarded_values"] = []interface{}{flattenForwardedValues(cb.ForwardedValues)}
 	}
+	if len(cb.TrustedKeyGroups.Items) > 0 {
+		m["trusted_key_groups"] = flattenTrustedKeyGroups(cb.TrustedKeyGroups)
+	}
 	if len(cb.TrustedSigners.Items) > 0 {
 		m["trusted_signers"] = flattenTrustedSigners(cb.TrustedSigners)
 	}
@@ -364,6 +382,26 @@ func flattenCacheBehavior(cb *cloudfront.CacheBehavior) map[string]interface{} {
 		m["path_pattern"] = *cb.PathPattern
 	}
 	return m
+}
+
+func expandTrustedKeyGroups(s []interface{}) *cloudfront.TrustedKeyGroups {
+	var tkg cloudfront.TrustedKeyGroups
+	if len(s) > 0 {
+		tkg.Quantity = aws.Int64(int64(len(s)))
+		tkg.Items = expandStringList(s)
+		tkg.Enabled = aws.Bool(true)
+	} else {
+		tkg.Quantity = aws.Int64(0)
+		tkg.Enabled = aws.Bool(false)
+	}
+	return &tkg
+}
+
+func flattenTrustedKeyGroups(tkg *cloudfront.TrustedKeyGroups) []interface{} {
+	if tkg.Items != nil {
+		return flattenStringList(tkg.Items)
+	}
+	return []interface{}{}
 }
 
 func expandTrustedSigners(s []interface{}) *cloudfront.TrustedSigners {
@@ -1131,6 +1169,34 @@ func flattenViewerCertificate(vc *cloudfront.ViewerCertificate) []interface{} {
 		m["minimum_protocol_version"] = *vc.MinimumProtocolVersion
 	}
 	return []interface{}{m}
+}
+
+func flattenCloudfrontActiveTrustedKeyGroups(atkg *cloudfront.ActiveTrustedKeyGroups) []interface{} {
+	if atkg == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled": aws.BoolValue(atkg.Enabled),
+		"items":   flattenCloudfrontKGKeyPairIds(atkg.Items),
+	}
+
+	return []interface{}{m}
+}
+
+func flattenCloudfrontKGKeyPairIds(keyPairIds []*cloudfront.KGKeyPairIds) []interface{} {
+	result := make([]interface{}, 0, len(keyPairIds))
+
+	for _, keyPairId := range keyPairIds {
+		m := map[string]interface{}{
+			"key_group_id": aws.StringValue(keyPairId.KeyGroupId),
+			"key_pair_ids": aws.StringValueSlice(keyPairId.KeyPairIds.Items),
+		}
+
+		result = append(result, m)
+	}
+
+	return result
 }
 
 func flattenCloudfrontActiveTrustedSigners(ats *cloudfront.ActiveTrustedSigners) []interface{} {

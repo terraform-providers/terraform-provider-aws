@@ -37,9 +37,9 @@ func testSweepIamGroups(region string) error {
 	input := &iam.ListGroupsInput{}
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListGroupsPages(input, func(page *iam.ListGroupsOutput, isLast bool) bool {
+	err = conn.ListGroupsPages(input, func(page *iam.ListGroupsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, group := range page.Groups {
@@ -126,7 +126,7 @@ func testSweepIamGroups(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

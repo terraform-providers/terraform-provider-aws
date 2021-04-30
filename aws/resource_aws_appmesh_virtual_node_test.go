@@ -30,9 +30,9 @@ func testSweepAppmeshVirtualNodes(region string) error {
 
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, isLast bool) bool {
+	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, mesh := range page.Meshes {
@@ -41,9 +41,9 @@ func testSweepAppmeshVirtualNodes(region string) error {
 			}
 			meshName := aws.StringValue(mesh.MeshName)
 
-			err := conn.ListVirtualNodesPages(listVirtualNodesInput, func(page *appmesh.ListVirtualNodesOutput, isLast bool) bool {
+			err := conn.ListVirtualNodesPages(listVirtualNodesInput, func(page *appmesh.ListVirtualNodesOutput, lastPage bool) bool {
 				if page == nil {
-					return !isLast
+					return !lastPage
 				}
 
 				for _, virtualNode := range page.VirtualNodes {
@@ -64,7 +64,7 @@ func testSweepAppmeshVirtualNodes(region string) error {
 					}
 				}
 
-				return !isLast
+				return !lastPage
 			})
 
 			if err != nil {
@@ -72,7 +72,7 @@ func testSweepAppmeshVirtualNodes(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

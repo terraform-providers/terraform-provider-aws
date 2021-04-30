@@ -117,13 +117,18 @@ func resourceAwsLightsailInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsLightsailInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lightsailconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	iName := d.Get("name").(string)
 
@@ -141,8 +146,8 @@ func resourceAwsLightsailInstanceCreate(d *schema.ResourceData, meta interface{}
 		req.UserData = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		req.Tags = keyvaluetags.New(v).IgnoreAws().LightsailTags()
+	if len(tags) > 0 {
+		req.Tags = tags.IgnoreAws().LightsailTags()
 	}
 
 	resp, err := conn.CreateInstances(&req)
@@ -177,6 +182,7 @@ func resourceAwsLightsailInstanceCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lightsailconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetInstance(&lightsail.GetInstanceInput{
@@ -226,8 +232,15 @@ func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("private_ip_address", i.PrivateIpAddress)
 	d.Set("public_ip_address", i.PublicIpAddress)
 
-	if err := d.Set("tags", keyvaluetags.LightsailKeyValueTags(i.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.LightsailKeyValueTags(i.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -267,8 +280,8 @@ func resourceAwsLightsailInstanceDelete(d *schema.ResourceData, meta interface{}
 func resourceAwsLightsailInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lightsailconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.LightsailUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Lightsail Instance (%s) tags: %s", d.Id(), err)

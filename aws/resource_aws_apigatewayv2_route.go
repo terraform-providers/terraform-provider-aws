@@ -118,7 +118,7 @@ func resourceAwsApiGatewayV2RouteCreate(d *schema.ResourceData, meta interface{}
 		req.OperationName = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("request_models"); ok {
-		req.RequestModels = stringMapToPointers(v.(map[string]interface{}))
+		req.RequestModels = expandStringMap(v.(map[string]interface{}))
 	}
 	if v, ok := d.GetOk("request_parameter"); ok && v.(*schema.Set).Len() > 0 {
 		req.RequestParameters = expandApiGatewayV2RouteRequestParameters(v.(*schema.Set).List())
@@ -242,7 +242,7 @@ func resourceAwsApiGatewayV2RouteUpdate(d *schema.ResourceData, meta interface{}
 			req.OperationName = aws.String(d.Get("operation_name").(string))
 		}
 		if d.HasChange("request_models") {
-			req.RequestModels = stringMapToPointers(d.Get("request_models").(map[string]interface{}))
+			req.RequestModels = expandStringMap(d.Get("request_models").(map[string]interface{}))
 		}
 		if d.HasChange("request_parameter") {
 			req.RequestParameters = requestParameters

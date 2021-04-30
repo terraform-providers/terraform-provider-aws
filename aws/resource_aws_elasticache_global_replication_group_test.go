@@ -96,6 +96,7 @@ func TestAccAWSElasticacheGlobalReplicationGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "cache_node_type", primaryReplicationGroupResourceName, "node_type"),
 					resource.TestCheckResourceAttrPair(resourceName, "cluster_enabled", primaryReplicationGroupResourceName, "cluster_enabled"),
 					resource.TestCheckResourceAttrPair(resourceName, "engine", primaryReplicationGroupResourceName, "engine"),
+					resource.TestCheckResourceAttrPair(resourceName, "engine_version_actual", primaryReplicationGroupResourceName, "engine_version"),
 					resource.TestCheckResourceAttrPair(resourceName, "actual_engine_version", primaryReplicationGroupResourceName, "engine_version"),
 					resource.TestCheckResourceAttr(resourceName, "global_replication_group_id_suffix", rName),
 					resource.TestMatchResourceAttr(resourceName, "global_replication_group_id", regexp.MustCompile(elasticacheGlobalReplicationGroupRegionPrefixFormat+rName)),

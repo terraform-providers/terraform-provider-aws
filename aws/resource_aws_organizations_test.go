@@ -24,6 +24,7 @@ func TestAccAWSOrganizations_serial(t *testing.T) {
 			"basic":      testAccAwsOrganizationsOrganizationalUnit_basic,
 			"disappears": testAccAwsOrganizationsOrganizationalUnit_disappears,
 			"Name":       testAccAwsOrganizationsOrganizationalUnit_Name,
+			"Tags":       testAccAwsOrganizationsOrganizationalUnit_Tags,
 		},
 		"OrganizationalUnits": {
 			"DataSource": testAccDataSourceAwsOrganizationsOrganizationalUnits_basic,

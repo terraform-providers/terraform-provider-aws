@@ -39,9 +39,9 @@ func testSweepCloudWatchEventTargets(region string) error {
 
 	rulesInput := &events.ListRulesInput{}
 
-	err = lister.ListRulesPages(conn, rulesInput, func(rulesPage *events.ListRulesOutput, lastRulesPage bool) bool {
+	err = lister.ListRulesPages(conn, rulesInput, func(rulesPage *events.ListRulesOutput, lastPage bool) bool {
 		if rulesPage == nil {
-			return !lastRulesPage
+			return !lastPage
 		}
 
 		for _, rule := range rulesPage.Rules {
@@ -54,9 +54,9 @@ func testSweepCloudWatchEventTargets(region string) error {
 				Limit: aws.Int64(100), // Set limit to allowed maximum to prevent API throttling
 			}
 
-			err := lister.ListTargetsByRulePages(conn, targetsInput, func(targetsPage *events.ListTargetsByRuleOutput, lastTargetsPage bool) bool {
+			err := lister.ListTargetsByRulePages(conn, targetsInput, func(targetsPage *events.ListTargetsByRuleOutput, lastPage bool) bool {
 				if targetsPage == nil {
-					return !lastTargetsPage
+					return !lastPage
 				}
 
 				for _, target := range targetsPage.Targets {
@@ -77,7 +77,7 @@ func testSweepCloudWatchEventTargets(region string) error {
 					}
 				}
 
-				return !lastTargetsPage
+				return !lastPage
 			})
 
 			if testSweepSkipSweepError(err) {
@@ -89,7 +89,7 @@ func testSweepCloudWatchEventTargets(region string) error {
 			}
 		}
 
-		return !lastRulesPage
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {
@@ -673,8 +673,6 @@ func testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName string) resou
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		fmt.Printf("%#v", rs.Primary.Attributes)
 
 		return fmt.Sprintf("%s/%s/%s", rs.Primary.Attributes["event_bus_name"], rs.Primary.Attributes["rule"], rs.Primary.Attributes["target_id"]), nil
 	}

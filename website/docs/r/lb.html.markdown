@@ -122,7 +122,7 @@ for load balancers of type `network` will force a recreation of the resource.
 * `enable_http2` - (Optional) Indicates whether HTTP/2 is enabled in `application` load balancers. Defaults to `true`.
 * `customer_owned_ipv4_pool` - (Optional) The ID of the customer owned ipv4 pool to use for this load balancer.
 * `ip_address_type` - (Optional) The type of IP addresses used by the subnets for your load balancer. The possible values are `ipv4` and `dualstack`
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Access Logs (`access_logs`) support the following:
 
@@ -145,6 +145,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The ARN of the load balancer (matches `id`).
 * `arn_suffix` - The ARN suffix for use with CloudWatch Metrics.
 * `dns_name` - The DNS name of the load balancer.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `zone_id` - The canonical hosted zone ID of the load balancer (to be used in a Route 53 Alias record).
 * `subnet_mapping.*.outpost_id` - ID of the Outpost containing the load balancer.
 

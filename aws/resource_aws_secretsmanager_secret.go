@@ -99,13 +99,18 @@ func resourceAwsSecretsManagerSecret() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).secretsmanagerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var secretName string
 	if v, ok := d.GetOk("name"); ok {
@@ -121,8 +126,8 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 		Name:        aws.String(secretName),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SecretsmanagerTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SecretsmanagerTags()
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok {
@@ -214,6 +219,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).secretsmanagerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &secretsmanager.DescribeSecretInput{
@@ -290,8 +296,15 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 		d.Set("rotation_rules", []interface{}{})
 	}
 
-	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -399,8 +412,8 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.SecretsmanagerUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

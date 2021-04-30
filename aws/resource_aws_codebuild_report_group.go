@@ -97,18 +97,23 @@ func resourceAwsCodeBuildReportGroup() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCodeBuildReportGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codebuildconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	createOpts := &codebuild.CreateReportGroupInput{
 		Name:         aws.String(d.Get("name").(string)),
 		Type:         aws.String(d.Get("type").(string)),
 		ExportConfig: expandAwsCodeBuildReportGroupExportConfig(d.Get("export_config").([]interface{})),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodebuildTags(),
+		Tags:         tags.IgnoreAws().CodebuildTags(),
 	}
 
 	resp, err := conn.CreateReportGroup(createOpts)
@@ -123,6 +128,7 @@ func resourceAwsCodeBuildReportGroupCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsCodeBuildReportGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codebuildconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	reportGroup, err := finder.ReportGroupByArn(conn, d.Id())
@@ -148,8 +154,15 @@ func resourceAwsCodeBuildReportGroupRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting export config: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.CodebuildKeyValueTags(reportGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.CodebuildKeyValueTags(reportGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -157,6 +170,8 @@ func resourceAwsCodeBuildReportGroupRead(d *schema.ResourceData, meta interface{
 
 func resourceAwsCodeBuildReportGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codebuildconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &codebuild.UpdateReportGroupInput{
 		Arn: aws.String(d.Id()),
@@ -166,8 +181,8 @@ func resourceAwsCodeBuildReportGroupUpdate(d *schema.ResourceData, meta interfac
 		input.ExportConfig = expandAwsCodeBuildReportGroupExportConfig(d.Get("export_config").([]interface{}))
 	}
 
-	if d.HasChange("tags") {
-		input.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodebuildTags()
+	if d.HasChange("tags_all") {
+		input.Tags = tags.IgnoreAws().CodebuildTags()
 	}
 
 	_, err := conn.UpdateReportGroup(input)

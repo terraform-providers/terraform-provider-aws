@@ -102,20 +102,25 @@ func resourceAwsApiGatewayV2DomainName() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsApiGatewayV2DomainNameCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	domainName := d.Get("domain_name").(string)
 
 	input := &apigatewayv2.CreateDomainNameInput{
 		DomainName:               aws.String(domainName),
 		DomainNameConfigurations: expandApiGatewayV2DomainNameConfiguration(d.Get("domain_name_configuration").([]interface{})),
 		MutualTlsAuthentication:  expandApiGatewayV2MutualTlsAuthentication(d.Get("mutual_tls_authentication").([]interface{})),
-		Tags:                     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Apigatewayv2Tags(),
+		Tags:                     tags.IgnoreAws().Apigatewayv2Tags(),
 	}
 
 	log.Printf("[DEBUG] Creating API Gateway v2 domain name: %s", input)
@@ -136,6 +141,7 @@ func resourceAwsApiGatewayV2DomainNameCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsApiGatewayV2DomainNameRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	output, err := finder.DomainNameByName(conn, d.Id())
@@ -167,8 +173,16 @@ func resourceAwsApiGatewayV2DomainNameRead(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("error setting mutual_tls_authentication: %w", err)
 	}
-	if err := d.Set("tags", keyvaluetags.Apigatewayv2KeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+
+	tags := keyvaluetags.Apigatewayv2KeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -210,8 +224,8 @@ func resourceAwsApiGatewayV2DomainNameUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Apigatewayv2UpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating API Gateway v2 domain name (%s) tags: %w", d.Id(), err)
 		}

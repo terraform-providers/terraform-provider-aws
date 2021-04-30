@@ -29,6 +29,7 @@ func resourceAwsKinesisAnalyticsV2Application() *schema.Resource {
 		Delete: resourceAwsKinesisAnalyticsV2ApplicationDelete,
 
 		CustomizeDiff: customdiff.Sequence(
+			SetTagsDiff,
 			customdiff.ForceNewIfChange("application_configuration.0.sql_application_configuration.0.input", func(_ context.Context, old, new, meta interface{}) bool {
 				// An existing input configuration cannot be deleted.
 				return len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0
@@ -909,6 +910,8 @@ func resourceAwsKinesisAnalyticsV2Application() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"tags_all": tagsSchemaComputed(),
+
 			"version_id": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -919,8 +922,10 @@ func resourceAwsKinesisAnalyticsV2Application() *schema.Resource {
 
 func resourceAwsKinesisAnalyticsV2ApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsv2conn
-	applicationName := d.Get("name").(string)
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
+	applicationName := d.Get("name").(string)
 	input := &kinesisanalyticsv2.CreateApplicationInput{
 		ApplicationConfiguration: expandKinesisAnalyticsV2ApplicationConfiguration(d.Get("application_configuration").([]interface{})),
 		ApplicationDescription:   aws.String(d.Get("description").(string)),
@@ -930,8 +935,8 @@ func resourceAwsKinesisAnalyticsV2ApplicationCreate(d *schema.ResourceData, meta
 		ServiceExecutionRole:     aws.String(d.Get("service_execution_role").(string)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().Kinesisanalyticsv2Tags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().Kinesisanalyticsv2Tags()
 	}
 
 	log.Printf("[DEBUG] Creating Kinesis Analytics v2 Application: %s", input)
@@ -961,6 +966,7 @@ func resourceAwsKinesisAnalyticsV2ApplicationCreate(d *schema.ResourceData, meta
 
 func resourceAwsKinesisAnalyticsV2ApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	application, err := finder.ApplicationDetailByName(conn, d.Get("name").(string))
@@ -1000,8 +1006,15 @@ func resourceAwsKinesisAnalyticsV2ApplicationRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error listing tags for Kinesis Analytics v2 Application (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -1469,9 +1482,9 @@ func resourceAwsKinesisAnalyticsV2ApplicationUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	if d.HasChange("tags") {
+	if d.HasChange("tags_all") {
 		arn := d.Get("arn").(string)
-		o, n := d.GetChange("tags")
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Kinesisanalyticsv2UpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Kinesis Analytics v2 Application (%s) tags: %s", arn, err)
 		}
@@ -2243,7 +2256,7 @@ func expandKinesisAnalyticsV2PropertyGroups(vPropertyGroups []interface{}) []*ki
 		}
 
 		if vPropertyMap, ok := mPropertyGroup["property_map"].(map[string]interface{}); ok && len(vPropertyMap) > 0 {
-			propertyGroup.PropertyMap = stringMapToPointers(vPropertyMap)
+			propertyGroup.PropertyMap = expandStringMap(vPropertyMap)
 		}
 
 		propertyGroups = append(propertyGroups, propertyGroup)

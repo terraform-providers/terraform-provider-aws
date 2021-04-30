@@ -50,13 +50,13 @@ func dataSourceAwsSfnActivityRead(d *schema.ResourceData, meta interface{}) erro
 		name := nm.(string)
 		var acts []*sfn.ActivityListItem
 
-		err := conn.ListActivitiesPages(&sfn.ListActivitiesInput{}, func(page *sfn.ListActivitiesOutput, b bool) bool {
+		err := conn.ListActivitiesPages(&sfn.ListActivitiesInput{}, func(page *sfn.ListActivitiesOutput, lastPage bool) bool {
 			for _, a := range page.Activities {
 				if name == aws.StringValue(a.Name) {
 					acts = append(acts, a)
 				}
 			}
-			return true
+			return !lastPage
 		})
 
 		if err != nil {

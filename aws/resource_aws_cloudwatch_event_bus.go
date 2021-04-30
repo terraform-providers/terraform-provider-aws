@@ -31,21 +31,26 @@ func resourceAwsCloudWatchEventBus() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCloudWatchEventBusCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	eventBusName := d.Get("name").(string)
 	input := &events.CreateEventBusInput{
 		Name: aws.String(eventBusName),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CloudwatcheventsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().CloudwatcheventsTags()
 	}
 
 	log.Printf("[DEBUG] Creating CloudWatch Events event bus: %v", input)
@@ -64,6 +69,7 @@ func resourceAwsCloudWatchEventBusCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsCloudWatchEventBusRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &events.DescribeEventBusInput{
@@ -90,8 +96,15 @@ func resourceAwsCloudWatchEventBusRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("error listing tags for CloudWatch Events event bus (%s): %w", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -101,8 +114,8 @@ func resourceAwsCloudWatchEventBusUpdate(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).cloudwatcheventsconn
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CloudwatcheventsUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating CloudwWatch Events event bus (%s) tags: %w", arn, err)

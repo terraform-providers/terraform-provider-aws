@@ -120,7 +120,7 @@ The following arguments are supported:
 * `maximum_execution_frequency` - (Optional) The maximum frequency with which AWS Config runs evaluations for a rule.
 * `scope` - (Optional) Scope defines which resources can trigger an evaluation for the rule as documented below.
 * `source` - (Required) Source specifies the rule owner, the rule identifier, and the notifications that cause the function to evaluate your AWS resources as documented below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### `scope`
 
@@ -153,6 +153,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the config rule
 * `rule_id` - The ID of the config rule
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -33,6 +33,7 @@ func resourceAwsConfigConfigurationAggregator() *schema.Resource {
 			customdiff.ForceNewIfChange("organization_aggregation_source", func(_ context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0
 			}),
+			SetTagsDiff,
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -106,17 +107,20 @@ func resourceAwsConfigConfigurationAggregator() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsConfigConfigurationAggregatorPut(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).configconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &configservice.PutConfigurationAggregatorInput{
 		ConfigurationAggregatorName: aws.String(d.Get("name").(string)),
-		Tags:                        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ConfigserviceTags(),
+		Tags:                        tags.IgnoreAws().ConfigserviceTags(),
 	}
 
 	if v, ok := d.GetOk("account_aggregation_source"); ok && len(v.([]interface{})) > 0 {
@@ -135,8 +139,8 @@ func resourceAwsConfigConfigurationAggregatorPut(d *schema.ResourceData, meta in
 	configAgg := resp.ConfigurationAggregator
 	d.SetId(aws.StringValue(configAgg.ConfigurationAggregatorName))
 
-	if !d.IsNewResource() && d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if !d.IsNewResource() && d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		arn := aws.StringValue(configAgg.ConfigurationAggregatorArn)
 		if err := keyvaluetags.ConfigserviceUpdateTags(conn, arn, o, n); err != nil {
@@ -149,6 +153,7 @@ func resourceAwsConfigConfigurationAggregatorPut(d *schema.ResourceData, meta in
 
 func resourceAwsConfigConfigurationAggregatorRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).configconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &configservice.DescribeConfigurationAggregatorsInput{
@@ -190,8 +195,15 @@ func resourceAwsConfigConfigurationAggregatorRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error listing tags for Config Configuration Aggregator (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

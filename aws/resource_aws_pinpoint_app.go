@@ -137,13 +137,18 @@ func resourceAwsPinpointApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsPinpointAppCreate(d *schema.ResourceData, meta interface{}) error {
 	pinpointconn := meta.(*AWSClient).pinpointconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 
@@ -163,8 +168,8 @@ func resourceAwsPinpointAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		req.CreateApplicationRequest.Tags = keyvaluetags.New(v).IgnoreAws().PinpointTags()
+	if len(tags) > 0 {
+		req.CreateApplicationRequest.Tags = tags.IgnoreAws().PinpointTags()
 	}
 
 	output, err := pinpointconn.CreateApp(req)
@@ -211,8 +216,8 @@ func resourceAwsPinpointAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if !d.IsNewResource() {
 		arn := d.Get("arn").(string)
-		if d.HasChange("tags") {
-			o, n := d.GetChange("tags")
+		if d.HasChange("tags_all") {
+			o, n := d.GetChange("tags_all")
 
 			if err := keyvaluetags.PinpointUpdateTags(conn, arn, o, n); err != nil {
 				return fmt.Errorf("error updating PinPoint Application (%s) tags: %s", arn, err)
@@ -225,6 +230,7 @@ func resourceAwsPinpointAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsPinpointAppRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).pinpointconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading Pinpoint App Attributes for %s", d.Id())
@@ -276,8 +282,15 @@ func resourceAwsPinpointAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for PinPoint Application (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

@@ -29,9 +29,9 @@ func testSweepGlacierVaults(region string) error {
 	conn := client.(*AWSClient).glacierconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListVaultsPages(&glacier.ListVaultsInput{}, func(page *glacier.ListVaultsOutput, isLast bool) bool {
+	err = conn.ListVaultsPages(&glacier.ListVaultsInput{}, func(page *glacier.ListVaultsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, vault := range page.VaultList {
@@ -61,7 +61,7 @@ func testSweepGlacierVaults(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping Glacier Vaults sweep for %s: %s", region, err)

@@ -111,19 +111,25 @@ func resourceAwsGlobalAcceleratorAccelerator() *schema.Resource {
 				},
 			},
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsGlobalAcceleratorAcceleratorCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).globalacceleratorconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
 	input := &globalaccelerator.CreateAcceleratorInput{
 		Name:             aws.String(name),
 		IdempotencyToken: aws.String(resource.UniqueId()),
 		Enabled:          aws.Bool(d.Get("enabled").(bool)),
-		Tags:             keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlobalacceleratorTags(),
+		Tags:             tags.IgnoreAws().GlobalacceleratorTags(),
 	}
 
 	if v, ok := d.GetOk("ip_address_type"); ok {
@@ -162,6 +168,7 @@ func resourceAwsGlobalAcceleratorAcceleratorCreate(d *schema.ResourceData, meta 
 
 func resourceAwsGlobalAcceleratorAcceleratorRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).globalacceleratorconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	accelerator, err := finder.AcceleratorByARN(conn, d.Id())
@@ -201,8 +208,15 @@ func resourceAwsGlobalAcceleratorAcceleratorRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("error listing tags for Global Accelerator Accelerator (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -267,8 +281,8 @@ func resourceAwsGlobalAcceleratorAcceleratorUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.GlobalacceleratorUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Global Accelerator Accelerator (%s) tags: %w", d.Id(), err)

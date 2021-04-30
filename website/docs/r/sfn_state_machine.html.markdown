@@ -102,7 +102,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the state machine.
 * `definition` - (Required) The Amazon States Language definition of the state machine.
 * `role_arn` - (Required) The Amazon Resource Name (ARN) of the IAM role to use for this state machine.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `logging_configuration` - (Optional) Defines what execution history events are logged and where they are logged. The `logging_configuration` parameter is only valid when `type` is set to `EXPRESS`. Defaults to `OFF`. For more information see [Logging Express Workflows](https://docs.aws.amazon.com/step-functions/latest/dg/cw-logs.html) and [Log Levels](https://docs.aws.amazon.com/step-functions/latest/dg/cloudwatch-log-level.html) in the AWS Step Functions User Guide.
 * `type` - (Optional) Determines whether a Standard or Express state machine is created. The default is STANDARD. You cannot update the type of a state machine once it has been created. Valid Values: STANDARD | EXPRESS
 
@@ -120,6 +120,7 @@ In addition to all arguments above, the following attributes are exported:
 * `creation_date` - The date the state machine was created.
 * `status` - The current status of the state machine. Either "ACTIVE" or "DELETING".
 * `arn` - The ARN of the state machine.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

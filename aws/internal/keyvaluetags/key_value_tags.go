@@ -491,20 +491,18 @@ func (tags KeyValueTags) UrlEncode() string {
 	return values.Encode()
 }
 
-// New creates KeyValueTags from common Terraform Provider SDK types.
-// Supports map[string]string, map[string]*string, map[string]interface{}, and []interface{}.
+// New creates KeyValueTags from common types or returns an empty KeyValueTags.
+//
+// Supports various Terraform Plugin SDK types including map[string]string,
+// map[string]*string, map[string]interface{}, and []interface{}.
 // When passed []interface{}, all elements are treated as keys and assigned nil values.
+// When passed KeyValueTags or its underlying type implementation, returns itself.
 func New(i interface{}) KeyValueTags {
 	switch value := i.(type) {
+	case KeyValueTags:
+		return make(KeyValueTags).Merge(value)
 	case map[string]*TagData:
-		kvtm := make(KeyValueTags, len(value))
-
-		for k, v := range value {
-			tagData := v
-			kvtm[k] = tagData
-		}
-
-		return kvtm
+		return make(KeyValueTags).Merge(KeyValueTags(value))
 	case map[string]string:
 		kvtm := make(KeyValueTags, len(value))
 
@@ -533,8 +531,13 @@ func New(i interface{}) KeyValueTags {
 		kvtm := make(KeyValueTags, len(value))
 
 		for k, v := range value {
-			str := v.(string)
-			kvtm[k] = &TagData{Value: &str}
+			kvtm[k] = &TagData{}
+
+			str, ok := v.(string)
+
+			if ok {
+				kvtm[k].Value = &str
+			}
 		}
 
 		return kvtm

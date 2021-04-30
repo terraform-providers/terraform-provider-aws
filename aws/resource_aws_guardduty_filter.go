@@ -47,7 +47,8 @@ func resourceAwsGuardDutyFilter() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 512),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"finding_criteria": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -115,11 +116,15 @@ func resourceAwsGuardDutyFilter() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsGuardDutyFilterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).guarddutyconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := guardduty.CreateFilterInput{
 		Action:      aws.String(d.Get("action").(string)),
@@ -135,11 +140,8 @@ func resourceAwsGuardDutyFilterCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		tags := v.(map[string]interface{})
-		if len(tags) > 0 {
-			input.Tags = keyvaluetags.New(tags).GuarddutyTags()
-		}
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().GuarddutyTags()
 	}
 
 	log.Printf("[DEBUG] Creating GuardDuty Filter: %s", input)
@@ -154,6 +156,10 @@ func resourceAwsGuardDutyFilterCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsGuardDutyFilterRead(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).guarddutyconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	var detectorID, name string
 	var err error
 
@@ -167,8 +173,6 @@ func resourceAwsGuardDutyFilterRead(d *schema.ResourceData, meta interface{}) er
 		detectorID = d.Get("detector_id").(string)
 		name = d.Get("name").(string)
 	}
-
-	conn := meta.(*AWSClient).guarddutyconn
 
 	input := guardduty.GetFilterInput{
 		DetectorId: aws.String(detectorID),
@@ -206,8 +210,17 @@ func resourceAwsGuardDutyFilterRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", filter.Name)
 	d.Set("detector_id", detectorID)
 	d.Set("rank", filter.Rank)
-	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
-	d.Set("tags", keyvaluetags.GuarddutyKeyValueTags(filter.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
+
+	tags := keyvaluetags.GuarddutyKeyValueTags(filter.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 	d.SetId(guardDutyFilterCreateID(detectorID, name))
 
 	return nil
@@ -239,8 +252,8 @@ func resourceAwsGuardDutyFilterUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.GuarddutyUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating GuardDuty Filter (%s) tags: %s", d.Get("arn").(string), err)

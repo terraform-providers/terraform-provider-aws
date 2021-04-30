@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"testing"
@@ -395,10 +394,17 @@ func TestValidatePrincipal(t *testing.T) {
 
 	validNames := []string{
 		"IAM_ALLOWED_PRINCIPALS", // Special principal
+		"123456789012",           // lintignore:AWSAT005          // Example Account ID (Valid looking but not real)
+		"111122223333",           // lintignore:AWSAT005          // Example Account ID (Valid looking but not real)
 		"arn:aws-us-gov:iam::357342307427:role/tf-acc-test-3217321001347236965",          // lintignore:AWSAT005          // IAM Role
 		"arn:aws:iam::123456789012:user/David",                                           // lintignore:AWSAT005          // IAM User
 		"arn:aws-us-gov:iam:us-west-2:357342307427:role/tf-acc-test-3217321001347236965", // lintignore:AWSAT003,AWSAT005 // Non-global IAM Role?
 		"arn:aws:iam:us-east-1:123456789012:user/David",                                  // lintignore:AWSAT003,AWSAT005 // Non-global IAM User?
+		"arn:aws:iam::111122223333:saml-provider/idp1:group/data-scientists",             // lintignore:AWSAT005          // SAML group
+		"arn:aws:iam::111122223333:saml-provider/idp1:user/Paul",                         // lintignore:AWSAT005          // SAML user
+		"arn:aws:quicksight:us-east-1:111122223333:group/default/data_scientists",        // lintignore:AWSAT003,AWSAT005 // quicksight group
+		"arn:aws:organizations::111122223333:organization/o-abcdefghijkl",                // lintignore:AWSAT005          // organization
+		"arn:aws:organizations::111122223333:ou/o-abcdefghijkl/ou-ab00-cdefgh",           // lintignore:AWSAT005          // ou
 	}
 	for _, v := range validNames {
 		_, errors := validatePrincipal(v, "arn")
@@ -410,7 +416,7 @@ func TestValidatePrincipal(t *testing.T) {
 	invalidNames := []string{
 		"IAM_NOT_ALLOWED_PRINCIPALS", // doesn't exist
 		"arn",
-		"123456789012",
+		"1234567890125", //not an account id
 		"arn:aws",
 		"arn:aws:logs",            //lintignore:AWSAT005
 		"arn:aws:logs:region:*:*", //lintignore:AWSAT005
@@ -970,92 +976,6 @@ func TestValidateStringIsJsonOrYaml(t *testing.T) {
 		_, errors := validateStringIsJsonOrYaml(tc.Value, "template")
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected %q not to trigger a validation error.", tc.Value)
-		}
-	}
-}
-
-func TestValidateSQSQueueName(t *testing.T) {
-	validNames := []string{
-		"valid-name",
-		"valid02-name",
-		"Valid-Name1",
-		"_",
-		"-",
-		strings.Repeat("W", 80),
-	}
-	for _, v := range validNames {
-		if _, errors := validateSQSQueueName(v, "test_attribute"); len(errors) > 0 {
-			t.Fatalf("%q should be a valid SQS queue Name", v)
-		}
-
-		if errors := validateSQSNonFifoQueueName(v); len(errors) > 0 {
-			t.Fatalf("%q should be a valid SQS non-fifo queue Name", v)
-		}
-	}
-
-	invalidNames := []string{
-		"Here is a name with: colon",
-		"another * invalid name",
-		"also $ invalid",
-		"This . is also %% invalid@!)+(",
-		"*",
-		"",
-		" ",
-		".",
-		strings.Repeat("W", 81), // length > 80
-	}
-	for _, v := range invalidNames {
-		if _, errors := validateSQSQueueName(v, "test_attribute"); len(errors) == 0 {
-			t.Fatalf("%q should be an invalid SQS queue Name", v)
-		}
-
-		if errors := validateSQSNonFifoQueueName(v); len(errors) == 0 {
-			t.Fatalf("%q should be an invalid SQS non-fifo queue Name", v)
-		}
-	}
-}
-
-func TestValidateSQSFifoQueueName(t *testing.T) {
-	validNames := []string{
-		"valid-name.fifo",
-		"valid02-name.fifo",
-		"Valid-Name1.fifo",
-		"_.fifo",
-		"a.fifo",
-		"A.fifo",
-		"9.fifo",
-		"-.fifo",
-		fmt.Sprintf("%s.fifo", strings.Repeat("W", 75)),
-	}
-	for _, v := range validNames {
-		if _, errors := validateSQSQueueName(v, "test_attribute"); len(errors) > 0 {
-			t.Fatalf("%q should be a valid SQS queue Name", v)
-		}
-
-		if errors := validateSQSFifoQueueName(v); len(errors) > 0 {
-			t.Fatalf("%q should be a valid SQS FIFO queue Name: %v", v, errors)
-		}
-	}
-
-	invalidNames := []string{
-		"Here is a name with: colon",
-		"another * invalid name",
-		"also $ invalid",
-		"This . is also %% invalid@!)+(",
-		".fifo",
-		"*",
-		"",
-		" ",
-		".",
-		strings.Repeat("W", 81), // length > 80
-	}
-	for _, v := range invalidNames {
-		if _, errors := validateSQSQueueName(v, "test_attribute"); len(errors) == 0 {
-			t.Fatalf("%q should be an invalid SQS queue Name", v)
-		}
-
-		if errors := validateSQSFifoQueueName(v); len(errors) == 0 {
-			t.Fatalf("%q should be an invalid SQS FIFO queue Name: %v", v, errors)
 		}
 	}
 }
@@ -3330,6 +3250,58 @@ func TestValidateTypeStringIsDateOrInt(t *testing.T) {
 		_, errors := validateTypeStringIsDateOrPositiveInt(f, "parameter")
 		if len(errors) == 0 {
 			t.Fatalf("expected the value %q to fail validation", f)
+		}
+	}
+}
+
+func TestResourceAWSEKSClusterNameValidation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "my-valid-eks-cluster_1_dev",
+			ErrCount: 0,
+		},
+		{
+			Value:    `_invalid`,
+			ErrCount: 1,
+		},
+		{
+			Value:    `-invalid`,
+			ErrCount: 1,
+		},
+		{
+			Value:    `invalid@`,
+			ErrCount: 1,
+		},
+		{
+			Value:    `invalid*`,
+			ErrCount: 1,
+		},
+		{
+			Value:    `invalid:`,
+			ErrCount: 1,
+		},
+		{
+			Value:    `invalid$`,
+			ErrCount: 1,
+		},
+		{
+			Value:    ``,
+			ErrCount: 2,
+		},
+		{
+			Value:    acctest.RandStringFromCharSet(101, acctest.CharSetAlpha),
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateEKSClusterName(tc.Value, "cluster_name")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the EKS Cluster Name to trigger a validation error: %s, expected %d, got %d errors", tc.Value, tc.ErrCount, len(errors))
 		}
 	}
 }

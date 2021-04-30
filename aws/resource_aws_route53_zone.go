@@ -87,7 +87,8 @@ func resourceAwsRoute53Zone() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"force_destroy": {
 				Type:     schema.TypeBool,
@@ -95,11 +96,15 @@ func resourceAwsRoute53Zone() *schema.Resource {
 				Default:  false,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRoute53ZoneCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).r53conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	region := meta.(*AWSClient).region
 
 	input := &route53.CreateHostedZoneInput{
@@ -138,7 +143,7 @@ func resourceAwsRoute53ZoneCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if err := keyvaluetags.Route53UpdateTags(conn, d.Id(), route53.TagResourceTypeHostedzone, map[string]interface{}{}, d.Get("tags").(map[string]interface{})); err != nil {
+	if err := keyvaluetags.Route53UpdateTags(conn, d.Id(), route53.TagResourceTypeHostedzone, nil, tags); err != nil {
 		return fmt.Errorf("error setting Route53 Zone (%s) tags: %s", d.Id(), err)
 	}
 
@@ -158,6 +163,7 @@ func resourceAwsRoute53ZoneCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).r53conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &route53.GetHostedZoneInput{
@@ -226,8 +232,15 @@ func resourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for Route53 Hosted Zone (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -250,8 +263,8 @@ func resourceAwsRoute53ZoneUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Route53UpdateTags(conn, d.Id(), route53.TagResourceTypeHostedzone, o, n); err != nil {
 			return fmt.Errorf("error updating Route53 Zone (%s) tags: %s", d.Id(), err)
@@ -328,7 +341,7 @@ func deleteAllRecordsInHostedZoneId(hostedZoneId, hostedZoneName string, conn *r
 
 	var lastDeleteErr, lastErrorFromWaiter error
 	var pageNum = 0
-	err := conn.ListResourceRecordSetsPages(input, func(page *route53.ListResourceRecordSetsOutput, isLastPage bool) bool {
+	err := conn.ListResourceRecordSetsPages(input, func(page *route53.ListResourceRecordSetsOutput, lastPage bool) bool {
 		sets := page.ResourceRecordSets
 		pageNum += 1
 
@@ -368,7 +381,7 @@ func deleteAllRecordsInHostedZoneId(hostedZoneId, hostedZoneName string, conn *r
 			log.Printf("[DEBUG] Unable to wait for change batch because of an error: %s", lastDeleteErr)
 		}
 
-		return !isLastPage
+		return !lastPage
 	})
 	if err != nil {
 		return fmt.Errorf("Failed listing/deleting record sets: %s\nLast error from deletion: %s\nLast error from waiter: %s",

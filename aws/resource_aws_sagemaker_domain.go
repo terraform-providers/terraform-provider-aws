@@ -224,7 +224,8 @@ func resourceAwsSagemakerDomain() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -238,11 +239,15 @@ func resourceAwsSagemakerDomain() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSagemakerDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &sagemaker.CreateDomainInput{
 		DomainName:           aws.String(d.Get("domain_name").(string)),
@@ -253,8 +258,8 @@ func resourceAwsSagemakerDomainCreate(d *schema.ResourceData, meta interface{}) 
 		DefaultUserSettings:  expandSagemakerDomainDefaultUserSettings(d.Get("default_user_settings").([]interface{})),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok {
@@ -284,6 +289,7 @@ func resourceAwsSagemakerDomainCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsSagemakerDomainRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	domain, err := finder.DomainByName(conn, d.Id())
@@ -321,8 +327,15 @@ func resourceAwsSagemakerDomainRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for SageMaker Domain (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -348,8 +361,8 @@ func resourceAwsSagemakerDomainUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating SageMaker domain (%s) tags: %w", d.Id(), err)

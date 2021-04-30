@@ -46,7 +46,7 @@ resource "aws_lakeformation_permissions" "test" {
 The following arguments are required:
 
 * `permissions` – (Required) List of permissions granted to the principal. Valid values may include `ALL`, `ALTER`, `CREATE_DATABASE`, `CREATE_TABLE`, `DATA_LOCATION_ACCESS`, `DELETE`, `DESCRIBE`, `DROP`, `INSERT`, and `SELECT`. For details on each permission, see [Lake Formation Permissions Reference](https://docs.aws.amazon.com/lake-formation/latest/dg/lf-permissions-reference.html).
-* `principal` – (Required) Principal to be granted the permissions on the resource. Supported principals include IAM users and IAM roles.
+* `principal` – (Required) Principal to be granted the permissions on the resource. Supported principals include IAM roles, users, groups, OUs, and organizations as well as AWS account IDs for cross-account permissions. For more information, see [Lake Formation Permissions Reference](https://docs.aws.amazon.com/lake-formation/latest/dg/lf-permissions-reference.html).
 
 One of the following is required:
 

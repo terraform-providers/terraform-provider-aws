@@ -152,13 +152,18 @@ func resourceAwsBackupPlan() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &backup.CreateBackupPlanInput{
 		BackupPlan: &backup.PlanInput{
@@ -166,7 +171,7 @@ func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error
 			Rules:                  expandBackupPlanRules(d.Get("rule").(*schema.Set)),
 			AdvancedBackupSettings: expandBackupPlanAdvancedBackupSettings(d.Get("advanced_backup_setting").(*schema.Set)),
 		},
-		BackupPlanTags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().BackupTags(),
+		BackupPlanTags: tags.IgnoreAws().BackupTags(),
 	}
 
 	log.Printf("[DEBUG] Creating Backup Plan: %#v", input)
@@ -182,6 +187,7 @@ func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetBackupPlan(&backup.GetBackupPlanInput{
@@ -214,8 +220,15 @@ func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error listing tags for Backup Plan (%s): %w", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -241,8 +254,8 @@ func resourceAwsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.BackupUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Backup Plan (%s): %w", d.Id(), err)
 		}
@@ -343,7 +356,7 @@ func expandBackupPlanAdvancedBackupSettings(vAdvancedBackupSettings *schema.Set)
 		mAdvancedBackupSetting := vAdvancedBackupSetting.(map[string]interface{})
 
 		if v, ok := mAdvancedBackupSetting["backup_options"].(map[string]interface{}); ok && v != nil {
-			advancedBackupSetting.BackupOptions = stringMapToPointers(v)
+			advancedBackupSetting.BackupOptions = expandStringMap(v)
 		}
 		if v, ok := mAdvancedBackupSetting["resource_type"].(string); ok && v != "" {
 			advancedBackupSetting.ResourceType = aws.String(v)

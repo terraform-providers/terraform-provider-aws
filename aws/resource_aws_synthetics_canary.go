@@ -70,7 +70,7 @@ func resourceAwsSyntheticsCanary() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(1, 21),
-					validation.StringMatch(regexp.MustCompile(`^[0-9a-z_\-]+$`), "must contain only alphanumeric, hyphen, underscore."),
+					validation.StringMatch(regexp.MustCompile(`^[0-9a-z_\-]+$`), "must contain only lowercase alphanumeric, hyphen, or underscore."),
 				),
 			},
 			"run_config": {
@@ -162,7 +162,8 @@ func resourceAwsSyntheticsCanary() *schema.Resource {
 				Default:      31,
 				ValidateFunc: validation.IntBetween(1, 455),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"timeline": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -216,11 +217,15 @@ func resourceAwsSyntheticsCanary() *schema.Resource {
 				ConflictsWith: []string{"s3_bucket", "s3_key", "s3_version"},
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSyntheticsCanaryCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).syntheticsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &synthetics.CreateCanaryInput{
 		Name:               aws.String(d.Get("name").(string)),
@@ -236,8 +241,8 @@ func resourceAwsSyntheticsCanaryCreate(d *schema.ResourceData, meta interface{})
 
 	input.Code = code
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().SyntheticsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SyntheticsTags()
 	}
 
 	if v, ok := d.GetOk("run_config"); ok {
@@ -328,6 +333,7 @@ func resourceAwsSyntheticsCanaryCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsSyntheticsCanaryRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).syntheticsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := finder.CanaryByName(conn, d.Id())
@@ -378,8 +384,15 @@ func resourceAwsSyntheticsCanaryRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting schedule: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.SyntheticsKeyValueTags(canary.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.SyntheticsKeyValueTags(canary.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -388,7 +401,7 @@ func resourceAwsSyntheticsCanaryRead(d *schema.ResourceData, meta interface{}) e
 func resourceAwsSyntheticsCanaryUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).syntheticsconn
 
-	if d.HasChangesExcept("tags", "start_canary") {
+	if d.HasChangesExcept("tags", "tags_all", "start_canary") {
 		input := &synthetics.UpdateCanaryInput{
 			Name: aws.String(d.Id()),
 		}
@@ -478,8 +491,8 @@ func resourceAwsSyntheticsCanaryUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SyntheticsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Synthetics Canary (%s) tags: %w", d.Id(), err)

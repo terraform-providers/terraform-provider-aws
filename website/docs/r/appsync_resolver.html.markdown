@@ -108,8 +108,8 @@ The following arguments are supported:
 * `api_id` - (Required) The API ID for the GraphQL API.
 * `type` - (Required) The type name from the schema defined in the GraphQL API.
 * `field` - (Required) The field name from the schema defined in the GraphQL API.
-* `request_template` - (Required) The request mapping template for UNIT resolver or 'before mapping template' for PIPELINE resolver.
-* `response_template` - (Required) The response mapping template for UNIT resolver or 'after mapping template' for PIPELINE resolver.
+* `request_template` - (Optional) The request mapping template for UNIT resolver or 'before mapping template' for PIPELINE resolver. Required for non-Lambda resolvers.
+* `response_template` - (Optional) The response mapping template for UNIT resolver or 'after mapping template' for PIPELINE resolver. Required for non-Lambda resolvers.
 * `data_source` - (Optional) The DataSource name.
 * `kind`  - (Optional) The resolver type. Valid values are `UNIT` and `PIPELINE`.
 * `pipeline_config` - (Optional) The PipelineConfig.

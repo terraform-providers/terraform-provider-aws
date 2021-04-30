@@ -121,7 +121,7 @@ func dataSourceAwsEc2ManagedPrefixListRead(ctx context.Context, d *schema.Resour
 		&ec2.GetManagedPrefixListEntriesInput{
 			PrefixListId: pl.PrefixListId,
 		},
-		func(output *ec2.GetManagedPrefixListEntriesOutput, last bool) bool {
+		func(output *ec2.GetManagedPrefixListEntriesOutput, lastPage bool) bool {
 			for _, entry := range output.Entries {
 				entries = append(entries, map[string]interface{}{
 					"cidr":        aws.StringValue(entry.Cidr),
@@ -129,7 +129,7 @@ func dataSourceAwsEc2ManagedPrefixListRead(ctx context.Context, d *schema.Resour
 				})
 			}
 
-			return true
+			return !lastPage
 		},
 	)
 

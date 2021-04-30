@@ -77,19 +77,24 @@ func resourceAwsRedshiftParameterGroup() *schema.Resource {
 				Set: resourceAwsRedshiftParameterHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRedshiftParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	createOpts := redshift.CreateClusterParameterGroupInput{
 		ParameterGroupName:   aws.String(d.Get("name").(string)),
 		ParameterGroupFamily: aws.String(d.Get("family").(string)),
 		Description:          aws.String(d.Get("description").(string)),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags(),
+		Tags:                 tags.IgnoreAws().RedshiftTags(),
 	}
 
 	log.Printf("[DEBUG] Create Redshift Parameter Group: %#v", createOpts)
@@ -118,6 +123,7 @@ func resourceAwsRedshiftParameterGroupCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := redshift.DescribeClusterParameterGroupsInput{
@@ -148,8 +154,15 @@ func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interfac
 	d.Set("name", describeResp.ParameterGroups[0].ParameterGroupName)
 	d.Set("family", describeResp.ParameterGroups[0].ParameterGroupFamily)
 	d.Set("description", describeResp.ParameterGroups[0].Description)
-	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(describeResp.ParameterGroups[0].Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.RedshiftKeyValueTags(describeResp.ParameterGroups[0].Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	describeParametersOpts := redshift.DescribeClusterParametersInput{
@@ -198,8 +211,8 @@ func resourceAwsRedshiftParameterGroupUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Redshift Parameter Group (%s) tags: %s", d.Get("arn").(string), err)

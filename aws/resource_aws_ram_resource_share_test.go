@@ -14,8 +14,8 @@ import (
 
 func TestAccAwsRamResourceShare_basic(t *testing.T) {
 	var resourceShare ram.ResourceShare
-	resourceName := "aws_ram_resource_share.example"
-	shareName := fmt.Sprintf("tf-%s", acctest.RandString(10))
+	resourceName := "aws_ram_resource_share.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,12 +24,12 @@ func TestAccAwsRamResourceShare_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsRamResourceShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsRamResourceShareConfigName(shareName),
+				Config: testAccAwsRamResourceShareConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ram", regexp.MustCompile(`resource-share/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "allow_external_principals", "false"),
-					resource.TestCheckResourceAttr(resourceName, "name", shareName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -44,8 +44,8 @@ func TestAccAwsRamResourceShare_basic(t *testing.T) {
 
 func TestAccAwsRamResourceShare_AllowExternalPrincipals(t *testing.T) {
 	var resourceShare1, resourceShare2 ram.ResourceShare
-	resourceName := "aws_ram_resource_share.example"
-	shareName := fmt.Sprintf("tf-%s", acctest.RandString(10))
+	resourceName := "aws_ram_resource_share.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -54,7 +54,7 @@ func TestAccAwsRamResourceShare_AllowExternalPrincipals(t *testing.T) {
 		CheckDestroy: testAccCheckAwsRamResourceShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsRamResourceShareConfigAllowExternalPrincipals(shareName, false),
+				Config: testAccAwsRamResourceShareConfigAllowExternalPrincipals(rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare1),
 					resource.TestCheckResourceAttr(resourceName, "allow_external_principals", "false"),
@@ -66,7 +66,7 @@ func TestAccAwsRamResourceShare_AllowExternalPrincipals(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAwsRamResourceShareConfigAllowExternalPrincipals(shareName, true),
+				Config: testAccAwsRamResourceShareConfigAllowExternalPrincipals(rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare2),
 					resource.TestCheckResourceAttr(resourceName, "allow_external_principals", "true"),
@@ -78,9 +78,9 @@ func TestAccAwsRamResourceShare_AllowExternalPrincipals(t *testing.T) {
 
 func TestAccAwsRamResourceShare_Name(t *testing.T) {
 	var resourceShare1, resourceShare2 ram.ResourceShare
-	resourceName := "aws_ram_resource_share.example"
-	shareName1 := fmt.Sprintf("tf-%s", acctest.RandString(10))
-	shareName2 := fmt.Sprintf("tf-%s", acctest.RandString(10))
+	resourceName := "aws_ram_resource_share.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -89,10 +89,10 @@ func TestAccAwsRamResourceShare_Name(t *testing.T) {
 		CheckDestroy: testAccCheckAwsRamResourceShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsRamResourceShareConfigName(shareName1),
+				Config: testAccAwsRamResourceShareConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare1),
-					resource.TestCheckResourceAttr(resourceName, "name", shareName1),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
@@ -101,10 +101,10 @@ func TestAccAwsRamResourceShare_Name(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAwsRamResourceShareConfigName(shareName2),
+				Config: testAccAwsRamResourceShareConfigName(rName2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare2),
-					resource.TestCheckResourceAttr(resourceName, "name", shareName2),
+					resource.TestCheckResourceAttr(resourceName, "name", rName2),
 				),
 			},
 		},
@@ -113,8 +113,8 @@ func TestAccAwsRamResourceShare_Name(t *testing.T) {
 
 func TestAccAwsRamResourceShare_Tags(t *testing.T) {
 	var resourceShare1, resourceShare2, resourceShare3 ram.ResourceShare
-	resourceName := "aws_ram_resource_share.example"
-	shareName := fmt.Sprintf("tf-%s", acctest.RandString(10))
+	resourceName := "aws_ram_resource_share.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -123,7 +123,7 @@ func TestAccAwsRamResourceShare_Tags(t *testing.T) {
 		CheckDestroy: testAccCheckAwsRamResourceShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsRamResourceShareConfigTags1(shareName, "key1", "value1"),
+				Config: testAccAwsRamResourceShareConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare1),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -136,7 +136,7 @@ func TestAccAwsRamResourceShare_Tags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAwsRamResourceShareConfigTags2(shareName, "key1", "value1updated", "key2", "value2"),
+				Config: testAccAwsRamResourceShareConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare2),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -145,7 +145,7 @@ func TestAccAwsRamResourceShare_Tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAwsRamResourceShareConfigTags1(shareName, "key2", "value2"),
+				Config: testAccAwsRamResourceShareConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareExists(resourceName, &resourceShare3),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -222,44 +222,44 @@ func testAccCheckAwsRamResourceShareDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAwsRamResourceShareConfigAllowExternalPrincipals(shareName string, allowExternalPrincipals bool) string {
+func testAccAwsRamResourceShareConfigAllowExternalPrincipals(rName string, allowExternalPrincipals bool) string {
 	return fmt.Sprintf(`
-resource "aws_ram_resource_share" "example" {
-  allow_external_principals = %t
-  name                      = %q
+resource "aws_ram_resource_share" "test" {
+  allow_external_principals = %[1]t
+  name                      = %[2]q
 }
-`, allowExternalPrincipals, shareName)
+`, allowExternalPrincipals, rName)
 }
 
-func testAccAwsRamResourceShareConfigName(shareName string) string {
+func testAccAwsRamResourceShareConfigName(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_ram_resource_share" "example" {
-  name = %q
+resource "aws_ram_resource_share" "test" {
+  name = %[1]q
 }
-`, shareName)
+`, rName)
 }
 
-func testAccAwsRamResourceShareConfigTags1(shareName, tagKey1, tagValue1 string) string {
+func testAccAwsRamResourceShareConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
-resource "aws_ram_resource_share" "example" {
-  name = %q
+resource "aws_ram_resource_share" "test" {
+  name = %[1]q
 
   tags = {
-    %q = %q
+    %[2]q = %[3]q
   }
 }
-`, shareName, tagKey1, tagValue1)
+`, rName, tagKey1, tagValue1)
 }
 
-func testAccAwsRamResourceShareConfigTags2(shareName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+func testAccAwsRamResourceShareConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
-resource "aws_ram_resource_share" "example" {
-  name = %q
+resource "aws_ram_resource_share" "test" {
+  name = %[1]q
 
   tags = {
-    %q = %q
-    %q = %q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, shareName, tagKey1, tagValue1, tagKey2, tagValue2)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

@@ -37,9 +37,9 @@ func testSweepRedshiftSubnetGroups(region string) error {
 
 	input := &redshift.DescribeClusterSubnetGroupsInput{}
 
-	err = conn.DescribeClusterSubnetGroupsPages(input, func(page *redshift.DescribeClusterSubnetGroupsOutput, isLast bool) bool {
+	err = conn.DescribeClusterSubnetGroupsPages(input, func(page *redshift.DescribeClusterSubnetGroupsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, clusterSubnetGroup := range page.ClusterSubnetGroups {
@@ -60,7 +60,7 @@ func testSweepRedshiftSubnetGroups(region string) error {
 			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {

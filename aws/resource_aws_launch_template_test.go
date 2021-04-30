@@ -877,6 +877,33 @@ func TestAccAWSLaunchTemplate_associateCarrierIPAddress(t *testing.T) {
 	})
 }
 
+func TestAccAWSLaunchTemplate_Placement_HostResourceGroupArn(t *testing.T) {
+	var template ec2.LaunchTemplate
+	resourceName := "aws_launch_template.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfigPlacementHostResourceGroupArn(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttrPair(resourceName, "placement.0.host_resource_group_arn", "aws_resourcegroups_group.test", "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSLaunchTemplate_placement_partitionNum(t *testing.T) {
 	var template ec2.LaunchTemplate
 	resourceName := "aws_launch_template.test"
@@ -1744,6 +1771,34 @@ resource "aws_launch_template" "test" {
   }
 }
 `, rName, partNum)
+}
+
+func testAccAWSLaunchTemplateConfigPlacementHostResourceGroupArn(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_resourcegroups_group" "test" {
+  name = %[1]q
+
+  resource_query {
+    query = jsonencode({
+      ResourceTypeFilters = ["AWS::EC2::Instance"]
+      TagFilters = [
+        {
+          Key    = "Stage"
+          Values = ["Test"]
+        },
+      ]
+    })
+  }
+}
+
+resource "aws_launch_template" "test" {
+  name = %[1]q
+
+  placement {
+    host_resource_group_arn = aws_resourcegroups_group.test.arn
+  }
+}
+`, rName)
 }
 
 func testAccAWSLaunchTemplateConfig_networkInterfaceAddresses(rName string) string {

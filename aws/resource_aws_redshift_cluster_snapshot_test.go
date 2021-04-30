@@ -27,7 +27,7 @@ func testSweepRedshiftClusterSnapshots(region string) error {
 	}
 	conn := client.(*AWSClient).redshiftconn
 
-	err = conn.DescribeClusterSnapshotsPages(&redshift.DescribeClusterSnapshotsInput{}, func(resp *redshift.DescribeClusterSnapshotsOutput, isLast bool) bool {
+	err = conn.DescribeClusterSnapshotsPages(&redshift.DescribeClusterSnapshotsInput{}, func(resp *redshift.DescribeClusterSnapshotsOutput, lastPage bool) bool {
 		if len(resp.Snapshots) == 0 {
 			log.Print("[DEBUG] No Redshift cluster snapshots to sweep")
 			return false
@@ -49,7 +49,7 @@ func testSweepRedshiftClusterSnapshots(region string) error {
 				log.Printf("[ERROR] Failed deleting Redshift cluster snapshot (%s): %s", id, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

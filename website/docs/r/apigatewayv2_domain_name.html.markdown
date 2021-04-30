@@ -63,7 +63,7 @@ The following arguments are supported:
 * `domain_name` - (Required) The domain name. Must be between 1 and 512 characters in length.
 * `domain_name_configuration` - (Required) The domain name configuration.
 * `mutual_tls_authentication` - (Optional) The mutual TLS authentication configuration for the domain name.
-* `tags` - (Optional) A map of tags to assign to the domain name.
+* `tags` - (Optional) A map of tags to assign to the domain name. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `domain_name_configuration` object supports the following:
 
@@ -87,6 +87,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The domain name identifier.
 * `api_mapping_selection_expression` - The [API mapping selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-mapping-selection-expressions) for the domain name.
 * `arn` - The ARN of the domain name.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

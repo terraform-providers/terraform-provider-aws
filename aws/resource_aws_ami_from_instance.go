@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAmiFromInstance() *schema.Resource {
@@ -199,7 +200,8 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"usage_operation": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -209,6 +211,8 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 
 		// The remaining operations are shared with the generic aws_ami resource,
 		// since the aws_ami_copy resource only differs in how it's created.
@@ -220,13 +224,15 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 
 func resourceAwsAmiFromInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateImageInput{
 		Description:       aws.String(d.Get("description").(string)),
 		InstanceId:        aws.String(d.Get("source_instance_id").(string)),
 		Name:              aws.String(d.Get("name").(string)),
 		NoReboot:          aws.Bool(d.Get("snapshot_without_reboot").(bool)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeImage),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeImage),
 	}
 
 	res, err := client.CreateImage(req)

@@ -10,13 +10,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/waiter"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
@@ -28,7 +31,10 @@ func resourceAwsLb() *schema.Resource {
 		Update: resourceAwsLbUpdate,
 		Delete: resourceAwsLbDelete,
 		// Subnets are ForceNew for Network Load Balancers
-		CustomizeDiff: customizeDiffNLBSubnets,
+		CustomizeDiff: customdiff.Sequence(
+			customizeDiffNLBSubnets,
+			SetTagsDiff,
+		),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -242,7 +248,8 @@ func resourceAwsLb() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
@@ -255,7 +262,8 @@ func suppressIfLBType(t string) schema.SchemaDiffSuppressFunc {
 
 func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elbv2conn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Elbv2Tags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -273,7 +281,7 @@ func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(tags) > 0 {
-		elbOpts.Tags = tags
+		elbOpts.Tags = tags.IgnoreAws().Elbv2Tags()
 	}
 
 	if _, ok := d.GetOk("internal"); ok {
@@ -345,35 +353,37 @@ func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elbv2conn
-	lbArn := d.Id()
 
-	describeLbOpts := &elbv2.DescribeLoadBalancersInput{
-		LoadBalancerArns: []*string{aws.String(lbArn)},
+	lb, err := finder.LoadBalancerByARN(conn, d.Id())
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, elb.ErrCodeAccessPointNotFoundException) {
+		// The ALB is gone now, so just remove it from the state
+		log.Printf("[WARN] ALB %s not found in AWS, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	describeResp, err := conn.DescribeLoadBalancers(describeLbOpts)
 	if err != nil {
-		if isLoadBalancerNotFound(err) {
-			// The ALB is gone now, so just remove it from the state
-			log.Printf("[WARN] ALB %s not found in AWS, removing from state", d.Id())
-			d.SetId("")
-			return nil
+		return fmt.Errorf("error retrieving ALB (%s): %w", d.Id(), err)
+	}
+
+	if lb == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error retrieving ALB (%s): empty output after creation", d.Id())
 		}
-
-		return fmt.Errorf("error retrieving ALB: %w", err)
-	}
-	if len(describeResp.LoadBalancers) != 1 {
-		return fmt.Errorf("unable to find ALB: %#v", describeResp.LoadBalancers)
+		log.Printf("[WARN] ALB %s not found in AWS, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	return flattenAwsLbResource(d, meta, describeResp.LoadBalancers[0])
+	return flattenAwsLbResource(d, meta, lb)
 }
 
 func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elbv2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		err := resource.Retry(waiter.LoadBalancerTagPropagationTimeout, func() *resource.RetryError {
 			err := keyvaluetags.Elbv2UpdateTags(conn, d.Id(), o, n)
@@ -727,6 +737,7 @@ func lbSuffixFromARN(arn *string) string {
 // flattenAwsLbResource takes a *elbv2.LoadBalancer and populates all respective resource fields.
 func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.LoadBalancer) error {
 	conn := meta.(*AWSClient).elbv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	d.Set("arn", lb.LoadBalancerArn)
@@ -755,8 +766,15 @@ func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.Lo
 		return fmt.Errorf("error listing tags for (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	attributesResp, err := conn.DescribeLoadBalancerAttributes(&elbv2.DescribeLoadBalancerAttributesInput{

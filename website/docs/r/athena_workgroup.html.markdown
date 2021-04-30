@@ -40,7 +40,7 @@ The following arguments are supported:
 * `configuration` - (Optional) Configuration block with various settings for the workgroup. Documented below.
 * `description` - (Optional) Description of the workgroup.
 * `state` - (Optional) State of the workgroup. Valid values are `DISABLED` or `ENABLED`. Defaults to `ENABLED`.
-* `tags` - (Optional) Key-value map of resource tags for the workgroup.
+* `tags` - (Optional) Key-value map of resource tags for the workgroup. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `force_destroy` - (Optional) The option to delete the workgroup and its contents even if the workgroup contains any named queries.
 
 ### configuration Argument Reference
@@ -72,6 +72,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of the workgroup
 * `id` - The workgroup name
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

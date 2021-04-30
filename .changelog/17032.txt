@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_ram_resource_share_accepter: Improve handling of eventual consistency
+```
+
+```release-note:bug
+resource/aws_ram_resource_share: Improve handling of eventual consistency
+```
+
+```release-note:bug
+resource/aws_ram_principal_association: Improve handling of eventual consistency
+```

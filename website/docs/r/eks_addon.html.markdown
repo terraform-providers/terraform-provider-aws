@@ -76,7 +76,7 @@ The following arguments are required:
 
 * `addon_name` – (Required) Name of the EKS add-on. The name must match one of
   the names returned by [list-addon](https://docs.aws.amazon.com/cli/latest/reference/eks/list-addons.html).
-* `cluster_name` – (Required) Name of the EKS Cluster.
+* `cluster_name` – (Required) Name of the EKS Cluster. Must be between 1-100 characters in length. Must begin with an alphanumeric character, and must only contain alphanumeric characters, dashes and underscores (`^[0-9A-Za-z][A-Za-z0-9\-_]+$`).
 
 The following arguments are optional:
 
@@ -85,7 +85,7 @@ The following arguments are optional:
 * `resolve_conflicts` - (Optional) Define how to resolve parameter value conflicts
   when migrating an existing add-on to an Amazon EKS add-on or when applying
   version updates to the add-on. Valid values are `NONE` and `OVERWRITE`.
-* `tags` - (Optional) Key-value map of resource tags.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `service_account_role_arn` - (Optional) The Amazon Resource Name (ARN) of an
   existing IAM role to bind to the add-on's service account. The role must be
   assigned the IAM permissions required by the add-on. If you don't specify
@@ -107,6 +107,7 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - Status of the EKS add-on.
 * `created_at` - Date and time in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8) that the EKS add-on was created.
 * `modified_at` - Date and time in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8) that the EKS add-on was updated.
+* `tags_all` - (Optional) Key-value map of resource tags, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

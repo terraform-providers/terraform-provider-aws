@@ -50,9 +50,9 @@ func Api(conn *apigatewayv2.ApiGatewayV2, input *apigatewayv2.GetApiInput) (*api
 func Apis(conn *apigatewayv2.ApiGatewayV2, input *apigatewayv2.GetApisInput) ([]*apigatewayv2.Api, error) {
 	var apis []*apigatewayv2.Api
 
-	err := lister.GetApisPages(conn, input, func(page *apigatewayv2.GetApisOutput, isLast bool) bool {
+	err := lister.GetApisPages(conn, input, func(page *apigatewayv2.GetApisOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, item := range page.Items {
@@ -63,7 +63,7 @@ func Apis(conn *apigatewayv2.ApiGatewayV2, input *apigatewayv2.GetApisInput) ([]
 			apis = append(apis, item)
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {

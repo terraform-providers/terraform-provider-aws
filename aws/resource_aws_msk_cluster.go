@@ -30,6 +30,7 @@ func resourceAwsMskCluster() *schema.Resource {
 			customdiff.ForceNewIfChange("kafka_version", func(_ context.Context, old, new, meta interface{}) bool {
 				return new.(string) < old.(string)
 			}),
+			SetTagsDiff,
 		),
 		Schema: map[string]*schema.Schema{
 			"arn": {
@@ -349,7 +350,8 @@ func resourceAwsMskCluster() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"zookeeper_connect_string": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -360,6 +362,8 @@ func resourceAwsMskCluster() *schema.Resource {
 
 func resourceAwsMskClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kafkaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &kafka.CreateClusterInput{
 		BrokerNodeGroupInfo:  expandMskClusterBrokerNodeGroupInfo(d.Get("broker_node_group_info").([]interface{})),
@@ -372,7 +376,7 @@ func resourceAwsMskClusterCreate(d *schema.ResourceData, meta interface{}) error
 		NumberOfBrokerNodes:  aws.Int64(int64(d.Get("number_of_broker_nodes").(int))),
 		OpenMonitoring:       expandMskOpenMonitoring(d.Get("open_monitoring").([]interface{})),
 		LoggingInfo:          expandMskLoggingInfo(d.Get("logging_info").([]interface{})),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().KafkaTags(),
+		Tags:                 tags.IgnoreAws().KafkaTags(),
 	}
 
 	out, err := conn.CreateCluster(input)
@@ -433,6 +437,7 @@ func waitForMskClusterCreation(conn *kafka.Kafka, arn string) error {
 
 func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kafkaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	out, err := conn.DescribeCluster(&kafka.DescribeClusterInput{
@@ -485,8 +490,15 @@ func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("kafka_version", cluster.CurrentBrokerSoftwareInfo.KafkaVersion)
 	d.Set("number_of_broker_nodes", cluster.NumberOfBrokerNodes)
 
-	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("open_monitoring", flattenMskOpenMonitoring(cluster.OpenMonitoring)); err != nil {
@@ -636,8 +648,8 @@ func resourceAwsMskClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.KafkaUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating MSK Cluster (%s) tags: %s", d.Id(), err)

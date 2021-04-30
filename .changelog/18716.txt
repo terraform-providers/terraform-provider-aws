@@ -1,0 +1,15 @@
+```release-note:enhancement
+resource/aws_codedeploy_deployment_group: Add `arn`, `compute_platform`, and `deployment_group_id` attributes
+```
+
+```release-note:enhancement
+resource/aws_codedeploy_deployment_group: Add `tags` argument
+```
+
+```release-note:enhancement
+resource/aws_codedeploy_deployment_group: Add plan time validation for `terminate_blue_instances_on_deployment_success.termination_wait_time_in_minutes`, `service_role_arn`, `load_balancer_info.target_group_pair_info.prod_traffic_route.listener_arns`, `load_balancer_info.target_group_pair_info.test_traffic_route.listener_arns`, `trigger_configuration.trigger_target_arn`
+```
+
+```release-note:enhancement
+resource/aws_codedeploy_deployment_group: Updating `deployment_group_name` doesnt recreate group
+```

@@ -1910,8 +1910,8 @@ resource "aws_s3_bucket_object" "object" {
 func testAccAWSS3BucketObjectConfig_objectBucketKeyEnabled(randInt int, content string) string {
 	return fmt.Sprintf(`
 resource "aws_kms_key" "test" {
-    description             = "Encrypts test bucket objects"
-    deletion_window_in_days = 7
+  description             = "Encrypts test bucket objects"
+  deletion_window_in_days = 7
 }
 
 resource "aws_s3_bucket" "object_bucket" {
@@ -1931,8 +1931,8 @@ resource "aws_s3_bucket_object" "object" {
 func testAccAWSS3BucketObjectConfig_bucketBucketKeyEnabled(randInt int, content string) string {
 	return fmt.Sprintf(`
 resource "aws_kms_key" "test" {
-    description             = "Encrypts test bucket objects"
-    deletion_window_in_days = 7
+  description             = "Encrypts test bucket objects"
+  deletion_window_in_days = 7
 }
 
 resource "aws_s3_bucket" "object_bucket" {
@@ -1950,9 +1950,9 @@ resource "aws_s3_bucket" "object_bucket" {
 }
 
 resource "aws_s3_bucket_object" "object" {
-  bucket             = aws_s3_bucket.object_bucket.bucket
-  key                = "test-key"
-  content            = %q
+  bucket  = aws_s3_bucket.object_bucket.bucket
+  key     = "test-key"
+  content = %q
 }
 `, randInt, content)
 }

@@ -1,0 +1,3 @@
+```release-note:enhancement
+data-source/aws_efs_mount_target: Add `access_point_id`, `file_system_id` arguments
+```

@@ -2,18 +2,23 @@ package aws
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mitchellh/copystructure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/experimental/nullable"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/mq/waiter"
@@ -217,8 +222,10 @@ func resourceAwsMqBroker() *schema.Resource {
 							Optional: true,
 						},
 						"audit": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:             nullable.TypeNullableBool,
+							Optional:         true,
+							ValidateFunc:     nullable.ValidateTypeStringNullableBool,
+							DiffSuppressFunc: nullable.DiffSuppressNullableBoolFalseAsNull,
 						},
 					},
 				},
@@ -271,7 +278,8 @@ func resourceAwsMqBroker() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"user": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -317,19 +325,37 @@ func resourceAwsMqBroker() *schema.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: customdiff.All(
+			SetTagsDiff,
+			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
+				if strings.EqualFold(diff.Get("engine_type").(string), mq.EngineTypeRabbitmq) {
+					if v, ok := diff.GetOk("logs.0.audit"); ok {
+						if v, _, _ := nullable.Bool(v.(string)).Value(); v {
+							return errors.New("logs.audit: Can not be configured when engine is RabbitMQ")
+						}
+					}
+				}
+
+				return nil
+			},
+		),
 	}
 }
 
 func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mqconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("broker_name").(string)
+	engineType := d.Get("engine_type").(string)
 	requestId := resource.PrefixedUniqueId(fmt.Sprintf("tf-%s", name))
 	input := mq.CreateBrokerRequest{
 		AutoMinorVersionUpgrade: aws.Bool(d.Get("auto_minor_version_upgrade").(bool)),
 		BrokerName:              aws.String(name),
 		CreatorRequestId:        aws.String(requestId),
-		EngineType:              aws.String(d.Get("engine_type").(string)),
+		EngineType:              aws.String(engineType),
 		EngineVersion:           aws.String(d.Get("engine_version").(string)),
 		HostInstanceType:        aws.String(d.Get("host_instance_type").(string)),
 		PubliclyAccessible:      aws.Bool(d.Get("publicly_accessible").(bool)),
@@ -349,7 +375,7 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 		input.EncryptionOptions = expandMqEncryptionOptions(d.Get("encryption_options").([]interface{}))
 	}
 	if v, ok := d.GetOk("logs"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
-		input.Logs = expandMqLogs(v.([]interface{}))
+		input.Logs = expandMqLogs(engineType, v.([]interface{}))
 	}
 	if v, ok := d.GetOk("ldap_server_metadata"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		input.LdapServerMetadata = expandMQLDAPServerMetadata(v.([]interface{}))
@@ -366,8 +392,8 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("subnet_ids"); ok {
 		input.SubnetIds = expandStringSet(v.(*schema.Set))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().MqTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().MqTags()
 	}
 
 	log.Printf("[INFO] Creating MQ Broker: %s", input)
@@ -388,9 +414,9 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mqconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	log.Printf("[INFO] Reading MQ Broker: %s", d.Id())
 	output, err := conn.DescribeBroker(&mq.DescribeBrokerInput{
 		BrokerId: aws.String(d.Id()),
 	})
@@ -423,72 +449,50 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("storage_type", output.StorageType)
 	d.Set("subnet_ids", aws.StringValueSlice(output.SubnetIds))
 
-	if output.Configurations != nil && output.Configurations.Current != nil {
-		if err := d.Set("configuration", flattenMqConfigurationId(output.Configurations.Current)); err != nil {
-			return fmt.Errorf("error setting configuration: %w", err)
-		}
-	} else {
-		d.Set("configuration", nil)
+	if err := d.Set("configuration", flattenMqConfiguration(output.Configurations)); err != nil {
+		return fmt.Errorf("error setting configuration: %w", err)
 	}
 
-	if output.EncryptionOptions != nil {
-		if err := d.Set("encryption_options", flattenMqEncryptionOptions(output.EncryptionOptions)); err != nil {
-			return fmt.Errorf("error setting encryption_options: %w", err)
-		}
-	} else {
-		d.Set("encryption_options", nil)
+	if err := d.Set("encryption_options", flattenMqEncryptionOptions(output.EncryptionOptions)); err != nil {
+		return fmt.Errorf("error setting encryption_options: %w", err)
 	}
 
-	if output.LdapServerMetadata != nil {
-		password := ""
-		if v, ok := d.GetOk("ldap_server_metadata.0.service_account_password"); ok {
-			password = v.(string)
-		}
-		if err := d.Set("ldap_server_metadata", flattenMQLDAPServerMetadata(output.LdapServerMetadata, password)); err != nil {
-			return fmt.Errorf("error setting ldap_server_metadata: %w", err)
-		}
-	} else {
-		d.Set("ldap_server_metadata", nil)
+	var password string
+	if v, ok := d.GetOk("ldap_server_metadata.0.service_account_password"); ok {
+		password = v.(string)
 	}
 
-	if output.Logs != nil {
-		if err := d.Set("logs", flattenMqLogs(output.Logs)); err != nil {
-			return fmt.Errorf("error setting logs: %w", err)
-		}
-	} else {
-		d.Set("logs", nil)
+	if err := d.Set("ldap_server_metadata", flattenMQLDAPServerMetadata(output.LdapServerMetadata, password)); err != nil {
+		return fmt.Errorf("error setting ldap_server_metadata: %w", err)
 	}
 
-	if output.MaintenanceWindowStartTime != nil {
-		if err := d.Set("maintenance_window_start_time", flattenMqWeeklyStartTime(output.MaintenanceWindowStartTime)); err != nil {
-			return fmt.Errorf("error setting maintenance_window_start_time: %w", err)
-		}
-	} else {
-		d.Set("maintenance_window_start_time", nil)
+	if err := d.Set("logs", flattenMqLogs(output.Logs)); err != nil {
+		return fmt.Errorf("error setting logs: %w", err)
 	}
 
-	rawUsers := make([]*mq.User, len(output.Users))
-	for i, u := range output.Users {
-		uOut, err := conn.DescribeUser(&mq.DescribeUserInput{
-			BrokerId: aws.String(d.Id()),
-			Username: u.Username,
-		})
-		if err != nil {
-			return err
-		}
+	if err := d.Set("maintenance_window_start_time", flattenMqWeeklyStartTime(output.MaintenanceWindowStartTime)); err != nil {
+		return fmt.Errorf("error setting maintenance_window_start_time: %w", err)
+	}
 
-		rawUsers[i] = &mq.User{
-			ConsoleAccess: uOut.ConsoleAccess,
-			Groups:        uOut.Groups,
-			Username:      uOut.Username,
-		}
+	rawUsers, err := expandMqUsersForBroker(conn, d.Id(), output.Users)
+
+	if err != nil {
+		return fmt.Errorf("error retrieving user info for MQ broker (%s): %w", d.Id(), err)
 	}
 
 	if err := d.Set("user", flattenMqUsers(rawUsers, d.Get("user").(*schema.Set).List())); err != nil {
 		return fmt.Errorf("error setting user: %w", err)
 	}
-	if err := d.Set("tags", keyvaluetags.MqKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+
+	tags := keyvaluetags.MqKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -510,10 +514,11 @@ func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChanges("configuration", "logs", "engine_version") {
+		engineType := d.Get("engine_type").(string)
 		_, err := conn.UpdateBroker(&mq.UpdateBrokerRequest{
 			BrokerId:      aws.String(d.Id()),
 			Configuration: expandMqConfigurationId(d.Get("configuration").([]interface{})),
-			Logs:          expandMqLogs(d.Get("logs").([]interface{})),
+			Logs:          expandMqLogs(engineType, d.Get("logs").([]interface{})),
 			EngineVersion: aws.String(d.Get("engine_version").(string)),
 		})
 		if err != nil {
@@ -552,8 +557,8 @@ func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.MqUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating MQ Broker (%s) tags: %w", d.Get("arn").(string), err)
@@ -788,6 +793,35 @@ func expandMqUsers(cfg []interface{}) []*mq.User {
 	return users
 }
 
+func expandMqUsersForBroker(conn *mq.MQ, brokerId string, input []*mq.UserSummary) ([]*mq.User, error) {
+	var rawUsers []*mq.User
+
+	for _, u := range input {
+		if u == nil {
+			continue
+		}
+
+		uOut, err := conn.DescribeUser(&mq.DescribeUserInput{
+			BrokerId: aws.String(brokerId),
+			Username: u.Username,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		user := &mq.User{
+			ConsoleAccess: uOut.ConsoleAccess,
+			Groups:        uOut.Groups,
+			Username:      uOut.Username,
+		}
+
+		rawUsers = append(rawUsers, user)
+	}
+
+	return rawUsers, nil
+}
+
 // We use cfgdUsers to get & set the password
 func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
 	existingPairs := make(map[string]string)
@@ -800,17 +834,17 @@ func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
 	out := make([]interface{}, 0)
 	for _, u := range users {
 		m := map[string]interface{}{
-			"username": *u.Username,
+			"username": aws.StringValue(u.Username),
 		}
 		password := ""
-		if p, ok := existingPairs[*u.Username]; ok {
+		if p, ok := existingPairs[aws.StringValue(u.Username)]; ok {
 			password = p
 		}
 		if password != "" {
 			m["password"] = password
 		}
 		if u.ConsoleAccess != nil {
-			m["console_access"] = *u.ConsoleAccess
+			m["console_access"] = aws.BoolValue(u.ConsoleAccess)
 		}
 		if len(u.Groups) > 0 {
 			m["groups"] = flattenStringSet(u.Groups)
@@ -866,17 +900,16 @@ func expandMqConfigurationId(cfg []interface{}) *mq.ConfigurationId {
 	return &out
 }
 
-func flattenMqConfigurationId(cid *mq.ConfigurationId) []interface{} {
-	if cid == nil {
+func flattenMqConfiguration(config *mq.Configurations) []interface{} {
+	if config == nil || config.Current == nil {
 		return []interface{}{}
 	}
-	m := make(map[string]interface{})
-	if cid.Id != nil {
-		m["id"] = *cid.Id
+
+	m := map[string]interface{}{
+		"id":       aws.StringValue(config.Current.Id),
+		"revision": aws.Int64Value(config.Current.Revision),
 	}
-	if cid.Revision != nil {
-		m["revision"] = *cid.Revision
-	}
+
 	return []interface{}{m}
 }
 
@@ -914,13 +947,13 @@ func flattenMqLogs(logs *mq.LogsSummary) []interface{} {
 	}
 
 	if logs.Audit != nil {
-		m["audit"] = aws.BoolValue(logs.Audit)
+		m["audit"] = strconv.FormatBool(aws.BoolValue(logs.Audit))
 	}
 
 	return []interface{}{m}
 }
 
-func expandMqLogs(l []interface{}) *mq.Logs {
+func expandMqLogs(engineType string, l []interface{}) *mq.Logs {
 	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
@@ -933,8 +966,13 @@ func expandMqLogs(l []interface{}) *mq.Logs {
 		logs.General = aws.Bool(v.(bool))
 	}
 
+	// When the engine type is "RabbitMQ", the parameter audit cannot be set at all.
 	if v, ok := m["audit"]; ok {
-		logs.Audit = aws.Bool(v.(bool))
+		if v, null, _ := nullable.Bool(v.(string)).Value(); !null {
+			if !strings.EqualFold(engineType, mq.EngineTypeRabbitmq) {
+				logs.Audit = aws.Bool(v)
+			}
+		}
 	}
 
 	return logs

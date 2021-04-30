@@ -479,6 +479,7 @@ func TestAccAWSCloudFrontDistribution_noOptionalItemsConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.min_ttl", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.smooth_streaming", "false"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.target_origin_id", "myCustomOrigin"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.trusted_key_groups.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.trusted_signers.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.viewer_protocol_policy", "allow-all"),
 					resource.TestMatchResourceAttr(resourceName, "domain_name", regexp.MustCompile(`^[a-z0-9]+\.cloudfront\.net$`)),
@@ -700,6 +701,45 @@ func TestAccAWSCloudFrontDistribution_DefaultCacheBehavior_ForwardedValues_Heade
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.forwarded_values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.forwarded_values.0.headers.#", "2"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_DefaultCacheBehavior_TrustedKeyGroups(t *testing.T) {
+	var distribution cloudfront.Distribution
+	resourceName := "aws_cloudfront_distribution.test"
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	retainOnDelete := testAccAWSCloudFrontDistributionRetainOnDeleteFromEnv()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudFrontDistributionConfigDefaultCacheBehaviorTrustedKeyGroups(retainOnDelete, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExists(resourceName, &distribution),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.0.items.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "trusted_key_groups.0.items.0.key_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.0.items.0.key_pair_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.trusted_key_groups.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"retain_on_delete",
+					"wait_for_deployment",
+				},
 			},
 		},
 	})
@@ -3033,6 +3073,67 @@ resource "aws_cloudfront_distribution" "test" {
   }
 }
 `, retainOnDelete)
+}
+
+func testAccAWSCloudFrontDistributionConfigDefaultCacheBehaviorTrustedKeyGroups(retainOnDelete bool, rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudfront_distribution" "test" {
+  # Faster acceptance testing
+  enabled             = false
+  retain_on_delete    = %[1]t
+  wait_for_deployment = false
+
+  default_cache_behavior {
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "test"
+    trusted_key_groups     = [aws_cloudfront_key_group.test.id]
+    viewer_protocol_policy = "allow-all"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "all"
+      }
+    }
+  }
+
+  origin {
+    domain_name = "www.example.com"
+    origin_id   = "test"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+
+resource "aws_cloudfront_public_key" "test" {
+  comment     = "test key"
+  encoded_key = file("test-fixtures/cloudfront-public-key.pem")
+  name        = %[2]q
+}
+
+resource "aws_cloudfront_key_group" "test" {
+  comment = "test key group"
+  items   = [aws_cloudfront_public_key.test.id]
+  name    = %[2]q
+}
+`, retainOnDelete, rName)
 }
 
 func testAccAWSCloudFrontDistributionConfigDefaultCacheBehaviorTrustedSignersSelf(retainOnDelete bool) string {

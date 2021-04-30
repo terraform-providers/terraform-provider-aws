@@ -52,7 +52,7 @@ The following arguments are supported:
   attached to created instances. The structure of this block is described below.
 * `ephemeral_block_device` - (Optional) Nested block describing an ephemeral block device that
   should be attached to created instances. The structure of this block is described below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 When `virtualization_type` is "paravirtual" the following additional arguments apply:
 
@@ -120,6 +120,7 @@ In addition to all arguments above, the following attributes are exported:
 * `owner_id` - The AWS account ID of the image owner.
 * `platform` - This value is set to windows for Windows AMIs; otherwise, it is blank.
 * `public` - Indicates whether the image has public launch permissions.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -92,11 +92,10 @@ func TestAccAWSEgressOnlyInternetGateway_Tags(t *testing.T) {
 	resourceName := "aws_egress_only_internet_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSEgressOnlyInternetGatewayDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEgressOnlyInternetGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEgressOnlyInternetGatewayConfigTags1("key1", "value1"),

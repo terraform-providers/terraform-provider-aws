@@ -96,6 +96,7 @@ func resourceAwsSecurityGroupRule() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validateCIDRNetworkAddress,
 				},
+				ConflictsWith: []string{"source_security_group_id", "self"},
 			},
 
 			"ipv6_cidr_blocks": {
@@ -106,6 +107,7 @@ func resourceAwsSecurityGroupRule() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validateCIDRNetworkAddress,
 				},
+				ConflictsWith: []string{"source_security_group_id", "self"},
 			},
 
 			"prefix_list_ids": {
@@ -126,14 +128,15 @@ func resourceAwsSecurityGroupRule() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true,
-				ConflictsWith: []string{"cidr_blocks", "self"},
+				ConflictsWith: []string{"cidr_blocks", "ipv6_cidr_blocks", "self"},
 			},
 
 			"self": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ForceNew:      true,
+				ConflictsWith: []string{"cidr_blocks", "ipv6_cidr_blocks", "source_security_group_id"},
 			},
 
 			"description": {

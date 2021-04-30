@@ -116,7 +116,7 @@ The following arguments are supported:
     * `domain_name` - (Required) A domain name for which the certificate should be issued
     * `certificate_authority_arn` - (Required) ARN of an ACM PCA
     * `subject_alternative_names` - (Optional) Set of domains that should be SANs in the issued certificate. To remove all elements of a previously configured list, set this value equal to an empty list (`[]`) or use the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) to trigger recreation.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## options Configuration Block
 
@@ -133,6 +133,7 @@ In addition to all arguments above, the following attributes are exported:
 * `domain_name` - The domain name for which the certificate is issued
 * `domain_validation_options` - Set of domain validation objects which can be used to complete certificate validation. Can have more than one element, e.g. if SANs are defined. Only set if `DNS`-validation was used.
 * `status` - Status of the certificate.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `validation_emails` - A list of addresses that received a validation E-Mail. Only set if `EMAIL`-validation was used.
 
 Domain validation objects export the following attributes:

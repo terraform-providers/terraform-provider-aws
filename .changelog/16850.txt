@@ -1,0 +1,3 @@
+```release-notes:enhancement
+resource/aws_batch_job_definition: Add `platform_capabilities` attribute
+```

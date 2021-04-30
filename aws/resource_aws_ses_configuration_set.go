@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -40,6 +41,20 @@ func resourceAwsSesConfigurationSet() *schema.Resource {
 						},
 					},
 				},
+			},
+			"last_fresh_start": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"reputation_metrics_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"sending_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -81,6 +96,30 @@ func resourceAwsSesConfigurationSetCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	if v := d.Get("reputation_metrics_enabled"); v.(bool) {
+		input := &ses.UpdateConfigurationSetReputationMetricsEnabledInput{
+			ConfigurationSetName: aws.String(configurationSetName),
+			Enabled:              aws.Bool(v.(bool)),
+		}
+
+		_, err := conn.UpdateConfigurationSetReputationMetricsEnabled(input)
+		if err != nil {
+			return fmt.Errorf("error adding SES configuration set (%s) reputation metrics enabled: %w", configurationSetName, err)
+		}
+	}
+
+	if v := d.Get("sending_enabled"); !v.(bool) {
+		input := &ses.UpdateConfigurationSetSendingEnabledInput{
+			ConfigurationSetName: aws.String(configurationSetName),
+			Enabled:              aws.Bool(v.(bool)),
+		}
+
+		_, err := conn.UpdateConfigurationSetSendingEnabled(input)
+		if err != nil {
+			return fmt.Errorf("error adding SES configuration set (%s) sending enabled: %w", configurationSetName, err)
+		}
+	}
+
 	return resourceAwsSesConfigurationSetRead(d, meta)
 }
 
@@ -88,8 +127,10 @@ func resourceAwsSesConfigurationSetRead(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).sesconn
 
 	configSetInput := &ses.DescribeConfigurationSetInput{
-		ConfigurationSetName:           aws.String(d.Id()),
-		ConfigurationSetAttributeNames: aws.StringSlice([]string{ses.ConfigurationSetAttributeDeliveryOptions}),
+		ConfigurationSetName: aws.String(d.Id()),
+		ConfigurationSetAttributeNames: aws.StringSlice([]string{
+			ses.ConfigurationSetAttributeDeliveryOptions,
+			ses.ConfigurationSetAttributeReputationOptions}),
 	}
 
 	response, err := conn.DescribeConfigurationSet(configSetInput)
@@ -108,6 +149,13 @@ func resourceAwsSesConfigurationSetRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("name", response.ConfigurationSet.Name)
+
+	repOpts := response.ReputationOptions
+	if repOpts != nil {
+		d.Set("reputation_metrics_enabled", repOpts.ReputationMetricsEnabled)
+		d.Set("sending_enabled", repOpts.SendingEnabled)
+		d.Set("last_fresh_start", aws.TimeValue(repOpts.LastFreshStart).Format(time.RFC3339))
+	}
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -136,6 +184,30 @@ func resourceAwsSesConfigurationSetUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("reputation_metrics_enabled") {
+		input := &ses.UpdateConfigurationSetReputationMetricsEnabledInput{
+			ConfigurationSetName: aws.String(d.Id()),
+			Enabled:              aws.Bool(d.Get("reputation_metrics_enabled").(bool)),
+		}
+
+		_, err := conn.UpdateConfigurationSetReputationMetricsEnabled(input)
+		if err != nil {
+			return fmt.Errorf("error updating SES configuration set (%s) reputation metrics enabled: %w", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("sending_enabled") {
+		input := &ses.UpdateConfigurationSetSendingEnabledInput{
+			ConfigurationSetName: aws.String(d.Id()),
+			Enabled:              aws.Bool(d.Get("sending_enabled").(bool)),
+		}
+
+		_, err := conn.UpdateConfigurationSetSendingEnabled(input)
+		if err != nil {
+			return fmt.Errorf("error updating SES configuration set (%s) reputation metrics enabled: %w", d.Id(), err)
+		}
+	}
+
 	return resourceAwsSesConfigurationSetRead(d, meta)
 }
 
@@ -143,11 +215,17 @@ func resourceAwsSesConfigurationSetDelete(d *schema.ResourceData, meta interface
 	conn := meta.(*AWSClient).sesconn
 
 	log.Printf("[DEBUG] SES Delete Configuration Rule Set: %s", d.Id())
-	_, err := conn.DeleteConfigurationSet(&ses.DeleteConfigurationSetInput{
+	input := &ses.DeleteConfigurationSetInput{
 		ConfigurationSetName: aws.String(d.Id()),
-	})
+	}
 
-	return err
+	if _, err := conn.DeleteConfigurationSet(input); err != nil {
+		if !isAWSErr(err, ses.ErrCodeConfigurationSetDoesNotExistException, "") {
+			return fmt.Errorf("error deleting SES Configuration Set (%s): %w", d.Id(), err)
+		}
+	}
+
+	return nil
 }
 
 func expandSesConfigurationSetDeliveryOptions(l []interface{}) *ses.DeliveryOptions {

@@ -72,3 +72,40 @@ func UserAttachedPolicy(conn *iam.IAM, userName string, policyARN string) (*iam.
 
 	return result, nil
 }
+
+// Policies returns the Policies corresponding to the specified ARN, name, and/or path-prefix.
+func Policies(conn *iam.IAM, arn, name, pathPrefix string) ([]*iam.Policy, error) {
+	input := &iam.ListPoliciesInput{}
+
+	if pathPrefix != "" {
+		input.PathPrefix = aws.String(pathPrefix)
+	}
+
+	var results []*iam.Policy
+
+	err := conn.ListPoliciesPages(input, func(page *iam.ListPoliciesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, p := range page.Policies {
+			if p == nil {
+				continue
+			}
+
+			if arn != "" && arn != aws.StringValue(p.Arn) {
+				continue
+			}
+
+			if name != "" && name != aws.StringValue(p.PolicyName) {
+				continue
+			}
+
+			results = append(results, p)
+		}
+
+		return !lastPage
+	})
+
+	return results, err
+}

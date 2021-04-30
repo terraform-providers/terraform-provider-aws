@@ -28,7 +28,7 @@ The following arguments are supported:
 * `name` - (Required) Name of the DataSync Agent.
 * `activation_key` - (Optional) DataSync Agent activation key during resource creation. Conflicts with `ip_address`. If an `ip_address` is provided instead, Terraform will retrieve the `activation_key` as part of the resource creation.
 * `ip_address` - (Optional) DataSync Agent IP address to retrieve activation key during resource creation. Conflicts with `activation_key`. DataSync Agent must be accessible on port 80 from where Terraform is running.
-* `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Agent.
+* `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Agent. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -36,6 +36,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Amazon Resource Name (ARN) of the DataSync Agent.
 * `arn` - Amazon Resource Name (ARN) of the DataSync Agent.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

@@ -25,7 +25,7 @@ func dataSourceAwsEksAddon() *schema.Resource {
 			"cluster_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validateEKSClusterName,
 			},
 			"arn": {
 				Type:     schema.TypeString,

@@ -249,7 +249,8 @@ func resourceAwsNeptuneCluster() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"vpc_security_group_ids": {
 				Type:     schema.TypeSet,
@@ -263,12 +264,15 @@ func resourceAwsNeptuneCluster() *schema.Resource {
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().NeptuneTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Check if any of the parameters that require a cluster modification after creation are set
 	clusterUpdate := false
@@ -293,7 +297,7 @@ func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) e
 		Port:                aws.Int64(int64(d.Get("port").(int))),
 		StorageEncrypted:    aws.Bool(d.Get("storage_encrypted").(bool)),
 		DeletionProtection:  aws.Bool(d.Get("deletion_protection").(bool)),
-		Tags:                tags,
+		Tags:                tags.IgnoreAws().NeptuneTags(),
 	}
 	restoreDBClusterFromSnapshotInput := &neptune.RestoreDBClusterFromSnapshotInput{
 		DBClusterIdentifier: aws.String(d.Get("cluster_identifier").(string)),
@@ -301,7 +305,7 @@ func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) e
 		Port:                aws.Int64(int64(d.Get("port").(int))),
 		SnapshotIdentifier:  aws.String(d.Get("snapshot_identifier").(string)),
 		DeletionProtection:  aws.Bool(d.Get("deletion_protection").(bool)),
-		Tags:                tags,
+		Tags:                tags.IgnoreAws().NeptuneTags(),
 	}
 
 	if attr := d.Get("availability_zones").(*schema.Set); attr.Len() > 0 {
@@ -471,6 +475,7 @@ func resourceAwsNeptuneClusterRead(d *schema.ResourceData, meta interface{}) err
 
 func flattenAwsNeptuneClusterResource(d *schema.ResourceData, meta interface{}, dbc *neptune.DBCluster) error {
 	conn := meta.(*AWSClient).neptuneconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	if err := d.Set("availability_zones", aws.StringValueSlice(dbc.AvailabilityZones)); err != nil {
@@ -535,8 +540,15 @@ func flattenAwsNeptuneClusterResource(d *schema.ResourceData, meta interface{}, 
 		return fmt.Errorf("error listing tags for Neptune Cluster (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -676,8 +688,8 @@ func resourceAwsNeptuneClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.NeptuneUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Neptune Cluster (%s) tags: %s", d.Get("arn").(string), err)

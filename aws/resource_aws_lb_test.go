@@ -8,10 +8,13 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/finder"
 )
 
 func init() {
@@ -40,7 +43,7 @@ func testSweepLBs(region string) error {
 	}
 	conn := client.(*AWSClient).elbv2conn
 
-	err = conn.DescribeLoadBalancersPages(&elbv2.DescribeLoadBalancersInput{}, func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
+	err = conn.DescribeLoadBalancersPages(&elbv2.DescribeLoadBalancersInput{}, func(page *elbv2.DescribeLoadBalancersOutput, lastPage bool) bool {
 		if page == nil || len(page.LoadBalancers) == 0 {
 			log.Print("[DEBUG] No LBs to sweep")
 			return false
@@ -57,7 +60,7 @@ func testSweepLBs(region string) error {
 				log.Printf("[ERROR] Failed to delete LB (%s): %s", name, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -1192,21 +1195,18 @@ func testAccCheckAWSLBExists(n string, res *elbv2.LoadBalancer) resource.TestChe
 
 		conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
-		describe, err := conn.DescribeLoadBalancers(&elbv2.DescribeLoadBalancersInput{
-			LoadBalancerArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		lb, err := finder.LoadBalancerByARN(conn, rs.Primary.ID)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading LB (%s): %w", rs.Primary.ID, err)
 		}
 
-		if len(describe.LoadBalancers) != 1 ||
-			aws.StringValue(describe.LoadBalancers[0].LoadBalancerArn) != rs.Primary.ID {
-			return errors.New("LB not found")
+		if lb != nil {
+			*res = *lb
+			return nil
 		}
 
-		*res = *describe.LoadBalancers[0]
-		return nil
+		return fmt.Errorf("LB (%s) not found", rs.Primary.ID)
 	}
 }
 
@@ -1249,22 +1249,18 @@ func testAccCheckAWSLBDestroy(s *terraform.State) error {
 			continue
 		}
 
-		describe, err := conn.DescribeLoadBalancers(&elbv2.DescribeLoadBalancersInput{
-			LoadBalancerArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		lb, err := finder.LoadBalancerByARN(conn, rs.Primary.ID)
 
-		if err == nil {
-			if len(describe.LoadBalancers) != 0 &&
-				aws.StringValue(describe.LoadBalancers[0].LoadBalancerArn) == rs.Primary.ID {
-				return fmt.Errorf("LB %q still exists", rs.Primary.ID)
-			}
+		if tfawserr.ErrCodeContains(err, elb.ErrCodeAccessPointNotFoundException) {
+			continue
 		}
 
-		// Verify the error
-		if isLoadBalancerNotFound(err) {
-			return nil
-		} else {
-			return fmt.Errorf("Unexpected error checking LB destroyed: %s", err)
+		if err != nil {
+			return fmt.Errorf("Unexpected error checking LB (%s) destroyed: %w", rs.Primary.ID, err)
+		}
+
+		if lb != nil && aws.StringValue(lb.LoadBalancerArn) == rs.Primary.ID {
+			return fmt.Errorf("LB %q still exists", rs.Primary.ID)
 		}
 	}
 

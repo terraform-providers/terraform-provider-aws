@@ -36,9 +36,9 @@ func testSweepRedshiftSnapshotSchedules(region string) error {
 	input := &redshift.DescribeSnapshotSchedulesInput{}
 	prefixesToSweep := []string{"tf-acc-test"}
 
-	err = conn.DescribeSnapshotSchedulesPages(input, func(page *redshift.DescribeSnapshotSchedulesOutput, isLast bool) bool {
+	err = conn.DescribeSnapshotSchedulesPages(input, func(page *redshift.DescribeSnapshotSchedulesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, snapshotSchedules := range page.SnapshotSchedules {
@@ -57,7 +57,7 @@ func testSweepRedshiftSnapshotSchedules(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {

@@ -32,9 +32,9 @@ func testSweepSnsPlatformApplications(region string) error {
 	conn := client.(*AWSClient).snsconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListPlatformApplicationsPages(&sns.ListPlatformApplicationsInput{}, func(page *sns.ListPlatformApplicationsOutput, isLast bool) bool {
+	err = conn.ListPlatformApplicationsPages(&sns.ListPlatformApplicationsInput{}, func(page *sns.ListPlatformApplicationsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, platformApplication := range page.PlatformApplications {
@@ -55,7 +55,7 @@ func testSweepSnsPlatformApplications(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

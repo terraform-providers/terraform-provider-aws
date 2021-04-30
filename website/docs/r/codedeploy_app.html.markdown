@@ -45,13 +45,19 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the application.
 * `compute_platform` - (Optional) The compute platform can either be `ECS`, `Lambda`, or `Server`. Default is `Server`.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the CodeDeploy application.
+* `application_id` - The application ID.
 * `id` - Amazon's assigned ID for the application.
 * `name` - The application's name.
+* `github_account_name` - The name for a connection to a GitHub account.
+* `linked_to_github` - Whether the user has authenticated with GitHub for the specified application.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

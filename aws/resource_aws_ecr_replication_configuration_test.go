@@ -16,7 +16,7 @@ func TestAccAWSEcrReplicationConfiguration_basic(t *testing.T) {
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, ecr.EndpointsID),
 		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		CheckDestroy: testAccCheckAWSEcrReplicationConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEcrReplicationConfiguration(testAccGetAlternateRegion()),
@@ -46,8 +46,39 @@ func testAccCheckAWSEcrReplicationConfigurationExists(name string) resource.Test
 			return fmt.Errorf("Not found: %s", name)
 		}
 
+		conn := testAccProvider.Meta().(*AWSClient).ecrconn
+		out, err := conn.DescribeRegistry(&ecr.DescribeRegistryInput{})
+		if err != nil {
+			return fmt.Errorf("ECR replication rules not found: %w", err)
+		}
+
+		if len(out.ReplicationConfiguration.Rules) == 0 {
+			return fmt.Errorf("ECR replication rules not found")
+		}
+
 		return nil
 	}
+}
+
+func testAccCheckAWSEcrReplicationConfigurationDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).ecrconn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_ecr_replication_configuration" {
+			continue
+		}
+
+		out, err := conn.DescribeRegistry(&ecr.DescribeRegistryInput{})
+		if err != nil {
+			return err
+		}
+
+		if len(out.ReplicationConfiguration.Rules) != 0 {
+			return fmt.Errorf("ECR replication rules found")
+		}
+	}
+
+	return nil
 }
 
 func testAccAWSEcrReplicationConfiguration(region string) string {

@@ -46,7 +46,7 @@ resource "aws_xray_sampling_rule" "example" {
 * `url_path` - (Required) Matches the path from a request URL.
 * `version` - (Required) The version of the sampling rule format (`1` )
 * `attributes` - (Optional) Matches attributes derived from the request.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value mapping of resource tags. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -54,6 +54,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the sampling rule.
 * `arn` - The ARN of the sampling rule.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

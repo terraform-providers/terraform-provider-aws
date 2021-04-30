@@ -91,7 +91,7 @@ The following arguments are supported:
 * `name` - (Required) The name or description of the web ACL.
 * `rules` - (Optional) Configuration blocks containing rules to associate with the web ACL and the settings for each rule. Detailed below.
 * `logging_configuration` - (Optional) Configuration block to enable WAF logging. Detailed below.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### `default_action` Configuration Block
 
@@ -133,6 +133,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF WebACL.
 * `arn` - The ARN of the WAF WebACL.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

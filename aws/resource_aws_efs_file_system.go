@@ -25,6 +25,8 @@ func resourceAwsEfsFileSystem() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -92,7 +94,8 @@ func resourceAwsEfsFileSystem() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"throughput_mode": {
 				Type:         schema.TypeString,
@@ -141,6 +144,8 @@ func resourceAwsEfsFileSystem() *schema.Resource {
 
 func resourceAwsEfsFileSystemCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	creationToken := ""
 	if v, ok := d.GetOk("creation_token"); ok {
@@ -153,7 +158,7 @@ func resourceAwsEfsFileSystemCreate(d *schema.ResourceData, meta interface{}) er
 	createOpts := &efs.CreateFileSystemInput{
 		CreationToken:  aws.String(creationToken),
 		ThroughputMode: aws.String(throughputMode),
-		Tags:           keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EfsTags(),
+		Tags:           tags.IgnoreAws().EfsTags(),
 	}
 
 	if v, ok := d.GetOk("availability_zone_name"); ok {
@@ -258,8 +263,8 @@ func resourceAwsEfsFileSystemUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EfsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EFS file system (%s) tags: %w", d.Id(), err)
@@ -271,6 +276,7 @@ func resourceAwsEfsFileSystemUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeFileSystems(&efs.DescribeFileSystemsInput{
@@ -314,8 +320,15 @@ func resourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("owner_id", fs.OwnerId)
 	d.Set("number_of_mount_targets", fs.NumberOfMountTargets)
 
-	if err := d.Set("tags", keyvaluetags.EfsKeyValueTags(fs.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.EfsKeyValueTags(fs.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("size_in_bytes", flattenEfsFileSystemSizeInBytes(fs.SizeInBytes)); err != nil {

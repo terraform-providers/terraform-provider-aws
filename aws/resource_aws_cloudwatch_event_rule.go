@@ -92,13 +92,18 @@ func resourceAwsCloudWatchEventRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCloudWatchEventRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := naming.Generate(d.Get("name").(string), d.Get("name_prefix").(string))
 
@@ -107,8 +112,8 @@ func resourceAwsCloudWatchEventRuleCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Creating CloudWatch Events Rule failed: %w", err)
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CloudwatcheventsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().CloudwatcheventsTags()
 	}
 
 	log.Printf("[DEBUG] Creating CloudWatch Events Rule: %s", input)
@@ -147,6 +152,7 @@ func resourceAwsCloudWatchEventRuleCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	out, err := finder.RuleByID(conn, d.Id())
@@ -189,8 +195,15 @@ func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for CloudWatch Events Rule (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -230,8 +243,8 @@ func resourceAwsCloudWatchEventRuleUpdate(d *schema.ResourceData, meta interface
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CloudwatcheventsUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating CloudwWatch Event Rule (%s) tags: %w", arn, err)

@@ -131,7 +131,8 @@ func resourceAwsDaxCluster() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"port": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -169,11 +170,15 @@ func resourceAwsDaxCluster() *schema.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).daxconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	clusterName := d.Get("cluster_name").(string)
 	iamRoleArn := d.Get("iam_role_arn").(string)
@@ -183,7 +188,6 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 	securityIdSet := d.Get("security_group_ids").(*schema.Set)
 
 	securityIds := expandStringSet(securityIdSet)
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DaxTags()
 
 	req := &dax.CreateClusterInput{
 		ClusterName:       aws.String(clusterName),
@@ -192,7 +196,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 		ReplicationFactor: aws.Int64(numNodes),
 		SecurityGroupIds:  securityIds,
 		SubnetGroupName:   aws.String(subnetGroupName),
-		Tags:              tags,
+		Tags:              tags.IgnoreAws().DaxTags(),
 	}
 
 	// optionals can be defaulted by AWS
@@ -271,6 +275,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).daxconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &dax.DescribeClustersInput{
@@ -337,8 +342,15 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for DAX Cluster (%s): %s", aws.StringValue(c.ClusterArn), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -347,8 +359,8 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsDaxClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).daxconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DaxUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating DAX Cluster (%s) tags: %s", d.Get("arn").(string), err)

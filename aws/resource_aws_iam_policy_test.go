@@ -39,9 +39,9 @@ func testSweepIamPolicies(region string) error {
 	}
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListPoliciesPages(input, func(page *iam.ListPoliciesOutput, isLast bool) bool {
+	err = conn.ListPoliciesPages(input, func(page *iam.ListPoliciesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, policy := range page.Policies {
@@ -79,7 +79,7 @@ func testSweepIamPolicies(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

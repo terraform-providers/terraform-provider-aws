@@ -116,7 +116,7 @@ func TestAccAWSGlueRegistry_Description(t *testing.T) {
 	})
 }
 
-func TestAccAWSGlueRegistry_tags(t *testing.T) {
+func TestAccAWSGlueRegistry_Tags(t *testing.T) {
 	var registry glue.GetRegistryOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_registry.test"

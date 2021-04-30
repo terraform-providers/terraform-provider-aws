@@ -31,9 +31,9 @@ func testSweepDbEventSubscriptions(region string) error {
 	conn := client.(*AWSClient).rdsconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.DescribeEventSubscriptionsPages(&rds.DescribeEventSubscriptionsInput{}, func(page *rds.DescribeEventSubscriptionsOutput, isLast bool) bool {
+	err = conn.DescribeEventSubscriptionsPages(&rds.DescribeEventSubscriptionsInput{}, func(page *rds.DescribeEventSubscriptionsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, eventSubscription := range page.EventSubscriptionsList {
@@ -65,7 +65,7 @@ func testSweepDbEventSubscriptions(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping RDS Event Subscriptions sweep for %s: %s", region, err)

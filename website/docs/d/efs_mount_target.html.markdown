@@ -27,14 +27,15 @@ data "aws_efs_mount_target" "by_id" {
 
 The following arguments are supported:
 
-* `mount_target_id` - (Required) ID of the mount target that you want to have described
+* `access_point_id` - (Optional) ID or ARN of the access point whose mount target that you want to find. It must be included if a `file_system_id` and `mount_target_id` are not included.
+* `file_system_id` - (Optional) ID or ARN of the file system whose mount target that you want to find. It must be included if an `access_point_id` and `mount_target_id` are not included.
+* `mount_target_id` - (Optional) ID or ARN of the mount target that you want to find. It must be included in your request if an `access_point_id` and `file_system_id` are not included.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `file_system_arn` - Amazon Resource Name of the file system for which the mount target is intended.
-* `file_system_id` - ID of the file system for which the mount target is intended.
 * `subnet_id` - ID of the mount target's subnet.
 * `ip_address` - Address at which the file system may be mounted via the mount target.
 * `security_groups` - List of VPC security group IDs attached to the mount target.

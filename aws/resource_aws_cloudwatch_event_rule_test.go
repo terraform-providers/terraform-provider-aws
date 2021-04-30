@@ -40,9 +40,9 @@ func testSweepCloudWatchEventRules(region string) error {
 
 	rulesInput := &events.ListRulesInput{}
 
-	err = lister.ListRulesPages(conn, rulesInput, func(rulesPage *events.ListRulesOutput, lastRulesPage bool) bool {
+	err = lister.ListRulesPages(conn, rulesInput, func(rulesPage *events.ListRulesOutput, lastPage bool) bool {
 		if rulesPage == nil {
-			return !lastRulesPage
+			return !lastPage
 		}
 
 		for _, rule := range rulesPage.Rules {
@@ -60,7 +60,7 @@ func testSweepCloudWatchEventRules(region string) error {
 			}
 		}
 
-		return !lastRulesPage
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

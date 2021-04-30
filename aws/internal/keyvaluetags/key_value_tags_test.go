@@ -2011,6 +2011,160 @@ func TestKeyValueTagsUrlEncode(t *testing.T) {
 	}
 }
 
+func TestNew(t *testing.T) {
+	testCases := []struct {
+		name   string
+		source interface{}
+		want   map[string]string
+	}{
+		{
+			name:   "empty_KeyValueTags",
+			source: KeyValueTags{},
+			want:   map[string]string{},
+		},
+		{
+			name:   "empty_map_string_TagDataPointer",
+			source: map[string]*TagData{},
+			want:   map[string]string{},
+		},
+		{
+			name:   "empty_map_string_interface",
+			source: map[string]interface{}{},
+			want:   map[string]string{},
+		},
+		{
+			name:   "empty_map_string_string",
+			source: map[string]string{},
+			want:   map[string]string{},
+		},
+		{
+			name:   "empty_map_string_stringPointer",
+			source: map[string]*string{},
+			want:   map[string]string{},
+		},
+		{
+			name:   "empty_slice_interface",
+			source: []interface{}{},
+			want:   map[string]string{},
+		},
+		{
+			name: "non_empty_KeyValueTags",
+			source: KeyValueTags{
+				"key1": &TagData{
+					Value: nil,
+				},
+				"key2": &TagData{
+					Value: testStringPtr(""),
+				},
+				"key3": &TagData{
+					Value: testStringPtr("value3"),
+				},
+			},
+			want: map[string]string{
+				"key1": "",
+				"key2": "",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "non_empty_map_string_TagDataPointer",
+			source: map[string]*TagData{
+				"key1": {
+					Value: nil,
+				},
+				"key2": {
+					Value: testStringPtr(""),
+				},
+				"key3": {
+					Value: testStringPtr("value3"),
+				},
+			},
+			want: map[string]string{
+				"key1": "",
+				"key2": "",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "non_empty_map_string_interface",
+			source: map[string]interface{}{
+				"key1": nil,
+				"key2": "",
+				"key3": "value3",
+			},
+			want: map[string]string{
+				"key1": "",
+				"key2": "",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "non_empty_map_string_string",
+			source: map[string]string{
+				"key1": "",
+				"key2": "value2",
+			},
+			want: map[string]string{
+				"key1": "",
+				"key2": "value2",
+			},
+		},
+		{
+			name: "non_empty_map_string_stringPointer",
+			source: map[string]*string{
+				"key1": nil,
+				"key2": testStringPtr(""),
+				"key3": testStringPtr("value3"),
+			},
+			want: map[string]string{
+				"key1": "",
+				"key2": "",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "non_empty_slice_interface",
+			source: []interface{}{
+				"key1",
+				"key2",
+			},
+			want: map[string]string{
+				"key1": "",
+				"key2": "",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := New(testCase.source)
+
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+
+			// Verify that any source KeyTagValues types are copied
+			// Unfortunately must be done for each separate type
+			switch src := testCase.source.(type) {
+			case KeyValueTags:
+				src.Merge(New(map[string]string{"mergekey": "mergevalue"}))
+
+				_, ok := got.Map()["mergekey"]
+
+				if ok {
+					t.Fatal("expected source to be copied, got source modification")
+				}
+			case map[string]*TagData:
+				src["mergekey"] = &TagData{Value: testStringPtr("mergevalue")}
+
+				_, ok := got.Map()["mergekey"]
+
+				if ok {
+					t.Fatal("expected source to be copied, got source modification")
+				}
+			}
+		})
+	}
+}
+
 func TestTagDataEqual(t *testing.T) {
 	testCases := []struct {
 		name     string

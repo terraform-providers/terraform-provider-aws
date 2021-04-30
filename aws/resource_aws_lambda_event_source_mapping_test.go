@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/lambda/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestAccAWSLambdaEventSourceMapping_kinesis_basic(t *testing.T) {
@@ -510,11 +512,98 @@ func TestAccAWSLambdaEventSourceMapping_MaximumRetryAttemptsZero(t *testing.T) {
 	})
 }
 
+func TestAccAWSLambdaEventSourceMapping_MaximumRetryAttemptsNegativeOne(t *testing.T) {
+	var conf lambda.EventSourceMappingConfiguration
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_lambda_event_source_mapping.test"
+	maximumRetryAttempts := int64(-1)
+	maximumRetryAttemptsUpdate := int64(100)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaEventSourceMappingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRetryAttempts(rName, maximumRetryAttempts),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_retry_attempts", strconv.Itoa(int(maximumRetryAttempts))),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"starting_position",
+					"starting_position_timestamp",
+				},
+			},
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRetryAttempts(rName, maximumRetryAttemptsUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_retry_attempts", strconv.Itoa(int(maximumRetryAttemptsUpdate))),
+				),
+			},
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRetryAttempts(rName, maximumRetryAttempts),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_retry_attempts", strconv.Itoa(int(maximumRetryAttempts))),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLambdaEventSourceMapping_MaximumRecordAgeInSeconds(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_lambda_event_source_mapping.test"
 	maximumRecordAgeInSeconds := int64(604800)
+	maximumRecordAgeInSecondsUpdate := int64(3600)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaEventSourceMappingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRecordAgeInSeconds(rName, maximumRecordAgeInSeconds),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_record_age_in_seconds", strconv.Itoa(int(maximumRecordAgeInSeconds))),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"starting_position",
+					"starting_position_timestamp",
+				},
+			},
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigKinesisMaximumRecordAgeInSeconds(rName, maximumRecordAgeInSecondsUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "maximum_record_age_in_seconds", strconv.Itoa(int(maximumRecordAgeInSecondsUpdate))),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLambdaEventSourceMapping_MaximumRecordAgeInSecondsNegativeOne(t *testing.T) {
+	var conf lambda.EventSourceMappingConfiguration
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_lambda_event_source_mapping.test"
+	maximumRecordAgeInSeconds := int64(-1)
 	maximumRecordAgeInSecondsUpdate := int64(3600)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -645,15 +734,16 @@ func TestAccAWSLambdaEventSourceMapping_MSK(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID, "kafka"), //using kafka.EndpointsID will import kafka and make linters sad
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaEventSourceMappingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLambdaEventSourceMappingConfigMsk(rName),
+				Config: testAccAWSLambdaEventSourceMappingConfigMsk(rName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &v),
 					testAccCheckAWSLambdaEventSourceMappingAttributes(&v),
+					resource.TestCheckResourceAttr(resourceName, "batch_size", "100"),
 					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
 					testAccCheckResourceAttrRfc3339(resourceName, "last_modified"),
 					resource.TestCheckNoResourceAttr(resourceName, "starting_position"),
@@ -666,6 +756,19 @@ func TestAccAWSLambdaEventSourceMapping_MSK(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"enabled", "starting_position"},
+			},
+			{
+				Config: testAccAWSLambdaEventSourceMappingConfigMsk(rName, "9999"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &v),
+					testAccCheckAWSLambdaEventSourceMappingAttributes(&v),
+					resource.TestCheckResourceAttr(resourceName, "batch_size", "9999"),
+					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
+					testAccCheckResourceAttrRfc3339(resourceName, "last_modified"),
+					resource.TestCheckNoResourceAttr(resourceName, "starting_position"),
+					resource.TestCheckResourceAttr(resourceName, "topics.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "topics.*", "test"),
+				),
 			},
 		},
 	})
@@ -782,44 +885,44 @@ func testAccCheckLambdaEventSourceMappingDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := conn.GetEventSourceMapping(&lambda.GetEventSourceMappingInput{
-			UUID: aws.String(rs.Primary.ID),
-		})
+		_, err := finder.EventSourceMappingConfigurationByID(conn, rs.Primary.ID)
 
-		if err == nil {
-			return fmt.Errorf("Lambda event source mapping was not deleted")
+		if tfresource.NotFound(err) {
+			continue
 		}
 
+		if err != nil {
+			return fmt.Errorf("error reading Lambda Event Source Mapping (%s): %w", rs.Primary.ID, err)
+		}
+
+		return fmt.Errorf("Lambda Event Source Mapping %s still exists", rs.Primary.ID)
 	}
 
 	return nil
 
 }
 
-func testAccCheckAwsLambdaEventSourceMappingExists(n string, mapping *lambda.EventSourceMappingConfiguration) resource.TestCheckFunc {
+func testAccCheckAwsLambdaEventSourceMappingExists(n string, v *lambda.EventSourceMappingConfiguration) resource.TestCheckFunc {
 	// Wait for IAM role
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
-			return fmt.Errorf("Lambda event source mapping not found: %s", n)
+			return fmt.Errorf(" Lambda Event Source Mapping resource not found: %s", n)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("Lambda event source mapping ID not set")
+			return fmt.Errorf("no Lambda Event Source Mapping ID is set")
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
-		params := &lambda.GetEventSourceMappingInput{
-			UUID: aws.String(rs.Primary.ID),
-		}
+		eventSourceMappingConfiguration, err := finder.EventSourceMappingConfigurationByID(conn, rs.Primary.ID)
 
-		getSourceMappingConfiguration, err := conn.GetEventSourceMapping(params)
 		if err != nil {
 			return err
 		}
 
-		*mapping = *getSourceMappingConfiguration
+		*v = *eventSourceMappingConfiguration
 
 		return nil
 	}
@@ -1578,7 +1681,11 @@ resource "aws_lambda_event_source_mapping" "test" {
 `, batchWindow))
 }
 
-func testAccAWSLambdaEventSourceMappingConfigMsk(rName string) string {
+func testAccAWSLambdaEventSourceMappingConfigMsk(rName, batchSize string) string {
+	if batchSize == "" {
+		batchSize = "null"
+	}
+
 	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_iam_role" "test" {
   name = %[1]q
@@ -1686,7 +1793,7 @@ resource "aws_lambda_function" "test" {
 }
 
 resource "aws_lambda_event_source_mapping" "test" {
-  batch_size       = 100
+  batch_size       = %[2]s
   event_source_arn = aws_msk_cluster.test.arn
   enabled          = true
   function_name    = aws_lambda_function.test.arn
@@ -1694,5 +1801,5 @@ resource "aws_lambda_event_source_mapping" "test" {
 
   depends_on = [aws_iam_policy_attachment.test]
 }
-`, rName))
+`, rName, batchSize))
 }

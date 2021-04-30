@@ -213,7 +213,8 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"virtualization_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -223,6 +224,8 @@ func resourceAwsAmiCopy() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 
 		// The remaining operations are shared with the generic aws_ami resource,
 		// since the aws_ami_copy resource only differs in how it's created.
@@ -234,6 +237,8 @@ func resourceAwsAmiCopy() *schema.Resource {
 
 func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CopyImageInput{
 		Description:   aws.String(d.Get("description").(string)),
@@ -255,8 +260,8 @@ func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(aws.StringValue(res.ImageId))
 	d.Set("manage_ebs_snapshots", true)
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, d.Id(), v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(client, d.Id(), tags); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}

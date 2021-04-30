@@ -8,9 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/finder"
 )
 
 func TestAccAWSLBListener_basic(t *testing.T) {
@@ -588,20 +590,17 @@ func testAccCheckAWSLBListenerExists(n string, res *elbv2.Listener) resource.Tes
 
 		conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
-		describe, err := conn.DescribeListeners(&elbv2.DescribeListenersInput{
-			ListenerArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		listener, err := finder.ListenerByARN(conn, rs.Primary.ID)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading ELBv2 Listener (%s): %w", rs.Primary.ID, err)
 		}
 
-		if len(describe.Listeners) != 1 ||
-			aws.StringValue(describe.Listeners[0].ListenerArn) != rs.Primary.ID {
-			return errors.New("Listener not found")
+		if listener == nil {
+			return fmt.Errorf("ELBv2 Listener (%s) not found", rs.Primary.ID)
 		}
 
-		*res = *describe.Listeners[0]
+		*res = *listener
 		return nil
 	}
 }
@@ -614,23 +613,21 @@ func testAccCheckAWSLBListenerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		describe, err := conn.DescribeListeners(&elbv2.DescribeListenersInput{
-			ListenerArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		listener, err := finder.ListenerByARN(conn, rs.Primary.ID)
 
-		if err == nil {
-			if len(describe.Listeners) != 0 &&
-				aws.StringValue(describe.Listeners[0].ListenerArn) == rs.Primary.ID {
-				return fmt.Errorf("Listener %q still exists", rs.Primary.ID)
-			}
+		if tfawserr.ErrCodeEquals(err, elbv2.ErrCodeListenerNotFoundException) {
+			continue
 		}
 
-		// Verify the error
-		if isAWSErr(err, elbv2.ErrCodeListenerNotFoundException, "") {
-			return nil
-		} else {
-			return fmt.Errorf("Unexpected error checking LB Listener destroyed: %s", err)
+		if err != nil {
+			return fmt.Errorf("error reading ELBv2 Listener (%s): %w", rs.Primary.ID, err)
 		}
+
+		if listener == nil {
+			continue
+		}
+
+		return fmt.Errorf("ELBv2 Listener %q still exists", rs.Primary.ID)
 	}
 
 	return nil

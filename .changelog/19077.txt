@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_vpn_connection: Prevent flipped `tunnel1_*` and `tunnel2_*` ordering when `tunnel1_inside_cidr`, `tunnel1_inside_ipv6_cidr`, or `tunnel1_preshared_key` is configured
+```

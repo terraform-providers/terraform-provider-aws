@@ -32,9 +32,9 @@ func testSweepAcmCertificates(region string) error {
 	conn := client.(*AWSClient).acmconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListCertificatesPages(&acm.ListCertificatesInput{}, func(page *acm.ListCertificatesOutput, isLast bool) bool {
+	err = conn.ListCertificatesPages(&acm.ListCertificatesInput{}, func(page *acm.ListCertificatesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, certificate := range page.CertificateSummaryList {
@@ -67,7 +67,7 @@ func testSweepAcmCertificates(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {

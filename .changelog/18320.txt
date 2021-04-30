@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_codebuild_project: Add `concurrent_build_limit` argument to specify build concurrency.
+```

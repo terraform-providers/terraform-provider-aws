@@ -376,7 +376,7 @@ The following arguments are supported:
 
 * `name` - (Required) A name to identify the stream. This is unique to the
 AWS account and region the Stream is created in.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `kinesis_source_configuration` - (Optional) Allows the ability to specify the kinesis stream that is used as the source of the firehose delivery stream.
 * `server_side_encryption` - (Optional) Encrypt at rest options.
 Server-side encryption should not be enabled when a kinesis stream is configured as the source of the firehose delivery stream.
@@ -471,7 +471,7 @@ The `http_endpoint_configuration` objects supports the following:
 * `name` - (Optional) The HTTP endpoint name.
 * `access_key` - (Optional) The access key required for Kinesis Firehose to authenticate with the HTTP endpoint selected as the destination.
 * `role_arn` - (Required) Kinesis Data Firehose uses this IAM role for all the permissions that the delivery stream needs. The pattern needs to be `arn:.*`.
-* `s3_backup_mode` - (Optional) Defines how documents should be delivered to Amazon S3.  Valid values are `FailedEventsOnly` and `AllEvents`.  Default value is `FailedEventsOnly`.
+* `s3_backup_mode` - (Optional) Defines how documents should be delivered to Amazon S3.  Valid values are `FailedDataOnly` and `AllData`.  Default value is `FailedDataOnly`.
 * `buffering_size` - (Optional) Buffer incoming data to the specified size, in MBs, before delivering it to the destination. The default value is 5.
 * `buffering_interval` - (Optional) Buffer incoming data for the specified period of time, in seconds, before delivering it to the destination. The default value is 300 (5 minutes).
 * `cloudwatch_logging_options` - (Optional) The CloudWatch Logging Options for the delivery stream. More details are given below.
@@ -626,6 +626,7 @@ resource "aws_kinesis_firehose_delivery_stream" "example" {
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name (ARN) specifying the Stream
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 [1]: https://aws.amazon.com/documentation/firehose/
 

@@ -208,17 +208,22 @@ func resourceAwsSagemakerUserProfile() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"home_efs_file_system_uid": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSagemakerUserProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &sagemaker.CreateUserProfileInput{
 		UserProfileName: aws.String(d.Get("user_profile_name").(string)),
@@ -237,8 +242,8 @@ func resourceAwsSagemakerUserProfileCreate(d *schema.ResourceData, meta interfac
 		input.SingleSignOnUserValue = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	log.Printf("[DEBUG] SageMaker User Profile create config: %#v", *input)
@@ -264,6 +269,7 @@ func resourceAwsSagemakerUserProfileCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsSagemakerUserProfileRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	domainID, userProfileName, err := decodeSagemakerUserProfileName(d.Id())
@@ -299,8 +305,15 @@ func resourceAwsSagemakerUserProfileRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for SageMaker User Profile (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -330,8 +343,8 @@ func resourceAwsSagemakerUserProfileUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating SageMaker UserProfile (%s) tags: %w", d.Id(), err)

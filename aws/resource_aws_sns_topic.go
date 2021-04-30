@@ -1,18 +1,22 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
+	tfsns "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sns"
 )
 
 func resourceAwsSnsTopic() *schema.Resource {
@@ -24,6 +28,10 @@ func resourceAwsSnsTopic() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		CustomizeDiff: customdiff.Sequence(
+			resourceAwsSnsTopicCustomizeDiff,
+			SetTagsDiff,
+		),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -36,6 +44,7 @@ func resourceAwsSnsTopic() *schema.Resource {
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
 			},
@@ -95,6 +104,17 @@ func resourceAwsSnsTopic() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"fifo_topic": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+			"content_based_deduplication": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"lambda_success_feedback_role_arn": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -125,33 +145,46 @@ func resourceAwsSnsTopic() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsSnsTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	snsconn := meta.(*AWSClient).snsconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().SnsTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 	var name string
-	if v, ok := d.GetOk("name"); ok {
-		name = v.(string)
-	} else if v, ok := d.GetOk("name_prefix"); ok {
-		name = resource.PrefixedUniqueId(v.(string))
+	fifoTopic := d.Get("fifo_topic").(bool)
+
+	if fifoTopic {
+		name = naming.GenerateWithSuffix(d.Get("name").(string), d.Get("name_prefix").(string), tfsns.FifoTopicNameSuffix)
 	} else {
-		name = resource.UniqueId()
+		name = naming.Generate(d.Get("name").(string), d.Get("name_prefix").(string))
+	}
+
+	attributes := make(map[string]*string)
+	// If FifoTopic is true, then the attribute must be passed into the call to CreateTopic
+	if fifoTopic {
+		attributes["FifoTopic"] = aws.String(strconv.FormatBool(fifoTopic))
 	}
 
 	log.Printf("[DEBUG] SNS create topic: %s", name)
 
 	req := &sns.CreateTopicInput{
 		Name: aws.String(name),
-		Tags: tags,
+		Tags: tags.IgnoreAws().SnsTags(),
+	}
+
+	if len(attributes) > 0 {
+		req.Attributes = attributes
 	}
 
 	output, err := snsconn.CreateTopic(req)
 	if err != nil {
-		return fmt.Errorf("Error creating SNS topic: %s", err)
+		return fmt.Errorf("error creating SNS Topic (%s): %w", name, err)
 	}
 
 	d.SetId(aws.StringValue(output.TopicArn))
@@ -202,6 +235,12 @@ func resourceAwsSnsTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("kms_master_key_id") {
 		_, v := d.GetChange("kms_master_key_id")
 		if err := updateAwsSnsTopicAttribute(d.Id(), "KmsMasterKeyId", v, snsconn); err != nil {
+			return err
+		}
+	}
+	if d.HasChange("content_based_deduplication") {
+		_, v := d.GetChange("content_based_deduplication")
+		if err := updateAwsSnsTopicAttribute(d.Id(), "ContentBasedDeduplication", v, snsconn); err != nil {
 			return err
 		}
 	}
@@ -315,6 +354,12 @@ func resourceAwsSnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 	}
+	if d.HasChange("content_based_deduplication") {
+		_, v := d.GetChange("content_based_deduplication")
+		if err := updateAwsSnsTopicAttribute(d.Id(), "ContentBasedDeduplication", v, snsconn); err != nil {
+			return err
+		}
+	}
 	if d.HasChange("lambda_failure_feedback_role_arn") {
 		_, v := d.GetChange("lambda_failure_feedback_role_arn")
 		if err := updateAwsSnsTopicAttribute(d.Id(), "LambdaFailureFeedbackRoleArn", v, snsconn); err != nil {
@@ -370,10 +415,10 @@ func resourceAwsSnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.SnsUpdateTags(snsconn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+			return fmt.Errorf("error updating tags: %w", err)
 		}
 	}
 
@@ -382,21 +427,25 @@ func resourceAwsSnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 	snsconn := meta.(*AWSClient).snsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading SNS Topic Attributes for %s", d.Id())
 	attributeOutput, err := snsconn.GetTopicAttributes(&sns.GetTopicAttributesInput{
 		TopicArn: aws.String(d.Id()),
 	})
-	if err != nil {
-		if isAWSErr(err, sns.ErrCodeNotFoundException, "") {
-			log.Printf("[WARN] SNS Topic (%s) not found, error code (404)", d.Id())
-			d.SetId("")
-			return nil
-		}
 
-		return err
+	if isAWSErr(err, sns.ErrCodeNotFoundException, "") {
+		log.Printf("[WARN] SNS Topic (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
+
+	if err != nil {
+		return fmt.Errorf("error reading SNS Topic (%s): %w", d.Id(), err)
+	}
+
+	fifoTopic := false
 
 	// set the mutable attributes
 	if attributeOutput.Attributes != nil && len(attributeOutput.Attributes) > 0 {
@@ -415,6 +464,15 @@ func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sqs_failure_feedback_role_arn", attributeOutput.Attributes["SQSFailureFeedbackRoleArn"])
 		d.Set("sqs_success_feedback_role_arn", attributeOutput.Attributes["SQSSuccessFeedbackRoleArn"])
 
+		// set the boolean values
+		if v, ok := attributeOutput.Attributes["FifoTopic"]; ok && aws.StringValue(v) == "true" {
+			fifoTopic = true
+		}
+		d.Set("content_based_deduplication", false)
+		if v, ok := attributeOutput.Attributes["ContentBasedDeduplication"]; ok && aws.StringValue(v) == "true" {
+			d.Set("content_based_deduplication", true)
+		}
+
 		// set the number values
 		var vStr string
 		var v int64
@@ -424,7 +482,7 @@ func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 		if vStr != "" {
 			v, err = strconv.ParseInt(vStr, 10, 64)
 			if err != nil {
-				return fmt.Errorf("error parsing integer attribute 'ApplicationSuccessFeedbackSampleRate': %s", err)
+				return fmt.Errorf("error parsing integer attribute 'ApplicationSuccessFeedbackSampleRate': %w", err)
 			}
 			d.Set("application_success_feedback_sample_rate", v)
 		}
@@ -433,7 +491,7 @@ func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 		if vStr != "" {
 			v, err = strconv.ParseInt(vStr, 10, 64)
 			if err != nil {
-				return fmt.Errorf("error parsing integer attribute 'HTTPSuccessFeedbackSampleRate': %s", err)
+				return fmt.Errorf("error parsing integer attribute 'HTTPSuccessFeedbackSampleRate': %w", err)
 			}
 			d.Set("http_success_feedback_sample_rate", v)
 		}
@@ -442,7 +500,7 @@ func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 		if vStr != "" {
 			v, err = strconv.ParseInt(vStr, 10, 64)
 			if err != nil {
-				return fmt.Errorf("error parsing integer attribute 'LambdaSuccessFeedbackSampleRate': %s", err)
+				return fmt.Errorf("error parsing integer attribute 'LambdaSuccessFeedbackSampleRate': %w", err)
 			}
 			d.Set("lambda_success_feedback_sample_rate", v)
 		}
@@ -451,31 +509,43 @@ func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 		if vStr != "" {
 			v, err = strconv.ParseInt(vStr, 10, 64)
 			if err != nil {
-				return fmt.Errorf("error parsing integer attribute 'SQSSuccessFeedbackSampleRate': %s", err)
+				return fmt.Errorf("error parsing integer attribute 'SQSSuccessFeedbackSampleRate': %w", err)
 			}
 			d.Set("sqs_success_feedback_sample_rate", v)
 		}
 	}
 
-	// If we have no name set (import) then determine it from the ARN.
-	// This is a bit of a heuristic for now since AWS provides no other
-	// way to get it.
-	if _, ok := d.GetOk("name"); !ok {
-		arn := d.Get("arn").(string)
-		idx := strings.LastIndex(arn, ":")
-		if idx > -1 {
-			d.Set("name", arn[idx+1:])
-		}
+	d.Set("fifo_topic", fifoTopic)
+
+	arn, err := arn.Parse(d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error parsing ARN (%s): %w", d.Id(), err)
+	}
+
+	name := arn.Resource
+	d.Set("name", name)
+	if fifoTopic {
+		d.Set("name_prefix", naming.NamePrefixFromNameWithSuffix(name, tfsns.FifoTopicNameSuffix))
+	} else {
+		d.Set("name_prefix", naming.NamePrefixFromName(name))
 	}
 
 	tags, err := keyvaluetags.SnsListTags(snsconn, d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for resource (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for SNS Topic (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -489,7 +559,47 @@ func resourceAwsSnsTopicDelete(d *schema.ResourceData, meta interface{}) error {
 		TopicArn: aws.String(d.Id()),
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("error deleting SNS Topic (%s): %w", d.Id(), err)
+	}
+
+	return nil
+}
+
+func resourceAwsSnsTopicCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+	fifoTopic := diff.Get("fifo_topic").(bool)
+	contentBasedDeduplication := diff.Get("content_based_deduplication").(bool)
+
+	if diff.Id() == "" {
+		// Create.
+
+		var name string
+
+		if fifoTopic {
+			name = naming.GenerateWithSuffix(diff.Get("name").(string), diff.Get("name_prefix").(string), tfsns.FifoTopicNameSuffix)
+		} else {
+			name = naming.Generate(diff.Get("name").(string), diff.Get("name_prefix").(string))
+		}
+
+		var re *regexp.Regexp
+
+		if fifoTopic {
+			re = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,251}\.fifo$`)
+		} else {
+			re = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,256}$`)
+		}
+
+		if !re.MatchString(name) {
+			return fmt.Errorf("invalid topic name: %s", name)
+		}
+
+	}
+
+	if !fifoTopic && contentBasedDeduplication {
+		return fmt.Errorf("content-based deduplication can only be set for FIFO topics")
+	}
+
+	return nil
 }
 
 func updateAwsSnsTopicAttribute(topicArn, name string, value interface{}, conn *sns.SNS) error {
@@ -513,5 +623,9 @@ func updateAwsSnsTopicAttribute(topicArn, name string, value interface{}, conn *
 		return conn.SetTopicAttributes(&req)
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("error setting SNS Topic (%s) attributes: %w", topicArn, err)
+	}
+
+	return nil
 }

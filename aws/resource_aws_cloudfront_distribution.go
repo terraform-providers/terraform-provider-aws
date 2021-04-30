@@ -178,6 +178,11 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"trusted_key_groups": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 						"trusted_signers": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -351,6 +356,12 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 						"target_origin_id": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+						"trusted_key_groups": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"trusted_signers": {
 							Type:     schema.TypeList,
@@ -613,6 +624,35 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"trusted_key_groups": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"items": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key_group_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"key_pair_ids": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			// Terraform AWS Provider 3.0 name change:
 			// enables TF Plugin SDK to ignore pre-existing attribute state
 			// associated with previous naming i.e. active_trusted_signers
@@ -684,18 +724,23 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 				Default:  false,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCloudFrontDistributionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudfrontconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &cloudfront.CreateDistributionWithTagsInput{
 		DistributionConfigWithTags: &cloudfront.DistributionConfigWithTags{
 			DistributionConfig: expandDistributionConfig(d),
-			Tags:               &cloudfront.Tags{Items: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CloudfrontTags()},
+			Tags:               &cloudfront.Tags{Items: tags.IgnoreAws().CloudfrontTags()},
 		},
 	}
 
@@ -741,6 +786,7 @@ func resourceAwsCloudFrontDistributionCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsCloudFrontDistributionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudfrontconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &cloudfront.GetDistributionInput{
@@ -765,6 +811,9 @@ func resourceAwsCloudFrontDistributionRead(d *schema.ResourceData, meta interfac
 	}
 
 	// Update other attributes outside of DistributionConfig
+	if err := d.Set("trusted_key_groups", flattenCloudfrontActiveTrustedKeyGroups(resp.Distribution.ActiveTrustedKeyGroups)); err != nil {
+		return fmt.Errorf("error setting trusted_key_groups: %w", err)
+	}
 	if err := d.Set("trusted_signers", flattenCloudfrontActiveTrustedSigners(resp.Distribution.ActiveTrustedSigners)); err != nil {
 		return fmt.Errorf("error setting trusted_signers: %w", err)
 	}
@@ -779,8 +828,15 @@ func resourceAwsCloudFrontDistributionRead(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("error listing tags for CloudFront Distribution (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -827,8 +883,8 @@ func resourceAwsCloudFrontDistributionUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.CloudfrontUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags for CloudFront Distribution (%s): %s", d.Id(), err)
 		}

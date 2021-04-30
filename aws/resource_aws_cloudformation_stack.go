@@ -108,17 +108,22 @@ func resourceAwsCloudFormationStack() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"iam_role_arn": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	requestToken := resource.UniqueId()
 	input := cloudformation.CreateStackInput{
@@ -160,8 +165,8 @@ func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface
 	if v, ok := d.GetOk("policy_url"); ok {
 		input.StackPolicyURL = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CloudformationTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().CloudformationTags()
 	}
 	if v, ok := d.GetOk("timeout_in_minutes"); ok {
 		m := int64(v.(int))
@@ -198,6 +203,7 @@ func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &cloudformation.DescribeStacksInput{
@@ -269,8 +275,15 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	err = d.Set("outputs", flattenCloudFormationOutputs(stack.Outputs))
@@ -290,6 +303,8 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 
 func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	requestToken := resource.UniqueId()
 	input := &cloudformation.UpdateStackInput{
@@ -323,8 +338,8 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 		input.Parameters = expandCloudFormationParameters(v.(map[string]interface{}))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CloudformationTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().CloudformationTags()
 	}
 
 	if d.HasChange("policy_body") {

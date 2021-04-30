@@ -230,8 +230,10 @@ The following arguments are required:
 The following arguments are optional:
 
 * `badge_enabled` - (Optional) Generates a publicly-accessible URL for the projects build badge. Available as `badge_url` attribute when enabled.
+* `build_batch_config` - (Optional) Defines the batch build options for the project.
 * `build_timeout` - (Optional) Number of minutes, from 5 to 480 (8 hours), for AWS CodeBuild to wait until timing out any related build that does not get marked as completed. The default is 60 minutes.
 * `cache` - (Optional) Configuration block. Detailed below.
+* `concurrent_build_limit` - (Optional) Specify a maximum number of concurrent builds for the project. The value specified must be greater than 0 and less than the account concurrent running builds limit.
 * `description` - (Optional) Short description of the project.
 * `encryption_key` - (Optional) AWS Key Management Service (AWS KMS) customer master key (CMK) to be used for encrypting the build project's build output artifacts.
 * `logs_config` - (Optional) Configuration block. Detailed below.
@@ -240,7 +242,7 @@ The following arguments are optional:
 * `secondary_sources` - (Optional) Configuration block. Detailed below.
 * `service_role` - (Required) Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role that enables AWS CodeBuild to interact with dependent AWS services on behalf of the AWS account.
 * `source_version` - (Optional) Version of the build input to be built for this project. If not specified, the latest version is used.
-* `tags` - (Optional) Map of tags to assign to the resource.
+* `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpc_config` - (Optional) Configuration block. Detailed below.
 
 ### artifacts
@@ -254,6 +256,18 @@ The following arguments are optional:
 * `packaging` - (Optional) Type of build output artifact to create. If `type` is set to `S3`, valid values are `NONE`, `ZIP`
 * `path` - (Optional) If `type` is set to `S3`, this is the path to the output artifact.
 * `type` - (Required) Build output artifact's type. Valid values: `CODEPIPELINE`, `NO_ARTIFACTS`, `S3`.
+
+### build_batch_config
+
+* `combine_artifacts` - (Optional) Specifies if the build artifacts for the batch build should be combined into a single artifact location.
+* `restrictions` - (Optional) Specifies the restrictions for the batch build.
+* `service_role` - (Required) Specifies the service role ARN for the batch build project.
+* `timeout_in_mins` - (Optional) Specifies the maximum amount of time, in minutes, that the batch build must be completed in.
+
+#### restrictions
+
+* `compute_types_allowed` - (Optional) An array of strings that specify the compute types that are allowed for the batch build. See [Build environment compute types](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html) in the AWS CodeBuild User Guide for these values.
+* `maximum_builds_allowed` - (Optional) Specifies the maximum number of builds allowed.
 
 ### cache
 
@@ -323,6 +337,7 @@ Credentials for access to a private Docker registry.
 * `insecure_ssl` - (Optional) Ignore SSL warnings when connecting to source control.
 * `location` - (Optional) Location of the source code from git or s3.
 * `report_build_status` - (Optional) Whether to report the status of a build's start and finish to your source provider. This option is only valid when your source provider is `GITHUB`, `BITBUCKET`, or `GITHUB_ENTERPRISE`.
+* `build_status_config` - (Optional) Contains information that defines how the build project reports the build status to the source provider. This option is only used when the source provider is `GITHUB`, `GITHUB_ENTERPRISE`, or `BITBUCKET`.
 * `source_identifier` - (Required) Source identifier. Source data will be put inside a folder named as this parameter inside AWS CodeBuild source directory
 * `type` - (Required) Type of repository that contains the source code to be built. Valid values: `CODECOMMIT`, `CODEPIPELINE`, `GITHUB`, `GITHUB_ENTERPRISE`, `BITBUCKET` or `S3`.
 
@@ -337,7 +352,12 @@ This block is only valid when the `type` is `CODECOMMIT`, `GITHUB` or `GITHUB_EN
 
 * `fetch_submodules` - (Required) Whether to fetch Git submodules for the AWS CodeBuild build project.
 
-### source
+`build_status_config` supports the following:
+
+* `context` - (Optional) Specifies the context of the build status CodeBuild sends to the source provider. The usage of this parameter depends on the source provider.
+* `target_url` - (Optional) Specifies the target url of the build status CodeBuild sends to the source provider. The usage of this parameter depends on the source provider.
+
+`vpc_config` supports the following:
 
 * `auth` - (Optional, **Deprecated**) Configuration block with the authorization settings for AWS CodeBuild to access the source code to be built. This information is for the AWS CodeBuild console's use only. Use the [`aws_codebuild_source_credential` resource](codebuild_source_credential.html) instead. Auth blocks are documented below.
 * `buildspec` - (Optional) Build specification to use for this build project's related builds. This must be set when `type` is `NO_SOURCE`.
@@ -372,6 +392,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - ARN of the CodeBuild project.
 * `badge_url` - URL of the build badge when `badge_enabled` is enabled.
 * `id` - Name (if imported via `name`) or ARN (if created via Terraform or imported via ARN) of the CodeBuild project.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

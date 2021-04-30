@@ -149,7 +149,7 @@ The following arguments are supported:
 * `directory_id` - (Required) The directory identifier for registration in WorkSpaces service.
 * `subnet_ids` - (Optional) The identifiers of the subnets where the directory resides.
 * `ip_group_ids` - The identifiers of the IP access control groups associated with the directory.
-* `tags` – (Optional) A map of tags assigned to the WorkSpaces directory.
+* `tags` – (Optional) A map of tags assigned to the WorkSpaces directory. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `self_service_permissions` – (Optional) Permissions to enable or disable self-service capabilities. Defined below.
 * `workspace_access_properties` – (Optional) Specifies which devices and operating systems users can use to access their WorkSpaces. Defined below.
 * `workspace_creation_properties` – (Optional) Default properties that are used for creating WorkSpaces. Defined below.
@@ -195,6 +195,7 @@ In addition to all arguments above, the following attributes are exported:
 * `iam_role_id` - The identifier of the IAM role. This is the role that allows Amazon WorkSpaces to make calls to other services, such as Amazon EC2, on your behalf.
 * `ip_group_ids` - The identifiers of the IP access control groups associated with the directory.
 * `registration_code` - The registration code for the directory. This is the code that users enter in their Amazon WorkSpaces client application to connect to the directory.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `workspace_security_group_id` - The identifier of the security group that is assigned to new WorkSpaces.
 
 ## Import

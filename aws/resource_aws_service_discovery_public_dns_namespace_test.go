@@ -43,9 +43,9 @@ func testSweepServiceDiscoveryPublicDnsNamespaces(region string) error {
 		},
 	}
 
-	err = conn.ListNamespacesPages(input, func(page *servicediscovery.ListNamespacesOutput, isLast bool) bool {
+	err = conn.ListNamespacesPages(input, func(page *servicediscovery.ListNamespacesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, namespace := range page.Namespaces {
@@ -78,7 +78,7 @@ func testSweepServiceDiscoveryPublicDnsNamespaces(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

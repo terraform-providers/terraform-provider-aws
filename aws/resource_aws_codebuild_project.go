@@ -72,10 +72,7 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 								}
 								return false
 							},
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ArtifactNamespaceNone,
-								codebuild.ArtifactNamespaceBuildId,
-							}, false),
+							ValidateFunc: validation.StringInSlice(codebuild.ArtifactNamespace_Values(), false),
 						},
 						"packaging": {
 							Type:     schema.TypeString,
@@ -89,28 +86,65 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 								}
 								return false
 							},
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ArtifactPackagingNone,
-								codebuild.ArtifactPackagingZip,
-							}, false),
+							ValidateFunc: validation.StringInSlice(codebuild.ArtifactPackaging_Values(), false),
 						},
 						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ArtifactsTypeCodepipeline,
-								codebuild.ArtifactsTypeS3,
-								codebuild.ArtifactsTypeNoArtifacts,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.ArtifactsType_Values(), false),
 						},
 						"override_artifact_name": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+					},
+				},
+			},
+			"build_batch_config": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"combine_artifacts": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"restrictions": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compute_types_allowed": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringInSlice(codebuild.ComputeType_Values(), false),
+										},
+									},
+									"maximum_builds_allowed": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+								},
+							},
+						},
+						"service_role": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"timeout_in_mins": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(5, 480),
 						},
 					},
 				},
@@ -128,14 +162,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  codebuild.CacheTypeNoCache,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.CacheTypeNoCache,
-								codebuild.CacheTypeS3,
-								codebuild.CacheTypeLocal,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      codebuild.CacheTypeNoCache,
+							ValidateFunc: validation.StringInSlice(codebuild.CacheType_Values(), false),
 						},
 						"location": {
 							Type:     schema.TypeString,
@@ -148,6 +178,11 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 						},
 					},
 				},
+			},
+			"concurrent_build_limit": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"description": {
 				Type:         schema.TypeString,
@@ -167,14 +202,9 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"compute_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ComputeTypeBuildGeneral1Small,
-								codebuild.ComputeTypeBuildGeneral1Medium,
-								codebuild.ComputeTypeBuildGeneral1Large,
-								codebuild.ComputeTypeBuildGeneral12xlarge,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.ComputeType_Values(), false),
 						},
 						"environment_variable": {
 							Type:     schema.TypeList,
@@ -190,14 +220,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 										Required: true,
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codebuild.EnvironmentVariableTypePlaintext,
-											codebuild.EnvironmentVariableTypeParameterStore,
-											codebuild.EnvironmentVariableTypeSecretsManager,
-										}, false),
-										Default: codebuild.EnvironmentVariableTypePlaintext,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(codebuild.EnvironmentVariableType_Values(), false),
+										Default:      codebuild.EnvironmentVariableTypePlaintext,
 									},
 								},
 							},
@@ -207,24 +233,15 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Required: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.EnvironmentTypeLinuxContainer,
-								codebuild.EnvironmentTypeLinuxGpuContainer,
-								codebuild.EnvironmentTypeWindowsContainer,
-								codebuild.EnvironmentTypeWindowsServer2019Container,
-								codebuild.EnvironmentTypeArmContainer,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.EnvironmentType_Values(), false),
 						},
 						"image_pull_credentials_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  codebuild.ImagePullCredentialsTypeCodebuild,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ImagePullCredentialsTypeCodebuild,
-								codebuild.ImagePullCredentialsTypeServiceRole,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      codebuild.ImagePullCredentialsTypeCodebuild,
+							ValidateFunc: validation.StringInSlice(codebuild.ImagePullCredentialsType_Values(), false),
 						},
 						"privileged_mode": {
 							Type:     schema.TypeBool,
@@ -247,11 +264,9 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 										Required: true,
 									},
 									"credential_provider": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codebuild.CredentialProviderTypeSecretsManager,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(codebuild.CredentialProviderType_Values(), false),
 									},
 								},
 							},
@@ -272,13 +287,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"status": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  codebuild.LogsConfigStatusTypeEnabled,
-										ValidateFunc: validation.StringInSlice([]string{
-											codebuild.LogsConfigStatusTypeDisabled,
-											codebuild.LogsConfigStatusTypeEnabled,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      codebuild.LogsConfigStatusTypeEnabled,
+										ValidateFunc: validation.StringInSlice(codebuild.LogsConfigStatusType_Values(), false),
 									},
 									"group_name": {
 										Type:     schema.TypeString,
@@ -299,13 +311,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"status": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  codebuild.LogsConfigStatusTypeDisabled,
-										ValidateFunc: validation.StringInSlice([]string{
-											codebuild.LogsConfigStatusTypeDisabled,
-											codebuild.LogsConfigStatusTypeEnabled,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      codebuild.LogsConfigStatusTypeDisabled,
+										ValidateFunc: validation.StringInSlice(codebuild.LogsConfigStatusType_Values(), false),
 									},
 									"location": {
 										Type:         schema.TypeString,
@@ -334,6 +343,7 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 			"secondary_artifacts": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				MaxItems: 12,
 				Set:      resourceAwsCodeBuildProjectArtifactsHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -351,13 +361,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Optional: true,
 						},
 						"namespace_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ArtifactNamespaceNone,
-								codebuild.ArtifactNamespaceBuildId,
-							}, false),
-							Default: codebuild.ArtifactNamespaceNone,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.ArtifactNamespace_Values(), false),
+							Default:      codebuild.ArtifactNamespaceNone,
 						},
 						"override_artifact_name": {
 							Type:     schema.TypeBool,
@@ -365,13 +372,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Default:  false,
 						},
 						"packaging": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ArtifactPackagingNone,
-								codebuild.ArtifactPackagingZip,
-							}, false),
-							Default: codebuild.ArtifactPackagingNone,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.ArtifactPackaging_Values(), false),
+							Default:      codebuild.ArtifactPackagingNone,
 						},
 						"path": {
 							Type:     schema.TypeString,
@@ -382,11 +386,9 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Required: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.ArtifactsTypeS3,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.ArtifactsType_Values(), false),
 						},
 					},
 				},
@@ -394,6 +396,7 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 			"secondary_sources": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				MaxItems: 12,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"auth": {
@@ -409,12 +412,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 										Deprecated: "Use the aws_codebuild_source_credential resource instead",
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codebuild.SourceAuthTypeOauth,
-										}, false),
-										Deprecated: "Use the aws_codebuild_source_credential resource instead",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(codebuild.SourceAuthType_Values(), false),
+										Deprecated:   "Use the aws_codebuild_source_credential resource instead",
 									},
 								},
 							},
@@ -429,16 +430,9 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Optional: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.SourceTypeCodecommit,
-								codebuild.SourceTypeCodepipeline,
-								codebuild.SourceTypeGithub,
-								codebuild.SourceTypeS3,
-								codebuild.SourceTypeBitbucket,
-								codebuild.SourceTypeGithubEnterprise,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.SourceType_Values(), false),
 						},
 						"git_clone_depth": {
 							Type:         schema.TypeInt,
@@ -470,12 +464,30 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"build_status_config": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"context": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"target_url": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 			"service_role": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"source": {
 				Type:     schema.TypeList,
@@ -496,12 +508,10 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 										Deprecated: "Use the aws_codebuild_source_credential resource instead",
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codebuild.SourceAuthTypeOauth,
-										}, false),
-										Deprecated: "Use the aws_codebuild_source_credential resource instead",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(codebuild.SourceAuthType_Values(), false),
+										Deprecated:   "Use the aws_codebuild_source_credential resource instead",
 									},
 								},
 							},
@@ -516,17 +526,9 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Optional: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codebuild.SourceTypeCodecommit,
-								codebuild.SourceTypeCodepipeline,
-								codebuild.SourceTypeGithub,
-								codebuild.SourceTypeS3,
-								codebuild.SourceTypeBitbucket,
-								codebuild.SourceTypeGithubEnterprise,
-								codebuild.SourceTypeNoSource,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(codebuild.SourceType_Values(), false),
 						},
 						"git_clone_depth": {
 							Type:         schema.TypeInt,
@@ -553,6 +555,23 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 						"report_build_status": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+						"build_status_config": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"context": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"target_url": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -582,7 +601,8 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -597,14 +617,12 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							// Set:      schema.HashString,
 							MaxItems: 16,
 						},
 						"security_group_ids": {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							// Set:      schema.HashString,
 							MaxItems: 5,
 						},
 					},
@@ -624,12 +642,15 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 				}
 				return fmt.Errorf(`cache location is required when cache type is %q`, cacheType.(string))
 			},
+			SetTagsDiff,
 		),
 	}
 }
 
 func resourceAwsCodeBuildProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codebuildconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	projectEnv := expandProjectEnvironment(d)
 	projectSource := expandProjectSource(d)
@@ -637,6 +658,7 @@ func resourceAwsCodeBuildProjectCreate(d *schema.ResourceData, meta interface{})
 	projectSecondaryArtifacts := expandProjectSecondaryArtifacts(d)
 	projectSecondarySources := expandProjectSecondarySources(d)
 	projectLogsConfig := expandProjectLogsConfig(d)
+	projectBatchConfig := expandCodeBuildBuildBatchConfig(d)
 
 	if aws.StringValue(projectSource.Type) == codebuild.SourceTypeNoSource {
 		if aws.StringValue(projectSource.Buildspec) == "" {
@@ -656,11 +678,16 @@ func resourceAwsCodeBuildProjectCreate(d *schema.ResourceData, meta interface{})
 		SecondaryArtifacts: projectSecondaryArtifacts,
 		SecondarySources:   projectSecondarySources,
 		LogsConfig:         projectLogsConfig,
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodebuildTags(),
+		BuildBatchConfig:   projectBatchConfig,
+		Tags:               tags.IgnoreAws().CodebuildTags(),
 	}
 
 	if v, ok := d.GetOk("cache"); ok {
 		params.Cache = expandProjectCache(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("concurrent_build_limit"); ok {
+		params.ConcurrentBuildLimit = aws.Int64(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -925,6 +952,49 @@ func expandProjectLogsConfig(d *schema.ResourceData) *codebuild.LogsConfig {
 	return logsConfig
 }
 
+func expandCodeBuildBuildBatchConfig(d *schema.ResourceData) *codebuild.ProjectBuildBatchConfig {
+	configs, ok := d.Get("build_batch_config").([]interface{})
+	if !ok || len(configs) == 0 || configs[0] == nil {
+		return nil
+	}
+
+	data := configs[0].(map[string]interface{})
+
+	projectBuildBatchConfig := &codebuild.ProjectBuildBatchConfig{
+		Restrictions: expandCodeBuildBatchRestrictions(data),
+		ServiceRole:  aws.String(data["service_role"].(string)),
+	}
+
+	if v, ok := data["combine_artifacts"]; ok {
+		projectBuildBatchConfig.CombineArtifacts = aws.Bool(v.(bool))
+	}
+
+	if v, ok := data["timeout_in_mins"]; ok && v != 0 {
+		projectBuildBatchConfig.TimeoutInMins = aws.Int64(int64(v.(int)))
+	}
+
+	return projectBuildBatchConfig
+}
+
+func expandCodeBuildBatchRestrictions(data map[string]interface{}) *codebuild.BatchRestrictions {
+	if v, ok := data["restrictions"]; !ok || len(v.([]interface{})) == 0 || v.([]interface{})[0] == nil {
+		return nil
+	}
+
+	restrictionsData := data["restrictions"].([]interface{})[0].(map[string]interface{})
+
+	restrictions := &codebuild.BatchRestrictions{}
+	if v, ok := restrictionsData["compute_types_allowed"]; ok && len(v.([]interface{})) != 0 {
+		restrictions.ComputeTypesAllowed = expandStringList(v.([]interface{}))
+	}
+
+	if v, ok := restrictionsData["maximum_builds_allowed"]; ok && v != 0 {
+		restrictions.MaximumBuildsAllowed = aws.Int64(int64(v.(int)))
+	}
+
+	return restrictions
+}
+
 func expandCodeBuildCloudWatchLogsConfig(configList []interface{}) *codebuild.CloudWatchLogsConfig {
 	if len(configList) == 0 || configList[0] == nil {
 		return nil
@@ -1053,8 +1123,8 @@ func expandProjectSourceData(data map[string]interface{}) codebuild.ProjectSourc
 		}
 	}
 
-	// Only valid for CODECOMMIT, GITHUB, GITHUB_ENTERPRISE source types.
-	if sourceType == codebuild.SourceTypeCodecommit || sourceType == codebuild.SourceTypeGithub || sourceType == codebuild.SourceTypeGithubEnterprise {
+	// Only valid for CODECOMMIT, GITHUB, GITHUB_ENTERPRISE, BITBUCKET source types.
+	if sourceType == codebuild.SourceTypeCodecommit || sourceType == codebuild.SourceTypeGithub || sourceType == codebuild.SourceTypeGithubEnterprise || sourceType == codebuild.SourceTypeBitbucket {
 		if v, ok := data["git_submodules_config"]; ok && len(v.([]interface{})) > 0 {
 			config := v.([]interface{})[0].(map[string]interface{})
 
@@ -1068,11 +1138,30 @@ func expandProjectSourceData(data map[string]interface{}) codebuild.ProjectSourc
 		}
 	}
 
+	// Only valid for BITBUCKET, GITHUB, GITHUB_ENTERPRISE source types.
+	if sourceType == codebuild.SourceTypeBitbucket || sourceType == codebuild.SourceTypeGithub || sourceType == codebuild.SourceTypeGithubEnterprise {
+		if v, ok := data["build_status_config"]; ok && len(v.([]interface{})) > 0 {
+			config := v.([]interface{})[0].(map[string]interface{})
+
+			buildStatusConfig := &codebuild.BuildStatusConfig{}
+
+			if v, ok := config["context"]; ok {
+				buildStatusConfig.Context = aws.String(v.(string))
+			}
+			if v, ok := config["target_url"]; ok {
+				buildStatusConfig.TargetUrl = aws.String(v.(string))
+			}
+
+			projectSource.BuildStatusConfig = buildStatusConfig
+		}
+	}
+
 	return projectSource
 }
 
 func resourceAwsCodeBuildProjectRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codebuildconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.BatchGetProjects(&codebuild.BatchGetProjectsInput{
@@ -1126,7 +1215,12 @@ func resourceAwsCodeBuildProjectRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting vpc_config: %s", err)
 	}
 
+	if err := d.Set("build_batch_config", flattenAwsCodeBuildBuildBatchConfig(project.BuildBatchConfig)); err != nil {
+		return fmt.Errorf("error setting build_batch_config: %s", err)
+	}
+
 	d.Set("arn", project.Arn)
+	d.Set("concurrent_build_limit", project.ConcurrentBuildLimit)
 	d.Set("description", project.Description)
 	d.Set("encryption_key", project.EncryptionKey)
 	d.Set("name", project.Name)
@@ -1142,8 +1236,15 @@ func resourceAwsCodeBuildProjectRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("badge_url", "")
 	}
 
-	if err := d.Set("tags", keyvaluetags.CodebuildKeyValueTags(project.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.CodebuildKeyValueTags(project.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -1151,6 +1252,8 @@ func resourceAwsCodeBuildProjectRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codebuildconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &codebuild.UpdateProjectInput{
 		Name: aws.String(d.Get("name").(string)),
@@ -1172,13 +1275,25 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("secondary_sources") {
-		projectSecondarySources := expandProjectSecondarySources(d)
-		params.SecondarySources = projectSecondarySources
+		_, n := d.GetChange("secondary_sources")
+
+		if n.(*schema.Set).Len() > 0 {
+			projectSecondarySources := expandProjectSecondarySources(d)
+			params.SecondarySources = projectSecondarySources
+		} else {
+			params.SecondarySources = []*codebuild.ProjectSource{}
+		}
 	}
 
 	if d.HasChange("secondary_artifacts") {
-		projectSecondaryArtifacts := expandProjectSecondaryArtifacts(d)
-		params.SecondaryArtifacts = projectSecondaryArtifacts
+		_, n := d.GetChange("secondary_artifacts")
+
+		if n.(*schema.Set).Len() > 0 {
+			projectSecondaryArtifacts := expandProjectSecondaryArtifacts(d)
+			params.SecondaryArtifacts = projectSecondaryArtifacts
+		} else {
+			params.SecondaryArtifacts = []*codebuild.ProjectArtifacts{}
+		}
 	}
 
 	if d.HasChange("vpc_config") {
@@ -1190,6 +1305,10 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 		params.LogsConfig = logsConfig
 	}
 
+	if d.HasChange("build_batch_config") {
+		params.BuildBatchConfig = expandCodeBuildBuildBatchConfig(d)
+	}
+
 	if d.HasChange("cache") {
 		if v, ok := d.GetOk("cache"); ok {
 			params.Cache = expandProjectCache(v.([]interface{}))
@@ -1198,6 +1317,10 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 				Type: aws.String("NO_CACHE"),
 			}
 		}
+	}
+
+	if d.HasChange("concurrent_build_limit") {
+		params.ConcurrentBuildLimit = aws.Int64(int64(d.Get("concurrent_build_limit").(int)))
 	}
 
 	if d.HasChange("description") {
@@ -1230,7 +1353,7 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 
 	// The documentation clearly says "The replacement set of tags for this build project."
 	// But its a slice of pointers so if not set for every update, they get removed.
-	params.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodebuildTags()
+	params.Tags = tags.IgnoreAws().CodebuildTags()
 
 	// Handle IAM eventual consistency
 	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
@@ -1447,6 +1570,8 @@ func flattenAwsCodeBuildProjectSourceData(source *codebuild.ProjectSource) inter
 
 	m["git_submodules_config"] = flattenAwsCodebuildProjectGitSubmodulesConfig(source.GitSubmodulesConfig)
 
+	m["build_status_config"] = flattenAwsCodebuildProjectBuildStatusConfig(source.BuildStatusConfig)
+
 	if source.Auth != nil {
 		m["auth"] = []interface{}{sourceAuthToMap(source.Auth)}
 	}
@@ -1469,6 +1594,19 @@ func flattenAwsCodebuildProjectGitSubmodulesConfig(config *codebuild.GitSubmodul
 	return []interface{}{values}
 }
 
+func flattenAwsCodebuildProjectBuildStatusConfig(config *codebuild.BuildStatusConfig) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+
+	values := map[string]interface{}{
+		"context":    aws.StringValue(config.Context),
+		"target_url": aws.StringValue(config.TargetUrl),
+	}
+
+	return []interface{}{values}
+}
+
 func flattenAwsCodeBuildVpcConfig(vpcConfig *codebuild.VpcConfig) []interface{} {
 	if vpcConfig != nil {
 		values := map[string]interface{}{}
@@ -1480,6 +1618,43 @@ func flattenAwsCodeBuildVpcConfig(vpcConfig *codebuild.VpcConfig) []interface{} 
 		return []interface{}{values}
 	}
 	return nil
+}
+
+func flattenAwsCodeBuildBuildBatchConfig(buildBatchConfig *codebuild.ProjectBuildBatchConfig) []interface{} {
+	if buildBatchConfig == nil {
+		return nil
+	}
+
+	values := map[string]interface{}{}
+
+	values["service_role"] = aws.StringValue(buildBatchConfig.ServiceRole)
+
+	if buildBatchConfig.CombineArtifacts != nil {
+		values["combine_artifacts"] = aws.BoolValue(buildBatchConfig.CombineArtifacts)
+	}
+
+	if buildBatchConfig.Restrictions != nil {
+		values["restrictions"] = flattenAwsCodeBuildBuildBatchConfigRestrictions(buildBatchConfig.Restrictions)
+	}
+
+	if buildBatchConfig.TimeoutInMins != nil {
+		values["timeout_in_mins"] = aws.Int64Value(buildBatchConfig.TimeoutInMins)
+	}
+
+	return []interface{}{values}
+}
+
+func flattenAwsCodeBuildBuildBatchConfigRestrictions(restrictions *codebuild.BatchRestrictions) []interface{} {
+	if restrictions == nil {
+		return []interface{}{}
+	}
+
+	values := map[string]interface{}{
+		"compute_types_allowed":  aws.StringValueSlice(restrictions.ComputeTypesAllowed),
+		"maximum_builds_allowed": aws.Int64Value(restrictions.MaximumBuildsAllowed),
+	}
+
+	return []interface{}{values}
 }
 
 func resourceAwsCodeBuildProjectArtifactsHash(v interface{}) int {

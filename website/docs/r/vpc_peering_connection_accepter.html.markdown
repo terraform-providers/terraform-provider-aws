@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `vpc_peering_connection_id` - (Required) The VPC Peering Connection ID to manage.
 * `auto_accept` - (Optional) Whether or not to accept the peering request. Defaults to `false`.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Removing `aws_vpc_peering_connection_accepter` from your configuration
 
@@ -101,6 +101,7 @@ In addition to all arguments above, the following attributes are exported:
 (https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the accepter VPC.
 * `requester` - A configuration block that describes [VPC Peering Connection]
 (https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the requester VPC.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 #### Accepter and Requester Attributes Reference
 
@@ -110,12 +111,6 @@ private IP addresses when queried from instances in a peer VPC.
 with the peer VPC over the VPC Peering Connection.
 * `allow_vpc_to_remote_classic_link` - Indicates whether a local VPC can communicate with a ClassicLink
 connection in the peer VPC over the VPC Peering Connection.
-
-## Attributes Reference
-
-In addition to all arguments above, the following attributes are exported:
-
-* `id` - The ID of the VPC Peering Connection.
 
 ## Import
 

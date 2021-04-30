@@ -237,8 +237,11 @@ func resourceAwsCloudWatchMetricAlarm() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"evaluate", "ignore"}, true),
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -274,7 +277,7 @@ func resourceAwsCloudWatchMetricAlarmCreate(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	params := getAwsCloudWatchPutMetricAlarmInput(d)
+	params := getAwsCloudWatchPutMetricAlarmInput(d, meta)
 
 	log.Printf("[DEBUG] Creating CloudWatch Metric Alarm: %#v", params)
 	_, err = conn.PutMetricAlarm(&params)
@@ -289,6 +292,7 @@ func resourceAwsCloudWatchMetricAlarmCreate(d *schema.ResourceData, meta interfa
 
 func resourceAwsCloudWatchMetricAlarmRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatchconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := getAwsCloudWatchMetricAlarm(d, meta)
@@ -369,8 +373,15 @@ func resourceAwsCloudWatchMetricAlarmRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error listing tags for CloudWatch Metric Alarm (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -378,7 +389,7 @@ func resourceAwsCloudWatchMetricAlarmRead(d *schema.ResourceData, meta interface
 
 func resourceAwsCloudWatchMetricAlarmUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatchconn
-	params := getAwsCloudWatchPutMetricAlarmInput(d)
+	params := getAwsCloudWatchPutMetricAlarmInput(d, meta)
 
 	log.Printf("[DEBUG] Updating CloudWatch Metric Alarm: %#v", params)
 	_, err := conn.PutMetricAlarm(&params)
@@ -388,8 +399,8 @@ func resourceAwsCloudWatchMetricAlarmUpdate(d *schema.ResourceData, meta interfa
 	log.Println("[INFO] CloudWatch Metric Alarm updated")
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CloudwatchUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating CloudWatch Metric Alarm (%s) tags: %s", arn, err)
@@ -418,13 +429,16 @@ func resourceAwsCloudWatchMetricAlarmDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func getAwsCloudWatchPutMetricAlarmInput(d *schema.ResourceData) cloudwatch.PutMetricAlarmInput {
+func getAwsCloudWatchPutMetricAlarmInput(d *schema.ResourceData, meta interface{}) cloudwatch.PutMetricAlarmInput {
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 	params := cloudwatch.PutMetricAlarmInput{
 		AlarmName:          aws.String(d.Get("alarm_name").(string)),
 		ComparisonOperator: aws.String(d.Get("comparison_operator").(string)),
 		EvaluationPeriods:  aws.Int64(int64(d.Get("evaluation_periods").(int))),
 		TreatMissingData:   aws.String(d.Get("treat_missing_data").(string)),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CloudwatchTags(),
+		Tags:               tags.IgnoreAws().CloudwatchTags(),
 	}
 
 	if v := d.Get("actions_enabled"); v != nil {

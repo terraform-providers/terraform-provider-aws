@@ -91,13 +91,18 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIAMServerCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var sslCertName string
 	if v, ok := d.GetOk("name"); ok {
@@ -112,7 +117,7 @@ func resourceAwsIAMServerCertificateCreate(d *schema.ResourceData, meta interfac
 		CertificateBody:       aws.String(d.Get("certificate_body").(string)),
 		PrivateKey:            aws.String(d.Get("private_key").(string)),
 		ServerCertificateName: aws.String(sslCertName),
-		Tags:                  keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IamTags(),
+		Tags:                  tags.IgnoreAws().IamTags(),
 	}
 
 	if v, ok := d.GetOk("certificate_chain"); ok {
@@ -137,6 +142,7 @@ func resourceAwsIAMServerCertificateCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetServerCertificate(&iam.GetServerCertificateInput{
@@ -173,8 +179,15 @@ func resourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interface{
 		d.Set("upload_date", nil)
 	}
 
-	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(cert.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.IamKeyValueTags(cert.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -183,8 +196,8 @@ func resourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interface{
 func resourceAwsIAMServerCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.IamServerCertificateUpdateTags(conn, d.Get("name").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags for IAM Server Certificate (%s): %w", d.Get("name").(string), err)

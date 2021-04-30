@@ -165,7 +165,8 @@ func resourceAwsImageBuilderImageRecipe() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -179,11 +180,15 @@ func resourceAwsImageBuilderImageRecipe() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsImageBuilderImageRecipeCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &imagebuilder.CreateImageRecipeInput{
 		ClientToken: aws.String(resource.UniqueId()),
@@ -209,8 +214,8 @@ func resourceAwsImageBuilderImageRecipeCreate(d *schema.ResourceData, meta inter
 		input.ParentImage = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ImagebuilderTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().ImagebuilderTags()
 	}
 
 	if v, ok := d.GetOk("version"); ok {
@@ -237,6 +242,7 @@ func resourceAwsImageBuilderImageRecipeCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsImageBuilderImageRecipeRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &imagebuilder.GetImageRecipeInput{
@@ -270,7 +276,16 @@ func resourceAwsImageBuilderImageRecipeRead(d *schema.ResourceData, meta interfa
 	d.Set("owner", imageRecipe.Owner)
 	d.Set("parent_image", imageRecipe.ParentImage)
 	d.Set("platform", imageRecipe.Platform)
-	d.Set("tags", keyvaluetags.ImagebuilderKeyValueTags(imageRecipe.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
+	tags := keyvaluetags.ImagebuilderKeyValueTags(imageRecipe.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 	d.Set("version", imageRecipe.Version)
 	d.Set("working_directory", imageRecipe.WorkingDirectory)
 
@@ -280,8 +295,8 @@ func resourceAwsImageBuilderImageRecipeRead(d *schema.ResourceData, meta interfa
 func resourceAwsImageBuilderImageRecipeUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.ImagebuilderUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Image Builder Image Recipe (%s): %w", d.Id(), err)

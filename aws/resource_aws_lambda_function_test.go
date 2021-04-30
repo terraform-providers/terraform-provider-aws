@@ -19,10 +19,18 @@ import (
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(lambda.EndpointsID, testAccErrorCheckSkipLambda)
+
 	resource.AddTestSweepers("aws_lambda_function", &resource.Sweeper{
 		Name: "aws_lambda_function",
 		F:    testSweepLambdaFunctions,
 	})
+}
+
+func testAccErrorCheckSkipLambda(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"InvalidParameterValueException: Unsupported source arn",
+	)
 }
 
 func testSweepLambdaFunctions(region string) error {

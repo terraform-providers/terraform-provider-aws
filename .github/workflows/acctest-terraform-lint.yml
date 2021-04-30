@@ -31,12 +31,15 @@ jobs:
       - run: cd tools && go install github.com/katbyte/terrafmt
       # - run: terrafmt diff ./aws --check --pattern '*_test.go' --fmtcompat
       - run: |
+          # resource_aws_ecs_capacity_provider_test.go: two format verbs on one line (%[2]q = %[3]q). https://github.com/katbyte/terrafmt/issues/46
+          # resource_aws_efs_file_system_test.go: argument name is format verb and replaced with quoted string. https://github.com/katbyte/terrafmt/issues/47
+          # resource_aws_kms_grant_test.go: argument name is format verb and replaced with quoted string. https://github.com/katbyte/terrafmt/issues/47
+          # resource_aws_quicksight_user_test.go: format verb as resource name (%[1]q). https://github.com/katbyte/terrafmt/issues/48
+          # resource_aws_sns_platform_application_test.go: argument name is format verb and replaced with quoted string. https://github.com/katbyte/terrafmt/issues/47
           find ./aws -type f -name '*_test.go' \
             | sort -u \
-            | grep -v resource_aws_apigatewayv2_domain_name_test.go \
             | grep -v resource_aws_ecs_capacity_provider_test.go \
             | grep -v resource_aws_efs_file_system_test.go \
-            | grep -v resource_aws_kinesis_stream_test.go \
             | grep -v resource_aws_kms_grant_test.go \
             | grep -v resource_aws_quicksight_user_test.go \
             | grep -v resource_aws_s3_bucket_object_test.go \
@@ -61,13 +64,16 @@ jobs:
       - run: cd tools && go install github.com/katbyte/terrafmt
       - run: cd tools && go install github.com/terraform-linters/tflint
       - run: |
+          # resource_aws_ecs_capacity_provider_test.go: two format verbs on one line (%[2]q = %[3]q). https://github.com/katbyte/terrafmt/issues/46
+          # resource_aws_efs_file_system_test.go: argument name is format verb and replaced with quoted string. https://github.com/katbyte/terrafmt/issues/47
+          # resource_aws_kms_grant_test.go: argument name is format verb and replaced with quoted string. https://github.com/katbyte/terrafmt/issues/47
+          # resource_aws_lambda_permission_test.go: format verb as resource name ("%s"). https://github.com/katbyte/terrafmt/issues/48
+          # resource_aws_quicksight_user_test.go: format verb as resource name (%[1]q). https://github.com/katbyte/terrafmt/issues/48
+          # resource_aws_sns_platform_application_test.go: argument name is format verb and replaced with quoted string. https://github.com/katbyte/terrafmt/issues/47
           find ./aws -type f -name '*_test.go' \
             | sort -u \
-            | grep -v resource_aws_apigatewayv2_domain_name_test.go \
             | grep -v resource_aws_ecs_capacity_provider_test.go \
             | grep -v resource_aws_efs_file_system_test.go \
-            | grep -v resource_aws_elasticache_cluster_test.go \
-            | grep -v resource_aws_kinesis_stream_test.go \
             | grep -v resource_aws_kms_grant_test.go \
             | grep -v resource_aws_lambda_permission_test.go \
             | grep -v resource_aws_quicksight_user_test.go \

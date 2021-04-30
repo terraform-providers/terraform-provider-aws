@@ -62,7 +62,7 @@ for any `create` or `update` action. Minimum `10s`, maximum `180s`. Omit this to
 use the default behavior, which is an exponential backoff
 * `version_label` - (Optional) The name of the Elastic Beanstalk Application Version
 to use in deployment.
-* `tags` – (Optional) A set of tags to apply to the Environment.
+* `tags` - (Optional) A set of tags to apply to the Environment. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 
 ## Option Settings
@@ -112,6 +112,7 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Name of the Elastic Beanstalk Environment.
 * `description` - Description of the Elastic Beanstalk Environment.
 * `tier` - The environment tier specified.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 * `application` – The Elastic Beanstalk Application specified for this environment.
 * `setting` – Settings specifically set for this Environment.
 * `all_settings` – List of all option settings configured in this Environment. These

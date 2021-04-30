@@ -27,7 +27,7 @@ func testSweepStorageGatewayGateways(region string) error {
 	}
 	conn := client.(*AWSClient).storagegatewayconn
 
-	err = conn.ListGatewaysPages(&storagegateway.ListGatewaysInput{}, func(page *storagegateway.ListGatewaysOutput, isLast bool) bool {
+	err = conn.ListGatewaysPages(&storagegateway.ListGatewaysInput{}, func(page *storagegateway.ListGatewaysOutput, lastPage bool) bool {
 		if len(page.Gateways) == 0 {
 			log.Print("[DEBUG] No Storage Gateway Gateways to sweep")
 			return true
@@ -50,7 +50,7 @@ func testSweepStorageGatewayGateways(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

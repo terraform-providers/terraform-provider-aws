@@ -139,14 +139,18 @@ func resourceAwsWafWebAcl() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().WafTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	wr := newWafRetryer(conn)
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
@@ -158,7 +162,7 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		if len(tags) > 0 {
-			params.Tags = tags
+			params.Tags = tags.IgnoreAws().WafTags()
 		}
 
 		return conn.CreateWebACL(params)
@@ -212,6 +216,7 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &waf.GetWebACLInput{
@@ -252,8 +257,16 @@ func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error listing tags for WAF Web ACL (%s): %w", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("rules", flattenWafWebAclRules(resp.WebACL.Rules)); err != nil {
@@ -327,8 +340,8 @@ func resourceAwsWafWebAclUpdate(d *schema.ResourceData, meta interface{}) error 
 
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.WafUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating WAF Web ACL (%s) tags: %w", d.Id(), err)

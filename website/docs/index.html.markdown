@@ -216,13 +216,10 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
   potentially end up destroying a live environment). Conflicts with
   `allowed_account_ids`.
   
-* `default_tags` - (Optional) **NOTE: This functionality is in public preview and there are no compatibility promises with future versions of the Terraform AWS Provider until a general availability announcement.**
-Map of tags to apply across all resources handled by this provider (see the [Terraform multiple provider instances documentation](/docs/configuration/providers.html#alias-multiple-provider-instances) for more information about additional provider configurations).
+* `default_tags` - (Optional) Map of tags to apply across all resources handled by this provider (see the [Terraform multiple provider instances documentation](/docs/configuration/providers.html#alias-multiple-provider-instances) for more information about additional provider configurations).
 This is designed to replace redundant per-resource `tags` configurations. At this time, tags defined within this configuration block can be overridden with new values, but not excluded from specific resources. To override tag values defined within this configuration block, use the `tags` argument within a resource to configure new tag values for matching keys.
 See the [`default_tags`](#default_tags-configuration-block) Configuration Block section below for example usage and available arguments.
-This functionality is only supported in the following resources:
-    - `aws_subnet`
-    - `aws_vpc`
+This functionality is supported in all resources that implement `tags`, with the exception of the `aws_autoscaling_group` resource.
 
 * `ignore_tags` - (Optional) Configuration block with resource tag settings to ignore across all resources handled by this provider (except any individual service tag resources such as `aws_ec2_tag`) for situations where external systems are managing certain resource tags. Arguments to the configuration block are described below in the `ignore_tags` Configuration Block section. See the [Terraform multiple provider instances documentation](https://www.terraform.io/docs/configuration/providers.html#alias-multiple-provider-configurations) for more information about additional provider configurations.
 
@@ -254,6 +251,8 @@ This functionality is only supported in the following resources:
     - [`aws_apigatewayv2_stage` resource](/docs/providers/aws/r/apigatewayv2_stage.html)
     - [`aws_athena_workgroup` resource](/docs/providers/aws/r/athena_workgroup.html)
     - [`aws_budgets_budget` resource](/docs/providers/aws/r/budgets_budget.html)
+    - [`aws_codedeploy_app` resource](/docs/providers/aws/r/codedeploy_app.html)
+    - [`aws_codedeploy_deployment_group` resource](/docs/providers/aws/r/codedeploy_deployment_group.html)
     - [`aws_cognito_identity_pool` resource](/docs/providers/aws/r/cognito_identity_pool.html)
     - [`aws_cognito_user_pools` data source](/docs/providers/aws/d/cognito_user_pools.html)
     - [`aws_default_vpc_dhcp_options`](/docs/providers/aws/r/default_vpc_dhcp_options.html)
@@ -511,7 +510,7 @@ vpc_resource_level_tags = tomap({
 
 The `default_tags` configuration block supports the following argument:
 
-* `tags` - (Optional) **NOTE: This functionality is in public preview and only supported by the [`aws_subnet`](/docs/providers/aws/r/subnet.html) and [`aws_vpc`](/docs/providers/aws/r/vpc.html) resources.** Key-value map of tags to apply to all resources.
+* `tags` - (Optional) Key-value map of tags to apply to all resources.
 
 ### ignore_tags Configuration Block
 

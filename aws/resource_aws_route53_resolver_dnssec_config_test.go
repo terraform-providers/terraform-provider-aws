@@ -31,9 +31,9 @@ func testSweepRoute53ResolverDnssecConfig(region string) error {
 	conn := client.(*AWSClient).route53resolverconn
 
 	var sweeperErrs *multierror.Error
-	err = conn.ListResolverDnssecConfigsPages(&route53resolver.ListResolverDnssecConfigsInput{}, func(page *route53resolver.ListResolverDnssecConfigsOutput, isLast bool) bool {
+	err = conn.ListResolverDnssecConfigsPages(&route53resolver.ListResolverDnssecConfigsInput{}, func(page *route53resolver.ListResolverDnssecConfigsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, resolverDnssecConfig := range page.ResolverDnssecConfigs {
@@ -61,7 +61,7 @@ func testSweepRoute53ResolverDnssecConfig(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

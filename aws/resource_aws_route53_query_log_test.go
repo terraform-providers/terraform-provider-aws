@@ -30,9 +30,9 @@ func testSweepRoute53QueryLogs(region string) error {
 	conn := client.(*AWSClient).r53conn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListQueryLoggingConfigsPages(&route53.ListQueryLoggingConfigsInput{}, func(page *route53.ListQueryLoggingConfigsOutput, isLast bool) bool {
+	err = conn.ListQueryLoggingConfigsPages(&route53.ListQueryLoggingConfigsInput{}, func(page *route53.ListQueryLoggingConfigsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, queryLoggingConfig := range page.QueryLoggingConfigs {
@@ -53,7 +53,7 @@ func testSweepRoute53QueryLogs(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	// In unsupported AWS partitions, the API may return an error even the SDK cannot handle.
 	// Reference: https://github.com/aws/aws-sdk-go/issues/3313

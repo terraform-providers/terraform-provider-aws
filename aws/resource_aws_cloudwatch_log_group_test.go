@@ -53,9 +53,9 @@ func testSweepCloudwatchLogGroups(region string) error {
 
 	input := &cloudwatchlogs.DescribeLogGroupsInput{}
 
-	err = conn.DescribeLogGroupsPages(input, func(page *cloudwatchlogs.DescribeLogGroupsOutput, isLast bool) bool {
+	err = conn.DescribeLogGroupsPages(input, func(page *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, logGroup := range page.LogGroups {
@@ -79,7 +79,7 @@ func testSweepCloudwatchLogGroups(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

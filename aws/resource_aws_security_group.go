@@ -225,7 +225,8 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"revoke_rules_on_delete": {
 				Type:     schema.TypeBool,
@@ -233,11 +234,15 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	securityGroupOpts := &ec2.CreateSecurityGroupInput{}
 
@@ -245,8 +250,8 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		securityGroupOpts.VpcId = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		securityGroupOpts.TagSpecifications = ec2TagSpecificationsFromMap(v.(map[string]interface{}), ec2.ResourceTypeSecurityGroup)
+	if len(tags) > 0 {
+		securityGroupOpts.TagSpecifications = ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeSecurityGroup)
 	}
 
 	if v := d.Get("description"); v != nil {
@@ -339,6 +344,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var sgRaw interface{}
@@ -395,8 +401,15 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[WARN] Error setting Egress rule set for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(sg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(sg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -436,8 +449,8 @@ func resourceAwsSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") && !d.IsNewResource() {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") && !d.IsNewResource() {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Security Group (%s) tags: %s", d.Id(), err)

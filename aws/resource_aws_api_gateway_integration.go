@@ -216,11 +216,11 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("request_parameters"); ok && len(v.(map[string]interface{})) > 0 {
-		input.RequestParameters = stringMapToPointers(v.(map[string]interface{}))
+		input.RequestParameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("request_templates"); ok && len(v.(map[string]interface{})) > 0 {
-		input.RequestTemplates = stringMapToPointers(v.(map[string]interface{}))
+		input.RequestTemplates = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("timeout_milliseconds"); ok {

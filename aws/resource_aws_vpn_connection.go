@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"net"
 	"regexp"
 	"sort"
 	"time"
@@ -392,6 +393,8 @@ func resourceAwsVpnConnection() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"tags_all": tagsSchemaComputed(),
+
 			// Begin read only attributes
 			"customer_gateway_configuration": {
 				Type:     schema.TypeString,
@@ -510,11 +513,15 @@ func resourceAwsVpnConnection() *schema.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsVpnConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Fill the connection options for the EC2 API
 	connectOpts := expandVpnConnectionOptions(d)
@@ -523,7 +530,7 @@ func resourceAwsVpnConnectionCreate(d *schema.ResourceData, meta interface{}) er
 		CustomerGatewayId: aws.String(d.Get("customer_gateway_id").(string)),
 		Options:           connectOpts,
 		Type:              aws.String(d.Get("type").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeVpnConnection),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeVpnConnection),
 	}
 
 	if v, ok := d.GetOk("transit_gateway_id"); ok {
@@ -577,6 +584,7 @@ func vpnConnectionRefreshFunc(conn *ec2.EC2, connectionId string) resource.State
 
 func resourceAwsVpnConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeVpnConnections(&ec2.DescribeVpnConnectionsInput{
@@ -652,8 +660,15 @@ func resourceAwsVpnConnectionRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("transit_gateway_id", vpnConnection.TransitGatewayId)
 	d.Set("type", vpnConnection.Type)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpnConnection.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(vpnConnection.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if vpnConnection.Options != nil {
@@ -704,7 +719,14 @@ func resourceAwsVpnConnectionRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("transit_gateway_attachment_id", transitGatewayAttachmentID)
 
 	if vpnConnection.CustomerGatewayConfiguration != nil {
-		if tunnelInfo, err := xmlConfigToTunnelInfo(*vpnConnection.CustomerGatewayConfiguration); err != nil {
+		tunnelInfo, err := xmlConfigToTunnelInfo(
+			aws.StringValue(vpnConnection.CustomerGatewayConfiguration),
+			d.Get("tunnel1_preshared_key").(string),    // Not currently available during import
+			d.Get("tunnel1_inside_cidr").(string),      // Not currently available during import
+			d.Get("tunnel1_inside_ipv6_cidr").(string), // Not currently available during import
+		)
+
+		if err != nil {
 			log.Printf("[ERR] Error unmarshaling XML configuration for (%s): %s", d.Id(), err)
 		} else {
 			d.Set("tunnel1_address", tunnelInfo.Tunnel1Address)
@@ -953,8 +975,8 @@ func resourceAwsVpnConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		vpnConnectionID := d.Id()
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, vpnConnectionID, o, n); err != nil {
@@ -1626,14 +1648,44 @@ func waitForEc2VpnConnectionDeletion(conn *ec2.EC2, id string) error {
 	return err
 }
 
-func xmlConfigToTunnelInfo(xmlConfig string) (*TunnelInfo, error) {
+// The tunnel1 parameters are optionally used to correctly order tunnel configurations.
+func xmlConfigToTunnelInfo(xmlConfig string, tunnel1PreSharedKey string, tunnel1InsideCidr string, tunnel1InsideIpv6Cidr string) (*TunnelInfo, error) {
 	var vpnConfig XmlVpnConnectionConfig
 	if err := xml.Unmarshal([]byte(xmlConfig), &vpnConfig); err != nil {
 		return nil, fmt.Errorf("Error Unmarshalling XML: %s", err)
 	}
 
-	// don't expect consistent ordering from the XML
-	sort.Sort(vpnConfig)
+	// XML tunnel ordering was commented here as being inconsistent since
+	// this logic was originally added. The original sorting is based on
+	// outside address. Given potential tunnel identifying configuration,
+	// we try to correctly align the tunnel ordering before preserving the
+	// original outside address sorting fallback for backwards compatibility
+	// as to not inadvertently flip existing configurations.
+	if tunnel1PreSharedKey != "" {
+		if tunnel1PreSharedKey != vpnConfig.Tunnels[0].PreSharedKey && tunnel1PreSharedKey == vpnConfig.Tunnels[1].PreSharedKey {
+			vpnConfig.Tunnels[0], vpnConfig.Tunnels[1] = vpnConfig.Tunnels[1], vpnConfig.Tunnels[0]
+		}
+	} else if cidr := tunnel1InsideCidr; cidr != "" {
+		if _, ipNet, err := net.ParseCIDR(cidr); err == nil && ipNet != nil {
+			vgwInsideAddressIP1 := net.ParseIP(vpnConfig.Tunnels[0].VgwInsideAddress)
+			vgwInsideAddressIP2 := net.ParseIP(vpnConfig.Tunnels[1].VgwInsideAddress)
+
+			if !ipNet.Contains(vgwInsideAddressIP1) && ipNet.Contains(vgwInsideAddressIP2) {
+				vpnConfig.Tunnels[0], vpnConfig.Tunnels[1] = vpnConfig.Tunnels[1], vpnConfig.Tunnels[0]
+			}
+		}
+	} else if cidr := tunnel1InsideIpv6Cidr; cidr != "" {
+		if _, ipNet, err := net.ParseCIDR(cidr); err == nil && ipNet != nil {
+			vgwInsideAddressIP1 := net.ParseIP(vpnConfig.Tunnels[0].VgwInsideAddress)
+			vgwInsideAddressIP2 := net.ParseIP(vpnConfig.Tunnels[1].VgwInsideAddress)
+
+			if !ipNet.Contains(vgwInsideAddressIP1) && ipNet.Contains(vgwInsideAddressIP2) {
+				vpnConfig.Tunnels[0], vpnConfig.Tunnels[1] = vpnConfig.Tunnels[1], vpnConfig.Tunnels[0]
+			}
+		}
+	} else {
+		sort.Sort(vpnConfig)
+	}
 
 	tunnelInfo := TunnelInfo{
 		Tunnel1Address:          vpnConfig.Tunnels[0].OutsideAddress,

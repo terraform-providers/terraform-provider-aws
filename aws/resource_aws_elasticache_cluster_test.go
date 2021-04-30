@@ -42,7 +42,7 @@ func testSweepElasticacheClusters(region string) error {
 	input := &elasticache.DescribeCacheClustersInput{
 		ShowCacheClustersNotInReplicationGroups: aws.Bool(true),
 	}
-	err = conn.DescribeCacheClustersPages(input, func(page *elasticache.DescribeCacheClustersOutput, isLast bool) bool {
+	err = conn.DescribeCacheClustersPages(input, func(page *elasticache.DescribeCacheClustersOutput, lastPage bool) bool {
 		if len(page.CacheClusters) == 0 {
 			log.Print("[DEBUG] No ElastiCache Replicaton Groups to sweep")
 			return false
@@ -63,7 +63,7 @@ func testSweepElasticacheClusters(region string) error {
 				sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error deleting ElastiCache Cache Cluster (%s): waiting for completion: %w", id, err))
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping ElastiCache Cluster sweep for %s: %s", region, err)
@@ -179,6 +179,7 @@ func TestAccAWSElasticacheCluster_ParameterGroupName_Default(t *testing.T) {
 					testAccCheckAWSElasticacheClusterExists(resourceName, &ec),
 					resource.TestCheckResourceAttr(resourceName, "engine", "memcached"),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "1.4.34"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "1.4.34"),
 					resource.TestCheckResourceAttr(resourceName, "parameter_group_name", "default.memcached1.4"),
 				),
 			},
@@ -500,6 +501,7 @@ func TestAccAWSElasticacheCluster_EngineVersion_Memcached(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheClusterExists(resourceName, &pre),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "1.4.33"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "1.4.33"),
 				),
 			},
 			{
@@ -508,6 +510,7 @@ func TestAccAWSElasticacheCluster_EngineVersion_Memcached(t *testing.T) {
 					testAccCheckAWSElasticacheClusterExists(resourceName, &mid),
 					testAccCheckAWSElasticacheClusterRecreated(&pre, &mid),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "1.4.24"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "1.4.24"),
 				),
 			},
 			{
@@ -516,6 +519,7 @@ func TestAccAWSElasticacheCluster_EngineVersion_Memcached(t *testing.T) {
 					testAccCheckAWSElasticacheClusterExists(resourceName, &post),
 					testAccCheckAWSElasticacheClusterNotRecreated(&mid, &post),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "1.4.34"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "1.4.34"),
 				),
 			},
 		},
@@ -523,7 +527,7 @@ func TestAccAWSElasticacheCluster_EngineVersion_Memcached(t *testing.T) {
 }
 
 func TestAccAWSElasticacheCluster_EngineVersion_Redis(t *testing.T) {
-	var pre, mid, post elasticache.CacheCluster
+	var v1, v2, v3, v4, v5 elasticache.CacheCluster
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_elasticache_cluster.test"
 
@@ -536,24 +540,45 @@ func TestAccAWSElasticacheCluster_EngineVersion_Redis(t *testing.T) {
 			{
 				Config: testAccAWSElasticacheClusterConfig_EngineVersion_Redis(rName, "3.2.6"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSElasticacheClusterExists(resourceName, &pre),
+					testAccCheckAWSElasticacheClusterExists(resourceName, &v1),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.2.6"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "3.2.6"),
 				),
 			},
 			{
 				Config: testAccAWSElasticacheClusterConfig_EngineVersion_Redis(rName, "3.2.4"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSElasticacheClusterExists(resourceName, &mid),
-					testAccCheckAWSElasticacheClusterRecreated(&pre, &mid),
+					testAccCheckAWSElasticacheClusterExists(resourceName, &v2),
+					testAccCheckAWSElasticacheClusterRecreated(&v1, &v2),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.2.4"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "3.2.4"),
 				),
 			},
 			{
 				Config: testAccAWSElasticacheClusterConfig_EngineVersion_Redis(rName, "3.2.10"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSElasticacheClusterExists(resourceName, &post),
-					testAccCheckAWSElasticacheClusterNotRecreated(&mid, &post),
+					testAccCheckAWSElasticacheClusterExists(resourceName, &v3),
+					testAccCheckAWSElasticacheClusterNotRecreated(&v2, &v3),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.2.10"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "3.2.10"),
+				),
+			},
+			{
+				Config: testAccAWSElasticacheClusterConfig_EngineVersion_Redis(rName, "6.x"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheClusterExists(resourceName, &v4),
+					testAccCheckAWSElasticacheClusterNotRecreated(&v3, &v4),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "6.x"),
+					resource.TestMatchResourceAttr(resourceName, "engine_version_actual", regexp.MustCompile(`^6\.[[:digit:]]+\.[[:digit:]]+$`)),
+				),
+			},
+			{
+				Config: testAccAWSElasticacheClusterConfig_EngineVersion_Redis(rName, "5.0.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheClusterExists(resourceName, &v5),
+					testAccCheckAWSElasticacheClusterRecreated(&v4, &v5),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.0.6"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "5.0.6"),
 				),
 			},
 		},

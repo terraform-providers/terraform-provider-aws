@@ -32,6 +32,8 @@ func resourceAwsEcsService() *schema.Resource {
 			State: resourceAwsEcsServiceImport,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
@@ -369,7 +371,8 @@ func resourceAwsEcsService() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"task_definition": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -405,6 +408,8 @@ func resourceAwsEcsServiceImport(d *schema.ResourceData, meta interface{}) ([]*s
 
 func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	deploymentMinimumHealthyPercent := d.Get("deployment_minimum_healthy_percent").(int)
 	schedulingStrategy := d.Get("scheduling_strategy").(string)
@@ -415,7 +420,7 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 		DeploymentController: deploymentController,
 		SchedulingStrategy:   aws.String(schedulingStrategy),
 		ServiceName:          aws.String(d.Get("name").(string)),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcsTags(),
+		Tags:                 tags.IgnoreAws().EcsTags(),
 		TaskDefinition:       aws.String(d.Get("task_definition").(string)),
 		EnableECSManagedTags: aws.Bool(d.Get("enable_ecs_managed_tags").(bool)),
 		EnableExecuteCommand: aws.Bool(d.Get("enable_execute_command").(bool)),
@@ -589,6 +594,7 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading ECS service %s", d.Id())
@@ -724,8 +730,15 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting service_registries for (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(service.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.EcsKeyValueTags(service.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -1150,8 +1163,8 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EcsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating ECS Service (%s) tags: %w", d.Id(), err)

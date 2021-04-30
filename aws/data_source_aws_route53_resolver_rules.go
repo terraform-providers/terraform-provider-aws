@@ -67,7 +67,7 @@ func dataSourceAwsRoute53ResolverRulesRead(d *schema.ResourceData, meta interfac
 	resolverRuleIds := []*string{}
 
 	log.Printf("[DEBUG] Listing Route53 Resolver rules: %s", req)
-	err := conn.ListResolverRulesPages(req, func(page *route53resolver.ListResolverRulesOutput, isLast bool) bool {
+	err := conn.ListResolverRulesPages(req, func(page *route53resolver.ListResolverRulesOutput, lastPage bool) bool {
 		for _, rule := range page.ResolverRules {
 			if v, ok := d.GetOk("owner_id"); ok && aws.StringValue(rule.OwnerId) != v.(string) {
 				continue
@@ -84,7 +84,7 @@ func dataSourceAwsRoute53ResolverRulesRead(d *schema.ResourceData, meta interfac
 
 			resolverRuleIds = append(resolverRuleIds, rule.Id)
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		return fmt.Errorf("error getting Route53 Resolver rules: %w", err)

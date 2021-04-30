@@ -29,9 +29,9 @@ func testSweepAppmeshVirtualRouters(region string) error {
 	}
 	conn := client.(*AWSClient).appmeshconn
 
-	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, isLast bool) bool {
+	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, mesh := range page.Meshes {
@@ -40,9 +40,9 @@ func testSweepAppmeshVirtualRouters(region string) error {
 			}
 			meshName := aws.StringValue(mesh.MeshName)
 
-			err := conn.ListVirtualRoutersPages(listVirtualRoutersInput, func(page *appmesh.ListVirtualRoutersOutput, isLast bool) bool {
+			err := conn.ListVirtualRoutersPages(listVirtualRoutersInput, func(page *appmesh.ListVirtualRoutersOutput, lastPage bool) bool {
 				if page == nil {
-					return !isLast
+					return !lastPage
 				}
 
 				for _, virtualRouter := range page.VirtualRouters {
@@ -60,7 +60,7 @@ func testSweepAppmeshVirtualRouters(region string) error {
 					}
 				}
 
-				return !isLast
+				return !lastPage
 			})
 
 			if err != nil {
@@ -68,7 +68,7 @@ func testSweepAppmeshVirtualRouters(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

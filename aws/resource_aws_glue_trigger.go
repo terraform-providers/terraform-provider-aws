@@ -32,6 +32,8 @@ func resourceAwsGlueTrigger() *schema.Resource {
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"actions": {
 				Type:     schema.TypeList,
@@ -154,7 +156,8 @@ func resourceAwsGlueTrigger() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -172,13 +175,15 @@ func resourceAwsGlueTrigger() *schema.Resource {
 
 func resourceAwsGlueTriggerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 	triggerType := d.Get("type").(string)
 
 	input := &glue.CreateTriggerInput{
 		Actions: expandGlueActions(d.Get("actions").([]interface{})),
 		Name:    aws.String(name),
-		Tags:    keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:    tags.IgnoreAws().GlueTags(),
 		Type:    aws.String(triggerType),
 	}
 
@@ -253,6 +258,7 @@ func resourceAwsGlueTriggerCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsGlueTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	output, err := finder.TriggerByName(conn, d.Id())
@@ -311,8 +317,15 @@ func resourceAwsGlueTriggerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for Glue Trigger (%s): %w", triggerARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("type", trigger.Type)
@@ -383,8 +396,8 @@ func resourceAwsGlueTriggerUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

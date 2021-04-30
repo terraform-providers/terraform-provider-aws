@@ -173,7 +173,7 @@ The following arguments are supported:
 * `kms_key_id` - (Optional) Specifies the KMS key ARN to use to encrypt the logs delivered by CloudTrail.
 * `event_selector` - (Optional) Specifies an event selector for enabling data event logging. Fields documented below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these.
 * `insight_selector` - (Optional) Specifies an insight selector for identifying unusual operational activity. Fields documented below.
-* `tags` - (Optional) A map of tags to assign to the trail
+* `tags` - (Optional) A map of tags to assign to the trail. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Event Selector Arguments
 For **event_selector** the following attributes are supported.
@@ -201,7 +201,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The name of the trail.
 * `home_region` - The region in which the trail was created.
 * `arn` - The Amazon Resource Name of the trail.
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -16,7 +16,7 @@ Provides an Elastic IP resource.
 
 ## Example Usage
 
-Single EIP associated with an instance:
+### Single EIP associated with an instance
 
 ```terraform
 resource "aws_eip" "lb" {
@@ -25,7 +25,7 @@ resource "aws_eip" "lb" {
 }
 ```
 
-Multiple EIPs associated with a single network interface:
+### Multiple EIPs associated with a single network interface
 
 ```terraform
 resource "aws_network_interface" "multi-ip" {
@@ -46,7 +46,7 @@ resource "aws_eip" "two" {
 }
 ```
 
-Attaching an EIP to an Instance with a pre-assigned private ip (VPC Only):
+### Attaching an EIP to an Instance with a pre-assigned private ip (VPC Only)
 
 ```terraform
 resource "aws_vpc" "default" {
@@ -84,7 +84,7 @@ resource "aws_eip" "bar" {
 }
 ```
 
-Allocating EIP from the BYOIP pool:
+### Allocating EIP from the BYOIP pool
 
 ```terraform
 resource "aws_eip" "byoip-ip" {
@@ -97,44 +97,41 @@ resource "aws_eip" "byoip-ip" {
 
 The following arguments are supported:
 
-* `vpc` - (Optional) Boolean if the EIP is in a VPC or not.
+* `address` - (Optional) IP address from an EC2 BYOIP pool. This option is only available for VPC EIPs.
+* `associate_with_private_ip` - (Optional) User-specified primary or secondary private IP address to associate with the Elastic IP address. If no private IP address is specified, the Elastic IP address is associated with the primary private IP address.
+* `customer_owned_ipv4_pool` - (Optional) ID  of a customer-owned address pool. For more on customer owned IP addressed check out [Customer-owned IP addresses guide](https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing).
 * `instance` - (Optional) EC2 instance ID.
+* `network_border_group` - (Optional) Location from which the IP address is advertised. Use this parameter to limit the address to this location.
 * `network_interface` - (Optional) Network interface ID to associate with.
-* `associate_with_private_ip` - (Optional) A user specified primary or secondary private IP address to
-  associate with the Elastic IP address. If no private IP address is specified,
-  the Elastic IP address is associated with the primary private IP address.
-* `tags` - (Optional) A map of tags to assign to the resource. Tags can only be applied to EIPs in a VPC.
 * `public_ipv4_pool` - (Optional) EC2 IPv4 address pool identifier or `amazon`. This option is only available for VPC EIPs.
-* `customer_owned_ipv4_pool` - The  ID  of a customer-owned address pool. For more on customer owned IP addressed check out [Customer-owned IP addresses guide](https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing)
-* `network_border_group` - The location from which the IP address is advertised. Use this parameter to limit the address to this location.
+* `tags` - (Optional) Map of tags to assign to the resource. Tags can only be applied to EIPs in a VPC. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
+* `vpc` - (Optional) Boolean if the EIP is in a VPC or not.
 
-~> **NOTE:** You can specify either the `instance` ID or the `network_interface` ID,
-but not both. Including both will **not** return an error from the AWS API, but will
-have undefined behavior. See the relevant [AssociateAddress API Call][1] for
-more information.
+~> **NOTE:** You can specify either the `instance` ID or the `network_interface` ID, but not both. Including both will **not** return an error from the AWS API, but will have undefined behavior. See the relevant [AssociateAddress API Call][1] for more information.
+
+~> **NOTE:** Specifying both `public_ipv4_pool` and `address` won't cause an error but `address` will be used in the
+case both options are defined as the api only requires one or the other.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Contains the EIP allocation ID.
-* `private_ip` - Contains the private IP address (if in VPC).
-* `private_dns` - The Private DNS associated with the Elastic IP address (if in VPC).
-* `associate_with_private_ip` - Contains the user specified private IP address
-(if in VPC).
-* `public_ip` - Contains the public IP address.
-* `public_dns` - Public DNS associated with the Elastic IP address.
-* `instance` - Contains the ID of the attached instance.
-* `network_interface` - Contains the ID of the attached network interface.
-* `public_ipv4_pool` - EC2 IPv4 address pool identifier (if in VPC).
-* `carrier_ip` - The carrier IP address.
-* `customer_owned_ipv4_pool` - The  ID  of a customer-owned address pool. For more on customer owned IP addressed check out [Customer-owned IP addresses guide](https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing)
+* `allocation_id` - ID that AWS assigns to represent the allocation of the Elastic IP address for use with instances in a VPC.
+* `association_id` - ID representing the association of the address with an instance in a VPC.
+* `carrier_ip` - Carrier IP address.
 * `customer_owned_ip` - Customer owned IP.
 * `domain` - Indicates if this EIP is for use in VPC (`vpc`) or EC2 Classic (`standard`).
+* `id` - Contains the EIP allocation ID.
+* `private_dns` - The Private DNS associated with the Elastic IP address (if in VPC).
+* `private_ip` - Contains the private IP address (if in VPC).
+* `public_dns` - Public DNS associated with the Elastic IP address.
+* `public_ip` - Contains the public IP address.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ~> **Note:** The resource computes the `public_dns` and `private_dns` attributes according to the [VPC DNS Guide](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-hostnames) as they are not available with the EC2 API.
 
 ## Timeouts
+
 `aws_eip` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `read` - (Default `15 minutes`) How long to wait querying for information about EIPs.

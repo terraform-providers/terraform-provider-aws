@@ -138,11 +138,11 @@ func expandEcsVolumes(configured []interface{}) []*ecs.Volume {
 			}
 
 			if v, ok := config["driver_opts"].(map[string]interface{}); ok && len(v) > 0 {
-				l.DockerVolumeConfiguration.DriverOpts = stringMapToPointers(v)
+				l.DockerVolumeConfiguration.DriverOpts = expandStringMap(v)
 			}
 
 			if v, ok := config["labels"].(map[string]interface{}); ok && len(v) > 0 {
-				l.DockerVolumeConfiguration.Labels = stringMapToPointers(v)
+				l.DockerVolumeConfiguration.Labels = expandStringMap(v)
 			}
 		}
 
@@ -1026,6 +1026,15 @@ func expandFloat64Map(m map[string]interface{}) map[string]*float64 {
 	return float64Map
 }
 
+// Expands a map of string to interface to a map of string to *string
+func expandStringMap(m map[string]interface{}) map[string]*string {
+	stringMap := make(map[string]*string, len(m))
+	for k, v := range m {
+		stringMap[k] = aws.String(v.(string))
+	}
+	return stringMap
+}
+
 // Takes the result of schema.Set of strings and returns a []*string
 func expandStringSet(configured *schema.Set) []*string {
 	return expandStringList(configured.List()) // nosemgrep: helper-schema-Set-extraneous-expandStringList-with-List
@@ -1580,14 +1589,6 @@ func pointersMapToStringList(pointers map[string]*string) map[string]interface{}
 	list := make(map[string]interface{}, len(pointers))
 	for i, v := range pointers {
 		list[i] = *v
-	}
-	return list
-}
-
-func stringMapToPointers(m map[string]interface{}) map[string]*string {
-	list := make(map[string]*string, len(m))
-	for i, v := range m {
-		list[i] = aws.String(v.(string))
 	}
 	return list
 }

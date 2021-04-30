@@ -32,9 +32,9 @@ func testSweepRoute53ResolverRules(region string) error {
 	conn := client.(*AWSClient).route53resolverconn
 
 	var errors error
-	err = conn.ListResolverRulesPages(&route53resolver.ListResolverRulesInput{}, func(page *route53resolver.ListResolverRulesOutput, isLast bool) bool {
+	err = conn.ListResolverRulesPages(&route53resolver.ListResolverRulesInput{}, func(page *route53resolver.ListResolverRulesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, resolverRule := range page.ResolverRules {
@@ -67,7 +67,7 @@ func testSweepRoute53ResolverRules(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

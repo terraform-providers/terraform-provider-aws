@@ -125,7 +125,8 @@ func resourceAwsDefaultRouteTable() *schema.Resource {
 				Set: resourceAwsRouteTableHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"arn": {
 				Type:     schema.TypeString,
@@ -137,11 +138,15 @@ func resourceAwsDefaultRouteTable() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDefaultRouteTableCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	routeTableID := d.Get("default_route_table_id").(string)
 
 	routeTable, err := finder.RouteTableByID(conn, routeTableID)
@@ -160,8 +165,8 @@ func resourceAwsDefaultRouteTableCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), tags); err != nil {
 			return fmt.Errorf("error adding tags: %w", err)
 		}
 	}

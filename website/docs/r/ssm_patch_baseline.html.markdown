@@ -169,6 +169,7 @@ The following arguments are supported:
 * `source` - (Optional) Configuration block(s) with alternate sources for patches. Applies to Linux instances only. Documented below.
 * `rejected_patches_action` - (Optional) The action for Patch Manager to take on patches included in the `rejected_patches` list. Allow values are `ALLOW_AS_DEPENDENCY` and `BLOCK`.
 * `approved_patches_enable_non_security` - (Optional) Indicates whether the list of approved patches includes non-security updates that should be applied to the instances. Applies to Linux instances only.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `approval_rule` block supports:
 
@@ -178,7 +179,6 @@ The `approval_rule` block supports:
     * `PATCH_SET` defaults to `OS` if unspecified
 * `compliance_level` - (Optional) Defines the compliance level for patches approved by this rule. Valid compliance levels include the following: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFORMATIONAL`, `UNSPECIFIED`. The default value is `UNSPECIFIED`.
 * `enable_non_security` - (Optional) Boolean enabling the application of non-security updates. The default value is 'false'. Valid for Linux instances only.
-* `tags` - (Optional) A map of tags to assign to the resource.
 
 The `source` block supports:
 
@@ -192,6 +192,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the patch baseline.
 * `arn` - The ARN of the patch baseline.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

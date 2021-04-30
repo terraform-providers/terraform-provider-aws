@@ -75,7 +75,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-No additional attributes are exported.
+In addition to all arguments above, the following attributes are exported:
+
+* `owner` - The AWS Account ID of the SNS topic owner
 
 ## Import
 

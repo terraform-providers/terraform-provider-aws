@@ -201,7 +201,7 @@ across different markets and instance types. Conflicts with `launch_template_con
 * `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
 * `load_balancers` (Optional) A list of elastic load balancer names to add to the Spot fleet.
 * `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with Application Load Balancing.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Launch Template Configs
 
@@ -251,6 +251,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Spot fleet request ID
 * `spot_request_state` - The state of the Spot fleet request.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

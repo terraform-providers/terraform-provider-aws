@@ -71,7 +71,7 @@ The following arguments are supported:
 * `proxy_protocol_v2` - (Optional) Whether to enable support for proxy protocol v2 on Network Load Balancers. See [doc](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#proxy-protocol) for more information. Default is `false`.
 * `slow_start` - (Optional) Amount time for targets to warm up before the load balancer sends them a full share of requests. The range is 30-900 seconds or 0 to disable. The default value is 0 seconds.
 * `stickiness` - (Optional, Maximum of 1) Stickiness configuration block. Detailed below.
-* `tags` - (Optional) Map of tags to assign to the resource.
+* `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `target_type` - (May be required, Forces new resource) Type of target that you must specify when registering targets with this target group. The possible values are `instance` (targets are specified by instance ID) or `ip` (targets are specified by IP address) or `lambda` (targets are specified by lambda arn). The default is `instance`. Note that you can't specify targets for a target group using both instance IDs and IP addresses. If the target type is `ip`, specify IP addresses from the subnets of the virtual private cloud (VPC) for the target group, the RFC 1918 range (10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16), and the RFC 6598 range (100.64.0.0/10). You can't specify publicly routable IP addresses.
 * `vpc_id` - (Optional, Forces new resource) Identifier of the VPC in which to create the target group. Required when `target_type` is `instance` or `ip`. Does not apply when `target_type` is `lambda`.
 
@@ -85,7 +85,6 @@ The following arguments are supported:
 * `matcher` (May be required) Response codes to use when checking for a healthy responses from a target. You can specify multiple values (for example, "200,202" for HTTP(s) or "0,12" for GRPC) or a range of values (for example, "200-299" or "0-99"). Required for HTTP/HTTPS/GRPC ALB. Only applies to Application Load Balancers (i.e., HTTP/HTTPS/GRPC) not Network Load Balancers (i.e., TCP).
 * `path` - (May be required) Destination for the health check request. Required for HTTP/HTTPS ALB and HTTP NLB. Only applies to HTTP/HTTPS.
 * `port` - (Optional) Port to use to connect with the target. Valid values are either ports 1-65535, or `traffic-port`. Defaults to `traffic-port`.
-* `protocol_version` - (Optional) Protocol version. Defaults to `HTTP1`. Specify GRPC to send requests to targets using GRPC, HTTP2 to send requests to targets using HTTP/2, HTTP1 to send requests to targets using HTTP/1.1.
 * `protocol` - (Optional) Protocol to use to connect with the target. Defaults to `HTTP`. Not applicable when `target_type` is `lambda`.
 * `timeout` - (Optional) Amount of time, in seconds, during which no response means a failed health check. For Application Load Balancers, the range is 2 to 120 seconds, and the default is 5 seconds for the `instance` target type and 30 seconds for the `lambda` target type. For Network Load Balancers, you cannot set a custom value, and the default is 10 seconds for TCP and HTTPS health checks and 6 seconds for HTTP health checks.
 * `unhealthy_threshold` - (Optional) Number of consecutive health check failures required before considering the target unhealthy. For Network Load Balancers, this value must be the same as the `healthy_threshold`. Defaults to 3.
@@ -106,6 +105,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - ARN of the Target Group (matches `id`).
 * `id` - ARN of the Target Group (matches `arn`).
 * `name` - Name of the Target Group.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

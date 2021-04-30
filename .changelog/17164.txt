@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_sqs_queue: Append `.fifo` suffix for Terraform-assigned FIFO queue names
+```

@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfelasticache "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticache"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticache/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticache/waiter"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
@@ -115,14 +115,19 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				Computed: true,
 			},
 			"engine": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(tfelasticache.Engine_Values(), false),
 			},
 			"engine_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"engine_version_actual": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"maintenance_window": {
@@ -252,80 +257,25 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 
 		CustomizeDiff: customdiff.Sequence(
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				// Plan time validation for az_mode
-				// InvalidParameterCombination: Must specify at least two cache nodes in order to specify AZ Mode of 'cross-az'.
-				if v, ok := diff.GetOk("az_mode"); !ok || v.(string) != elasticache.AZModeCrossAz {
-					return nil
-				}
-				if v, ok := diff.GetOk("num_cache_nodes"); !ok || v.(int) != 1 {
-					return nil
-				}
-				return errors.New(`az_mode "cross-az" is not supported with num_cache_nodes = 1`)
-			},
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				// Plan time validation for engine_version
-				// InvalidParameterCombination: Cannot modify memcached from 1.4.33 to 1.4.24
-				// InvalidParameterCombination: Cannot modify redis from 3.2.6 to 3.2.4
-				if diff.Id() == "" || !diff.HasChange("engine_version") {
-					return nil
-				}
-				o, n := diff.GetChange("engine_version")
-				oVersion, err := gversion.NewVersion(o.(string))
-				if err != nil {
-					return err
-				}
-				nVersion, err := gversion.NewVersion(n.(string))
-				if err != nil {
-					return err
-				}
-				if nVersion.GreaterThan(oVersion) {
-					return nil
-				}
-				return diff.ForceNew("engine_version")
-			},
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				// Plan time validation for num_cache_nodes
-				// InvalidParameterValue: Cannot create a Redis cluster with a NumCacheNodes parameter greater than 1.
-				if v, ok := diff.GetOk("engine"); !ok || v.(string) == "memcached" {
-					return nil
-				}
-				if v, ok := diff.GetOk("num_cache_nodes"); !ok || v.(int) == 1 {
-					return nil
-				}
-				return errors.New(`engine "redis" does not support num_cache_nodes > 1`)
-			},
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				// Engine memcached does not currently support vertical scaling
-				// InvalidParameterCombination: Scaling is not supported for engine memcached
-				// https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Scaling.html#Scaling.Memcached.Vertically
-				if diff.Id() == "" || !diff.HasChange("node_type") {
-					return nil
-				}
-				if v, ok := diff.GetOk("engine"); !ok || v.(string) == "redis" {
-					return nil
-				}
-				return diff.ForceNew("node_type")
-			},
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				if v, ok := diff.GetOk("engine"); !ok || v.(string) == "redis" {
-					return nil
-				}
-				if _, ok := diff.GetOk("final_snapshot_identifier"); !ok {
-					return nil
-				}
-				return errors.New(`engine "memcached" does not support final_snapshot_identifier`)
-			},
+			CustomizeDiffValidateClusterAZMode,
+			CustomizeDiffValidateClusterEngineVersion,
+			CustomizeDiffElastiCacheEngineVersion,
+			CustomizeDiffValidateClusterNumCacheNodes,
+			CustomizeDiffClusterMemcachedNodeType,
+			CustomizeDiffValidateClusterMemcachedSnapshotIdentifier,
 		),
 	}
 }
 
 func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &elasticache.CreateCacheClusterInput{}
 
@@ -334,7 +284,7 @@ func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{
 	} else {
 		req.CacheSecurityGroupNames = expandStringSet(d.Get("security_group_names").(*schema.Set))
 		req.SecurityGroupIds = expandStringSet(d.Get("security_group_ids").(*schema.Set))
-		req.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ElasticacheTags()
+		req.Tags = tags.IgnoreAws().ElasticacheTags()
 	}
 
 	if v, ok := d.GetOk("cluster_id"); ok {
@@ -425,6 +375,7 @@ func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	c, err := finder.CacheClusterWithNodeInfoByID(conn, d.Id())
@@ -438,10 +389,16 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 	}
 
 	d.Set("cluster_id", c.CacheClusterId)
-	d.Set("node_type", c.CacheNodeType)
+
+	if err := elasticacheSetResourceDataFromCacheCluster(d, c); err != nil {
+		return err
+	}
+
+	d.Set("snapshot_window", c.SnapshotWindow)
+	d.Set("snapshot_retention_limit", c.SnapshotRetentionLimit)
+
 	d.Set("num_cache_nodes", c.NumCacheNodes)
-	d.Set("engine", c.Engine)
-	d.Set("engine_version", c.EngineVersion)
+
 	if c.ConfigurationEndpoint != nil {
 		d.Set("port", c.ConfigurationEndpoint.Port)
 		d.Set("configuration_endpoint", aws.String(fmt.Sprintf("%s:%d", aws.StringValue(c.ConfigurationEndpoint.Address), aws.Int64Value(c.ConfigurationEndpoint.Port))))
@@ -454,15 +411,6 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("replication_group_id", c.ReplicationGroupId)
 	}
 
-	d.Set("subnet_group_name", c.CacheSubnetGroupName)
-	d.Set("security_group_names", flattenElastiCacheSecurityGroupNames(c.CacheSecurityGroups))
-	d.Set("security_group_ids", flattenElastiCacheSecurityGroupIds(c.SecurityGroups))
-	if c.CacheParameterGroup != nil {
-		d.Set("parameter_group_name", c.CacheParameterGroup.CacheParameterGroupName)
-	}
-	d.Set("maintenance_window", c.PreferredMaintenanceWindow)
-	d.Set("snapshot_window", c.SnapshotWindow)
-	d.Set("snapshot_retention_limit", c.SnapshotRetentionLimit)
 	if c.NotificationConfiguration != nil {
 		if *c.NotificationConfiguration.TopicStatus == "active" {
 			d.Set("notification_topic_arn", c.NotificationConfiguration.TopicArn)
@@ -487,9 +435,56 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for ElastiCache Cluster (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
 	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
+
+	return nil
+}
+
+func elasticacheSetResourceDataFromCacheCluster(d *schema.ResourceData, c *elasticache.CacheCluster) error {
+	d.Set("node_type", c.CacheNodeType)
+
+	d.Set("engine", c.Engine)
+	if err := elasticacheSetResourceDataEngineVersionFromCacheCluster(d, c); err != nil {
+		return err
+	}
+
+	d.Set("subnet_group_name", c.CacheSubnetGroupName)
+	if err := d.Set("security_group_names", flattenElastiCacheSecurityGroupNames(c.CacheSecurityGroups)); err != nil {
+		return fmt.Errorf("error setting security_group_names: %w", err)
+	}
+	if err := d.Set("security_group_ids", flattenElastiCacheSecurityGroupIds(c.SecurityGroups)); err != nil {
+		return fmt.Errorf("error setting security_group_ids: %w", err)
+	}
+
+	if c.CacheParameterGroup != nil {
+		d.Set("parameter_group_name", c.CacheParameterGroup.CacheParameterGroupName)
+	}
+
+	d.Set("maintenance_window", c.PreferredMaintenanceWindow)
+
+	return nil
+}
+
+func elasticacheSetResourceDataEngineVersionFromCacheCluster(d *schema.ResourceData, c *elasticache.CacheCluster) error {
+	engineVersion, err := gversion.NewVersion(aws.StringValue(c.EngineVersion))
+	if err != nil {
+		return fmt.Errorf("error reading ElastiCache Cache Cluster (%s) engine version: %w", d.Id(), err)
+	}
+	if engineVersion.Segments()[0] < 6 {
+		d.Set("engine_version", engineVersion.String())
+	} else {
+		d.Set("engine_version", fmt.Sprintf("%d.x", engineVersion.Segments()[0]))
+	}
+	d.Set("engine_version_actual", engineVersion.String())
 
 	return nil
 }
@@ -497,8 +492,8 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 func resourceAwsElasticacheClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.ElasticacheUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating ElastiCache Cluster (%s) tags: %w", d.Get("arn").(string), err)

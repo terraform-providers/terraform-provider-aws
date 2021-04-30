@@ -134,17 +134,22 @@ func resourceAwsImageBuilderImage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsImageBuilderImageCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &imagebuilder.CreateImageInput{
 		ClientToken:                  aws.String(resource.UniqueId()),
@@ -167,8 +172,8 @@ func resourceAwsImageBuilderImageCreate(d *schema.ResourceData, meta interface{}
 		input.InfrastructureConfigurationArn = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ImagebuilderTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().ImagebuilderTags()
 	}
 
 	output, err := conn.CreateImage(input)
@@ -192,6 +197,8 @@ func resourceAwsImageBuilderImageCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsImageBuilderImageRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &imagebuilder.GetImageInput{
 		ImageBuildVersionArn: aws.String(d.Id()),
@@ -248,7 +255,17 @@ func resourceAwsImageBuilderImageRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("output_resources", nil)
 	}
 
-	d.Set("tags", keyvaluetags.ImagebuilderKeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(meta.(*AWSClient).IgnoreTagsConfig).Map())
+	tags := keyvaluetags.ImagebuilderKeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
+
 	d.Set("version", image.Version)
 
 	return nil
@@ -257,8 +274,8 @@ func resourceAwsImageBuilderImageRead(d *schema.ResourceData, meta interface{}) 
 func resourceAwsImageBuilderImageUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.ImagebuilderUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Image Builder Image (%s): %w", d.Id(), err)

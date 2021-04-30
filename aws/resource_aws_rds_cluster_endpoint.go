@@ -72,13 +72,18 @@ func resourceAwsRDSClusterEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRDSClusterEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	clusterId := d.Get("cluster_identifier").(string)
 	endpointId := d.Get("cluster_endpoint_identifier").(string)
@@ -88,7 +93,7 @@ func resourceAwsRDSClusterEndpointCreate(d *schema.ResourceData, meta interface{
 		DBClusterIdentifier:         aws.String(clusterId),
 		DBClusterEndpointIdentifier: aws.String(endpointId),
 		EndpointType:                aws.String(endpointType),
-		Tags:                        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags(),
+		Tags:                        tags.IgnoreAws().RdsTags(),
 	}
 
 	if v := d.Get("static_members"); v != nil {
@@ -115,6 +120,7 @@ func resourceAwsRDSClusterEndpointCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsRDSClusterEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &rds.DescribeDBClusterEndpointsInput{
@@ -166,8 +172,15 @@ func resourceAwsRDSClusterEndpointRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for RDS Cluster Endpoint (%s): %s", *arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -179,8 +192,8 @@ func resourceAwsRDSClusterEndpointUpdate(d *schema.ResourceData, meta interface{
 		DBClusterEndpointIdentifier: aws.String(d.Id()),
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS Cluster Endpoint (%s) tags: %s", d.Get("arn").(string), err)

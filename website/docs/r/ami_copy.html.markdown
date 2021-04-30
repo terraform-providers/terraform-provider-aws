@@ -46,7 +46,7 @@ The following arguments are supported:
   same as the AWS provider region in order to create a copy within the same region.
 * `encrypted` - (Optional) Specifies whether the destination snapshots of the copied image should be encrypted. Defaults to `false`
 * `kms_key_id` - (Optional) The full ARN of the KMS Key to use when encrypting the snapshots of an image during a copy operation. If not specified, then the default AWS KMS Key will be used
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 This resource also exposes the full set of arguments from the [`aws_ami`](ami.html) resource.
 

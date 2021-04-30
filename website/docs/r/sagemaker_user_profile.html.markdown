@@ -30,7 +30,7 @@ The following arguments are supported:
 * `single_sign_on_user_identifier` - (Optional) A specifier for the type of value specified in `single_sign_on_user_value`. Currently, the only supported value is `UserName`. If the Domain's AuthMode is SSO, this field is required. If the Domain's AuthMode is not SSO, this field cannot be specified.
 * `single_sign_on_user_value` - (Required) The username of the associated AWS Single Sign-On User for this User Profile. If the Domain's AuthMode is SSO, this field is required, and must match a valid username of a user in your directory. If the Domain's AuthMode is not SSO, this field cannot be specified.
 * `user_settings` - (Required) The user settings. See [User Settings](#user-settings) below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### User Settings
 
@@ -78,6 +78,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The user profile Amazon Resource Name (ARN).
 * `arn` - The user profile Amazon Resource Name (ARN).
 * `home_efs_file_system_uid` - The ID of the user's profile in the Amazon Elastic File System (EFS) volume.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

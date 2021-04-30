@@ -82,12 +82,18 @@ func resourceAwsGlacierVault() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsGlacierVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glacierconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &glacier.CreateVaultInput{
 		VaultName: aws.String(d.Get("name").(string)),
@@ -100,8 +106,8 @@ func resourceAwsGlacierVaultCreate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(d.Get("name").(string))
 
-	if v, ok := d.GetOk("tags"); ok {
-		if err := keyvaluetags.GlacierUpdateTags(conn, d.Id(), nil, v.(map[string]interface{})); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.GlacierUpdateTags(conn, d.Id(), nil, tags.Map()); err != nil {
 			return fmt.Errorf("error updating Glacier Vault (%s) tags: %w", d.Id(), err)
 		}
 	}
@@ -124,8 +130,8 @@ func resourceAwsGlacierVaultCreate(d *schema.ResourceData, meta interface{}) err
 func resourceAwsGlacierVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glacierconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlacierUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Glacier Vault (%s) tags: %s", d.Id(), err)
 		}
@@ -148,6 +154,7 @@ func resourceAwsGlacierVaultUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsGlacierVaultRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glacierconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glacier.DescribeVaultInput{
@@ -180,8 +187,15 @@ func resourceAwsGlacierVaultRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for Glacier Vault (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	log.Printf("[DEBUG] Getting the access_policy for Vault %s", d.Id())

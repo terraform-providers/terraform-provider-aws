@@ -35,10 +35,10 @@ func testSweepRedshiftClusters(region string) error {
 	sweepResources := make([]*testSweepResource, 0)
 	var errs *multierror.Error
 
-	err = conn.DescribeClustersPages(&redshift.DescribeClustersInput{}, func(resp *redshift.DescribeClustersOutput, isLast bool) bool {
+	err = conn.DescribeClustersPages(&redshift.DescribeClustersInput{}, func(resp *redshift.DescribeClustersOutput, lastPage bool) bool {
 		if len(resp.Clusters) == 0 {
 			log.Print("[DEBUG] No Redshift clusters to sweep")
-			return !isLast
+			return !lastPage
 		}
 
 		for _, c := range resp.Clusters {
@@ -50,7 +50,7 @@ func testSweepRedshiftClusters(region string) error {
 			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {

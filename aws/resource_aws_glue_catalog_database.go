@@ -79,7 +79,7 @@ func resourceAwsGlueCatalogDatabaseCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		dbInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		dbInput.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	input := &glue.CreateDatabaseInput{
@@ -123,7 +123,7 @@ func resourceAwsGlueCatalogDatabaseUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		dbInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		dbInput.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	dbUpdateInput.DatabaseInput = dbInput

@@ -38,6 +38,7 @@ func resourceAwsBatchJobQueue() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateBatchName,
 			},
 			"priority": {
@@ -49,17 +50,22 @@ func resourceAwsBatchJobQueue() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{batch.JQStateDisabled, batch.JQStateEnabled}, true),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsBatchJobQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	input := batch.CreateJobQueueInput{
 		ComputeEnvironmentOrder: createComputeEnvironmentOrder(d.Get("compute_environments").([]interface{})),
 		JobQueueName:            aws.String(d.Get("name").(string)),
@@ -67,8 +73,8 @@ func resourceAwsBatchJobQueueCreate(d *schema.ResourceData, meta interface{}) er
 		State:                   aws.String(d.Get("state").(string)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().BatchTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().BatchTags()
 	}
 
 	name := d.Get("name").(string)
@@ -100,6 +106,7 @@ func resourceAwsBatchJobQueueCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsBatchJobQueueRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	jq, err := getJobQueue(conn, d.Id())
@@ -132,8 +139,15 @@ func resourceAwsBatchJobQueueRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("priority", jq.Priority)
 	d.Set("state", jq.State)
 
-	if err := d.Set("tags", keyvaluetags.BatchKeyValueTags(jq.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.BatchKeyValueTags(jq.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -169,8 +183,8 @@ func resourceAwsBatchJobQueueUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.BatchUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)

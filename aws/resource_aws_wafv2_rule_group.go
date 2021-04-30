@@ -107,13 +107,18 @@ func resourceAwsWafv2RuleGroup() *schema.Resource {
 				},
 			},
 			"tags":              tagsSchema(),
+			"tags_all":          tagsSchemaComputed(),
 			"visibility_config": wafv2VisibilityConfigSchema(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWafv2RuleGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	var resp *wafv2.CreateRuleGroupOutput
 
 	params := &wafv2.CreateRuleGroupInput{
@@ -128,8 +133,8 @@ func resourceAwsWafv2RuleGroupCreate(d *schema.ResourceData, meta interface{}) e
 		params.Description = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		params.Tags = keyvaluetags.New(v).IgnoreAws().Wafv2Tags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().Wafv2Tags()
 	}
 
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
@@ -163,6 +168,7 @@ func resourceAwsWafv2RuleGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &wafv2.GetRuleGroupInput{
@@ -205,8 +211,15 @@ func resourceAwsWafv2RuleGroupRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error listing tags for WAFv2 RuleGroup (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -249,8 +262,8 @@ func resourceAwsWafv2RuleGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error updating WAFv2 RuleGroup: %s", err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Wafv2UpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("Error updating tags: %s", err)
 		}

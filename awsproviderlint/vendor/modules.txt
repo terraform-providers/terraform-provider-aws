@@ -12,7 +12,9 @@ cloud.google.com/go/storage
 github.com/agext/levenshtein
 # github.com/apparentlymart/go-textseg/v12 v12.0.0
 github.com/apparentlymart/go-textseg/v12/textseg
-# github.com/aws/aws-sdk-go v1.38.19
+# github.com/apparentlymart/go-textseg/v13 v13.0.0
+github.com/apparentlymart/go-textseg/v13/textseg
+# github.com/aws/aws-sdk-go v1.38.28
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -235,19 +237,13 @@ github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/go-cmp v0.5.2
-github.com/google/go-cmp/cmp
-github.com/google/go-cmp/cmp/internal/diff
-github.com/google/go-cmp/cmp/internal/flags
-github.com/google/go-cmp/cmp/internal/function
-github.com/google/go-cmp/cmp/internal/value
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-checkpoint v0.5.0
 github.com/hashicorp/go-checkpoint
-# github.com/hashicorp/go-cleanhttp v0.5.1
+# github.com/hashicorp/go-cleanhttp v0.5.2
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 github.com/hashicorp/go-cty/cty
@@ -256,7 +252,7 @@ github.com/hashicorp/go-cty/cty/gocty
 github.com/hashicorp/go-cty/cty/json
 github.com/hashicorp/go-cty/cty/msgpack
 github.com/hashicorp/go-cty/cty/set
-# github.com/hashicorp/go-getter v1.5.2
+# github.com/hashicorp/go-getter v1.5.3
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.15.0
@@ -270,7 +266,7 @@ github.com/hashicorp/go-plugin/internal/plugin
 github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.1
 github.com/hashicorp/go-uuid
-# github.com/hashicorp/go-version v1.2.1
+# github.com/hashicorp/go-version v1.3.0
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl/v2 v2.8.2
 github.com/hashicorp/hcl/v2
@@ -278,20 +274,20 @@ github.com/hashicorp/hcl/v2/ext/customdecode
 github.com/hashicorp/hcl/v2/hclsyntax
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform-exec v0.13.0
+# github.com/hashicorp/terraform-exec v0.13.3
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
 github.com/hashicorp/terraform-exec/tfinstall
-# github.com/hashicorp/terraform-json v0.8.0
+# github.com/hashicorp/terraform-json v0.10.0
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-go v0.2.1
+# github.com/hashicorp/terraform-plugin-go v0.3.0
 github.com/hashicorp/terraform-plugin-go/tfprotov5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/fromproto
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/tfplugin5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/toproto
 github.com/hashicorp/terraform-plugin-go/tfprotov5/server
-github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.5.0
+github.com/hashicorp/terraform-plugin-go/tftypes
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging
@@ -350,7 +346,7 @@ github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
-# github.com/zclconf/go-cty v1.7.1
+# github.com/zclconf/go-cty v1.8.2
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
 github.com/zclconf/go-cty/cty/function
@@ -375,7 +371,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+# golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
@@ -389,7 +385,7 @@ golang.org/x/lint/golint
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+# golang.org/x/net v0.0.0-20210326060303-6b1517762897
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
@@ -404,10 +400,10 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
+# golang.org/x/sys v0.0.0-20210324051608-47abb6519492
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
-# golang.org/x/text v0.3.3
+# golang.org/x/text v0.3.5
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi

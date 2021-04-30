@@ -50,19 +50,24 @@ func resourceAwsIamOpenIDConnectProvider() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIamOpenIDConnectProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &iam.CreateOpenIDConnectProviderInput{
 		Url:            aws.String(d.Get("url").(string)),
 		ClientIDList:   expandStringList(d.Get("client_id_list").([]interface{})),
 		ThumbprintList: expandStringList(d.Get("thumbprint_list").([]interface{})),
-		Tags:           keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IamTags(),
+		Tags:           tags.IgnoreAws().IamTags(),
 	}
 
 	out, err := conn.CreateOpenIDConnectProvider(input)
@@ -77,6 +82,7 @@ func resourceAwsIamOpenIDConnectProviderCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsIamOpenIDConnectProviderRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &iam.GetOpenIDConnectProviderInput{
@@ -97,8 +103,15 @@ func resourceAwsIamOpenIDConnectProviderRead(d *schema.ResourceData, meta interf
 	d.Set("client_id_list", flattenStringList(out.ClientIDList))
 	d.Set("thumbprint_list", flattenStringList(out.ThumbprintList))
 
-	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.IamKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -119,8 +132,8 @@ func resourceAwsIamOpenIDConnectProviderUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.IamOpenIDConnectProviderUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for IAM OIDC Provider (%s): %w", d.Id(), err)

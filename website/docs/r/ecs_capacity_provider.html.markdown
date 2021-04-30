@@ -46,34 +46,31 @@ resource "aws_ecs_capacity_provider" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the capacity provider.
-* `auto_scaling_group_provider` - (Required) Nested argument defining the provider for the ECS auto scaling group. Defined below.
-* `tags` - (Optional) Key-value map of resource tags.
+* `auto_scaling_group_provider` - (Required) Configuration block for the provider for the ECS auto scaling group. Detailed below.
+* `name` - (Required) Name of the capacity provider.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
-## auto_scaling_group_provider
+### `auto_scaling_group_provider`
 
-The `auto_scaling_group_provider` block supports the following:
-
-* `auto_scaling_group_arn` - (Required) - The Amazon Resource Name (ARN) of the associated auto scaling group.
-* `managed_scaling` - (Optional) - Nested argument defining the parameters of the auto scaling. Defined below.
+* `auto_scaling_group_arn` - (Required) - ARN of the associated auto scaling group.
+* `managed_scaling` - (Optional) - Configuration block defining the parameters of the auto scaling. Detailed below.
 * `managed_termination_protection` - (Optional) - Enables or disables container-aware termination of instances in the auto scaling group when scale-in happens. Valid values are `ENABLED` and `DISABLED`.
 
-## managed_scaling
+### `managed_scaling`
 
-The `managed_scaling` block supports the following:
-
-* `instance_warmup_period` - (Optional) The period of time, in seconds, after a newly launched Amazon EC2 instance can contribute to CloudWatch metrics for Auto Scaling group. If this parameter is omitted, the default value of 300 seconds is used.
-* `maximum_scaling_step_size` - (Optional) The maximum step adjustment size. A number between 1 and 10,000.
-* `minimum_scaling_step_size` - (Optional) The minimum step adjustment size. A number between 1 and 10,000.
+* `instance_warmup_period` - (Optional) Period of time, in seconds, after a newly launched Amazon EC2 instance can contribute to CloudWatch metrics for Auto Scaling group. If this parameter is omitted, the default value of 300 seconds is used.
+* `maximum_scaling_step_size` - (Optional) Maximum step adjustment size. A number between 1 and 10,000.
+* `minimum_scaling_step_size` - (Optional) Minimum step adjustment size. A number between 1 and 10,000.
 * `status` - (Optional) Whether auto scaling is managed by ECS. Valid values are `ENABLED` and `DISABLED`.
-* `target_capacity` - (Optional) The target utilization for the capacity provider. A number between 1 and 100.
+* `target_capacity` - (Optional) Target utilization for the capacity provider. A number between 1 and 100.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The Amazon Resource Name (ARN) that identifies the capacity provider.
-* `arn` - The Amazon Resource Name (ARN) that identifies the capacity provider.
+* `arn` - ARN that identifies the capacity provider.
+* `id` - ARN that identifies the capacity provider.
+* `tags_all` - Map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

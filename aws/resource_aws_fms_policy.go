@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fms"
@@ -99,16 +100,8 @@ func resourceAwsFmsPolicy() *schema.Resource {
 				Set:           schema.HashString,
 				ConflictsWith: []string{"resource_type"},
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"AWS::ApiGateway::Stage",
-						"AWS::CloudFront::Distribution",
-						"AWS::EC2::NetworkInterface",
-						"AWS::EC2::Instance",
-						"AWS::EC2::SecurityGroup",
-						"AWS::EC2::VPC",
-						"AWS::ElasticLoadBalancingV2::LoadBalancer",
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$`), "must match a supported resource type, such as AWS::EC2::VPC, see also: https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_Policy.html"),
 				},
 			},
 
@@ -117,6 +110,7 @@ func resourceAwsFmsPolicy() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"resource_type_list"},
+				ValidateFunc:  validation.StringMatch(regexp.MustCompile(`^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$`), "must match a supported resource type, such as AWS::EC2::VPC, see also: https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_Policy.html"),
 			},
 
 			"policy_update_token": {

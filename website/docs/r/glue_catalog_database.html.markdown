@@ -22,7 +22,7 @@ resource "aws_glue_catalog_database" "aws_glue_catalog_database" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the database.
+* `name` - (Required) The name of the database. The acceptable characters are lowercase letters, numbers, and the underscore character.
 * `catalog_id` - (Optional) ID of the Glue Catalog to create the database in. If omitted, this defaults to the AWS Account ID.
 * `description` - (Optional) Description of the database.
 * `location_uri` - (Optional) The location of the database (for example, an HDFS path).

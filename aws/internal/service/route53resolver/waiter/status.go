@@ -17,6 +17,12 @@ const (
 
 	resolverDnssecConfigStatusNotFound = "NotFound"
 	resolverDnssecConfigStatusUnknown  = "Unknown"
+
+	firewallDomainListStatusNotFound = "NotFound"
+	firewallDomainListStatusUnknown  = "Unknown"
+
+	resolverFirewallRuleGroupAssociationStatusNotFound = "NotFound"
+	resolverFirewallRuleGroupAssociationStatusUnknown  = "Unknown"
 )
 
 // QueryLogConfigAssociationStatus fetches the QueryLogConfigAssociation and its Status
@@ -79,5 +85,47 @@ func DnssecConfigStatus(conn *route53resolver.Route53Resolver, dnssecConfigID st
 		}
 
 		return dnssecConfig, aws.StringValue(dnssecConfig.ValidationStatus), nil
+	}
+}
+
+// FirewallDomainListStatus fetches the FirewallDomainList and its Status
+func FirewallDomainListStatus(conn *route53resolver.Route53Resolver, firewallDomainListId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		firewallDomainList, err := finder.FirewallDomainListByID(conn, firewallDomainListId)
+
+		if tfawserr.ErrCodeEquals(err, route53resolver.ErrCodeResourceNotFoundException) {
+			return nil, firewallDomainListStatusNotFound, nil
+		}
+
+		if err != nil {
+			return nil, firewallDomainListStatusUnknown, err
+		}
+
+		if firewallDomainList == nil {
+			return nil, firewallDomainListStatusNotFound, nil
+		}
+
+		return firewallDomainList, aws.StringValue(firewallDomainList.Status), nil
+	}
+}
+
+// FirewallRuleGroupAssociationStatus fetches the FirewallRuleGroupAssociation and its Status
+func FirewallRuleGroupAssociationStatus(conn *route53resolver.Route53Resolver, firewallRuleGroupAssociationId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		firewallRuleGroupAssociation, err := finder.FirewallRuleGroupAssociationByID(conn, firewallRuleGroupAssociationId)
+
+		if tfawserr.ErrCodeEquals(err, route53resolver.ErrCodeResourceNotFoundException) {
+			return nil, resolverFirewallRuleGroupAssociationStatusNotFound, nil
+		}
+
+		if err != nil {
+			return nil, resolverFirewallRuleGroupAssociationStatusUnknown, err
+		}
+
+		if firewallRuleGroupAssociation == nil {
+			return nil, resolverFirewallRuleGroupAssociationStatusNotFound, nil
+		}
+
+		return firewallRuleGroupAssociation, aws.StringValue(firewallRuleGroupAssociation.Status), nil
 	}
 }

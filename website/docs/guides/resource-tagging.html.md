@@ -19,6 +19,7 @@ Many AWS services implement [resource tags](https://docs.aws.amazon.com/general/
     - [Ignoring Changes in Individual Resources](#ignoring-changes-in-individual-resources)
     - [Ignoring Changes in All Resources](#ignoring-changes-in-all-resources)
 - [Managing Individual Resource Tags](#managing-individual-resource-tags)
+- [Propagating Tags to All Resources](#propagating-tags-to-all-resources)
 
 <!-- /TOC -->
 
@@ -171,3 +172,34 @@ resource "aws_ec2_tag" "example" {
 ```
 
 The inline map provided to `for_each` in the example above is used for brevity, but other Terraform configuration language features similar to those noted at the beginning of this guide can be used to make the example more extensible.
+
+### Propagating Tags to All Resources
+
+As of version 3.38.0 of the Terraform AWS Provider, the Terraform Configuration language also enables provider-level tagging as an alternative to the methods described in the [Getting Started with Resource Tags](#getting-started-with-resource-tags) section above.
+This functionality is available for all Terraform AWS Provider resources that currently support `tags`, with the exception of the [`aws_autoscaling_group`](/docs/providers/aws/r/autoscaling_group.html.markdown) resource. Refactoring the use of [variables](https://www.terraform.io/docs/configuration/variables.html) or [locals](https://www.terraform.io/docs/configuration/locals.html) may look like:
+
+```terraform
+# Terraform 0.12 and later syntax
+provider "aws" {
+  # ... other configuration ...
+  default_tags {
+    tags = {
+      Environment = "Production"
+      Owner       = "Ops"
+    }
+  }
+}
+
+resource "aws_vpc" "example" {
+  # ... other configuration ...
+
+  # This configuration by default will internally combine tags defined
+  # within the provider configuration block and those defined here
+  tags = {
+    Name = "MyVPC"
+  }
+}
+```
+
+In this example, the `Environment` and `Owner` tags defined within the provider configuration block will be added to the VPC on resource creation, in addition to the `Name` tag defined within the VPC resource configuration.
+To access all the tags applied to the VPC resource, use the read-only attribute `tags_all`, e.g. `aws_vpc.example.tags_all`.

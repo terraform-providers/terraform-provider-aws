@@ -51,7 +51,7 @@ The following arguments are supported:
 * `recovery_window_in_days` - (Optional) Specifies the number of days that AWS Secrets Manager waits before it can delete the secret. This value can be `0` to force deletion without recovery or range from `7` to `30` days. The default value is `30`.
 * `rotation_lambda_arn` - (Optional, **DEPRECATED**) Specifies the ARN of the Lambda function that can rotate the secret. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.
 * `rotation_rules` - (Optional, **DEPRECATED**) A structure that defines the rotation configuration for this secret. Defined below. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.
-* `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the secret.
+* `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the secret. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### rotation_rules
 
@@ -64,6 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Amazon Resource Name (ARN) of the secret.
 * `arn` - Amazon Resource Name (ARN) of the secret.
 * `rotation_enabled` - Specifies whether automatic rotation is enabled for this secret.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

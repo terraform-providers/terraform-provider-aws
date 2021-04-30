@@ -61,6 +61,8 @@ func resourceAwsVpcDhcpOptions() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"tags_all": tagsSchemaComputed(),
+
 			"owner_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -70,11 +72,15 @@ func resourceAwsVpcDhcpOptions() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	setDHCPOption := func(key string) *ec2.NewDhcpConfiguration {
 		log.Printf("[DEBUG] Setting DHCP option %s...", key)
@@ -117,7 +123,7 @@ func resourceAwsVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) e
 			setDHCPOption("netbios-node-type"),
 			setDHCPOption("netbios-name-servers"),
 		},
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeDhcpOptions),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeDhcpOptions),
 	}
 
 	resp, err := conn.CreateDhcpOptions(createOpts)
@@ -148,6 +154,7 @@ func resourceAwsVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsVpcDhcpOptionsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &ec2.DescribeDhcpOptionsInput{
@@ -171,9 +178,18 @@ func resourceAwsVpcDhcpOptionsRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	opts := resp.DhcpOptions[0]
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(opts.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+
+	tags := keyvaluetags.Ec2KeyValueTags(opts.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
 	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
+
 	d.Set("owner_id", opts.OwnerId)
 
 	for _, cfg := range opts.DhcpConfigurations {
@@ -207,8 +223,8 @@ func resourceAwsVpcDhcpOptionsRead(d *schema.ResourceData, meta interface{}) err
 func resourceAwsVpcDhcpOptionsUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

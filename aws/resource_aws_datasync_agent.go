@@ -50,13 +50,18 @@ func resourceAwsDataSyncAgent() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDataSyncAgentCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	region := meta.(*AWSClient).region
 
 	activationKey := d.Get("activation_key").(string)
@@ -125,7 +130,7 @@ func resourceAwsDataSyncAgentCreate(d *schema.ResourceData, meta interface{}) er
 
 	input := &datasync.CreateAgentInput{
 		ActivationKey: aws.String(activationKey),
-		Tags:          keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatasyncTags(),
+		Tags:          tags.IgnoreAws().DatasyncTags(),
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -169,6 +174,7 @@ func resourceAwsDataSyncAgentCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsDataSyncAgentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &datasync.DescribeAgentInput{
@@ -197,8 +203,15 @@ func resourceAwsDataSyncAgentRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing tags for DataSync Agent (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -220,8 +233,8 @@ func resourceAwsDataSyncAgentUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating DataSync Agent (%s) tags: %s", d.Id(), err)

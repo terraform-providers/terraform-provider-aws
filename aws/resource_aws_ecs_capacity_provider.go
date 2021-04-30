@@ -22,6 +22,8 @@ func resourceAwsEcsCapacityProvider() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceAwsEcsCapacityProviderImport,
 		},
+
+		CustomizeDiff: SetTagsDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -106,13 +108,16 @@ func resourceAwsEcsCapacityProvider() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEcsCapacityProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := ecs.CreateCapacityProviderInput{
 		Name:                     aws.String(d.Get("name").(string)),
@@ -120,8 +125,8 @@ func resourceAwsEcsCapacityProviderCreate(d *schema.ResourceData, meta interface
 	}
 
 	// `CreateCapacityProviderInput` does not accept an empty array of tags
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().EcsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EcsTags()
 	}
 
 	out, err := conn.CreateCapacityProvider(&input)
@@ -140,6 +145,7 @@ func resourceAwsEcsCapacityProviderCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsEcsCapacityProviderRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &ecs.DescribeCapacityProvidersInput{
@@ -176,8 +182,15 @@ func resourceAwsEcsCapacityProviderRead(d *schema.ResourceData, meta interface{}
 	d.Set("arn", provider.CapacityProviderArn)
 	d.Set("name", provider.Name)
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(provider.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EcsKeyValueTags(provider.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("auto_scaling_group_provider", flattenAutoScalingGroupProvider(provider.AutoScalingGroupProvider)); err != nil {
@@ -190,8 +203,8 @@ func resourceAwsEcsCapacityProviderRead(d *schema.ResourceData, meta interface{}
 func resourceAwsEcsCapacityProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EcsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating ECS Cluster (%s) tags: %s", d.Id(), err)

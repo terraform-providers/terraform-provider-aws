@@ -414,7 +414,8 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"username_attributes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -503,11 +504,15 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoidpconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &cognitoidentityprovider.CreateUserPoolInput{
 		PoolName: aws.String(d.Get("name").(string)),
@@ -673,8 +678,8 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 		params.SmsVerificationMessage = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.UserPoolTags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CognitoidentityproviderTags()
+	if len(tags) > 0 {
+		params.UserPoolTags = tags.IgnoreAws().CognitoidentityproviderTags()
 	}
 	log.Printf("[DEBUG] Creating Cognito User Pool: %s", params)
 
@@ -756,6 +761,7 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoidpconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &cognitoidentityprovider.DescribeUserPoolInput{
@@ -852,8 +858,15 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("creation_date", resp.UserPool.CreationDate.Format(time.RFC3339))
 	d.Set("last_modified_date", resp.UserPool.LastModifiedDate.Format(time.RFC3339))
 	d.Set("name", resp.UserPool.Name)
-	if err := d.Set("tags", keyvaluetags.CognitoidentityKeyValueTags(resp.UserPool.UserPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.CognitoidentityKeyValueTags(resp.UserPool.UserPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	input := &cognitoidentityprovider.GetUserPoolMfaConfigInput{
@@ -883,6 +896,8 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoidpconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Multi-Factor Authentication updates
 	if d.HasChanges(
@@ -956,6 +971,7 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 		"sms_configuration",
 		"sms_verification_message",
 		"tags",
+		"tags_all",
 		"user_pool_add_ons",
 		"verification_message_template",
 		"account_recovery_setting",
@@ -1105,8 +1121,8 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 			params.SmsVerificationMessage = aws.String(v.(string))
 		}
 
-		if v, ok := d.GetOk("tags"); ok {
-			params.UserPoolTags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CognitoidentityproviderTags()
+		if len(tags) > 0 {
+			params.UserPoolTags = tags.IgnoreAws().CognitoidentityproviderTags()
 		}
 
 		log.Printf("[DEBUG] Updating Cognito User Pool: %s", params)

@@ -26,16 +26,17 @@ resource "aws_ec2_carrier_gateway" "example" {
 
 The following arguments are supported:
 
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpc_id` - (Required) The ID of the VPC to associate with the carrier gateway.
-* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the carrier gateway.
 * `arn` - The ARN of the carrier gateway.
+* `id` - The ID of the carrier gateway.
 * `owner_id` - The AWS account ID of the owner of the carrier gateway.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

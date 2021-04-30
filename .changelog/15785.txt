@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_launch_template: Add `placement` `host_resource_group_arn` attribute
+```
+
+```release-note:enhancement
+resource/aws_launch_template: Add `placement` `host_resource_group_arn` argument
+```

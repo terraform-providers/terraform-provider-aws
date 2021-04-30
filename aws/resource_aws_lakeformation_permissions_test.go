@@ -256,9 +256,8 @@ func testAccCheckAWSLakeFormationPermissionsDestroy(s *terraform.State) error {
 			},
 		}
 
-		out, err := conn.ListPermissions(input)
+		_, err := conn.ListPermissions(input)
 		if err == nil {
-			fmt.Print(out)
 			return fmt.Errorf("Resource still registered: %s %s", catalogId, principal)
 		}
 	}

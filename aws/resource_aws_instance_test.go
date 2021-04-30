@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -22,6 +23,8 @@ import (
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(ec2.EndpointsID, testAccErrorCheckSkipEC2)
+
 	resource.AddTestSweepers("aws_instance", &resource.Sweeper{
 		Name: "aws_instance",
 		F:    testSweepInstances,
@@ -32,20 +35,33 @@ func init() {
 	})
 }
 
+func testAccErrorCheckSkipEC2(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"VolumeTypeNotAvailableInRegion",
+	)
+}
+
 func testSweepInstances(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
-	conn := client.(*AWSClient).ec2conn
 
-	err = conn.DescribeInstancesPages(&ec2.DescribeInstancesInput{}, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
-		if len(page.Reservations) == 0 {
-			log.Print("[DEBUG] No EC2 Instances to sweep")
-			return false
+	conn := client.(*AWSClient).ec2conn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
+	err = conn.DescribeInstancesPages(&ec2.DescribeInstancesInput{}, func(page *ec2.DescribeInstancesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
 		for _, reservation := range page.Reservations {
+			if reservation == nil {
+				continue
+			}
+
 			for _, instance := range reservation.Instances {
 				id := aws.StringValue(instance.InstanceId)
 
@@ -54,42 +70,31 @@ func testSweepInstances(region string) error {
 					continue
 				}
 
-				log.Printf("[INFO] Terminating EC2 Instance: %s", id)
-				err := awsTerminateInstance(conn, id, 5*time.Minute)
+				r := resourceAwsInstance()
+				d := r.Data(nil)
+				d.SetId(id)
+				d.Set("disable_api_termination", false)
 
-				if isAWSErr(err, "OperationNotPermitted", "Modify its 'disableApiTermination' instance attribute and try again.") {
-					log.Printf("[INFO] Enabling API Termination on EC2 Instance: %s", id)
-
-					input := &ec2.ModifyInstanceAttributeInput{
-						InstanceId: instance.InstanceId,
-						DisableApiTermination: &ec2.AttributeBooleanValue{
-							Value: aws.Bool(false),
-						},
-					}
-
-					_, err = conn.ModifyInstanceAttribute(input)
-
-					if err == nil {
-						err = awsTerminateInstance(conn, id, 5*time.Minute)
-					}
-				}
-
-				if err != nil {
-					log.Printf("[ERROR] Error terminating EC2 Instance (%s): %s", id, err)
-				}
+				sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
+
 	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping EC2 Instance sweep for %s: %s", region, err)
-			return nil
-		}
-		return fmt.Errorf("Error retrieving EC2 Instances: %s", err)
+		errs = multierror.Append(errs, fmt.Errorf("error describing EC2 Instances for %s: %w", region, err))
 	}
 
-	return nil
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping EC2 Instances for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping EC2 Instance sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func TestFetchRootDevice(t *testing.T) {
@@ -250,6 +255,7 @@ func TestAccAWSInstance_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`instance/i-[a-z0-9]+`)),
+					resource.TestCheckResourceAttr(resourceName, "instance_initiated_shutdown_behavior", "stop"),
 				),
 			},
 			{
@@ -3705,7 +3711,7 @@ func testAccInstanceConfigBasic() string {
 	return composeConfig(
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
 		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-classic-platform.html#ec2-classic-instance-types
-		testAccAvailableEc2InstanceTypeForRegion("t1.micro", "m1.small", "t3.micro", "t2.micro"),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro", "t1.micro", "m1.small"),
 		`
 resource "aws_instance" "test" {
   ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id

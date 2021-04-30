@@ -69,13 +69,18 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -89,7 +94,7 @@ func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{
 	request := &iam.CreateInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
 		Path:                aws.String(d.Get("path").(string)),
-		Tags:                keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IamTags(),
+		Tags:                tags.IgnoreAws().IamTags(),
 	}
 
 	var err error
@@ -190,8 +195,8 @@ func resourceAwsIamInstanceProfileUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.IamInstanceProfileUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for IAM Instance Profile (%s): %w", d.Id(), err)
@@ -262,6 +267,7 @@ func resourceAwsIamInstanceProfileDelete(d *schema.ResourceData, meta interface{
 }
 
 func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfile, meta interface{}) error {
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	d.SetId(aws.StringValue(result.InstanceProfileName))
@@ -283,8 +289,15 @@ func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfi
 		d.Set("role", result.Roles[0].RoleName) //there will only be 1 role returned
 	}
 
-	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(result.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.IamKeyValueTags(result.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

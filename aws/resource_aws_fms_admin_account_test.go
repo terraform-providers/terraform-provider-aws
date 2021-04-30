@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAwsFmsAdminAccount_basic(t *testing.T) {
+func testAccAwsFmsAdminAccount_basic(t *testing.T) {
 	resourceName := "aws_fms_admin_account.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckFmsAdmin(t)

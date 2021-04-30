@@ -1,6 +1,7 @@
 package waiter
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -110,5 +111,25 @@ func StackStatus(conn *cloudformation.CloudFormation, stackName string) resource
 		}
 
 		return resp.Stacks[0], aws.StringValue(resp.Stacks[0].StackStatus), err
+	}
+}
+
+func TypeRegistrationProgressStatus(ctx context.Context, conn *cloudformation.CloudFormation, registrationToken string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &cloudformation.DescribeTypeRegistrationInput{
+			RegistrationToken: aws.String(registrationToken),
+		}
+
+		output, err := conn.DescribeTypeRegistrationWithContext(ctx, input)
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if output == nil {
+			return nil, "", nil
+		}
+
+		return output, aws.StringValue(output.ProgressStatus), nil
 	}
 }

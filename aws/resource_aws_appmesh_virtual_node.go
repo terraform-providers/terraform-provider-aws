@@ -870,7 +870,11 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -1055,12 +1059,14 @@ func appmeshVirtualNodeClientPolicySchema() *schema.Schema {
 
 func resourceAwsAppmeshVirtualNodeCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &appmesh.CreateVirtualNodeInput{
 		MeshName:        aws.String(d.Get("mesh_name").(string)),
 		VirtualNodeName: aws.String(d.Get("name").(string)),
 		Spec:            expandAppmeshVirtualNodeSpec(d.Get("spec").([]interface{})),
-		Tags:            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+		Tags:            tags.IgnoreAws().AppmeshTags(),
 	}
 	if v, ok := d.GetOk("mesh_owner"); ok {
 		req.MeshOwner = aws.String(v.(string))
@@ -1080,6 +1086,7 @@ func resourceAwsAppmeshVirtualNodeCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &appmesh.DescribeVirtualNodeInput{
@@ -1155,8 +1162,15 @@ func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for App Mesh virtual node (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -1185,8 +1199,8 @@ func resourceAwsAppmeshVirtualNodeUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.AppmeshUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating App Mesh virtual node (%s) tags: %w", arn, err)

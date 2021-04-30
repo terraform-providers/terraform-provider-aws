@@ -5,7 +5,6 @@ import (
 	"log"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -39,67 +38,58 @@ func init() {
 
 func testSweepVPCs(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).ec2conn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
 	input := &ec2.DescribeVpcsInput{}
-	var sweeperErrs *multierror.Error
 
 	err = conn.DescribeVpcsPages(input, func(page *ec2.DescribeVpcsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
 		for _, vpc := range page.Vpcs {
 			if vpc == nil {
 				continue
 			}
 
 			id := aws.StringValue(vpc.VpcId)
-			input := &ec2.DeleteVpcInput{
-				VpcId: vpc.VpcId,
-			}
 
 			if aws.BoolValue(vpc.IsDefault) {
 				log.Printf("[DEBUG] Skipping default EC2 VPC: %s", id)
 				continue
 			}
 
-			log.Printf("[INFO] Deleting EC2 VPC: %s", id)
+			r := resourceAwsVpc()
+			d := r.Data(nil)
+			d.SetId(id)
 
-			// Handle EC2 eventual consistency
-			err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-				_, err := conn.DeleteVpc(input)
-				if isAWSErr(err, "DependencyViolation", "") {
-					return resource.RetryableError(err)
-				}
-				if err != nil {
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-
-			if isResourceTimeoutError(err) {
-				_, err = conn.DeleteVpc(input)
-			}
-
-			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting EC2 VPC (%s): %w", id, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping EC2 VPC sweep for %s: %s", region, err)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error describing EC2 VPCs for %s: %w", region, err))
+	}
+
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping EC2 VPCs for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping EC2 VPCs sweep for %s: %s", region, errs)
 		return nil
 	}
 
-	if err != nil {
-		return fmt.Errorf("Error describing vpcs: %s", err)
-	}
-
-	return sweeperErrs.ErrorOrNil()
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSVpc_basic(t *testing.T) {

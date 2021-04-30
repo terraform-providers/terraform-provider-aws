@@ -90,11 +90,10 @@ func TestAccAWSDefaultRouteTable_Route_ConfigMode(t *testing.T) {
 	destinationCidr := "10.2.0.0/16"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckDefaultRouteTableDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDefaultRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDefaultRouteTableConfigIpv4InternetGateway(rName, destinationCidr),
@@ -161,11 +160,10 @@ func TestAccAWSDefaultRouteTable_swap(t *testing.T) {
 	destinationCidr2 := "10.3.0.0/16"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckDefaultRouteTableDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDefaultRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDefaultRouteTableConfigIpv4InternetGateway(rName, destinationCidr1),
@@ -301,11 +299,10 @@ func TestAccAWSDefaultRouteTable_VpcEndpointAssociation(t *testing.T) {
 	destinationCidr := "10.2.0.0/16"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckDefaultRouteTableDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDefaultRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDefaultRouteTableConfigVpcEndpointAssociation(rName, destinationCidr),

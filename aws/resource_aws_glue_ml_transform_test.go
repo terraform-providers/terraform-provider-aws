@@ -283,7 +283,7 @@ func TestAccAWSGlueMLTransform_maxRetries(t *testing.T) {
 	})
 }
 
-func TestAccAWSGlueMLTransform_tags(t *testing.T) {
+func TestAccAWSGlueMLTransform_Tags(t *testing.T) {
 	var transform1, transform2, transform3 glue.GetMLTransformOutput
 
 	rName := acctest.RandomWithPrefix("tf-acc-test")

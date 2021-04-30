@@ -241,7 +241,7 @@ of several sub-resources - these resources are laid out below.
 * `restrictions` (Required) - The [restriction
     configuration](#restrictions-arguments) for this distribution (maximum one).
 
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 * `viewer_certificate` (Required) - The [SSL
     configuration](#viewer-certificate-arguments) for this distribution (maximum
@@ -316,6 +316,9 @@ of several sub-resources - these resources are laid out below.
 * `target_origin_id` (Required) - The value of ID for the origin that you want
     CloudFront to route requests to when a request matches the path pattern
     either for a cache behavior or for the default cache behavior.
+
+* `trusted_key_groups` (Optional) - A list of key group IDs that CloudFront can use to validate signed URLs or signed cookies.
+See the [CloudFront User Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html) for more information about this feature.
 
 * `trusted_signers` (Optional) - List of AWS account IDs (or `self`) that you want to allow to create signed URLs for private content.
 See the [CloudFront User Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html) for more information about this feature.
@@ -538,6 +541,14 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - The current status of the distribution. `Deployed` if the
     distribution's information is fully propagated throughout the Amazon
     CloudFront system.
+
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
+
+* `trusted_key_groups` - List of nested attributes for active trusted key groups, if the distribution is set up to serve private content with signed URLs
+    * `enabled` - `true` if any of the key groups have public keys that CloudFront can use to verify the signatures of signed URLs and signed cookies
+    * `items` - List of nested attributes for each key group
+        * `key_group_id` - The ID of the key group that contains the public keys
+        * `key_pair_ids` - Set of CloudFront key pair IDs
 
 * `trusted_signers` - List of nested attributes for active trusted signers, if the distribution is set up to serve private content with signed URLs
     * `enabled` - `true` if any of the AWS accounts listed as trusted signers have active CloudFront key pairs

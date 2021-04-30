@@ -87,12 +87,104 @@ func TestAccAWSSESConfigurationSet_basic(t *testing.T) {
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", ses.ServiceName, fmt.Sprintf("configuration-set/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_options.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sending_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "reputation_metrics_enabled", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "last_fresh_start"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSESConfigurationSet_sendingEnabled(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ses_configuration_set.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSSES(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, ses.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSESConfigurationSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSESConfigurationSetSendingConfig(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESConfigurationSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sending_enabled", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "last_fresh_start"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSSESConfigurationSetSendingConfig(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESConfigurationSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sending_enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "last_fresh_start"),
+				),
+			},
+			{
+				Config: testAccAWSSESConfigurationSetSendingConfig(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESConfigurationSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sending_enabled", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "last_fresh_start"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSESConfigurationSet_reputationMetricsEnabled(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ses_configuration_set.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSSES(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, ses.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSESConfigurationSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSESConfigurationSetReputationMetricsConfig(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESConfigurationSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "reputation_metrics_enabled", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSSESConfigurationSetReputationMetricsConfig(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESConfigurationSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "reputation_metrics_enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAWSSESConfigurationSetReputationMetricsConfig(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESConfigurationSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "reputation_metrics_enabled", "false"),
+				),
 			},
 		},
 	})
@@ -345,6 +437,24 @@ resource "aws_ses_configuration_set" "test" {
   name = %[1]q
 }
 `, rName)
+}
+
+func testAccAWSSESConfigurationSetSendingConfig(rName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "aws_ses_configuration_set" "test" {
+  name            = %[1]q
+  sending_enabled = %[2]t
+}
+`, rName, enabled)
+}
+
+func testAccAWSSESConfigurationSetReputationMetricsConfig(rName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "aws_ses_configuration_set" "test" {
+  name                       = %[1]q
+  reputation_metrics_enabled = %[2]t
+}
+`, rName, enabled)
 }
 
 func testAccAWSSESConfigurationSetDeliveryOptionsConfig(rName, tlsPolicy string) string {

@@ -117,7 +117,7 @@ attributes, etc.
 * `stream_enabled` - (Optional) Indicates whether Streams are to be enabled (true) or disabled (false).
 * `stream_view_type` - (Optional) When an item in the table is modified, StreamViewType determines what information is written to the table's stream. Valid values are `KEYS_ONLY`, `NEW_IMAGE`, `OLD_IMAGE`, `NEW_AND_OLD_IMAGES`.
 * `server_side_encryption` - (Optional) Encryption at rest options. AWS DynamoDB tables are automatically encrypted at rest with an AWS owned Customer Master Key if this argument isn't specified.
-* `tags` - (Optional) A map of tags to populate on the created table.
+* `tags` - (Optional) A map of tags to populate on the created table. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `point_in_time_recovery` - (Optional) Point-in-time recovery options.
 
 ### Timeouts
@@ -209,6 +209,7 @@ In addition to all arguments above, the following attributes are exported:
   a unique identifier for the stream on its own. However, the combination of AWS customer ID,
   table name and this field is guaranteed to be unique.
   It can be used for creating CloudWatch Alarms. Only available when `stream_enabled = true`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -149,7 +149,7 @@ The following arguments are supported:
 * `recrawl_policy` (Optional)  A policy that specifies whether to crawl the entire dataset again, or to crawl only folders that were added since the last crawler run.. See [Recrawl Policy](#recrawl-policy) below.
 * `security_configuration` (Optional) The name of Security Configuration to be used by the crawler
 * `table_prefix` (Optional) The table prefix used for catalog tables that are created.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Dynamodb Target
 
@@ -204,6 +204,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Crawler name
 * `arn` - The ARN of the crawler
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

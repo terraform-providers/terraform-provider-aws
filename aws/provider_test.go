@@ -1067,8 +1067,9 @@ func testAccErrorCheckSkipMessagesContaining(t *testing.T, messages ...string) r
 		}
 
 		for _, message := range messages {
-			if strings.Contains(err.Error(), message) {
-				t.Skipf("skipping test for %s/%s: %s", testAccGetPartition(), testAccGetRegion(), err.Error())
+			errorMessage := err.Error()
+			if strings.Contains(errorMessage, message) {
+				t.Skipf("skipping test for %s/%s: %s", testAccGetPartition(), testAccGetRegion(), errorMessage)
 			}
 		}
 

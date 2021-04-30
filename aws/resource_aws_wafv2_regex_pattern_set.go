@@ -79,13 +79,18 @@ func resourceAwsWafv2RegexPatternSet() *schema.Resource {
 					wafv2.ScopeRegional,
 				}, false),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWafv2RegexPatternSetCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	params := &wafv2.CreateRegexPatternSetInput{
 		Name:                  aws.String(d.Get("name").(string)),
 		Scope:                 aws.String(d.Get("scope").(string)),
@@ -100,8 +105,8 @@ func resourceAwsWafv2RegexPatternSetCreate(d *schema.ResourceData, meta interfac
 		params.RegularExpressionList = expandWafv2RegexPatternSet(v.(*schema.Set).List())
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		params.Tags = keyvaluetags.New(v).IgnoreAws().Wafv2Tags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().Wafv2Tags()
 	}
 
 	resp, err := conn.CreateRegexPatternSet(params)
@@ -121,6 +126,7 @@ func resourceAwsWafv2RegexPatternSetCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 	params := &wafv2.GetRegexPatternSetInput{
 		Id:    aws.String(d.Id()),
@@ -156,8 +162,15 @@ func resourceAwsWafv2RegexPatternSetRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error listing tags for WAFv2 RegexPatternSet (%s): %s", aws.StringValue(resp.RegexPatternSet.ARN), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -190,8 +203,8 @@ func resourceAwsWafv2RegexPatternSetUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error updating WAFv2 RegexPatternSet: %s", err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Wafv2UpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("Error updating tags: %s", err)
 		}

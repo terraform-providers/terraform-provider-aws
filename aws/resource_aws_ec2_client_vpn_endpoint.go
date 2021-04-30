@@ -24,6 +24,8 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"description": {
 				Type:     schema.TypeString,
@@ -125,7 +127,8 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -136,13 +139,15 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 
 func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateClientVpnEndpointInput{
 		ClientCidrBlock:      aws.String(d.Get("client_cidr_block").(string)),
 		ServerCertificateArn: aws.String(d.Get("server_certificate_arn").(string)),
 		TransportProtocol:    aws.String(d.Get("transport_protocol").(string)),
 		SplitTunnel:          aws.Bool(d.Get("split_tunnel").(bool)),
-		TagSpecifications:    ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeClientVpnEndpoint),
+		TagSpecifications:    ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeClientVpnEndpoint),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -198,6 +203,7 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	result, err := conn.DescribeClientVpnEndpoints(&ec2.DescribeClientVpnEndpointsInput{
@@ -248,9 +254,15 @@ func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting connection_log_options: %w", err)
 	}
 
-	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(result.ClientVpnEndpoints[0].Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
-	if err != nil {
+	tags := keyvaluetags.Ec2KeyValueTags(result.ClientVpnEndpoints[0].Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -337,8 +349,8 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error modifying Client VPN endpoint: %w", err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Client VPN Endpoint (%s) tags: %w", d.Id(), err)
 		}

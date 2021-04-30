@@ -38,7 +38,7 @@ The following arguments are supported:
 * `on_demand_options` - (Optional) Nested argument containing On-Demand configurations. Defined below.
 * `replace_unhealthy_instances` - (Optional) Whether EC2 Fleet should replace unhealthy instances. Defaults to `false`.
 * `spot_options` - (Optional) Nested argument containing Spot configurations. Defined below.
-* `tags` - (Optional) Map of Fleet tags. To tag instances at launch, specify the tags in the Launch Template.
+* `tags` - (Optional) Map of Fleet tags. To tag instances at launch, specify the tags in the Launch Template. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `terminate_instances` - (Optional) Whether to terminate instances for an EC2 Fleet if it is deleted successfully. Defaults to `false`.
 * `terminate_instances_with_expiration` - (Optional) Whether running instances should be terminated when the EC2 Fleet expires. Defaults to `false`.
 * `type` - (Optional) The type of request. Indicates whether the EC2 Fleet only requests the target capacity, or also attempts to maintain it. Valid values: `maintain`, `request`. Defaults to `maintain`.
@@ -121,6 +121,7 @@ resource "aws_ec2_fleet" "example" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Fleet identifier
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

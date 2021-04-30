@@ -16,11 +16,10 @@ func TestAccAWSDefaultSecurityGroup_Vpc_basic(t *testing.T) {
 	vpcResourceName := "aws_vpc.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDefaultSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDefaultSecurityGroupConfig_Vpc,
@@ -70,11 +69,10 @@ func TestAccAWSDefaultSecurityGroup_Vpc_empty(t *testing.T) {
 	resourceName := "aws_default_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDefaultSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDefaultSecurityGroupConfig_Vpc_empty,
