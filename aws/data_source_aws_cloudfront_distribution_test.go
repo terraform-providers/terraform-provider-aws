@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/cloudfront"
@@ -12,13 +11,15 @@ import (
 func TestAccAWSDataSourceCloudFrontDistribution_basic(t *testing.T) {
 	dataSourceName := "data.aws_cloudfront_distribution.test"
 	resourceName := "aws_cloudfront_distribution.s3_distribution"
+	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
+		ErrorCheck: testAccErrorCheck(t, cloudfront.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCloudFrontDistributionData,
+				Config: testAccAWSCloudFrontDistributionDataConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "domain_name", resourceName, "domain_name"),
@@ -33,10 +34,12 @@ func TestAccAWSDataSourceCloudFrontDistribution_basic(t *testing.T) {
 	})
 }
 
-var testAccAWSCloudFrontDistributionData = fmt.Sprintf(`
-%s
-
+func testAccAWSCloudFrontDistributionDataConfig(rInt int) string {
+	return composeConfig(
+		testAccAWSCloudFrontDistributionS3ConfigWithTags(rInt),
+		`
 data "aws_cloudfront_distribution" "test" {
   id = aws_cloudfront_distribution.s3_distribution.id
 }
-`, fmt.Sprintf(testAccAWSCloudFrontDistributionS3ConfigWithTags, acctest.RandInt(), originBucket, logBucket, testAccAWSCloudFrontDistributionRetainConfig()))
+`)
+}

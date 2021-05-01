@@ -72,25 +72,29 @@ func dataSourceAwsEcsContainerDefinitionRead(d *schema.ResourceData, meta interf
 	desc, err := conn.DescribeTaskDefinition(params)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading ECS Task Definition: %w", err)
 	}
 
-	taskDefinition := *desc.TaskDefinition
+	if desc == nil || desc.TaskDefinition == nil {
+		return fmt.Errorf("error reading ECS Task Definition: empty response")
+	}
+
+	taskDefinition := desc.TaskDefinition
 	for _, def := range taskDefinition.ContainerDefinitions {
 		if aws.StringValue(def.Name) != d.Get("container_name").(string) {
 			continue
 		}
 
 		d.SetId(fmt.Sprintf("%s/%s", aws.StringValue(taskDefinition.TaskDefinitionArn), d.Get("container_name").(string)))
-		d.Set("image", aws.StringValue(def.Image))
+		d.Set("image", def.Image)
 		image := aws.StringValue(def.Image)
 		if strings.Contains(image, ":") {
 			d.Set("image_digest", strings.Split(image, ":")[1])
 		}
-		d.Set("cpu", aws.Int64Value(def.Cpu))
-		d.Set("memory", aws.Int64Value(def.Memory))
-		d.Set("memory_reservation", aws.Int64Value(def.MemoryReservation))
-		d.Set("disable_networking", aws.BoolValue(def.DisableNetworking))
+		d.Set("cpu", def.Cpu)
+		d.Set("memory", def.Memory)
+		d.Set("memory_reservation", def.MemoryReservation)
+		d.Set("disable_networking", def.DisableNetworking)
 		d.Set("docker_labels", aws.StringValueMap(def.DockerLabels))
 
 		var environment = map[string]string{}

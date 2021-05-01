@@ -12,7 +12,7 @@ Provides a CodePipeline Webhook.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_codepipeline" "bar" {
   name     = "tf-test-pipeline"
   role_arn = aws_iam_role.bar.arn
@@ -115,7 +115,7 @@ The following arguments are supported:
 * `filter` (Required) One or more `filter` blocks. Filter blocks are documented below.
 * `target_action` - (Required) The name of the action in a pipeline you want to connect to the webhook. The action must be from the source (first) stage of the pipeline.
 * `target_pipeline` - (Required) The name of the pipeline.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 An `authentication_configuration` block supports the following arguments:
 
@@ -132,6 +132,7 @@ A `filter` block supports the following arguments:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The CodePipeline webhook's ARN.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `url` - The CodePipeline webhook's URL. POST events to this endpoint to trigger the target.
 
 ## Import

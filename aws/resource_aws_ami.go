@@ -46,22 +46,16 @@ func resourceAwsAmi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"image_location": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
 			"architecture": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.ArchitectureValuesX8664,
+				ValidateFunc: validation.StringInSlice(ec2.ArchitectureValues_Values(), false),
+			},
+			"arn": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  ec2.ArchitectureTypeX8664,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.ArchitectureTypeX8664,
-					ec2.ArchitectureValuesI386,
-					ec2.ArchitectureValuesArm64,
-				}, false),
+				Computed: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -85,45 +79,38 @@ func resourceAwsAmi() *schema.Resource {
 							Default:  true,
 							ForceNew: true,
 						},
-
 						"device_name": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
-
 						"encrypted": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							ForceNew: true,
 						},
-
 						"iops": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							ForceNew: true,
 						},
-
 						"snapshot_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
-
 						"throughput": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
 						},
-
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
 						},
-
 						"volume_type": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -157,7 +144,6 @@ func resourceAwsAmi() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-
 						"virtual_name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -171,6 +157,24 @@ func resourceAwsAmi() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%s-", m["virtual_name"].(string)))
 					return hashcode.String(buf.String())
 				},
+			},
+			"hypervisor": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_location": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"image_owner_alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_type": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"kernel_id": {
 				Type:     schema.TypeString,
@@ -189,6 +193,22 @@ func resourceAwsAmi() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"ramdisk_id": {
 				Type:     schema.TypeString,
@@ -210,37 +230,39 @@ func resourceAwsAmi() *schema.Resource {
 				ForceNew: true,
 				Default:  "simple",
 			},
-			"tags": tagsSchema(),
-			"virtualization_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  ec2.VirtualizationTypeParavirtual,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.VirtualizationTypeParavirtual,
-					ec2.VirtualizationTypeHvm,
-				}, false),
-			},
-			"arn": {
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
+			"usage_operation": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"virtualization_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.VirtualizationTypeParavirtual,
+				ValidateFunc: validation.StringInSlice(ec2.VirtualizationType_Values(), false),
+			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAmiCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.RegisterImageInput{
-		Name:               aws.String(d.Get("name").(string)),
-		Description:        aws.String(d.Get("description").(string)),
 		Architecture:       aws.String(d.Get("architecture").(string)),
+		Description:        aws.String(d.Get("description").(string)),
+		EnaSupport:         aws.Bool(d.Get("ena_support").(bool)),
 		ImageLocation:      aws.String(d.Get("image_location").(string)),
+		Name:               aws.String(d.Get("name").(string)),
 		RootDeviceName:     aws.String(d.Get("root_device_name").(string)),
 		SriovNetSupport:    aws.String(d.Get("sriov_net_support").(string)),
 		VirtualizationType: aws.String(d.Get("virtualization_type").(string)),
-		EnaSupport:         aws.Bool(d.Get("ena_support").(bool)),
 	}
 
 	if kernelId := d.Get("kernel_id").(string); kernelId != "" {
@@ -287,11 +309,11 @@ func resourceAwsAmiCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	id := *res.ImageId
+	id := aws.StringValue(res.ImageId)
 	d.SetId(id)
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, id, v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(client, id, tags); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
@@ -306,6 +328,7 @@ func resourceAwsAmiCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	id := d.Id()
@@ -339,14 +362,18 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Unable to find AMI after retries: %s", err)
 	}
 
-	if len(res.Images) != 1 {
+	if res == nil || len(res.Images) != 1 {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 AMI (%s): empty response", d.Id())
+		}
+
 		log.Printf("[WARN] AMI (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	image := res.Images[0]
-	state := *image.State
+	state := aws.StringValue(image.State)
 
 	if state == ec2.ImageStatePending {
 		// This could happen if a user manually adds an image we didn't create
@@ -358,10 +385,14 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		state = *image.State
+		state = aws.StringValue(image.State)
 	}
 
 	if state == ec2.ImageStateDeregistered {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 AMI (%s): deregistered", d.Id())
+		}
+
 		log.Printf("[WARN] AMI (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -371,23 +402,31 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("AMI has become %s", state)
 	}
 
-	d.Set("name", image.Name)
-	d.Set("description", image.Description)
-	d.Set("image_location", image.ImageLocation)
 	d.Set("architecture", image.Architecture)
+	d.Set("description", image.Description)
+	d.Set("ena_support", image.EnaSupport)
+	d.Set("hypervisor", image.Hypervisor)
+	d.Set("image_location", image.ImageLocation)
+	d.Set("image_owner_alias", image.ImageOwnerAlias)
+	d.Set("image_type", image.ImageType)
 	d.Set("kernel_id", image.KernelId)
+	d.Set("name", image.Name)
+	d.Set("owner_id", image.OwnerId)
+	d.Set("platform_details", image.PlatformDetails)
+	d.Set("platform", image.Platform)
+	d.Set("public", image.Public)
 	d.Set("ramdisk_id", image.RamdiskId)
 	d.Set("root_device_name", image.RootDeviceName)
 	d.Set("root_snapshot_id", amiRootSnapshotId(image))
 	d.Set("sriov_net_support", image.SriovNetSupport)
+	d.Set("usage_operation", image.UsageOperation)
 	d.Set("virtualization_type", image.VirtualizationType)
-	d.Set("ena_support", image.EnaSupport)
 
 	imageArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
 		Resource:  fmt.Sprintf("image/%s", d.Id()),
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 	}.String()
 
 	d.Set("arn", imageArn)
@@ -400,8 +439,15 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting ephemeral_block_device: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -410,8 +456,8 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsAmiUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(client, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating AMI (%s) tags: %s", d.Id(), err)
@@ -500,7 +546,7 @@ func AMIStateRefreshFunc(client *ec2.EC2, id string) resource.StateRefreshFunc {
 		}
 
 		// AMI is valid, so return it's state
-		return resp.Images[0], *resp.Images[0].State, nil
+		return resp.Images[0], aws.StringValue(resp.Images[0].State), nil
 	}
 }
 

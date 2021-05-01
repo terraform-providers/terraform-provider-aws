@@ -26,6 +26,10 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -121,7 +125,19 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 					return hashcode.String(buf.String())
 				},
 			},
+			"hypervisor": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"image_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_owner_alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"image_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -141,6 +157,22 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"platform_details": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"ramdisk_id": {
 				Type:     schema.TypeString,
@@ -168,16 +200,19 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
+			"usage_operation": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"virtualization_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 
 		// The remaining operations are shared with the generic aws_ami resource,
 		// since the aws_ami_copy resource only differs in how it's created.
@@ -189,12 +224,15 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 
 func resourceAwsAmiFromInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateImageInput{
-		Name:        aws.String(d.Get("name").(string)),
-		Description: aws.String(d.Get("description").(string)),
-		InstanceId:  aws.String(d.Get("source_instance_id").(string)),
-		NoReboot:    aws.Bool(d.Get("snapshot_without_reboot").(bool)),
+		Description:       aws.String(d.Get("description").(string)),
+		InstanceId:        aws.String(d.Get("source_instance_id").(string)),
+		Name:              aws.String(d.Get("name").(string)),
+		NoReboot:          aws.Bool(d.Get("snapshot_without_reboot").(bool)),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeImage),
 	}
 
 	res, err := client.CreateImage(req)
@@ -204,12 +242,6 @@ func resourceAwsAmiFromInstanceCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(aws.StringValue(res.ImageId))
 	d.Set("manage_ebs_snapshots", true)
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding tags: %s", err)
-		}
-	}
 
 	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), d.Id(), client)
 	if err != nil {

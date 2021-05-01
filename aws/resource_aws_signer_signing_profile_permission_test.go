@@ -23,6 +23,7 @@ func TestAccAWSSignerSigningProfilePermission_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +57,7 @@ func TestAccAWSSignerSigningProfilePermission_GetSigningProfile(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -97,6 +99,7 @@ func TestAccAWSSignerSigningProfilePermission_StartSigningJob_GetSP(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -130,6 +133,7 @@ func TestAccAWSSignerSigningProfilePermission_StatementPrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{

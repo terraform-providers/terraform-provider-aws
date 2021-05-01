@@ -85,6 +85,12 @@ func resourceAwsDataSyncTask() *schema.Resource {
 								datasync.GidNone,
 							}, false),
 						},
+						"log_level": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      datasync.LogLevelOff,
+							ValidateFunc: validation.StringInSlice(datasync.LogLevel_Values(), false),
+						},
 						"mtime": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -151,19 +157,24 @@ func resourceAwsDataSyncTask() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDataSyncTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &datasync.CreateTaskInput{
 		DestinationLocationArn: aws.String(d.Get("destination_location_arn").(string)),
 		Options:                expandDataSyncOptions(d.Get("options").([]interface{})),
 		SourceLocationArn:      aws.String(d.Get("source_location_arn").(string)),
-		Tags:                   keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatasyncTags(),
+		Tags:                   tags.IgnoreAws().DatasyncTags(),
 	}
 
 	if v, ok := d.GetOk("cloudwatch_log_group_arn"); ok {
@@ -192,6 +203,7 @@ func resourceAwsDataSyncTaskCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &datasync.DescribeTaskInput{
@@ -228,8 +240,15 @@ func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for DataSync Task (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -251,8 +270,8 @@ func resourceAwsDataSyncTaskUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating DataSync Task (%s) tags: %s", d.Id(), err)

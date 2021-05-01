@@ -12,7 +12,7 @@ Manages an Image Builder Infrastructure Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_imagebuilder_infrastructure_configuration" "example" {
   description                   = "example description"
   instance_profile_name         = aws_iam_instance_profile.example.name
@@ -54,7 +54,7 @@ The following arguments are optional:
 * `security_group_ids` - (Optional) Set of EC2 Security Group identifiers.
 * `sns_topic_arn` - (Optional) Amazon Resource Name (ARN) of SNS Topic.
 * `subnet_id` - (Optional) EC2 Subnet identifier. Also requires `security_group_ids` argument.
-* `tags` - (Optional) Key-value map of resource tags to assign to the configuration.
+* `tags` - (Optional) Key-value map of resource tags to assign to the configuration. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `terminate_instance_on_failure` - (Optional) Enable if the instance should be terminated when the pipeline fails. Defaults to `false`.
 
 ### logging
@@ -81,6 +81,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - Amazon Resource Name (ARN) of the configuration.
 * `date_created` - Date when the configuration was created.
 * `date_updated` - Date when the configuration was updated.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

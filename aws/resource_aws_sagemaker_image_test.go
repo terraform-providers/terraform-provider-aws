@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -64,6 +65,7 @@ func TestAccAWSSagemakerImage_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageDestroy,
 		Steps: []resource.TestStep{
@@ -93,6 +95,7 @@ func TestAccAWSSagemakerImage_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageDestroy,
 		Steps: []resource.TestStep{
@@ -133,6 +136,7 @@ func TestAccAWSSagemakerImage_displayName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageDestroy,
 		Steps: []resource.TestStep{
@@ -173,6 +177,7 @@ func TestAccAWSSagemakerImage_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageDestroy,
 		Steps: []resource.TestStep{
@@ -217,6 +222,7 @@ func TestAccAWSSagemakerImage_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerImageDestroy,
 		Steps: []resource.TestStep{
@@ -241,8 +247,13 @@ func testAccCheckAWSSagemakerImageDestroy(s *terraform.State) error {
 		}
 
 		Image, err := finder.ImageByName(conn, rs.Primary.ID)
+
+		if tfawserr.ErrCodeEquals(err, sagemaker.ErrCodeResourceNotFound) {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker Image (%s): %w", rs.Primary.ID, err)
 		}
 
 		if aws.StringValue(Image.ImageName) == rs.Primary.ID {

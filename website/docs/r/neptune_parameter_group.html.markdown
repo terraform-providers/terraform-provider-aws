@@ -12,7 +12,7 @@ Manages a Neptune Parameter Group
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_neptune_parameter_group" "example" {
   family = "neptune1"
   name   = "example"
@@ -32,7 +32,7 @@ The following arguments are supported:
 * `family` - (Required) The family of the Neptune parameter group.
 * `description` - (Optional) The description of the Neptune parameter group. Defaults to "Managed by Terraform".
 * `parameter` - (Optional) A list of Neptune parameters to apply.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Parameter blocks support the following:
 
@@ -47,6 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Neptune parameter group name.
 * `arn` - The Neptune parameter group Amazon Resource Name (ARN).
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

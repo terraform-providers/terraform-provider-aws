@@ -21,6 +21,7 @@ func testAccConfigRemediationConfiguration_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigRemediationConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -52,6 +53,7 @@ func testAccConfigRemediationConfiguration_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigRemediationConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -79,6 +81,7 @@ func testAccConfigRemediationConfiguration_recreates(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigRemediationConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -113,6 +116,7 @@ func testAccConfigRemediationConfiguration_updates(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, configservice.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigRemediationConfigurationDestroy,
 		Steps: []resource.TestStep{

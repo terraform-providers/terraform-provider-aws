@@ -14,7 +14,7 @@ Provides an AppSync GraphQL API.
 
 ### API Key Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "API_KEY"
   name                = "example"
@@ -23,7 +23,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### AWS Cognito User Pool Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AMAZON_COGNITO_USER_POOLS"
   name                = "example"
@@ -38,7 +38,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### AWS IAM Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AWS_IAM"
   name                = "example"
@@ -47,7 +47,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### With Schema
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AWS_IAM"
   name                = "example"
@@ -65,7 +65,7 @@ EOF
 
 ### OpenID Connect Authentication
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "OPENID_CONNECT"
   name                = "example"
@@ -78,7 +78,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### With Multiple Authentication Providers
 
-```hcl
+```terraform
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "API_KEY"
   name                = "example"
@@ -91,7 +91,7 @@ resource "aws_appsync_graphql_api" "example" {
 
 ### Enabling Logging
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "example"
 
@@ -137,7 +137,7 @@ The following arguments are supported:
 * `user_pool_config` - (Optional) The Amazon Cognito User Pool configuration. Defined below.
 * `schema` - (Optional) The schema definition, in GraphQL schema language format. Terraform cannot perform drift detection of this configuration.
 * `additional_authentication_provider` - (Optional) One or more additional authentication providers for the GraphqlApi. Defined below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `xray_enabled` - (Optional) Whether tracing with X-ray is enabled. Defaults to false.
 
 ### log_config
@@ -180,6 +180,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - API ID
 * `arn` - The ARN
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `uris` - Map of URIs associated with the API. e.g. `uris["GRAPHQL"] = https://ID.appsync-api.REGION.amazonaws.com/graphql`
 
 ## Import

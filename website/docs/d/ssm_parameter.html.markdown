@@ -12,7 +12,7 @@ Provides an SSM Parameter data source.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ssm_parameter" "foo" {
   name = "foo"
 }
@@ -38,5 +38,5 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The ARN of the parameter.
 * `name` - The name of the parameter.
 * `type` - The type of the parameter. Valid types are `String`, `StringList` and `SecureString`.
-* `value` - The value of the parameter.
+* `value` - The value of the parameter. This value is always marked as sensitive in the Terraform plan output, regardless of `type`. In Terraform CLI version 0.15 and later, this may require additional configuration handling for certain scenarios. For more information, see the [Terraform v0.15 Upgrade Guide](https://www.terraform.io/upgrade-guides/0-15.html#sensitive-output-values).
 * `version` - The version of the parameter.

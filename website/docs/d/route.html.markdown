@@ -10,16 +10,13 @@ description: |-
 
 `aws_route` provides details about a specific Route.
 
-This resource can prove useful when finding the resource
-associated with a CIDR. For example, finding the peering
-connection associated with a CIDR value.
+This resource can prove useful when finding the resource associated with a CIDR. For example, finding the peering connection associated with a CIDR value.
 
 ## Example Usage
 
-The following example shows how one might use a CIDR value to find a network interface id
-and use this to create a data source of that network interface.
+The following example shows how one might use a CIDR value to find a network interface id and use this to create a data source of that network interface.
 
-```hcl
+```terraform
 variable "subnet_id" {}
 
 data "aws_route_table" "selected" {
@@ -38,33 +35,27 @@ data "aws_network_interface" "interface" {
 
 ## Argument Reference
 
-The arguments of this data source act as filters for querying the available
-Route in the current region. The given filters must match exactly one
-Route whose data will be exported as attributes.
+The arguments of this data source act as filters for querying the available Route in the current region. The given filters must match exactly oneRoute whose data will be exported as attributes.
 
-* `route_table_id` - (Required) The id of the specific Route Table containing the Route entry.
+The following arguments are required:
 
-* `destination_cidr_block` - (Optional) The CIDR block of the Route belonging to the Route Table.
+* `route_table_id` - (Required) The ID of the specific Route Table containing the Route entry.
 
-* `destination_ipv6_cidr_block` - (Optional) The IPv6 CIDR block of the Route belonging to the Route Table.
+The following arguments are optional:
 
-* `egress_only_gateway_id` - (Optional) The Egress Only Gateway ID of the Route belonging to the Route Table.
-
-* `gateway_id` - (Optional) The Gateway ID of the Route belonging to the Route Table.
-
-* `instance_id` - (Optional) The Instance ID of the Route belonging to the Route Table.
-
-* `nat_gateway_id` - (Optional) The NAT Gateway ID of the Route belonging to the Route Table.
-
-* `local_gateway_id` - (Optional) The Local Gateway ID of the Route belonging to the Route Table.
-
-* `transit_gateway_id` - (Optional) The EC2 Transit Gateway ID of the Route belonging to the Route Table.
-
-* `vpc_peering_connection_id` - (Optional) The VPC Peering Connection ID of the Route belonging to the Route Table.
-
-* `network_interface_id` - (Optional) The Network Interface ID of the Route belonging to the Route Table.
+* `carrier_gateway_id` - (Optional) EC2 Carrier Gateway ID of the Route belonging to the Route Table.
+* `destination_cidr_block` - (Optional) CIDR block of the Route belonging to the Route Table.
+* `destination_ipv6_cidr_block` - (Optional) IPv6 CIDR block of the Route belonging to the Route Table.
+* `destination_prefix_list_id` - (Optional) The ID of a [managed prefix list](ec2_managed_prefix_list.html) destination of the Route belonging to the Route Table.
+* `egress_only_gateway_id` - (Optional) Egress Only Gateway ID of the Route belonging to the Route Table.
+* `gateway_id` - (Optional) Gateway ID of the Route belonging to the Route Table.
+* `instance_id` - (Optional) Instance ID of the Route belonging to the Route Table.
+* `local_gateway_id` - (Optional) Local Gateway ID of the Route belonging to the Route Table.
+* `nat_gateway_id` - (Optional) NAT Gateway ID of the Route belonging to the Route Table.
+* `network_interface_id` - (Optional) Network Interface ID of the Route belonging to the Route Table.
+* `transit_gateway_id` - (Optional) EC2 Transit Gateway ID of the Route belonging to the Route Table.
+* `vpc_peering_connection_id` - (Optional) VPC Peering Connection ID of the Route belonging to the Route Table.
 
 ## Attributes Reference
 
-All of the argument attributes are also exported as
-result attributes when there is data available. For example, the `vpc_peering_connection_id` field will be empty when the route is attached to a Network Interface.
+All of the argument attributes are also exported as result attributes when there is data available. For example, the `vpc_peering_connection_id` field will be empty when the route is attached to a Network Interface.

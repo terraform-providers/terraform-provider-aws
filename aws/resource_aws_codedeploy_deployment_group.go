@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/codedeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
@@ -60,17 +61,27 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"app_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(0, 100),
 			},
-
+			"compute_platform": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"deployment_group_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(0, 100),
+			},
+			"deployment_group_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"deployment_style": {
@@ -81,22 +92,16 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"deployment_option": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  codedeploy.DeploymentOptionWithoutTrafficControl,
-							ValidateFunc: validation.StringInSlice([]string{
-								codedeploy.DeploymentOptionWithTrafficControl,
-								codedeploy.DeploymentOptionWithoutTrafficControl,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      codedeploy.DeploymentOptionWithoutTrafficControl,
+							ValidateFunc: validation.StringInSlice(codedeploy.DeploymentOption_Values(), false),
 						},
 						"deployment_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  codedeploy.DeploymentTypeInPlace,
-							ValidateFunc: validation.StringInSlice([]string{
-								codedeploy.DeploymentTypeInPlace,
-								codedeploy.DeploymentTypeBlueGreen,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      codedeploy.DeploymentTypeInPlace,
+							ValidateFunc: validation.StringInSlice(codedeploy.DeploymentType_Values(), false),
 						},
 					},
 				},
@@ -116,12 +121,9 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action_on_timeout": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codedeploy.DeploymentReadyActionContinueDeployment,
-											codedeploy.DeploymentReadyActionStopDeployment,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(codedeploy.DeploymentReadyAction_Values(), false),
 									},
 									"wait_time_in_minutes": {
 										Type:     schema.TypeInt,
@@ -139,12 +141,9 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codedeploy.GreenFleetProvisioningActionDiscoverExisting,
-											codedeploy.GreenFleetProvisioningActionCopyAutoScalingGroup,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(codedeploy.GreenFleetProvisioningAction_Values(), false),
 									},
 								},
 							},
@@ -157,16 +156,14 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											codedeploy.InstanceActionTerminate,
-											codedeploy.InstanceActionKeepAlive,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(codedeploy.InstanceAction_Values(), false),
 									},
 									"termination_wait_time_in_minutes": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtMost(2880),
 									},
 								},
 							},
@@ -176,8 +173,9 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 			},
 
 			"service_role_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 
 			"alarm_configuration": {
@@ -258,7 +256,10 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 												"listener_arns": {
 													Type:     schema.TypeSet,
 													Required: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type:         schema.TypeString,
+														ValidateFunc: validateArn,
+													},
 												},
 											},
 										},
@@ -287,7 +288,10 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 												"listener_arns": {
 													Type:     schema.TypeSet,
 													Required: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type:         schema.TypeString,
+														ValidateFunc: validateArn,
+													},
 												},
 											},
 										},
@@ -448,19 +452,8 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 							Required: true,
 							Set:      schema.HashString,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									codedeploy.TriggerEventTypeDeploymentStart,
-									codedeploy.TriggerEventTypeDeploymentSuccess,
-									codedeploy.TriggerEventTypeDeploymentFailure,
-									codedeploy.TriggerEventTypeDeploymentStop,
-									codedeploy.TriggerEventTypeDeploymentRollback,
-									codedeploy.TriggerEventTypeDeploymentReady,
-									codedeploy.TriggerEventTypeInstanceStart,
-									codedeploy.TriggerEventTypeInstanceSuccess,
-									codedeploy.TriggerEventTypeInstanceFailure,
-									codedeploy.TriggerEventTypeInstanceReady,
-								}, false),
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringInSlice(codedeploy.TriggerEventType_Values(), false),
 							},
 						},
 
@@ -470,20 +463,26 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 						},
 
 						"trigger_target_arn": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 					},
 				},
 				Set: resourceAwsCodeDeployTriggerConfigHash,
 			},
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codedeployconn
-
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	// required fields
 	applicationName := d.Get("app_name").(string)
 	deploymentGroupName := d.Get("deployment_group_name").(string)
@@ -493,6 +492,7 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 		ApplicationName:     aws.String(applicationName),
 		DeploymentGroupName: aws.String(deploymentGroupName),
 		ServiceRoleArn:      aws.String(serviceRoleArn),
+		Tags:                tags.IgnoreAws().CodedeployTags(),
 	}
 
 	if attr, ok := d.GetOk("deployment_style"); ok {
@@ -571,7 +571,7 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 		resp, err = conn.CreateDeploymentGroup(&input)
 	}
 	if err != nil {
-		return fmt.Errorf("Error creating CodeDeploy deployment group: %s", err)
+		return fmt.Errorf("Error creating CodeDeploy deployment group: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.DeploymentGroupId))
@@ -581,75 +581,110 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 
 func resourceAwsCodeDeployDeploymentGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codedeployconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading CodeDeploy DeploymentGroup %s", d.Id())
 
+	deploymentGroupName := d.Get("deployment_group_name").(string)
 	resp, err := conn.GetDeploymentGroup(&codedeploy.GetDeploymentGroupInput{
 		ApplicationName:     aws.String(d.Get("app_name").(string)),
-		DeploymentGroupName: aws.String(d.Get("deployment_group_name").(string)),
+		DeploymentGroupName: aws.String(deploymentGroupName),
 	})
 
 	if err != nil {
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "DeploymentGroupDoesNotExistException" {
-			log.Printf("[INFO] CodeDeployment DeploymentGroup %s not found", d.Get("deployment_group_name").(string))
+		if isAWSErr(err, codedeploy.ErrCodeDeploymentGroupDoesNotExistException, "") ||
+			isAWSErr(err, codedeploy.ErrCodeApplicationDoesNotExistException, "") {
+			log.Printf("[INFO] CodeDeployment DeploymentGroup %s not found", deploymentGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return err
+		return fmt.Errorf("Error reading CodeDeploy deployment group (%s): %w", d.Id(), err)
 	}
 
-	d.Set("app_name", resp.DeploymentGroupInfo.ApplicationName)
-	d.Set("deployment_config_name", resp.DeploymentGroupInfo.DeploymentConfigName)
-	d.Set("deployment_group_name", resp.DeploymentGroupInfo.DeploymentGroupName)
-	d.Set("service_role_arn", resp.DeploymentGroupInfo.ServiceRoleArn)
+	group := resp.DeploymentGroupInfo
+	appName := aws.StringValue(group.ApplicationName)
+	groupName := aws.StringValue(group.DeploymentGroupName)
+	groupArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "codedeploy",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("deploymentgroup:%s/%s", appName, groupName),
+	}.String()
 
-	autoScalingGroups := make([]string, len(resp.DeploymentGroupInfo.AutoScalingGroups))
-	for i, autoScalingGroup := range resp.DeploymentGroupInfo.AutoScalingGroups {
+	d.Set("arn", groupArn)
+	d.Set("app_name", appName)
+	d.Set("deployment_config_name", group.DeploymentConfigName)
+	d.Set("deployment_group_name", group.DeploymentGroupName)
+	d.Set("deployment_group_id", group.DeploymentGroupId)
+	d.Set("compute_platform", group.ComputePlatform)
+	d.Set("service_role_arn", group.ServiceRoleArn)
+
+	autoScalingGroups := make([]string, len(group.AutoScalingGroups))
+	for i, autoScalingGroup := range group.AutoScalingGroups {
 		autoScalingGroups[i] = aws.StringValue(autoScalingGroup.Name)
 	}
 	if err := d.Set("autoscaling_groups", autoScalingGroups); err != nil {
-		return fmt.Errorf("error setting autoscaling_groups: %s", err)
+		return fmt.Errorf("error setting autoscaling_groups: %w", err)
 	}
 
-	if err := d.Set("deployment_style", flattenDeploymentStyle(resp.DeploymentGroupInfo.DeploymentStyle)); err != nil {
-		return err
+	if err := d.Set("deployment_style", flattenDeploymentStyle(group.DeploymentStyle)); err != nil {
+		return fmt.Errorf("error setting deployment_style: %w", err)
 	}
 
-	if err := d.Set("ec2_tag_set", ec2TagSetToMap(resp.DeploymentGroupInfo.Ec2TagSet)); err != nil {
-		return err
+	if err := d.Set("ec2_tag_set", ec2TagSetToMap(group.Ec2TagSet)); err != nil {
+		return fmt.Errorf("error setting ec2_tag_set: %w", err)
 	}
 
-	if err := d.Set("ec2_tag_filter", ec2TagFiltersToMap(resp.DeploymentGroupInfo.Ec2TagFilters)); err != nil {
-		return err
+	if err := d.Set("ec2_tag_filter", ec2TagFiltersToMap(group.Ec2TagFilters)); err != nil {
+		return fmt.Errorf("error setting ec2_tag_filter: %w", err)
 	}
 
-	if err := d.Set("ecs_service", flattenCodeDeployEcsServices(resp.DeploymentGroupInfo.EcsServices)); err != nil {
-		return fmt.Errorf("error setting ecs_service: %s", err)
+	if err := d.Set("ecs_service", flattenCodeDeployEcsServices(group.EcsServices)); err != nil {
+		return fmt.Errorf("error setting ecs_service: %w", err)
 	}
 
-	if err := d.Set("on_premises_instance_tag_filter", onPremisesTagFiltersToMap(resp.DeploymentGroupInfo.OnPremisesInstanceTagFilters)); err != nil {
-		return err
+	if err := d.Set("on_premises_instance_tag_filter", onPremisesTagFiltersToMap(group.OnPremisesInstanceTagFilters)); err != nil {
+		return fmt.Errorf("error setting on_premises_instance_tag_filter: %w", err)
 	}
 
-	if err := d.Set("trigger_configuration", triggerConfigsToMap(resp.DeploymentGroupInfo.TriggerConfigurations)); err != nil {
-		return err
+	if err := d.Set("trigger_configuration", triggerConfigsToMap(group.TriggerConfigurations)); err != nil {
+		return fmt.Errorf("error setting trigger_configuration: %w", err)
 	}
 
-	if err := d.Set("auto_rollback_configuration", autoRollbackConfigToMap(resp.DeploymentGroupInfo.AutoRollbackConfiguration)); err != nil {
-		return err
+	if err := d.Set("auto_rollback_configuration", autoRollbackConfigToMap(group.AutoRollbackConfiguration)); err != nil {
+		return fmt.Errorf("error setting auto_rollback_configuration: %w", err)
 	}
 
-	if err := d.Set("alarm_configuration", alarmConfigToMap(resp.DeploymentGroupInfo.AlarmConfiguration)); err != nil {
-		return err
+	if err := d.Set("alarm_configuration", alarmConfigToMap(group.AlarmConfiguration)); err != nil {
+		return fmt.Errorf("error setting alarm_configuration: %w", err)
 	}
 
-	if err := d.Set("load_balancer_info", flattenLoadBalancerInfo(resp.DeploymentGroupInfo.LoadBalancerInfo)); err != nil {
-		return err
+	if err := d.Set("load_balancer_info", flattenLoadBalancerInfo(group.LoadBalancerInfo)); err != nil {
+		return fmt.Errorf("error setting load_balancer_info: %w", err)
 	}
 
-	if err := d.Set("blue_green_deployment_config", flattenBlueGreenDeploymentConfig(resp.DeploymentGroupInfo.BlueGreenDeploymentConfiguration)); err != nil {
-		return err
+	if err := d.Set("blue_green_deployment_config", flattenBlueGreenDeploymentConfig(group.BlueGreenDeploymentConfiguration)); err != nil {
+		return fmt.Errorf("error setting blue_green_deployment_config: %w", err)
+	}
+
+	tags, err := keyvaluetags.CodedeployListTags(conn, groupArn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for CodeDeploy Deployment Group (%s): %w", d.Id(), err)
+	}
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -658,113 +693,123 @@ func resourceAwsCodeDeployDeploymentGroupRead(d *schema.ResourceData, meta inter
 func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codedeployconn
 
-	// required fields
-	applicationName := d.Get("app_name").(string)
-	deploymentGroupName := d.Get("deployment_group_name").(string)
-	serviceRoleArn := d.Get("service_role_arn").(string)
+	if d.HasChangesExcept("tags", "tags_all") {
+		// required fields
+		applicationName := d.Get("app_name").(string)
+		deploymentGroupName := d.Get("deployment_group_name").(string)
+		serviceRoleArn := d.Get("service_role_arn").(string)
 
-	input := codedeploy.UpdateDeploymentGroupInput{
-		ApplicationName:            aws.String(applicationName),
-		CurrentDeploymentGroupName: aws.String(deploymentGroupName),
-		ServiceRoleArn:             aws.String(serviceRoleArn),
-	}
-
-	if d.HasChange("deployment_group_name") {
-		_, n := d.GetChange("deployment_group_name")
-		input.NewDeploymentGroupName = aws.String(n.(string))
-	}
-
-	if d.HasChange("deployment_style") {
-		_, n := d.GetChange("deployment_style")
-		input.DeploymentStyle = expandDeploymentStyle(n.([]interface{}))
-	}
-
-	if d.HasChange("deployment_config_name") {
-		_, n := d.GetChange("deployment_config_name")
-		input.DeploymentConfigName = aws.String(n.(string))
-	}
-
-	// include (original or new) autoscaling groups when blue_green_deployment_config changes except for ECS
-	if _, isEcs := d.GetOk("ecs_service"); d.HasChange("autoscaling_groups") || (d.HasChange("blue_green_deployment_config") && !isEcs) {
-		_, n := d.GetChange("autoscaling_groups")
-		input.AutoScalingGroups = expandStringSet(n.(*schema.Set))
-	}
-
-	// TagFilters aren't like tags. They don't append. They simply replace.
-	if d.HasChange("on_premises_instance_tag_filter") {
-		_, n := d.GetChange("on_premises_instance_tag_filter")
-		onPremFilters := buildOnPremTagFilters(n.(*schema.Set).List())
-		input.OnPremisesInstanceTagFilters = onPremFilters
-	}
-
-	if d.HasChange("ec2_tag_set") {
-		_, n := d.GetChange("ec2_tag_set")
-		ec2TagSet := buildEC2TagSet(n.(*schema.Set).List())
-		input.Ec2TagSet = ec2TagSet
-	}
-
-	if d.HasChange("ec2_tag_filter") {
-		_, n := d.GetChange("ec2_tag_filter")
-		ec2Filters := buildEC2TagFilters(n.(*schema.Set).List())
-		input.Ec2TagFilters = ec2Filters
-	}
-
-	if d.HasChange("ecs_service") {
-		input.EcsServices = expandCodeDeployEcsServices(d.Get("ecs_service").([]interface{}))
-	}
-
-	if d.HasChange("trigger_configuration") {
-		_, n := d.GetChange("trigger_configuration")
-		triggerConfigs := buildTriggerConfigs(n.(*schema.Set).List())
-		input.TriggerConfigurations = triggerConfigs
-	}
-
-	if d.HasChange("auto_rollback_configuration") {
-		_, n := d.GetChange("auto_rollback_configuration")
-		input.AutoRollbackConfiguration = buildAutoRollbackConfig(n.([]interface{}))
-	}
-
-	if d.HasChange("alarm_configuration") {
-		_, n := d.GetChange("alarm_configuration")
-		input.AlarmConfiguration = buildAlarmConfig(n.([]interface{}))
-	}
-
-	if d.HasChange("load_balancer_info") {
-		_, n := d.GetChange("load_balancer_info")
-		input.LoadBalancerInfo = expandLoadBalancerInfo(n.([]interface{}))
-	}
-
-	if d.HasChange("blue_green_deployment_config") {
-		_, n := d.GetChange("blue_green_deployment_config")
-		input.BlueGreenDeploymentConfiguration = expandBlueGreenDeploymentConfig(n.([]interface{}))
-	}
-
-	log.Printf("[DEBUG] Updating CodeDeploy DeploymentGroup %s", d.Id())
-
-	var err error
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err = conn.UpdateDeploymentGroup(&input)
-
-		if isAWSErr(err, codedeploy.ErrCodeInvalidRoleException, "") {
-			return resource.RetryableError(err)
+		input := codedeploy.UpdateDeploymentGroupInput{
+			ApplicationName:            aws.String(applicationName),
+			CurrentDeploymentGroupName: aws.String(deploymentGroupName),
+			ServiceRoleArn:             aws.String(serviceRoleArn),
 		}
 
-		if isAWSErr(err, codedeploy.ErrCodeInvalidTriggerConfigException, "Topic ARN") {
-			return resource.RetryableError(err)
+		if d.HasChange("deployment_group_name") {
+			_, n := d.GetChange("deployment_group_name")
+			input.NewDeploymentGroupName = aws.String(n.(string))
 		}
 
+		if d.HasChange("deployment_style") {
+			_, n := d.GetChange("deployment_style")
+			input.DeploymentStyle = expandDeploymentStyle(n.([]interface{}))
+		}
+
+		if d.HasChange("deployment_config_name") {
+			_, n := d.GetChange("deployment_config_name")
+			input.DeploymentConfigName = aws.String(n.(string))
+		}
+
+		// include (original or new) autoscaling groups when blue_green_deployment_config changes except for ECS
+		if _, isEcs := d.GetOk("ecs_service"); d.HasChange("autoscaling_groups") || (d.HasChange("blue_green_deployment_config") && !isEcs) {
+			_, n := d.GetChange("autoscaling_groups")
+			input.AutoScalingGroups = expandStringSet(n.(*schema.Set))
+		}
+
+		// TagFilters aren't like tags. They don't append. They simply replace.
+		if d.HasChange("on_premises_instance_tag_filter") {
+			_, n := d.GetChange("on_premises_instance_tag_filter")
+			onPremFilters := buildOnPremTagFilters(n.(*schema.Set).List())
+			input.OnPremisesInstanceTagFilters = onPremFilters
+		}
+
+		if d.HasChange("ec2_tag_set") {
+			_, n := d.GetChange("ec2_tag_set")
+			ec2TagSet := buildEC2TagSet(n.(*schema.Set).List())
+			input.Ec2TagSet = ec2TagSet
+		}
+
+		if d.HasChange("ec2_tag_filter") {
+			_, n := d.GetChange("ec2_tag_filter")
+			ec2Filters := buildEC2TagFilters(n.(*schema.Set).List())
+			input.Ec2TagFilters = ec2Filters
+		}
+
+		if d.HasChange("ecs_service") {
+			input.EcsServices = expandCodeDeployEcsServices(d.Get("ecs_service").([]interface{}))
+		}
+
+		if d.HasChange("trigger_configuration") {
+			_, n := d.GetChange("trigger_configuration")
+			triggerConfigs := buildTriggerConfigs(n.(*schema.Set).List())
+			input.TriggerConfigurations = triggerConfigs
+		}
+
+		if d.HasChange("auto_rollback_configuration") {
+			_, n := d.GetChange("auto_rollback_configuration")
+			input.AutoRollbackConfiguration = buildAutoRollbackConfig(n.([]interface{}))
+		}
+
+		if d.HasChange("alarm_configuration") {
+			_, n := d.GetChange("alarm_configuration")
+			input.AlarmConfiguration = buildAlarmConfig(n.([]interface{}))
+		}
+
+		if d.HasChange("load_balancer_info") {
+			_, n := d.GetChange("load_balancer_info")
+			input.LoadBalancerInfo = expandLoadBalancerInfo(n.([]interface{}))
+		}
+
+		if d.HasChange("blue_green_deployment_config") {
+			_, n := d.GetChange("blue_green_deployment_config")
+			input.BlueGreenDeploymentConfiguration = expandBlueGreenDeploymentConfig(n.([]interface{}))
+		}
+
+		log.Printf("[DEBUG] Updating CodeDeploy DeploymentGroup %s", d.Id())
+
+		var err error
+		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+			_, err = conn.UpdateDeploymentGroup(&input)
+
+			if isAWSErr(err, codedeploy.ErrCodeInvalidRoleException, "") {
+				return resource.RetryableError(err)
+			}
+
+			if isAWSErr(err, codedeploy.ErrCodeInvalidTriggerConfigException, "Topic ARN") {
+				return resource.RetryableError(err)
+			}
+
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+
+			return nil
+		})
+
+		if isResourceTimeoutError(err) {
+			_, err = conn.UpdateDeploymentGroup(&input)
+		}
 		if err != nil {
-			return resource.NonRetryableError(err)
+			return fmt.Errorf("Error updating CodeDeploy deployment group: %w", err)
 		}
-
-		return nil
-	})
-
-	if isResourceTimeoutError(err) {
-		_, err = conn.UpdateDeploymentGroup(&input)
 	}
-	if err != nil {
-		return fmt.Errorf("Error updating CodeDeploy deployment group: %s", err)
+
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
+
+		if err := keyvaluetags.CodedeployUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating CodeDeploy Deployment Group (%s) tags: %w", d.Get("arn").(string), err)
+		}
 	}
 
 	return resourceAwsCodeDeployDeploymentGroupRead(d, meta)
@@ -779,7 +824,14 @@ func resourceAwsCodeDeployDeploymentGroupDelete(d *schema.ResourceData, meta int
 		DeploymentGroupName: aws.String(d.Get("deployment_group_name").(string)),
 	})
 
-	return err
+	if err != nil {
+		if isAWSErr(err, codedeploy.ErrCodeDeploymentGroupDoesNotExistException, "") {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 // buildOnPremTagFilters converts raw schema lists into a list of
@@ -1107,14 +1159,14 @@ func ec2TagFiltersToMap(list []*codedeploy.EC2TagFilter) []map[string]interface{
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, tf := range list {
 		l := make(map[string]interface{})
-		if tf.Key != nil && *tf.Key != "" {
-			l["key"] = *tf.Key
+		if v := tf.Key; aws.StringValue(v) != "" {
+			l["key"] = aws.StringValue(v)
 		}
-		if tf.Value != nil && *tf.Value != "" {
-			l["value"] = *tf.Value
+		if v := tf.Value; aws.StringValue(v) != "" {
+			l["value"] = aws.StringValue(v)
 		}
-		if tf.Type != nil && *tf.Type != "" {
-			l["type"] = *tf.Type
+		if v := tf.Type; aws.StringValue(v) != "" {
+			l["type"] = aws.StringValue(v)
 		}
 		result = append(result, l)
 	}
@@ -1126,14 +1178,14 @@ func onPremisesTagFiltersToMap(list []*codedeploy.TagFilter) []map[string]string
 	result := make([]map[string]string, 0, len(list))
 	for _, tf := range list {
 		l := make(map[string]string)
-		if tf.Key != nil && *tf.Key != "" {
-			l["key"] = *tf.Key
+		if v := tf.Key; aws.StringValue(v) != "" {
+			l["key"] = aws.StringValue(v)
 		}
-		if tf.Value != nil && *tf.Value != "" {
-			l["value"] = *tf.Value
+		if v := tf.Value; aws.StringValue(v) != "" {
+			l["value"] = aws.StringValue(v)
 		}
-		if tf.Type != nil && *tf.Type != "" {
-			l["type"] = *tf.Type
+		if v := tf.Type; aws.StringValue(v) != "" {
+			l["type"] = aws.StringValue(v)
 		}
 		result = append(result, l)
 	}
@@ -1168,8 +1220,8 @@ func triggerConfigsToMap(list []*codedeploy.TriggerConfig) []map[string]interfac
 	for _, tc := range list {
 		item := make(map[string]interface{})
 		item["trigger_events"] = flattenStringSet(tc.TriggerEvents)
-		item["trigger_name"] = *tc.TriggerName
-		item["trigger_target_arn"] = *tc.TriggerTargetArn
+		item["trigger_name"] = aws.StringValue(tc.TriggerName)
+		item["trigger_target_arn"] = aws.StringValue(tc.TriggerTargetArn)
 		result = append(result, item)
 	}
 	return result
@@ -1184,7 +1236,7 @@ func autoRollbackConfigToMap(config *codedeploy.AutoRollbackConfiguration) []map
 	// otherwise empty configurations will be created
 	if config != nil && (*config.Enabled || len(config.Events) > 0) {
 		item := make(map[string]interface{})
-		item["enabled"] = *config.Enabled
+		item["enabled"] = aws.BoolValue(config.Enabled)
 		item["events"] = flattenStringSet(config.Events)
 		result = append(result, item)
 	}
@@ -1207,8 +1259,8 @@ func alarmConfigToMap(config *codedeploy.AlarmConfiguration) []map[string]interf
 
 		item := make(map[string]interface{})
 		item["alarms"] = flattenStringSet(names)
-		item["enabled"] = *config.Enabled
-		item["ignore_poll_alarm_failure"] = *config.IgnorePollAlarmFailure
+		item["enabled"] = aws.BoolValue(config.Enabled)
+		item["ignore_poll_alarm_failure"] = aws.BoolValue(config.IgnorePollAlarmFailure)
 
 		result = append(result, item)
 	}
@@ -1311,11 +1363,11 @@ func flattenDeploymentStyle(style *codedeploy.DeploymentStyle) []map[string]inte
 	}
 
 	item := make(map[string]interface{})
-	if style.DeploymentOption != nil {
-		item["deployment_option"] = *style.DeploymentOption
+	if v := style.DeploymentOption; v != nil {
+		item["deployment_option"] = aws.StringValue(v)
 	}
-	if style.DeploymentType != nil {
-		item["deployment_type"] = *style.DeploymentType
+	if v := style.DeploymentType; v != nil {
+		item["deployment_type"] = aws.StringValue(v)
 	}
 
 	result := make([]map[string]interface{}, 0, 1)
@@ -1351,11 +1403,11 @@ func flattenBlueGreenDeploymentConfig(config *codedeploy.BlueGreenDeploymentConf
 		a := make([]map[string]interface{}, 0)
 		deploymentReadyOption := make(map[string]interface{})
 
-		if config.DeploymentReadyOption.ActionOnTimeout != nil {
-			deploymentReadyOption["action_on_timeout"] = *config.DeploymentReadyOption.ActionOnTimeout
+		if v := config.DeploymentReadyOption.ActionOnTimeout; v != nil {
+			deploymentReadyOption["action_on_timeout"] = aws.StringValue(v)
 		}
-		if config.DeploymentReadyOption.WaitTimeInMinutes != nil {
-			deploymentReadyOption["wait_time_in_minutes"] = *config.DeploymentReadyOption.WaitTimeInMinutes
+		if v := config.DeploymentReadyOption.WaitTimeInMinutes; v != nil {
+			deploymentReadyOption["wait_time_in_minutes"] = aws.Int64Value(v)
 		}
 
 		m["deployment_ready_option"] = append(a, deploymentReadyOption)
@@ -1365,8 +1417,8 @@ func flattenBlueGreenDeploymentConfig(config *codedeploy.BlueGreenDeploymentConf
 		b := make([]map[string]interface{}, 0)
 		greenFleetProvisioningOption := make(map[string]interface{})
 
-		if config.GreenFleetProvisioningOption.Action != nil {
-			greenFleetProvisioningOption["action"] = *config.GreenFleetProvisioningOption.Action
+		if v := config.GreenFleetProvisioningOption.Action; v != nil {
+			greenFleetProvisioningOption["action"] = aws.StringValue(v)
 		}
 
 		m["green_fleet_provisioning_option"] = append(b, greenFleetProvisioningOption)
@@ -1376,11 +1428,11 @@ func flattenBlueGreenDeploymentConfig(config *codedeploy.BlueGreenDeploymentConf
 		c := make([]map[string]interface{}, 0)
 		blueInstanceTerminationOption := make(map[string]interface{})
 
-		if config.TerminateBlueInstancesOnDeploymentSuccess.Action != nil {
-			blueInstanceTerminationOption["action"] = *config.TerminateBlueInstancesOnDeploymentSuccess.Action
+		if v := config.TerminateBlueInstancesOnDeploymentSuccess.Action; v != nil {
+			blueInstanceTerminationOption["action"] = aws.StringValue(v)
 		}
-		if config.TerminateBlueInstancesOnDeploymentSuccess.TerminationWaitTimeInMinutes != nil {
-			blueInstanceTerminationOption["termination_wait_time_in_minutes"] = *config.TerminateBlueInstancesOnDeploymentSuccess.TerminationWaitTimeInMinutes
+		if v := config.TerminateBlueInstancesOnDeploymentSuccess.TerminationWaitTimeInMinutes; v != nil {
+			blueInstanceTerminationOption["termination_wait_time_in_minutes"] = aws.Int64Value(v)
 		}
 
 		m["terminate_blue_instances_on_deployment_success"] = append(c, blueInstanceTerminationOption)

@@ -12,7 +12,7 @@ Provides an AWS Network Firewall Firewall Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_networkfirewall_firewall" "example" {
   name                = "example"
   firewall_policy_arn = aws_networkfirewall_firewall_policy.example.arn
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `subnet_mapping` - (Required) Set of configuration blocks describing the public subnets. Each subnet must belong to a different Availability Zone in the VPC. AWS Network Firewall creates a firewall endpoint in each subnet. See [Subnet Mapping](#subnet-mapping) below for details.
 
-* `tags` - (Optional) The key:value pairs to associate with the resource.
+* `tags` - (Optional) Map of resource tags to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 * `vpc_id` - (Required, Forces new resource) The unique identifier of the VPC where AWS Network Firewall should create the firewall.
 
@@ -70,6 +70,8 @@ In addition to all arguments above, the following attributes are exported:
             * `endpoint_id` - The identifier of the firewall endpoint that AWS Network Firewall has instantiated in the subnet. You use this to identify the firewall endpoint in the VPC route tables, when you redirect the VPC traffic through the endpoint.
             * `subnet_id` - The unique identifier of the subnet that you've specified to be used for a firewall endpoint.
         * `availability_zone` - The Availability Zone where the subnet is configured.
+
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 * `update_token` - A string token used when updating a firewall.
 

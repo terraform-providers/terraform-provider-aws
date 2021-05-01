@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsCognitoUserPool() *schema.Resource {
@@ -27,6 +28,33 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 
 		// https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html
 		Schema: map[string]*schema.Schema{
+			"account_recovery_setting": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"recovery_mechanism": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(cognitoidentityprovider.RecoveryOptionNameType_Values(), false),
+									},
+									"priority": {
+										Type:     schema.TypeInt,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"admin_create_user_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -65,44 +93,32 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"alias_attributes": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						cognitoidentityprovider.AliasAttributeTypeEmail,
-						cognitoidentityprovider.AliasAttributeTypePhoneNumber,
-						cognitoidentityprovider.AliasAttributeTypePreferredUsername,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(cognitoidentityprovider.AliasAttributeType_Values(), false),
 				},
 				ConflictsWith: []string{"username_attributes"},
 			},
-
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"auto_verified_attributes": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						cognitoidentityprovider.VerifiedAttributeTypePhoneNumber,
-						cognitoidentityprovider.VerifiedAttributeTypeEmail,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(cognitoidentityprovider.VerifiedAttributeType_Values(), false),
 				},
 			},
-
 			"creation_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"device_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -120,7 +136,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"email_configuration": {
 				Type:             schema.TypeList,
 				Optional:         true,
@@ -128,6 +143,20 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"configuration_set": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"email_sending_account": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      cognitoidentityprovider.EmailSendingAccountTypeCognitoDefault,
+							ValidateFunc: validation.StringInSlice(cognitoidentityprovider.EmailSendingAccountType_Values(), false),
+						},
+						"from_email_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"reply_to_email_address": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -142,23 +171,9 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateArn,
 						},
-						"from_email_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"email_sending_account": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  cognitoidentityprovider.EmailSendingAccountTypeCognitoDefault,
-							ValidateFunc: validation.StringInSlice([]string{
-								cognitoidentityprovider.EmailSendingAccountTypeCognitoDefault,
-								cognitoidentityprovider.EmailSendingAccountTypeDeveloper,
-							}, false),
-						},
 					},
 				},
 			},
-
 			"email_verification_subject": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -166,7 +181,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				ValidateFunc:  validateCognitoUserPoolEmailVerificationSubject,
 				ConflictsWith: []string{"verification_message_template.0.email_subject"},
 			},
-
 			"email_verification_message": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -174,12 +188,10 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				ValidateFunc:  validateCognitoUserPoolEmailVerificationMessage,
 				ConflictsWith: []string{"verification_message_template.0.email_message"},
 			},
-
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"lambda_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -240,29 +252,21 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"last_modified_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"mfa_configuration": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  cognitoidentityprovider.UserPoolMfaTypeOff,
-				ValidateFunc: validation.StringInSlice([]string{
-					cognitoidentityprovider.UserPoolMfaTypeOff,
-					cognitoidentityprovider.UserPoolMfaTypeOn,
-					cognitoidentityprovider.UserPoolMfaTypeOptional,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      cognitoidentityprovider.UserPoolMfaTypeOff,
+				ValidateFunc: validation.StringInSlice(cognitoidentityprovider.UserPoolMfaType_Values(), false),
 			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-
 			"password_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -299,58 +303,44 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"schema": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				MinItems: 1,
 				MaxItems: 50,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"attribute_data_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								cognitoidentityprovider.AttributeDataTypeString,
-								cognitoidentityprovider.AttributeDataTypeNumber,
-								cognitoidentityprovider.AttributeDataTypeDateTime,
-								cognitoidentityprovider.AttributeDataTypeBoolean,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitoidentityprovider.AttributeDataType_Values(), false),
 						},
 						"developer_only_attribute": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ForceNew: true,
 						},
 						"mutable": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ForceNew: true,
 						},
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validateCognitoUserPoolSchemaName,
 						},
 						"number_attribute_constraints": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"min_value": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 									"max_value": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -358,24 +348,20 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 						"required": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ForceNew: true,
 						},
 						"string_attribute_constraints": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"min_length": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 									"max_length": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -383,13 +369,11 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"sms_authentication_message": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateCognitoUserPoolSmsAuthenticationMessage,
 			},
-
 			"sms_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -409,7 +393,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"sms_verification_message": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -417,7 +400,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				ValidateFunc:  validateCognitoUserPoolSmsVerificationMessage,
 				ConflictsWith: []string{"verification_message_template.0.sms_message"},
 			},
-
 			"software_token_mfa_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -432,23 +414,18 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
-			"tags": tagsSchema(),
-
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"username_attributes": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						cognitoidentityprovider.UsernameAttributeTypeEmail,
-						cognitoidentityprovider.UsernameAttributeTypePhoneNumber,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(cognitoidentityprovider.UsernameAttributeType_Values(), false),
 				},
 				ConflictsWith: []string{"alias_attributes"},
 			},
-
 			"username_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -463,7 +440,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-
 			"user_pool_add_ons": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -471,18 +447,13 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"advanced_security_mode": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								cognitoidentityprovider.AdvancedSecurityModeTypeAudit,
-								cognitoidentityprovider.AdvancedSecurityModeTypeEnforced,
-								cognitoidentityprovider.AdvancedSecurityModeTypeOff,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitoidentityprovider.AdvancedSecurityModeType_Values(), false),
 						},
 					},
 				},
 			},
-
 			"verification_message_template": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -491,13 +462,10 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default_email_option": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  cognitoidentityprovider.DefaultEmailOptionTypeConfirmWithCode,
-							ValidateFunc: validation.StringInSlice([]string{
-								cognitoidentityprovider.DefaultEmailOptionTypeConfirmWithLink,
-								cognitoidentityprovider.DefaultEmailOptionTypeConfirmWithCode,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      cognitoidentityprovider.DefaultEmailOptionTypeConfirmWithCode,
+							ValidateFunc: validation.StringInSlice(cognitoidentityprovider.DefaultEmailOptionType_Values(), false),
 						},
 						"email_message": {
 							Type:          schema.TypeString,
@@ -535,39 +503,16 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 					},
 				},
 			},
-			"account_recovery_setting": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"recovery_mechanism": {
-							Type:     schema.TypeSet,
-							Required: true,
-							MinItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice(cognitoidentityprovider.RecoveryOptionNameType_Values(), false),
-									},
-									"priority": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoidpconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &cognitoidentityprovider.CreateUserPoolInput{
 		PoolName: aws.String(d.Get("name").(string)),
@@ -620,6 +565,10 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 
 			if v, ok := config["email_sending_account"]; ok && v.(string) != "" {
 				emailConfigurationType.EmailSendingAccount = aws.String(v.(string))
+			}
+
+			if v, ok := config["configuration_set"]; ok && v.(string) != "" {
+				emailConfigurationType.ConfigurationSet = aws.String(v.(string))
 			}
 
 			params.EmailConfiguration = emailConfigurationType
@@ -729,15 +678,15 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 		params.SmsVerificationMessage = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.UserPoolTags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CognitoidentityproviderTags()
+	if len(tags) > 0 {
+		params.UserPoolTags = tags.IgnoreAws().CognitoidentityproviderTags()
 	}
 	log.Printf("[DEBUG] Creating Cognito User Pool: %s", params)
 
 	// IAM roles & policies can take some time to propagate and be attached
 	// to the User Pool
 	var resp *cognitoidentityprovider.CreateUserPoolOutput
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		resp, err = conn.CreateUserPool(params)
 		if isAWSErr(err, cognitoidentityprovider.ErrCodeInvalidSmsRoleTrustRelationshipException, "Role does not have a trust relationship allowing Cognito to assume the role") {
@@ -780,7 +729,7 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		// IAM Roles and Policies can take some time to propagate
-		err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 			_, err := conn.SetUserPoolMfaConfig(input)
 
 			if isAWSErr(err, cognitoidentityprovider.ErrCodeInvalidSmsRoleTrustRelationshipException, "Role does not have a trust relationship allowing Cognito to assume the role") {
@@ -812,6 +761,7 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoidpconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &cognitoidentityprovider.DescribeUserPoolInput{
@@ -908,8 +858,15 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("creation_date", resp.UserPool.CreationDate.Format(time.RFC3339))
 	d.Set("last_modified_date", resp.UserPool.LastModifiedDate.Format(time.RFC3339))
 	d.Set("name", resp.UserPool.Name)
-	if err := d.Set("tags", keyvaluetags.CognitoidentityKeyValueTags(resp.UserPool.UserPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.CognitoidentityKeyValueTags(resp.UserPool.UserPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	input := &cognitoidentityprovider.GetUserPoolMfaConfigInput{
@@ -939,6 +896,8 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoidpconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Multi-Factor Authentication updates
 	if d.HasChanges(
@@ -968,7 +927,7 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		// IAM Roles and Policies can take some time to propagate
-		err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 			_, err := conn.SetUserPoolMfaConfig(input)
 
 			if isAWSErr(err, cognitoidentityprovider.ErrCodeInvalidSmsRoleTrustRelationshipException, "Role does not have a trust relationship allowing Cognito to assume the role") {
@@ -1012,6 +971,7 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 		"sms_configuration",
 		"sms_verification_message",
 		"tags",
+		"tags_all",
 		"user_pool_add_ons",
 		"verification_message_template",
 		"account_recovery_setting",
@@ -1074,6 +1034,10 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 
 				if v, ok := config["from_email_address"]; ok && v.(string) != "" {
 					emailConfigurationType.From = aws.String(v.(string))
+				}
+
+				if v, ok := config["configuration_set"]; ok && v.(string) != "" {
+					emailConfigurationType.ConfigurationSet = aws.String(v.(string))
 				}
 
 				params.EmailConfiguration = emailConfigurationType
@@ -1157,15 +1121,15 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 			params.SmsVerificationMessage = aws.String(v.(string))
 		}
 
-		if v, ok := d.GetOk("tags"); ok {
-			params.UserPoolTags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CognitoidentityproviderTags()
+		if len(tags) > 0 {
+			params.UserPoolTags = tags.IgnoreAws().CognitoidentityproviderTags()
 		}
 
 		log.Printf("[DEBUG] Updating Cognito User Pool: %s", params)
 
 		// IAM roles & policies can take some time to propagate and be attached
 		// to the User Pool.
-		err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 			var err error
 			_, err = conn.UpdateUserPool(params)
 			if isAWSErr(err, cognitoidentityprovider.ErrCodeInvalidSmsRoleTrustRelationshipException, "Role does not have a trust relationship allowing Cognito to assume the role") {
@@ -1190,7 +1154,23 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 			_, err = conn.UpdateUserPool(params)
 		}
 		if err != nil {
-			return fmt.Errorf("Error updating Cognito User pool: %s", err)
+			return fmt.Errorf("error updating Cognito User pool (%s): %w", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("schema") {
+		oldSchema, newSchema := d.GetChange("schema")
+		if oldSchema.(*schema.Set).Difference(newSchema.(*schema.Set)).Len() == 0 {
+			params := &cognitoidentityprovider.AddCustomAttributesInput{
+				UserPoolId:       aws.String(d.Id()),
+				CustomAttributes: expandCognitoUserPoolSchema(newSchema.(*schema.Set).Difference(oldSchema.(*schema.Set)).List()),
+			}
+			_, err := conn.AddCustomAttributes(params)
+			if err != nil {
+				return fmt.Errorf("error updating Cognito User Pool (%s): unable to add custom attributes from schema: %w", d.Id(), err)
+			}
+		} else {
+			return fmt.Errorf("error updating Cognito User Pool (%s): cannot modify or remove schema items", d.Id())
 		}
 	}
 
@@ -1209,7 +1189,7 @@ func resourceAwsCognitoUserPoolDelete(d *schema.ResourceData, meta interface{}) 
 	_, err := conn.DeleteUserPool(params)
 
 	if err != nil {
-		return fmt.Errorf("Error deleting user pool: %s", err)
+		return fmt.Errorf("error deleting Cognito user pool (%s): %w", d.Id(), err)
 	}
 
 	return nil

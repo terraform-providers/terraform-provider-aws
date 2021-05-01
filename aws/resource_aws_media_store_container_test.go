@@ -16,6 +16,7 @@ func TestAccAWSMediaStoreContainer_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaStore(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediastore.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaStoreContainerDestroy,
 		Steps: []resource.TestStep{
@@ -40,6 +41,7 @@ func TestAccAWSMediaStoreContainer_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaStore(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediastore.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaStoreContainerDestroy,
 		Steps: []resource.TestStep{

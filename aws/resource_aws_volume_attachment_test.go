@@ -20,6 +20,7 @@ func TestAccAWSVolumeAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -50,6 +51,7 @@ func TestAccAWSVolumeAttachment_skipDestroy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -108,6 +110,7 @@ func TestAccAWSVolumeAttachment_attachStopped(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -143,6 +146,7 @@ func TestAccAWSVolumeAttachment_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -192,6 +196,7 @@ func TestAccAWSVolumeAttachment_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{

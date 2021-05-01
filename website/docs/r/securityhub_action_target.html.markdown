@@ -12,7 +12,7 @@ Creates Security Hub custom action.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_action_target" "example" {

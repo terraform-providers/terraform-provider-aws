@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_batch_job_definition: Treat empty `container_properties.logConfiguration.secretOptions` array as `null` to prevent continual diffs
+```

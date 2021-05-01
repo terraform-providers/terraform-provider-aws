@@ -15,10 +15,10 @@ For more information about Device Farm Projects, see the AWS Documentation on
 
 ~> **NOTE:** AWS currently has limited regional support for Device Farm (e.g. `us-west-2`). See [AWS Device Farm endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/devicefarm.html) for information on supported regions.
 
-## Basic Example Usage
+## Example Usage
 
 
-```hcl
+```terraform
 resource "aws_devicefarm_project" "awesome_devices" {
   name = "my-device-farm"
 }

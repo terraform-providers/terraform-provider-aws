@@ -9,11 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 )
 
 const (
@@ -125,7 +127,8 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_endpoint_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -145,6 +148,8 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -155,13 +160,15 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateVpcEndpointInput{
 		VpcId:             aws.String(d.Get("vpc_id").(string)),
 		VpcEndpointType:   aws.String(d.Get("vpc_endpoint_type").(string)),
 		ServiceName:       aws.String(d.Get("service_name").(string)),
 		PrivateDnsEnabled: aws.Bool(d.Get("private_dns_enabled").(bool)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint"),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, "vpc-endpoint"),
 	}
 
 	if v, ok := d.GetOk("policy"); ok {
@@ -200,6 +207,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vpceRaw, state, err := vpcEndpointStateRefresh(conn, d.Id())()
@@ -224,9 +232,9 @@ func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
+		AccountID: aws.StringValue(vpce.OwnerId),
 		Resource:  fmt.Sprintf("vpc-endpoint/%s", d.Id()),
 	}.String()
 	d.Set("arn", arn)
@@ -293,8 +301,15 @@ func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("vpc_endpoint_type", vpceType)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -345,8 +360,8 @@ func resourceAwsVpcEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -358,20 +373,30 @@ func resourceAwsVpcEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsVpcEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf("[DEBUG] Deleting VPC Endpoint: %s", d.Id())
-	_, err := conn.DeleteVpcEndpoints(&ec2.DeleteVpcEndpointsInput{
+	input := &ec2.DeleteVpcEndpointsInput{
 		VpcEndpointIds: aws.StringSlice([]string{d.Id()}),
-	})
+	}
+
+	output, err := conn.DeleteVpcEndpoints(input)
+
+	if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointIdNotFound) {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidVpcEndpointId.NotFound", "") {
-			log.Printf("[DEBUG] VPC Endpoint %s is already gone", d.Id())
-		} else {
-			return fmt.Errorf("Error deleting VPC Endpoint: %s", err)
+		return fmt.Errorf("error deleting EC2 VPC Endpoint (%s): %w", d.Id(), err)
+	}
+
+	if output != nil && len(output.Unsuccessful) > 0 {
+		err := tfec2.UnsuccessfulItemsError(output.Unsuccessful)
+
+		if err != nil {
+			return fmt.Errorf("error deleting EC2 VPC Endpoint (%s): %w", d.Id(), err)
 		}
 	}
 
 	if err := vpcEndpointWaitUntilDeleted(conn, d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return fmt.Errorf("error waiting for VPC Endpoint (%s) to delete: %s", d.Id(), err)
+		return fmt.Errorf("error waiting for EC2 VPC Endpoint (%s) to delete: %w", d.Id(), err)
 	}
 
 	return nil
@@ -405,7 +430,7 @@ func vpcEndpointAccept(conn *ec2.EC2, vpceId, svcName string, timeout time.Durat
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pendingAcceptance"},
+		Pending:    []string{"pendingAcceptance", "pending"},
 		Target:     []string{"available"},
 		Refresh:    vpcEndpointStateRefresh(conn, vpceId),
 		Timeout:    timeout,

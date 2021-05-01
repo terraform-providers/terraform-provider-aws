@@ -1,0 +1,19 @@
+{
+    "artifact_type": "RESOURCE",
+    "typeName": "ExampleCompany::ExampleService::ExampleResource",
+    "language": "go",
+    "runtime": "go1.x",
+    "entrypoint": "handler",
+    "testEntrypoint": "handler",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "import_path": "exampleresource",
+        "protocolVersion": "2.0.0",
+        "pluginVersion": "2.0.4"
+    }
+}

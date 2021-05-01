@@ -77,6 +77,7 @@ func TestAccAwsBackupVaultNotification_basic(t *testing.T) {
 	resourceName := "aws_backup_vault_notifications.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
+		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsBackupVaultNotificationDestroy,
 		Steps: []resource.TestStep{
@@ -103,6 +104,7 @@ func TestAccAwsBackupVaultNotification_disappears(t *testing.T) {
 	resourceName := "aws_backup_vault_notifications.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
+		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsBackupVaultNotificationDestroy,
 		Steps: []resource.TestStep{

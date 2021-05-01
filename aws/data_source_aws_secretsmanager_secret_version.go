@@ -79,7 +79,7 @@ func dataSourceAwsSecretsManagerSecretVersionRead(d *schema.ResourceData, meta i
 		if isAWSErr(err, secretsmanager.ErrCodeInvalidRequestException, "You can’t perform this operation on the secret because it was deleted") {
 			return fmt.Errorf("Secrets Manager Secret %q Version %q not found", secretID, version)
 		}
-		return fmt.Errorf("error reading Secrets Manager Secret Version: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret Version: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s|%s", secretID, version))
@@ -90,7 +90,7 @@ func dataSourceAwsSecretsManagerSecretVersionRead(d *schema.ResourceData, meta i
 	d.Set("arn", output.ARN)
 
 	if err := d.Set("version_stages", flattenStringList(output.VersionStages)); err != nil {
-		return fmt.Errorf("error setting version_stages: %s", err)
+		return fmt.Errorf("error setting version_stages: %w", err)
 	}
 
 	return nil

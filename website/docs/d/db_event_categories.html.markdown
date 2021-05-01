@@ -12,7 +12,7 @@ description: |-
 
 List the event categories of all the RDS resources.
 
-```hcl
+```terraform
 data "aws_db_event_categories" "example" {}
 
 output "example" {
@@ -22,7 +22,7 @@ output "example" {
 
 List the event categories specific to the RDS resource `db-snapshot`.
 
-```hcl
+```terraform
 data "aws_db_event_categories" "example" {
   source_type = "db-snapshot"
 }

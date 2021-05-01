@@ -176,7 +176,7 @@ func flattenWafSqlInjectionMatchTuples(ts []*waf.SqlInjectionMatchTuple) []inter
 	out := make([]interface{}, len(ts))
 	for i, t := range ts {
 		m := make(map[string]interface{})
-		m["text_transformation"] = *t.TextTransformation
+		m["text_transformation"] = aws.StringValue(t.TextTransformation)
 		m["field_to_match"] = flattenFieldToMatch(t.FieldToMatch)
 		out[i] = m
 	}

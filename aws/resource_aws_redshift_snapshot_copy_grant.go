@@ -40,13 +40,18 @@ func resourceAwsRedshiftSnapshotCopyGrant() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRedshiftSnapshotCopyGrantCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	grantName := d.Get("snapshot_copy_grant_name").(string)
 
@@ -58,7 +63,7 @@ func resourceAwsRedshiftSnapshotCopyGrantCreate(d *schema.ResourceData, meta int
 		input.KmsKeyId = aws.String(v.(string))
 	}
 
-	input.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags()
+	input.Tags = tags.IgnoreAws().RedshiftTags()
 
 	log.Printf("[DEBUG]: Adding new Redshift SnapshotCopyGrant: %s", input)
 
@@ -99,6 +104,7 @@ func resourceAwsRedshiftSnapshotCopyGrantCreate(d *schema.ResourceData, meta int
 
 func resourceAwsRedshiftSnapshotCopyGrantRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	grantName := d.Id()
@@ -127,8 +133,15 @@ func resourceAwsRedshiftSnapshotCopyGrantRead(d *schema.ResourceData, meta inter
 
 	d.Set("kms_key_id", grant.KmsKeyId)
 	d.Set("snapshot_copy_grant_name", grant.SnapshotCopyGrantName)
-	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(grant.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.RedshiftKeyValueTags(grant.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -137,8 +150,8 @@ func resourceAwsRedshiftSnapshotCopyGrantRead(d *schema.ResourceData, meta inter
 func resourceAwsRedshiftSnapshotCopyGrantUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Redshift Snapshot Copy Grant (%s) tags: %s", d.Get("arn").(string), err)

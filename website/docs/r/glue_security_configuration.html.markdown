@@ -12,7 +12,7 @@ Manages a Glue Security Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_security_configuration" "example" {
   name = "example"
 

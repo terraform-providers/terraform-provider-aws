@@ -56,17 +56,22 @@ func resourceAwsServiceCatalogPortfolio() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 func resourceAwsServiceCatalogPortfolioCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).scconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	input := servicecatalog.CreatePortfolioInput{
 		AcceptLanguage:   aws.String("en"),
 		DisplayName:      aws.String(d.Get("name").(string)),
 		IdempotencyToken: aws.String(resource.UniqueId()),
-		Tags:             keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ServicecatalogTags(),
+		Tags:             tags.IgnoreAws().ServicecatalogTags(),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -89,6 +94,7 @@ func resourceAwsServiceCatalogPortfolioCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsServiceCatalogPortfolioRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).scconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := servicecatalog.DescribePortfolioInput{
@@ -115,8 +121,15 @@ func resourceAwsServiceCatalogPortfolioRead(d *schema.ResourceData, meta interfa
 	d.Set("name", portfolioDetail.DisplayName)
 	d.Set("provider_name", portfolioDetail.ProviderName)
 
-	if err := d.Set("tags", keyvaluetags.ServicecatalogKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.ServicecatalogKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -149,8 +162,8 @@ func resourceAwsServiceCatalogPortfolioUpdate(d *schema.ResourceData, meta inter
 		input.ProviderName = aws.String(v.(string))
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		input.AddTags = keyvaluetags.New(n).IgnoreAws().ServicecatalogTags()
 		input.RemoveTags = aws.StringSlice(keyvaluetags.New(o).IgnoreAws().Keys())

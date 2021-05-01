@@ -40,3 +40,9 @@
 
 /aws/*_aws_workspaces_*.go     @Tensho @hashicorp/terraform-aws
 /website/**/workspaces*        @Tensho @hashicorp/terraform-aws
+
+/aws/*_aws_mwaa_*.go     @shuheiktgw @hashicorp/terraform-aws
+/website/**/mwaa*        @shuheiktgw @hashicorp/terraform-aws
+
+/aws/*_aws_emr_*.go     @shuheiktgw @hashicorp/terraform-aws
+/website/**/emr*        @shuheiktgw @hashicorp/terraform-aws

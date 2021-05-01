@@ -19,6 +19,7 @@ func TestAccAWSLightsailKeyPair_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
@@ -42,6 +43,7 @@ func TestAccAWSLightsailKeyPair_publicKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
@@ -67,6 +69,7 @@ func TestAccAWSLightsailKeyPair_encrypted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
@@ -91,6 +94,7 @@ func TestAccAWSLightsailKeyPair_nameprefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{

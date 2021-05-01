@@ -19,6 +19,7 @@ func TestAccAwsSecretsManagerSecretVersion_BasicString(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
 		Steps: []resource.TestStep{
@@ -50,6 +51,7 @@ func TestAccAwsSecretsManagerSecretVersion_Base64Binary(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
 		Steps: []resource.TestStep{
@@ -80,6 +82,7 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
 		Steps: []resource.TestStep{

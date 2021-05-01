@@ -9,9 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 )
 
 func resourceAwsVpcEndpointService() *schema.Resource {
@@ -117,17 +119,22 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateVpcEndpointServiceConfigurationInput{
 		AcceptanceRequired: aws.Bool(d.Get("acceptance_required").(bool)),
-		TagSpecifications:  ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
+		TagSpecifications:  ec2TagSpecificationsFromKeyValueTags(tags, "vpc-endpoint-service"),
 	}
 	if v, ok := d.GetOk("private_dns_name"); ok {
 		req.PrivateDnsName = aws.String(v.(string))
@@ -173,6 +180,7 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	svcCfgRaw, state, err := vpcEndpointServiceStateRefresh(conn, d.Id())()
@@ -193,7 +201,7 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc-endpoint-service/%s", d.Id()),
@@ -225,9 +233,16 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 	d.Set("service_name", svcCfg.ServiceName)
 	d.Set("service_type", svcCfg.ServiceType[0].ServiceType)
 	d.Set("state", svcCfg.ServiceState)
-	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(svcCfg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
-	if err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+
+	tags := keyvaluetags.Ec2KeyValueTags(svcCfg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	resp, err := conn.DescribeVpcEndpointServicePermissions(&ec2.DescribeVpcEndpointServicePermissionsInput{
@@ -326,8 +341,8 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 VPC Endpoint Service (%s) tags: %s", d.Id(), err)
@@ -340,20 +355,30 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 func resourceAwsVpcEndpointServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf("[DEBUG] Deleting VPC Endpoint Service: %s", d.Id())
-	_, err := conn.DeleteVpcEndpointServiceConfigurations(&ec2.DeleteVpcEndpointServiceConfigurationsInput{
+	input := &ec2.DeleteVpcEndpointServiceConfigurationsInput{
 		ServiceIds: aws.StringSlice([]string{d.Id()}),
-	})
+	}
+
+	output, err := conn.DeleteVpcEndpointServiceConfigurations(input)
+
+	if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointServiceIdNotFound) {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidVpcEndpointServiceId.NotFound", "") {
-			log.Printf("[DEBUG] VPC Endpoint Service %s is already gone", d.Id())
-		} else {
-			return fmt.Errorf("Error deleting VPC Endpoint Service: %s", err.Error())
+		return fmt.Errorf("error deleting EC2 VPC Endpoint Service (%s): %w", d.Id(), err)
+	}
+
+	if output != nil && len(output.Unsuccessful) > 0 {
+		err := tfec2.UnsuccessfulItemsError(output.Unsuccessful)
+
+		if err != nil {
+			return fmt.Errorf("error deleting EC2 VPC Endpoint Service (%s): %w", d.Id(), err)
 		}
 	}
 
 	if err := waitForVpcEndpointServiceDeletion(conn, d.Id()); err != nil {
-		return fmt.Errorf("Error waiting for VPC Endpoint Service %s to delete: %s", d.Id(), err.Error())
+		return fmt.Errorf("error waiting for EC2 VPC Endpoint Service (%s) to delete: %w", d.Id(), err)
 	}
 
 	return nil

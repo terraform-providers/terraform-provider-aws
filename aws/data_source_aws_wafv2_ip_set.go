@@ -60,7 +60,7 @@ func dataSourceAwsWafv2IPSetRead(d *schema.ResourceData, meta interface{}) error
 	for {
 		resp, err := conn.ListIPSets(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAFv2 IPSets: %s", err)
+			return fmt.Errorf("Error reading WAFv2 IPSets: %w", err)
 		}
 
 		if resp == nil || resp.IPSets == nil {
@@ -91,7 +91,7 @@ func dataSourceAwsWafv2IPSetRead(d *schema.ResourceData, meta interface{}) error
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error reading WAFv2 IPSet: %s", err)
+		return fmt.Errorf("Error reading WAFv2 IPSet: %w", err)
 	}
 
 	if resp == nil || resp.IPSet == nil {
@@ -99,12 +99,12 @@ func dataSourceAwsWafv2IPSetRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(aws.StringValue(resp.IPSet.Id))
-	d.Set("arn", aws.StringValue(resp.IPSet.ARN))
-	d.Set("description", aws.StringValue(resp.IPSet.Description))
-	d.Set("ip_address_version", aws.StringValue(resp.IPSet.IPAddressVersion))
+	d.Set("arn", resp.IPSet.ARN)
+	d.Set("description", resp.IPSet.Description)
+	d.Set("ip_address_version", resp.IPSet.IPAddressVersion)
 
 	if err := d.Set("addresses", flattenStringList(resp.IPSet.Addresses)); err != nil {
-		return fmt.Errorf("Error setting addresses: %s", err)
+		return fmt.Errorf("error setting addresses: %w", err)
 	}
 
 	return nil

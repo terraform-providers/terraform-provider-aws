@@ -15,6 +15,74 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
+// AvoidSelectorExprRunner returns an Analyzer runner for *ast.SelectorExpr to avoid
+func AvoidSelectorExprRunner(analyzerName string, callExprAnalyzer, selectorExprAnalyzer *analysis.Analyzer, packagePath, typeName string) func(*analysis.Pass) (interface{}, error) {
+	return func(pass *analysis.Pass) (interface{}, error) {
+		callExprs := pass.ResultOf[callExprAnalyzer].([]*ast.CallExpr)
+		selectorExprs := pass.ResultOf[selectorExprAnalyzer].([]*ast.SelectorExpr)
+		ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+
+		// CallExpr and SelectorExpr will overlap, so only perform one report/fix
+		reported := make(map[token.Pos]struct{})
+
+		for _, callExpr := range callExprs {
+			if ignorer.ShouldIgnore(analyzerName, callExpr) {
+				continue
+			}
+
+			pass.Report(analysis.Diagnostic{
+				Pos:     callExpr.Pos(),
+				End:     callExpr.End(),
+				Message: fmt.Sprintf("%s: avoid %s.%s", analyzerName, packagePath, typeName),
+				SuggestedFixes: []analysis.SuggestedFix{
+					{
+						Message: "Remove",
+						TextEdits: []analysis.TextEdit{
+							{
+								Pos:     callExpr.Pos(),
+								End:     callExpr.End(),
+								NewText: []byte{},
+							},
+						},
+					},
+				},
+			})
+
+			reported[callExpr.Pos()] = struct{}{}
+		}
+
+		for _, selectorExpr := range selectorExprs {
+			if ignorer.ShouldIgnore(analyzerName, selectorExpr) {
+				continue
+			}
+
+			if _, ok := reported[selectorExpr.Pos()]; ok {
+				continue
+			}
+
+			pass.Report(analysis.Diagnostic{
+				Pos:     selectorExpr.Pos(),
+				End:     selectorExpr.End(),
+				Message: fmt.Sprintf("%s: avoid %s.%s", analyzerName, packagePath, typeName),
+				SuggestedFixes: []analysis.SuggestedFix{
+					{
+						Message: "Remove",
+						TextEdits: []analysis.TextEdit{
+							{
+								Pos:     selectorExpr.Pos(),
+								End:     selectorExpr.End(),
+								NewText: []byte{},
+							},
+						},
+					},
+				},
+			})
+		}
+
+		return nil, nil
+	}
+}
+
 // DeprecatedReceiverMethodSelectorExprRunner returns an Analyzer runner for deprecated *ast.SelectorExpr
 func DeprecatedReceiverMethodSelectorExprRunner(analyzerName string, callExprAnalyzer, selectorExprAnalyzer *analysis.Analyzer, packagePath, typeName, methodName string) func(*analysis.Pass) (interface{}, error) {
 	return func(pass *analysis.Pass) (interface{}, error) {

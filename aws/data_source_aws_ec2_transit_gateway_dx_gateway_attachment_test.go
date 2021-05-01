@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -20,6 +21,7 @@ func TestAccAWSEc2TransitGatewayDxGatewayAttachmentDataSource_TransitGatewayIdAn
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -47,6 +49,7 @@ func TestAccAWSEc2TransitGatewayDxGatewayAttachmentDataSource_filter(t *testing.
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TransitGatewayDestroy,
 		Steps: []resource.TestStep{

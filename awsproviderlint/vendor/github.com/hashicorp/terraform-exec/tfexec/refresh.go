@@ -75,7 +75,7 @@ func (tf *Terraform) Refresh(ctx context.Context, opts ...RefreshCmdOption) erro
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) refreshCmd(ctx context.Context, opts ...RefreshCmdOption) (*exec.Cmd, error) {

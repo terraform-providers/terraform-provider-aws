@@ -19,10 +19,10 @@ func TestAccAWSCustomerGateway_basic(t *testing.T) {
 	resourceName := "aws_customer_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomerGatewayConfig(rBgpAsn),
@@ -54,10 +54,10 @@ func TestAccAWSCustomerGateway_tags(t *testing.T) {
 	resourceName := "aws_customer_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomerGatewayConfigTags1(rBgpAsn, "key1", "value1"),
@@ -96,10 +96,10 @@ func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 	resourceName := "aws_customer_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomerGatewayConfig(rBgpAsn),
@@ -120,6 +120,36 @@ func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 	})
 }
 
+func TestAccAWSCustomerGateway_deviceName(t *testing.T) {
+	var gateway ec2.CustomerGateway
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_customer_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCustomerGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomerGatewayConfigDeviceName(rBgpAsn),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCustomerGateway(resourceName, &gateway),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`customer-gateway/cgw-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "bgp_asn", strconv.Itoa(rBgpAsn)),
+					resource.TestCheckResourceAttr(resourceName, "device_name", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCustomerGateway_disappears(t *testing.T) {
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	var gateway ec2.CustomerGateway
@@ -127,6 +157,7 @@ func TestAccAWSCustomerGateway_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -148,10 +179,10 @@ func TestAccAWSCustomerGateway_4ByteAsn(t *testing.T) {
 	resourceName := "aws_customer_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomerGatewayConfig4ByteAsn(rBgpAsn),
@@ -296,6 +327,17 @@ resource "aws_customer_gateway" "identical" {
   bgp_asn    = %[1]d
   ip_address = "172.0.0.1"
   type       = "ipsec.1"
+}
+`, rBgpAsn)
+}
+
+func testAccCustomerGatewayConfigDeviceName(rBgpAsn int) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn     = %[1]d
+  ip_address  = "172.0.0.1"
+  type        = "ipsec.1"
+  device_name = "test"
 }
 `, rBgpAsn)
 }

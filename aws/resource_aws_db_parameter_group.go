@@ -70,25 +70,35 @@ func resourceAwsDbParameterGroup() *schema.Resource {
 						"value": {
 							Type:     schema.TypeString,
 							Required: true,
+							StateFunc: func(v interface{}) string {
+								return strings.ToLower(v.(string))
+							},
 						},
 						"apply_method": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "immediate",
+							StateFunc: func(v interface{}) string {
+								return strings.ToLower(v.(string))
+							},
+							Default: "immediate",
 						},
 					},
 				},
 				Set: resourceAwsDbParameterHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDbParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var groupName string
 	if v, ok := d.GetOk("name"); ok {
@@ -104,7 +114,7 @@ func resourceAwsDbParameterGroupCreate(d *schema.ResourceData, meta interface{})
 		DBParameterGroupName:   aws.String(groupName),
 		DBParameterGroupFamily: aws.String(d.Get("family").(string)),
 		Description:            aws.String(d.Get("description").(string)),
-		Tags:                   tags,
+		Tags:                   tags.IgnoreAws().RdsTags(),
 	}
 
 	log.Printf("[DEBUG] Create DB Parameter Group: %#v", createOpts)
@@ -122,6 +132,7 @@ func resourceAwsDbParameterGroupCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsDbParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := rds.DescribeDBParameterGroupsInput{
@@ -228,8 +239,15 @@ func resourceAwsDbParameterGroupRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error listing tags for RDS DB Parameter Group (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -322,8 +340,8 @@ func resourceAwsDbParameterGroupUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RdsUpdateTags(rdsconn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS DB Parameter Group (%s) tags: %s", d.Get("arn").(string), err)

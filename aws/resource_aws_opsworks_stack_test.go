@@ -27,6 +27,7 @@ func TestAccAWSOpsworksStack_noVpcBasic(t *testing.T) {
 			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
 			testAccPreCheckAWSOpsWorksStacks(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -57,6 +58,7 @@ func TestAccAWSOpsworksStack_noVpcChangeServiceRoleForceNew(t *testing.T) {
 			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
 			testAccPreCheckAWSOpsWorksStacks(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -93,6 +95,7 @@ func TestAccAWSOpsworksStack_vpc(t *testing.T) {
 			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
 			testAccPreCheckAWSOpsWorksStacks(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -141,6 +144,7 @@ func TestAccAWSOpsworksStack_noVpcCreateTags(t *testing.T) {
 			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
 			testAccPreCheckAWSOpsWorksStacks(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -184,6 +188,7 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
 			testAccPreCheckAWSOpsWorksStacks(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -214,7 +219,7 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 // Tests the addition of regional endpoints and supporting the classic link used
 // to create Stack's prior to v0.9.0.
 // See https://github.com/hashicorp/terraform/issues/12842
-func TestAccAWSOpsWorksStack_classicEndpoints(t *testing.T) {
+func TestAccAWSOpsworksStack_classicEndpoints(t *testing.T) {
 	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_stack.main"
 	rInt := acctest.RandInt()
@@ -222,6 +227,7 @@ func TestAccAWSOpsWorksStack_classicEndpoints(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccRegionPreCheck(t, "us-west-2") }, //lintignore:AWSAT003
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{

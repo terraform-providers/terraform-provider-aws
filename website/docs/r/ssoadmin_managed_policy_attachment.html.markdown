@@ -14,7 +14,7 @@ Provides an IAM managed policy for a Single Sign-On (SSO) Permission Set resourc
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ssoadmin_instances" "example" {}
 
 resource "aws_ssoadmin_permission_set" "example" {
@@ -37,7 +37,7 @@ The following arguments are supported:
 * `managed_policy_arn` - (Required, Forces new resource) The IAM managed policy Amazon Resource Name (ARN) to be attached to the Permission Set.
 * `permission_set_arn` - (Required, Forces new resource) The Amazon Resource Name (ARN) of the Permission Set.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

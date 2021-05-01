@@ -64,23 +64,28 @@ func resourceAwsDataSyncLocationNfs() *schema.Resource {
 					return false
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDataSyncLocationNfsCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &datasync.CreateLocationNfsInput{
 		OnPremConfig:   expandDataSyncOnPremConfig(d.Get("on_prem_config").([]interface{})),
 		ServerHostname: aws.String(d.Get("server_hostname").(string)),
 		Subdirectory:   aws.String(d.Get("subdirectory").(string)),
-		Tags:           keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatasyncTags(),
+		Tags:           tags.IgnoreAws().DatasyncTags(),
 	}
 
 	log.Printf("[DEBUG] Creating DataSync Location NFS: %s", input)
@@ -96,6 +101,7 @@ func resourceAwsDataSyncLocationNfsCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsDataSyncLocationNfsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &datasync.DescribeLocationNfsInput{
@@ -136,8 +142,15 @@ func resourceAwsDataSyncLocationNfsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for DataSync Location NFS (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -146,8 +159,8 @@ func resourceAwsDataSyncLocationNfsRead(d *schema.ResourceData, meta interface{}
 func resourceAwsDataSyncLocationNfsUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating DataSync Location NFS (%s) tags: %s", d.Id(), err)

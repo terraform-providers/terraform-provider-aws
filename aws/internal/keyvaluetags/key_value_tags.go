@@ -25,6 +25,11 @@ const (
 	ServerlessApplicationRepositoryTagKeyPrefix = `serverlessrepo:`
 )
 
+// DefaultConfig contains tags to default across all resources.
+type DefaultConfig struct {
+	Tags KeyValueTags
+}
+
 // IgnoreConfig contains various options for removing resource tags.
 type IgnoreConfig struct {
 	Keys        KeyValueTags
@@ -48,6 +53,36 @@ func (tags KeyValueTags) IgnoreAws() KeyValueTags {
 	}
 
 	return result
+}
+
+// MergeTags returns the result of keyvaluetags.Merge() on the given
+// DefaultConfig.Tags with KeyValueTags provided as an argument,
+// overriding the value of any tag with a matching key.
+func (dc *DefaultConfig) MergeTags(tags KeyValueTags) KeyValueTags {
+	if dc == nil || dc.Tags == nil {
+		return tags
+	}
+
+	return dc.Tags.Merge(tags)
+}
+
+// TagsEqual returns true if the given configuration's Tags
+// are equal to those passed in as an argument;
+// otherwise returns false
+func (dc *DefaultConfig) TagsEqual(tags KeyValueTags) bool {
+	if dc == nil || dc.Tags == nil {
+		return tags == nil
+	}
+
+	if tags == nil {
+		return false
+	}
+
+	if len(tags) == 0 {
+		return len(dc.Tags) == 0
+	}
+
+	return dc.Tags.ContainsAll(tags)
 }
 
 // IgnoreConfig returns any tags not removed by a given configuration.
@@ -401,6 +436,27 @@ func (tags KeyValueTags) Hash() int {
 	return hash
 }
 
+// RemoveDefaultConfig returns tags not present in a DefaultConfig object
+// in addition to tags with key/value pairs that override those in a DefaultConfig;
+// however, if all tags present in the DefaultConfig object are equivalent to those
+// in the given KeyValueTags, then the KeyValueTags are returned, effectively
+// bypassing the need to remove differing tags.
+func (tags KeyValueTags) RemoveDefaultConfig(dc *DefaultConfig) KeyValueTags {
+	if dc == nil || dc.Tags == nil {
+		return tags
+	}
+
+	result := make(KeyValueTags)
+
+	for k, v := range tags {
+		if defaultVal, ok := dc.Tags[k]; !ok || !v.Equal(defaultVal) {
+			result[k] = v
+		}
+	}
+
+	return result
+}
+
 // String returns the default string representation of the KeyValueTags.
 func (tags KeyValueTags) String() string {
 	var builder strings.Builder
@@ -435,20 +491,18 @@ func (tags KeyValueTags) UrlEncode() string {
 	return values.Encode()
 }
 
-// New creates KeyValueTags from common Terraform Provider SDK types.
-// Supports map[string]string, map[string]*string, map[string]interface{}, and []interface{}.
+// New creates KeyValueTags from common types or returns an empty KeyValueTags.
+//
+// Supports various Terraform Plugin SDK types including map[string]string,
+// map[string]*string, map[string]interface{}, and []interface{}.
 // When passed []interface{}, all elements are treated as keys and assigned nil values.
+// When passed KeyValueTags or its underlying type implementation, returns itself.
 func New(i interface{}) KeyValueTags {
 	switch value := i.(type) {
+	case KeyValueTags:
+		return make(KeyValueTags).Merge(value)
 	case map[string]*TagData:
-		kvtm := make(KeyValueTags, len(value))
-
-		for k, v := range value {
-			tagData := v
-			kvtm[k] = tagData
-		}
-
-		return kvtm
+		return make(KeyValueTags).Merge(KeyValueTags(value))
 	case map[string]string:
 		kvtm := make(KeyValueTags, len(value))
 
@@ -477,8 +531,13 @@ func New(i interface{}) KeyValueTags {
 		kvtm := make(KeyValueTags, len(value))
 
 		for k, v := range value {
-			str := v.(string)
-			kvtm[k] = &TagData{Value: &str}
+			kvtm[k] = &TagData{}
+
+			str, ok := v.(string)
+
+			if ok {
+				kvtm[k].Value = &str
+			}
 		}
 
 		return kvtm

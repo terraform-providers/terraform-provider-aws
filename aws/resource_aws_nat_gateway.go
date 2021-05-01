@@ -52,19 +52,24 @@ func resourceAwsNatGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Create the NAT Gateway
 	createOpts := &ec2.CreateNatGatewayInput{
 		AllocationId:      aws.String(d.Get("allocation_id").(string)),
 		SubnetId:          aws.String(d.Get("subnet_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeNatgateway),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeNatgateway),
 	}
 
 	log.Printf("[DEBUG] Create NAT Gateway: %s", *createOpts)
@@ -96,6 +101,7 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	// Refresh the NAT Gateway state
@@ -127,8 +133,15 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("private_ip", address.PrivateIp)
 	d.Set("public_ip", address.PublicIp)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(ng.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(ng.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -137,8 +150,8 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 NAT Gateway (%s) tags: %s", d.Id(), err)

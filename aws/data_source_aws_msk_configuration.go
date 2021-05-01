@@ -64,7 +64,7 @@ func dataSourceAwsMskConfigurationRead(d *schema.ResourceData, meta interface{})
 	})
 
 	if err != nil {
-		return fmt.Errorf("error listing MSK Configurations: %s", err)
+		return fmt.Errorf("error listing MSK Configurations: %w", err)
 	}
 
 	if configuration == nil {
@@ -84,22 +84,22 @@ func dataSourceAwsMskConfigurationRead(d *schema.ResourceData, meta interface{})
 	revisionOutput, err := conn.DescribeConfigurationRevision(revisionInput)
 
 	if err != nil {
-		return fmt.Errorf("error describing MSK Configuration (%s) Revision (%d): %s", d.Id(), aws.Int64Value(revision), err)
+		return fmt.Errorf("error describing MSK Configuration (%s) Revision (%d): %w", d.Id(), aws.Int64Value(revision), err)
 	}
 
 	if revisionOutput == nil {
 		return fmt.Errorf("error describing MSK Configuration (%s) Revision (%d): missing result", d.Id(), aws.Int64Value(revision))
 	}
 
-	d.Set("arn", aws.StringValue(configuration.Arn))
-	d.Set("description", aws.StringValue(configuration.Description))
+	d.Set("arn", configuration.Arn)
+	d.Set("description", configuration.Description)
 
 	if err := d.Set("kafka_versions", aws.StringValueSlice(configuration.KafkaVersions)); err != nil {
-		return fmt.Errorf("error setting kafka_versions: %s", err)
+		return fmt.Errorf("error setting kafka_versions: %w", err)
 	}
 
-	d.Set("latest_revision", aws.Int64Value(revision))
-	d.Set("name", aws.StringValue(configuration.Name))
+	d.Set("latest_revision", revision)
+	d.Set("name", configuration.Name)
 	d.Set("server_properties", string(revisionOutput.ServerProperties))
 
 	d.SetId(aws.StringValue(configuration.Arn))

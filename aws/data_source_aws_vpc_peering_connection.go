@@ -40,6 +40,18 @@ func dataSourceAwsVpcPeeringConnection() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"cidr_block_set": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cidr_block": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -59,6 +71,18 @@ func dataSourceAwsVpcPeeringConnection() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			},
+			"peer_cidr_block_set": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cidr_block": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"peer_region": {
 				Type:     schema.TypeString,
@@ -138,13 +162,33 @@ func dataSourceAwsVpcPeeringConnectionRead(d *schema.ResourceData, meta interfac
 	d.Set("vpc_id", pcx.RequesterVpcInfo.VpcId)
 	d.Set("owner_id", pcx.RequesterVpcInfo.OwnerId)
 	d.Set("cidr_block", pcx.RequesterVpcInfo.CidrBlock)
+	cidrBlockSet := []interface{}{}
+	for _, associationSet := range pcx.RequesterVpcInfo.CidrBlockSet {
+		association := map[string]interface{}{
+			"cidr_block": aws.StringValue(associationSet.CidrBlock),
+		}
+		cidrBlockSet = append(cidrBlockSet, association)
+	}
+	if err := d.Set("cidr_block_set", cidrBlockSet); err != nil {
+		return fmt.Errorf("error setting cidr_block_set: %w", err)
+	}
 	d.Set("region", pcx.RequesterVpcInfo.Region)
 	d.Set("peer_vpc_id", pcx.AccepterVpcInfo.VpcId)
 	d.Set("peer_owner_id", pcx.AccepterVpcInfo.OwnerId)
 	d.Set("peer_cidr_block", pcx.AccepterVpcInfo.CidrBlock)
+	peerCidrBlockSet := []interface{}{}
+	for _, associationSet := range pcx.AccepterVpcInfo.CidrBlockSet {
+		association := map[string]interface{}{
+			"cidr_block": aws.StringValue(associationSet.CidrBlock),
+		}
+		peerCidrBlockSet = append(peerCidrBlockSet, association)
+	}
+	if err := d.Set("peer_cidr_block_set", peerCidrBlockSet); err != nil {
+		return fmt.Errorf("error setting peer_cidr_block_set: %w", err)
+	}
 	d.Set("peer_region", pcx.AccepterVpcInfo.Region)
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(pcx.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	if pcx.AccepterVpcInfo.PeeringOptions != nil {

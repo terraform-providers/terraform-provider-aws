@@ -16,7 +16,7 @@ for more information.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create a new GitLab Lightsail Instance
 resource "aws_lightsail_instance" "gitlab_test" {
   name              = "custom_gitlab"
@@ -42,7 +42,7 @@ instance (see list below)
 * `key_pair_name` - (Optional) The name of your key pair. Created in the
 Lightsail console (cannot use `aws_key_pair` at this time)
 * `user_data` - (Optional) launch script to configure server with additional user data
-* `tags` - (Optional) A map of tags to assign to the resource. To create a key-only tag, use an empty string as the value.
+* `tags` - (Optional) A map of tags to assign to the resource. To create a key-only tag, use an empty string as the value. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Availability Zones
 Lightsail currently supports the following Availability Zones (e.g. `us-east-1a`):
@@ -104,6 +104,7 @@ In addition to all arguments above, the following attributes are exported:
 * `created_at` - The timestamp when the instance was created.
 * `ipv6_address` - (**Deprecated**) The first IPv6 address of the Lightsail instance. Use `ipv6_addresses` attribute instead.
 * `ipv6_addresses` - List of IPv6 addresses for the Lightsail instance.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -12,7 +12,7 @@ Manages a Direct Connect Gateway Association Proposal, typically for enabling cr
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_gateway_association_proposal" "example" {
   dx_gateway_id               = aws_dx_gateway.example.id
   dx_gateway_owner_account_id = aws_dx_gateway.example.owner_account_id
@@ -20,7 +20,7 @@ resource "aws_dx_gateway_association_proposal" "example" {
 }
 ```
 
-A full example of how to create a VPN Gateway in one AWS account, create a Direct Connect Gateway in a second AWS account, and associate the VPN Gateway with the Direct Connect Gateway via the `aws_dx_gateway_association_proposal` and `aws_dx_gateway_association` resources can be found in [the `./examples/dx-gateway-cross-account-vgw-association` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-aws/tree/master/examples/dx-gateway-cross-account-vgw-association).
+A full example of how to create a VPN Gateway in one AWS account, create a Direct Connect Gateway in a second AWS account, and associate the VPN Gateway with the Direct Connect Gateway via the `aws_dx_gateway_association_proposal` and `aws_dx_gateway_association` resources can be found in [the `./examples/dx-gateway-cross-account-vgw-association` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-aws/tree/main/examples/dx-gateway-cross-account-vgw-association).
 
 ## Argument Reference
 

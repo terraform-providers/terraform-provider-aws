@@ -26,6 +26,7 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_basic(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -72,6 +73,7 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_Tags(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -141,6 +143,7 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_TransitGatewayDefaultRoute
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
 		Steps: []resource.TestStep{

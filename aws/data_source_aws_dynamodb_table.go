@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
@@ -167,6 +168,10 @@ func dataSourceAwsDynamoDbTable() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"kms_key_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"region_name": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -216,48 +221,112 @@ func dataSourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) er
 	conn := meta.(*AWSClient).dynamodbconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
+	name := d.Get("name").(string)
+
 	result, err := conn.DescribeTable(&dynamodb.DescribeTableInput{
-		TableName: aws.String(d.Get("name").(string)),
+		TableName: aws.String(name),
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving DynamoDB table: %s", err)
+		return fmt.Errorf("error reading Dynamodb Table (%s): %w", name, err)
 	}
 
-	d.SetId(aws.StringValue(result.Table.TableName))
-
-	err = flattenAwsDynamoDbTableResource(d, result.Table)
-	if err != nil {
-		return err
+	if result == nil || result.Table == nil {
+		return fmt.Errorf("error reading Dynamodb Table (%s): not found", name)
 	}
 
-	ttlOut, err := conn.DescribeTimeToLive(&dynamodb.DescribeTimeToLiveInput{
-		TableName: aws.String(d.Id()),
-	})
-	if err != nil {
-		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %s", d.Id(), err)
-	}
-	if err := d.Set("ttl", flattenDynamoDbTtl(ttlOut)); err != nil {
-		return fmt.Errorf("error setting ttl: %s", err)
-	}
+	table := result.Table
 
-	tags, err := keyvaluetags.DynamodbListTags(conn, d.Get("arn").(string))
+	d.SetId(aws.StringValue(table.TableName))
 
-	if err != nil && !isAWSErr(err, "UnknownOperationException", "Tagging is not currently supported in DynamoDB Local.") {
-		return fmt.Errorf("error listing tags for DynamoDB Table (%s): %s", d.Get("arn").(string), err)
+	d.Set("arn", table.TableArn)
+	d.Set("name", table.TableName)
+
+	if table.BillingModeSummary != nil {
+		d.Set("billing_mode", table.BillingModeSummary.BillingMode)
+	} else {
+		d.Set("billing_mode", dynamodb.BillingModeProvisioned)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	if table.ProvisionedThroughput != nil {
+		d.Set("write_capacity", table.ProvisionedThroughput.WriteCapacityUnits)
+		d.Set("read_capacity", table.ProvisionedThroughput.ReadCapacityUnits)
+	}
+
+	if err := d.Set("attribute", flattenDynamoDbTableAttributeDefinitions(table.AttributeDefinitions)); err != nil {
+		return fmt.Errorf("error setting attribute: %w", err)
+	}
+
+	for _, attribute := range table.KeySchema {
+		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeHash {
+			d.Set("hash_key", attribute.AttributeName)
+		}
+
+		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
+			d.Set("range_key", attribute.AttributeName)
+		}
+	}
+
+	if err := d.Set("local_secondary_index", flattenDynamoDbTableLocalSecondaryIndex(table.LocalSecondaryIndexes)); err != nil {
+		return fmt.Errorf("error setting local_secondary_index: %w", err)
+	}
+
+	if err := d.Set("global_secondary_index", flattenDynamoDbTableGlobalSecondaryIndex(table.GlobalSecondaryIndexes)); err != nil {
+		return fmt.Errorf("error setting global_secondary_index: %w", err)
+	}
+
+	if table.StreamSpecification != nil {
+		d.Set("stream_view_type", table.StreamSpecification.StreamViewType)
+		d.Set("stream_enabled", table.StreamSpecification.StreamEnabled)
+	} else {
+		d.Set("stream_view_type", "")
+		d.Set("stream_enabled", false)
+	}
+
+	d.Set("stream_arn", table.LatestStreamArn)
+	d.Set("stream_label", table.LatestStreamLabel)
+
+	if err := d.Set("server_side_encryption", flattenDynamodDbTableServerSideEncryption(table.SSEDescription)); err != nil {
+		return fmt.Errorf("error setting server_side_encryption: %w", err)
+	}
+
+	if err := d.Set("replica", flattenDynamoDbReplicaDescriptions(table.Replicas)); err != nil {
+		return fmt.Errorf("error setting replica: %w", err)
 	}
 
 	pitrOut, err := conn.DescribeContinuousBackups(&dynamodb.DescribeContinuousBackupsInput{
 		TableName: aws.String(d.Id()),
 	})
-	if err != nil && !isAWSErr(err, "UnknownOperationException", "") {
-		return err
+
+	if err != nil && !tfawserr.ErrCodeEquals(err, "UnknownOperationException") {
+		return fmt.Errorf("error describing DynamoDB Table (%s) Continuous Backups: %w", d.Id(), err)
 	}
-	d.Set("point_in_time_recovery", flattenDynamoDbPitr(pitrOut))
+
+	if err := d.Set("point_in_time_recovery", flattenDynamoDbPitr(pitrOut)); err != nil {
+		return fmt.Errorf("error setting point_in_time_recovery: %w", err)
+	}
+
+	ttlOut, err := conn.DescribeTimeToLive(&dynamodb.DescribeTimeToLiveInput{
+		TableName: aws.String(d.Id()),
+	})
+
+	if err != nil {
+		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %w", d.Id(), err)
+	}
+
+	if err := d.Set("ttl", flattenDynamoDbTtl(ttlOut)); err != nil {
+		return fmt.Errorf("error setting ttl: %w", err)
+	}
+
+	tags, err := keyvaluetags.DynamodbListTags(conn, d.Get("arn").(string))
+
+	if err != nil && !tfawserr.ErrMessageContains(err, "UnknownOperationException", "Tagging is not currently supported in DynamoDB Local.") {
+		return fmt.Errorf("error listing tags for DynamoDB Table (%s): %w", d.Get("arn").(string), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
 
 	return nil
 }

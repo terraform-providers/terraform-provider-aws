@@ -32,9 +32,9 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 	conn := client.(*AWSClient).route53resolverconn
 
 	var errors error
-	err = conn.ListResolverEndpointsPages(&route53resolver.ListResolverEndpointsInput{}, func(page *route53resolver.ListResolverEndpointsOutput, isLast bool) bool {
+	err = conn.ListResolverEndpointsPages(&route53resolver.ListResolverEndpointsInput{}, func(page *route53resolver.ListResolverEndpointsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, resolverEndpoint := range page.ResolverEndpoints {
@@ -61,7 +61,7 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -82,7 +82,7 @@ func TestAccAWSRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
+		ErrorCheck:   testAccErrorCheck(t, route53resolver.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func TestAccAWSRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
+		ErrorCheck:   testAccErrorCheck(t, route53resolver.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverEndpointDestroy,
 		Steps: []resource.TestStep{

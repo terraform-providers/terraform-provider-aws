@@ -82,7 +82,8 @@ func resourceAwsRoute53ResolverEndpoint() *schema.Resource {
 				ValidateFunc: validateRoute53ResolverName,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"arn": {
 				Type:     schema.TypeString,
@@ -100,11 +101,15 @@ func resourceAwsRoute53ResolverEndpoint() *schema.Resource {
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRoute53ResolverEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &route53resolver.CreateResolverEndpointInput{
 		CreatorRequestId: aws.String(resource.PrefixedUniqueId("tf-r53-resolver-endpoint-")),
@@ -116,7 +121,7 @@ func resourceAwsRoute53ResolverEndpointCreate(d *schema.ResourceData, meta inter
 		req.Name = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		req.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Route53resolverTags()
+		req.Tags = tags.IgnoreAws().Route53resolverTags()
 	}
 
 	log.Printf("[DEBUG] Creating Route53 Resolver endpoint: %#v", req)
@@ -139,6 +144,7 @@ func resourceAwsRoute53ResolverEndpointCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	epRaw, state, err := route53ResolverEndpointRefresh(conn, d.Id())()
@@ -187,8 +193,15 @@ func resourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error listing tags for Route53 Resolver endpoint (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -260,8 +273,8 @@ func resourceAwsRoute53ResolverEndpointUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Route53resolverUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Route53 Resolver endpoint (%s) tags: %s", d.Get("arn").(string), err)
 		}

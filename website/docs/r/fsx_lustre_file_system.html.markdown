@@ -12,7 +12,7 @@ Manages a FSx Lustre File System. See the [FSx Lustre Guide](https://docs.aws.am
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_fsx_lustre_file_system" "example" {
   import_path      = "s3://${aws_s3_bucket.example.bucket}"
   storage_capacity = 1200
@@ -30,7 +30,7 @@ The following arguments are supported:
 * `import_path` - (Optional) S3 URI (with optional prefix) that you're using as the data repository for your FSx for Lustre file system. For example, `s3://example-bucket/optional-prefix/`.
 * `imported_file_chunk_size` - (Optional) For files imported from a data repository, this value determines the stripe count and maximum amount of data per file (in MiB) stored on a single physical disk. Can only be specified with `import_path` argument. Defaults to `1024`. Minimum of `1` and maximum of `512000`.
 * `security_group_ids` - (Optional) A list of IDs for the security groups that apply to the specified network interfaces created for file system access. These security groups will apply to all network interfaces.
-* `tags` - (Optional) A map of tags to assign to the file system.
+* `tags` - (Optional) A map of tags to assign to the file system. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `weekly_maintenance_start_time` - (Optional) The preferred start time (in `d:HH:MM` format) to perform weekly maintenance, in the UTC time zone.
 * `deployment_type` - (Optional) - The filesystem deployment type. One of: `SCRATCH_1`, `SCRATCH_2`, `PERSISTENT_1`.
 * `kms_key_id` - (Optional) ARN for the KMS Key to encrypt the file system at rest, applicable for `PERSISTENT_1` deployment_type. Defaults to an AWS managed KMS Key.
@@ -52,6 +52,7 @@ In addition to all arguments above, the following attributes are exported:
 * `network_interface_ids` - Set of Elastic Network Interface identifiers from which the file system is accessible. As explained in the [documentation](https://docs.aws.amazon.com/fsx/latest/LustreGuide/mounting-on-premises.html), the first network interface returned is the primary network interface.
 * `mount_name` - The value to be used when mounting the filesystem.
 * `owner_id` - AWS account identifier that created the file system.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `vpc_id` - Identifier of the Virtual Private Cloud for the file system.
 
 ## Timeouts
@@ -72,7 +73,7 @@ $ terraform import aws_fsx_lustre_file_system.example fs-543ab12b1ca672f33
 
 Certain resource arguments, like `security_group_ids`, do not have a FSx API method for reading the information after creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
-```hcl
+```terraform
 resource "aws_fsx_lustre_file_system" "example" {
   # ... other configuration ...
   security_group_ids = [aws_security_group.example.id]

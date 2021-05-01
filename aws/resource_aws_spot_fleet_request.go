@@ -545,8 +545,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				},
 				Set: schema.HashString,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -923,6 +926,8 @@ func expandSpotCapacityRebalance(l []interface{}) *ec2.SpotCapacityRebalance {
 func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{}) error {
 	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RequestSpotFleet.html
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	_, launchSpecificationOk := d.GetOk("launch_specification")
 	_, launchTemplateConfigsOk := d.GetOk("launch_template_config")
@@ -936,7 +941,7 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 		ReplaceUnhealthyInstances:        aws.Bool(d.Get("replace_unhealthy_instances").(bool)),
 		InstanceInterruptionBehavior:     aws.String(d.Get("instance_interruption_behaviour").(string)),
 		Type:                             aws.String(d.Get("fleet_type").(string)),
-		TagSpecifications:                ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeSpotFleetRequest),
+		TagSpecifications:                ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeSpotFleetRequest),
 	}
 
 	if launchSpecificationOk {
@@ -1197,6 +1202,7 @@ func resourceAwsSpotFleetRequestFulfillmentRefreshFunc(id string, conn *ec2.EC2)
 func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) error {
 	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSpotFleetRequests.html
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &ec2.DescribeSpotFleetRequestsInput{
@@ -1230,44 +1236,42 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(aws.StringValue(sfr.SpotFleetRequestId))
-	d.Set("spot_request_state", aws.StringValue(sfr.SpotFleetRequestState))
+	d.Set("spot_request_state", sfr.SpotFleetRequestState)
 
 	config := sfr.SpotFleetRequestConfig
 
 	if config.AllocationStrategy != nil {
-		d.Set("allocation_strategy", aws.StringValue(config.AllocationStrategy))
+		d.Set("allocation_strategy", config.AllocationStrategy)
 	}
 
 	if config.InstancePoolsToUseCount != nil {
-		d.Set("instance_pools_to_use_count", aws.Int64Value(config.InstancePoolsToUseCount))
+		d.Set("instance_pools_to_use_count", config.InstancePoolsToUseCount)
 	}
 
 	if config.ClientToken != nil {
-		d.Set("client_token", aws.StringValue(config.ClientToken))
+		d.Set("client_token", config.ClientToken)
 	}
 
 	if config.ExcessCapacityTerminationPolicy != nil {
-		d.Set("excess_capacity_termination_policy",
-			aws.StringValue(config.ExcessCapacityTerminationPolicy))
+		d.Set("excess_capacity_termination_policy", config.ExcessCapacityTerminationPolicy)
 	}
 
 	if config.IamFleetRole != nil {
-		d.Set("iam_fleet_role", aws.StringValue(config.IamFleetRole))
+		d.Set("iam_fleet_role", config.IamFleetRole)
 	}
 
 	d.Set("spot_maintenance_strategies", flattenSpotMaintenanceStrategies(config.SpotMaintenanceStrategies))
 
 	if config.SpotPrice != nil {
-		d.Set("spot_price", aws.StringValue(config.SpotPrice))
+		d.Set("spot_price", config.SpotPrice)
 	}
 
 	if config.TargetCapacity != nil {
-		d.Set("target_capacity", aws.Int64Value(config.TargetCapacity))
+		d.Set("target_capacity", config.TargetCapacity)
 	}
 
 	if config.TerminateInstancesWithExpiration != nil {
-		d.Set("terminate_instances_with_expiration",
-			aws.BoolValue(config.TerminateInstancesWithExpiration))
+		d.Set("terminate_instances_with_expiration", config.TerminateInstancesWithExpiration)
 	}
 
 	if config.ValidFrom != nil {
@@ -1289,8 +1293,15 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("instance_interruption_behaviour", config.InstanceInterruptionBehavior)
 	d.Set("fleet_type", config.Type)
 	d.Set("launch_specification", launchSpec)
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(sfr.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(sfr.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if len(config.LaunchTemplateConfigs) > 0 {
@@ -1618,8 +1629,8 @@ func resourceAwsSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

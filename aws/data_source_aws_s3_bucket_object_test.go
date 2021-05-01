@@ -26,6 +26,7 @@ func TestAccDataSourceAWSS3BucketObject_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -57,8 +58,9 @@ func TestAccDataSourceAWSS3BucketObject_basicViaAccessPoint(t *testing.T) {
 	accessPointResourceName := "aws_s3_access_point.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, s3.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDataSourceS3ObjectConfig_basicViaAccessPoint(rName),
@@ -85,6 +87,7 @@ func TestAccDataSourceAWSS3BucketObject_readableBody(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -118,6 +121,7 @@ func TestAccDataSourceAWSS3BucketObject_kmsEncrypted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -142,6 +146,43 @@ func TestAccDataSourceAWSS3BucketObject_kmsEncrypted(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSS3BucketObject_bucketKeyEnabled(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	var rObj s3.GetObjectOutput
+	var dsObj s3.GetObjectOutput
+
+	resourceName := "aws_s3_bucket_object.object"
+	dataSourceName := "data.aws_s3_bucket_object.obj"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
+		Providers:                 testAccProviders,
+		PreventPostDestroyRefresh: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDataSourceS3ObjectConfig_bucketKeyEnabled(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists(resourceName, &rObj),
+					testAccCheckAwsS3ObjectDataSourceExists(dataSourceName, &dsObj),
+					resource.TestCheckResourceAttr(dataSourceName, "content_length", "22"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "content_type", resourceName, "content_type"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "etag", resourceName, "etag"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "server_side_encryption", resourceName, "server_side_encryption"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "sse_kms_key_id", resourceName, "kms_key_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "bucket_key_enabled", resourceName, "bucket_key_enabled"),
+					resource.TestMatchResourceAttr(dataSourceName, "last_modified", regexp.MustCompile(rfc1123RegexPattern)),
+					resource.TestCheckResourceAttrPair(dataSourceName, "object_lock_legal_hold_status", resourceName, "object_lock_legal_hold_status"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "object_lock_mode", resourceName, "object_lock_mode"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "object_lock_retain_until_date", resourceName, "object_lock_retain_until_date"),
+					resource.TestCheckResourceAttr(dataSourceName, "body", "Keep Calm and Carry On"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAWSS3BucketObject_allParams(t *testing.T) {
 	rInt := acctest.RandInt()
 
@@ -153,6 +194,7 @@ func TestAccDataSourceAWSS3BucketObject_allParams(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -167,6 +209,7 @@ func TestAccDataSourceAWSS3BucketObject_allParams(t *testing.T) {
 					resource.TestMatchResourceAttr(dataSourceName, "last_modified", regexp.MustCompile(rfc1123RegexPattern)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "version_id", resourceName, "version_id"),
 					resource.TestCheckNoResourceAttr(dataSourceName, "body"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "bucket_key_enabled", resourceName, "bucket_key_enabled"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "cache_control", resourceName, "cache_control"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "content_disposition", resourceName, "content_disposition"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "content_encoding", resourceName, "content_encoding"),
@@ -202,6 +245,7 @@ func TestAccDataSourceAWSS3BucketObject_ObjectLockLegalHoldOff(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -236,6 +280,7 @@ func TestAccDataSourceAWSS3BucketObject_ObjectLockLegalHoldOn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -272,6 +317,7 @@ func TestAccDataSourceAWSS3BucketObject_LeadingSlash(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -325,6 +371,7 @@ func TestAccDataSourceAWSS3BucketObject_MultipleSlashes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -366,6 +413,7 @@ func TestAccDataSourceAWSS3BucketObject_SingleSlashAsKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
+		ErrorCheck:                testAccErrorCheck(t, s3.EndpointsID),
 		Providers:                 testAccProviders,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -487,6 +535,33 @@ resource "aws_s3_bucket_object" "object" {
   content      = "Keep Calm and Carry On"
   content_type = "text/plain"
   kms_key_id   = aws_kms_key.example.arn
+}
+
+data "aws_s3_bucket_object" "obj" {
+  bucket = aws_s3_bucket.object_bucket.bucket
+  key    = aws_s3_bucket_object.object.key
+}
+`, randInt)
+}
+
+func testAccAWSDataSourceS3ObjectConfig_bucketKeyEnabled(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "object_bucket" {
+  bucket = "tf-object-test-bucket-%[1]d"
+}
+
+resource "aws_kms_key" "example" {
+  description             = "TF Acceptance Test KMS key"
+  deletion_window_in_days = 7
+}
+
+resource "aws_s3_bucket_object" "object" {
+  bucket             = aws_s3_bucket.object_bucket.bucket
+  key                = "tf-testing-obj-%[1]d-encrypted"
+  content            = "Keep Calm and Carry On"
+  content_type       = "text/plain"
+  kms_key_id         = aws_kms_key.example.arn
+  bucket_key_enabled = true
 }
 
 data "aws_s3_bucket_object" "obj" {

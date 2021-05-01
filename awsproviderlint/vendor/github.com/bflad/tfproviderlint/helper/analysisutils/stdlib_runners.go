@@ -31,3 +31,26 @@ func StdlibFunctionCallExprRunner(packagePath string, functionName string) func(
 		return result, nil
 	}
 }
+
+// StdlibFunctionSelectorExprRunner returns an Analyzer runner for function *ast.SelectorExpr
+func StdlibFunctionSelectorExprRunner(packagePath string, functionName string) func(*analysis.Pass) (interface{}, error) {
+	return func(pass *analysis.Pass) (interface{}, error) {
+		inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+		nodeFilter := []ast.Node{
+			(*ast.SelectorExpr)(nil),
+		}
+		var result []*ast.SelectorExpr
+
+		inspect.Preorder(nodeFilter, func(n ast.Node) {
+			selectorExpr := n.(*ast.SelectorExpr)
+
+			if !astutils.IsStdlibPackageFunc(selectorExpr, pass.TypesInfo, packagePath, functionName) {
+				return
+			}
+
+			result = append(result, selectorExpr)
+		})
+
+		return result, nil
+	}
+}

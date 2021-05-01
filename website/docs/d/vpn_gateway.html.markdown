@@ -13,7 +13,7 @@ a specific VPN gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_vpn_gateway" "selected" {
   filter {
     name   = "tag:Name"

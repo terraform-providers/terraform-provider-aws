@@ -12,7 +12,7 @@ Provides an AWS WAFv2 Regex Pattern Set Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafv2_regex_pattern_set" "example" {
   name        = "example"
   description = "Example regex pattern set"
@@ -41,7 +41,7 @@ The following arguments are supported:
 * `description` - (Optional) A friendly description of the regular expression pattern set.
 * `scope` - (Required) Specifies whether this is for an AWS CloudFront distribution or for a regional application. Valid values are `CLOUDFRONT` or `REGIONAL`. To work with CloudFront, you must also specify the region `us-east-1` (N. Virginia) on the AWS provider.
 * `regular_expression` - (Optional) One or more blocks of regular expression patterns that you want AWS WAF to search for, such as `B[a@]dB[o0]t`. See [Regular Expression](#regular-expression) below for details.
-* `tags` - (Optional) An array of key:value pairs to associate with the resource.
+* `tags` - (Optional) An array of key:value pairs to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Regular Expression
 
@@ -53,6 +53,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - A unique identifier for the set.
 * `arn` - The Amazon Resource Name (ARN) that identifies the cluster.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

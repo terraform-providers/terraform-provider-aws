@@ -62,12 +62,18 @@ func resourceAwsGuardDutyThreatintelset() *schema.Resource {
 				Required: true,
 			},
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsGuardDutyThreatintelsetCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).guarddutyconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	detectorID := d.Get("detector_id").(string)
 	input := &guardduty.CreateThreatIntelSetInput{
@@ -78,8 +84,8 @@ func resourceAwsGuardDutyThreatintelsetCreate(d *schema.ResourceData, meta inter
 		Activate:   aws.Bool(d.Get("activate").(bool)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().GuarddutyTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().GuarddutyTags()
 	}
 
 	resp, err := conn.CreateThreatIntelSet(input)
@@ -107,6 +113,7 @@ func resourceAwsGuardDutyThreatintelsetCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsGuardDutyThreatintelsetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).guarddutyconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	threatIntelSetId, detectorId, err := decodeGuardDutyThreatintelsetID(d.Id())
@@ -143,8 +150,15 @@ func resourceAwsGuardDutyThreatintelsetRead(d *schema.ResourceData, meta interfa
 	d.Set("name", resp.Name)
 	d.Set("activate", *resp.Status == guardduty.ThreatIntelSetStatusActive)
 
-	if err := d.Set("tags", keyvaluetags.GuarddutyKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.GuarddutyKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -180,8 +194,8 @@ func resourceAwsGuardDutyThreatintelsetUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.GuarddutyUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating GuardDuty Threat Intel Set (%s) tags: %s", d.Get("arn").(string), err)

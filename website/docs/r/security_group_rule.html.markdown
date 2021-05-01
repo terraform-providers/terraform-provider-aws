@@ -26,37 +26,19 @@ a conflict of rule settings and will overwrite rules.
 
 Basic usage
 
-```hcl
+```terraform
 resource "aws_security_group_rule" "example" {
   type              = "ingress"
   from_port         = 0
   to_port           = 65535
   protocol          = "tcp"
   cidr_blocks       = [aws_vpc.example.cidr_block]
+  ipv6_cidr_blocks  = [aws_vpc.example.ipv6_cidr_block]
   security_group_id = "sg-123456"
 }
 ```
 
-## Argument Reference
-
-The following arguments are supported:
-
-* `type` - (Required) The type of rule being created. Valid options are `ingress` (inbound)
-or `egress` (outbound).
-* `cidr_blocks` - (Optional) List of CIDR blocks. Cannot be specified with `source_security_group_id`.
-* `ipv6_cidr_blocks` - (Optional) List of IPv6 CIDR blocks.
-* `prefix_list_ids` - (Optional) List of Prefix List IDs.
-* `from_port` - (Required) The start port (or ICMP type number if protocol is "icmp" or "icmpv6").
-* `protocol` - (Required) The protocol. If not icmp, icmpv6, tcp, udp, or all use the [protocol number](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
-* `security_group_id` - (Required) The security group to apply this rule to.
-* `source_security_group_id` - (Optional) The security group id to allow access to/from,
-     depending on the `type`. Cannot be specified with `cidr_blocks` and `self`.
-* `self` - (Optional) If true, the security group itself will be added as
-     a source to this ingress rule. Cannot be specified with `source_security_group_id`.
-* `to_port` - (Required) The end port (or ICMP code if protocol is "icmp").
-* `description` - (Optional) Description of the rule.
-
-## Usage with prefix list IDs
+### Usage With Prefix List IDs
 
 Prefix Lists are either managed by AWS internally, or created by the customer using a
 [Managed Prefix List resource](ec2_managed_prefix_list.html). Prefix Lists provided by
@@ -64,7 +46,7 @@ AWS are associated with a prefix list name, or service name, that is linked to a
 
 Prefix list IDs are exported on VPC Endpoints, so you can use this format:
 
-```hcl
+```terraform
 resource "aws_security_group_rule" "allow_all" {
   type              = "egress"
   to_port           = 0
@@ -82,24 +64,37 @@ resource "aws_vpc_endpoint" "my_endpoint" {
 
 You can also find a specific Prefix List using the `aws_prefix_list` data source.
 
+## Argument Reference
+
+The following arguments are required:
+
+* `from_port` - (Required) Start port (or ICMP type number if protocol is "icmp" or "icmpv6").
+* `protocol` - (Required) Protocol. If not icmp, icmpv6, tcp, udp, or all use the [protocol number](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+* `security_group_id` - (Required) Security group to apply this rule to.
+* `to_port` - (Required) End port (or ICMP code if protocol is "icmp").
+* `type` - (Required) Type of rule being created. Valid options are `ingress` (inbound)
+or `egress` (outbound).
+
+The following arguments are optional:
+
+* `cidr_blocks` - (Optional) List of CIDR blocks. Cannot be specified with `source_security_group_id` or `self`.
+* `description` - (Optional) Description of the rule.
+* `ipv6_cidr_blocks` - (Optional) List of IPv6 CIDR blocks. Cannot be specified with `source_security_group_id` or `self`.
+* `prefix_list_ids` - (Optional) List of Prefix List IDs.
+* `self` - (Optional) Whether the security group itself will be added as a source to this ingress rule. Cannot be specified with `cidr_blocks`, `ipv6_cidr_blocks`, or `source_security_group_id`.
+* `source_security_group_id` - (Optional) Security group id to allow access to/from, depending on the `type`. Cannot be specified with `cidr_blocks`, `ipv6_cidr_blocks`, or `self`.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the security group rule
-* `type` - The type of rule, `ingress` or `egress`
-* `from_port` - The start port (or ICMP type number if protocol is "icmp")
-* `to_port` - The end port (or ICMP code if protocol is "icmp")
-* `protocol` – The protocol used
-* `description` – Description of the rule
+* `id` - ID of the security group rule.
 
 ## Import
 
 Security Group Rules can be imported using the `security_group_id`, `type`, `protocol`, `from_port`, `to_port`, and source(s)/destination(s) (e.g. `cidr_block`) separated by underscores (`_`). All parts are required.
 
 Not all rule permissions (e.g., not all of a rule's CIDR blocks) need to be imported for Terraform to manage rule permissions. However, importing some of a rule's permissions but not others, and then making changes to the rule will result in the creation of an additional rule to capture the updated permissions. Rule permissions that were not imported are left intact in the original rule.
-
-### Examples
 
 Import an ingress rule in security group `sg-6e616f6d69` for TCP port 8000 with an IPv4 destination CIDR of `10.0.3.0/24`:
 

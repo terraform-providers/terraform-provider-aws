@@ -23,6 +23,7 @@ func TestAccAWSIAMGroupPolicyAttachment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGroupPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -61,6 +62,7 @@ func TestAccAWSIAMGroupPolicyAttachment_basic(t *testing.T) {
 		},
 	})
 }
+
 func testAccCheckAWSGroupPolicyAttachmentDestroy(s *terraform.State) error {
 	return nil
 }
@@ -93,6 +95,7 @@ func testAccCheckAWSGroupPolicyAttachmentExists(n string, c int, out *iam.ListAt
 		return nil
 	}
 }
+
 func testAccCheckAWSGroupPolicyAttachmentAttributes(policies []string, out *iam.ListAttachedGroupPoliciesOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		matched := 0

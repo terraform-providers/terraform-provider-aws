@@ -12,7 +12,7 @@ Resource for managing QuickSight User
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_quicksight_user" "example" {
   user_name     = "an-author"
   email         = "author@example.com"
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-All above attributes except for `session_name` and `identity_type` are exported as well as:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of the user
 

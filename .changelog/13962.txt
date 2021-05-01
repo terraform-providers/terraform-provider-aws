@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ses_active_receipt_rule_set: Add `arn` attribute
+```
+
+```release-note:enhancement
+resource/aws_ses_active_receipt_rule_set: Add plan time validation for `rule_set_name` argument
+```

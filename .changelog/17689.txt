@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_appautoscaling_scheduled_action: Adds `timezone` support
+```
+
+```release-note:enhancement
+resource/aws_appautoscaling_scheduled_action: Allows any timezone to be specified for `start_time` and `end_time`
+```

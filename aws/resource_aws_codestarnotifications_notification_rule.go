@@ -79,7 +79,8 @@ func resourceAwsCodeStarNotificationsNotificationRule() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"target": {
 				Type:     schema.TypeSet,
@@ -105,6 +106,8 @@ func resourceAwsCodeStarNotificationsNotificationRule() *schema.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -122,6 +125,8 @@ func expandCodeStarNotificationsNotificationRuleTargets(targetsData []interface{
 
 func resourceAwsCodeStarNotificationsNotificationRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codestarnotificationsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &codestarnotifications.CreateNotificationRuleInput{
 		DetailType:   aws.String(d.Get("detail_type").(string)),
@@ -132,8 +137,8 @@ func resourceAwsCodeStarNotificationsNotificationRuleCreate(d *schema.ResourceDa
 		Targets:      expandCodeStarNotificationsNotificationRuleTargets(d.Get("target").(*schema.Set).List()),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CodestarnotificationsTags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().CodestarnotificationsTags()
 	}
 
 	res, err := conn.CreateNotificationRule(params)
@@ -148,6 +153,7 @@ func resourceAwsCodeStarNotificationsNotificationRuleCreate(d *schema.ResourceDa
 
 func resourceAwsCodeStarNotificationsNotificationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codestarnotificationsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	rule, err := conn.DescribeNotificationRule(&codestarnotifications.DescribeNotificationRuleInput{
@@ -175,7 +181,16 @@ func resourceAwsCodeStarNotificationsNotificationRuleRead(d *schema.ResourceData
 	d.Set("name", rule.Name)
 	d.Set("status", rule.Status)
 	d.Set("resource", rule.Resource)
-	d.Set("tags", keyvaluetags.New(rule.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
+	tags := keyvaluetags.New(rule.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 
 	targets := make([]map[string]interface{}, 0, len(rule.Targets))
 	for _, t := range rule.Targets {
@@ -262,8 +277,8 @@ func resourceAwsCodeStarNotificationsNotificationRuleUpdate(d *schema.ResourceDa
 		return fmt.Errorf("error updating codestar notification rule: %s", err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.CodestarnotificationsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating codestar notification rule tags: %s", err)
 		}

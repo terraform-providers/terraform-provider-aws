@@ -3,62 +3,69 @@ subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_stage"
 description: |-
-  Provides an API Gateway Stage.
+  Manages an API Gateway Stage.
 ---
 
 # Resource: aws_api_gateway_stage
 
-Provides an API Gateway Stage.
+Manages an API Gateway Stage. A stage is a named reference to a deployment, which can be done via the [`aws_api_gateway_deployment` resource](api_gateway_deployment.html). Stages can be optionally managed further with the [`aws_api_gateway_base_path_mapping` resource](api_gateway_base_path_mapping.html), [`aws_api_gateway_domain_name` resource](api_gateway_domain_name.html), and [`aws_api_method_settings` resource](api_gateway_method_settings.html). For more information, see the [API Gateway Developer Guide](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-stages.html).
 
 ## Example Usage
 
-```hcl
-resource "aws_api_gateway_stage" "test" {
-  stage_name    = "prod"
-  rest_api_id   = aws_api_gateway_rest_api.test.id
-  deployment_id = aws_api_gateway_deployment.test.id
+An end-to-end example of a REST API configured with OpenAPI can be found in the [`/examples/api-gateway-rest-api-openapi` directory within the GitHub repository](https://github.com/hashicorp/terraform-provider-aws/tree/main/examples/api-gateway-rest-api-openapi).
+
+```terraform
+resource "aws_api_gateway_rest_api" "example" {
+  body = jsonencode({
+    openapi = "3.0.1"
+    info = {
+      title   = "example"
+      version = "1.0"
+    }
+    paths = {
+      "/path1" = {
+        get = {
+          x-amazon-apigateway-integration = {
+            httpMethod           = "GET"
+            payloadFormatVersion = "1.0"
+            type                 = "HTTP_PROXY"
+            uri                  = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+          }
+        }
+      }
+    }
+  })
+
+  name = "example"
 }
 
-resource "aws_api_gateway_rest_api" "test" {
-  name        = "MyDemoAPI"
-  description = "This is my API for demonstration purposes"
+resource "aws_api_gateway_deployment" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.example.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-resource "aws_api_gateway_deployment" "test" {
-  depends_on  = [aws_api_gateway_integration.test]
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  stage_name  = "dev"
+resource "aws_api_gateway_stage" "example" {
+  deployment_id = aws_api_gateway_deployment.example.id
+  rest_api_id   = aws_api_gateway_rest_api.example.id
+  stage_name    = "example"
 }
 
-resource "aws_api_gateway_resource" "test" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
-  path_part   = "mytestresource"
-}
-
-resource "aws_api_gateway_method" "test" {
-  rest_api_id   = aws_api_gateway_rest_api.test.id
-  resource_id   = aws_api_gateway_resource.test.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_method_settings" "s" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  stage_name  = aws_api_gateway_stage.test.stage_name
-  method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
+resource "aws_api_gateway_method_settings" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  stage_name  = aws_api_gateway_stage.example.stage_name
+  method_path = "*/*"
 
   settings {
     metrics_enabled = true
     logging_level   = "INFO"
   }
-}
-
-resource "aws_api_gateway_integration" "test" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  resource_id = aws_api_gateway_resource.test.id
-  http_method = aws_api_gateway_method.test.http_method
-  type        = "MOCK"
 }
 ```
 
@@ -68,7 +75,7 @@ API Gateway provides the ability to [enable CloudWatch API logging](https://docs
 
 -> The below configuration uses [`depends_on`](https://www.terraform.io/docs/configuration/meta-arguments/depends_on.html) to prevent ordering issues with API Gateway automatically creating the log group first and a variable for naming consistency. Other ordering and naming methodologies may be more appropriate for your environment.
 
-```hcl
+```terraform
 variable "stage_name" {
   default = "example"
   type    = string
@@ -106,7 +113,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the stage
 * `documentation_version` - (Optional) The version of the associated API documentation
 * `variables` - (Optional) A map that defines the stage variables
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `xray_tracing_enabled` - (Optional) Whether active tracing with X-ray is enabled. Defaults to `false`.
 
 ### Nested Blocks
@@ -128,6 +135,7 @@ In addition to all arguments above, the following attributes are exported:
 * `execution_arn` - The execution ARN to be used in [`lambda_permission`](/docs/providers/aws/r/lambda_permission.html)'s `source_arn`
   when allowing API Gateway to invoke a Lambda function,
   e.g. `arn:aws:execute-api:eu-west-2:123456789012:z4675bid1j/prod`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

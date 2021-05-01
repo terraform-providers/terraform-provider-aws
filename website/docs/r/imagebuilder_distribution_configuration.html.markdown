@@ -12,7 +12,7 @@ Manages an Image Builder Distribution Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_imagebuilder_distribution_configuration" "example" {
   name = "example"
 
@@ -45,7 +45,7 @@ The following arguments are optional:
 
 * `description` - (Optional) Description of the distribution configuration.
 * `kms_key_id` - (Optional) Amazon Resource Name (ARN) of the Key Management Service (KMS) Key used to encrypt the distribution configuration.
-* `tags` - (Optional) Key-value map of resource tags for the distribution configuration.
+* `tags` - (Optional) Key-value map of resource tags for the distribution configuration. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### distribution
 
@@ -83,6 +83,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - (Required) Amazon Resource Name (ARN) of the distribution configuration.
 * `date_created` - Date the distribution configuration was created.
 * `date_updated` - Date the distribution configuration was updated.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

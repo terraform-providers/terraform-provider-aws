@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_ebs_volume: Allow both `size` and `snapshot_id` attributes to be specified
+```

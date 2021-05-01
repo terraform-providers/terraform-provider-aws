@@ -17,6 +17,7 @@ func testAccAWSLakeFormationDataLakeSettings_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationDataLakeSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -38,6 +39,7 @@ func testAccAWSLakeFormationDataLakeSettings_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationDataLakeSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -59,6 +61,7 @@ func testAccAWSLakeFormationDataLakeSettings_withoutCatalogId(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLakeFormationDataLakeSettingsDestroy,
 		Steps: []resource.TestStep{

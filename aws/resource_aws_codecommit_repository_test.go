@@ -18,6 +18,7 @@ func TestAccAWSCodeCommitRepository_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -42,6 +43,7 @@ func TestAccAWSCodeCommitRepository_withChanges(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -76,6 +78,7 @@ func TestAccAWSCodeCommitRepository_create_default_branch(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -103,6 +106,7 @@ func TestAccAWSCodeCommitRepository_create_and_update_default_branch(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -136,10 +140,10 @@ func TestAccAWSCodeCommitRepository_tags(t *testing.T) {
 	resourceName := "aws_codecommit_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckCodeCommitRepositoryDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCodeCommitRepositoryConfigTags1(rName, "key1", "value1"),

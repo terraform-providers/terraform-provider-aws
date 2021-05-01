@@ -14,7 +14,7 @@ Provides a resource to manage AWS Secrets Manager secret metadata. To manage sec
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_secretsmanager_secret" "example" {
   name = "example"
 }
@@ -28,7 +28,7 @@ To enable automatic secret rotation, the Secrets Manager service requires usage 
 
 ~> **NOTE:** If you cancel a rotation that is in progress (by removing the `rotation` configuration), it can leave the VersionStage labels in an unexpected state. Depending on what step of the rotation was in progress, you might need to remove the staging label AWSPENDING from the partially created version, specified by the SecretVersionId response value. You should also evaluate the partially rotated new version to see if it should be deleted, which you can do by removing all staging labels from the new version's VersionStage field.
 
-```hcl
+```terraform
 resource "aws_secretsmanager_secret" "rotation-example" {
   name                = "rotation-example"
   rotation_lambda_arn = aws_lambda_function.example.arn
@@ -51,7 +51,7 @@ The following arguments are supported:
 * `recovery_window_in_days` - (Optional) Specifies the number of days that AWS Secrets Manager waits before it can delete the secret. This value can be `0` to force deletion without recovery or range from `7` to `30` days. The default value is `30`.
 * `rotation_lambda_arn` - (Optional, **DEPRECATED**) Specifies the ARN of the Lambda function that can rotate the secret. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.
 * `rotation_rules` - (Optional, **DEPRECATED**) A structure that defines the rotation configuration for this secret. Defined below. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.
-* `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the secret.
+* `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the secret. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### rotation_rules
 
@@ -64,6 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Amazon Resource Name (ARN) of the secret.
 * `arn` - Amazon Resource Name (ARN) of the secret.
 * `rotation_enabled` - Specifies whether automatic rotation is enabled for this secret.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

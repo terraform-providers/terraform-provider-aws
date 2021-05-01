@@ -75,7 +75,7 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 	}
 
 	if err := d.Set("instance_types", instanceTypes); err != nil {
-		return fmt.Errorf("error setting instance_types: %s", err)
+		return fmt.Errorf("error setting instance_types: %w", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)

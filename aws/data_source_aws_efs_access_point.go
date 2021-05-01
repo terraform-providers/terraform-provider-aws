@@ -103,7 +103,7 @@ func dataSourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) e
 		AccessPointId: aws.String(d.Get("access_point_id").(string)),
 	})
 	if err != nil {
-		return fmt.Errorf("Error reading EFS access point %s: %s", d.Id(), err)
+		return fmt.Errorf("Error reading EFS access point %s: %w", d.Id(), err)
 	}
 	if len(resp.AccessPoints) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(resp.AccessPoints))
@@ -129,15 +129,15 @@ func dataSourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("owner_id", ap.OwnerId)
 
 	if err := d.Set("posix_user", flattenEfsAccessPointPosixUser(ap.PosixUser)); err != nil {
-		return fmt.Errorf("error setting posix user: %s", err)
+		return fmt.Errorf("error setting posix user: %w", err)
 	}
 
 	if err := d.Set("root_directory", flattenEfsAccessPointRootDirectory(ap.RootDirectory)); err != nil {
-		return fmt.Errorf("error setting root directory: %s", err)
+		return fmt.Errorf("error setting root directory: %w", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.EfsKeyValueTags(ap.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

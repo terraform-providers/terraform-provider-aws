@@ -104,7 +104,8 @@ func resourceAwsWorkspacesDirectory() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"workspace_access_properties": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -188,21 +189,23 @@ func resourceAwsWorkspacesDirectory() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWorkspacesDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).workspacesconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	directoryID := d.Get("directory_id").(string)
-
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().WorkspacesTags()
 
 	input := &workspaces.RegisterWorkspaceDirectoryInput{
 		DirectoryId:       aws.String(directoryID),
 		EnableSelfService: aws.Bool(false), // this is handled separately below
 		EnableWorkDocs:    aws.Bool(false),
 		Tenancy:           aws.String(workspaces.TenancyShared),
-		Tags:              tags,
+		Tags:              tags.IgnoreAws().WorkspacesTags(),
 	}
 
 	if v, ok := d.GetOk("subnet_ids"); ok {
@@ -277,6 +280,7 @@ func resourceAwsWorkspacesDirectoryCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsWorkspacesDirectoryRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).workspacesconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	rawOutput, state, err := waiter.DirectoryState(conn, d.Id())()
@@ -326,8 +330,15 @@ func resourceAwsWorkspacesDirectoryRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags: %w", err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -406,8 +417,8 @@ func resourceAwsWorkspacesDirectoryUpdate(d *schema.ResourceData, meta interface
 		log.Printf("[INFO] Updated WorkSpaces Directory (%s) IP Groups", d.Id())
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.WorkspacesUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

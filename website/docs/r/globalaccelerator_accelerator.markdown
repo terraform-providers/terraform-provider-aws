@@ -12,7 +12,7 @@ Creates a Global Accelerator accelerator.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_globalaccelerator_accelerator" "example" {
   name            = "Example"
   ip_address_type = "IPV4"
@@ -31,16 +31,16 @@ resource "aws_globalaccelerator_accelerator" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the accelerator.
-* `ip_address_type` - (Optional) The value for the address type must be `IPV4`.
-* `enabled` - (Optional) Indicates whether the accelerator is enabled. The value is true or false. The default value is true.
+* `ip_address_type` - (Optional) The value for the address type. Defaults to `IPV4`. Valid values: `IPV4`.
+* `enabled` - (Optional) Indicates whether the accelerator is enabled. Defaults to `true`. Valid values: `true`, `false`.
 * `attributes` - (Optional) The attributes of the accelerator. Fields documented below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 **attributes** supports the following attributes:
 
-* `flow_logs_enabled` - (Optional) Indicates whether flow logs are enabled.
-* `flow_logs_s3_bucket` - (Optional) The name of the Amazon S3 bucket for the flow logs.
-* `flow_logs_s3_prefix` - (Optional) The prefix for the location in the Amazon S3 bucket for the flow logs.
+* `flow_logs_enabled` - (Optional) Indicates whether flow logs are enabled. Defaults to `false`. Valid values: `true`, `false`.
+* `flow_logs_s3_bucket` - (Optional) The name of the Amazon S3 bucket for the flow logs. Required if `flow_logs_enabled` is `true`.
+* `flow_logs_s3_prefix` - (Optional) The prefix for the location in the Amazon S3 bucket for the flow logs. Required if `flow_logs_enabled` is `true`.
 
 ## Attributes Reference
 
@@ -52,11 +52,12 @@ In addition to all arguments above, the following attributes are exported:
   route an [Alias Resource Record Set][1] to the Global Accelerator. This attribute
   is simply an alias for the zone ID `Z2BJ6XQ5FK7U4H`.
 * `ip_sets` - IP address set associated with the accelerator.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 **ip_sets** exports the following attributes:
 
 * `ip_addresses` - A list of IP addresses in the IP address set.
-* `ip_family` - The types of IP addresses included in this IP set.
+* `ip_family` - The type of IP addresses included in this IP set.
 
 [1]: https://docs.aws.amazon.com/Route53/latest/APIReference/API_AliasTarget.html
 

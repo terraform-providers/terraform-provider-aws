@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -34,7 +35,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(15 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -53,6 +54,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
 				ValidateFunc:  validation.StringLenBetween(0, 100),
@@ -223,7 +225,8 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"revoke_rules_on_delete": {
 				Type:     schema.TypeBool,
@@ -231,11 +234,15 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	securityGroupOpts := &ec2.CreateSecurityGroupInput{}
 
@@ -243,8 +250,8 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		securityGroupOpts.VpcId = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		securityGroupOpts.TagSpecifications = ec2TagSpecificationsFromMap(v.(map[string]interface{}), ec2.ResourceTypeSecurityGroup)
+	if len(tags) > 0 {
+		securityGroupOpts.TagSpecifications = ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeSecurityGroup)
 	}
 
 	if v := d.Get("description"); v != nil {
@@ -337,6 +344,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var sgRaw interface{}
@@ -381,7 +389,7 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("arn", sgArn.String())
 	d.Set("description", sg.Description)
 	d.Set("name", sg.GroupName)
-	d.Set("name_prefix", aws.StringValue(naming.NamePrefixFromName(aws.StringValue(sg.GroupName))))
+	d.Set("name_prefix", naming.NamePrefixFromName(aws.StringValue(sg.GroupName)))
 	d.Set("owner_id", sg.OwnerId)
 	d.Set("vpc_id", sg.VpcId)
 
@@ -393,8 +401,15 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[WARN] Error setting Egress rule set for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(sg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(sg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -434,8 +449,8 @@ func resourceAwsSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") && !d.IsNewResource() {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") && !d.IsNewResource() {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Security Group (%s) tags: %s", d.Id(), err)
@@ -466,13 +481,23 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		_, err := conn.DeleteSecurityGroup(input)
 		if err != nil {
-			if isAWSErr(err, "InvalidGroup.NotFound", "") {
+			if tfawserr.ErrCodeEquals(err, "InvalidGroup.NotFound") {
 				return nil
 			}
-			if isAWSErr(err, "DependencyViolation", "") {
-				// If it is a dependency violation, we want to retry
+
+			// If it is a dependency violation, we want to retry
+			if tfawserr.ErrMessageContains(err, "DependencyViolation", "has a dependent object") {
 				return resource.RetryableError(err)
 			}
+
+			if tfawserr.ErrCodeEquals(err, "DependencyViolation") {
+				return resource.RetryableError(err)
+			}
+
+			if tfawserr.ErrCodeEquals(err, "InvalidGroup.InUse") {
+				return resource.RetryableError(err)
+			}
+
 			return resource.NonRetryableError(err)
 		}
 		return nil

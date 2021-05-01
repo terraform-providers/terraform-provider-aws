@@ -15,7 +15,7 @@ instances to be requested on the Spot market.
 
 ### Using launch specifications
 
-```hcl
+```terraform
 # Request a Spot fleet
 resource "aws_spot_fleet_request" "cheap_compute" {
   iam_fleet_role      = "arn:aws:iam::12345678:role/spot-fleet"
@@ -56,7 +56,7 @@ resource "aws_spot_fleet_request" "cheap_compute" {
 
 ### Using launch templates
 
-```hcl
+```terraform
 resource "aws_launch_template" "foo" {
   name          = "launch-template"
   image_id      = "ami-516b9131"
@@ -86,7 +86,7 @@ launch configuration block. If you want to specify multiple values, then separat
 
 ### Using multiple launch specifications
 
-```hcl
+```terraform
 resource "aws_spot_fleet_request" "foo" {
   iam_fleet_role  = "arn:aws:iam::12345678:role/spot-fleet"
   spot_price      = "0.005"
@@ -112,7 +112,7 @@ resource "aws_spot_fleet_request" "foo" {
 
 ### Using multiple launch configurations
 
-```hcl
+```terraform
 data "aws_subnet_ids" "example" {
   vpc_id = var.vpc_id
 }
@@ -201,7 +201,7 @@ across different markets and instance types. Conflicts with `launch_template_con
 * `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
 * `load_balancers` (Optional) A list of elastic load balancer names to add to the Spot fleet.
 * `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with Application Load Balancing.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Launch Template Configs
 
@@ -251,6 +251,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Spot fleet request ID
 * `spot_request_state` - The state of the Spot fleet request.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

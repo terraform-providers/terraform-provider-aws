@@ -12,7 +12,7 @@ Provides an Athena database.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "hoge" {
   bucket = "hoge"
 }

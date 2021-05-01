@@ -1,0 +1,23 @@
+```release-note:bug
+resource/aws_iam_user: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_user_group_membership: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_user_login_profile: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_user_policy: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_user_policy_attachment: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_user_ssh_key: Handle read-after-create eventual consistency
+```

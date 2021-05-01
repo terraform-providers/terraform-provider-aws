@@ -11,6 +11,27 @@ import (
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
 
+// AvoidSelectorExprAnalyzer returns an Analyzer for *ast.SelectorExpr to avoid
+func AvoidSelectorExprAnalyzer(analyzerName string, callExprAnalyzer, selectorExprAnalyzer *analysis.Analyzer, packagePath, typeName string) *analysis.Analyzer {
+	doc := fmt.Sprintf(`check for %[2]s.%[3]s usage to avoid
+
+The %[1]s analyzer reports usage:
+
+%[2]s.%[3]s
+`, analyzerName, packagePath, typeName)
+
+	return &analysis.Analyzer{
+		Name: analyzerName,
+		Doc:  doc,
+		Requires: []*analysis.Analyzer{
+			callExprAnalyzer,
+			commentignore.Analyzer,
+			selectorExprAnalyzer,
+		},
+		Run: AvoidSelectorExprRunner(analyzerName, callExprAnalyzer, selectorExprAnalyzer, packagePath, typeName),
+	}
+}
+
 // DeprecatedReceiverMethodSelectorExprAnalyzer returns an Analyzer for deprecated *ast.SelectorExpr
 func DeprecatedReceiverMethodSelectorExprAnalyzer(analyzerName string, callExprAnalyzer, selectorExprAnalyzer *analysis.Analyzer, packagePath, typeName, methodName string) *analysis.Analyzer {
 	doc := fmt.Sprintf(`check for deprecated %[2]s.%[3]s usage

@@ -12,7 +12,7 @@ Deploys an Application CloudFormation Stack from the Serverless Application Repo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_serverlessapplicationrepository_cloudformation_stack" "postgres-rotator" {
   name           = "postgres-rotator"
   application_id = "arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser"
@@ -39,7 +39,7 @@ The following arguments are supported:
 * `capabilities` - (Required) A list of capabilities. Valid values are `CAPABILITY_IAM`, `CAPABILITY_NAMED_IAM`, `CAPABILITY_RESOURCE_POLICY`, or `CAPABILITY_AUTO_EXPAND`
 * `parameters` - (Optional) A map of Parameter structures that specify input parameters for the stack.
 * `semantic_version` - (Optional) The version of the application to deploy. If not supplied, deploys the latest version.
-* `tags` - (Optional) A list of tags to associate with this stack.
+* `tags` - (Optional) A list of tags to associate with this stack. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -47,6 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - A unique identifier of the stack.
 * `outputs` - A map of outputs from the stack.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

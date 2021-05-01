@@ -14,7 +14,7 @@ Use this data source to get information about a workspace in [AWS Workspaces](ht
 
 ### Filter By Workspace ID
 
-```hcl
+```terraform
 data "aws_workspaces_workspace" "example" {
   workspace_id = "ws-cj5xcxsz5"
 }
@@ -22,7 +22,7 @@ data "aws_workspaces_workspace" "example" {
 
 ### Filter By Directory ID & User Name
 
-```hcl
+```terraform
 data "aws_workspaces_workspace" "example" {
   directory_id = "d-9967252f57"
   user_name    = "Example"

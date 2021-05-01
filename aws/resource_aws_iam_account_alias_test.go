@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -13,11 +12,11 @@ import (
 
 func TestAccAWSIAMAccountAlias_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
-		"Basic": {
-			"basic": testAccAWSIAMAccountAlias_basic_with_datasource,
+		"DataSource": {
+			"basic": testAccAWSIAMAccountAliasDataSource_basic,
 		},
-		"Import": {
-			"import": testAccAWSIAMAccountAlias_importBasic,
+		"Resource": {
+			"basic": testAccAWSIAMAccountAlias_basic,
 		},
 	}
 
@@ -34,56 +33,27 @@ func TestAccAWSIAMAccountAlias_serial(t *testing.T) {
 	}
 }
 
-func testAccAWSIAMAccountAlias_importBasic(t *testing.T) {
+func testAccAWSIAMAccountAlias_basic(t *testing.T) {
 	resourceName := "aws_iam_account_alias.test"
 
-	rstring := acctest.RandString(5)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIAMAccountAliasDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSIAMAccountAliasConfig(rstring),
+				Config: testAccAWSIAMAccountAliasConfig(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSIAMAccountAliasExists(resourceName),
+				),
 			},
-
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func testAccAWSIAMAccountAlias_basic_with_datasource(t *testing.T) {
-	var account_alias string
-
-	rstring := acctest.RandString(5)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSIAMAccountAliasDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSIAMAccountAliasConfig(rstring),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSIAMAccountAliasExists("aws_iam_account_alias.test", &account_alias),
-				),
-			},
-			{
-				Config: testAccAWSIAMAccountAliasConfig_with_datasource(rstring),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSIAMAccountAliasExists("aws_iam_account_alias.test", &account_alias),
-					testAccCheckAWSIAMAccountAliasDataExists("data.aws_iam_account_alias.current", &account_alias),
-				),
-				// We expect a non-empty plan due to the way data sources and depends_on
-				// work, or don't work. See https://github.com/hashicorp/terraform/issues/11139#issuecomment-275121893
-				// We accept this limitation and feel this test is OK because of the
-				// explicitly check above
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -101,8 +71,12 @@ func testAccCheckAWSIAMAccountAliasDestroy(s *terraform.State) error {
 
 		resp, err := conn.ListAccountAliases(params)
 
-		if err != nil || resp == nil {
-			return nil
+		if err != nil {
+			return fmt.Errorf("error reading IAM Account Alias (%s): %w", rs.Primary.ID, err)
+		}
+
+		if resp == nil {
+			return fmt.Errorf("error reading IAM Account Alias (%s): empty response", rs.Primary.ID)
 		}
 
 		if len(resp.AccountAliases) > 0 {
@@ -114,22 +88,7 @@ func testAccCheckAWSIAMAccountAliasDestroy(s *terraform.State) error {
 
 }
 
-func testAccCheckAWSIAMAccountAliasDataExists(n string, a *string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.Attributes["account_alias"] != *a {
-			return fmt.Errorf("Data Source account_alias didn't match, expected (%s), got (%s)", *a, rs.Primary.Attributes["account_alias"])
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckAWSIAMAccountAliasExists(n string, a *string) resource.TestCheckFunc {
+func testAccCheckAWSIAMAccountAliasExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -141,36 +100,26 @@ func testAccCheckAWSIAMAccountAliasExists(n string, a *string) resource.TestChec
 
 		resp, err := conn.ListAccountAliases(params)
 
-		if err != nil || resp == nil {
-			return nil
+		if err != nil {
+			return fmt.Errorf("error reading IAM Account Alias (%s): %w", rs.Primary.ID, err)
+		}
+
+		if resp == nil {
+			return fmt.Errorf("error reading IAM Account Alias (%s): empty response", rs.Primary.ID)
 		}
 
 		if len(resp.AccountAliases) == 0 {
 			return fmt.Errorf("Bad: Account alias %q does not exist", rs.Primary.ID)
 		}
 
-		*a = aws.StringValue(resp.AccountAliases[0])
-
 		return nil
 	}
 }
 
-func testAccAWSIAMAccountAliasConfig_with_datasource(rstring string) string {
+func testAccAWSIAMAccountAliasConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_account_alias" "test" {
-  account_alias = "terraform-%s-alias"
+  account_alias = %[1]q
 }
-
-data "aws_iam_account_alias" "current" {
-  depends_on = [aws_iam_account_alias.test]
-}
-`, rstring)
-}
-
-func testAccAWSIAMAccountAliasConfig(rstring string) string {
-	return fmt.Sprintf(`
-resource "aws_iam_account_alias" "test" {
-  account_alias = "terraform-%s-alias"
-}
-`, rstring)
+`, rName)
 }

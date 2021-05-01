@@ -108,21 +108,25 @@ func resourceAwsDbProxy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDbProxyCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := rds.CreateDBProxyInput{
 		Auth:         expandDbProxyAuth(d.Get("auth").(*schema.Set).List()),
 		DBProxyName:  aws.String(d.Get("name").(string)),
 		EngineFamily: aws.String(d.Get("engine_family").(string)),
 		RoleArn:      aws.String(d.Get("role_arn").(string)),
-		Tags:         tags,
+		Tags:         tags.IgnoreAws().RdsTags(),
 		VpcSubnetIds: expandStringSet(d.Get("vpc_subnet_ids").(*schema.Set)),
 	}
 
@@ -243,6 +247,7 @@ func flattenDbProxyAuths(userAuthConfigs []*rds.UserAuthConfigInfo) []interface{
 
 func resourceAwsDbProxyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := rds.DescribeDBProxiesInput{
@@ -294,8 +299,15 @@ func resourceAwsDbProxyRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error listing tags for RDS DB Proxy (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -356,8 +368,8 @@ func resourceAwsDbProxyUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("Error updating RDS DB Proxy (%s) tags: %s", d.Get("arn").(string), err)

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/costandusagereportservice/finder"
 )
 
 func TestAccAwsCurReportDefinition_basic(t *testing.T) {
@@ -19,6 +20,7 @@ func TestAccAwsCurReportDefinition_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -54,6 +56,7 @@ func TestAccAwsCurReportDefinition_textOrCsv(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -92,6 +95,7 @@ func TestAccAwsCurReportDefinition_parquet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -129,6 +133,7 @@ func TestAccAwsCurReportDefinition_athena(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -167,6 +172,7 @@ func TestAccAwsCurReportDefinition_refresh(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -205,6 +211,7 @@ func TestAccAwsCurReportDefinition_overwrite(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -236,14 +243,17 @@ func testAccCheckAwsCurReportDefinitionDestroy(s *terraform.State) error {
 		if rs.Type != "aws_cur_report_definition" {
 			continue
 		}
-		reportName := rs.Primary.ID
-		matchingReportDefinition, err := describeCurReportDefinition(conn, reportName)
+
+		matchingReportDefinition, err := finder.ReportDefinitionByName(conn, rs.Primary.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading Report Definition (%s): %w", rs.Primary.ID, err)
 		}
-		if matchingReportDefinition != nil {
-			return fmt.Errorf("Report Definition still exists: %q", rs.Primary.ID)
+
+		if matchingReportDefinition == nil {
+			continue
 		}
+
+		return fmt.Errorf("Report Definition still exists: %q", rs.Primary.ID)
 	}
 	return nil
 
@@ -257,14 +267,16 @@ func testAccCheckAwsCurReportDefinitionExists(resourceName string) resource.Test
 		if !ok {
 			return fmt.Errorf("Resource not found: %s", resourceName)
 		}
-		reportName := rs.Primary.ID
-		matchingReportDefinition, err := describeCurReportDefinition(conn, reportName)
+
+		matchingReportDefinition, err := finder.ReportDefinitionByName(conn, rs.Primary.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading Report Definition (%s): %w", rs.Primary.ID, err)
 		}
+
 		if matchingReportDefinition == nil {
 			return fmt.Errorf("Report Definition does not exist: %q", rs.Primary.ID)
 		}
+
 		return nil
 	}
 }

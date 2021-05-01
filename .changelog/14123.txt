@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_sns_topic_policy: Add plan time validation to `arn`
+```
+
+```release-note:enhancement
+resource/aws_sns_topic_policy: Add `owner` attribute
+```

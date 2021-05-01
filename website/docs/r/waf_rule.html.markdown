@@ -12,7 +12,7 @@ Provides a WAF Rule Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_ipset" "ipset" {
   name = "tfIPSet"
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 * `metric_name` - (Required) The name or description for the Amazon CloudWatch metric of this rule. The name can contain only alphanumeric characters (A-Z, a-z, 0-9); the name can't contain whitespace.
 * `name` - (Required) The name or description of the rule.
 * `predicates` - (Optional) The objects to include in a rule (documented below).
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Nested Blocks
 
@@ -65,6 +65,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF rule.
 * `arn` - The ARN of the WAF rule.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

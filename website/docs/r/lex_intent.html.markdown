@@ -13,7 +13,7 @@ Provides an Amazon Lex Intent resource. For more information see
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lex_intent" "order_flowers_intent" {
   confirmation_prompt {
     max_attempts = 2

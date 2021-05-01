@@ -86,7 +86,8 @@ func resourceAwsStorageGatewayCachedIscsiVolume() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"kms_encrypted": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -100,11 +101,15 @@ func resourceAwsStorageGatewayCachedIscsiVolume() *schema.Resource {
 				RequiredWith: []string{"kms_encrypted"},
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsStorageGatewayCachedIscsiVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &storagegateway.CreateCachediSCSIVolumeInput{
 		ClientToken:        aws.String(resource.UniqueId()),
@@ -112,7 +117,7 @@ func resourceAwsStorageGatewayCachedIscsiVolumeCreate(d *schema.ResourceData, me
 		NetworkInterfaceId: aws.String(d.Get("network_interface_id").(string)),
 		TargetName:         aws.String(d.Get("target_name").(string)),
 		VolumeSizeInBytes:  aws.Int64(int64(d.Get("volume_size_in_bytes").(int))),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
+		Tags:               tags.IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("snapshot_id"); ok {
@@ -145,8 +150,8 @@ func resourceAwsStorageGatewayCachedIscsiVolumeCreate(d *schema.ResourceData, me
 func resourceAwsStorageGatewayCachedIscsiVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -157,6 +162,7 @@ func resourceAwsStorageGatewayCachedIscsiVolumeUpdate(d *schema.ResourceData, me
 
 func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &storagegateway.DescribeCachediSCSIVolumesInput{
@@ -185,10 +191,10 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 
 	arn := aws.StringValue(volume.VolumeARN)
 	d.Set("arn", arn)
-	d.Set("snapshot_id", aws.StringValue(volume.SourceSnapshotId))
+	d.Set("snapshot_id", volume.SourceSnapshotId)
 	d.Set("volume_arn", arn)
-	d.Set("volume_id", aws.StringValue(volume.VolumeId))
-	d.Set("volume_size_in_bytes", int(aws.Int64Value(volume.VolumeSizeInBytes)))
+	d.Set("volume_id", volume.VolumeId)
+	d.Set("volume_size_in_bytes", volume.VolumeSizeInBytes)
 	d.Set("kms_key", volume.KMSKey)
 	if volume.KMSKey != nil {
 		d.Set("kms_encrypted", true)
@@ -200,15 +206,22 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 	if err != nil {
 		return fmt.Errorf("error listing tags for resource (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if volume.VolumeiSCSIAttributes != nil {
-		d.Set("chap_enabled", aws.BoolValue(volume.VolumeiSCSIAttributes.ChapEnabled))
-		d.Set("lun_number", int(aws.Int64Value(volume.VolumeiSCSIAttributes.LunNumber)))
-		d.Set("network_interface_id", aws.StringValue(volume.VolumeiSCSIAttributes.NetworkInterfaceId))
-		d.Set("network_interface_port", int(aws.Int64Value(volume.VolumeiSCSIAttributes.NetworkInterfacePort)))
+		d.Set("chap_enabled", volume.VolumeiSCSIAttributes.ChapEnabled)
+		d.Set("lun_number", volume.VolumeiSCSIAttributes.LunNumber)
+		d.Set("network_interface_id", volume.VolumeiSCSIAttributes.NetworkInterfaceId)
+		d.Set("network_interface_port", volume.VolumeiSCSIAttributes.NetworkInterfacePort)
 
 		targetARN := aws.StringValue(volume.VolumeiSCSIAttributes.TargetARN)
 		d.Set("target_arn", targetARN)

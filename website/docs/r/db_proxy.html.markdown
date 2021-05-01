@@ -12,7 +12,7 @@ Provides an RDS DB proxy resource. For additional information, see the [RDS User
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_proxy" "example" {
   name                   = "example"
   debug_logging          = false
@@ -50,7 +50,7 @@ The following arguments are supported:
 * `role_arn` - (Required) The Amazon Resource Name (ARN) of the IAM role that the proxy uses to access secrets in AWS Secrets Manager.
 * `vpc_security_group_ids` - (Optional) One or more VPC security group IDs to associate with the new proxy.
 * `vpc_subnet_ids` - (Required) One or more VPC subnet IDs to associate with the new proxy.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 `auth` blocks support the following:
 
@@ -67,6 +67,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Amazon Resource Name (ARN) for the proxy.
 * `arn` - The Amazon Resource Name (ARN) for the proxy.
 * `endpoint` - The endpoint that you can use to connect to the proxy. You include the endpoint value in the connection string for a database client application.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ### Timeouts
 

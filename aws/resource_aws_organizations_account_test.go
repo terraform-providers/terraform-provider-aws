@@ -28,6 +28,7 @@ func testAccAwsOrganizationsAccount_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsAccountDestroy,
 		Steps: []resource.TestStep{
@@ -74,6 +75,7 @@ func testAccAwsOrganizationsAccount_ParentId(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsAccountDestroy,
 		Steps: []resource.TestStep{
@@ -118,6 +120,7 @@ func testAccAwsOrganizationsAccount_Tags(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsAccountDestroy,
 		Steps: []resource.TestStep{

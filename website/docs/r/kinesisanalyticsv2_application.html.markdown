@@ -17,7 +17,7 @@ This resource can be used to manage both Kinesis Data Analytics for SQL applicat
 
 ### Apache Flink Application
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example-flink-application"
 }
@@ -92,7 +92,7 @@ resource "aws_kinesisanalyticsv2_application" "example" {
 
 ### SQL Application
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name = "example-sql-application"
 }
@@ -215,7 +215,7 @@ resource "aws_kinesisanalyticsv2_application" "example" {
 
 ### VPC Configuration
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example-flink-application"
 }
@@ -261,7 +261,9 @@ The following arguments are supported:
 * `application_configuration` - (Optional) The application's configuration
 * `cloudwatch_logging_options` - (Optional) A [CloudWatch log stream](/docs/providers/aws/r/cloudwatch_log_stream.html) to monitor application configuration errors.
 * `description` - (Optional) A summary description of the application.
-* `tags` - (Optional) A map of tags to assign to the application.
+* `force_stop` - (Optional) Whether to force stop an unresponsive Flink-based application.
+* `start_application` - (Optional) Whether to start or stop the application.
+* `tags` - (Optional) A map of tags to assign to the application. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `application_configuration` object supports the following:
 
@@ -269,6 +271,7 @@ The `application_configuration` object supports the following:
 * `application_snapshot_configuration` - (Optional) Describes whether snapshots are enabled for a Flink-based application.
 * `environment_properties` - (Optional) Describes execution properties for a Flink-based application.
 * `flink_application_configuration` - (Optional) The configuration of a Flink-based application.
+* `run_configuration` - (Optional) Describes the starting properties for a Flink-based application.
 * `sql_application_configuration` - (Optional) The configuration of a SQL-based application.
 * `vpc_configuration` - (Optional) The VPC configuration of a Flink-based application.
 
@@ -330,6 +333,20 @@ The `parallelism_configuration` object supports the following:
 * `parallelism` - (Optional) Describes the initial number of parallel tasks that a Flink-based Kinesis Data Analytics application can perform.
 * `parallelism_per_kpu` - (Optional) Describes the number of parallel tasks that a Flink-based Kinesis Data Analytics application can perform per Kinesis Processing Unit (KPU) used by the application.
 
+The `run_configuration` object supports the following:
+
+* `application_restore_configuration` - (Optional) The restore behavior of a restarting application.
+* `flink_run_configuration` - (Optional) The starting parameters for a Flink-based Kinesis Data Analytics application.
+
+The `application_restore_configuration` object supports the following:
+
+* `application_restore_type` - (Required) Specifies how the application should be restored. Valid values: `RESTORE_FROM_CUSTOM_SNAPSHOT`, `RESTORE_FROM_LATEST_SNAPSHOT`, `SKIP_RESTORE_FROM_SNAPSHOT`.
+* `snapshot_name` - (Optional) The identifier of an existing snapshot of application state to use to restart an application. The application uses this value if `RESTORE_FROM_CUSTOM_SNAPSHOT` is specified for `application_restore_type`.
+
+The `flink_run_configuration` object supports the following:
+
+* `allow_non_restored_state` - (Optional) When restoring from a snapshot, specifies whether the runtime is allowed to skip a state that cannot be mapped to the new program. Default is `false`.
+
 The `sql_application_configuration` object supports the following:
 
 * `input` - (Optional) The input stream used by the application.
@@ -343,6 +360,7 @@ The `input` object supports the following:
 * `input_parallelism` - (Optional) Describes the number of in-application streams to create.
 * `input_processing_configuration` - (Optional) The input processing configuration for the input.
 An input processor transforms records as they are received from the stream, before the application's SQL code executes.
+* `input_starting_position_configuration` (Optional) The point at which the application starts processing records from the streaming source.
 * `kinesis_firehose_input` - (Optional) If the streaming source is a [Kinesis Data Firehose delivery stream](/docs/providers/aws/r/kinesis_firehose_delivery_stream.html), identifies the delivery stream's ARN.
 * `kinesis_streams_input` - (Optional) If the streaming source is a [Kinesis data stream](/docs/providers/aws/r/kinesis_stream.html), identifies the stream's Amazon Resource Name (ARN).
 
@@ -388,6 +406,12 @@ The `csv_mapping_parameters` object supports the following:
 The `json_mapping_parameters` object supports the following:
 
 * `record_row_path` - (Required) The path to the top-level parent that contains the records.
+
+The `input_starting_position_configuration` object supports the following:
+
+~> **NOTE**: To modify an application's starting position, first stop the application by setting `start_application = false`, then update `starting_position` and set `start_application = true`.
+
+* `input_starting_position` - (Required) The starting position on the stream. Valid values: `LAST_STOPPED_POINT`, `NOW`, `TRIM_HORIZON`.
 
 The `kinesis_firehose_input` object supports the following:
 
@@ -457,6 +481,7 @@ In addition to all arguments above, the following attributes are exported:
 * `last_update_timestamp` - The current timestamp when the application was last updated.
 * `status` - The status of the application.
 * `version_id` - The current application version. Kinesis Data Analytics updates the `version_id` each time the application is updated.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

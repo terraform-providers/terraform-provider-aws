@@ -26,6 +26,7 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
 			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
 		},
+		ErrorCheck:   testAccErrorCheck(t, devicefarm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{
@@ -59,6 +60,7 @@ func TestAccAWSDeviceFarmProject_disappears(t *testing.T) {
 			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
 			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
 		},
+		ErrorCheck:   testAccErrorCheck(t, devicefarm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acm"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -177,19 +178,32 @@ func resourceAwsAcmCertificateValidationRead(d *schema.ResourceData, meta interf
 
 	resp, err := acmconn.DescribeCertificate(params)
 
-	if err != nil && isAWSErr(err, acm.ErrCodeResourceNotFoundException, "") {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, acm.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] ACM Certificate (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
-	} else if err != nil {
-		return fmt.Errorf("Error describing certificate: %w", err)
 	}
 
-	if aws.StringValue(resp.Certificate.Status) != acm.CertificateStatusIssued {
-		log.Printf("[INFO] Certificate status not issued, was %s, tainting validation", aws.StringValue(resp.Certificate.Status))
-		d.SetId("")
-	} else {
-		d.SetId(aws.TimeValue(resp.Certificate.IssuedAt).String())
+	if err != nil {
+		return fmt.Errorf("error describing ACM Certificate (%s): %w", d.Id(), err)
 	}
+
+	if resp == nil || resp.Certificate == nil {
+		return fmt.Errorf("error describing ACM Certificate (%s): empty response", d.Id())
+	}
+
+	if status := aws.StringValue(resp.Certificate.Status); status != acm.CertificateStatusIssued {
+		if d.IsNewResource() {
+			return fmt.Errorf("ACM Certificate (%s) status not issued: %s", d.Id(), status)
+		}
+
+		log.Printf("[WARN] ACM Certificate (%s) status not issued (%s), removing from state", d.Id(), status)
+		d.SetId("")
+		return nil
+	}
+
+	d.SetId(aws.TimeValue(resp.Certificate.IssuedAt).String())
+
 	return nil
 }
 

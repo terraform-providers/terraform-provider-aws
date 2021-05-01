@@ -12,7 +12,7 @@ Provides a resource to manage a GuardDuty member. To accept invitations in membe
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_detector" "primary" {
   enable = true
 }

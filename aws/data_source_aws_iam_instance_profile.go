@@ -58,7 +58,7 @@ func dataSourceAwsIAMInstanceProfileRead(d *schema.ResourceData, meta interface{
 	log.Printf("[DEBUG] Reading IAM Instance Profile: %s", req)
 	resp, err := iamconn.GetInstanceProfile(req)
 	if err != nil {
-		return fmt.Errorf("Error getting instance profiles: %s", err)
+		return fmt.Errorf("Error getting instance profiles: %w", err)
 	}
 	if resp == nil {
 		return fmt.Errorf("no IAM instance profile found")

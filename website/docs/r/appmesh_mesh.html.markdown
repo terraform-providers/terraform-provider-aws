@@ -14,7 +14,7 @@ Provides an AWS App Mesh service mesh resource.
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_appmesh_mesh" "simple" {
   name = "simpleapp"
 }
@@ -22,7 +22,7 @@ resource "aws_appmesh_mesh" "simple" {
 
 ### Egress Filter
 
-```hcl
+```terraform
 resource "aws_appmesh_mesh" "simple" {
   name = "simpleapp"
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name to use for the service mesh. Must be between 1 and 255 characters in length.
 * `spec` - (Optional) The service mesh specification to apply.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `spec` object supports the following:
 
@@ -61,6 +61,7 @@ In addition to all arguments above, the following attributes are exported:
 * `last_updated_date` - The last update date of the service mesh.
 * `mesh_owner` - The AWS account ID of the service mesh's owner.
 * `resource_owner` - The resource owner's AWS account ID.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -66,6 +66,7 @@ func TestAccAWSUserLoginProfile_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -104,6 +105,7 @@ func TestAccAWSUserLoginProfile_keybase(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -139,6 +141,7 @@ func TestAccAWSUserLoginProfile_keybaseDoesntExist(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -156,6 +159,7 @@ func TestAccAWSUserLoginProfile_notAKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{
@@ -175,6 +179,7 @@ func TestAccAWSUserLoginProfile_PasswordLength(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
 		Steps: []resource.TestStep{

@@ -28,7 +28,7 @@ func testSweepSecretsManagerSecrets(region string) error {
 	}
 	conn := client.(*AWSClient).secretsmanagerconn
 
-	err = conn.ListSecretsPages(&secretsmanager.ListSecretsInput{}, func(page *secretsmanager.ListSecretsOutput, isLast bool) bool {
+	err = conn.ListSecretsPages(&secretsmanager.ListSecretsInput{}, func(page *secretsmanager.ListSecretsOutput, lastPage bool) bool {
 		if len(page.SecretList) == 0 {
 			log.Print("[DEBUG] No Secrets Manager Secrets to sweep")
 			return true
@@ -52,7 +52,7 @@ func testSweepSecretsManagerSecrets(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -71,6 +71,7 @@ func TestAccAwsSecretsManagerSecret_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -106,6 +107,7 @@ func TestAccAwsSecretsManagerSecret_withNamePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -134,6 +136,7 @@ func TestAccAwsSecretsManagerSecret_Description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -168,6 +171,7 @@ func TestAccAwsSecretsManagerSecret_KmsKeyID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -202,6 +206,7 @@ func TestAccAwsSecretsManagerSecret_RecoveryWindowInDays_Recreate(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -238,6 +243,7 @@ func TestAccAwsSecretsManagerSecret_RotationLambdaARN(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -289,6 +295,7 @@ func TestAccAwsSecretsManagerSecret_RotationRules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -342,6 +349,7 @@ func TestAccAwsSecretsManagerSecret_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -395,6 +403,7 @@ func TestAccAwsSecretsManagerSecret_policy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSecretsManagerSecretDestroy,
 		Steps: []resource.TestStep{
@@ -439,7 +448,7 @@ func testAccCheckAwsSecretsManagerSecretDestroy(s *terraform.State) error {
 
 		var output *secretsmanager.DescribeSecretOutput
 
-		err := resource.Retry(waiter.DeletionPropagationTimeout, func() *resource.RetryError {
+		err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 			var err error
 			output, err = conn.DescribeSecret(input)
 

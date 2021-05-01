@@ -96,7 +96,7 @@ func (tf *Terraform) Plan(ctx context.Context, opts ...PlanOption) (bool, error)
 	if err != nil {
 		return false, err
 	}
-	err = tf.runTerraformCmd(cmd)
+	err = tf.runTerraformCmd(ctx, cmd)
 	if err != nil && cmd.ProcessState.ExitCode() == 2 {
 		return true, nil
 	}

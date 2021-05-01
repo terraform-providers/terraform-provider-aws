@@ -12,9 +12,9 @@ Provides an AWS Network Firewall Rule Group Resource
 
 ## Example Usage
 
-### Stateful Inspection
+### Stateful Inspection for denying access to a domain
 
-```hcl
+```terraform
 resource "aws_networkfirewall_rule_group" "example" {
   capacity = 100
   name     = "example"
@@ -36,9 +36,49 @@ resource "aws_networkfirewall_rule_group" "example" {
 }
 ```
 
-### Stateful Inspection compatible with intrusion detection systems like Snort or Suricata
+### Stateful Inspection for permitting packets from a source IP address
 
-```hcl
+```terraform
+resource "aws_networkfirewall_rule_group" "example" {
+  capacity    = 50
+  description = "Permits http traffic from source"
+  name        = "example"
+  type        = "STATEFUL"
+  rule_group {
+    rules_source {
+      dynamic "stateful_rule" {
+        for_each = local.ips
+        content {
+          action = "PASS"
+          header {
+            destination      = "ANY"
+            destination_port = "ANY"
+            protocol         = "HTTP"
+            direction        = "ANY"
+            source_port      = "ANY"
+            source           = stateful_rule.value
+          }
+          rule_option {
+            keyword = "sid:1"
+          }
+        }
+      }
+    }
+  }
+
+  tags = {
+    Name = "permit HTTP from source"
+  }
+}
+
+locals {
+  ips = ["1.1.1.1/32", "1.0.0.1/32"]
+}
+```
+
+### Stateful Inspection for blocking packets from going to an intended destination
+
+```terraform
 resource "aws_networkfirewall_rule_group" "example" {
   capacity = 100
   name     = "example"
@@ -71,7 +111,7 @@ resource "aws_networkfirewall_rule_group" "example" {
 
 ### Stateful Inspection from rules specifications defined in Suricata flat format
 
-```hcl
+```terraform
 resource "aws_networkfirewall_rule_group" "example" {
   capacity = 100
   name     = "example"
@@ -87,7 +127,7 @@ resource "aws_networkfirewall_rule_group" "example" {
 
 ### Stateless Inspection with a Custom Action
 
-```hcl
+```terraform
 resource "aws_networkfirewall_rule_group" "example" {
   description = "Stateless Rate Limiting Rule"
   capacity    = 100
@@ -158,7 +198,7 @@ The following arguments are supported:
 
 * `rules` - (Optional) The stateful rule group rules specifications in Suricata file format, with one rule per line. Use this to import your existing Suricata compatible rule groups. Required unless `rule_group` is specified.
 
-* `tags` - (Optional) A map of key:value pairs to associate with the resource.
+* `tags` - (Optional) A map of key:value pairs to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 * `type` - (Required) Whether the rule group is stateless (containing stateless rules) or stateful (containing stateful rules). Valid values include: `STATEFUL` or `STATELESS`.
 
@@ -376,6 +416,8 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Amazon Resource Name (ARN) that identifies the rule group.
 
 * `arn` - The Amazon Resource Name (ARN) that identifies the rule group.
+
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 * `update_token` - A string token used when updating the rule group.
 

@@ -20,6 +20,7 @@ func TestAccAWSAPIGatewayV2IntegrationResponse_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationResponseDestroy,
 		Steps: []resource.TestStep{
@@ -52,6 +53,7 @@ func TestAccAWSAPIGatewayV2IntegrationResponse_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationResponseDestroy,
 		Steps: []resource.TestStep{
@@ -76,6 +78,7 @@ func TestAccAWSAPIGatewayV2IntegrationResponse_AllAttributes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationResponseDestroy,
 		Steps: []resource.TestStep{

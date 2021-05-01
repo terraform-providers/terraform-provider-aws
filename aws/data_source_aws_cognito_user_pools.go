@@ -39,7 +39,7 @@ func dataSourceAwsCognitoUserPoolsRead(d *schema.ResourceData, meta interface{})
 
 	pools, err := getAllCognitoUserPools(conn)
 	if err != nil {
-		return fmt.Errorf("Error listing cognito user pools: %s", err)
+		return fmt.Errorf("Error listing cognito user pools: %w", err)
 	}
 	for _, pool := range pools {
 		if name == aws.StringValue(pool.Name) {

@@ -58,9 +58,9 @@ func testSweepSsoAdminAccountAssignments(region string) error {
 		InstanceArn: aws.String(instanceArn),
 	}
 
-	err = conn.ListPermissionSetsPages(input, func(page *ssoadmin.ListPermissionSetsOutput, isLast bool) bool {
+	err = conn.ListPermissionSetsPages(input, func(page *ssoadmin.ListPermissionSetsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, permissionSet := range page.PermissionSets {
@@ -117,7 +117,7 @@ func testSweepSsoAdminAccountAssignments(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {
@@ -143,6 +143,7 @@ func TestAccAWSSSOAdminAccountAssignment_Basic_Group(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreGroupName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminAccountAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -175,6 +176,7 @@ func TestAccAWSSSOAdminAccountAssignment_Basic_User(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreUserName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminAccountAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -207,6 +209,7 @@ func TestAccAWSSSOAdminAccountAssignment_Disappears(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreGroupName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminAccountAssignmentDestroy,
 		Steps: []resource.TestStep{

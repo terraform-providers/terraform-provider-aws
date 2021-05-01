@@ -16,7 +16,7 @@ Provides a resource to manage an S3 Control Bucket Lifecycle Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3control_bucket_lifecycle_configuration" "example" {
   bucket = aws_s3control_bucket.example.arn
 

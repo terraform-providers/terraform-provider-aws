@@ -12,7 +12,7 @@ Provides a DAX Cluster resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dax_cluster" "bar" {
   cluster_name       = "cluster-example"
   iam_role_arn       = data.aws_iam_role.example.arn
@@ -64,7 +64,7 @@ with the cluster
 * `subnet_group_name` – (Optional) Name of the subnet group to be used for the
 cluster
 
-* `tags` - (Optional) A map of tags to assign to the resource
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `server_side_encryption` object supports the following:
 
@@ -86,6 +86,8 @@ consisting of a DNS name and a port number
 * `cluster_address` - The DNS name of the DAX cluster without the port appended
 
 * `port` - The port used by the configuration endpoint
+
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

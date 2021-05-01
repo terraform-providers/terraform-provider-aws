@@ -12,7 +12,7 @@ Use this data source to get ARNs and Identity Store IDs of Single Sign-On (SSO) 
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ssoadmin_instances" "example" {}
 
 output "arn" {

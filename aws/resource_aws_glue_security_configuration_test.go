@@ -68,6 +68,7 @@ func TestAccAWSGlueSecurityConfiguration_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueSecurityConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -106,6 +107,7 @@ func TestAccAWSGlueSecurityConfiguration_CloudWatchEncryption_CloudWatchEncrypti
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueSecurityConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -137,6 +139,7 @@ func TestAccAWSGlueSecurityConfiguration_JobBookmarksEncryption_JobBookmarksEncr
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueSecurityConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -168,6 +171,7 @@ func TestAccAWSGlueSecurityConfiguration_S3Encryption_S3EncryptionMode_SSEKMS(t 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueSecurityConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -198,6 +202,7 @@ func TestAccAWSGlueSecurityConfiguration_S3Encryption_S3EncryptionMode_SSES3(t *
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueSecurityConfigurationDestroy,
 		Steps: []resource.TestStep{

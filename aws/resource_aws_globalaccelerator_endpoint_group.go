@@ -3,15 +3,18 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfglobalaccelerator "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/globalaccelerator/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsGlobalAcceleratorEndpointGroup() *schema.Resource {
@@ -200,16 +203,14 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 
 	d.SetId(aws.StringValue(resp.EndpointGroup.EndpointGroupArn))
 
-	acceleratorArn, err := resourceAwsGlobalAcceleratorListenerParseAcceleratorArn(d.Id())
+	acceleratorARN, err := tfglobalaccelerator.ListenerOrEndpointGroupARNToAcceleratorARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, d.Timeout(schema.TimeoutCreate))
-
-	if err != nil {
-		return err
+	if _, err := waiter.AcceleratorDeployed(conn, acceleratorARN, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return fmt.Errorf("error waiting for Global Accelerator Accelerator (%s) deployment: %w", acceleratorARN, err)
 	}
 
 	return resourceAwsGlobalAcceleratorEndpointGroupRead(d, meta)
@@ -220,7 +221,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupRead(d *schema.ResourceData, meta 
 
 	endpointGroup, err := finder.EndpointGroupByARN(conn, d.Id())
 
-	if isAWSErr(err, globalaccelerator.ErrCodeEndpointGroupNotFoundException, "") {
+	if !d.IsNewResource() && tfresource.NotFound(err) {
 		log.Printf("[WARN] Global Accelerator endpoint group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -230,13 +231,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupRead(d *schema.ResourceData, meta 
 		return fmt.Errorf("error reading Global Accelerator endpoint group (%s): %w", d.Id(), err)
 	}
 
-	if endpointGroup == nil {
-		log.Printf("[WARN] Global Accelerator endpoint group (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
-	listenerArn, err := resourceAwsGlobalAcceleratorEndpointGroupParseListenerArn(d.Id())
+	listenerARN, err := tfglobalaccelerator.EndpointGroupARNToListenerARN(d.Id())
 
 	if err != nil {
 		return err
@@ -251,7 +246,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupRead(d *schema.ResourceData, meta 
 	d.Set("health_check_path", endpointGroup.HealthCheckPath)
 	d.Set("health_check_port", endpointGroup.HealthCheckPort)
 	d.Set("health_check_protocol", endpointGroup.HealthCheckProtocol)
-	d.Set("listener_arn", listenerArn)
+	d.Set("listener_arn", listenerARN)
 	if err := d.Set("port_override", flattenGlobalAcceleratorPortOverrides(endpointGroup.PortOverrides)); err != nil {
 		return fmt.Errorf("error setting port_override: %w", err)
 	}
@@ -312,16 +307,14 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("error updating Global Accelerator endpoint group (%s): %w", d.Id(), err)
 	}
 
-	acceleratorArn, err := resourceAwsGlobalAcceleratorListenerParseAcceleratorArn(d.Id())
+	acceleratorARN, err := tfglobalaccelerator.ListenerOrEndpointGroupARNToAcceleratorARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, d.Timeout(schema.TimeoutUpdate))
-
-	if err != nil {
-		return err
+	if _, err := waiter.AcceleratorDeployed(conn, acceleratorARN, d.Timeout(schema.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("error waiting for Global Accelerator Accelerator (%s) deployment: %w", acceleratorARN, err)
 	}
 
 	return resourceAwsGlobalAcceleratorEndpointGroupRead(d, meta)
@@ -330,13 +323,14 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 func resourceAwsGlobalAcceleratorEndpointGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).globalacceleratorconn
 
-	opts := &globalaccelerator.DeleteEndpointGroupInput{
+	input := &globalaccelerator.DeleteEndpointGroupInput{
 		EndpointGroupArn: aws.String(d.Id()),
 	}
 
-	_, err := conn.DeleteEndpointGroup(opts)
+	log.Printf("[DEBUG] Deleting Global Accelerator endpoint group (%s)", d.Id())
+	_, err := conn.DeleteEndpointGroup(input)
 
-	if isAWSErr(err, globalaccelerator.ErrCodeEndpointGroupNotFoundException, "") {
+	if tfawserr.ErrCodeEquals(err, globalaccelerator.ErrCodeEndpointGroupNotFoundException) {
 		return nil
 	}
 
@@ -344,27 +338,17 @@ func resourceAwsGlobalAcceleratorEndpointGroupDelete(d *schema.ResourceData, met
 		return fmt.Errorf("error deleting Global Accelerator endpoint group (%s): %w", d.Id(), err)
 	}
 
-	acceleratorArn, err := resourceAwsGlobalAcceleratorListenerParseAcceleratorArn(d.Id())
+	acceleratorARN, err := tfglobalaccelerator.ListenerOrEndpointGroupARNToAcceleratorARN(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn, d.Timeout(schema.TimeoutDelete))
-
-	if err != nil {
-		return err
+	if _, err := waiter.AcceleratorDeployed(conn, acceleratorARN, d.Timeout(schema.TimeoutDelete)); err != nil {
+		return fmt.Errorf("error waiting for Global Accelerator Accelerator (%s) deployment: %w", acceleratorARN, err)
 	}
 
 	return nil
-}
-
-func resourceAwsGlobalAcceleratorEndpointGroupParseListenerArn(endpointGroupArn string) (string, error) {
-	parts := strings.Split(endpointGroupArn, "/")
-	if len(parts) < 6 {
-		return "", fmt.Errorf("Unable to parse listener ARN from %s", endpointGroupArn)
-	}
-	return strings.Join(parts[0:4], "/"), nil
 }
 
 func expandGlobalAcceleratorEndpointConfigurations(configurations []interface{}) []*globalaccelerator.EndpointConfiguration {

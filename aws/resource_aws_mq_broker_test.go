@@ -3,16 +3,20 @@ package aws
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/mq"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/mq/waiter"
 )
 
 func init() {
@@ -94,16 +98,31 @@ func testSweepMqBrokers(region string) error {
 	}
 	log.Printf("[DEBUG] %d MQ brokers found", len(resp.BrokerSummaries))
 
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(resp.BrokerSummaries), func(i, j int) {
+		resp.BrokerSummaries[i], resp.BrokerSummaries[j] = resp.BrokerSummaries[j], resp.BrokerSummaries[i]
+	})
+
 	for _, bs := range resp.BrokerSummaries {
-		log.Printf("[INFO] Deleting MQ broker %s", *bs.BrokerId)
+		log.Printf("[INFO] Deleting MQ broker %s", aws.StringValue(bs.BrokerId))
 		_, err := conn.DeleteBroker(&mq.DeleteBrokerInput{
 			BrokerId: bs.BrokerId,
 		})
+		if tfawserr.ErrMessageContains(err, mq.ErrCodeBadRequestException, "while in state [CREATION_IN_PROGRESS") {
+			log.Printf("[WARN] Broker in state CREATION_IN_PROGRESS and must complete creation before deletion")
+			if _, err = waiter.BrokerCreated(conn, aws.StringValue(bs.BrokerId)); err != nil {
+				return err
+			}
+
+			log.Printf("[WARN] Retrying deletion of broker %s", aws.StringValue(bs.BrokerId))
+			_, err = conn.DeleteBroker(&mq.DeleteBrokerInput{
+				BrokerId: bs.BrokerId,
+			})
+		}
 		if err != nil {
 			return err
 		}
-		err = waitForMqBrokerDeletion(conn, *bs.BrokerId)
-		if err != nil {
+		if _, err = waiter.BrokerDeleted(conn, aws.StringValue(bs.BrokerId)); err != nil {
 			return err
 		}
 	}
@@ -235,21 +254,26 @@ func TestDiffAwsMqBrokerUsers(t *testing.T) {
 
 func TestAccAWSMqBroker_basic(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig(sgName, brokerName),
+				Config: testAccMqBrokerConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "auto_minor_version_upgrade", "false"),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "authentication_strategy", "simple"),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.revision", regexp.MustCompile(`^[0-9]+$`)),
@@ -268,6 +292,7 @@ func TestAccAWSMqBroker_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.0.time_zone", "UTC"),
 					resource.TestCheckResourceAttr(resourceName, "publicly_accessible", "false"),
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_type", "efs"),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
@@ -300,12 +325,76 @@ func TestAccAWSMqBroker_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSMqBroker_throughputOptimized(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqBrokerEBSConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "auto_minor_version_upgrade", "false"),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
+					resource.TestMatchResourceAttr(resourceName, "configuration.0.revision", regexp.MustCompile(`^[0-9]+$`)),
+					resource.TestCheckResourceAttr(resourceName, "deployment_mode", "SINGLE_INSTANCE"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_options.0.use_aws_owned_key", "true"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.9"),
+					resource.TestCheckResourceAttr(resourceName, "storage_type", "ebs"),
+					resource.TestCheckResourceAttr(resourceName, "host_instance_type", "mq.m5.large"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "maintenance_window_start_time.0.day_of_week"),
+					resource.TestCheckResourceAttrSet(resourceName, "maintenance_window_start_time.0.time_of_day"),
+					resource.TestCheckResourceAttr(resourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.general", "true"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.audit", "false"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.0.time_zone", "UTC"),
+					resource.TestCheckResourceAttr(resourceName, "publicly_accessible", "false"),
+					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+						"console_access": "false",
+						"groups.#":       "0",
+						"username":       "Test",
+						"password":       "TestTest1234",
+					}),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`broker:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "instances.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.console_url",
+						regexp.MustCompile(`^https://[a-f0-9-]+\.mq.[a-z0-9-]+.amazonaws.com:8162$`)),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.ip_address",
+						regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`)),
+					resource.TestCheckResourceAttr(resourceName, "instances.0.endpoints.#", "5"),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.0", regexp.MustCompile(`^ssl://[a-z0-9-\.]+:61617$`)),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.1", regexp.MustCompile(`^amqp\+ssl://[a-z0-9-\.]+:5671$`)),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.2", regexp.MustCompile(`^stomp\+ssl://[a-z0-9-\.]+:61614$`)),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.3", regexp.MustCompile(`^mqtt\+ssl://[a-z0-9-\.]+:8883$`)),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.4", regexp.MustCompile(`^wss://[a-z0-9-\.]+:61619$`)),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSMqBroker_allFieldsDefaultVpc(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	cfgNameBefore := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	cfgNameAfter := fmt.Sprintf("tf-acc-test-updated-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test-updated")
 	resourceName := "aws_mq_broker.test"
 
 	cfgBodyBefore := `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -321,22 +410,28 @@ func TestAccAWSMqBroker_allFieldsDefaultVpc(t *testing.T) {
 </broker>`
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig_allFieldsDefaultVpc(sgName, cfgNameBefore, cfgBodyBefore, brokerName),
+				Config: testAccMqBrokerConfig_allFieldsDefaultVpc(rName, rName, cfgBodyBefore),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "auto_minor_version_upgrade", "true"),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "configuration.0.revision", "2"),
 					resource.TestCheckResourceAttr(resourceName, "deployment_mode", "ACTIVE_STANDBY_MULTI_AZ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+					resource.TestCheckResourceAttr(resourceName, "storage_type", "efs"),
 					resource.TestCheckResourceAttr(resourceName, "host_instance_type", "mq.t2.micro"),
 					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.0.day_of_week", "TUESDAY"),
@@ -396,10 +491,10 @@ func TestAccAWSMqBroker_allFieldsDefaultVpc(t *testing.T) {
 			},
 			{
 				// Update configuration in-place
-				Config: testAccMqBrokerConfig_allFieldsDefaultVpc(sgName, cfgNameBefore, cfgBodyAfter, brokerName),
+				Config: testAccMqBrokerConfig_allFieldsDefaultVpc(rName, rName, cfgBodyAfter),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "configuration.0.revision", "3"),
@@ -407,10 +502,10 @@ func TestAccAWSMqBroker_allFieldsDefaultVpc(t *testing.T) {
 			},
 			{
 				// Replace configuration
-				Config: testAccMqBrokerConfig_allFieldsDefaultVpc(sgName, cfgNameAfter, cfgBodyAfter, brokerName),
+				Config: testAccMqBrokerConfig_allFieldsDefaultVpc(rName, rNameUpdated, cfgBodyAfter),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "configuration.0.revision", "2"),
@@ -422,10 +517,8 @@ func TestAccAWSMqBroker_allFieldsDefaultVpc(t *testing.T) {
 
 func TestAccAWSMqBroker_allFieldsCustomVpc(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-vpc-%s", acctest.RandString(5))
-	cfgNameBefore := fmt.Sprintf("tf-acc-test-vpc-%s", acctest.RandString(5))
-	cfgNameAfter := fmt.Sprintf("tf-acc-test-vpc-updated-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-vpc-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test-updated")
 	resourceName := "aws_mq_broker.test"
 
 	cfgBodyBefore := `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -441,22 +534,28 @@ func TestAccAWSMqBroker_allFieldsCustomVpc(t *testing.T) {
 </broker>`
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig_allFieldsCustomVpc(sgName, cfgNameBefore, cfgBodyBefore, brokerName),
+				Config: testAccMqBrokerConfig_allFieldsCustomVpc(rName, rName, cfgBodyBefore),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "auto_minor_version_upgrade", "true"),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "configuration.0.revision", "2"),
 					resource.TestCheckResourceAttr(resourceName, "deployment_mode", "ACTIVE_STANDBY_MULTI_AZ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+					resource.TestCheckResourceAttr(resourceName, "storage_type", "efs"),
 					resource.TestCheckResourceAttr(resourceName, "host_instance_type", "mq.t2.micro"),
 					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.0.day_of_week", "TUESDAY"),
@@ -516,10 +615,10 @@ func TestAccAWSMqBroker_allFieldsCustomVpc(t *testing.T) {
 			},
 			{
 				// Update configuration in-place
-				Config: testAccMqBrokerConfig_allFieldsCustomVpc(sgName, cfgNameBefore, cfgBodyAfter, brokerName),
+				Config: testAccMqBrokerConfig_allFieldsCustomVpc(rName, rName, cfgBodyAfter),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "configuration.0.revision", "3"),
@@ -527,10 +626,10 @@ func TestAccAWSMqBroker_allFieldsCustomVpc(t *testing.T) {
 			},
 			{
 				// Replace configuration
-				Config: testAccMqBrokerConfig_allFieldsCustomVpc(sgName, cfgNameAfter, cfgBodyAfter, brokerName),
+				Config: testAccMqBrokerConfig_allFieldsCustomVpc(rName, rNameUpdated, cfgBodyAfter),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "configuration.#", "1"),
 					resource.TestMatchResourceAttr(resourceName, "configuration.0.id", regexp.MustCompile(`^c-[a-z0-9-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "configuration.0.revision", "2"),
@@ -547,7 +646,12 @@ func TestAccAWSMqBroker_EncryptionOptions_KmsKeyId(t *testing.T) {
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
@@ -576,7 +680,12 @@ func TestAccAWSMqBroker_EncryptionOptions_UseAwsOwnedKey_Disabled(t *testing.T) 
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
@@ -604,7 +713,12 @@ func TestAccAWSMqBroker_EncryptionOptions_UseAwsOwnedKey_Enabled(t *testing.T) {
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
@@ -628,17 +742,21 @@ func TestAccAWSMqBroker_EncryptionOptions_UseAwsOwnedKey_Enabled(t *testing.T) {
 
 func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig_updateUsers1(sgName, brokerName),
+				Config: testAccMqBrokerConfig_updateUsers1(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
@@ -658,7 +776,7 @@ func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 			},
 			// Adding new user + modify existing
 			{
-				Config: testAccMqBrokerConfig_updateUsers2(sgName, brokerName),
+				Config: testAccMqBrokerConfig_updateUsers2(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "2"),
@@ -678,7 +796,7 @@ func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 			},
 			// Deleting user + modify existing
 			{
-				Config: testAccMqBrokerConfig_updateUsers3(sgName, brokerName),
+				Config: testAccMqBrokerConfig_updateUsers3(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
@@ -695,23 +813,27 @@ func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 	})
 }
 
-func TestAccAWSMqBroker_updateTags(t *testing.T) {
+func TestAccAWSMqBroker_tags(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig_updateTags1(sgName, brokerName),
+				Config: testAccMqBrokerConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
 			},
 			{
@@ -720,23 +842,21 @@ func TestAccAWSMqBroker_updateTags(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
 			},
-			// Modify existing tags
 			{
-				Config: testAccMqBrokerConfig_updateTags2(sgName, brokerName),
+				Config: testAccMqBrokerConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.role", "test-role"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
-			// Deleting tags
 			{
-				Config: testAccMqBrokerConfig_updateTags3(sgName, brokerName),
+				Config: testAccMqBrokerConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.role", "test-role"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -745,17 +865,21 @@ func TestAccAWSMqBroker_updateTags(t *testing.T) {
 
 func TestAccAWSMqBroker_updateSecurityGroup(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig(sgName, brokerName),
+				Config: testAccMqBrokerConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
@@ -768,7 +892,7 @@ func TestAccAWSMqBroker_updateSecurityGroup(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
 			},
 			{
-				Config: testAccMqBrokerConfig_updateSecurityGroups(sgName, brokerName),
+				Config: testAccMqBrokerConfig_updateSecurityGroups(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "2"),
@@ -777,7 +901,7 @@ func TestAccAWSMqBroker_updateSecurityGroup(t *testing.T) {
 			// Trigger a reboot and ensure the password change was applied
 			// User hashcode can be retrieved by calling resourceAwsMqUserHash
 			{
-				Config: testAccMqBrokerConfig_updateUsersSecurityGroups(sgName, brokerName),
+				Config: testAccMqBrokerConfig_updateUsersSecurityGroups(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
@@ -792,24 +916,285 @@ func TestAccAWSMqBroker_updateSecurityGroup(t *testing.T) {
 	})
 }
 
-func TestAccAWSMqBroker_disappears(t *testing.T) {
+func TestAccAWSMqBroker_updateEngineVersion(t *testing.T) {
 	var broker mq.DescribeBrokerResponse
-	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_broker.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqBrokerConfig(sgName, brokerName),
+				Config: testAccMqBrokerConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
-					testAccCheckAwsMqBrokerDisappears(&broker),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+			},
+			{
+				Config: testAccMqBrokerEngineVersionUpdateConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.9"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_disappears(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqBrokerConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsMqBroker(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_rabbitmq(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqBrokerConfigRabbit(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "RabbitMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.8.6"),
+					resource.TestCheckResourceAttr(resourceName, "host_instance_type", "mq.t3.micro"),
+					resource.TestCheckResourceAttr(resourceName, "instances.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "instances.0.endpoints.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.0", regexp.MustCompile(`^amqps://[a-z0-9-\.]+:5671$`)),
+					resource.TestCheckResourceAttr(resourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.general", "false"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.audit", ""),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_rabbitmq_Logs(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqBrokerConfigRabbitLogs(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "RabbitMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.8.6"),
+					resource.TestCheckResourceAttr(resourceName, "host_instance_type", "mq.t3.micro"),
+					resource.TestCheckResourceAttr(resourceName, "instances.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "instances.0.endpoints.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.0", regexp.MustCompile(`^amqps://[a-z0-9-\.]+:5671$`)),
+					resource.TestCheckResourceAttr(resourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.general", "true"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.audit", ""),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_rabbitmq_Validation_AuditLog(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMqBrokerConfigRabbitAuditLog(rName, true),
+				ExpectError: regexp.MustCompile(`logs.audit: Can not be configured when engine is RabbitMQ`),
+			},
+			{
+				// Special case: allow explicitly setting logs.0.audit to false,
+				// though the AWS API does not accept the parameter.
+				Config: testAccMqBrokerConfigRabbitAuditLog(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.general", "true"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.audit", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_clusterRabbitMQ(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRabbitMqClusterBrokerConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "auto_minor_version_upgrade", "false"),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "deployment_mode", "CLUSTER_MULTI_AZ"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_options.0.use_aws_owned_key", "true"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "RabbitMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.8.6"),
+					resource.TestCheckResourceAttr(resourceName, "host_instance_type", "mq.m5.large"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "maintenance_window_start_time.0.day_of_week"),
+					resource.TestCheckResourceAttrSet(resourceName, "maintenance_window_start_time.0.time_of_day"),
+					resource.TestCheckResourceAttr(resourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.general", "false"),
+					resource.TestCheckResourceAttr(resourceName, "logs.0.audit", ""),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_window_start_time.0.time_zone", "UTC"),
+					resource.TestCheckResourceAttr(resourceName, "publicly_accessible", "false"),
+					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "4"),
+					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+						"console_access": "false",
+						"groups.#":       "0",
+						"username":       "Test",
+						"password":       "TestTest1234",
+					}),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`broker:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "instances.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.console_url",
+						regexp.MustCompile(`^https://[a-f0-9-]+\.mq.[a-z0-9-]+.amazonaws.com$`)),
+					resource.TestCheckResourceAttr(resourceName, "instances.0.endpoints.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "instances.0.endpoints.0", regexp.MustCompile(`^amqps://[a-z0-9-\.]+:5671$`)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_ldap(t *testing.T) {
+	var broker mq.DescribeBrokerResponse
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_broker.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqBrokerConfig_ldap(rName, "anyusername"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists(resourceName, &broker),
+					resource.TestCheckResourceAttr(resourceName, "auto_minor_version_upgrade", "false"),
+					resource.TestCheckResourceAttr(resourceName, "broker_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "authentication_strategy", "ldap"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.hosts.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.hosts.0", "my.ldap.server-1.com"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.hosts.1", "my.ldap.server-2.com"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.role_base", "role.base"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.role_name", "role.name"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.role_search_matching", "role.search.matching"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.role_search_subtree", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.service_account_username", "anyusername"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.user_base", "user.base"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.user_role_name", "user.role.name"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.user_search_matching", "user.search.matching"),
+					resource.TestCheckResourceAttr(resourceName, "ldap_server_metadata.0.user_search_subtree", "true"),
+				),
 			},
 		},
 	})
@@ -867,17 +1252,6 @@ func testAccCheckAwsMqBrokerExists(name string, broker *mq.DescribeBrokerRespons
 	}
 }
 
-func testAccCheckAwsMqBrokerDisappears(broker *mq.DescribeBrokerResponse) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).mqconn
-		_, err := conn.DeleteBroker(&mq.DeleteBrokerInput{
-			BrokerId: broker.BrokerId,
-		})
-
-		return err
-	}
-}
-
 func testAccPreCheckAWSMq(t *testing.T) {
 	conn := testAccProvider.Meta().(*AWSClient).mqconn
 
@@ -894,16 +1268,70 @@ func testAccPreCheckAWSMq(t *testing.T) {
 	}
 }
 
-func testAccMqBrokerConfig(sgName, brokerName string) string {
+func testAccMqBrokerConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_mq_broker" "test" {
-  broker_name        = "%s"
+  broker_name             = %[1]q
+  engine_type             = "ActiveMQ"
+  engine_version          = "5.15.0"
+  host_instance_type      = "mq.t2.micro"
+  security_groups         = [aws_security_group.test.id]
+  authentication_strategy = "simple"
+  storage_type            = "efs"
+
+  logs {
+    general = true
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+`, rName)
+}
+
+func testAccMqBrokerEBSConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_mq_broker" "test" {
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
-  engine_version     = "5.15.0"
+  engine_version     = "5.15.9"
+  storage_type       = "ebs"
+  host_instance_type = "mq.m5.large"
+  security_groups    = [aws_security_group.test.id]
+
+  logs {
+    general = true
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+`, rName)
+}
+
+func testAccMqBrokerEngineVersionUpdateConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_mq_broker" "test" {
+  broker_name        = %[1]q
+  apply_immediately  = true
+  engine_type        = "ActiveMQ"
+  engine_version     = "5.15.9"
   host_instance_type = "mq.t2.micro"
   security_groups    = [aws_security_group.test.id]
 
@@ -916,33 +1344,33 @@ resource "aws_mq_broker" "test" {
     password = "TestTest1234"
   }
 }
-`, sgName, brokerName)
+`, rName)
 }
 
-func testAccMqBrokerConfig_allFieldsDefaultVpc(sgName, cfgName, cfgBody, brokerName string) string {
+func testAccMqBrokerConfig_allFieldsDefaultVpc(rName, cfgName, cfgBody string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "mq1" {
-  name = "%s-1"
+  name = %[1]q
 }
 
 resource "aws_security_group" "mq2" {
-  name = "%s-2"
+  name = "%[1]s-2"
 }
 
 resource "aws_mq_configuration" "test" {
-  name           = "%s"
+  name           = %[2]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
   data = <<DATA
-%s
+%[3]s
 DATA
 }
 
 resource "aws_mq_broker" "test" {
   auto_minor_version_upgrade = true
   apply_immediately          = true
-  broker_name                = "%s"
+  broker_name                = %[1]q
 
   configuration {
     id       = aws_mq_configuration.test.id
@@ -952,6 +1380,7 @@ resource "aws_mq_broker" "test" {
   deployment_mode    = "ACTIVE_STANDBY_MULTI_AZ"
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
+  storage_type       = "efs"
   host_instance_type = "mq.t2.micro"
 
   maintenance_window_start_time {
@@ -975,10 +1404,10 @@ resource "aws_mq_broker" "test" {
     groups         = ["first", "second", "third"]
   }
 }
-`, sgName, sgName, cfgName, cfgBody, brokerName)
+`, rName, cfgName, cfgBody)
 }
 
-func testAccMqBrokerConfig_allFieldsCustomVpc(sgName, cfgName, cfgBody, brokerName string) string {
+func testAccMqBrokerConfig_allFieldsCustomVpc(rName, cfgName, cfgBody string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
@@ -993,12 +1422,16 @@ resource "aws_vpc" "main" {
   cidr_block = "10.11.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-mq-broker-all-fields-custom-vpc"
+    Name = %[1]q
   }
 }
 
 resource "aws_internet_gateway" "test" {
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = %[1]q
+  }
 }
 
 resource "aws_route_table" "test" {
@@ -1007,6 +1440,10 @@ resource "aws_route_table" "test" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.test.id
+  }
+
+  tags = {
+    Name = %[1]q
   }
 }
 
@@ -1017,7 +1454,7 @@ resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
 
   tags = {
-    Name = "tf-acc-mq-broker-all-fields-custom-vpc-${count.index}"
+    Name = %[1]q
   }
 }
 
@@ -1028,29 +1465,37 @@ resource "aws_route_table_association" "test" {
 }
 
 resource "aws_security_group" "mq1" {
-  name   = "%s-1"
+  name   = "%[1]s-1"
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = %[1]q
+  }
 }
 
 resource "aws_security_group" "mq2" {
-  name   = "%s-2"
+  name   = "%[1]s-2"
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = %[1]q
+  }
 }
 
 resource "aws_mq_configuration" "test" {
-  name           = "%s"
+  name           = %[2]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
   data = <<DATA
-%s
+%[3]s
 DATA
 }
 
 resource "aws_mq_broker" "test" {
   auto_minor_version_upgrade = true
   apply_immediately          = true
-  broker_name                = "%s"
+  broker_name                = %[1]q
 
   configuration {
     id       = aws_mq_configuration.test.id
@@ -1060,6 +1505,7 @@ resource "aws_mq_broker" "test" {
   deployment_mode    = "ACTIVE_STANDBY_MULTI_AZ"
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
+  storage_type       = "efs"
   host_instance_type = "mq.t2.micro"
 
   logs {
@@ -1091,7 +1537,7 @@ resource "aws_mq_broker" "test" {
 
   depends_on = [aws_internet_gateway.test]
 }
-`, sgName, sgName, cfgName, cfgBody, brokerName)
+`, rName, cfgName, cfgBody)
 }
 
 func testAccMqBrokerConfigEncryptionOptionsKmsKeyId(rName string) string {
@@ -1158,15 +1604,15 @@ resource "aws_mq_broker" "test" {
 `, rName, useAwsOwnedKey)
 }
 
-func testAccMqBrokerConfig_updateUsers1(sgName, brokerName string) string {
+func testAccMqBrokerConfig_updateUsers1(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1177,18 +1623,18 @@ resource "aws_mq_broker" "test" {
     password = "TestTest1111"
   }
 }
-`, sgName, brokerName)
+`, rName)
 }
 
-func testAccMqBrokerConfig_updateUsers2(sgName, brokerName string) string {
+func testAccMqBrokerConfig_updateUsers2(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1205,18 +1651,18 @@ resource "aws_mq_broker" "test" {
     password = "TestTest2222"
   }
 }
-`, sgName, brokerName)
+`, rName)
 }
 
-func testAccMqBrokerConfig_updateUsers3(sgName, brokerName string) string {
+func testAccMqBrokerConfig_updateUsers3(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1228,18 +1674,18 @@ resource "aws_mq_broker" "test" {
     groups   = ["admin"]
   }
 }
-`, sgName, brokerName)
+`, rName)
 }
 
-func testAccMqBrokerConfig_updateTags1(sgName, brokerName string) string {
+func testAccMqBrokerConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1251,21 +1697,21 @@ resource "aws_mq_broker" "test" {
   }
 
   tags = {
-    env = "test"
+    %[2]q = %[3]q
   }
 }
-`, sgName, brokerName)
+`, rName, tagKey1, tagValue1)
 }
 
-func testAccMqBrokerConfig_updateTags2(sgName, brokerName string) string {
+func testAccMqBrokerConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1277,52 +1723,26 @@ resource "aws_mq_broker" "test" {
   }
 
   tags = {
-    env  = "test2"
-    role = "test-role"
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, sgName, brokerName)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
-func testAccMqBrokerConfig_updateTags3(sgName, brokerName string) string {
+func testAccMqBrokerConfig_updateSecurityGroups(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
-}
-
-resource "aws_mq_broker" "test" {
-  apply_immediately  = true
-  broker_name        = "%s"
-  engine_type        = "ActiveMQ"
-  engine_version     = "5.15.0"
-  host_instance_type = "mq.t2.micro"
-  security_groups    = [aws_security_group.test.id]
-
-  user {
-    username = "Test"
-    password = "TestTest1234"
-  }
-
-  tags = {
-    role = "test-role"
-  }
-}
-`, sgName, brokerName)
-}
-
-func testAccMqBrokerConfig_updateSecurityGroups(sgName, brokerName string) string {
-	return fmt.Sprintf(`
-resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_security_group" "test2" {
-  name = "%s-2"
+  name = "%[1]s-2"
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1337,22 +1757,22 @@ resource "aws_mq_broker" "test" {
     password = "TestTest1234"
   }
 }
-`, sgName, sgName, brokerName)
+`, rName)
 }
 
-func testAccMqBrokerConfig_updateUsersSecurityGroups(sgName, brokerName string) string {
+func testAccMqBrokerConfig_updateUsersSecurityGroups(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_security_group" "test2" {
-  name = "%s-2"
+  name = "%[1]s-2"
 }
 
 resource "aws_mq_broker" "test" {
   apply_immediately  = true
-  broker_name        = "%s"
+  broker_name        = %[1]q
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
@@ -1367,5 +1787,141 @@ resource "aws_mq_broker" "test" {
     password = "TestTest9999"
   }
 }
-`, sgName, sgName, brokerName)
+`, rName)
+}
+
+func testAccMqBrokerConfigRabbit(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_mq_broker" "test" {
+  broker_name        = %[1]q
+  engine_type        = "RabbitMQ"
+  engine_version     = "3.8.6"
+  host_instance_type = "mq.t3.micro"
+  security_groups    = [aws_security_group.test.id]
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+`, rName)
+}
+
+func testAccMqBrokerConfigRabbitLogs(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_mq_broker" "test" {
+  broker_name        = %[1]q
+  engine_type        = "RabbitMQ"
+  engine_version     = "3.8.6"
+  host_instance_type = "mq.t3.micro"
+  security_groups    = [aws_security_group.test.id]
+
+  logs {
+    general = true
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+`, rName)
+}
+
+func testAccMqBrokerConfigRabbitAuditLog(rName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "aws_mq_broker" "test" {
+  broker_name        = %[1]q
+  engine_type        = "RabbitMQ"
+  engine_version     = "3.8.6"
+  host_instance_type = "mq.t3.micro"
+  security_groups    = [aws_security_group.test.id]
+
+  logs {
+    general = true
+    audit   = %[2]t
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+`, rName, enabled)
+}
+
+func testAccRabbitMqClusterBrokerConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_mq_broker" "test" {
+  broker_name        = %[1]q
+  engine_type        = "RabbitMQ"
+  engine_version     = "3.8.6"
+  host_instance_type = "mq.m5.large"
+  security_groups    = [aws_security_group.test.id]
+  storage_type       = "ebs"
+  deployment_mode    = "CLUSTER_MULTI_AZ"
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+`, rName)
+}
+
+func testAccMqBrokerConfig_ldap(rName, ldapUsername string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_mq_broker" "test" {
+  apply_immediately       = true
+  authentication_strategy = "ldap"
+  broker_name             = %[1]q
+  engine_type             = "ActiveMQ"
+  engine_version          = "5.15.0"
+  host_instance_type      = "mq.t2.micro"
+  security_groups         = [aws_security_group.test.id]
+
+  logs {
+    general = true
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+
+  ldap_server_metadata {
+    hosts                    = ["my.ldap.server-1.com", "my.ldap.server-2.com"]
+    role_base                = "role.base"
+    role_name                = "role.name"
+    role_search_matching     = "role.search.matching"
+    role_search_subtree      = true
+    service_account_password = "supersecret"
+    service_account_username = %[2]q
+    user_base                = "user.base"
+    user_role_name           = "user.role.name"
+    user_search_matching     = "user.search.matching"
+    user_search_subtree      = true
+  }
+}
+`, rName, ldapUsername)
 }

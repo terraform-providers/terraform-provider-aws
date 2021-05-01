@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -13,7 +14,7 @@ func TestAccAWSRoute53DelegationSetDataSource_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t) },
-		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		ErrorCheck: testAccErrorCheck(t, route53.EndpointsID),
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{

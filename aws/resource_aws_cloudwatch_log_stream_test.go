@@ -17,6 +17,7 @@ func TestAccAWSCloudWatchLogStream_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogStreamDestroy,
 		Steps: []resource.TestStep{
@@ -43,6 +44,7 @@ func TestAccAWSCloudWatchLogStream_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogStreamDestroy,
 		Steps: []resource.TestStep{
@@ -67,6 +69,7 @@ func TestAccAWSCloudWatchLogStream_disappears_LogGroup(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogStreamDestroy,
 		Steps: []resource.TestStep{
@@ -116,8 +119,9 @@ func testAccCheckAWSCloudWatchLogStreamDestroy(s *terraform.State) error {
 
 		logGroupName := rs.Primary.Attributes["log_group_name"]
 		_, exists, err := lookupCloudWatchLogStream(conn, rs.Primary.ID, logGroupName, nil)
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading CloudWatch Log Stream (%s): %w", rs.Primary.ID, err)
 		}
 
 		if exists {

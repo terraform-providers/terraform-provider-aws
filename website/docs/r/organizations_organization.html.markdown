@@ -14,7 +14,7 @@ Provides a resource to create an organization.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_organizations_organization" "org" {
   aws_service_access_principals = [
     "cloudtrail.amazonaws.com",

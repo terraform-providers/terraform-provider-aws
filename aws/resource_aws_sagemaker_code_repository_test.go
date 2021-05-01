@@ -7,9 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	tfsagemaker "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sagemaker"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sagemaker/finder"
 )
 
@@ -64,6 +66,7 @@ func TestAccAWSSagemakerCodeRepository_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerCodeRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -93,6 +96,7 @@ func TestAccAWSSagemakerCodeRepository_gitConfig_branch(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerCodeRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -123,6 +127,7 @@ func TestAccAWSSagemakerCodeRepository_gitConfig_secret(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerCodeRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -164,6 +169,7 @@ func TestAccAWSSagemakerCodeRepository_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerCodeRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -188,8 +194,13 @@ func testAccCheckAWSSagemakerCodeRepositoryDestroy(s *terraform.State) error {
 		}
 
 		codeRepository, err := finder.CodeRepositoryByName(conn, rs.Primary.ID)
+
+		if tfawserr.ErrMessageContains(err, tfsagemaker.ErrCodeValidationException, "Cannot find CodeRepository") {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker Code Repository (%s): %w", rs.Primary.ID, err)
 		}
 
 		if aws.StringValue(codeRepository.CodeRepositoryName) == rs.Primary.ID {

@@ -10,7 +10,7 @@ description: |-
 
 Version 3.0.0 of the AWS provider for Terraform is a major release and includes some changes that you will need to consider when upgrading. This guide is intended to help with that process and focuses only on changes from version 2.X to version 3.0.0. See the [Version 2 Upgrade Guide](/docs/providers/aws/guides/version-2-upgrade.html) for information about upgrading from 1.X to version 2.0.0.
 
-Most of the changes outlined in this guide have been previously marked as deprecated in the Terraform plan/apply output throughout previous provider releases. These changes, such as deprecation notices, can always be found in the [Terraform AWS Provider CHANGELOG](https://github.com/hashicorp/terraform-provider-aws/blob/master/CHANGELOG.md).
+Most of the changes outlined in this guide have been previously marked as deprecated in the Terraform plan/apply output throughout previous provider releases. These changes, such as deprecation notices, can always be found in the [Terraform AWS Provider CHANGELOG](https://github.com/hashicorp/terraform-provider-aws/blob/main/CHANGELOG.md).
 
 ~> **NOTE:** Version 3.0.0 and later of the AWS Provider can only be automatically installed on Terraform 0.12 and later.
 
@@ -67,7 +67,7 @@ It is recommended to use [version constraints when configuring Terraform provide
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 provider "aws" {
   # ... other configuration ...
 
@@ -77,7 +77,7 @@ provider "aws" {
 
 Update to latest 3.X version:
 
-```hcl
+```terraform
 provider "aws" {
   # ... other configuration ...
 
@@ -122,7 +122,7 @@ The [custom service endpoints](custom-service-endpoints.html) for Kinesis Analyt
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 provider "aws" {
   # ... potentially other configuration ...
 
@@ -137,7 +137,7 @@ provider "aws" {
 
 An updated configuration:
 
-```hcl
+```terraform
 provider "aws" {
   # ... potentially other configuration ...
 
@@ -158,7 +158,7 @@ Switch your Terraform configuration to the `exclude_names` attribute instead.
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 data "aws_availability_zones" "example" {
   blacklisted_names = ["us-west-2d"]
 }
@@ -166,7 +166,7 @@ data "aws_availability_zones" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 data "aws_availability_zones" "example" {
   exclude_names = ["us-west-2d"]
 }
@@ -178,7 +178,7 @@ Switch your Terraform configuration to the `exclude_zone_ids` attribute instead.
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 data "aws_availability_zones" "example" {
   blacklisted_zone_ids = ["usw2-az4"]
 }
@@ -186,7 +186,7 @@ data "aws_availability_zones" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 data "aws_availability_zones" "example" {
   exclude_zone_ids = ["usw2-az4"]
 }
@@ -200,7 +200,7 @@ Switch your Terraform configuration to the `result` attribute with the [`jsondec
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 # In Terraform 0.11 and earlier, the result_map attribute can be used
 # to convert a result JSON string to a map of string keys to string values.
 output "lambda_result" {
@@ -210,7 +210,7 @@ output "lambda_result" {
 
 An updated configuration:
 
-```hcl
+```terraform
 # In Terraform 0.12 and later, the jsondecode() function can be used
 # to convert a result JSON string to native Terraform types.
 output "lambda_result" {
@@ -271,7 +271,7 @@ Configuration references to this attribute will likely require updates since set
 
 For example, given this previous configuration using a `count` based resource approach that may have been used in certain environments:
 
-```hcl
+```terraform
 data "aws_route53_zone" "public_root_domain" {
   name = var.public_root_domain
 }
@@ -320,7 +320,7 @@ This value does not have any indices.
 
 Since the `domain_validation_options` attribute changed from a list to a set and sets cannot be indexed in Terraform, the recommendation is to update the configuration to use the more stable [resource `for_each` support](https://www.terraform.io/docs/configuration/meta-arguments/for_each.html) instead of [`count`](https://www.terraform.io/docs/configuration/meta-arguments/count.html). Note the slight change in the `validation_record_fqdns` syntax as well.
 
-```hcl
+```terraform
 resource "aws_route53_record" "existing" {
   for_each = {
     for dvo in aws_acm_certificate.existing.domain_validation_options : dvo.domain_name => {
@@ -606,7 +606,7 @@ If you previously set one of these arguments to an empty list to enable drift de
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_autoscaling_group" "example" {
   # ... other configuration ...
   load_balancers    = []
@@ -616,7 +616,7 @@ resource "aws_autoscaling_group" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_autoscaling_group" "example" {
   # ... other configuration ...
   target_group_arns = [aws_lb_target_group.example.arn]
@@ -627,7 +627,7 @@ If `aws_autoscaling_attachment` resources reference your ASG configurations, you
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_autoscaling_attachment" "example" {
   autoscaling_group_name = aws_autoscaling_group.example.id
   elb                    = aws_elb.example.id
@@ -640,7 +640,7 @@ resource "aws_autoscaling_group" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_autoscaling_attachment" "example" {
   autoscaling_group_name = aws_autoscaling_group.example.id
   elb                    = aws_elb.example.id
@@ -686,7 +686,7 @@ Previously, the resource returned the Amazon Resource Name (ARN) directly from t
 
 Workarounds, such as using `replace()` as shown below, should be removed:
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name = "example"
 }
@@ -698,7 +698,7 @@ resource "aws_datasync_task" "example" {
 
 Removing the `:*` suffix is a breaking change for some configurations. Fix these configurations using string interpolations as demonstrated below. For example, this configuration is now broken:
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "ad-log-policy" {
   statement {
     actions = [
@@ -717,7 +717,7 @@ data "aws_iam_policy_document" "ad-log-policy" {
 
 An updated configuration:
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "ad-log-policy" {
   statement {
     actions = [
@@ -746,7 +746,7 @@ For example, given this previous configuration:
 $ GITHUB_TOKEN=<token> terraform apply
 ```
 
-```hcl
+```terraform
 resource "aws_codepipeline" "example" {
   # ... other configuration ...
 
@@ -777,7 +777,7 @@ The configuration could be updated as follows:
 $ TF_VAR_github_token=<token> terraform apply
 ```
 
-```hcl
+```terraform
 variable "github_token" {}
 
 resource "aws_codepipeline" "example" {
@@ -813,7 +813,7 @@ The Cognito API previously deprecated the `admin_create_user_config` configurati
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "example" {
   # ... other configuration ...
 
@@ -827,7 +827,7 @@ resource "aws_cognito_user_pool" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "example" {
   # ... other configuration ...
 
@@ -853,7 +853,7 @@ Switch your Terraform configuration to the `associated_gateway_id` argument inst
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_dx_gateway_association" "example" {
   # ... other configuration ...
   vpn_gateway_id = aws_vpn_gateway.example.id
@@ -862,7 +862,7 @@ resource "aws_dx_gateway_association" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_dx_gateway_association" "example" {
   # ... other configuration ...
   associated_gateway_id = aws_vpn_gateway.example.id
@@ -877,7 +877,7 @@ Switch your Terraform configuration to the `associated_gateway_id` argument inst
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_dx_gateway_association_proposal" "example" {
   # ... other configuration ...
   vpn_gateway_id = aws_vpn_gateway.example.id
@@ -886,7 +886,7 @@ resource "aws_dx_gateway_association_proposal" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_dx_gateway_association_proposal" "example" {
   # ... other configuration ...
   associated_gateway_id = aws_vpn_gateway.example.id
@@ -914,7 +914,7 @@ Switch your Terraform configuration to the `core_instance_group` configuration b
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -924,7 +924,7 @@ resource "aws_emr_cluster" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -942,7 +942,7 @@ Switch your Terraform configuration to the `core_instance_group` configuration b
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -952,7 +952,7 @@ resource "aws_emr_cluster" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -968,7 +968,7 @@ Switch your Terraform configuration to the `master_instance_group` and `core_ins
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -993,7 +993,7 @@ resource "aws_emr_cluster" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -1020,7 +1020,7 @@ Switch your Terraform configuration to the `master_instance_group` configuration
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -1030,7 +1030,7 @@ resource "aws_emr_cluster" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -1048,7 +1048,7 @@ The Glue API has deprecated the `allocated_capacity` argument. Switch your Terra
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_glue_job" "example" {
   # ... other configuration ...
 
@@ -1058,7 +1058,7 @@ resource "aws_glue_job" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_glue_job" "example" {
   # ... other configuration ...
 
@@ -1080,7 +1080,7 @@ Switch your Terraform configuration to the `role` argument instead.
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_iam_instance_profile" "example" {
   # ... other configuration ...
 
@@ -1090,7 +1090,7 @@ resource "aws_iam_instance_profile" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_iam_instance_profile" "example" {
   # ... other configuration ...
 
@@ -1125,7 +1125,7 @@ The `network_interfaces.delete_on_termination` argument is now of type `string`,
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_launch_template" "example" {
   # ... other configuration ...
 
@@ -1139,7 +1139,7 @@ resource "aws_launch_template" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_launch_template" "example" {
   # ... other configuration ...
 
@@ -1159,7 +1159,7 @@ Switch your Terraform configuration to use the `host_header` or `path_pattern` c
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_lb_listener_rule" "example" {
   # ... other configuration ...
 
@@ -1172,7 +1172,7 @@ resource "aws_lb_listener_rule" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_lb_listener_rule" "example" {
   # ... other configuration ...
 
@@ -1192,7 +1192,7 @@ A few weeks after general availability launch and initial release of the `aws_ms
 
 To continue using the old default when it was previously not configured, add or modify this configuration:
 
-```hcl
+```terraform
 resource "aws_msk_cluster" "example" {
   # ... other configuration ...
 
@@ -1240,7 +1240,7 @@ The `region` attribute is no longer configurable, but it remains as a read-only 
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   # ... other configuration ...
 
@@ -1250,7 +1250,7 @@ resource "aws_s3_bucket" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   # ... other configuration ...
 }
@@ -1264,7 +1264,7 @@ The `filter` configuration block no longer supports the empty block `{}` and req
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_s3_bucket_metric" "example" {
   # ... other configuration ...
 
@@ -1274,7 +1274,7 @@ resource "aws_s3_bucket_metric" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_s3_bucket_metric" "example" {
   # ... other configuration ...
 }
@@ -1306,7 +1306,7 @@ Switch your Terraform configuration to the `task_invocation_parameters` configur
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
   # ... other configuration ...
 
@@ -1319,7 +1319,7 @@ resource "aws_ssm_maintenance_window_task" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
   # ... other configuration ...
 
@@ -1342,7 +1342,7 @@ Switch your Terraform configuration to the `task_invocation_parameters` configur
 
 For example, given this previous configuration:
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
   # ... other configuration ...
 
@@ -1355,7 +1355,7 @@ resource "aws_ssm_maintenance_window_task" "example" {
 
 An updated configuration:
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window_task" "example" {
   # ... other configuration ...
 

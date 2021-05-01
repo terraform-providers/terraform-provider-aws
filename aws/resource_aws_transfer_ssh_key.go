@@ -97,8 +97,8 @@ func resourceAwsTransferSshKeyRead(d *schema.ResourceData, meta interface{}) err
 
 	var body string
 	for _, s := range resp.User.SshPublicKeys {
-		if sshKeyID == *s.SshPublicKeyId {
-			body = *s.SshPublicKeyBody
+		if sshKeyID == aws.StringValue(s.SshPublicKeyId) {
+			body = aws.StringValue(s.SshPublicKeyBody)
 		}
 	}
 

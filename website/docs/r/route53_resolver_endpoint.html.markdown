@@ -12,7 +12,7 @@ Provides a Route 53 Resolver endpoint resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route53_resolver_endpoint" "foo" {
   name      = "foo"
   direction = "INBOUND"
@@ -48,7 +48,7 @@ or `OUTBOUND` (resolver forwards DNS queries from the DNS service for a VPC to y
 to your network (for outbound endpoints) or on the way from your network to your VPCs (for inbound endpoints). Described below.
 * `security_group_ids` - (Required) The ID of one or more security groups that you want to use to control access to this VPC.
 * `name` - (Optional) The friendly name of the Route 53 Resolver endpoint.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `ip_address` object supports the following:
 
@@ -62,6 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the Route 53 Resolver endpoint.
 * `arn` - The ARN of the Route 53 Resolver endpoint.
 * `host_vpc_id` - The ID of the VPC that you want to create the resolver endpoint in.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

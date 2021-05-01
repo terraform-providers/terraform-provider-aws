@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -12,8 +13,9 @@ import (
 
 func TestAccDataSourceAwsEBSEncryptionByDefault_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsEBSEncryptionByDefaultConfig,
@@ -45,8 +47,8 @@ func testAccCheckDataSourceAwsEBSEncryptionByDefault(n string) resource.TestChec
 
 		attr, _ := strconv.ParseBool(rs.Primary.Attributes["enabled"])
 
-		if attr != *actual.EbsEncryptionByDefault {
-			return fmt.Errorf("EBS encryption by default is not in expected state (%t)", *actual.EbsEncryptionByDefault)
+		if attr != aws.BoolValue(actual.EbsEncryptionByDefault) {
+			return fmt.Errorf("EBS encryption by default is not in expected state (%t)", aws.BoolValue(actual.EbsEncryptionByDefault))
 		}
 
 		return nil

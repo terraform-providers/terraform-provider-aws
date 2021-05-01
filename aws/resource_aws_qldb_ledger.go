@@ -48,12 +48,18 @@ func resourceAwsQLDBLedger() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsQLDBLedgerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).qldbconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -72,7 +78,7 @@ func resourceAwsQLDBLedgerCreate(d *schema.ResourceData, meta interface{}) error
 		Name:               aws.String(d.Get("name").(string)),
 		PermissionsMode:    aws.String(qldb.PermissionsModeAllowAll),
 		DeletionProtection: aws.Bool(d.Get("deletion_protection").(bool)),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().QldbTags(),
+		Tags:               tags.IgnoreAws().QldbTags(),
 	}
 
 	log.Printf("[DEBUG] QLDB Ledger create config: %#v", *createOpts)
@@ -105,6 +111,7 @@ func resourceAwsQLDBLedgerCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).qldbconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	// Refresh the QLDB state
@@ -145,8 +152,15 @@ func resourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error listing tags for QLDB Ledger: %s", err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -170,8 +184,8 @@ func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.QldbUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

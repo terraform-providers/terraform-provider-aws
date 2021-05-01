@@ -65,6 +65,7 @@ func TestAccAWSGlueConnection_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -98,6 +99,7 @@ func TestAccAWSGlueConnection_MongoDB(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -131,6 +133,7 @@ func TestAccAWSGlueConnection_Kafka(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -162,6 +165,7 @@ func TestAccAWSGlueConnection_Description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -196,6 +200,7 @@ func TestAccAWSGlueConnection_MatchCriteria(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -245,6 +250,7 @@ func TestAccAWSGlueConnection_PhysicalConnectionRequirements(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -281,6 +287,7 @@ func TestAccAWSGlueConnection_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
 		Steps: []resource.TestStep{

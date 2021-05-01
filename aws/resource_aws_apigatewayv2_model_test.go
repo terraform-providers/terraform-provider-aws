@@ -33,6 +33,7 @@ func TestAccAWSAPIGatewayV2Model_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2ModelDestroy,
 		Steps: []resource.TestStep{
@@ -77,6 +78,7 @@ func TestAccAWSAPIGatewayV2Model_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2ModelDestroy,
 		Steps: []resource.TestStep{
@@ -128,6 +130,7 @@ func TestAccAWSAPIGatewayV2Model_AllAttributes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigatewayv2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayV2ModelDestroy,
 		Steps: []resource.TestStep{

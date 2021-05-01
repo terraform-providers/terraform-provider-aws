@@ -12,7 +12,7 @@ Provides a resource to create an AWS Firewall Manager policy. You need to be usi
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_fms_policy" "example" {
   name                  = "FMS-Policy-Example"
   exclude_resource_tags = false
@@ -22,27 +22,23 @@ resource "aws_fms_policy" "example" {
   security_service_policy_data {
     type = "WAF"
 
-    managed_service_data = <<EOF
-      {
-        "type": "WAF",
-        "ruleGroups":
-          [{
-            "id":"${aws_wafregional_rule_group.test.id}",
-            "overrideAction" : {
-              "type": "COUNT"
-            }
-          }],
-        "defaultAction":
-        {
-          "type": "BLOCK"
-        },
-        "overrideCustomerWebACLAssociation": false
+    managed_service_data = jsonencode({
+      type = "WAF",
+      ruleGroups = [{
+        id = aws_wafregional_rule_group.example.id
+        overrideAction = {
+          type = "COUNT"
+        }
+      }]
+      defaultAction = {
+        type = "BLOCK"
       }
-EOF
+      overrideCustomerWebACLAssociation = false
+    })
   }
 }
 
-resource "aws_wafregional_rule_group" "test" {
+resource "aws_wafregional_rule_group" "example" {
   metric_name = "WAFRuleGroupExample"
   name        = "WAF-Rule-Group-Example"
 }
@@ -59,7 +55,8 @@ The following arguments are supported:
 * `include_map` - (Optional) A map of lists, with a single key named 'account' with a list of AWS Account IDs to include for this policy.
 * `remediation_enabled` - (Required) A boolean value, indicates if the policy should automatically applied to resources that already exist in the account.
 * `resource_tags` - (Optional) A map of resource tags, that if present will filter protections on resources based on the exclude_resource_tags.
-* `resource_type_list` - (Required, Forces new resource) A list of resource types to protect, valid values are: `AWS::ElasticLoadBalancingV2::LoadBalancer`, `AWS::ApiGateway::Stage`, `AWS::CloudFront::Distribution`.
+* `resource_type` - (Optional) A resource type to protect. Conflicts with `resource_type_list`. See the [FMS API Reference](https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_Policy.html#fms-Type-Policy-ResourceType) for more information about supported values.
+* `resource_type_list` - (Optional) A list of resource types to protect. Conflicts with `resource_type`. See the [FMS API Reference](https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_Policy.html#fms-Type-Policy-ResourceType) for more information about supported values.
 * `security_service_policy_data` - (Required) The objects to include in Security Service Policy Data. Documented below.
 
 ## `exclude_map` Configuration Block
@@ -72,22 +69,10 @@ The following arguments are supported:
 
 ## `security_service_policy_data` Configuration Block
 
-* `managed_service_data` (Optional) Details about the service that are specific to the service type, in JSON format. For service type SHIELD_ADVANCED, this is an empty string.
-* `type` (Required, Forces new resource) The service that the policy is using to protect the resources. Valid values are WAFV2, WAF, SHIELD_ADVANCED, SECURITY_GROUPS_COMMON, SECURITY_GROUPS_CONTENT_AUDIT, and SECURITY_GROUPS_USAGE_AUDIT.
+* `managed_service_data` (Optional) Details about the service that are specific to the service type, in JSON format. For service type `SHIELD_ADVANCED`, this is an empty string. Examples depending on `type` can be found in the [AWS Firewall Manager SecurityServicePolicyData API Reference](https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_SecurityServicePolicyData.html).
+* `type` - (Required, Forces new resource) The service that the policy is using to protect the resources. Valid values are `WAFV2`, `WAF`, `SHIELD_ADVANCED`, `SECURITY_GROUPS_COMMON`, `SECURITY_GROUPS_CONTENT_AUDIT`, and `SECURITY_GROUPS_USAGE_AUDIT`.
 
-## `managed_service_data` Configuration Block
-
--> Additional information about this configuration can be found in the [AWS Firewall Manager SecurityServicePolicyData API Reference](https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_SecurityServicePolicyData.html)
-
-* `type` - (Required) Type currently only supports WAF.
-* `rule_groups` - (Required) A rule group block, maximum of 2 rule group blocks are currently supported.
-    * `id` - (Required) Id of the WAF Rule Group that's to be attached.
-    * `override_action` (Required)  Override the action that a group requests CloudFront or AWS WAF takes when a web request matches the conditions in the rule.
-        * `type` - (Required) valid values are `NONE` or `COUNT`.
-* `default_action`- (Required) Configuration block with action that you want AWS Waf to take when a request doesn't match the criteria in any of the rules.
-    * `type` - (Required) valid values are `BLOCK` or `COUNT`.
-
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

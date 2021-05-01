@@ -14,7 +14,7 @@ Provides a VPC DHCP Options resource.
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_vpc_dhcp_options" "dns_resolver" {
   domain_name_servers = ["8.8.8.8", "8.8.4.4"]
 }
@@ -22,7 +22,7 @@ resource "aws_vpc_dhcp_options" "dns_resolver" {
 
 Full usage:
 
-```hcl
+```terraform
 resource "aws_vpc_dhcp_options" "foo" {
   domain_name          = "service.consul"
   domain_name_servers  = ["127.0.0.1", "10.0.0.2"]
@@ -45,7 +45,7 @@ The following arguments are supported:
 * `ntp_servers` - (Optional) List of NTP servers to configure.
 * `netbios_name_servers` - (Optional) List of NETBIOS name servers.
 * `netbios_node_type` - (Optional) The NetBIOS node type (1, 2, 4, or 8). AWS recommends to specify 2 since broadcast and multicast are not supported in their network. For more information about these node types, see [RFC 2132](http://www.ietf.org/rfc/rfc2132.txt).
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Remarks
 
@@ -62,6 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the DHCP Options Set.
 * `arn` - The ARN of the DHCP Options Set.
 * `owner_id` - The ID of the AWS account that owns the DHCP options set.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 You can find more technical documentation about DHCP Options Set in the
 official [AWS User Guide](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html).

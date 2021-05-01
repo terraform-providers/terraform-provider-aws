@@ -12,7 +12,7 @@ Provides a Gamelift Alias resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_alias" "example" {
   name        = "example-alias"
   description = "Example Description"
@@ -31,6 +31,7 @@ The following arguments are supported:
 * `name` - (Required) Name of the alias.
 * `description` - (Optional) Description of the alias.
 * `routing_strategy` - (Required) Specifies the fleet and/or routing type to use for the alias.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Nested Fields
 
@@ -39,7 +40,6 @@ The following arguments are supported:
 * `fleet_id` - (Optional) ID of the Gamelift Fleet to point the alias to.
 * `message` - (Optional) Message text to be used with the `TERMINAL` routing strategy.
 * `type` - (Required) Type of routing strategy. e.g. `SIMPLE` or `TERMINAL`
-* `tags` - (Optional) Key-value map of resource tags
 
 ## Attributes Reference
 
@@ -47,6 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Alias ID.
 * `arn` - Alias ARN.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

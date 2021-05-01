@@ -69,6 +69,7 @@ func TestAccAWSCloudWatchLogResourcePolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudWatchLogResourcePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -132,8 +133,9 @@ func testAccCheckCloudWatchLogResourcePolicyDestroy(s *terraform.State) error {
 		}
 
 		_, exists, err := lookupCloudWatchLogResourcePolicy(conn, rs.Primary.ID, nil)
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading CloudWatch Log Resource Policy (%s): %w", rs.Primary.ID, err)
 		}
 
 		if exists {

@@ -19,6 +19,7 @@ func TestAccAWSRedshiftSecurityGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, redshift.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -44,6 +45,7 @@ func TestAccAWSRedshiftSecurityGroup_ingressCidr(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, redshift.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -78,6 +80,7 @@ func TestAccAWSRedshiftSecurityGroup_updateIngressCidr(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, redshift.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -121,6 +124,7 @@ func TestAccAWSRedshiftSecurityGroup_ingressSecurityGroup(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, redshift.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -152,6 +156,7 @@ func TestAccAWSRedshiftSecurityGroup_updateIngressSecurityGroup(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, redshift.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{

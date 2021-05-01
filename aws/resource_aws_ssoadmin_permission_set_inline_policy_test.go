@@ -20,6 +20,7 @@ func TestAccAWSSSOAdminPermissionSetInlinePolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminPermissionSetInlinePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -48,6 +49,7 @@ func TestAccAWSSSOAdminPermissionSetInlinePolicy_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminPermissionSetInlinePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -79,6 +81,7 @@ func TestAccAWSSSOAdminPermissionSetInlinePolicy_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminPermissionSetInlinePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -101,6 +104,7 @@ func TestAccAWSSSOAdminPermissionSetInlinePolicy_disappears_permissionSet(t *tes
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssoadmin.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSOAdminPermissionSetInlinePolicyDestroy,
 		Steps: []resource.TestStep{

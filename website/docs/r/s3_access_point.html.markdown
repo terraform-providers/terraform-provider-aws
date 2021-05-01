@@ -16,7 +16,7 @@ Provides a resource to manage an S3 Access Point.
 
 ### AWS Partition Bucket
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example"
 }
@@ -29,7 +29,7 @@ resource "aws_s3_access_point" "example" {
 
 ### S3 on Outposts Bucket
 
-```hcl
+```terraform
 resource "aws_s3control_bucket" "example" {
   bucket = "example"
 }

@@ -12,7 +12,7 @@ Manages an Image Builder Image Recipe.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_imagebuilder_image_recipe" "example" {
   block_device_mapping {
     device_name = "/dev/xvdb"
@@ -47,7 +47,7 @@ The following attributes are optional:
 
 * `block_device_mapping` - (Optional) Configuration block(s) with block device mappings for the the image recipe. Detailed below.
 * `description` - (Optional) Description of the image recipe.
-* `tags` - (Optional) Key-value map of resource tags for the image recipe.
+* `tags` - (Optional) Key-value map of resource tags for the image recipe. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `working_directory` - (Optional) The working directory to be used during build and test workflows.
 
 ### block_device_mapping
@@ -85,6 +85,7 @@ In addition to all arguments above, the following attributes are exported:
 * `date_created` - Date the image recipe was created.
 * `owner` - Owner of the image recipe.
 * `platform` - Platform of the image recipe.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -14,8 +14,9 @@ func TestAccAWSCodeArtifactRepositoryEndpointDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_codeartifact_repository_endpoint.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck: testAccErrorCheck(t, codeartifact.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName, "npm"),
@@ -54,8 +55,9 @@ func TestAccAWSCodeArtifactRepositoryEndpointDataSource_owner(t *testing.T) {
 	dataSourceName := "data.aws_codeartifact_repository_endpoint.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck: testAccErrorCheck(t, codeartifact.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAWSCodeArtifactRepositoryEndpointOwnerConfig(rName),

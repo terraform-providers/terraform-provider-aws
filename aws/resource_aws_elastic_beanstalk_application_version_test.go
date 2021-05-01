@@ -18,6 +18,7 @@ func TestAccAWSBeanstalkAppVersion_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckApplicationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -37,6 +38,7 @@ func TestAccAWSBeanstalkAppVersion_duplicateLabels(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckApplicationVersionDestroy,
 		Steps: []resource.TestStep{
@@ -57,6 +59,7 @@ func TestAccAWSBeanstalkAppVersion_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticbeanstalk.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckApplicationVersionDestroy,
 		Steps: []resource.TestStep{

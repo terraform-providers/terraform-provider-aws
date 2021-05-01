@@ -3,6 +3,7 @@ package aws
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -15,7 +16,8 @@ func testAccDataSourceAwsOrganizationsOrganization_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccOrganizationsAccountPreCheck(t)
 		},
-		Providers: testAccProviders,
+		ErrorCheck: testAccErrorCheck(t, organizations.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsOrganizationResourceOnlyConfig,

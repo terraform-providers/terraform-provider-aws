@@ -150,6 +150,14 @@ type Change struct {
 	// If the value cannot be found in this map, then its value should
 	// be available within After, so long as the operation supports it.
 	AfterUnknown interface{} `json:"after_unknown,omitempty"`
+
+	// BeforeSensitive and AfterSensitive are object values with similar
+	// structure to Before and After, but with all sensitive leaf values
+	// replaced with true, and all non-sensitive leaf values omitted. These
+	// objects should be combined with Before and After to prevent accidental
+	// display of sensitive values in user interfaces.
+	BeforeSensitive interface{} `json:"before_sensitive,omitempty"`
+	AfterSensitive  interface{} `json:"after_sensitive,omitempty"`
 }
 
 // PlanVariable is a top-level variable in the Terraform plan.

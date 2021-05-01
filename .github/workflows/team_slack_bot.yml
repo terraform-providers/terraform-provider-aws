@@ -8,6 +8,7 @@ jobs:
   open-pr-stats:
     runs-on: ubuntu-latest
     name: open-pr-stats
+    if: github.repository_owner == 'hashicorp'
     steps:
     - name: open-pr-stats
       uses: breathingdust/github-team-slackbot@v17

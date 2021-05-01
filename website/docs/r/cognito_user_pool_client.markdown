@@ -14,7 +14,7 @@ Provides a Cognito User Pool Client resource.
 
 ### Create a basic user pool client
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "pool" {
   name = "pool"
 }
@@ -28,7 +28,7 @@ resource "aws_cognito_user_pool_client" "client" {
 
 ### Create a user pool client with no SRP authentication
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "pool" {
   name = "pool"
 }
@@ -45,7 +45,7 @@ resource "aws_cognito_user_pool_client" "client" {
 
 ### Create a user pool client with pinpoint analytics
 
-```hcl
+```terraform
 data "aws_caller_identity" "current" {}
 
 resource "aws_cognito_user_pool" "test" {
@@ -112,38 +112,55 @@ resource "aws_cognito_user_pool_client" "test" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are required:
 
-* `allowed_oauth_flows` - (Optional) List of allowed OAuth flows (code, implicit, client_credentials).
+* `name` - (Required) Name of the application client.
+* `user_pool_id` - (Required) User pool the client belongs to.
+
+The following arguments are optional:
+
+* `access_token_validity` - (Optional) Time limit, between 5 minutes and 1 day, after which the access token is no longer valid and cannot be used. This value will be overridden if you have entered a value in `token_validity_units`.
 * `allowed_oauth_flows_user_pool_client` - (Optional) Whether the client is allowed to follow the OAuth protocol when interacting with Cognito user pools.
+* `allowed_oauth_flows` - (Optional) List of allowed OAuth flows (code, implicit, client_credentials).
 * `allowed_oauth_scopes` - (Optional) List of allowed OAuth scopes (phone, email, openid, profile, and aws.cognito.signin.user.admin).
+* `analytics_configuration` - (Optional) Configuration block for Amazon Pinpoint analytics for collecting metrics for this user pool. [Detailed below](#analytics_configuration).
 * `callback_urls` - (Optional) List of allowed callback URLs for the identity providers.
-* `default_redirect_uri` - (Optional) The default redirect URI. Must be in the list of callback URLs.
-* `explicit_auth_flows` - (Optional) List of authentication flows (ADMIN_NO_SRP_AUTH, CUSTOM_AUTH_FLOW_ONLY,  USER_PASSWORD_AUTH, ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_PASSWORD_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH).
+* `default_redirect_uri` - (Optional) Default redirect URI. Must be in the list of callback URLs.
+* `explicit_auth_flows` - (Optional) List of authentication flows (ADMIN_NO_SRP_AUTH, CUSTOM_AUTH_FLOW_ONLY, USER_PASSWORD_AUTH, ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_PASSWORD_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH).
 * `generate_secret` - (Optional) Should an application secret be generated.
+* `id_token_validity` - (Optional) Time limit, between 5 minutes and 1 day, after which the ID token is no longer valid and cannot be used. This value will be overridden if you have entered a value in `token_validity_units`.
 * `logout_urls` - (Optional) List of allowed logout URLs for the identity providers.
-* `name` - (Required) The name of the application client.
 * `prevent_user_existence_errors` - (Optional) Choose which errors and responses are returned by Cognito APIs during authentication, account confirmation, and password recovery when the user does not exist in the user pool. When set to `ENABLED` and the user does not exist, authentication returns an error indicating either the username or password was incorrect, and account confirmation and password recovery return a response indicating a code was sent to a simulated destination. When set to `LEGACY`, those APIs will return a `UserNotFoundException` exception if the user does not exist in the user pool.
 * `read_attributes` - (Optional) List of user pool attributes the application client can read from.
-* `refresh_token_validity` - (Optional) The time limit in days refresh tokens are valid for.
+* `refresh_token_validity` - (Optional) Time limit in days refresh tokens are valid for.
 * `supported_identity_providers` - (Optional) List of provider names for the identity providers that are supported on this client.
-* `user_pool_id` - (Required) The user pool the client belongs to.
+* `token_validity_units` - (Optional) Configuration block for units in which the validity times are represented in. [Detailed below](#token_validity_units).
 * `write_attributes` - (Optional) List of user pool attributes the application client can write to.
-* `analytics_configuration` - (Optional) The Amazon Pinpoint analytics configuration for collecting metrics for this user pool.
 
-### Analytics Configuration
+### analytics_configuration
 
-* `application_id` - (Required) The application ID for an Amazon Pinpoint application.
-* `external_id`  - (Required) An ID for the Analytics Configuration.
-* `role_arn` - (Required) The ARN of an IAM role that authorizes Amazon Cognito to publish events to Amazon Pinpoint analytics.
+Either `application_arn` or `application_id` is required.
+
+* `application_arn` - (Optional) Application ARN for an Amazon Pinpoint application. Conflicts with `external_id` and `role_arn`.
+* `application_id` - (Optional) Application ID for an Amazon Pinpoint application.
+* `external_id` - (Optional) ID for the Analytics Configuration. Conflicts with `application_arn`.
+* `role_arn` - (Optional) ARN of an IAM role that authorizes Amazon Cognito to publish events to Amazon Pinpoint analytics. Conflicts with `application_arn`.
 * `user_data_shared` (Optional) If set to `true`, Amazon Cognito will include user data in the events it publishes to Amazon Pinpoint analytics.
+
+### token_validity_units
+
+Valid values for the following arguments are: `seconds`, `minutes`, `hours` or `days`.
+
+* `access_token` - (Optional) Time unit in for the value in `access_token_validity`, defaults to `hours`.
+* `id_token` - (Optional) Time unit in for the value in `id_token_validity`, defaults to `hours`.
+* `refresh_token` - (Optional) Time unit in for the value in `refresh_token_validity`, defaults to `days`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The id of the user pool client.
-* `client_secret` - The client secret of the user pool client.
+* `client_secret` - Client secret of the user pool client.
+* `id` - ID of the user pool client.
 
 ## Import
 

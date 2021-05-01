@@ -26,17 +26,20 @@ func init() {
 
 func testSweepRedshiftSubnetGroups(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %w", err)
 	}
+
 	conn := client.(*AWSClient).redshiftconn
-	var sweeperErrs *multierror.Error
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
 	input := &redshift.DescribeClusterSubnetGroupsInput{}
 
-	err = conn.DescribeClusterSubnetGroupsPages(input, func(page *redshift.DescribeClusterSubnetGroupsOutput, isLast bool) bool {
+	err = conn.DescribeClusterSubnetGroupsPages(input, func(page *redshift.DescribeClusterSubnetGroupsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, clusterSubnetGroup := range page.ClusterSubnetGroups {
@@ -50,32 +53,30 @@ func testSweepRedshiftSubnetGroups(region string) error {
 				continue
 			}
 
-			log.Printf("[INFO] Deleting Redshift Cluster Subnet Group: %s", name)
 			r := resourceAwsRedshiftSubnetGroup()
 			d := r.Data(nil)
 			d.SetId(name)
-			err := r.Delete(d, client)
 
-			if err != nil {
-				log.Printf("[ERROR] %s", err)
-				sweeperErrs = multierror.Append(sweeperErrs, err)
-				continue
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping Redshift Cluster Subnet Group sweep for %s: %s", region, err)
-		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
-	}
-
 	if err != nil {
-		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Redshift Cluster Subnet Group: %w", err))
+		errs = multierror.Append(errs, fmt.Errorf("error describing Redshift Subnet Groups: %w", err))
 	}
 
-	return sweeperErrs.ErrorOrNil()
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping Redshift Subnet Groups for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping Redshift Subnet Group sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSRedshiftSubnetGroup_basic(t *testing.T) {
@@ -85,6 +86,7 @@ func TestAccAWSRedshiftSubnetGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRedshiftSubnetGroupDestroy,
 		Steps: []resource.TestStep{
@@ -116,6 +118,7 @@ func TestAccAWSRedshiftSubnetGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRedshiftSubnetGroupDestroy,
 		Steps: []resource.TestStep{
@@ -138,6 +141,7 @@ func TestAccAWSRedshiftSubnetGroup_updateDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRedshiftSubnetGroupDestroy,
 		Steps: []resource.TestStep{
@@ -175,6 +179,7 @@ func TestAccAWSRedshiftSubnetGroup_updateSubnetIds(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRedshiftSubnetGroupDestroy,
 		Steps: []resource.TestStep{
@@ -212,6 +217,7 @@ func TestAccAWSRedshiftSubnetGroup_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, redshift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRedshiftSubnetGroupDestroy,
 		Steps: []resource.TestStep{

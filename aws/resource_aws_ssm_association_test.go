@@ -17,6 +17,7 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -24,6 +25,7 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 				Config: testAccAWSSSMAssociationBasicConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "false"),
 				),
 			},
 			{
@@ -41,6 +43,7 @@ func TestAccAWSSSMAssociation_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -51,6 +54,39 @@ func TestAccAWSSSMAssociation_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSsmAssociation(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
+	name := acctest.RandString(10)
+	resourceName := "aws_ssm_association.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(name, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(name, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "false"),
+				),
 			},
 		},
 	})
@@ -82,6 +118,7 @@ targets {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -140,6 +177,7 @@ func TestAccAWSSSMAssociation_withParameters(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -177,6 +215,7 @@ func TestAccAWSSSMAssociation_withAssociationName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -214,6 +253,7 @@ func TestAccAWSSSMAssociation_withAssociationNameAndScheduleExpression(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -248,6 +288,7 @@ func TestAccAWSSSMAssociation_withDocumentVersion(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -274,6 +315,7 @@ func TestAccAWSSSMAssociation_withOutputLocation(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -322,6 +364,7 @@ func TestAccAWSSSMAssociation_withAutomationTargetParamName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -357,6 +400,7 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -364,8 +408,7 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpression(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "schedule_expression", "cron(0 16 ? * TUE *)"),
+					resource.TestCheckResourceAttr(resourceName, "schedule_expression", "cron(0 16 ? * TUE *)"),
 				),
 			},
 			{
@@ -377,8 +420,7 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpressionUpdated(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "schedule_expression", "cron(0 16 ? * WED *)"),
+					resource.TestCheckResourceAttr(resourceName, "schedule_expression", "cron(0 16 ? * WED *)"),
 				),
 			},
 		},
@@ -394,6 +436,7 @@ func TestAccAWSSSMAssociation_withComplianceSeverity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -432,6 +475,7 @@ func TestAccAWSSSMAssociation_rateControl(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -517,6 +561,47 @@ func testAccCheckAWSSSMAssociationDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(rName string, applyOnlyAtCronInterval bool) string {
+	return fmt.Sprintf(`
+resource "aws_ssm_document" "test" {
+  name          = "test_document_association-%s"
+  document_type = "Command"
+
+  content = <<DOC
+{
+  "schemaVersion": "1.2",
+  "description": "Check ip configuration of a Linux instance.",
+  "parameters": {},
+  "runtimeConfig": {
+    "aws:runShellScript": {
+      "properties": [
+        {
+          "id": "0.aws:runShellScript",
+          "runCommand": [
+            "ifconfig"
+          ]
+        }
+      ]
+    }
+  }
+}
+DOC
+
+}
+
+resource "aws_ssm_association" "test" {
+  name                        = aws_ssm_document.test.name
+  schedule_expression         = "cron(0 16 ? * TUE *)"
+  apply_only_at_cron_interval = %[2]t
+
+  targets {
+    key    = "tag:Name"
+    values = ["acceptanceTest"]
+  }
+}
+`, rName, applyOnlyAtCronInterval)
 }
 
 func testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName string) string {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -29,9 +30,9 @@ func testSweepRoute53QueryLogs(region string) error {
 	conn := client.(*AWSClient).r53conn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListQueryLoggingConfigsPages(&route53.ListQueryLoggingConfigsInput{}, func(page *route53.ListQueryLoggingConfigsOutput, isLast bool) bool {
+	err = conn.ListQueryLoggingConfigsPages(&route53.ListQueryLoggingConfigsInput{}, func(page *route53.ListQueryLoggingConfigsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, queryLoggingConfig := range page.QueryLoggingConfigs {
@@ -52,7 +53,7 @@ func testSweepRoute53QueryLogs(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	// In unsupported AWS partitions, the API may return an error even the SDK cannot handle.
 	// Reference: https://github.com/aws/aws-sdk-go/issues/3313
@@ -76,7 +77,7 @@ func TestAccAWSRoute53QueryLog_basic(t *testing.T) {
 	var queryLoggingConfig route53.QueryLoggingConfig
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckRoute53QueryLog(t) },
-		ErrorCheck:        testAccErrorCheckSkipRoute53(t),
+		ErrorCheck:        testAccErrorCheck(t, route53.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckRoute53QueryLogDestroy,
 		Steps: []resource.TestStep{
@@ -136,8 +137,13 @@ func testAccCheckRoute53QueryLogDestroy(s *terraform.State) error {
 		out, err := conn.GetQueryLoggingConfig(&route53.GetQueryLoggingConfigInput{
 			Id: aws.String(rs.Primary.ID),
 		})
+
+		if tfawserr.ErrCodeEquals(err, route53.ErrCodeNoSuchQueryLoggingConfig) {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Route 53 Query Logging Configuration (%s): %w", rs.Primary.ID, err)
 		}
 
 		if out.QueryLoggingConfig != nil {

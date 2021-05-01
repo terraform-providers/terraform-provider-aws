@@ -13,24 +13,30 @@ import (
 )
 
 func TestAccAWSMqConfiguration_basic(t *testing.T) {
-	configurationName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqConfigurationConfig(configurationName),
+				Config: testAccMqConfigurationConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqConfigurationExists(resourceName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "authentication_strategy", "simple"),
 					resource.TestCheckResourceAttr(resourceName, "description", "TfAccTest MQ Configuration"),
 					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
 					resource.TestCheckResourceAttr(resourceName, "latest_revision", "2"),
-					resource.TestCheckResourceAttr(resourceName, "name", configurationName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
@@ -39,7 +45,7 @@ func TestAccAWSMqConfiguration_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccMqConfigurationConfig_descriptionUpdated(configurationName),
+				Config: testAccMqConfigurationConfig_descriptionUpdated(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqConfigurationExists(resourceName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
@@ -47,7 +53,7 @@ func TestAccAWSMqConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
 					resource.TestCheckResourceAttr(resourceName, "latest_revision", "3"),
-					resource.TestCheckResourceAttr(resourceName, "name", configurationName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 		},
@@ -55,16 +61,21 @@ func TestAccAWSMqConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAWSMqConfiguration_withData(t *testing.T) {
-	configurationName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqConfigurationWithDataConfig(configurationName),
+				Config: testAccMqConfigurationWithDataConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqConfigurationExists(resourceName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
@@ -72,7 +83,43 @@ func TestAccAWSMqConfiguration_withData(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
 					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
 					resource.TestCheckResourceAttr(resourceName, "latest_revision", "2"),
-					resource.TestCheckResourceAttr(resourceName, "name", configurationName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSMqConfiguration_withLdapData(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_mq_configuration.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqConfigurationWithLdapDataConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "authentication_strategy", "ldap"),
+					resource.TestCheckResourceAttr(resourceName, "description", "TfAccTest MQ Configuration"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+					resource.TestCheckResourceAttr(resourceName, "latest_revision", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
@@ -85,16 +132,21 @@ func TestAccAWSMqConfiguration_withData(t *testing.T) {
 }
 
 func TestAccAWSMqConfiguration_updateTags(t *testing.T) {
-	configurationName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_mq_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(mq.EndpointsID, t)
+			testAccPreCheckAWSMq(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, mq.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMqConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMqConfigurationConfig_updateTags1(configurationName),
+				Config: testAccMqConfigurationConfig_updateTags1(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -107,7 +159,7 @@ func TestAccAWSMqConfiguration_updateTags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccMqConfigurationConfig_updateTags2(configurationName),
+				Config: testAccMqConfigurationConfig_updateTags2(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -116,7 +168,7 @@ func TestAccAWSMqConfiguration_updateTags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMqConfigurationConfig_updateTags3(configurationName),
+				Config: testAccMqConfigurationConfig_updateTags3(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -166,13 +218,14 @@ func testAccCheckAwsMqConfigurationExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccMqConfigurationConfig(configurationName string) string {
+func testAccMqConfigurationConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_mq_configuration" "test" {
-  description    = "TfAccTest MQ Configuration"
-  name           = "%s"
-  engine_type    = "ActiveMQ"
-  engine_version = "5.15.0"
+  description             = "TfAccTest MQ Configuration"
+  name                    = %[1]q
+  engine_type             = "ActiveMQ"
+  engine_version          = "5.15.0"
+  authentication_strategy = "simple"
 
   data = <<DATA
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -180,14 +233,14 @@ resource "aws_mq_configuration" "test" {
 </broker>
 DATA
 }
-`, configurationName)
+`, rName)
 }
 
-func testAccMqConfigurationConfig_descriptionUpdated(configurationName string) string {
+func testAccMqConfigurationConfig_descriptionUpdated(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_mq_configuration" "test" {
   description    = "TfAccTest MQ Configuration Updated"
-  name           = "%s"
+  name           = %[1]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
@@ -197,14 +250,14 @@ resource "aws_mq_configuration" "test" {
 </broker>
 DATA
 }
-`, configurationName)
+`, rName)
 }
 
-func testAccMqConfigurationWithDataConfig(configurationName string) string {
+func testAccMqConfigurationWithDataConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_mq_configuration" "test" {
   description    = "TfAccTest MQ Configuration"
-  name           = "%s"
+  name           = %[1]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
@@ -232,14 +285,42 @@ resource "aws_mq_configuration" "test" {
 </broker>
 DATA
 }
-`, configurationName)
+`, rName)
 }
 
-func testAccMqConfigurationConfig_updateTags1(configurationName string) string {
+func testAccMqConfigurationWithLdapDataConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_mq_configuration" "test" {
+  description             = "TfAccTest MQ Configuration"
+  name                    = %[1]q
+  engine_type             = "ActiveMQ"
+  engine_version          = "5.15.0"
+  authentication_strategy = "ldap"
+
+  data = <<DATA
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<broker xmlns="http://activemq.apache.org/schema/core">
+  <plugins>
+    <authorizationPlugin>
+      <map>
+        <cachedLDAPAuthorizationMap legacyGroupMapping="false" queueSearchBase="ou=Queue,ou=Destination,ou=ActiveMQ,dc=example,dc=org" refreshInterval="0" tempSearchBase="ou=Temp,ou=Destination,ou=ActiveMQ,dc=example,dc=org" topicSearchBase="ou=Topic,ou=Destination,ou=ActiveMQ,dc=example,dc=org"/>
+      </map>
+    </authorizationPlugin>
+    <forcePersistencyModeBrokerPlugin persistenceFlag="true"/>
+    <statisticsBrokerPlugin/>
+    <timeStampingBrokerPlugin ttlCeiling="86400000" zeroExpirationOverride="86400000"/>
+  </plugins>
+</broker>
+DATA
+}
+`, rName)
+}
+
+func testAccMqConfigurationConfig_updateTags1(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_mq_configuration" "test" {
   description    = "TfAccTest MQ Configuration"
-  name           = "%s"
+  name           = %[1]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
@@ -253,14 +334,14 @@ DATA
     env = "test"
   }
 }
-`, configurationName)
+`, rName)
 }
 
-func testAccMqConfigurationConfig_updateTags2(configurationName string) string {
+func testAccMqConfigurationConfig_updateTags2(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_mq_configuration" "test" {
   description    = "TfAccTest MQ Configuration"
-  name           = "%s"
+  name           = %[1]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
@@ -275,14 +356,14 @@ DATA
     role = "test-role"
   }
 }
-`, configurationName)
+`, rName)
 }
 
-func testAccMqConfigurationConfig_updateTags3(configurationName string) string {
+func testAccMqConfigurationConfig_updateTags3(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_mq_configuration" "test" {
   description    = "TfAccTest MQ Configuration"
-  name           = "%s"
+  name           = %[1]q
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
 
@@ -296,5 +377,5 @@ DATA
     role = "test-role"
   }
 }
-`, configurationName)
+`, rName)
 }

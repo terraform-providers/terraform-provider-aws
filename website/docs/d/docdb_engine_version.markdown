@@ -12,7 +12,7 @@ Information about a DocumentDB engine version.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_docdb_engine_version" "test" {
   version = "3.6.0"
 }

@@ -14,7 +14,7 @@ Provides a Route53 record resource.
 
 ### Simple routing policy
 
-```hcl
+```terraform
 resource "aws_route53_record" "www" {
   zone_id = aws_route53_zone.primary.zone_id
   name    = "www.example.com"
@@ -27,7 +27,7 @@ resource "aws_route53_record" "www" {
 ### Weighted routing policy
 Other routing policies are configured similarly. See [AWS Route53 Developer Guide](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy.html) for details.
 
-```hcl
+```terraform
 resource "aws_route53_record" "www-dev" {
   zone_id = aws_route53_zone.primary.zone_id
   name    = "www"
@@ -64,7 +64,7 @@ to understand differences between alias and non-alias records.
 TTL for all alias records is [60 seconds](https://aws.amazon.com/route53/faqs/#dns_failover_do_i_need_to_adjust),
 you cannot change this, therefore `ttl` has to be omitted in alias records.
 
-```hcl
+```terraform
 resource "aws_elb" "main" {
   name               = "foobar-terraform-elb"
   availability_zones = ["us-east-1c"]
@@ -94,7 +94,7 @@ resource "aws_route53_record" "www" {
 
 When creating Route 53 zones, the `NS` and `SOA` records for the zone are automatically created. Enabling the `allow_overwrite` argument will allow managing these records in a single Terraform run without the requirement for `terraform import`.
 
-```hcl
+```terraform
 resource "aws_route53_zone" "example" {
   name = "test.example.com"
 }
@@ -102,7 +102,7 @@ resource "aws_route53_zone" "example" {
 resource "aws_route53_record" "example" {
   allow_overwrite = true
   name            = "test.example.com"
-  ttl             = 30
+  ttl             = 172800
   type            = "NS"
   zone_id         = aws_route53_zone.example.zone_id
 
@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `zone_id` - (Required) The ID of the hosted zone to contain this record.
 * `name` - (Required) The name of the record.
-* `type` - (Required) The record type. Valid values are `A`, `AAAA`, `CAA`, `CNAME`, `MX`, `NAPTR`, `NS`, `PTR`, `SOA`, `SPF`, `SRV` and `TXT`.
+* `type` - (Required) The record type. Valid values are `A`, `AAAA`, `CAA`, `CNAME`, `DS`, `MX`, `NAPTR`, `NS`, `PTR`, `SOA`, `SPF`, `SRV` and `TXT`.
 * `ttl` - (Required for non-alias records) The TTL of the record.
 * `records` - (Required for non-alias records) A string list of records. To specify a single record value longer than 255 characters such as a TXT record for DKIM, add `\"\"` inside the Terraform configuration string (e.g. `"first255characters\"\"morecharacters"`).
 * `set_identifier` - (Optional) Unique identifier to differentiate records with routing policies from one another. Required if using `failover`, `geolocation`, `latency`, or `weighted` routing policies documented below.

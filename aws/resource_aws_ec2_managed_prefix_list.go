@@ -32,6 +32,7 @@ func resourceAwsEc2ManagedPrefixList() *schema.Resource {
 			customdiff.ComputedIf("version", func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
 				return diff.HasChange("entry")
 			}),
+			SetTagsDiff,
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -80,7 +81,8 @@ func resourceAwsEc2ManagedPrefixList() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"version": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -91,6 +93,8 @@ func resourceAwsEc2ManagedPrefixList() *schema.Resource {
 
 func resourceAwsEc2ManagedPrefixListCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &ec2.CreateManagedPrefixListInput{}
 
@@ -110,8 +114,8 @@ func resourceAwsEc2ManagedPrefixListCreate(d *schema.ResourceData, meta interfac
 		input.PrefixListName = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		input.TagSpecifications = ec2TagSpecificationsFromMap(v.(map[string]interface{}), "prefix-list")
+	if len(tags) > 0 {
+		input.TagSpecifications = ec2TagSpecificationsFromKeyValueTags(tags, "prefix-list")
 	}
 
 	output, err := conn.CreateManagedPrefixList(input)
@@ -131,6 +135,7 @@ func resourceAwsEc2ManagedPrefixListCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsEc2ManagedPrefixListRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	pl, err := finder.ManagedPrefixListByID(conn, d.Id())
@@ -185,8 +190,15 @@ func resourceAwsEc2ManagedPrefixListRead(d *schema.ResourceData, meta interface{
 	d.Set("name", pl.PrefixListName)
 	d.Set("owner_id", pl.OwnerId)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(pl.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error settings attribute tags of managed prefix list %s: %w", d.Id(), err)
+	tags := keyvaluetags.Ec2KeyValueTags(pl.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("version", pl.Version)
@@ -197,7 +209,7 @@ func resourceAwsEc2ManagedPrefixListRead(d *schema.ResourceData, meta interface{
 func resourceAwsEc2ManagedPrefixListUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChangeExcept("tags") {
+	if d.HasChangesExcept("tags", "tags_all") {
 		input := &ec2.ModifyManagedPrefixListInput{
 			PrefixListId: aws.String(d.Id()),
 		}
@@ -222,6 +234,55 @@ func resourceAwsEc2ManagedPrefixListUpdate(d *schema.ResourceData, meta interfac
 			wait = true
 		}
 
+		// Prevent the following error on description-only updates:
+		//   InvalidParameterValue: Request cannot contain Cidr #.#.#.#/# in both AddPrefixListEntries and RemovePrefixListEntries
+		// Attempting to just delete the RemoveEntries item causes:
+		//   InvalidRequest: The request received was invalid.
+		// Therefore it seems we must issue two ModifyManagedPrefixList calls,
+		// one with a collection of all description-only removals and the
+		// second one will add them all back.
+		if len(input.AddEntries) > 0 && len(input.RemoveEntries) > 0 {
+			removalInput := &ec2.ModifyManagedPrefixListInput{
+				CurrentVersion: input.CurrentVersion,
+				PrefixListId:   aws.String(d.Id()),
+			}
+
+			for idx, removeEntry := range input.RemoveEntries {
+				for _, addEntry := range input.AddEntries {
+					if aws.StringValue(addEntry.Cidr) == aws.StringValue(removeEntry.Cidr) {
+						removalInput.RemoveEntries = append(removalInput.RemoveEntries, input.RemoveEntries[idx])
+						input.RemoveEntries = append(input.RemoveEntries[:idx], input.RemoveEntries[idx+1:]...)
+					}
+				}
+			}
+
+			if len(removalInput.RemoveEntries) > 0 {
+				_, err := conn.ModifyManagedPrefixList(removalInput)
+
+				if err != nil {
+					return fmt.Errorf("error updating EC2 Managed Prefix List (%s): %w", d.Id(), err)
+				}
+
+				managedPrefixList, err := waiter.ManagedPrefixListModified(conn, d.Id())
+
+				if err != nil {
+					return fmt.Errorf("error waiting for EC2 Managed Prefix List (%s) update: %w", d.Id(), err)
+				}
+
+				if managedPrefixList == nil {
+					return fmt.Errorf("error waiting for EC2 Managed Prefix List (%s) update: empty response", d.Id())
+				}
+
+				input.CurrentVersion = managedPrefixList.Version
+
+				// Prevent this error if RemoveEntries is list with no elements after removals:
+				//   InvalidRequest: The request received was invalid.
+				if len(input.RemoveEntries) == 0 {
+					input.RemoveEntries = nil
+				}
+			}
+		}
+
 		_, err := conn.ModifyManagedPrefixList(input)
 
 		if err != nil {
@@ -235,8 +296,8 @@ func resourceAwsEc2ManagedPrefixListUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Managed Prefix List (%s) tags: %w", d.Id(), err)
 		}

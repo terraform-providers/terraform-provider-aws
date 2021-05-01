@@ -12,7 +12,7 @@ Provides an SSM Maintenance Window resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ssm_maintenance_window" "production" {
   name     = "maintenance-window-application"
   schedule = "cron(0 16 ? * TUE *)"
@@ -36,13 +36,14 @@ The following arguments are supported:
 * `schedule_timezone` - (Optional) Timezone for schedule in [Internet Assigned Numbers Authority (IANA) Time Zone Database format](https://www.iana.org/time-zones). For example: `America/Los_Angeles`, `etc/UTC`, or `Asia/Seoul`.
 * `schedule_offset` - (Optional) The number of days to wait after the date and time specified by a CRON expression before running the maintenance window.
 * `start_date` - (Optional) Timestamp in [ISO-8601 extended format](https://www.iso.org/iso-8601-date-and-time-format.html) when to begin the maintenance window.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the maintenance window.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

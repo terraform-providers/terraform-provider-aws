@@ -12,14 +12,14 @@ Manages an Image Builder Image Pipeline.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_imagebuilder_image_pipeline" "example" {
   image_recipe_arn                 = aws_imagebuilder_image_recipe.example.arn
   infrastructure_configuration_arn = aws_imagebuilder_infrastructure_configuration.example.arn
   name                             = "example"
 
   schedule {
-    schedule_expression = "cron(0 0 * * *)"
+    schedule_expression = "cron(0 0 * * ? *)"
   }
 }
 ```
@@ -40,7 +40,7 @@ The following arguments are optional:
 * `image_tests_configuration` - (Optional) Configuration block with image tests configuration. Detailed below.
 * `schedule` - (Optional) Configuration block with schedule settings. Detailed below.
 * `status` - (Optional) Status of the image pipeline. Valid values are `DISABLED` and `ENABLED`. Defaults to `ENABLED`.
-* `tags` - (Optional) Key-value map of resource tags for the image pipeline.
+* `tags` - (Optional) Key-value map of resource tags for the image pipeline. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### image_tests_configuration
 
@@ -53,7 +53,7 @@ The following arguments are optional:
 
 The following arguments are required:
 
-* `schedule_expression` - (Required) Cron expression of how often the pipeline start condition is evaluated. For example, `cron(0 0 * * *)` is evaluated every day at midnight UTC.
+* `schedule_expression` - (Required) Cron expression of how often the pipeline start condition is evaluated. For example, `cron(0 0 * * ? *)` is evaluated every day at midnight UTC. Configurations using the five field syntax that was previously accepted by the API, such as `cron(0 0 * * *)`, must be updated to the six field syntax. For more information, see the [Image Builder User Guide](https://docs.aws.amazon.com/imagebuilder/latest/userguide/cron-expressions.html).
 
 The following arguments are optional:
 
@@ -69,6 +69,7 @@ In addition to all arguments above, the following attributes are exported:
 * `date_next_run` - Date the image pipeline will run next.
 * `date_updated` - Date the image pipeline was updated.
 * `platform` - Platform of the image pipeline.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -25,6 +25,7 @@ func TestAccAwsServerlessApplicationRepositoryCloudFormationStack_basic(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, serverlessrepository.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
 		Steps: []resource.TestStep{
@@ -75,6 +76,7 @@ func TestAccAwsServerlessApplicationRepositoryCloudFormationStack_disappears(t *
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, serverlessrepository.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
@@ -103,6 +105,7 @@ func TestAccAwsServerlessApplicationRepositoryCloudFormationStack_versioned(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, serverlessrepository.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
 		Steps: []resource.TestStep{
@@ -156,6 +159,7 @@ func TestAccAwsServerlessApplicationRepositoryCloudFormationStack_paired(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, serverlessrepository.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
 		Steps: []resource.TestStep{
@@ -181,6 +185,7 @@ func TestAccAwsServerlessApplicationRepositoryCloudFormationStack_Tags(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, serverlessrepository.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
 		Steps: []resource.TestStep{
@@ -227,6 +232,7 @@ func TestAccAwsServerlessApplicationRepositoryCloudFormationStack_update(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, serverlessrepository.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
 		Steps: []resource.TestStep{

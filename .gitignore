@@ -2,6 +2,8 @@
 *.exe
 .DS_Store
 example.tf
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
 terraform.tfplan
 terraform.tfstate
 bin/
@@ -28,6 +30,8 @@ website/node_modules
 log.txt
 markdown-link-check*.txt
 changelog.tmp
+terraform-provider-aws
+aws/testdata/service/cloudformation/examplecompany-exampleservice-exampleresource/bin/handler
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate

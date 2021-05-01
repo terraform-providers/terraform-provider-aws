@@ -155,7 +155,7 @@ func findConnectionRoute(conn *ec2.EC2, cidrBlock, vpnConnectionId string) (*ec2
 	vpnConnection := resp.VpnConnections[0]
 
 	for _, r := range vpnConnection.Routes {
-		if *r.DestinationCidrBlock == cidrBlock && *r.State != "deleted" {
+		if aws.StringValue(r.DestinationCidrBlock) == cidrBlock && aws.StringValue(r.State) != "deleted" {
 			return r, nil
 		}
 	}

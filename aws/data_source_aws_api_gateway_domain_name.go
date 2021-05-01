@@ -118,7 +118,7 @@ func dataSourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interfac
 	d.Set("domain_name", domainName.DomainName)
 
 	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(domainName.EndpointConfiguration)); err != nil {
-		return fmt.Errorf("error setting endpoint_configuration: %s", err)
+		return fmt.Errorf("error setting endpoint_configuration: %w", err)
 	}
 
 	d.Set("regional_certificate_arn", domainName.RegionalCertificateArn)
@@ -128,7 +128,7 @@ func dataSourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interfac
 	d.Set("security_policy", domainName.SecurityPolicy)
 
 	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(domainName.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

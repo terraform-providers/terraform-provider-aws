@@ -25,7 +25,7 @@ For more information on Amazon Aurora, see [Aurora on Amazon RDS][2] in the Amaz
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_rds_cluster_instance" "cluster_instances" {
   count              = 2
   identifier         = "aurora-cluster-demo-${count.index}"
@@ -53,18 +53,18 @@ The following arguments are supported:
 
 * `identifier` - (Optional, Forces new resource) The identifier for the RDS instance, if omitted, Terraform will assign a random, unique identifier.
 * `identifier_prefix` - (Optional, Forces new resource) Creates a unique identifier beginning with the specified prefix. Conflicts with `identifier`.
-* `cluster_identifier` - (Required) The identifier of the [`aws_rds_cluster`](/docs/providers/aws/r/rds_cluster.html) in which to launch this instance.
-* `engine` - (Optional) The name of the database engine to be used for the RDS instance. Defaults to `aurora`. Valid Values: `aurora`, `aurora-mysql`, `aurora-postgresql`.
+* `cluster_identifier` - (Required, Forces new resource) The identifier of the [`aws_rds_cluster`](/docs/providers/aws/r/rds_cluster.html) in which to launch this instance.
+* `engine` - (Optional, Forces new resource) The name of the database engine to be used for the RDS instance. Defaults to `aurora`. Valid Values: `aurora`, `aurora-mysql`, `aurora-postgresql`.
 For information on the difference between the available Aurora MySQL engines
 see [Comparison between Aurora MySQL 1 and Aurora MySQL 2](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/AuroraMySQL.Updates.20180206.html)
 in the Amazon RDS User Guide.
-* `engine_version` - (Optional) The database engine version. When managing the engine version in the cluster, it is recommended to add the [lifecycle `ignore_changes` configuration](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) for this argument to prevent Terraform from proposing changes to the instance engine version directly.
+* `engine_version` - (Optional, Forces new resource) The database engine version. When managing the engine version in the cluster, it is recommended to add the [lifecycle `ignore_changes` configuration](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) for this argument to prevent Terraform from proposing changes to the instance engine version directly.
 * `instance_class` - (Required) The instance class to use. For details on CPU
 and memory, see [Scaling Aurora DB Instances][4]. Aurora uses `db.*` instance classes/types. Please see [AWS Documentation][7] for currently available instance classes and complete details.
 * `publicly_accessible` - (Optional) Bool to control if instance is publicly accessible.
 Default `false`. See the documentation on [Creating DB Instances][6] for more
 details on controlling this property.
-* `db_subnet_group_name` - (Required if `publicly_accessible = false`, Optional otherwise) A DB subnet group to associate with this DB instance. **NOTE:** This must match the `db_subnet_group_name` of the attached [`aws_rds_cluster`](/docs/providers/aws/r/rds_cluster.html).
+* `db_subnet_group_name` - (Required if `publicly_accessible = false`, Optional otherwise, Forces new resource) A DB subnet group to associate with this DB instance. **NOTE:** This must match the `db_subnet_group_name` of the attached [`aws_rds_cluster`](/docs/providers/aws/r/rds_cluster.html).
 * `db_parameter_group_name` - (Optional) The name of the DB parameter group to associate with this instance.
 * `apply_immediately` - (Optional) Specifies whether any database modifications
      are applied immediately, or during the next maintenance window. Default is`false`.
@@ -73,7 +73,7 @@ enhanced monitoring metrics to CloudWatch Logs. You can find more information on
 what IAM permissions are needed to allow Enhanced Monitoring for RDS Instances.
 * `monitoring_interval` - (Optional) The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. To disable collecting Enhanced Monitoring metrics, specify 0. The default is 0. Valid Values: 0, 1, 5, 10, 15, 30, 60.
 * `promotion_tier` - (Optional) Default 0. Failover Priority setting on instance level. The reader who has lower tier has higher priority to get promoted to writer.
-* `availability_zone` - (Optional, Computed) The EC2 Availability Zone that the DB instance is created in. See [docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html) about the details.
+* `availability_zone` - (Optional, Computed, Forces new resource) The EC2 Availability Zone that the DB instance is created in. See [docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html) about the details.
 * `preferred_backup_window` - (Optional) The daily time range during which automated backups are created if automated backups are enabled.
   Eg: "04:00-09:00"
 * `preferred_maintenance_window` - (Optional) The window to perform maintenance in.
@@ -83,7 +83,7 @@ what IAM permissions are needed to allow Enhanced Monitoring for RDS Instances.
 * `performance_insights_kms_key_id` - (Optional) The ARN for the KMS key to encrypt Performance Insights data. When specifying `performance_insights_kms_key_id`, `performance_insights_enabled` needs to be set to true.
 * `copy_tags_to_snapshot` – (Optional, boolean) Indicates whether to copy all of the user-defined tags from the DB instance to snapshots of the DB instance. Default `false`.
 * `ca_cert_identifier` - (Optional) The identifier of the CA certificate for the DB instance.
-* `tags` - (Optional) A map of tags to assign to the instance.
+* `tags` - (Optional) A map of tags to assign to the instance. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -104,6 +104,7 @@ In addition to all arguments above, the following attributes are exported:
 * `dbi_resource_id` - The region-unique, immutable identifier for the DB instance.
 * `performance_insights_enabled` - Specifies whether Performance Insights is enabled or not.
 * `performance_insights_kms_key_id` - The ARN for the KMS encryption key used by Performance Insights.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 [2]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Aurora.html
 [3]: /docs/providers/aws/r/rds_cluster.html

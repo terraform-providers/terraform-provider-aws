@@ -16,7 +16,7 @@ Manages Lake Formation principals designated as data lake administrators and lis
 
 ### Data Lake Admins
 
-```hcl
+```terraform
 resource "aws_lakeformation_data_lake_settings" "example" {
   admins = [aws_iam_user.test.arn, aws_iam_role.test.arn]
 }
@@ -24,7 +24,7 @@ resource "aws_lakeformation_data_lake_settings" "example" {
 
 ### Create Default Permissions
 
-```hcl
+```terraform
 resource "aws_lakeformation_data_lake_settings" "example" {
   admins = [aws_iam_user.test.arn, aws_iam_role.test.arn]
 
@@ -68,4 +68,4 @@ The following arguments are optional:
 
 ## Attributes Reference
 
-In addition to all arguments above, no attributes are exported.
+No additional attributes are exported.

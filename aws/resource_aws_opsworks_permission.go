@@ -2,7 +2,6 @@ package aws
 
 import (
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -10,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsOpsworksPermission() *schema.Resource {
@@ -120,7 +120,7 @@ func resourceAwsOpsworksSetPermission(d *schema.ResourceData, meta interface{}) 
 		req.Level = aws.String(d.Get("level").(string))
 	}
 
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := client.SetPermission(req)
 		if err != nil {
 

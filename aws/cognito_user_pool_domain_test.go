@@ -34,16 +34,16 @@ var testAccProviderCognitoUserPoolCustomDomainConfigure sync.Once
 func testAccPreCheckCognitoUserPoolCustomDomain(t *testing.T) {
 	testAccPartitionHasServicePreCheck(cognitoidentityprovider.EndpointsID, t)
 
+	region := testAccGetCognitoUserPoolCustomDomainRegion()
+
+	if region == "" {
+		t.Skip("Cognito User Pool Custom Domains not available in this AWS Partition")
+	}
+
 	// Since we are outside the scope of the Terraform configuration we must
 	// call Configure() to properly initialize the provider configuration.
 	testAccProviderCognitoUserPoolCustomDomainConfigure.Do(func() {
 		testAccProviderCognitoUserPoolCustomDomain = Provider()
-
-		region := testAccGetCognitoUserPoolCustomDomainRegion()
-
-		if region == "" {
-			t.Skip("Cognito User Pool Custom Domains not available in this AWS Partition")
-		}
 
 		config := map[string]interface{}{
 			"region": region,

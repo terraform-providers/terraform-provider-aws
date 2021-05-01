@@ -20,6 +20,7 @@ func TestAccAWSOpsworksInstance_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -69,6 +70,7 @@ func TestAccAWSOpsworksInstance_UpdateHostNameForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,
 		Steps: []resource.TestStep{

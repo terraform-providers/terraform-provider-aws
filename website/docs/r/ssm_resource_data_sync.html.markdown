@@ -12,7 +12,7 @@ Provides a SSM resource data sync.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "hoge" {
   bucket = "tf-test-bucket-1234"
 }
@@ -78,6 +78,10 @@ The following arguments are supported:
 * `kms_key_arn` - (Optional) ARN of an encryption key for a destination in Amazon S3.
 * `prefix` - (Optional) Prefix for the bucket.
 * `sync_format` - (Optional) A supported sync format. Only JsonSerDe is currently supported. Defaults to JsonSerDe.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

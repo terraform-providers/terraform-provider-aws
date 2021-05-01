@@ -124,10 +124,10 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(aws.StringValue(bundle.BundleId))
-	d.Set("bundle_id", aws.StringValue(bundle.BundleId))
-	d.Set("description", aws.StringValue(bundle.Description))
-	d.Set("name", aws.StringValue(bundle.Name))
-	d.Set("owner", aws.StringValue(bundle.Owner))
+	d.Set("bundle_id", bundle.BundleId)
+	d.Set("description", bundle.Description)
+	d.Set("name", bundle.Name)
+	d.Set("owner", bundle.Owner)
 
 	computeType := make([]map[string]interface{}, 1)
 	if bundle.ComputeType != nil {
@@ -136,7 +136,7 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	if err := d.Set("compute_type", computeType); err != nil {
-		return fmt.Errorf("error setting compute_type: %s", err)
+		return fmt.Errorf("error setting compute_type: %w", err)
 	}
 
 	rootStorage := make([]map[string]interface{}, 1)
@@ -146,7 +146,7 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	if err := d.Set("root_storage", rootStorage); err != nil {
-		return fmt.Errorf("error setting root_storage: %s", err)
+		return fmt.Errorf("error setting root_storage: %w", err)
 	}
 
 	userStorage := make([]map[string]interface{}, 1)
@@ -156,7 +156,7 @@ func dataSourceAwsWorkspaceBundleRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	if err := d.Set("user_storage", userStorage); err != nil {
-		return fmt.Errorf("error setting user_storage: %s", err)
+		return fmt.Errorf("error setting user_storage: %w", err)
 	}
 
 	return nil

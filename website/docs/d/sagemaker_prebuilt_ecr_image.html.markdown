@@ -16,7 +16,7 @@ Get information about prebuilt Amazon SageMaker Docker images.
 
 Basic usage:
 
-```hcl
+```terraform
 data "aws_sagemaker_prebuilt_ecr_image" "test" {
   repository_name = "sagemaker-scikit-learn"
   image_tag       = "2.2-1.0.11.0"

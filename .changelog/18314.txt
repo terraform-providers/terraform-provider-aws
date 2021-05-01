@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_pinpoint_email_channel: Add `configuration_set` argument
+```
+
+```release-note:enhancement
+resource/aws_pinpoint_email_channel: Add plan time validation for `identity` and `role_arn`
+```

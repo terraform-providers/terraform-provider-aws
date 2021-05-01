@@ -15,7 +15,7 @@ const (
 	EndpointStatusPending = "Pending"
 
 	// Maximum amount of time to wait for Endpoint to return Available on creation
-	EndpointStatusCreatedTimeout = 5 * time.Minute
+	EndpointStatusCreatedTimeout = 20 * time.Minute
 )
 
 // EndpointStatusCreated waits for Endpoint to return Available

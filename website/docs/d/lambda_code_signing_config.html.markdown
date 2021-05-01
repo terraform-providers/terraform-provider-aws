@@ -14,7 +14,7 @@ For information about Lambda code signing configurations and how to use them, se
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lambda_code_signing_config" "existing_csc" {
   arn = "arn:aws:lambda:${var.aws_region}:${var.aws_account}:code-signing-config:csc-0f6c334abcdea4d8b"
 }

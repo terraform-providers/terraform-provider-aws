@@ -31,6 +31,7 @@ func TestAccAWSSwfDomain_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckSwfDomainTestingEnabled(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, swf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSwfDomainDestroy,
 		Steps: []resource.TestStep{
@@ -61,6 +62,7 @@ func TestAccAWSSwfDomain_tags(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckSwfDomainTestingEnabled(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, swf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSwfDomainDestroy,
 		Steps: []resource.TestStep{
@@ -106,6 +108,7 @@ func TestAccAWSSwfDomain_NamePrefix(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckSwfDomainTestingEnabled(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, swf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSwfDomainDestroy,
 		Steps: []resource.TestStep{
@@ -134,6 +137,7 @@ func TestAccAWSSwfDomain_GeneratedName(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckSwfDomainTestingEnabled(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, swf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSwfDomainDestroy,
 		Steps: []resource.TestStep{
@@ -161,6 +165,7 @@ func TestAccAWSSwfDomain_Description(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckSwfDomainTestingEnabled(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, swf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSwfDomainDestroy,
 		Steps: []resource.TestStep{

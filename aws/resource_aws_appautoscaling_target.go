@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsAppautoscalingTarget() *schema.Resource {
@@ -72,7 +73,7 @@ func resourceAwsAppautoscalingTargetPut(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[DEBUG] Application autoscaling target create configuration %s", targetOpts)
 	var err error
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err = conn.RegisterScalableTarget(&targetOpts)
 
 		if err != nil {
@@ -191,7 +192,11 @@ func getAwsAppautoscalingTarget(resourceId, namespace, dimension string,
 	}
 
 	for idx, tgt := range describeTargets.ScalableTargets {
-		if *tgt.ResourceId == resourceId && *tgt.ScalableDimension == dimension {
+		if tgt == nil {
+			continue
+		}
+
+		if aws.StringValue(tgt.ResourceId) == resourceId && aws.StringValue(tgt.ScalableDimension) == dimension {
 			return describeTargets.ScalableTargets[idx], nil
 		}
 	}

@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_route: Validate route destination and target attributes
+```
+
+```release-note:bug
+resource/aws_route: Correctly handle updates to the route target attributes (`egress_only_gateway_id`, `gateway_id`, `instance_id`,  `local_gateway_id`, `nat_gateway_id`, `network_interface_id`, `transit_gateway_id`, `vpc_peering_connection_id`)
+```

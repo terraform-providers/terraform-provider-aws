@@ -17,6 +17,7 @@ func TestAccAWSDHCPOptionsAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -45,6 +46,7 @@ func TestAccAWSDHCPOptionsAssociation_disappears_vpc(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -69,6 +71,7 @@ func TestAccAWSDHCPOptionsAssociation_disappears_dhcp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -79,6 +82,31 @@ func TestAccAWSDHCPOptionsAssociation_disappears_dhcp(t *testing.T) {
 					testAccCheckVpcExists("aws_vpc.test", &v),
 					testAccCheckDHCPOptionsAssociationExist(resourceName, &v),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsVpcDhcpOptions(), "aws_vpc_dhcp_options.test"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSDHCPOptionsAssociation_disappears(t *testing.T) {
+	var v ec2.Vpc
+	var d ec2.DhcpOptions
+	resourceName := "aws_vpc_dhcp_options_association.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDHCPOptionsAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDHCPOptionsAssociationConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDHCPOptionsExists("aws_vpc_dhcp_options.test", &d),
+					testAccCheckVpcExists("aws_vpc.test", &v),
+					testAccCheckDHCPOptionsAssociationExist(resourceName, &v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsVpcDhcpOptionsAssociation(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -111,8 +139,8 @@ func testAccCheckDHCPOptionsAssociationDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if len(vpcs) > 0 {
-			return fmt.Errorf("DHCP Options association is still associated to %d VPCs.", len(vpcs))
+		if rs.Primary.Attributes["dhcp_options_id"] != VPCDefaultOptionsID && len(vpcs) > 0 {
+			return fmt.Errorf("vpc_dhcp_options_association (%s) is still associated to %d VPCs.", rs.Primary.Attributes["dhcp_options_id"], len(vpcs))
 		}
 	}
 

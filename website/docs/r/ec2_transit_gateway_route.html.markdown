@@ -14,7 +14,7 @@ Manages an EC2 Transit Gateway Route.
 
 ### Standard usage
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway_route" "example" {
   destination_cidr_block         = "0.0.0.0/0"
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.example.id
@@ -24,7 +24,7 @@ resource "aws_ec2_transit_gateway_route" "example" {
 
 ### Blackhole route
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway_route" "example" {
   destination_cidr_block         = "0.0.0.0/0"
   blackhole                      = true

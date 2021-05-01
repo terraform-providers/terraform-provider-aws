@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsDocDBCluster() *schema.Resource {
@@ -241,8 +242,11 @@ func resourceAwsDocDBCluster() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -257,7 +261,8 @@ func resourceAwsDocDBClusterImport(
 
 func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).docdbconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DocdbTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Some API calls (e.g. RestoreDBClusterFromSnapshot do not support all
 	// parameters to correctly apply all settings in one pass. For missing
@@ -284,7 +289,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 			Engine:              aws.String(d.Get("engine").(string)),
 			SnapshotIdentifier:  aws.String(d.Get("snapshot_identifier").(string)),
 			DeletionProtection:  aws.Bool(d.Get("deletion_protection").(bool)),
-			Tags:                tags,
+			Tags:                tags.IgnoreAws().DocdbTags(),
 		}
 
 		if attr := d.Get("availability_zones").(*schema.Set); attr.Len() > 0 {
@@ -336,7 +341,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		log.Printf("[DEBUG] DocDB Cluster restore from snapshot configuration: %s", opts)
-		err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 			_, err := conn.RestoreDBClusterFromSnapshot(&opts)
 			if err != nil {
 				if isAWSErr(err, "InvalidParameterValue", "IAM role ARN value is invalid or does not include the required permissions") {
@@ -367,7 +372,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 			MasterUserPassword:  aws.String(d.Get("master_password").(string)),
 			MasterUsername:      aws.String(d.Get("master_username").(string)),
 			DeletionProtection:  aws.Bool(d.Get("deletion_protection").(bool)),
-			Tags:                tags,
+			Tags:                tags.IgnoreAws().DocdbTags(),
 		}
 
 		if attr, ok := d.GetOk("port"); ok {
@@ -420,7 +425,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 
 		log.Printf("[DEBUG] DocDB Cluster create options: %s", createOpts)
 		var resp *docdb.CreateDBClusterOutput
-		err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 			var err error
 			resp, err = conn.CreateDBCluster(createOpts)
 			if err != nil {
@@ -484,6 +489,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsDocDBClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).docdbconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &docdb.DescribeDBClustersInput{
@@ -574,8 +580,15 @@ func resourceAwsDocDBClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for DocumentDB Cluster (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -673,8 +686,8 @@ func resourceAwsDocDBClusterUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DocdbUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating DocumentDB Cluster (%s) tags: %s", d.Get("arn").(string), err)

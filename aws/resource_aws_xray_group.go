@@ -21,6 +21,8 @@ func resourceAwsXrayGroup() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -35,17 +37,20 @@ func resourceAwsXrayGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsXrayGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).xrayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	input := &xray.CreateGroupInput{
 		GroupName:        aws.String(d.Get("group_name").(string)),
 		FilterExpression: aws.String(d.Get("filter_expression").(string)),
-		Tags:             keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().XrayTags(),
+		Tags:             tags.IgnoreAws().XrayTags(),
 	}
 
 	out, err := conn.CreateGroup(input)
@@ -60,6 +65,7 @@ func resourceAwsXrayGroupCreate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceAwsXrayGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).xrayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &xray.GetGroupInput{
@@ -87,8 +93,15 @@ func resourceAwsXrayGroupRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for Xray Group (%q): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -109,8 +122,8 @@ func resourceAwsXrayGroupUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.XrayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

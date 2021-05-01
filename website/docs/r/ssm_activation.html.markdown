@@ -12,7 +12,7 @@ Registers an on-premises server or virtual machine with Amazon EC2 so that it ca
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "test_role" {
   name = "test_role"
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 * `expiration_date` - (Optional) UTC timestamp in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8) by which this activation request should expire. The default value is 24 hours from resource creation time. Terraform will only perform drift detection of its value when present in a configuration.
 * `iam_role` - (Required) The IAM Role to attach to the managed instance.
 * `registration_limit` - (Optional) The maximum number of managed instances you want to register. The default value is 1 instance.
-* `tags` - (Optional) A map of tags to assign to the object.
+* `tags` - (Optional) A map of tags to assign to the object. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -66,6 +66,7 @@ In addition to all arguments above, the following attributes are exported:
 * `iam_role` - The IAM Role attached to the managed instance.
 * `registration_limit` - The maximum number of managed instances you want to be registered. The default value is 1 instance.
 * `registration_count` - The number of managed instances that are currently registered using this activation.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

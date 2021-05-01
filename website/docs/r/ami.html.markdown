@@ -19,7 +19,7 @@ it's better to use `aws_ami_launch_permission` instead.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Create an AMI that will start a machine whose root device is backed by
 # an EBS volume populated from a snapshot. It is assumed that such a snapshot
 # already exists with the id "snap-xxxxxxxx".
@@ -52,7 +52,7 @@ The following arguments are supported:
   attached to created instances. The structure of this block is described below.
 * `ephemeral_block_device` - (Optional) Nested block describing an ephemeral block device that
   should be attached to created instances. The structure of this block is described below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 When `virtualization_type` is "paravirtual" the following additional arguments apply:
 
@@ -110,7 +110,17 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the AMI.
 * `id` - The ID of the created AMI.
+* `owner_id` - The AWS account ID of the image owner.
 * `root_snapshot_id` - The Snapshot ID for the root volume (for EBS-backed AMIs)
+* `usage_operation` - The operation of the Amazon EC2 instance and the billing code that is associated with the AMI.
+* `platform_details` - The platform details associated with the billing code of the AMI.
+* `image_owner_alias` - The AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner.
+* `image_type` - The type of image.
+* `hypervisor` - The hypervisor type of the image.
+* `owner_id` - The AWS account ID of the image owner.
+* `platform` - This value is set to windows for Windows AMIs; otherwise, it is blank.
+* `public` - Indicates whether the image has public launch permissions.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

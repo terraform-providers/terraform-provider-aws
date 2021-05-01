@@ -31,6 +31,35 @@ func resourceAwsSfnStateMachine() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(0, 1024*1024), // 1048576
 			},
 
+			"logging_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"log_destination": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"include_execution_data": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"level": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								sfn.LogLevelAll,
+								sfn.LogLevelError,
+								sfn.LogLevelFatal,
+								sfn.LogLevelOff,
+							}, false),
+						},
+					},
+				},
+			},
+
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -53,24 +82,41 @@ func resourceAwsSfnStateMachine() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  sfn.StateMachineTypeStandard,
+				ValidateFunc: validation.StringInSlice([]string{
+					sfn.StateMachineTypeStandard,
+					sfn.StateMachineTypeExpress,
+				}, false),
+			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSfnStateMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sfnconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	log.Print("[DEBUG] Creating Step Function State Machine")
-
 	params := &sfn.CreateStateMachineInput{
-		Definition: aws.String(d.Get("definition").(string)),
-		Name:       aws.String(d.Get("name").(string)),
-		RoleArn:    aws.String(d.Get("role_arn").(string)),
-		Tags:       keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().SfnTags(),
+		Definition:           aws.String(d.Get("definition").(string)),
+		LoggingConfiguration: expandAwsSfnLoggingConfiguration(d.Get("logging_configuration").([]interface{})),
+		Name:                 aws.String(d.Get("name").(string)),
+		RoleArn:              aws.String(d.Get("role_arn").(string)),
+		Tags:                 tags.IgnoreAws().SfnTags(),
+		Type:                 aws.String(d.Get("type").(string)),
 	}
 
 	var stateMachine *sfn.CreateStateMachineOutput
@@ -111,10 +157,10 @@ func resourceAwsSfnStateMachineCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sfnconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading Step Function State Machine: %s", d.Id())
-
 	sm, err := conn.DescribeStateMachine(&sfn.DescribeStateMachineInput{
 		StateMachineArn: aws.String(d.Id()),
 	})
@@ -132,7 +178,14 @@ func resourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("definition", sm.Definition)
 	d.Set("name", sm.Name)
 	d.Set("role_arn", sm.RoleArn)
+	d.Set("type", sm.Type)
 	d.Set("status", sm.Status)
+
+	loggingConfiguration := flattenAwsSfnLoggingConfiguration(sm.LoggingConfiguration)
+
+	if err := d.Set("logging_configuration", loggingConfiguration); err != nil {
+		log.Printf("[DEBUG] Error setting logging_configuration %s", err)
+	}
 
 	if err := d.Set("creation_date", sm.CreationDate.Format(time.RFC3339)); err != nil {
 		log.Printf("[DEBUG] Error setting creation_date: %s", err)
@@ -144,8 +197,15 @@ func resourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for SFN State Machine (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -154,11 +214,15 @@ func resourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsSfnStateMachineUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sfnconn
 
-	if d.HasChanges("definition", "role_arn") {
+	if d.HasChanges("definition", "role_arn", "logging_configuration") {
 		params := &sfn.UpdateStateMachineInput{
 			StateMachineArn: aws.String(d.Id()),
 			Definition:      aws.String(d.Get("definition").(string)),
 			RoleArn:         aws.String(d.Get("role_arn").(string)),
+		}
+
+		if d.HasChange("logging_configuration") {
+			params.LoggingConfiguration = expandAwsSfnLoggingConfiguration(d.Get("logging_configuration").([]interface{}))
 		}
 
 		_, err := conn.UpdateStateMachine(params)
@@ -173,8 +237,8 @@ func resourceAwsSfnStateMachineUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.SfnUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -205,4 +269,46 @@ func resourceAwsSfnStateMachineDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func expandAwsSfnLoggingConfiguration(l []interface{}) *sfn.LoggingConfiguration {
+
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	loggingConfiguration := &sfn.LoggingConfiguration{
+		Destinations: []*sfn.LogDestination{
+			{
+				CloudWatchLogsLogGroup: &sfn.CloudWatchLogsLogGroup{
+					LogGroupArn: aws.String(m["log_destination"].(string)),
+				},
+			},
+		},
+		IncludeExecutionData: aws.Bool(m["include_execution_data"].(bool)),
+		Level:                aws.String(m["level"].(string)),
+	}
+
+	return loggingConfiguration
+}
+
+func flattenAwsSfnLoggingConfiguration(loggingConfiguration *sfn.LoggingConfiguration) []interface{} {
+
+	if loggingConfiguration == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"log_destination":        "",
+		"include_execution_data": aws.BoolValue(loggingConfiguration.IncludeExecutionData),
+		"level":                  aws.StringValue(loggingConfiguration.Level),
+	}
+
+	if len(loggingConfiguration.Destinations) > 0 {
+		m["log_destination"] = aws.StringValue(loggingConfiguration.Destinations[0].CloudWatchLogsLogGroup.LogGroupArn)
+	}
+
+	return []interface{}{m}
 }

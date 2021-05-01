@@ -122,15 +122,15 @@ func resourceAwsMskConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error describing MSK Configuration (%s) Revision (%d): missing result", d.Id(), aws.Int64Value(revision))
 	}
 
-	d.Set("arn", aws.StringValue(configurationOutput.Arn))
-	d.Set("description", aws.StringValue(revisionOutput.Description))
+	d.Set("arn", configurationOutput.Arn)
+	d.Set("description", revisionOutput.Description)
 
 	if err := d.Set("kafka_versions", aws.StringValueSlice(configurationOutput.KafkaVersions)); err != nil {
 		return fmt.Errorf("error setting kafka_versions: %s", err)
 	}
 
-	d.Set("latest_revision", aws.Int64Value(revision))
-	d.Set("name", aws.StringValue(configurationOutput.Name))
+	d.Set("latest_revision", revision)
+	d.Set("name", configurationOutput.Name)
 	d.Set("server_properties", string(revisionOutput.ServerProperties))
 
 	return nil

@@ -14,7 +14,7 @@ Provides an SNS topic policy resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_topic" "test" {
   name = "my-topic-with-policy"
 }
@@ -72,6 +72,12 @@ The following arguments are supported:
 
 * `arn` - (Required) The ARN of the SNS topic
 * `policy` - (Required) The fully-formed AWS policy as JSON. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `owner` - The AWS Account ID of the SNS topic owner
 
 ## Import
 

@@ -22,6 +22,7 @@ func testAccAwsGuardDutyIpset_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyIpsetDestroy,
 		Steps: []resource.TestStep{
@@ -60,6 +61,7 @@ func testAccAwsGuardDutyIpset_tags(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyIpsetDestroy,
 		Steps: []resource.TestStep{

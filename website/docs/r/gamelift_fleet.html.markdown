@@ -12,7 +12,7 @@ Provides a Gamelift Fleet resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_fleet" "example" {
   build_id          = aws_gamelift_build.example.id
   ec2_instance_type = "t2.micro"
@@ -43,7 +43,7 @@ The following arguments are supported:
 * `new_game_session_protection_policy` - (Optional) Game session protection policy to apply to all instances in this fleet. e.g. `FullProtection`. Defaults to `NoProtection`.
 * `resource_creation_limit_policy` - (Optional) Policy that limits the number of game sessions an individual player can create over a span of time for this fleet. See below.
 * `runtime_configuration` - (Optional) Instructions for launching server processes on each instance in the fleet. See below.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Nested Fields
 
@@ -78,6 +78,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Fleet ID.
 * `arn` - Fleet ARN.
 * `operating_system` - Operating system of the fleet's computing resources.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

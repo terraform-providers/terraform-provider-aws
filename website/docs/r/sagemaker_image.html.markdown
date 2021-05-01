@@ -14,7 +14,7 @@ Provides a Sagemaker Image resource.
 
 ### Basic usage
 
-```hcl
+```terraform
 resource "aws_sagemaker_image" "example" {
   image_name = "example"
   role_arn   = aws_iam_role.test.arn
@@ -29,14 +29,15 @@ The following arguments are supported:
 * `role_arn` - (Required) The Amazon Resource Name (ARN) of an IAM role that enables Amazon SageMaker to perform tasks on your behalf.
 * `display_name` - (Optional) The display name of the image. When the image is added to a domain (must be unique to the domain).
 * `description` - (Optional) The description of the image.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the Image.
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS to this Image.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

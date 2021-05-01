@@ -50,7 +50,7 @@ func dataSourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := conn.DescribeLedger(req)
 
 	if err != nil {
-		return fmt.Errorf("Error describing ledger: %s", err)
+		return fmt.Errorf("Error describing ledger: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.Name))

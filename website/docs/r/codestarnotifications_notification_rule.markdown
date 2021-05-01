@@ -12,7 +12,7 @@ Provides a CodeStar Notifications Rule.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_codecommit_repository" "code" {
   repository_name = "example-code-repo"
 }
@@ -62,7 +62,7 @@ The following arguments are supported:
 * `name` - (Required) The name of notification rule.
 * `resource` - (Required) The ARN of the resource to associate with the notification rule.
 * `status` - (Optional) The status of the notification rule. Possible values are `ENABLED` and `DISABLED`, default is `ENABLED`.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `target` - (Optional) Configuration blocks containing notification target information. Can be specified multiple times. At least one target must be specified on creation.
 
 An `target` block supports the following arguments:
@@ -76,6 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The codestar notification rule ARN.
 * `arn` - The codestar notification rule ARN.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

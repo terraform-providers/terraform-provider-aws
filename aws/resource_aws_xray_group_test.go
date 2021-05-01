@@ -19,6 +19,7 @@ func TestAccAWSXrayGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, xray.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSXrayGroupDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +57,7 @@ func TestAccAWSXrayGroup_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, xray.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSXrayGroupDestroy,
 		Steps: []resource.TestStep{
@@ -99,6 +101,7 @@ func TestAccAWSXrayGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, xray.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSXrayGroupDestroy,
 		Steps: []resource.TestStep{

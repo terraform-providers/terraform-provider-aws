@@ -12,7 +12,7 @@ Provides details about a specific Amazon Lex Slot Type.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lex_slot_type" "flower_types" {
   name    = "FlowerTypes"
   version = "1"

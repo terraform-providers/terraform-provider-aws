@@ -167,7 +167,7 @@ func resourceAwsApiGatewayBasePathMappingRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error reading Gateway base path mapping: %s", err)
 	}
 
-	mappingBasePath := *mapping.BasePath
+	mappingBasePath := aws.StringValue(mapping.BasePath)
 
 	if mappingBasePath == emptyBasePathMappingValue {
 		mappingBasePath = ""

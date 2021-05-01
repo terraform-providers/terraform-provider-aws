@@ -7,10 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecr/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsEcrRepository() *schema.Resource {
@@ -22,6 +25,8 @@ func resourceAwsEcrRepository() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		CustomizeDiff: SetTagsDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(20 * time.Minute),
@@ -94,18 +99,21 @@ func resourceAwsEcrRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEcrRepositoryCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecrconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := ecr.CreateRepositoryInput{
 		ImageTagMutability:      aws.String(d.Get("image_tag_mutability").(string)),
 		RepositoryName:          aws.String(d.Get("name").(string)),
-		Tags:                    keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcrTags(),
+		Tags:                    tags.IgnoreAws().EcrTags(),
 		EncryptionConfiguration: expandEcrRepositoryEncryptionConfiguration(d.Get("encryption_configuration").([]interface{})),
 	}
 
@@ -137,6 +145,7 @@ func resourceAwsEcrRepositoryCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecrconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading ECR repository %s", d.Id())
@@ -145,30 +154,38 @@ func resourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) erro
 		RepositoryNames: aws.StringSlice([]string{d.Id()}),
 	}
 
-	var err error
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
 		out, err = conn.DescribeRepositories(input)
-		if d.IsNewResource() && isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
 			return resource.RetryableError(err)
 		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
+	if tfresource.TimedOut(err) {
 		out, err = conn.DescribeRepositories(input)
 	}
 
-	if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
 		log.Printf("[WARN] ECR Repository (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading ECR repository: %s", err)
+		return fmt.Errorf("error reading ECR Repository (%s): %w", d.Id(), err)
+	}
+
+	if out == nil || len(out.Repositories) == 0 || out.Repositories[0] == nil {
+		return fmt.Errorf("error reading ECR Repository (%s): empty response", d.Id())
 	}
 
 	repository := out.Repositories[0]
@@ -184,8 +201,15 @@ func resourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("error listing tags for ECR Repository (%s): %w", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags for ECR Repository (%s): %w", arn, err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("image_scanning_configuration", flattenImageScanningConfiguration(repository.ImageScanningConfiguration)); err != nil {
@@ -260,8 +284,8 @@ func resourceAwsEcrRepositoryUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EcrUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating ECR Repository (%s) tags: %s", arn, err)

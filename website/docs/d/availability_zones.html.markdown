@@ -21,7 +21,7 @@ which provides some details about a specific availability zone.
 
 ### By State
 
-```hcl
+```terraform
 # Declare the data source
 data "aws_availability_zones" "available" {
   state = "available"
@@ -46,7 +46,7 @@ resource "aws_subnet" "secondary" {
 
 All Local Zones (regardless of opt-in status):
 
-```hcl
+```terraform
 data "aws_availability_zones" "example" {
   all_availability_zones = true
 

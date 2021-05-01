@@ -41,7 +41,7 @@ func (tf *Terraform) WorkspaceNew(ctx context.Context, workspace string, opts ..
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) workspaceNewCmd(ctx context.Context, workspace string, opts ...WorkspaceNewCmdOption) (*exec.Cmd, error) {

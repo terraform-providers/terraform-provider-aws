@@ -12,7 +12,7 @@ Provides a Log subscription for AWS Directory Service that pushes logs to cloudw
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name              = "/aws/directoryservice/${aws_directory_service_directory.example.id}"
   retention_in_days = 14
@@ -53,6 +53,10 @@ The following arguments are supported:
 
 * `directory_id` - (Required) The id of directory.
 * `log_group_name` - (Required) Name of the cloudwatch log group to which the logs should be published. The log group should be already created and the directory service principal should be provided with required permission to create stream and publish logs. Changing this value would delete the current subscription and create a new one. A directory can only have one log subscription at a time.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

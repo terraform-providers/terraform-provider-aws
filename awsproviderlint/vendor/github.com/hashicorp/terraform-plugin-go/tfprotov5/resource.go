@@ -3,7 +3,7 @@ package tfprotov5
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ResourceServer is an interface containing the methods a resource

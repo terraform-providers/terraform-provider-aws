@@ -12,7 +12,7 @@ The ECR Authorization Token data source allows the authorization token, proxy en
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ecr_authorization_token" "token" {
 }
 ```

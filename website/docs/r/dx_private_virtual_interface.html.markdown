@@ -12,7 +12,7 @@ Provides a Direct Connect private virtual interface resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_private_virtual_interface" "foo" {
   connection_id = "dxcon-zzzzzzzz"
 
@@ -38,7 +38,7 @@ The MTU of a virtual private interface can be either `1500` or `9001` (jumbo fra
 * `bgp_auth_key` - (Optional) The authentication key for BGP configuration.
 * `customer_address` - (Optional) The IPv4 CIDR destination address to which Amazon should send traffic. Required for IPv4 BGP peers.
 * `dx_gateway_id` - (Optional) The ID of the Direct Connect gateway to which to connect the virtual interface.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpn_gateway_id` - (Optional) The ID of the [virtual private gateway](vpn_gateway.html) to which to connect the virtual interface.
 
 ## Attributes Reference
@@ -49,6 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The ARN of the virtual interface.
 * `jumbo_frame_capable` - Indicates whether jumbo frames (9001 MTU) are supported.
 * `aws_device` - The Direct Connect endpoint on which the virtual interface terminates.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

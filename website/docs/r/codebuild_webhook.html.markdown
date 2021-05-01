@@ -20,7 +20,7 @@ When working with [Bitbucket](https://bitbucket.org) and [GitHub](https://github
 
 ~> **Note:** Further managing the automatically created Bitbucket/GitHub webhook with the `bitbucket_hook`/`github_repository_webhook` resource is only possible with importing that resource after creation of the `aws_codebuild_webhook` resource. The CodeBuild API does not ever provide the `secret` attribute for the `aws_codebuild_webhook` resource in this scenario.
 
-```hcl
+```terraform
 resource "aws_codebuild_webhook" "example" {
   project_name = aws_codebuild_project.example.name
 
@@ -44,7 +44,7 @@ When working with [GitHub Enterprise](https://enterprise.github.com/) source Cod
 
 More information creating webhooks with GitHub Enterprise can be found in the [CodeBuild User Guide](https://docs.aws.amazon.com/codebuild/latest/userguide/sample-github-enterprise.html).
 
-```hcl
+```terraform
 resource "aws_codebuild_webhook" "example" {
   project_name = aws_codebuild_project.example.name
 }

@@ -76,13 +76,13 @@ func dataAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := ssmconn.DescribePatchBaselines(params)
 
 	if err != nil {
-		return fmt.Errorf("Error describing SSM PatchBaselines: %s", err)
+		return fmt.Errorf("Error describing SSM PatchBaselines: %w", err)
 	}
 
 	var filteredBaselines []*ssm.PatchBaselineIdentity
 	if v, ok := d.GetOk("operating_system"); ok {
 		for _, baseline := range resp.BaselineIdentities {
-			if v.(string) == *baseline.OperatingSystem {
+			if v.(string) == aws.StringValue(baseline.OperatingSystem) {
 				filteredBaselines = append(filteredBaselines, baseline)
 			}
 		}
@@ -97,7 +97,7 @@ func dataAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if len(filteredBaselines) < 1 {
+	if len(filteredBaselines) < 1 || filteredBaselines[0] == nil {
 		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
 	}
 
@@ -105,7 +105,7 @@ func dataAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
 	}
 
-	baseline := *filteredBaselines[0]
+	baseline := filteredBaselines[0]
 
 	d.SetId(aws.StringValue(baseline.BaselineId))
 	d.Set("name", baseline.BaselineName)

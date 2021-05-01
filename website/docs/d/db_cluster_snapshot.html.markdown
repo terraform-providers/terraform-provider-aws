@@ -15,7 +15,7 @@ See the [`aws_db_snapshot` data source](/docs/providers/aws/d/db_snapshot.html) 
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_db_cluster_snapshot" "development_final_snapshot" {
   db_cluster_identifier = "development_cluster"
   most_recent           = true

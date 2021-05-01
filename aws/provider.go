@@ -2,8 +2,10 @@ package aws
 
 import (
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/mutexkv"
 )
@@ -87,6 +89,23 @@ func Provider() *schema.Provider {
 				Set:           schema.HashString,
 			},
 
+			"default_tags": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Configuration block with settings to default resource tags across all resources.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tags": {
+							Type:        schema.TypeMap,
+							Optional:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "Resource tags to default across all resources",
+						},
+					},
+				},
+			},
+
 			"endpoints": endpointsSchema(),
 
 			"ignore_tags": {
@@ -167,6 +186,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"aws_acm_certificate":                            dataSourceAwsAcmCertificate(),
 			"aws_acmpca_certificate_authority":               dataSourceAwsAcmpcaCertificateAuthority(),
+			"aws_acmpca_certificate":                         dataSourceAwsAcmpcaCertificate(),
 			"aws_ami":                                        dataSourceAwsAmi(),
 			"aws_ami_ids":                                    dataSourceAwsAmiIds(),
 			"aws_api_gateway_api_key":                        dataSourceAwsApiGatewayApiKey(),
@@ -174,6 +194,8 @@ func Provider() *schema.Provider {
 			"aws_api_gateway_resource":                       dataSourceAwsApiGatewayResource(),
 			"aws_api_gateway_rest_api":                       dataSourceAwsApiGatewayRestApi(),
 			"aws_api_gateway_vpc_link":                       dataSourceAwsApiGatewayVpcLink(),
+			"aws_apigatewayv2_api":                           dataSourceAwsApiGatewayV2Api(),
+			"aws_apigatewayv2_apis":                          dataSourceAwsApiGatewayV2Apis(),
 			"aws_arn":                                        dataSourceAwsArn(),
 			"aws_autoscaling_group":                          dataSourceAwsAutoscalingGroup(),
 			"aws_autoscaling_groups":                         dataSourceAwsAutoscalingGroups(),
@@ -189,7 +211,10 @@ func Provider() *schema.Provider {
 			"aws_canonical_user_id":                          dataSourceAwsCanonicalUserId(),
 			"aws_cloudformation_export":                      dataSourceAwsCloudFormationExport(),
 			"aws_cloudformation_stack":                       dataSourceAwsCloudFormationStack(),
+			"aws_cloudformation_type":                        dataSourceAwsCloudFormationType(),
+			"aws_cloudfront_cache_policy":                    dataSourceAwsCloudFrontCachePolicy(),
 			"aws_cloudfront_distribution":                    dataSourceAwsCloudFrontDistribution(),
+			"aws_cloudfront_origin_request_policy":           dataSourceAwsCloudFrontOriginRequestPolicy(),
 			"aws_cloudhsm_v2_cluster":                        dataSourceCloudHsmV2Cluster(),
 			"aws_cloudtrail_service_account":                 dataSourceAwsCloudTrailServiceAccount(),
 			"aws_cloudwatch_log_group":                       dataSourceAwsCloudwatchLogGroup(),
@@ -197,6 +222,7 @@ func Provider() *schema.Provider {
 			"aws_codeartifact_repository_endpoint":           dataSourceAwsCodeArtifactRepositoryEndpoint(),
 			"aws_cognito_user_pools":                         dataSourceAwsCognitoUserPools(),
 			"aws_codecommit_repository":                      dataSourceAwsCodeCommitRepository(),
+			"aws_codestarconnections_connection":             dataSourceAwsCodeStarConnectionsConnection(),
 			"aws_cur_report_definition":                      dataSourceAwsCurReportDefinition(),
 			"aws_db_cluster_snapshot":                        dataSourceAwsDbClusterSnapshot(),
 			"aws_db_event_categories":                        dataSourceAwsDbEventCategories(),
@@ -232,6 +258,7 @@ func Provider() *schema.Provider {
 			"aws_ec2_transit_gateway_dx_gateway_attachment":  dataSourceAwsEc2TransitGatewayDxGatewayAttachment(),
 			"aws_ec2_transit_gateway_peering_attachment":     dataSourceAwsEc2TransitGatewayPeeringAttachment(),
 			"aws_ec2_transit_gateway_route_table":            dataSourceAwsEc2TransitGatewayRouteTable(),
+			"aws_ec2_transit_gateway_route_tables":           dataSourceAwsEc2TransitGatewayRouteTables(),
 			"aws_ec2_transit_gateway_vpc_attachment":         dataSourceAwsEc2TransitGatewayVpcAttachment(),
 			"aws_ec2_transit_gateway_vpn_attachment":         dataSourceAwsEc2TransitGatewayVpnAttachment(),
 			"aws_ecr_authorization_token":                    dataSourceAwsEcrAuthorizationToken(),
@@ -247,6 +274,7 @@ func Provider() *schema.Provider {
 			"aws_efs_file_system":                            dataSourceAwsEfsFileSystem(),
 			"aws_efs_mount_target":                           dataSourceAwsEfsMountTarget(),
 			"aws_eip":                                        dataSourceAwsEip(),
+			"aws_eks_addon":                                  dataSourceAwsEksAddon(),
 			"aws_eks_cluster":                                dataSourceAwsEksCluster(),
 			"aws_eks_cluster_auth":                           dataSourceAwsEksClusterAuth(),
 			"aws_elastic_beanstalk_application":              dataSourceAwsElasticBeanstalkApplication(),
@@ -272,6 +300,7 @@ func Provider() *schema.Provider {
 			"aws_identitystore_user":                         dataSourceAwsIdentityStoreUser(),
 			"aws_imagebuilder_component":                     dataSourceAwsImageBuilderComponent(),
 			"aws_imagebuilder_distribution_configuration":    datasourceAwsImageBuilderDistributionConfiguration(),
+			"aws_imagebuilder_image":                         dataSourceAwsImageBuilderImage(),
 			"aws_imagebuilder_image_pipeline":                dataSourceAwsImageBuilderImagePipeline(),
 			"aws_imagebuilder_image_recipe":                  dataSourceAwsImageBuilderImageRecipe(),
 			"aws_imagebuilder_infrastructure_configuration":  datasourceAwsImageBuilderInfrastructureConfiguration(),
@@ -282,9 +311,11 @@ func Provider() *schema.Provider {
 			"aws_iot_endpoint":                               dataSourceAwsIotEndpoint(),
 			"aws_ip_ranges":                                  dataSourceAwsIPRanges(),
 			"aws_kinesis_stream":                             dataSourceAwsKinesisStream(),
+			"aws_kinesis_stream_consumer":                    dataSourceAwsKinesisStreamConsumer(),
 			"aws_kms_alias":                                  dataSourceAwsKmsAlias(),
 			"aws_kms_ciphertext":                             dataSourceAwsKmsCiphertext(),
 			"aws_kms_key":                                    dataSourceAwsKmsKey(),
+			"aws_kms_public_key":                             dataSourceAwsKmsPublicKey(),
 			"aws_kms_secret":                                 dataSourceAwsKmsSecret(),
 			"aws_kms_secrets":                                dataSourceAwsKmsSecrets(),
 			"aws_lakeformation_data_lake_settings":           dataSourceAwsLakeFormationDataLakeSettings(),
@@ -332,6 +363,7 @@ func Provider() *schema.Provider {
 			"aws_redshift_service_account":                   dataSourceAwsRedshiftServiceAccount(),
 			"aws_region":                                     dataSourceAwsRegion(),
 			"aws_regions":                                    dataSourceAwsRegions(),
+			"aws_resourcegroupstaggingapi_resources":         dataSourceAwsResourceGroupsTaggingAPIResources(),
 			"aws_route":                                      dataSourceAwsRoute(),
 			"aws_route_table":                                dataSourceAwsRouteTable(),
 			"aws_route_tables":                               dataSourceAwsRouteTables(),
@@ -405,6 +437,8 @@ func Provider() *schema.Provider {
 			"aws_acm_certificate":                                     resourceAwsAcmCertificate(),
 			"aws_acm_certificate_validation":                          resourceAwsAcmCertificateValidation(),
 			"aws_acmpca_certificate_authority":                        resourceAwsAcmpcaCertificateAuthority(),
+			"aws_acmpca_certificate_authority_certificate":            resourceAwsAcmpcaCertificateAuthorityCertificate(),
+			"aws_acmpca_certificate":                                  resourceAwsAcmpcaCertificate(),
 			"aws_ami":                                                 resourceAwsAmi(),
 			"aws_ami_copy":                                            resourceAwsAmiCopy(),
 			"aws_ami_from_instance":                                   resourceAwsAmiFromInstance(),
@@ -483,14 +517,20 @@ func Provider() *schema.Provider {
 			"aws_cloudformation_stack":                                resourceAwsCloudFormationStack(),
 			"aws_cloudformation_stack_set":                            resourceAwsCloudFormationStackSet(),
 			"aws_cloudformation_stack_set_instance":                   resourceAwsCloudFormationStackSetInstance(),
+			"aws_cloudformation_type":                                 resourceAwsCloudFormationType(),
+			"aws_cloudfront_cache_policy":                             resourceAwsCloudFrontCachePolicy(),
 			"aws_cloudfront_distribution":                             resourceAwsCloudFrontDistribution(),
+			"aws_cloudfront_key_group":                                resourceAwsCloudFrontKeyGroup(),
 			"aws_cloudfront_origin_access_identity":                   resourceAwsCloudFrontOriginAccessIdentity(),
+			"aws_cloudfront_origin_request_policy":                    resourceAwsCloudFrontOriginRequestPolicy(),
 			"aws_cloudfront_public_key":                               resourceAwsCloudFrontPublicKey(),
+			"aws_cloudfront_realtime_log_config":                      resourceAwsCloudFrontRealtimeLogConfig(),
 			"aws_cloudtrail":                                          resourceAwsCloudTrail(),
 			"aws_cloudwatch_event_bus":                                resourceAwsCloudWatchEventBus(),
 			"aws_cloudwatch_event_permission":                         resourceAwsCloudWatchEventPermission(),
 			"aws_cloudwatch_event_rule":                               resourceAwsCloudWatchEventRule(),
 			"aws_cloudwatch_event_target":                             resourceAwsCloudWatchEventTarget(),
+			"aws_cloudwatch_event_archive":                            resourceAwsCloudWatchEventArchive(),
 			"aws_cloudwatch_log_destination":                          resourceAwsCloudWatchLogDestination(),
 			"aws_cloudwatch_log_destination_policy":                   resourceAwsCloudWatchLogDestinationPolicy(),
 			"aws_cloudwatch_log_group":                                resourceAwsCloudWatchLogGroup(),
@@ -503,6 +543,7 @@ func Provider() *schema.Provider {
 			"aws_config_configuration_aggregator":                     resourceAwsConfigConfigurationAggregator(),
 			"aws_config_configuration_recorder":                       resourceAwsConfigConfigurationRecorder(),
 			"aws_config_configuration_recorder_status":                resourceAwsConfigConfigurationRecorderStatus(),
+			"aws_config_conformance_pack":                             resourceAwsConfigConformancePack(),
 			"aws_config_delivery_channel":                             resourceAwsConfigDeliveryChannel(),
 			"aws_config_organization_custom_rule":                     resourceAwsConfigOrganizationCustomRule(),
 			"aws_config_organization_managed_rule":                    resourceAwsConfigOrganizationManagedRule(),
@@ -510,16 +551,18 @@ func Provider() *schema.Provider {
 			"aws_cognito_identity_pool":                               resourceAwsCognitoIdentityPool(),
 			"aws_cognito_identity_pool_roles_attachment":              resourceAwsCognitoIdentityPoolRolesAttachment(),
 			"aws_cognito_identity_provider":                           resourceAwsCognitoIdentityProvider(),
+			"aws_cognito_resource_server":                             resourceAwsCognitoResourceServer(),
 			"aws_cognito_user_group":                                  resourceAwsCognitoUserGroup(),
 			"aws_cognito_user_pool":                                   resourceAwsCognitoUserPool(),
 			"aws_cognito_user_pool_client":                            resourceAwsCognitoUserPoolClient(),
 			"aws_cognito_user_pool_domain":                            resourceAwsCognitoUserPoolDomain(),
+			"aws_cognito_user_pool_ui_customization":                  resourceAwsCognitoUserPoolUICustomization(),
 			"aws_cloudhsm_v2_cluster":                                 resourceAwsCloudHsmV2Cluster(),
 			"aws_cloudhsm_v2_hsm":                                     resourceAwsCloudHsmV2Hsm(),
-			"aws_cognito_resource_server":                             resourceAwsCognitoResourceServer(),
 			"aws_cloudwatch_composite_alarm":                          resourceAwsCloudWatchCompositeAlarm(),
 			"aws_cloudwatch_metric_alarm":                             resourceAwsCloudWatchMetricAlarm(),
 			"aws_cloudwatch_dashboard":                                resourceAwsCloudWatchDashboard(),
+			"aws_cloudwatch_query_definition":                         resourceAwsCloudWatchQueryDefinition(),
 			"aws_codedeploy_app":                                      resourceAwsCodeDeployApp(),
 			"aws_codedeploy_deployment_config":                        resourceAwsCodeDeployDeploymentConfig(),
 			"aws_codedeploy_deployment_group":                         resourceAwsCodeDeployDeploymentGroup(),
@@ -536,6 +579,7 @@ func Provider() *schema.Provider {
 			"aws_codepipeline":                                        resourceAwsCodePipeline(),
 			"aws_codepipeline_webhook":                                resourceAwsCodePipelineWebhook(),
 			"aws_codestarconnections_connection":                      resourceAwsCodeStarConnectionsConnection(),
+			"aws_codestarconnections_host":                            resourceAwsCodeStarConnectionsHost(),
 			"aws_codestarnotifications_notification_rule":             resourceAwsCodeStarNotificationsNotificationRule(),
 			"aws_cur_report_definition":                               resourceAwsCurReportDefinition(),
 			"aws_customer_gateway":                                    resourceAwsCustomerGateway(),
@@ -558,6 +602,7 @@ func Provider() *schema.Provider {
 			"aws_db_parameter_group":                                  resourceAwsDbParameterGroup(),
 			"aws_db_proxy":                                            resourceAwsDbProxy(),
 			"aws_db_proxy_default_target_group":                       resourceAwsDbProxyDefaultTargetGroup(),
+			"aws_db_proxy_endpoint":                                   resourceAwsDbProxyEndpoint(),
 			"aws_db_proxy_target":                                     resourceAwsDbProxyTarget(),
 			"aws_db_security_group":                                   resourceAwsDbSecurityGroup(),
 			"aws_db_snapshot":                                         resourceAwsDbSnapshot(),
@@ -621,6 +666,7 @@ func Provider() *schema.Provider {
 			"aws_ec2_transit_gateway":                                 resourceAwsEc2TransitGateway(),
 			"aws_ec2_transit_gateway_peering_attachment":              resourceAwsEc2TransitGatewayPeeringAttachment(),
 			"aws_ec2_transit_gateway_peering_attachment_accepter":     resourceAwsEc2TransitGatewayPeeringAttachmentAccepter(),
+			"aws_ec2_transit_gateway_prefix_list_reference":           resourceAwsEc2TransitGatewayPrefixListReference(),
 			"aws_ec2_transit_gateway_route":                           resourceAwsEc2TransitGatewayRoute(),
 			"aws_ec2_transit_gateway_route_table":                     resourceAwsEc2TransitGatewayRouteTable(),
 			"aws_ec2_transit_gateway_route_table_association":         resourceAwsEc2TransitGatewayRouteTableAssociation(),
@@ -628,6 +674,9 @@ func Provider() *schema.Provider {
 			"aws_ec2_transit_gateway_vpc_attachment":                  resourceAwsEc2TransitGatewayVpcAttachment(),
 			"aws_ec2_transit_gateway_vpc_attachment_accepter":         resourceAwsEc2TransitGatewayVpcAttachmentAccepter(),
 			"aws_ecr_lifecycle_policy":                                resourceAwsEcrLifecyclePolicy(),
+			"aws_ecrpublic_repository":                                resourceAwsEcrPublicRepository(),
+			"aws_ecr_registry_policy":                                 resourceAwsEcrRegistryPolicy(),
+			"aws_ecr_replication_configuration":                       resourceAwsEcrReplicationConfiguration(),
 			"aws_ecr_repository":                                      resourceAwsEcrRepository(),
 			"aws_ecr_repository_policy":                               resourceAwsEcrRepositoryPolicy(),
 			"aws_ecs_capacity_provider":                               resourceAwsEcsCapacityProvider(),
@@ -642,9 +691,11 @@ func Provider() *schema.Provider {
 			"aws_eip":                                                 resourceAwsEip(),
 			"aws_eip_association":                                     resourceAwsEipAssociation(),
 			"aws_eks_cluster":                                         resourceAwsEksCluster(),
+			"aws_eks_addon":                                           resourceAwsEksAddon(),
 			"aws_eks_fargate_profile":                                 resourceAwsEksFargateProfile(),
 			"aws_eks_node_group":                                      resourceAwsEksNodeGroup(),
 			"aws_elasticache_cluster":                                 resourceAwsElasticacheCluster(),
+			"aws_elasticache_global_replication_group":                resourceAwsElasticacheGlobalReplicationGroup(),
 			"aws_elasticache_parameter_group":                         resourceAwsElasticacheParameterGroup(),
 			"aws_elasticache_replication_group":                       resourceAwsElasticacheReplicationGroup(),
 			"aws_elasticache_security_group":                          resourceAwsElasticacheSecurityGroup(),
@@ -729,6 +780,7 @@ func Provider() *schema.Provider {
 			"aws_iam_user_login_profile":                              resourceAwsIamUserLoginProfile(),
 			"aws_imagebuilder_component":                              resourceAwsImageBuilderComponent(),
 			"aws_imagebuilder_distribution_configuration":             resourceAwsImageBuilderDistributionConfiguration(),
+			"aws_imagebuilder_image":                                  resourceAwsImageBuilderImage(),
 			"aws_imagebuilder_image_pipeline":                         resourceAwsImageBuilderImagePipeline(),
 			"aws_imagebuilder_image_recipe":                           resourceAwsImageBuilderImageRecipe(),
 			"aws_imagebuilder_infrastructure_configuration":           resourceAwsImageBuilderInfrastructureConfiguration(),
@@ -748,8 +800,10 @@ func Provider() *schema.Provider {
 			"aws_key_pair":                                            resourceAwsKeyPair(),
 			"aws_kinesis_analytics_application":                       resourceAwsKinesisAnalyticsApplication(),
 			"aws_kinesisanalyticsv2_application":                      resourceAwsKinesisAnalyticsV2Application(),
+			"aws_kinesisanalyticsv2_application_snapshot":             resourceAwsKinesisAnalyticsV2ApplicationSnapshot(),
 			"aws_kinesis_firehose_delivery_stream":                    resourceAwsKinesisFirehoseDeliveryStream(),
 			"aws_kinesis_stream":                                      resourceAwsKinesisStream(),
+			"aws_kinesis_stream_consumer":                             resourceAwsKinesisStreamConsumer(),
 			"aws_kinesis_video_stream":                                resourceAwsKinesisVideoStream(),
 			"aws_kms_alias":                                           resourceAwsKmsAlias(),
 			"aws_kms_external_key":                                    resourceAwsKmsExternalKey(),
@@ -777,6 +831,7 @@ func Provider() *schema.Provider {
 			"aws_licensemanager_license_configuration":                resourceAwsLicenseManagerLicenseConfiguration(),
 			"aws_lightsail_domain":                                    resourceAwsLightsailDomain(),
 			"aws_lightsail_instance":                                  resourceAwsLightsailInstance(),
+			"aws_lightsail_instance_public_ports":                     resourceAwsLightsailInstancePublicPorts(),
 			"aws_lightsail_key_pair":                                  resourceAwsLightsailKeyPair(),
 			"aws_lightsail_static_ip":                                 resourceAwsLightsailStaticIp(),
 			"aws_lightsail_static_ip_attachment":                      resourceAwsLightsailStaticIpAttachment(),
@@ -785,6 +840,7 @@ func Provider() *schema.Provider {
 			"aws_load_balancer_backend_server_policy":                 resourceAwsLoadBalancerBackendServerPolicies(),
 			"aws_load_balancer_listener_policy":                       resourceAwsLoadBalancerListenerPolicies(),
 			"aws_lb_ssl_negotiation_policy":                           resourceAwsLBSSLNegotiationPolicy(),
+			"aws_macie2_account":                                      resourceAwsMacie2Account(),
 			"aws_macie_member_account_association":                    resourceAwsMacieMemberAccountAssociation(),
 			"aws_macie_s3_bucket_association":                         resourceAwsMacieS3BucketAssociation(),
 			"aws_main_route_table_association":                        resourceAwsMainRouteTableAssociation(),
@@ -797,6 +853,7 @@ func Provider() *schema.Provider {
 			"aws_msk_cluster":                                         resourceAwsMskCluster(),
 			"aws_msk_configuration":                                   resourceAwsMskConfiguration(),
 			"aws_msk_scram_secret_association":                        resourceAwsMskScramSecretAssociation(),
+			"aws_mwaa_environment":                                    resourceAwsMwaaEnvironment(),
 			"aws_nat_gateway":                                         resourceAwsNatGateway(),
 			"aws_network_acl":                                         resourceAwsNetworkAcl(),
 			"aws_default_network_acl":                                 resourceAwsDefaultNetworkAcl(),
@@ -837,6 +894,7 @@ func Provider() *schema.Provider {
 			"aws_organizations_policy_attachment":                     resourceAwsOrganizationsPolicyAttachment(),
 			"aws_organizations_organizational_unit":                   resourceAwsOrganizationsOrganizationalUnit(),
 			"aws_placement_group":                                     resourceAwsPlacementGroup(),
+			"aws_prometheus_workspace":                                resourceAwsPrometheusWorkspace(),
 			"aws_proxy_protocol_policy":                               resourceAwsProxyProtocolPolicy(),
 			"aws_qldb_ledger":                                         resourceAwsQLDBLedger(),
 			"aws_quicksight_group":                                    resourceAwsQuickSightGroup(),
@@ -860,6 +918,8 @@ func Provider() *schema.Provider {
 			"aws_redshift_event_subscription":                         resourceAwsRedshiftEventSubscription(),
 			"aws_resourcegroups_group":                                resourceAwsResourceGroupsGroup(),
 			"aws_route53_delegation_set":                              resourceAwsRoute53DelegationSet(),
+			"aws_route53_hosted_zone_dnssec":                          resourceAwsRoute53HostedZoneDnssec(),
+			"aws_route53_key_signing_key":                             resourceAwsRoute53KeySigningKey(),
 			"aws_route53_query_log":                                   resourceAwsRoute53QueryLog(),
 			"aws_route53_record":                                      resourceAwsRoute53Record(),
 			"aws_route53_zone_association":                            resourceAwsRoute53ZoneAssociation(),
@@ -868,6 +928,10 @@ func Provider() *schema.Provider {
 			"aws_route53_health_check":                                resourceAwsRoute53HealthCheck(),
 			"aws_route53_resolver_dnssec_config":                      resourceAwsRoute53ResolverDnssecConfig(),
 			"aws_route53_resolver_endpoint":                           resourceAwsRoute53ResolverEndpoint(),
+			"aws_route53_resolver_firewall_domain_list":               resourceAwsRoute53ResolverFirewallDomainList(),
+			"aws_route53_resolver_firewall_rule":                      resourceAwsRoute53ResolverFirewallRule(),
+			"aws_route53_resolver_firewall_rule_group":                resourceAwsRoute53ResolverFirewallRuleGroup(),
+			"aws_route53_resolver_firewall_rule_group_association":    resourceAwsRoute53ResolverFirewallRuleGroupAssociation(),
 			"aws_route53_resolver_query_log_config":                   resourceAwsRoute53ResolverQueryLogConfig(),
 			"aws_route53_resolver_query_log_config_association":       resourceAwsRoute53ResolverQueryLogConfigAssociation(),
 			"aws_route53_resolver_rule_association":                   resourceAwsRoute53ResolverRuleAssociation(),
@@ -876,6 +940,8 @@ func Provider() *schema.Provider {
 			"aws_route_table":                                         resourceAwsRouteTable(),
 			"aws_default_route_table":                                 resourceAwsDefaultRouteTable(),
 			"aws_route_table_association":                             resourceAwsRouteTableAssociation(),
+			"aws_sagemaker_app":                                       resourceAwsSagemakerApp(),
+			"aws_sagemaker_app_image_config":                          resourceAwsSagemakerAppImageConfig(),
 			"aws_sagemaker_code_repository":                           resourceAwsSagemakerCodeRepository(),
 			"aws_sagemaker_domain":                                    resourceAwsSagemakerDomain(),
 			"aws_sagemaker_endpoint":                                  resourceAwsSagemakerEndpoint(),
@@ -884,6 +950,7 @@ func Provider() *schema.Provider {
 			"aws_sagemaker_image":                                     resourceAwsSagemakerImage(),
 			"aws_sagemaker_image_version":                             resourceAwsSagemakerImageVersion(),
 			"aws_sagemaker_model":                                     resourceAwsSagemakerModel(),
+			"aws_sagemaker_model_package_group":                       resourceAwsSagemakerModelPackageGroup(),
 			"aws_sagemaker_notebook_instance_lifecycle_configuration": resourceAwsSagemakerNotebookInstanceLifeCycleConfiguration(),
 			"aws_sagemaker_notebook_instance":                         resourceAwsSagemakerNotebookInstance(),
 			"aws_sagemaker_user_profile":                              resourceAwsSagemakerUserProfile(),
@@ -916,6 +983,7 @@ func Provider() *schema.Provider {
 			"aws_s3_bucket_notification":                              resourceAwsS3BucketNotification(),
 			"aws_s3_bucket_metric":                                    resourceAwsS3BucketMetric(),
 			"aws_s3_bucket_inventory":                                 resourceAwsS3BucketInventory(),
+			"aws_s3_object_copy":                                      resourceAwsS3ObjectCopy(),
 			"aws_s3control_bucket":                                    resourceAwsS3ControlBucket(),
 			"aws_s3control_bucket_policy":                             resourceAwsS3ControlBucketPolicy(),
 			"aws_s3control_bucket_lifecycle_configuration":            resourceAwsS3ControlBucketLifecycleConfiguration(),
@@ -926,10 +994,14 @@ func Provider() *schema.Provider {
 			"aws_security_group_rule":                                 resourceAwsSecurityGroupRule(),
 			"aws_securityhub_account":                                 resourceAwsSecurityHubAccount(),
 			"aws_securityhub_action_target":                           resourceAwsSecurityHubActionTarget(),
+			"aws_securityhub_insight":                                 resourceAwsSecurityHubInsight(),
+			"aws_securityhub_invite_accepter":                         resourceAwsSecurityHubInviteAccepter(),
 			"aws_securityhub_member":                                  resourceAwsSecurityHubMember(),
+			"aws_securityhub_organization_admin_account":              resourceAwsSecurityHubOrganizationAdminAccount(),
 			"aws_securityhub_product_subscription":                    resourceAwsSecurityHubProductSubscription(),
 			"aws_securityhub_standards_subscription":                  resourceAwsSecurityHubStandardsSubscription(),
 			"aws_servicecatalog_portfolio":                            resourceAwsServiceCatalogPortfolio(),
+			"aws_servicecatalog_product":                              resourceAwsServiceCatalogProduct(),
 			"aws_service_discovery_http_namespace":                    resourceAwsServiceDiscoveryHttpNamespace(),
 			"aws_service_discovery_private_dns_namespace":             resourceAwsServiceDiscoveryPrivateDnsNamespace(),
 			"aws_service_discovery_public_dns_namespace":              resourceAwsServiceDiscoveryPublicDnsNamespace(),
@@ -979,6 +1051,7 @@ func Provider() *schema.Provider {
 			"aws_default_subnet":                                      resourceAwsDefaultSubnet(),
 			"aws_subnet":                                              resourceAwsSubnet(),
 			"aws_swf_domain":                                          resourceAwsSwfDomain(),
+			"aws_synthetics_canary":                                   resourceAwsSyntheticsCanary(),
 			"aws_transfer_server":                                     resourceAwsTransferServer(),
 			"aws_transfer_ssh_key":                                    resourceAwsTransferSshKey(),
 			"aws_transfer_user":                                       resourceAwsTransferUser(),
@@ -1153,12 +1226,14 @@ func init() {
 		"acmpca",
 		"amplify",
 		"apigateway",
+		"appconfig",
 		"applicationautoscaling",
 		"applicationinsights",
 		"appmesh",
 		"appstream",
 		"appsync",
 		"athena",
+		"auditmanager",
 		"autoscaling",
 		"autoscalingplans",
 		"backup",
@@ -1188,6 +1263,7 @@ func init() {
 		"datapipeline",
 		"datasync",
 		"dax",
+		"detective",
 		"devicefarm",
 		"directconnect",
 		"dlm",
@@ -1206,6 +1282,7 @@ func init() {
 		"elastictranscoder",
 		"elb",
 		"emr",
+		"emrcontainers",
 		"es",
 		"firehose",
 		"fms",
@@ -1309,6 +1386,7 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 		Token:                   d.Get("token").(string),
 		Region:                  d.Get("region").(string),
 		CredsFilename:           d.Get("shared_credentials_file").(string),
+		DefaultTagsConfig:       expandProviderDefaultTags(d.Get("default_tags").([]interface{})),
 		Endpoints:               make(map[string]string),
 		MaxRetries:              d.Get("max_retries").(int),
 		IgnoreTagsConfig:        expandProviderIgnoreTags(d.Get("ignore_tags").([]interface{})),
@@ -1431,20 +1509,25 @@ func assumeRoleSchema() *schema.Schema {
 					Description: "Unique identifier that might be required for assuming a role in another account.",
 				},
 				"policy": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
+					ValidateFunc: validation.StringIsJSON,
 				},
 				"policy_arns": {
 					Type:        schema.TypeSet,
 					Optional:    true,
 					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validateArn,
+					},
 				},
 				"role_arn": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "Amazon Resource Name of an IAM Role to assume prior to making API calls.",
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "Amazon Resource Name of an IAM Role to assume prior to making API calls.",
+					ValidateFunc: validateArn,
 				},
 				"session_name": {
 					Type:        schema.TypeString,
@@ -1489,6 +1572,20 @@ func endpointsSchema() *schema.Schema {
 	}
 }
 
+func expandProviderDefaultTags(l []interface{}) *keyvaluetags.DefaultConfig {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	defaultConfig := &keyvaluetags.DefaultConfig{}
+	m := l[0].(map[string]interface{})
+
+	if v, ok := m["tags"].(map[string]interface{}); ok {
+		defaultConfig.Tags = keyvaluetags.New(v)
+	}
+	return defaultConfig
+}
+
 func expandProviderIgnoreTags(l []interface{}) *keyvaluetags.IgnoreConfig {
 	if len(l) == 0 || l[0] == nil {
 		return nil
@@ -1506,4 +1603,15 @@ func expandProviderIgnoreTags(l []interface{}) *keyvaluetags.IgnoreConfig {
 	}
 
 	return ignoreConfig
+}
+
+// ReverseDns switches a DNS hostname to reverse DNS and vice-versa.
+func ReverseDns(hostname string) string {
+	parts := strings.Split(hostname, ".")
+
+	for i, j := 0, len(parts)-1; i < j; i, j = i+1, j-1 {
+		parts[i], parts[j] = parts[j], parts[i]
+	}
+
+	return strings.Join(parts, ".")
 }

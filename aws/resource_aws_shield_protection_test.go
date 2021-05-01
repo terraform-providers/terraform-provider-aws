@@ -23,6 +23,7 @@ func TestAccAWSShieldProtection_GlobalAccelerator(t *testing.T) {
 			testAccPartitionHasServicePreCheck(shield.EndpointsID, t)
 			testAccPreCheckAWSShield(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, shield.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSShieldProtectionDestroy,
 		Steps: []resource.TestStep{
@@ -51,6 +52,7 @@ func TestAccAWSShieldProtection_ElasticIPAddress(t *testing.T) {
 			testAccPartitionHasServicePreCheck(shield.EndpointsID, t)
 			testAccPreCheckAWSShield(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, shield.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSShieldProtectionDestroy,
 		Steps: []resource.TestStep{
@@ -79,6 +81,7 @@ func TestAccAWSShieldProtection_Alb(t *testing.T) {
 			testAccPartitionHasServicePreCheck(shield.EndpointsID, t)
 			testAccPreCheckAWSShield(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, shield.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSShieldProtectionDestroy,
 		Steps: []resource.TestStep{
@@ -107,6 +110,7 @@ func TestAccAWSShieldProtection_Elb(t *testing.T) {
 			testAccPartitionHasServicePreCheck(shield.EndpointsID, t)
 			testAccPreCheckAWSShield(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, shield.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSShieldProtectionDestroy,
 		Steps: []resource.TestStep{
@@ -136,6 +140,7 @@ func TestAccAWSShieldProtection_Cloudfront(t *testing.T) {
 			testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t)
 			testAccPreCheckAWSShield(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, shield.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSShieldProtectionDestroy,
 		Steps: []resource.TestStep{
@@ -164,7 +169,7 @@ func TestAccAWSShieldProtection_Route53(t *testing.T) {
 			testAccPartitionHasServicePreCheck(shield.EndpointsID, t)
 			testAccPreCheckAWSShield(t)
 		},
-		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
+		ErrorCheck:   testAccErrorCheck(t, shield.EndpointsID, "route53"),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSShieldProtectionDestroy,
 		Steps: []resource.TestStep{
@@ -300,7 +305,7 @@ data "aws_availability_zones" "available" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 variable "name" {
@@ -370,7 +375,7 @@ data "aws_availability_zones" "available" {
 
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 variable "name" {

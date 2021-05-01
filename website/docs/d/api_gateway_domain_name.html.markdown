@@ -12,7 +12,7 @@ Use this data source to get the custom domain name for use with AWS API Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_api_gateway_domain_name" "example" {
   domain_name = "api.example.com"
 }

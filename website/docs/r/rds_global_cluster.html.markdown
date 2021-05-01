@@ -16,7 +16,7 @@ More information about Aurora global databases can be found in the [Aurora User 
 
 ### New Global Cluster
 
-```hcl
+```terraform
 provider "aws" {
   alias  = "primary"
   region = "us-east-2"
@@ -65,7 +65,7 @@ resource "aws_rds_cluster_instance" "secondary" {
 
 ### New Global Cluster From Existing DB Cluster
 
-```hcl
+```terraform
 resource "aws_rds_cluster" "example" {
   # ... other configuration ...
 
@@ -94,7 +94,7 @@ The following arguments are supported:
 * `database_name` - (Optional, Forces new resources) Name for an automatically created database on cluster creation.
 * `deletion_protection` - (Optional) If the Global Cluster should have deletion protection enabled. The database can't be deleted when this value is set to `true`. The default is `false`.
 * `engine` - (Optional, Forces new resources) Name of the database engine to be used for this DB cluster. Terraform will only perform drift detection if a configuration value is provided. Valid values: `aurora`, `aurora-mysql`, `aurora-postgresql`. Defaults to `aurora`. Conflicts with `source_db_cluster_identifier`.
-* `engine_version` - (Optional, Forces new resources) Engine version of the Aurora global database.
+* `engine_version` - (Optional) Engine version of the Aurora global database. Upgrading the engine version will result in all cluster members being immediately updated.
     * **NOTE:** When the engine is set to `aurora-mysql`, an engine version compatible with global database is required. The earliest available version is `5.7.mysql_aurora.2.06.0`.
 * `force_destroy` - (Optional) Enable to remove DB Cluster members from Global Cluster on destroy. Required with `source_db_cluster_identifier`.
 * `source_db_cluster_identifier` - (Optional) Amazon Resource Name (ARN) to use as the primary DB Cluster of the Global Cluster on creation. Terraform cannot perform drift detection of this value.
@@ -123,7 +123,7 @@ Certain resource arguments, like `force_destroy`, only exist within Terraform. I
 
 Certain resource arguments, like `source_db_cluster_identifier`, do not have an API method for reading the information after creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
-```hcl
+```terraform
 resource "aws_rds_global_cluster" "example" {
   # ... other configuration ...
 

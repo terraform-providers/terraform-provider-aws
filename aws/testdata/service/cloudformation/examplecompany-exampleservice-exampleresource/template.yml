@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM template for the ExampleCompany::ExampleService::ExampleResource resource type
+
+Globals:
+  Function:
+    Timeout: 180  # docker start-up times can be long for SAM CLI
+    MemorySize: 256
+
+Resources:
+  TypeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler
+      Runtime: go1.x
+      CodeUri: bin/
+
+  TestEntrypoint:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler
+      Runtime: go1.x
+      CodeUri: bin/
+      Environment: 
+        Variables: 
+          MODE: Test
+

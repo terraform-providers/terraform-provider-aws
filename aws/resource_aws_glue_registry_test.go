@@ -58,6 +58,7 @@ func TestAccAWSGlueRegistry_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGlueRegistry(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueRegistryDestroy,
 		Steps: []resource.TestStep{
@@ -88,6 +89,7 @@ func TestAccAWSGlueRegistry_Description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGlueRegistry(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueRegistryDestroy,
 		Steps: []resource.TestStep{
@@ -114,13 +116,14 @@ func TestAccAWSGlueRegistry_Description(t *testing.T) {
 	})
 }
 
-func TestAccAWSGlueRegistry_tags(t *testing.T) {
+func TestAccAWSGlueRegistry_Tags(t *testing.T) {
 	var registry glue.GetRegistryOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_registry.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGlueRegistry(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueRegistryDestroy,
 		Steps: []resource.TestStep{
@@ -166,6 +169,7 @@ func TestAccAWSGlueRegistry_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGlueRegistry(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGlueRegistryDestroy,
 		Steps: []resource.TestStep{

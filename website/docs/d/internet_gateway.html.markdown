@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "vpc_id" {}
 
 data "aws_internet_gateway" "default" {

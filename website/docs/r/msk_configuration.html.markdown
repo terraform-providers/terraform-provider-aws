@@ -12,7 +12,7 @@ Manages an Amazon Managed Streaming for Kafka configuration. More information ca
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_msk_configuration" "example" {
   kafka_versions = ["2.1.0"]
   name           = "example"

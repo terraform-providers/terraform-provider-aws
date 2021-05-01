@@ -6,10 +6,13 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamGroupPolicyAttachment() *schema.Resource {
@@ -57,39 +60,55 @@ func resourceAwsIamGroupPolicyAttachmentRead(d *schema.ResourceData, meta interf
 	conn := meta.(*AWSClient).iamconn
 	group := d.Get("group").(string)
 	arn := d.Get("policy_arn").(string)
+	// Human friendly ID for error messages since d.Id() is non-descriptive
+	id := fmt.Sprintf("%s:%s", group, arn)
 
-	_, err := conn.GetGroup(&iam.GetGroupInput{
-		GroupName: aws.String(group),
+	var attachedPolicy *iam.AttachedPolicy
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		attachedPolicy, err = finder.GroupAttachedPolicy(conn, group, arn)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && attachedPolicy == nil {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("IAM Group Managed Policy Attachment (%s) not found", id),
+			})
+		}
+
+		return nil
 	})
 
-	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "NoSuchEntity" {
-				log.Printf("[WARN] No such entity found for Policy Attachment (%s)", group)
-				d.SetId("")
-				return nil
-			}
-		}
-		return err
+	if tfresource.TimedOut(err) {
+		attachedPolicy, err = finder.GroupAttachedPolicy(conn, group, arn)
 	}
 
-	attachedPolicies, err := conn.ListAttachedGroupPolicies(&iam.ListAttachedGroupPoliciesInput{
-		GroupName: aws.String(group),
-	})
-	if err != nil {
-		return err
-	}
-
-	var policy string
-	for _, p := range attachedPolicies.AttachedPolicies {
-		if *p.PolicyArn == arn {
-			policy = *p.PolicyArn
-		}
-	}
-
-	if policy == "" {
-		log.Printf("[WARN] No such policy found for Group Policy Attachment (%s)", group)
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM User Managed Policy Attachment (%s) not found, removing from state", id)
 		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading IAM Group Managed Policy Attachment (%s): %w", id, err)
+	}
+
+	if attachedPolicy == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading IAM User Managed Policy Attachment (%s): not found after creation", id)
+		}
+
+		log.Printf("[WARN] IAM Group Managed Policy Attachment (%s) not found, removing from state", id)
+		d.SetId("")
+		return nil
 	}
 
 	return nil

@@ -10,10 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/firehose"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 const (
@@ -811,6 +813,8 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 			},
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		SchemaVersion: 1,
 		MigrateState:  resourceAwsKinesisFirehoseMigrateState,
 		Schema: map[string]*schema.Schema{
@@ -822,6 +826,8 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 
 			"server_side_encryption": {
 				Type:             schema.TypeList,
@@ -1796,7 +1802,7 @@ func expandFirehoseOpenXJsonSerDe(l []interface{}) *firehose.OpenXJsonSerDe {
 
 	return &firehose.OpenXJsonSerDe{
 		CaseInsensitive:                    aws.Bool(m["case_insensitive"].(bool)),
-		ColumnToJsonKeyMappings:            stringMapToPointers(m["column_to_json_key_mappings"].(map[string]interface{})),
+		ColumnToJsonKeyMappings:            expandStringMap(m["column_to_json_key_mappings"].(map[string]interface{})),
 		ConvertDotsInJsonKeysToUnderscores: aws.Bool(m["convert_dots_in_json_keys_to_underscores"].(bool)),
 	}
 }
@@ -2461,6 +2467,8 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 	}
 
 	conn := meta.(*AWSClient).firehoseconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	sn := d.Get("name").(string)
 
@@ -2511,34 +2519,35 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 		}
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		createInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().FirehoseTags()
+	if len(tags) > 0 {
+		createInput.Tags = tags.IgnoreAws().FirehoseTags()
 	}
 
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := conn.CreateDeliveryStream(createInput)
 		if err != nil {
-			log.Printf("[DEBUG] Error creating Firehose Delivery Stream: %s", err)
+			// Access was denied when calling Glue. Please ensure that the role specified in the data format conversion configuration has the necessary permissions.
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Access was denied") {
+				return resource.RetryableError(err)
+			}
 
-			// Retry for IAM eventual consistency
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
 				return resource.RetryableError(err)
 			}
-			// Retry for IAM eventual consistency
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Please make sure the role specified in VpcConfiguration has permissions") {
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Please make sure the role specified in VpcConfiguration has permissions") {
 				return resource.RetryableError(err)
 			}
+
 			// InvalidArgumentException: Verify that the IAM role has access to the ElasticSearch domain.
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
 				return resource.RetryableError(err)
 			}
-			// IAM roles can take ~10 seconds to propagate in AWS:
-			// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
-				log.Printf("[DEBUG] Firehose could not assume role referenced, retrying...")
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
 				return resource.RetryableError(err)
 			}
-			// Not retryable
+
 			return resource.NonRetryableError(err)
 		}
 
@@ -2660,30 +2669,31 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := conn.UpdateDestination(updateInput)
 		if err != nil {
-			log.Printf("[DEBUG] Error updating Firehose Delivery Stream: %s", err)
+			// Access was denied when calling Glue. Please ensure that the role specified in the data format conversion configuration has the necessary permissions.
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Access was denied") {
+				return resource.RetryableError(err)
+			}
 
-			// Retry for IAM eventual consistency
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "is not authorized to") {
 				return resource.RetryableError(err)
 			}
-			// Retry for IAM eventual consistency
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Please make sure the role specified in VpcConfiguration has permissions") {
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Please make sure the role specified in VpcConfiguration has permissions") {
 				return resource.RetryableError(err)
 			}
+
 			// InvalidArgumentException: Verify that the IAM role has access to the ElasticSearch domain.
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Verify that the IAM role has access") {
 				return resource.RetryableError(err)
 			}
-			// IAM roles can take ~10 seconds to propagate in AWS:
-			// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
-			if isAWSErr(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
-				log.Printf("[DEBUG] Firehose could not assume role referenced, retrying...")
+
+			if tfawserr.ErrMessageContains(err, firehose.ErrCodeInvalidArgumentException, "Firehose is unable to assume role") {
 				return resource.RetryableError(err)
 			}
-			// Not retryable
+
 			return resource.NonRetryableError(err)
 		}
 
@@ -2700,8 +2710,8 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 			sn, err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.FirehoseUpdateTags(conn, sn, o, n); err != nil {
 			return fmt.Errorf("error updating Kinesis Firehose Delivery Stream (%s) tags: %s", sn, err)
@@ -2746,6 +2756,7 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 
 func resourceAwsKinesisFirehoseDeliveryStreamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).firehoseconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	sn := d.Get("name").(string)
@@ -2774,8 +2785,15 @@ func resourceAwsKinesisFirehoseDeliveryStreamRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error listing tags for Kinesis Firehose Delivery Stream (%s): %s", sn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

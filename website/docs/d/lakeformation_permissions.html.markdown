@@ -16,7 +16,7 @@ Get permissions for a principal to access metadata in the Data Catalog and data 
 
 ### Permissions For A Lake Formation S3 Resource
 
-```hcl
+```terraform
 data "aws_lakeformation_permissions" "test" {
   principal = aws_iam_role.workflow_role.arn
 
@@ -28,7 +28,7 @@ data "aws_lakeformation_permissions" "test" {
 
 ### Permissions For A Glue Catalog Database
 
-```hcl
+```terraform
 data "aws_lakeformation_permissions" "test" {
   principal = aws_iam_role.workflow_role.arn
 

@@ -31,7 +31,7 @@ func dataSourceAWSWafRegionalIpSetRead(d *schema.ResourceData, meta interface{})
 	for {
 		output, err := conn.ListIPSets(input)
 		if err != nil {
-			return fmt.Errorf("Error reading WAF Regional IP sets: %s", err)
+			return fmt.Errorf("Error reading WAF Regional IP sets: %w", err)
 		}
 		for _, ipset := range output.IPSets {
 			if aws.StringValue(ipset.Name) == name {

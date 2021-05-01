@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_iam_saml_provider: Add tagging support
+```
+
+```release-note:enhancement
+resource/aws_iam_saml_provider: Add plan time validation for `name` and `saml_metadata_document`
+```

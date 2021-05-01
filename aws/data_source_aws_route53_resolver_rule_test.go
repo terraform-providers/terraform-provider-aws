@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+func init() {
+	RegisterServiceErrorCheckFunc(route53resolver.EndpointsID, testAccErrorCheckSkipRoute53)
+}
 
 func TestAccAWSRoute53ResolverRuleDataSource_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -18,7 +23,7 @@ func TestAccAWSRoute53ResolverRuleDataSource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		ErrorCheck: testAccErrorCheck(t, route53resolver.EndpointsID),
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +74,7 @@ func TestAccAWSRoute53ResolverRuleDataSource_ResolverEndpointIdWithTags(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		ErrorCheck: testAccErrorCheck(t, route53resolver.EndpointsID),
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +111,7 @@ func TestAccAWSRoute53ResolverRuleDataSource_SharedByMe(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSRoute53Resolver(t)
 		},
-		ErrorCheck:        testAccErrorCheckSkipRoute53(t),
+		ErrorCheck:        testAccErrorCheck(t, route53resolver.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		Steps: []resource.TestStep{
 			{
@@ -144,7 +149,7 @@ func TestAccAWSRoute53ResolverRuleDataSource_SharedWithMe(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSRoute53Resolver(t)
 		},
-		ErrorCheck:        testAccErrorCheckSkipRoute53(t),
+		ErrorCheck:        testAccErrorCheck(t, route53resolver.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		Steps: []resource.TestStep{
 			{

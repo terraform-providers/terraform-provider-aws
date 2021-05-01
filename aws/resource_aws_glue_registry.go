@@ -25,6 +25,8 @@ func resourceAwsGlueRegistry() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -44,17 +46,20 @@ func resourceAwsGlueRegistry() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9-_$#]+$`), ""),
 				),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsGlueRegistryCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &glue.CreateRegistryInput{
 		RegistryName: aws.String(d.Get("registry_name").(string)),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:         tags.IgnoreAws().GlueTags(),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -73,6 +78,7 @@ func resourceAwsGlueRegistryCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsGlueRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	output, err := finder.RegistryByID(conn, d.Id())
@@ -102,8 +108,15 @@ func resourceAwsGlueRegistryRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for Glue Registry (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -128,8 +141,8 @@ func resourceAwsGlueRegistryUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

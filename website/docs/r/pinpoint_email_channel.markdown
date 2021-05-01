@@ -12,7 +12,7 @@ Provides a Pinpoint Email Channel resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_pinpoint_email_channel" "email" {
   application_id = aws_pinpoint_app.app.application_id
   from_address   = "user@example.com"
@@ -73,6 +73,7 @@ The following arguments are supported:
 
 * `application_id` - (Required) The application ID.
 * `enabled` - (Optional) Whether the channel is enabled or disabled. Defaults to `true`.
+* `configuration_set` - (Optional) The ARN of the Amazon SES configuration set that you want to apply to messages that you send through the channel.
 * `from_address` - (Required) The email address used to send emails from.
 * `identity` - (Required) The ARN of an identity verified with SES.
 * `role_arn` - (Required) The ARN of an IAM Role used to submit events to Mobile Analytics' event ingestion service.

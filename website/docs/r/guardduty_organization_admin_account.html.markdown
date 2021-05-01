@@ -12,7 +12,7 @@ Manages a GuardDuty Organization Admin Account. The AWS account utilizing this r
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_organizations_organization" "example" {
   aws_service_access_principals = ["guardduty.amazonaws.com"]
   feature_set                   = "ALL"

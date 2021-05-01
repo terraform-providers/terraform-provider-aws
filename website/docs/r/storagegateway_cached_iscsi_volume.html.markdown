@@ -20,7 +20,7 @@ Manages an AWS Storage Gateway cached iSCSI volume.
 
 ### Create Empty Cached iSCSI Volume
 
-```hcl
+```terraform
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = aws_storagegateway_cache.example.gateway_arn
   network_interface_id = aws_instance.example.private_ip
@@ -31,7 +31,7 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
 
 ### Create Cached iSCSI Volume From Snapshot
 
-```hcl
+```terraform
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = aws_storagegateway_cache.example.gateway_arn
   network_interface_id = aws_instance.example.private_ip
@@ -43,7 +43,7 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
 
 ### Create Cached iSCSI Volume From Source Volume
 
-```hcl
+```terraform
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = aws_storagegateway_cache.example.gateway_arn
   network_interface_id = aws_instance.example.private_ip
@@ -65,7 +65,7 @@ The following arguments are supported:
 * `source_volume_arn` - (Optional) The ARN for an existing volume. Specifying this ARN makes the new volume into an exact copy of the specified existing volume's latest recovery point. The `volume_size_in_bytes` value for this new volume must be equal to or larger than the size of the existing volume, in bytes.
 * `kms_encrypted` - (Optional) Set to `true` to use Amazon S3 server side encryption with your own AWS KMS key, or `false` to use a key managed by Amazon S3.
 * `kms_key` - (Optional) The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server side encryption. Is required when `kms_encrypted` is set.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -76,6 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Volume Amazon Resource Name (ARN), e.g. `arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678`.
 * `lun_number` - Logical disk number.
 * `network_interface_port` - The port used to communicate with iSCSI targets.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `target_arn` - Target Amazon Resource Name (ARN), e.g. `arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/target/iqn.1997-05.com.amazon:TargetName`.
 * `volume_arn` - Volume Amazon Resource Name (ARN), e.g. `arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678`.
 * `volume_id` - Volume ID, e.g. `vol-12345678`.

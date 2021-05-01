@@ -14,7 +14,7 @@ Provides a CloudWatch Composite Alarm resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_composite_alarm" "example" {
   alarm_description = "This is a composite alarm!"
   alarm_name        = "example-composite-alarm"
@@ -38,7 +38,7 @@ EOF
 * `alarm_rule` - (Required) An expression that specifies which other alarms are to be evaluated to determine this composite alarm's state. For syntax, see [Creating a Composite Alarm](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Composite_Alarm.html). The maximum length is 10240 characters.
 * `insufficient_data_actions` - (Optional) The set of actions to execute when this alarm transitions to the `INSUFFICIENT_DATA` state from any other state. Each action is specified as an ARN. Up to 5 actions are allowed.
 * `ok_actions` - (Optional) The set of actions to execute when this alarm transitions to an `OK` state from any other state. Each action is specified as an ARN. Up to 5 actions are allowed.
-* `tags` - (Optional) A map of tags to associate with the alarm. Up to 50 tags are allowed.
+* `tags` - (Optional) A map of tags to associate with the alarm. Up to 50 tags are allowed. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -46,6 +46,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the composite alarm.
 * `id` - The ID of the composite alarm resource, which is equivalent to its `alarm_name`.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

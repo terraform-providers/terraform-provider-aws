@@ -31,7 +31,7 @@ func testSweepElasticacheCacheSecurityGroups(region string) error {
 	}
 	conn := client.(*AWSClient).elasticacheconn
 
-	err = conn.DescribeCacheSecurityGroupsPages(&elasticache.DescribeCacheSecurityGroupsInput{}, func(page *elasticache.DescribeCacheSecurityGroupsOutput, isLast bool) bool {
+	err = conn.DescribeCacheSecurityGroupsPages(&elasticache.DescribeCacheSecurityGroupsInput{}, func(page *elasticache.DescribeCacheSecurityGroupsOutput, lastPage bool) bool {
 		if len(page.CacheSecurityGroups) == 0 {
 			log.Print("[DEBUG] No Elasticache Cache Security Groups to sweep")
 			return false
@@ -53,7 +53,7 @@ func testSweepElasticacheCacheSecurityGroups(region string) error {
 				log.Printf("[ERROR] Failed to delete Elasticache Cache Security Group (%s): %s", name, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -71,6 +71,7 @@ func TestAccAWSElasticacheSecurityGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, elasticache.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSElasticacheSecurityGroupDestroy,
 		Steps: []resource.TestStep{

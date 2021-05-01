@@ -8,8 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsVpcEndpointRouteTableAssociation() *schema.Resource {
@@ -65,27 +71,53 @@ func resourceAwsVpcEndpointRouteTableAssociationRead(d *schema.ResourceData, met
 
 	endpointId := d.Get("vpc_endpoint_id").(string)
 	rtId := d.Get("route_table_id").(string)
+	// Human friendly ID for error messages since d.Id() is non-descriptive
+	id := fmt.Sprintf("%s/%s", endpointId, rtId)
 
-	vpce, err := findResourceVpcEndpoint(conn, endpointId)
+	var routeTableID *string
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		routeTableID, err = finder.VpcEndpointRouteTableAssociation(conn, endpointId, rtId)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointIdNotFound) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && routeTableID == nil {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("VPC Endpoint Route Table Association (%s) not found", id),
+			})
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		routeTableID, err = finder.VpcEndpointRouteTableAssociation(conn, endpointId, rtId)
+	}
+
+	if d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcEndpointIdNotFound) {
+		log.Printf("[WARN] VPC Endpoint Route Table Association (%s) not found, removing from state", id)
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, "InvalidVpcEndpointId.NotFound", "") {
-			log.Printf("[WARN] VPC Endpoint (%s) not found, removing VPC Endpoint/Route Table association (%s) from state", endpointId, d.Id())
-			d.SetId("")
-			return nil
-		}
-
-		return err
+		return fmt.Errorf("error reading VPC Endpoint Route Table Association (%s): %w", id, err)
 	}
 
-	found := false
-	for _, id := range vpce.RouteTableIds {
-		if aws.StringValue(id) == rtId {
-			found = true
-			break
+	if routeTableID == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading VPC Endpoint Route Table Association (%s): not found after creation", id)
 		}
-	}
-	if !found {
-		log.Printf("[WARN] VPC Endpoint/Route Table association (%s) not found, removing from state", d.Id())
+
+		log.Printf("[WARN] VPC Endpoint Route Table Association (%s) not found, removing from state", id)
 		d.SetId("")
 		return nil
 	}

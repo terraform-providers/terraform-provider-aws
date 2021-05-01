@@ -22,10 +22,12 @@ func dataSourceAwsStorageGatewayLocalDisk() *schema.Resource {
 			"disk_node": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"disk_path": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"gateway_arn": {
 				Type:         schema.TypeString,
@@ -46,7 +48,7 @@ func dataSourceAwsStorageGatewayLocalDiskRead(d *schema.ResourceData, meta inter
 	log.Printf("[DEBUG] Reading Storage Gateway Local Disk: %s", input)
 	output, err := conn.ListLocalDisks(input)
 	if err != nil {
-		return fmt.Errorf("error reading Storage Gateway Local Disk: %s", err)
+		return fmt.Errorf("error reading Storage Gateway Local Disk: %w", err)
 	}
 
 	if output == nil || len(output.Disks) == 0 {

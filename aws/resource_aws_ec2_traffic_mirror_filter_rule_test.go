@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAWSEc2TrafficMirrorFilterRule_basic(t *testing.T) {
-	resourceName := "aws_ec2_traffic_mirror_filter_rule.rule"
+	resourceName := "aws_ec2_traffic_mirror_filter_rule.test"
 	dstCidr := "10.0.0.0/8"
 	srcCidr := "0.0.0.0/0"
 	ruleNum := 1
@@ -31,6 +31,7 @@ func TestAccAWSEc2TrafficMirrorFilterRule_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TrafficMirrorFilterRule(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TrafficMirrorFilterRuleDestroy,
 		Steps: []resource.TestStep{
@@ -39,6 +40,7 @@ func TestAccAWSEc2TrafficMirrorFilterRule_basic(t *testing.T) {
 				Config: testAccEc2TrafficMirrorFilterRuleConfig(dstCidr, srcCidr, action, direction, ruleNum),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TrafficMirrorFilterRuleExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", ec2.ServiceName, regexp.MustCompile(`traffic-mirror-filter-rule/tmfr-.+`)),
 					resource.TestMatchResourceAttr(resourceName, "traffic_mirror_filter_id", regexp.MustCompile("tmf-.*")),
 					resource.TestCheckResourceAttr(resourceName, "destination_cidr_block", dstCidr),
 					resource.TestCheckResourceAttr(resourceName, "rule_action", action),
@@ -99,6 +101,35 @@ func TestAccAWSEc2TrafficMirrorFilterRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSEc2TrafficMirrorFilterRule_disappears(t *testing.T) {
+	resourceName := "aws_ec2_traffic_mirror_filter_rule.test"
+	dstCidr := "10.0.0.0/8"
+	srcCidr := "0.0.0.0/0"
+	ruleNum := 1
+	action := "accept"
+	direction := "ingress"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSEc2TrafficMirrorFilterRule(t)
+		},
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEc2TrafficMirrorFilterRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEc2TrafficMirrorFilterRuleConfig(dstCidr, srcCidr, action, direction, ruleNum),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEc2TrafficMirrorFilterRuleExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TrafficMirrorFilterRule(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSEc2TrafficMirrorFilterRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -134,7 +165,7 @@ func testAccCheckAWSEc2TrafficMirrorFilterRuleExists(name string) resource.TestC
 
 		var exists bool
 		for _, rule := range ruleList {
-			if *rule.TrafficMirrorFilterRuleId == ruleId {
+			if aws.StringValue(rule.TrafficMirrorFilterRuleId) == ruleId {
 				exists = true
 				break
 			}
@@ -150,11 +181,11 @@ func testAccCheckAWSEc2TrafficMirrorFilterRuleExists(name string) resource.TestC
 
 func testAccEc2TrafficMirrorFilterRuleConfig(dstCidr, srcCidr, action, dir string, num int) string {
 	return fmt.Sprintf(`
-resource "aws_ec2_traffic_mirror_filter" "filter" {
+resource "aws_ec2_traffic_mirror_filter" "test" {
 }
 
-resource "aws_ec2_traffic_mirror_filter_rule" "rule" {
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
+resource "aws_ec2_traffic_mirror_filter_rule" "test" {
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.test.id
   destination_cidr_block   = "%s"
   rule_action              = "%s"
   rule_number              = %d
@@ -166,11 +197,10 @@ resource "aws_ec2_traffic_mirror_filter_rule" "rule" {
 
 func testAccEc2TrafficMirrorFilterRuleConfigFull(dstCidr, srcCidr, action, dir, description string, ruleNum, srcPortFrom, srcPortTo, dstPortFrom, dstPortTo, protocol int) string {
 	return fmt.Sprintf(`
-resource "aws_ec2_traffic_mirror_filter" "filter" {
-}
+resource "aws_ec2_traffic_mirror_filter" "test" {}
 
-resource "aws_ec2_traffic_mirror_filter_rule" "rule" {
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
+resource "aws_ec2_traffic_mirror_filter_rule" "test" {
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.test.id
   destination_cidr_block   = "%s"
   rule_action              = "%s"
   rule_number              = %d
@@ -239,7 +269,7 @@ func testAccCheckAWSEc2TrafficMirrorFilterRuleDestroy(s *terraform.State) error 
 		ruleList = append(ruleList, filter.EgressFilterRules...)
 
 		for _, rule := range ruleList {
-			if *rule.TrafficMirrorFilterRuleId == ruleId {
+			if aws.StringValue(rule.TrafficMirrorFilterRuleId) == ruleId {
 				return fmt.Errorf("Rule %s still exists in filter %s", ruleId, filterId)
 			}
 		}

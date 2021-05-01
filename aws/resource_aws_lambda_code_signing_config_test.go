@@ -19,6 +19,7 @@ func TestAccAWSLambdaCodeSigningConfig_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeSigningConfigDestroy,
 		Steps: []resource.TestStep{
@@ -48,6 +49,7 @@ func TestAccAWSLambdaCodeSigningConfig_UpdatePolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeSigningConfigDestroy,
 		Steps: []resource.TestStep{
@@ -83,6 +85,7 @@ func TestAccAWSLambdaCodeSigningConfig_UpdatePublishers(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeSigningConfigDestroy,
 		Steps: []resource.TestStep{

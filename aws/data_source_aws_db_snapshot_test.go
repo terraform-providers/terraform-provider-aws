@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -12,8 +13,9 @@ import (
 func TestAccAWSDbSnapshotDataSource_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, rds.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsDbSnapshotDataSourceConfig(rInt),
@@ -43,7 +45,7 @@ func testAccCheckAwsDbSnapshotDataSourceConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_db_instance" "bar" {
   allocated_storage   = 10
-  engine              = "MySQL"
+  engine              = "mysql"
   engine_version      = "5.6.35"
   instance_class      = "db.t2.micro"
   name                = "baz"

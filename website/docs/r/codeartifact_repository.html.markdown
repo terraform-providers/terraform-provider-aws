@@ -12,7 +12,7 @@ Provides a CodeArtifact Repository Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_key" "example" {
   description = "domain key"
 }
@@ -30,7 +30,7 @@ resource "aws_codeartifact_repository" "test" {
 
 ## Example Usage with upstream repository
 
-```hcl
+```terraform
 resource "aws_codeartifact_repository" "upstream" {
   repository = "upstream"
   domain     = aws_codeartifact_domain.test.domain
@@ -48,7 +48,7 @@ resource "aws_codeartifact_repository" "test" {
 
 ## Example Usage with external connection
 
-```hcl
+```terraform
 resource "aws_codeartifact_repository" "upstream" {
   repository = "upstream"
   domain     = aws_codeartifact_domain.test.domain
@@ -74,7 +74,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the repository.
 * `upstream` - (Optional) A list of upstream repositories to associate with the repository. The order of the upstream repositories in the list determines their priority order when AWS CodeArtifact looks for a requested package version. see [Upstream](#upstream)
 * `external_connections` - An array of external connections associated with the repository. Only one external connection can be set per repository. see [External Connections](#external-connections).
-* `tags` - (Optional) Key-value map of resource tags.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Upstream
 
@@ -91,6 +91,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Name of the repository.
 * `arn` - The ARN of the repository.
 * `administrator_account` - The account number of the AWS account that manages the repository.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

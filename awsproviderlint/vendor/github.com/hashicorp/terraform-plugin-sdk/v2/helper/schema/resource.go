@@ -142,6 +142,46 @@ type Resource struct {
 	UpdateContext UpdateContextFunc
 	DeleteContext DeleteContextFunc
 
+	// CreateWithoutTimeout is equivalent to CreateContext with no context timeout.
+	//
+	// Most resources should prefer CreateContext with properly implemented
+	// operation timeout values, however there are cases where operation
+	// synchronization across concurrent resources is necessary in the resource
+	// logic, such as a mutex, to prevent remote system errors. Since these
+	// operations would have an indeterminate timeout that scales with the
+	// number of resources, this allows resources to control timeout behavior.
+	CreateWithoutTimeout CreateContextFunc
+
+	// ReadWithoutTimeout is equivalent to ReadContext with no context timeout.
+	//
+	// Most resources should prefer ReadContext with properly implemented
+	// operation timeout values, however there are cases where operation
+	// synchronization across concurrent resources is necessary in the resource
+	// logic, such as a mutex, to prevent remote system errors. Since these
+	// operations would have an indeterminate timeout that scales with the
+	// number of resources, this allows resources to control timeout behavior.
+	ReadWithoutTimeout ReadContextFunc
+
+	// UpdateWithoutTimeout is equivalent to UpdateContext with no context timeout.
+	//
+	// Most resources should prefer UpdateContext with properly implemented
+	// operation timeout values, however there are cases where operation
+	// synchronization across concurrent resources is necessary in the resource
+	// logic, such as a mutex, to prevent remote system errors. Since these
+	// operations would have an indeterminate timeout that scales with the
+	// number of resources, this allows resources to control timeout behavior.
+	UpdateWithoutTimeout UpdateContextFunc
+
+	// DeleteWithoutTimeout is equivalent to DeleteContext with no context timeout.
+	//
+	// Most resources should prefer DeleteContext with properly implemented
+	// operation timeout values, however there are cases where operation
+	// synchronization across concurrent resources is necessary in the resource
+	// logic, such as a mutex, to prevent remote system errors. Since these
+	// operations would have an indeterminate timeout that scales with the
+	// number of resources, this allows resources to control timeout behavior.
+	DeleteWithoutTimeout DeleteContextFunc
+
 	// CustomizeDiff is a custom function for working with the diff that
 	// Terraform has created for this resource - it can be used to customize the
 	// diff that has been created, diff values not controlled by configuration,
@@ -280,6 +320,11 @@ func (r *Resource) create(ctx context.Context, d *ResourceData, meta interface{}
 		}
 		return nil
 	}
+
+	if r.CreateWithoutTimeout != nil {
+		return r.CreateWithoutTimeout(ctx, d, meta)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, d.Timeout(TimeoutCreate))
 	defer cancel()
 	return r.CreateContext(ctx, d, meta)
@@ -292,6 +337,11 @@ func (r *Resource) read(ctx context.Context, d *ResourceData, meta interface{}) 
 		}
 		return nil
 	}
+
+	if r.ReadWithoutTimeout != nil {
+		return r.ReadWithoutTimeout(ctx, d, meta)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, d.Timeout(TimeoutRead))
 	defer cancel()
 	return r.ReadContext(ctx, d, meta)
@@ -304,6 +354,11 @@ func (r *Resource) update(ctx context.Context, d *ResourceData, meta interface{}
 		}
 		return nil
 	}
+
+	if r.UpdateWithoutTimeout != nil {
+		return r.UpdateWithoutTimeout(ctx, d, meta)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, d.Timeout(TimeoutUpdate))
 	defer cancel()
 	return r.UpdateContext(ctx, d, meta)
@@ -316,6 +371,11 @@ func (r *Resource) delete(ctx context.Context, d *ResourceData, meta interface{}
 		}
 		return nil
 	}
+
+	if r.DeleteWithoutTimeout != nil {
+		return r.DeleteWithoutTimeout(ctx, d, meta)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, d.Timeout(TimeoutDelete))
 	defer cancel()
 	return r.DeleteContext(ctx, d, meta)
@@ -571,19 +631,19 @@ func (r *Resource) RefreshWithoutUpgrade(
 }
 
 func (r *Resource) createFuncSet() bool {
-	return (r.Create != nil || r.CreateContext != nil)
+	return (r.Create != nil || r.CreateContext != nil || r.CreateWithoutTimeout != nil)
 }
 
 func (r *Resource) readFuncSet() bool {
-	return (r.Read != nil || r.ReadContext != nil)
+	return (r.Read != nil || r.ReadContext != nil || r.ReadWithoutTimeout != nil)
 }
 
 func (r *Resource) updateFuncSet() bool {
-	return (r.Update != nil || r.UpdateContext != nil)
+	return (r.Update != nil || r.UpdateContext != nil || r.UpdateWithoutTimeout != nil)
 }
 
 func (r *Resource) deleteFuncSet() bool {
-	return (r.Delete != nil || r.DeleteContext != nil)
+	return (r.Delete != nil || r.DeleteContext != nil || r.DeleteWithoutTimeout != nil)
 }
 
 // InternalValidate should be called to validate the structure
@@ -720,6 +780,34 @@ func (r *Resource) InternalValidate(topSchemaMap schemaMap, writable bool) error
 	}
 	if r.DeleteContext != nil && r.Delete != nil {
 		return fmt.Errorf("DeleteContext and Delete should not both be set")
+	}
+
+	// check context funcs are not set alongside their without timeout counterparts
+	if r.CreateContext != nil && r.CreateWithoutTimeout != nil {
+		return fmt.Errorf("CreateContext and CreateWithoutTimeout should not both be set")
+	}
+	if r.ReadContext != nil && r.ReadWithoutTimeout != nil {
+		return fmt.Errorf("ReadContext and ReadWithoutTimeout should not both be set")
+	}
+	if r.UpdateContext != nil && r.UpdateWithoutTimeout != nil {
+		return fmt.Errorf("UpdateContext and UpdateWithoutTimeout should not both be set")
+	}
+	if r.DeleteContext != nil && r.DeleteWithoutTimeout != nil {
+		return fmt.Errorf("DeleteContext and DeleteWithoutTimeout should not both be set")
+	}
+
+	// check non-context funcs are not set alongside the context without timeout counterparts
+	if r.Create != nil && r.CreateWithoutTimeout != nil {
+		return fmt.Errorf("Create and CreateWithoutTimeout should not both be set")
+	}
+	if r.Read != nil && r.ReadWithoutTimeout != nil {
+		return fmt.Errorf("Read and ReadWithoutTimeout should not both be set")
+	}
+	if r.Update != nil && r.UpdateWithoutTimeout != nil {
+		return fmt.Errorf("Update and UpdateWithoutTimeout should not both be set")
+	}
+	if r.Delete != nil && r.DeleteWithoutTimeout != nil {
+		return fmt.Errorf("Delete and DeleteWithoutTimeout should not both be set")
 	}
 
 	return schemaMap(r.Schema).InternalValidate(tsm)

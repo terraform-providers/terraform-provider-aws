@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_globalaccelerator_accelerator: Correct length for `name` attribute validation
+```

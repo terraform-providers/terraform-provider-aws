@@ -83,9 +83,13 @@ func resourceAwsAutoscalingNotificationRead(d *schema.ResourceData, meta interfa
 		}
 
 		for _, n := range resp.NotificationConfigurations {
-			if *n.TopicARN == topic {
-				gRaw[*n.AutoScalingGroupName] = true
-				nRaw[*n.NotificationType] = true
+			if n == nil {
+				continue
+			}
+
+			if aws.StringValue(n.TopicARN) == topic {
+				gRaw[aws.StringValue(n.AutoScalingGroupName)] = true
+				nRaw[aws.StringValue(n.NotificationType)] = true
 			}
 		}
 		return true // return false to stop paging

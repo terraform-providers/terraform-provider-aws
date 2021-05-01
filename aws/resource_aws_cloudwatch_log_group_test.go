@@ -53,9 +53,9 @@ func testSweepCloudwatchLogGroups(region string) error {
 
 	input := &cloudwatchlogs.DescribeLogGroupsInput{}
 
-	err = conn.DescribeLogGroupsPages(input, func(page *cloudwatchlogs.DescribeLogGroupsOutput, isLast bool) bool {
+	err = conn.DescribeLogGroupsPages(input, func(page *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, logGroup := range page.LogGroups {
@@ -79,7 +79,7 @@ func testSweepCloudwatchLogGroups(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {
@@ -101,6 +101,7 @@ func TestAccAWSCloudWatchLogGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -130,6 +131,7 @@ func TestAccAWSCloudWatchLogGroup_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -157,6 +159,7 @@ func TestAccAWSCloudWatchLogGroup_namePrefix_retention(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -192,6 +195,7 @@ func TestAccAWSCloudWatchLogGroup_generatedName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -218,6 +222,7 @@ func TestAccAWSCloudWatchLogGroup_retentionPolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -252,6 +257,7 @@ func TestAccAWSCloudWatchLogGroup_multiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -283,6 +289,7 @@ func TestAccAWSCloudWatchLogGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -305,6 +312,7 @@ func TestAccAWSCloudWatchLogGroup_tagging(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -367,6 +375,7 @@ func TestAccAWSCloudWatchLogGroup_kmsKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchlogs.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogGroupDestroy,
 		Steps: []resource.TestStep{
@@ -434,8 +443,9 @@ func testAccCheckAWSCloudWatchLogGroupDestroy(s *terraform.State) error {
 			continue
 		}
 		logGroup, err := lookupCloudWatchLogGroup(conn, rs.Primary.ID)
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading CloudWatch Log Group (%s): %w", rs.Primary.ID, err)
 		}
 
 		if logGroup != nil {

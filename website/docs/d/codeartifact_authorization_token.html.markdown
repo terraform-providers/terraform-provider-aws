@@ -12,7 +12,7 @@ The CodeArtifact Authorization Token data source generates a temporary authentic
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_codeartifact_authorization_token" "test" {
   domain = aws_codeartifact_domain.test.domain
 }

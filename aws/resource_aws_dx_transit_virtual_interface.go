@@ -94,7 +94,8 @@ func resourceAwsDxTransitVirtualInterface() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vlan": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -108,11 +109,15 @@ func resourceAwsDxTransitVirtualInterface() *schema.Resource {
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDxTransitVirtualInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &directconnect.CreateTransitVirtualInterfaceInput{
 		ConnectionId: aws.String(d.Get("connection_id").(string)),
@@ -134,8 +139,8 @@ func resourceAwsDxTransitVirtualInterfaceCreate(d *schema.ResourceData, meta int
 	if v, ok := d.GetOk("customer_address"); ok {
 		req.NewTransitVirtualInterface.CustomerAddress = aws.String(v.(string))
 	}
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		req.NewTransitVirtualInterface.Tags = keyvaluetags.New(v).IgnoreAws().DirectconnectTags()
+	if len(tags) > 0 {
+		req.NewTransitVirtualInterface.Tags = tags.IgnoreAws().DirectconnectTags()
 	}
 
 	log.Printf("[DEBUG] Creating Direct Connect transit virtual interface: %s", req)
@@ -155,6 +160,7 @@ func resourceAwsDxTransitVirtualInterfaceCreate(d *schema.ResourceData, meta int
 
 func resourceAwsDxTransitVirtualInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
@@ -195,8 +201,15 @@ func resourceAwsDxTransitVirtualInterfaceRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error listing tags for Direct Connect transit virtual interface (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

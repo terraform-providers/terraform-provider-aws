@@ -33,11 +33,11 @@ func dataSourceAwsEksClusterAuthRead(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	generator, err := token.NewGenerator(false, false)
 	if err != nil {
-		return fmt.Errorf("error getting token generator: %v", err)
+		return fmt.Errorf("error getting token generator: %w", err)
 	}
 	token, err := generator.GetWithSTS(name, conn)
 	if err != nil {
-		return fmt.Errorf("error getting token: %v", err)
+		return fmt.Errorf("error getting token: %w", err)
 	}
 
 	d.SetId(name)

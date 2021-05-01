@@ -13,7 +13,7 @@ a specific VPC endpoint.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Declare the data source
 data "aws_vpc_endpoint" "s3" {
   vpc_id       = aws_vpc.foo.id

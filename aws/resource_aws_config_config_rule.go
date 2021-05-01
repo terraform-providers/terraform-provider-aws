@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsConfigConfigRule() *schema.Resource {
@@ -136,13 +137,18 @@ func resourceAwsConfigConfigRule() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).configconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
 	ruleInput := configservice.ConfigRule{
@@ -163,10 +169,10 @@ func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) er
 
 	input := configservice.PutConfigRuleInput{
 		ConfigRule: &ruleInput,
-		Tags:       keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ConfigserviceTags(),
+		Tags:       tags.IgnoreAws().ConfigserviceTags(),
 	}
 	log.Printf("[DEBUG] Creating AWSConfig config rule: %s", input)
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		_, err := conn.PutConfigRule(&input)
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
@@ -192,8 +198,8 @@ func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[DEBUG] AWSConfig config rule %q created", name)
 
-	if !d.IsNewResource() && d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if !d.IsNewResource() && d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.ConfigserviceUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Config Config Rule (%s) tags: %s", d.Get("arn").(string), err)
@@ -205,6 +211,7 @@ func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsConfigConfigRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).configconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	out, err := conn.DescribeConfigRules(&configservice.DescribeConfigRulesInput{
@@ -253,8 +260,15 @@ func resourceAwsConfigConfigRuleRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error listing tags for Config Config Rule (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

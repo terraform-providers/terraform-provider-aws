@@ -5,10 +5,10 @@ import (
 	"log"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
+	multierror "github.com/hashicorp/go-multierror"
 	gversion "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -24,57 +24,42 @@ func init() {
 
 func testSweepDmsReplicationInstances(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).dmsconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
 	err = conn.DescribeReplicationInstancesPages(&dms.DescribeReplicationInstancesInput{}, func(page *dms.DescribeReplicationInstancesOutput, lastPage bool) bool {
 		for _, instance := range page.ReplicationInstances {
-			arn := aws.StringValue(instance.ReplicationInstanceArn)
-			input := &dms.DeleteReplicationInstanceInput{
-				ReplicationInstanceArn: instance.ReplicationInstanceArn,
-			}
+			r := resourceAwsDmsReplicationInstance()
+			d := r.Data(nil)
+			d.Set("replication_instance_arn", instance.ReplicationInstanceArn)
+			d.SetId(aws.StringValue(instance.ReplicationInstanceIdentifier))
 
-			log.Printf("[INFO] Deleting DMS Replication Instance: %s", arn)
-			_, err := conn.DeleteReplicationInstance(input)
-
-			if isAWSErr(err, dms.ErrCodeResourceNotFoundFault, "") {
-				continue
-			}
-
-			if err != nil {
-				log.Printf("[ERROR] Error deleting DMS Replication Instance (%s): %s", arn, err)
-				continue
-			}
-
-			stateConf := &resource.StateChangeConf{
-				Pending:    []string{"deleting"},
-				Target:     []string{},
-				Refresh:    resourceAwsDmsReplicationInstanceStateRefreshFunc(conn, aws.StringValue(instance.ReplicationInstanceIdentifier)),
-				Timeout:    30 * time.Minute,
-				MinTimeout: 10 * time.Second,
-				Delay:      30 * time.Second,
-			}
-
-			if _, err := stateConf.WaitForState(); err != nil {
-				log.Printf("[ERROR] Error waiting for DMS Replication Instance (%s) deletion: %s", arn, err)
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error describing DMS Replication Instances: %w", err))
+	}
+
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping DMS Replication Instances for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
 		log.Printf("[WARN] Skipping DMS Replication Instance sweep for %s: %s", region, err)
 		return nil
 	}
 
-	if err != nil {
-		return fmt.Errorf("Error retrieving DMS Replication Instances: %s", err)
-	}
-
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSDmsReplicationInstance_basic(t *testing.T) {
@@ -85,6 +70,7 @@ func TestAccAWSDmsReplicationInstance_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -123,6 +109,7 @@ func TestAccAWSDmsReplicationInstance_AllocatedStorage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -156,6 +143,7 @@ func TestAccAWSDmsReplicationInstance_AutoMinorVersionUpgrade(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -197,6 +185,7 @@ func TestAccAWSDmsReplicationInstance_AvailabilityZone(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -261,6 +250,7 @@ func TestAccAWSDmsReplicationInstance_EngineVersion(t *testing.T) {
 				),
 			}
 		},
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps:        testSteps,
@@ -274,6 +264,7 @@ func TestAccAWSDmsReplicationInstance_KmsKeyArn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -300,6 +291,7 @@ func TestAccAWSDmsReplicationInstance_MultiAz(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -340,6 +332,7 @@ func TestAccAWSDmsReplicationInstance_PreferredMaintenanceWindow(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -373,6 +366,7 @@ func TestAccAWSDmsReplicationInstance_PubliclyAccessible(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -403,6 +397,7 @@ func TestAccAWSDmsReplicationInstance_ReplicationInstanceClass(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -437,6 +432,7 @@ func TestAccAWSDmsReplicationInstance_ReplicationSubnetGroupId(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -463,6 +459,7 @@ func TestAccAWSDmsReplicationInstance_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -507,6 +504,7 @@ func TestAccAWSDmsReplicationInstance_VpcSecurityGroupIds(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
 		Steps: []resource.TestStep{

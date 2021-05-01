@@ -29,7 +29,8 @@ func resourceAwsBackupVault() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\-\_\.]{1,50}$`), "must consist of lowercase letters, numbers, and hyphens."),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"kms_key_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -46,15 +47,19 @@ func resourceAwsBackupVault() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsBackupVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &backup.CreateBackupVaultInput{
 		BackupVaultName: aws.String(d.Get("name").(string)),
-		BackupVaultTags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().BackupTags(),
+		BackupVaultTags: tags.IgnoreAws().BackupTags(),
 	}
 
 	if v, ok := d.GetOk("kms_key_arn"); ok {
@@ -73,6 +78,7 @@ func resourceAwsBackupVaultCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsBackupVaultRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &backup.DescribeBackupVaultInput{
@@ -103,8 +109,15 @@ func resourceAwsBackupVaultRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("error listing tags for Backup Vault (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -113,8 +126,8 @@ func resourceAwsBackupVaultRead(d *schema.ResourceData, meta interface{}) error 
 func resourceAwsBackupVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.BackupUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Backup Vault (%s): %s", d.Id(), err)
 		}

@@ -13,7 +13,7 @@ ASGs within a specific region. This will allow you to pass a list of AutoScaling
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_autoscaling_groups" "groups" {
   filter {
     name   = "key"

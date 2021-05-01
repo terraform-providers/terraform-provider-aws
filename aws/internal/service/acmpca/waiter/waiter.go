@@ -24,3 +24,7 @@ func CertificateAuthorityCreated(conn *acmpca.ACMPCA, arn string, timeout time.D
 
 	return nil, err
 }
+
+const (
+	CertificateAuthorityActiveTimeout = 1 * time.Minute
+)

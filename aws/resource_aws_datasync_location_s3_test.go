@@ -88,6 +88,7 @@ func TestAccAWSDataSyncLocationS3_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
 		Steps: []resource.TestStep{
@@ -121,6 +122,7 @@ func TestAccAWSDataSyncLocationS3_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
 		Steps: []resource.TestStep{
@@ -143,6 +145,7 @@ func TestAccAWSDataSyncLocationS3_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
 		Steps: []resource.TestStep{
@@ -253,7 +256,7 @@ func testAccCheckAWSDataSyncLocationS3Disappears(location *datasync.DescribeLoca
 
 func testAccCheckAWSDataSyncLocationS3NotRecreated(i, j *datasync.DescribeLocationS3Output) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if aws.TimeValue(i.CreationTime) != aws.TimeValue(j.CreationTime) {
+		if !aws.TimeValue(i.CreationTime).Equal(aws.TimeValue(j.CreationTime)) {
 			return errors.New("DataSync Location S3 was recreated")
 		}
 

@@ -12,7 +12,7 @@ Provides a DB event subscription resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_instance" "default" {
   allocated_storage    = 10
   engine               = "mysql"
@@ -62,15 +62,16 @@ The following arguments are supported:
 * `source_type` - (Optional) The type of source that will be generating the events. Valid options are `db-instance`, `db-security-group`, `db-parameter-group`, `db-snapshot`, `db-cluster` or `db-cluster-snapshot`. If not set, all sources will be subscribed to.
 * `event_categories` - (Optional) A list of event categories for a SourceType that you want to subscribe to. See http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.html or run `aws rds describe-event-categories`.
 * `enabled` - (Optional) A boolean flag to enable/disable the subscription. Defaults to true.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
-## Attributes
+## Attributes Reference
 
-The following additional atttributes are provided:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the RDS event notification subscription
 * `arn` - The Amazon Resource Name of the RDS event notification subscription
 * `customer_aws_id` - The AWS customer account associated with the RDS event notification subscription
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

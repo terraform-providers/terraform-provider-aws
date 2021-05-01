@@ -24,7 +24,7 @@ builds:
       - goarch: '386'
         goos: darwin
     ldflags:
-      - -s -w -X aws/version.ProviderVersion={{.Version}}
+      - -s -w -X version.ProviderVersion={{.Version}}
     mod_timestamp: '{{ .CommitTimestamp }}'
 changelog:
   skip: true

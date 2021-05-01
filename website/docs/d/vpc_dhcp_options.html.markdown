@@ -14,7 +14,7 @@ Retrieve information about an EC2 DHCP Options configuration.
 
 ### Lookup by DHCP Options ID
 
-```hcl
+```terraform
 data "aws_vpc_dhcp_options" "example" {
   dhcp_options_id = "dopts-12345678"
 }
@@ -22,7 +22,7 @@ data "aws_vpc_dhcp_options" "example" {
 
 ### Lookup by Filter
 
-```hcl
+```terraform
 data "aws_vpc_dhcp_options" "example" {
   filter {
     name   = "key"

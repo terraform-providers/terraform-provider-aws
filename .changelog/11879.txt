@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_ssm_patch_baseline: Add `source` configuration block
+```

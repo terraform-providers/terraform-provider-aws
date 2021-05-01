@@ -89,7 +89,7 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 	log.Printf("[DEBUG] Reading EC2 instances: %s", params)
 
 	var instanceIds, privateIps, publicIps []string
-	err := conn.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, isLast bool) bool {
+	err := conn.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, lastPage bool) bool {
 		for _, res := range resp.Reservations {
 			for _, instance := range res.Instances {
 				instanceIds = append(instanceIds, *instance.InstanceId)
@@ -101,7 +101,7 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 				}
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		return err

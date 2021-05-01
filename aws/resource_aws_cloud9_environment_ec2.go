@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
@@ -62,19 +63,24 @@ func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloud9conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &cloud9.CreateEnvironmentEC2Input{
 		InstanceType:       aws.String(d.Get("instance_type").(string)),
 		Name:               aws.String(d.Get("name").(string)),
 		ClientRequestToken: aws.String(resource.UniqueId()),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Cloud9Tags(),
+		Tags:               tags.IgnoreAws().Cloud9Tags(),
 	}
 
 	if v, ok := d.GetOk("automatic_stop_time_minutes"); ok {
@@ -91,7 +97,7 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 	}
 
 	var out *cloud9.CreateEnvironmentEC2Output
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		out, err = conn.CreateEnvironmentEC2(params)
 		if err != nil {
@@ -129,13 +135,13 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 				return 42, "", err
 			}
 
-			status := *out.Status
-			var sErr error
+			status := aws.StringValue(out.Status)
+
 			if status == cloud9.EnvironmentStatusError && out.Message != nil {
-				sErr = fmt.Errorf("Reason: %s", *out.Message)
+				return out, status, fmt.Errorf("Reason: %s", aws.StringValue(out.Message))
 			}
 
-			return out, status, sErr
+			return out, status, nil
 		},
 	}
 	_, err = stateConf.WaitForState()
@@ -148,6 +154,7 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 
 func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloud9conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading Cloud9 Environment EC2 %s", d.Id())
@@ -183,8 +190,15 @@ func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for Cloud9 EC2 Environment (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	log.Printf("[DEBUG] Received Cloud9 Environment EC2: %s", env)
@@ -210,8 +224,8 @@ func resourceAwsCloud9EnvironmentEc2Update(d *schema.ResourceData, meta interfac
 
 	log.Printf("[DEBUG] Cloud9 Environment EC2 updated: %s", out)
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		arn := d.Get("arn").(string)
 
 		if err := keyvaluetags.Cloud9UpdateTags(conn, arn, o, n); err != nil {

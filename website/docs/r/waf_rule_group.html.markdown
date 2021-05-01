@@ -12,7 +12,7 @@ Provides a WAF Rule Group Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_rule" "example" {
   name        = "example"
   metric_name = "example"
@@ -40,7 +40,7 @@ The following arguments are supported:
 * `name` - (Required) A friendly name of the rule group
 * `metric_name` - (Required) A friendly name for the metrics from the rule group
 * `activated_rule` - (Optional) A list of activated rules, see below
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Nested Blocks
 
@@ -60,6 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF rule group.
 * `arn` - The ARN of the WAF rule group.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

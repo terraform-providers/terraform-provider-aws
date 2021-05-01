@@ -14,7 +14,7 @@ Manages the GuardDuty Organization Configuration in the current AWS Region. The 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_detector" "example" {
   enable = true
 }

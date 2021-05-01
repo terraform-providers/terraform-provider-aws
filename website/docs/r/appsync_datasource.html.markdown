@@ -12,7 +12,7 @@ Provides an AppSync DataSource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dynamodb_table" "example" {
   name           = "example"
   read_capacity  = 1

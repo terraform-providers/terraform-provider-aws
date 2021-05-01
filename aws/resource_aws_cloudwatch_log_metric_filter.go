@@ -170,7 +170,7 @@ func lookupCloudWatchLogMetricFilter(conn *cloudwatchlogs.CloudWatchLogs,
 	}
 
 	for _, mf := range resp.MetricFilters {
-		if *mf.FilterName == name {
+		if aws.StringValue(mf.FilterName) == name {
 			return mf, nil
 		}
 	}

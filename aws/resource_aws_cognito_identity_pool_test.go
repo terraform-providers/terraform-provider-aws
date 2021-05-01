@@ -21,6 +21,7 @@ func TestAccAWSCognitoIdentityPool_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
@@ -55,6 +56,7 @@ func TestAccAWSCognitoIdentityPool_supportedLoginProviders(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
@@ -97,6 +99,7 @@ func TestAccAWSCognitoIdentityPool_openidConnectProviderArns(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
@@ -138,6 +141,7 @@ func TestAccAWSCognitoIdentityPool_samlProviderArns(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
@@ -180,6 +184,7 @@ func TestAccAWSCognitoIdentityPool_cognitoIdentityProviders(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
@@ -234,6 +239,7 @@ func TestAccAWSCognitoIdentityPool_addingNewProviderKeepsOldProvider(t *testing.
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
@@ -278,6 +284,7 @@ func TestAccAWSCognitoIdentityPool_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentity.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{

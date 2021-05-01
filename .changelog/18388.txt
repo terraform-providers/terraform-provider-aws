@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_network_acl: Handle EC2 eventual consistency errors on creation
+```
+
+```release-note:bug
+resource/aws_network_acl_rule: Handle EC2 eventual consistency errors on creation
+```

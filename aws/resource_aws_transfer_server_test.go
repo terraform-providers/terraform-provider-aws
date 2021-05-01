@@ -71,6 +71,7 @@ func TestAccAWSTransferServer_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		ErrorCheck:    testAccErrorCheck(t, transfer.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSTransferServerDestroy,
@@ -117,6 +118,7 @@ func TestAccAWSTransferServer_Vpc(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		ErrorCheck:    testAccErrorCheck(t, transfer.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSTransferServerDestroy,
@@ -160,6 +162,7 @@ func TestAccAWSTransferServer_apigateway(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		ErrorCheck:    testAccErrorCheck(t, transfer.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSTransferServerDestroy,
@@ -189,6 +192,7 @@ func TestAccAWSTransferServer_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		ErrorCheck:   testAccErrorCheck(t, transfer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSTransferServerDestroy,
 		Steps: []resource.TestStep{
@@ -212,6 +216,7 @@ func TestAccAWSTransferServer_forcedestroy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		ErrorCheck:    testAccErrorCheck(t, transfer.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSTransferServerDestroy,
@@ -245,6 +250,7 @@ func TestAccAWSTransferServer_vpcEndpointId(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		ErrorCheck:    testAccErrorCheck(t, transfer.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSTransferServerDestroy,
@@ -274,6 +280,7 @@ func TestAccAWSTransferServer_hostKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, transfer.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSTransferServerDestroy,

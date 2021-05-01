@@ -149,7 +149,7 @@ func lookupCloudWatchLogStream(conn *cloudwatchlogs.CloudWatchLogs,
 	}
 
 	for _, ls := range resp.LogStreams {
-		if *ls.LogStreamName == name {
+		if aws.StringValue(ls.LogStreamName) == name {
 			return ls, true, nil
 		}
 	}

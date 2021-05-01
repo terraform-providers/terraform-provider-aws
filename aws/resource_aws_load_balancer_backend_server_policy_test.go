@@ -23,6 +23,7 @@ func TestAccAWSLoadBalancerBackendServerPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLoadBalancerBackendServerPolicyDestroy,
 		Steps: []resource.TestStep{

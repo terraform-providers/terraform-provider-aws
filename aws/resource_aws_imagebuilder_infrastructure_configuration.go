@@ -110,18 +110,23 @@ func resourceAwsImageBuilderInfrastructureConfiguration() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"terminate_instance_on_failure": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsImageBuilderInfrastructureConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &imagebuilder.CreateInfrastructureConfigurationInput{
 		ClientToken: aws.String(resource.UniqueId()),
@@ -167,8 +172,8 @@ func resourceAwsImageBuilderInfrastructureConfigurationCreate(d *schema.Resource
 		input.SubnetId = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ImagebuilderTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().ImagebuilderTags()
 	}
 
 	if v, ok := d.GetOk("terminate_instance_on_failure"); ok {
@@ -211,6 +216,7 @@ func resourceAwsImageBuilderInfrastructureConfigurationCreate(d *schema.Resource
 
 func resourceAwsImageBuilderInfrastructureConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &imagebuilder.GetInfrastructureConfigurationInput{
@@ -252,7 +258,16 @@ func resourceAwsImageBuilderInfrastructureConfigurationRead(d *schema.ResourceDa
 	d.Set("security_group_ids", aws.StringValueSlice(infrastructureConfiguration.SecurityGroupIds))
 	d.Set("sns_topic_arn", infrastructureConfiguration.SnsTopicArn)
 	d.Set("subnet_id", infrastructureConfiguration.SubnetId)
-	d.Set("tags", keyvaluetags.ImagebuilderKeyValueTags(infrastructureConfiguration.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
+	tags := keyvaluetags.ImagebuilderKeyValueTags(infrastructureConfiguration.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 	d.Set("terminate_instance_on_failure", infrastructureConfiguration.TerminateInstanceOnFailure)
 
 	return nil
@@ -340,8 +355,8 @@ func resourceAwsImageBuilderInfrastructureConfigurationUpdate(d *schema.Resource
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.ImagebuilderUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Image Builder Infrastructure Configuration (%s): %w", d.Id(), err)

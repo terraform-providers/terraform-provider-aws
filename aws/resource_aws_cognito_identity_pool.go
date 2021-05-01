@@ -99,13 +99,18 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	log.Print("[DEBUG] Creating Cognito Identity Pool")
 
 	params := &cognitoidentity.CreateIdentityPoolInput{
@@ -133,8 +138,8 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 		params.OpenIdConnectProviderARNs = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.IdentityPoolTags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CognitoidentityTags()
+	if len(tags) > 0 {
+		params.IdentityPoolTags = tags.IgnoreAws().CognitoidentityTags()
 	}
 
 	entity, err := conn.CreateIdentityPool(params)
@@ -149,6 +154,7 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading Cognito Identity Pool: %s", d.Id())
@@ -175,8 +181,15 @@ func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}
 	d.Set("identity_pool_name", ip.IdentityPoolName)
 	d.Set("allow_unauthenticated_identities", ip.AllowUnauthenticatedIdentities)
 	d.Set("developer_provider_name", ip.DeveloperProviderName)
-	if err := d.Set("tags", keyvaluetags.CognitoidentityKeyValueTags(ip.IdentityPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.CognitoidentityKeyValueTags(ip.IdentityPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("cognito_identity_providers", flattenCognitoIdentityProviders(ip.CognitoIdentityProviders)); err != nil {
@@ -236,8 +249,8 @@ func resourceAwsCognitoIdentityPoolUpdate(d *schema.ResourceData, meta interface
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CognitoidentityUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Cognito Identity Pool (%s) tags: %s", arn, err)

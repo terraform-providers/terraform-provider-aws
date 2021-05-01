@@ -40,6 +40,7 @@ var serviceNames = []string{
 	"codecommit",
 	"codedeploy",
 	"codepipeline",
+	"codestarconnections",
 	"codestarnotifications",
 	"cognitoidentity",
 	"cognitoidentityprovider",

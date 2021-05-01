@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_organizations_organizational_unit: Add `tags` argument
+```

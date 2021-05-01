@@ -12,7 +12,7 @@ Provides information about a Lambda Layer Version.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "layer_name" {
   type = string
 }

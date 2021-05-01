@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_budgets_budget: Add `arn` attribute
+```
+
+```release-note:enhancement
+resource/aws_budgets_budget: Add plan time validation for `budget_type`, `time_unit`, and `subscriber_sns_topic_arns` arguments
+```

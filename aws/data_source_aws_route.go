@@ -2,10 +2,13 @@ package aws
 
 import (
 	"fmt"
-	"log"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func dataSourceAwsRoute() *schema.Resource {
@@ -17,12 +20,31 @@ func dataSourceAwsRoute() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+
+			///
+			// Destinations.
+			///
 			"destination_cidr_block": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 			"destination_ipv6_cidr_block": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"destination_prefix_list_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			//
+			// Targets.
+			//
+			"carrier_gateway_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -42,12 +64,17 @@ func dataSourceAwsRoute() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"local_gateway_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"nat_gateway_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-			"local_gateway_id": {
+			"network_interface_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -62,143 +89,115 @@ func dataSourceAwsRoute() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"network_interface_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 		},
 	}
 }
 
 func dataSourceAwsRouteRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	req := &ec2.DescribeRouteTablesInput{}
-	rtbId := d.Get("route_table_id")
-	cidr := d.Get("destination_cidr_block")
-	ipv6Cidr := d.Get("destination_ipv6_cidr_block")
 
-	req.Filters = buildEC2AttributeFilterList(
-		map[string]string{
-			"route-table-id":                    rtbId.(string),
-			"route.destination-cidr-block":      cidr.(string),
-			"route.destination-ipv6-cidr-block": ipv6Cidr.(string),
-		},
-	)
+	routeTableID := d.Get("route_table_id").(string)
 
-	log.Printf("[DEBUG] Reading Route Table: %s", req)
-	resp, err := conn.DescribeRouteTables(req)
+	routeTable, err := finder.RouteTableByID(conn, routeTableID)
+
 	if err != nil {
-		return err
-	}
-	if resp == nil || len(resp.RouteTables) == 0 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
-	}
-	if len(resp.RouteTables) > 1 {
-		return fmt.Errorf("Your query returned more than one route table. Please change your search criteria and try again.")
+		return fmt.Errorf("error reading Route Table (%s): %w", routeTableID, err)
 	}
 
-	results := getRoutes(resp.RouteTables[0], d)
+	routes := []*ec2.Route{}
 
-	if len(results) == 0 {
-		return fmt.Errorf("No routes matching supplied arguments found in table(s)")
-	}
-	if len(results) > 1 {
-		return fmt.Errorf("Multiple routes matched; use additional constraints to reduce matches to a single route")
-	}
-	route := results[0]
-
-	d.SetId(resourceAwsRouteID(d, route)) // using function from "resource_aws_route.go"
-	d.Set("destination_cidr_block", route.DestinationCidrBlock)
-	d.Set("destination_ipv6_cidr_block", route.DestinationIpv6CidrBlock)
-	d.Set("egress_only_gateway_id", route.EgressOnlyInternetGatewayId)
-	d.Set("gateway_id", route.GatewayId)
-	d.Set("instance_id", route.InstanceId)
-	d.Set("nat_gateway_id", route.NatGatewayId)
-	d.Set("local_gateway_id", route.LocalGatewayId)
-	d.Set("transit_gateway_id", route.TransitGatewayId)
-	d.Set("vpc_peering_connection_id", route.VpcPeeringConnectionId)
-	d.Set("network_interface_id", route.NetworkInterfaceId)
-
-	return nil
-}
-
-func getRoutes(table *ec2.RouteTable, d *schema.ResourceData) []*ec2.Route {
-	ec2Routes := table.Routes
-	routes := make([]*ec2.Route, 0, len(ec2Routes))
-	// Loop through the routes and add them to the set
-	for _, r := range ec2Routes {
-
-		if r.Origin != nil && *r.Origin == "EnableVgwRoutePropagation" {
+	for _, r := range routeTable.Routes {
+		if aws.StringValue(r.Origin) == ec2.RouteOriginEnableVgwRoutePropagation {
 			continue
 		}
 
-		if r.DestinationPrefixListId != nil {
+		if r.DestinationPrefixListId != nil && strings.HasPrefix(aws.StringValue(r.GatewayId), "vpce-") {
 			// Skipping because VPC endpoint routes are handled separately
 			// See aws_vpc_endpoint
 			continue
 		}
 
-		if v, ok := d.GetOk("destination_cidr_block"); ok {
-			if r.DestinationCidrBlock == nil || *r.DestinationCidrBlock != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("destination_cidr_block"); ok && aws.StringValue(r.DestinationCidrBlock) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("destination_ipv6_cidr_block"); ok {
-			if r.DestinationIpv6CidrBlock == nil || *r.DestinationIpv6CidrBlock != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("destination_ipv6_cidr_block"); ok && aws.StringValue(r.DestinationIpv6CidrBlock) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("egress_only_gateway_id"); ok {
-			if r.EgressOnlyInternetGatewayId == nil || *r.EgressOnlyInternetGatewayId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("destination_prefix_list_id"); ok && aws.StringValue(r.DestinationPrefixListId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("gateway_id"); ok {
-			if r.GatewayId == nil || *r.GatewayId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("carrier_gateway_id"); ok && aws.StringValue(r.CarrierGatewayId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("instance_id"); ok {
-			if r.InstanceId == nil || *r.InstanceId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("egress_only_gateway_id"); ok && aws.StringValue(r.EgressOnlyInternetGatewayId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("nat_gateway_id"); ok {
-			if r.NatGatewayId == nil || *r.NatGatewayId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("gateway_id"); ok && aws.StringValue(r.GatewayId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("local_gateway_id"); ok {
-			if r.LocalGatewayId == nil || *r.LocalGatewayId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("instance_id"); ok && aws.StringValue(r.InstanceId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("transit_gateway_id"); ok {
-			if r.TransitGatewayId == nil || *r.TransitGatewayId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("local_gateway_id"); ok && aws.StringValue(r.LocalGatewayId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("vpc_peering_connection_id"); ok {
-			if r.VpcPeeringConnectionId == nil || *r.VpcPeeringConnectionId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("nat_gateway_id"); ok && aws.StringValue(r.NatGatewayId) != v.(string) {
+			continue
 		}
 
-		if v, ok := d.GetOk("network_interface_id"); ok {
-			if r.NetworkInterfaceId == nil || *r.NetworkInterfaceId != v.(string) {
-				continue
-			}
+		if v, ok := d.GetOk("network_interface_id"); ok && aws.StringValue(r.NetworkInterfaceId) != v.(string) {
+			continue
 		}
+
+		if v, ok := d.GetOk("transit_gateway_id"); ok && aws.StringValue(r.TransitGatewayId) != v.(string) {
+			continue
+		}
+
+		if v, ok := d.GetOk("vpc_peering_connection_id"); ok && aws.StringValue(r.VpcPeeringConnectionId) != v.(string) {
+			continue
+		}
+
 		routes = append(routes, r)
 	}
-	return routes
+
+	if len(routes) == 0 {
+		return fmt.Errorf("No routes matching supplied arguments found in Route Table (%s)", routeTableID)
+	}
+
+	if len(routes) > 1 {
+		return fmt.Errorf("%d routes matched in Route Table (%s); use additional constraints to reduce matches to a single route", len(routes), routeTableID)
+	}
+
+	route := routes[0]
+
+	if destination := aws.StringValue(route.DestinationCidrBlock); destination != "" {
+		d.SetId(tfec2.RouteCreateID(routeTableID, destination))
+	} else if destination := aws.StringValue(route.DestinationIpv6CidrBlock); destination != "" {
+		d.SetId(tfec2.RouteCreateID(routeTableID, destination))
+	} else if destination := aws.StringValue(route.DestinationPrefixListId); destination != "" {
+		d.SetId(tfec2.RouteCreateID(routeTableID, destination))
+	}
+
+	d.Set("carrier_gateway_id", route.CarrierGatewayId)
+	d.Set("destination_cidr_block", route.DestinationCidrBlock)
+	d.Set("destination_ipv6_cidr_block", route.DestinationIpv6CidrBlock)
+	d.Set("destination_prefix_list_id", route.DestinationPrefixListId)
+	d.Set("egress_only_gateway_id", route.EgressOnlyInternetGatewayId)
+	d.Set("gateway_id", route.GatewayId)
+	d.Set("instance_id", route.InstanceId)
+	d.Set("local_gateway_id", route.LocalGatewayId)
+	d.Set("nat_gateway_id", route.NatGatewayId)
+	d.Set("network_interface_id", route.NetworkInterfaceId)
+	d.Set("transit_gateway_id", route.TransitGatewayId)
+	d.Set("vpc_peering_connection_id", route.VpcPeeringConnectionId)
+
+	return nil
 }

@@ -14,7 +14,7 @@ Creates a WAFv2 Rule Group resource.
 
 ### Simple
 
-```hcl
+```terraform
 resource "aws_wafv2_rule_group" "example" {
   name     = "example-rule"
   scope    = "REGIONAL"
@@ -52,7 +52,7 @@ resource "aws_wafv2_rule_group" "example" {
 
 ### Complex
 
-```hcl
+```terraform
 resource "aws_wafv2_ip_set" "test" {
   name               = "test"
   scope              = "REGIONAL"
@@ -275,8 +275,8 @@ resource "aws_wafv2_rule_group" "example" {
   }
 
   tags = {
-    "Name" = "example-and-statement"
-    "Code" = "123456"
+    Name = "example-and-statement"
+    Code = "123456"
   }
 }
 ```
@@ -290,7 +290,7 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource) A friendly name of the rule group.
 * `rule` - (Optional) The rule blocks used to identify the web requests that you want to `allow`, `block`, or `count`. See [Rules](#rules) below for details.
 * `scope` - (Required, Forces new resource) Specifies whether this is for an AWS CloudFront distribution or for a regional application. Valid values are `CLOUDFRONT` or `REGIONAL`. To work with CloudFront, you must also specify the region `us-east-1` (N. Virginia) on the AWS provider.
-* `tags` - (Optional) An array of key:value pairs to associate with the resource.
+* `tags` - (Optional) An array of key:value pairs to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `visibility_config` - (Required) Defines and enables Amazon CloudWatch metrics and web request sample collection. See [Visibility Configuration](#visibility-configuration) below for details.
 
 ### Rules
@@ -307,7 +307,7 @@ Each `rule` supports the following arguments:
 
 The `action` block supports the following arguments:
 
-~> **NOTE**: One of `allow`, `block`, or `count`, expressed as an empty configuration block `{}`, is required when specifying an `action`
+~> **NOTE:** One of `allow`, `block`, or `count`, expressed as an empty configuration block `{}`, is required when specifying an `action`
 
 * `allow` - (Optional) Instructs AWS WAF to allow the web request.
 * `block` - (Optional) Instructs AWS WAF to block the web request.
@@ -429,7 +429,8 @@ The part of a web request that you want AWS WAF to inspect. Include the single `
 
 The `field_to_match` block supports the following arguments:
 
-~> **NOTE**: An empty configuration block `{}` should be used when specifying `all_query_arguments`, `body`, `method`, or `query_string` attributes
+~> **NOTE:** Only one of `all_query_arguments`, `body`, `method`, `query_string`, `single_header`, `single_query_argument`, or `uri_path` can be specified.
+An empty configuration block `{}` should be used when specifying `all_query_arguments`, `body`, `method`, or `query_string` attributes.
 
 * `all_query_arguments` - (Optional) Inspect all query arguments.
 * `body` - (Optional) Inspect the request body, which immediately follows the request headers.
@@ -497,6 +498,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF rule group.
 * `arn` - The ARN of the WAF rule group.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

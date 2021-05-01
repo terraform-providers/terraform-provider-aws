@@ -119,7 +119,7 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing certificates: %s", err)
+		return fmt.Errorf("Error describing certificates: %w", err)
 	}
 
 	if len(metadatas) == 0 {
@@ -150,8 +150,8 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	d.Set("upload_date", serverCertificateResp.ServerCertificate.ServerCertificateMetadata.UploadDate.Format(time.RFC3339))
-	d.Set("certificate_body", aws.StringValue(serverCertificateResp.ServerCertificate.CertificateBody))
-	d.Set("certificate_chain", aws.StringValue(serverCertificateResp.ServerCertificate.CertificateChain))
+	d.Set("certificate_body", serverCertificateResp.ServerCertificate.CertificateBody)
+	d.Set("certificate_chain", serverCertificateResp.ServerCertificate.CertificateChain)
 
 	return nil
 }

@@ -74,6 +74,7 @@ func TestAccAWSCodeArtifactRepository_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -107,6 +108,7 @@ func TestAccAWSCodeArtifactRepository_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("codeartifact", t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -150,6 +152,7 @@ func TestAccAWSCodeArtifactRepository_owner(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -182,6 +185,7 @@ func TestAccAWSCodeArtifactRepository_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -214,6 +218,7 @@ func TestAccAWSCodeArtifactRepository_upstreams(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -257,6 +262,7 @@ func TestAccAWSCodeArtifactRepository_externalConnection(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{
@@ -295,12 +301,14 @@ func TestAccAWSCodeArtifactRepository_externalConnection(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAWSCodeArtifactRepository_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codeartifact_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codeartifact.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codeartifact.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeArtifactRepositoryDestroy,
 		Steps: []resource.TestStep{

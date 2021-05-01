@@ -69,6 +69,7 @@ func TestAccAWSLambdaLayerVersion_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaLayerVersionDestroy,
 		Steps: []resource.TestStep{
@@ -104,6 +105,7 @@ func TestAccAWSLambdaLayerVersion_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaLayerVersionDestroy,
 		Steps: []resource.TestStep{
@@ -135,6 +137,7 @@ func TestAccAWSLambdaLayerVersion_s3(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaLayerVersionDestroy,
 		Steps: []resource.TestStep{
@@ -160,6 +163,7 @@ func TestAccAWSLambdaLayerVersion_compatibleRuntimes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaLayerVersionDestroy,
 		Steps: []resource.TestStep{
@@ -189,6 +193,7 @@ func TestAccAWSLambdaLayerVersion_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaLayerVersionDestroy,
 		Steps: []resource.TestStep{
@@ -218,6 +223,7 @@ func TestAccAWSLambdaLayerVersion_licenseInfo(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLambdaLayerVersionDestroy,
 		Steps: []resource.TestStep{

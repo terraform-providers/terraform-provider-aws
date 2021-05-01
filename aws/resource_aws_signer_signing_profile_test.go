@@ -22,6 +22,7 @@ func TestAccAWSSignerSigningProfile_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -52,6 +53,7 @@ func TestAccAWSSignerSigningProfile_GenerateNameWithNamePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -73,6 +75,7 @@ func TestAccAWSSignerSigningProfile_GenerateName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -95,6 +98,7 @@ func TestAccAWSSignerSigningProfile_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{
@@ -125,6 +129,7 @@ func TestAccAWSSignerSigningProfile_SignatureValidityPeriod(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		ErrorCheck:   testAccErrorCheck(t, signer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSignerSigningProfileDestroy,
 		Steps: []resource.TestStep{

@@ -18,6 +18,7 @@ func TestAccAWSVpcEndpointConnectionNotification_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckVpcEndpointConnectionNotificationDestroy,

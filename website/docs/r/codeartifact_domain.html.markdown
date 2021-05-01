@@ -12,14 +12,9 @@ Provides a CodeArtifact Domain Resource.
 
 ## Example Usage
 
-```hcl
-resource "aws_kms_key" "example" {
-  description = "domain key"
-}
-
+```terraform
 resource "aws_codeartifact_domain" "example" {
-  domain         = "example"
-  encryption_key = aws_kms_key.example.arn
+  domain = "example"
 }
 ```
 
@@ -28,8 +23,8 @@ resource "aws_codeartifact_domain" "example" {
 The following arguments are supported:
 
 * `domain` - (Required) The name of the domain to create. All domain names in an AWS Region that are in the same AWS account must be unique. The domain name is used as the prefix in DNS hostnames. Do not use sensitive information in a domain name because it is publicly discoverable.
-* `encryption_key` - (Required) The encryption key for the domain. This is used to encrypt content stored in a domain. The KMS Key Amazon Resource Name (ARN).
-* `tags` - (Optional) Key-value map of resource tags.
+* `encryption_key` - (Optional) The encryption key for the domain. This is used to encrypt content stored in a domain. The KMS Key Amazon Resource Name (ARN). The default aws/codeartifact AWS KMS master key is used if this element is absent.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -41,6 +36,7 @@ In addition to all arguments above, the following attributes are exported:
 * `repository_count` - The number of repositories in the domain.
 * `created_time` - A timestamp that represents the date and time the domain was created in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8).
 * `asset_size_bytes` - The total size of all assets in the domain.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

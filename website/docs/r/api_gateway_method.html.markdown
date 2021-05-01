@@ -12,7 +12,7 @@ Provides a HTTP Method for an API Gateway Resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_api_gateway_rest_api" "MyDemoAPI" {
   name        = "MyDemoAPI"
   description = "This is my API for demonstration purposes"
@@ -34,7 +34,7 @@ resource "aws_api_gateway_method" "MyDemoMethod" {
 
 ## Usage with Cognito User Pool Authorizer
 
-```hcl
+```terraform
 variable "cognito_user_pool_name" {}
 
 data "aws_cognito_user_pools" "this" {
@@ -89,6 +89,10 @@ The following arguments are supported:
 * `request_validator_id` - (Optional) The ID of a `aws_api_gateway_request_validator`
 * `request_parameters` - (Optional) A map of request parameters (from the path, query string and headers) that should be passed to the integration. The boolean value indicates whether the parameter is required (`true`) or optional (`false`).
   For example: `request_parameters = {"method.request.header.X-Some-Header" = true "method.request.querystring.some-query-param" = true}` would define that the header `X-Some-Header` and the query string `some-query-param` must be provided in the request.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

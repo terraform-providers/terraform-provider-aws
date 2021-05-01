@@ -187,7 +187,7 @@ func dataSourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta int
 	} else {
 		securityGroupId = dir.VpcSettings.SecurityGroupId
 	}
-	d.Set("security_group_id", aws.StringValue(securityGroupId))
+	d.Set("security_group_id", securityGroupId)
 
 	tags, err := keyvaluetags.DirectoryserviceListTags(conn, d.Id())
 	if err != nil {

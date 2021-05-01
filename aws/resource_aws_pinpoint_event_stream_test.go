@@ -13,20 +13,24 @@ import (
 
 func TestAccAWSPinpointEventStream_basic(t *testing.T) {
 	var stream pinpoint.EventStream
-	resourceName := "aws_pinpoint_event_stream.test_event_stream"
+	resourceName := "aws_pinpoint_event_stream.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	rName2 := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointEventStreamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSPinpointEventStreamConfig_basic(rName),
+				Config: testAccAWSPinpointEventStreamConfig_basic(rName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSPinpointEventStreamExists(resourceName, &stream),
+					resource.TestCheckResourceAttrPair(resourceName, "application_id", "aws_pinpoint_app.test", "application_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "destination_stream_arn", "aws_kinesis_stream.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "role_arn", "aws_iam_role.test", "arn"),
 				),
 			},
 			{
@@ -35,10 +39,37 @@ func TestAccAWSPinpointEventStream_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSPinpointEventStreamConfig_basic(rName2),
+				Config: testAccAWSPinpointEventStreamConfig_basic(rName, rName2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSPinpointEventStreamExists(resourceName, &stream),
+					resource.TestCheckResourceAttrPair(resourceName, "application_id", "aws_pinpoint_app.test", "application_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "destination_stream_arn", "aws_kinesis_stream.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "role_arn", "aws_iam_role.test", "arn"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSPinpointEventStream_disappears(t *testing.T) {
+	var stream pinpoint.EventStream
+	resourceName := "aws_pinpoint_event_stream.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSPinpointEventStreamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSPinpointEventStreamConfig_basic(rName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSPinpointEventStreamExists(resourceName, &stream),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsPinpointEventStream(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -73,22 +104,24 @@ func testAccCheckAWSPinpointEventStreamExists(n string, stream *pinpoint.EventSt
 	}
 }
 
-func testAccAWSPinpointEventStreamConfig_basic(rName string) string {
+func testAccAWSPinpointEventStreamConfig_basic(rName, streamName string) string {
 	return fmt.Sprintf(`
-resource "aws_pinpoint_app" "test_app" {}
+resource "aws_pinpoint_app" "test" {}
 
-resource "aws_pinpoint_event_stream" "test_event_stream" {
-  application_id         = aws_pinpoint_app.test_app.application_id
-  destination_stream_arn = aws_kinesis_stream.test_stream.arn
-  role_arn               = aws_iam_role.test_role.arn
+resource "aws_pinpoint_event_stream" "test" {
+  application_id         = aws_pinpoint_app.test.application_id
+  destination_stream_arn = aws_kinesis_stream.test.arn
+  role_arn               = aws_iam_role.test.arn
 }
 
-resource "aws_kinesis_stream" "test_stream" {
-  name        = %[1]q
+resource "aws_kinesis_stream" "test" {
+  name        = %[2]q
   shard_count = 1
 }
 
-resource "aws_iam_role" "test_role" {
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -106,9 +139,9 @@ resource "aws_iam_role" "test_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "test_role_policy" {
-  name = "test_policy"
-  role = aws_iam_role.test_role.id
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.id
 
   policy = <<EOF
 {
@@ -120,13 +153,13 @@ resource "aws_iam_role_policy" "test_role_policy" {
     ],
     "Effect": "Allow",
     "Resource": [
-      "*"
+      "${aws_kinesis_stream.test.arn}"
     ]
   }
 }
 EOF
 }
-`, rName)
+`, rName, streamName)
 }
 
 func testAccCheckAWSPinpointEventStreamDestroy(s *terraform.State) error {
