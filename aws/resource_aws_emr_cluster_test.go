@@ -1209,6 +1209,7 @@ func TestAccAWSEMRCluster_s3LogEncryption(t *testing.T) {
 	bucketName := fmt.Sprintf("s3n://%s/", rName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, emr.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrDestroy,
 		Steps: []resource.TestStep{
