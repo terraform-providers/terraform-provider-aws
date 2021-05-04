@@ -217,6 +217,8 @@ func Provider() *schema.Provider {
 			"aws_cloudfront_origin_request_policy":           dataSourceAwsCloudFrontOriginRequestPolicy(),
 			"aws_cloudhsm_v2_cluster":                        dataSourceCloudHsmV2Cluster(),
 			"aws_cloudtrail_service_account":                 dataSourceAwsCloudTrailServiceAccount(),
+			"aws_cloudwatch_event_rule":                      dataSourceAwsCloudwatchEventRule(),
+			"aws_cloudwatch_event_rules":                     dataSourceAwsCloudwatchEventRules(),
 			"aws_cloudwatch_log_group":                       dataSourceAwsCloudwatchLogGroup(),
 			"aws_codeartifact_authorization_token":           dataSourceAwsCodeArtifactAuthorizationToken(),
 			"aws_codeartifact_repository_endpoint":           dataSourceAwsCodeArtifactRepositoryEndpoint(),
