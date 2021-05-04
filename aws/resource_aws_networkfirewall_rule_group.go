@@ -547,8 +547,7 @@ func resourceAwsNetworkFirewallRuleGroupDelete(ctx context.Context, d *schema.Re
 		RuleGroupArn: aws.String(d.Id()),
 	}
 	err := resource.RetryContext(ctx, waiter.RuleGroupDeleteTimeout, func() *resource.RetryError {
-		var err error
-		_, err = conn.DeleteRuleGroupWithContext(ctx, input)
+		_, err := conn.DeleteRuleGroupWithContext(ctx, input)
 		if err != nil {
 			if tfawserr.ErrMessageContains(err, networkfirewall.ErrCodeInvalidOperationException, "Unable to delete the object because it is still in use") {
 				return resource.RetryableError(err)

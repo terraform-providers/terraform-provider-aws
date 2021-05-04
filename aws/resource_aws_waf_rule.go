@@ -227,8 +227,7 @@ func resourceAwsWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
 
 	wr := newWafRetryer(conn)
 	err := resource.Retry(WafRuleDeleteTimeout, func() *resource.RetryError {
-		var err error
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
+		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 			req := &waf.DeleteRuleInput{
 				ChangeToken: token,
 				RuleId:      aws.String(d.Id()),

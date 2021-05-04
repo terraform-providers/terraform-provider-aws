@@ -681,11 +681,9 @@ func resourceAwsS3BucketCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		log.Printf("[DEBUG] Trying to create new S3 bucket: %q", bucket)
 		_, err := s3conn.CreateBucket(req)
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "OperationAborted" {
-				log.Printf("[WARN] Got an error while trying to create S3 bucket %s: %s", bucket, err)
 				return resource.RetryableError(
 					fmt.Errorf("Error creating S3 bucket %s, retrying: %s", bucket, err))
 			}

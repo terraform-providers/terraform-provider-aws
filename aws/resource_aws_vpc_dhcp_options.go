@@ -237,7 +237,6 @@ func resourceAwsVpcDhcpOptionsDelete(d *schema.ResourceData, meta interface{}) e
 	conn := meta.(*AWSClient).ec2conn
 
 	err := resource.Retry(3*time.Minute, func() *resource.RetryError {
-		log.Printf("[INFO] Deleting DHCP Options ID %s...", d.Id())
 		_, err := conn.DeleteDhcpOptions(&ec2.DeleteDhcpOptionsInput{
 			DhcpOptionsId: aws.String(d.Id()),
 		})
@@ -245,8 +244,6 @@ func resourceAwsVpcDhcpOptionsDelete(d *schema.ResourceData, meta interface{}) e
 		if err == nil {
 			return nil
 		}
-
-		log.Printf("[WARN] %s", err)
 
 		ec2err, ok := err.(awserr.Error)
 		if !ok {

@@ -127,8 +127,7 @@ func instanceProfileAddRole(conn *iam.IAM, profileName, roleName string) error {
 	}
 
 	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
-		var err error
-		_, err = conn.AddRoleToInstanceProfile(request)
+		_, err := conn.AddRoleToInstanceProfile(request)
 		// IAM unfortunately does not provide a better error code or message for eventual consistency
 		// InvalidParameterValue: Value (XXX) for parameter iamInstanceProfile.name is invalid. Invalid IAM Instance Profile name
 		// NoSuchEntity: The request was rejected because it referenced an entity that does not exist. The error message describes the entity. HTTP Status Code: 404

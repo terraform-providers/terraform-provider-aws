@@ -133,7 +133,7 @@ func resourceAwsCloudWatchEventRuleCreate(d *schema.ResourceData, meta interface
 		return nil
 	})
 	if isResourceTimeoutError(err) {
-		_, err = conn.PutRule(input)
+		out, err = conn.PutRule(input)
 	}
 
 	if err != nil {

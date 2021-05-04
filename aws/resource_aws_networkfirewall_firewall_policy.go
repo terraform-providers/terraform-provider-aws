@@ -231,8 +231,7 @@ func resourceAwsNetworkFirewallFirewallPolicyDelete(ctx context.Context, d *sche
 	}
 
 	err := resource.RetryContext(ctx, waiter.FirewallPolicyTimeout, func() *resource.RetryError {
-		var err error
-		_, err = conn.DeleteFirewallPolicyWithContext(ctx, input)
+		_, err := conn.DeleteFirewallPolicyWithContext(ctx, input)
 		if err != nil {
 			if tfawserr.ErrMessageContains(err, networkfirewall.ErrCodeInvalidOperationException, "Unable to delete the object because it is still in use") {
 				return resource.RetryableError(err)

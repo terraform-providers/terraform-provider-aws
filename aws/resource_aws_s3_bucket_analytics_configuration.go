@@ -449,7 +449,7 @@ func waitForDeleteS3BucketAnalyticsConfiguration(conn *s3.S3, bucket, name strin
 		return nil
 	})
 
-	if tfresource.TimedOut(err) {
+	if tfresource.TimedOut(err) { // nosemgrep: helper-schema-TimeoutError-check-doesnt-return-output
 		_, err = conn.GetBucketAnalyticsConfiguration(input)
 	}
 

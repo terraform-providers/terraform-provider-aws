@@ -1457,7 +1457,8 @@ func resourceAutoScalingGroupWarmPoolDelete(g *autoscaling.Group, d *schema.Reso
 		}
 
 		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-			if _, err := conn.DeleteWarmPool(&deleteopts); err != nil {
+			_, err := conn.DeleteWarmPool(&deleteopts)
+			if err != nil {
 				if callerr, ok := err.(awserr.Error); ok {
 					switch callerr.Code() {
 					case "ResourceInUse", "ScalingActivityInProgress":

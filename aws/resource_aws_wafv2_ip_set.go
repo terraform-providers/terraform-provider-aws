@@ -253,8 +253,7 @@ func resourceAwsWafv2IPSetDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		var err error
-		_, err = conn.DeleteIPSet(params)
+		_, err := conn.DeleteIPSet(params)
 		if err != nil {
 			if isAWSErr(err, wafv2.ErrCodeWAFAssociatedItemException, "") {
 				return resource.RetryableError(err)

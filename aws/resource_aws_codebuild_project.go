@@ -1439,9 +1439,7 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 
 	// Handle IAM eventual consistency
 	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
-		var err error
-
-		_, err = conn.UpdateProject(params)
+		_, err := conn.UpdateProject(params)
 		if err != nil {
 			// InvalidInputException: CodeBuild is not authorized to perform
 			// InvalidInputException: Not authorized to perform DescribeSecurityGroups
