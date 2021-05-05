@@ -945,7 +945,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 			Bucket: aws.String(d.Id()),
 		})
 	})
-	if err != nil && !isAWSErr(err, "NotImplemented", "") && !isAWSErr(err, "NoSuchWebsiteConfiguration", "") {
+	if err != nil && !isAWSErr(err, "NotImplemented", "") && !isAWSErr(err, "NoSuchWebsiteConfiguration", "") && !isAWSErr(err, "MethodNotAllowed", "") {
 		return fmt.Errorf("error getting S3 Bucket website configuration: %s", err)
 	}
 
