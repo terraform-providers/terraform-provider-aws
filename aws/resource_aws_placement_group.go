@@ -34,6 +34,13 @@ func resourceAwsPlacementGroup() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"partition_count": {
+				Type:         schema.TypeInt,
+				ForceNew:     true,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 7), // AWS API: max of 7 partitions
+				Description:  "The number of partitions to create within the placement group (only available with the \"partition\" strategy).",
+			},
 			"strategy": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -62,8 +69,19 @@ func resourceAwsPlacementGroupCreate(d *schema.ResourceData, meta interface{}) e
 	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
+	strategy := d.Get("strategy").(string)
+	var partitionCount *int64
+	if partitionCountRaw, ok := d.GetOk("partition_count"); ok {
+		if strategy != "partition" {
+			return fmt.Errorf("error setting partition_count: strategy must be \"partition\" to use partition_count")
+		}
+
+		partitionCount = new(int64)
+		*partitionCount = int64(partitionCountRaw.(int))
+	}
 	input := ec2.CreatePlacementGroupInput{
 		GroupName:         aws.String(name),
+		PartitionCount:    partitionCount,
 		Strategy:          aws.String(d.Get("strategy").(string)),
 		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypePlacementGroup),
 	}
@@ -137,6 +155,9 @@ func resourceAwsPlacementGroupRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", pg.GroupName)
 	d.Set("strategy", pg.Strategy)
+	if pg.PartitionCount != nil {
+		d.Set("partition_count", pg.PartitionCount)
+	}
 	d.Set("placement_group_id", pg.GroupId)
 	tags := keyvaluetags.Ec2KeyValueTags(pg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 

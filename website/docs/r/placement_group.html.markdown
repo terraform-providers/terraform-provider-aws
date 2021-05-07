@@ -25,6 +25,9 @@ resource "aws_placement_group" "web" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the placement group.
+* `partition_count` - (Optional) The number of partitions to create in the
+  placement group.  Can only be specified when the strategy is set to
+  `"partition"`.  Valid values are 1 - 7 (default is `2`).
 * `strategy` - (Required) The placement strategy. Can be `"cluster"`, `"partition"` or `"spread"`.
 * `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
