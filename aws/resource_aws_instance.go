@@ -1551,13 +1551,15 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	err := resourceAwsInstanceDisableAPITermination(conn, d.Id(), d.Get("disable_api_termination").(bool))
+	if !d.Get("disable_api_termination").(bool) {
+		err := resourceAwsInstanceDisableAPITermination(conn, d.Id(), false)
 
-	if err != nil {
-		log.Printf("[WARN] attempting to terminate EC2 instance (%s) despite error modifying attribute (%s): %s", d.Id(), ec2.InstanceAttributeNameDisableApiTermination, err)
+		if err != nil {
+			log.Printf("[WARN] attempting to terminate EC2 instance (%s) despite error modifying attribute (%s): %s", d.Id(), ec2.InstanceAttributeNameDisableApiTermination, err)
+		}
 	}
 
-	err = awsTerminateInstance(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
+	err := awsTerminateInstance(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
 
 	if err != nil {
 		return fmt.Errorf("error terminating EC2 Instance (%s): %s", d.Id(), err)
