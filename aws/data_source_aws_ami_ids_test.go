@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsAmiIds_basic(t *testing.T) {
+func TestAccEC2AMIIDsDataSource_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t) },
 		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
@@ -24,7 +24,7 @@ func TestAccDataSourceAwsAmiIds_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsAmiIds_sorted(t *testing.T) {
+func TestAccEC2AMIIDsDataSource_sorted(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t) },
 		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),

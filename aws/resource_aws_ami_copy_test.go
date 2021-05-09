@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSAMICopy_basic(t *testing.T) {
+func TestAccEC2AMICopy_basic(t *testing.T) {
 	var image ec2.Image
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ami_copy.test"
@@ -40,7 +40,7 @@ func TestAccAWSAMICopy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSAMICopy_Description(t *testing.T) {
+func TestAccEC2AMICopy_description(t *testing.T) {
 	var image ec2.Image
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ami_copy.test"
@@ -69,7 +69,7 @@ func TestAccAWSAMICopy_Description(t *testing.T) {
 	})
 }
 
-func TestAccAWSAMICopy_EnaSupport(t *testing.T) {
+func TestAccEC2AMICopy_enaSupport(t *testing.T) {
 	var image ec2.Image
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ami_copy.test"
@@ -91,7 +91,7 @@ func TestAccAWSAMICopy_EnaSupport(t *testing.T) {
 	})
 }
 
-func TestAccAWSAMICopy_tags(t *testing.T) {
+func TestAccEC2AMICopy_tags(t *testing.T) {
 	var ami ec2.Image
 	resourceName := "aws_ami_copy.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")

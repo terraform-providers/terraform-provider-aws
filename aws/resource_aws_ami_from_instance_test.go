@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSAMIFromInstance_basic(t *testing.T) {
+func TestAccEC2AMIFromInstance_basic(t *testing.T) {
 	var image ec2.Image
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ami_from_instance.test"
@@ -41,7 +41,7 @@ func TestAccAWSAMIFromInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSAMIFromInstance_tags(t *testing.T) {
+func TestAccEC2AMIFromInstance_tags(t *testing.T) {
 	var image ec2.Image
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ami_from_instance.test"
