@@ -1484,6 +1484,76 @@ func TestAccAWSDynamoDbTable_Replica_singleWithCMK(t *testing.T) {
 	})
 }
 
+func TestAccAWSDynamoDbTable_backup_encryption(t *testing.T) {
+	var confBYOK dynamodb.DescribeTableOutput
+	resourceName := "aws_dynamodb_table.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	kmsKeyResourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dynamodb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDynamoDbTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDynamoDbBackupConfigInitialStateWithEncryption(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &confBYOK),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption.0.enabled", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "server_side_encryption.0.kms_key_arn", kmsKeyResourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"restore_to_latest_time",
+					"restore_date_time",
+					"restore_source_name",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSDynamoDbTable_backup_override_encryption(t *testing.T) {
+	var confBYOK dynamodb.DescribeTableOutput
+	resourceName := "aws_dynamodb_table.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	kmsKeyResourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dynamodb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDynamoDbTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDynamoDbBackupConfigInitialStateWithOverrideEncryption(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &confBYOK),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "server_side_encryption.0.enabled", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "server_side_encryption.0.kms_key_arn", kmsKeyResourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"restore_to_latest_time",
+					"restore_date_time",
+					"restore_source_name",
+				},
+			},
+		},
+	})
+}
+
 func testAccCheckAWSDynamoDbTableDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).dynamodbconn
 
@@ -2526,4 +2596,85 @@ resource "aws_dynamodb_table" "test" {
   }
 }
 `, rName, lsiName)
+}
+
+func testAccAWSDynamoDbBackupConfigInitialStateWithOverrideEncryption(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_dynamodb_table" "source" {
+  name           = "%[1]s-source"
+  read_capacity  = 2
+  write_capacity = 2
+  hash_key       = "TestTableHashKey"
+
+  attribute {
+    name = "TestTableHashKey"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = false
+  }
+}
+
+resource "aws_kms_key" "test" {
+  description = %[1]q
+}
+
+resource "aws_dynamodb_table" "test" {
+  name       = "%[1]s-target"
+  restore_source_name = "%[1]s-source"
+  restore_to_latest_time = true
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.test.arn
+  }
+  depends_on = [aws_dynamodb_table.source]
+}
+`, rName)
+}
+
+func testAccAWSDynamoDbBackupConfigInitialStateWithEncryption(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_dynamodb_table" "source" {
+  name           = "%[1]s-source"
+  read_capacity  = 2
+  write_capacity = 2
+  hash_key       = "TestTableHashKey"
+
+  attribute {
+    name = "TestTableHashKey"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.test.arn
+  }
+}
+
+resource "aws_kms_key" "test" {
+  description = %[1]q
+}
+
+resource "aws_dynamodb_table" "test" {
+  name       = "%[1]s-target"
+  restore_source_name = "%[1]s-source"
+  restore_to_latest_time = true
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.test.arn
+  }
+  depends_on = [aws_dynamodb_table.source]
+}
+`, rName)
 }
