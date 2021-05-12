@@ -792,6 +792,26 @@ func testAccOrganizationsEnabledPreCheck(t *testing.T) {
 	}
 }
 
+func testAccOrganizationsAWSServiceAccessRamEnabledPreCheck(t *testing.T) {
+	conn := testAccProvider.Meta().(*AWSClient).organizationsconn
+	input := &organizations.ListAWSServiceAccessForOrganizationInput{}
+	output, err := conn.ListAWSServiceAccessForOrganization(input)
+	if isAWSErr(err, organizations.ErrCodeAWSOrganizationsNotInUseException, "") {
+		t.Skip("this AWS account must be an existing member of an AWS Organization")
+	}
+	if err != nil {
+		t.Fatalf("error describing AWS Organization: %s", err)
+	}
+
+	for _, principal := range output.EnabledServicePrincipals {
+		if *principal.ServicePrincipal == "ram.amazonaws.com" {
+			return
+		}
+	}
+
+	t.Skip("ram.amazonaws.com is not enabled to integrate with your organization")
+}
+
 func testAccPreCheckIamServiceLinkedRole(t *testing.T, pathPrefix string) {
 	conn := testAccProvider.Meta().(*AWSClient).iamconn
 

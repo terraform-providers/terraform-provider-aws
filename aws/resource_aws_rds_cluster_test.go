@@ -436,6 +436,34 @@ func TestAccAWSRDSCluster_PointInTimeRestore_EnabledCloudwatchLogsExports(t *tes
 	})
 }
 
+func TestAccAWSRDSCluster_PointInTimeRestore_CrossAccount(t *testing.T) {
+	var c rds.DBCluster
+
+	restoredId := acctest.RandomWithPrefix("tf-acc-point-in-time-restored-test")
+	parentId := acctest.RandomWithPrefix("tf-acc-point-in-time-restore-seed-test")
+	var providers []*schema.Provider
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccAlternateAccountPreCheck(t)
+			testAccOrganizationsAWSServiceAccessRamEnabledPreCheck(t)
+		},
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
+		CheckDestroy:      testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterConfig_pointInTimeRestoreSource_crossAccount(restoredId, parentId),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists("aws_rds_cluster.child", &c),
+					resource.TestCheckResourceAttr("aws_rds_cluster.child", "cluster_identifier", restoredId),
+					resource.TestCheckResourceAttrPair("aws_rds_cluster.child", "engine", "aws_rds_cluster.parent", "engine"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSRDSCluster_generatedName(t *testing.T) {
 	var v rds.DBCluster
 	resourceName := "aws_rds_cluster.test"
@@ -2848,6 +2876,138 @@ resource "aws_rds_cluster" "restored_pit" {
   }
 }
 `, parentId, childId, enabledCloudwatchLogExports))
+}
+
+func testAccAWSClusterConfig_pointInTimeRestoreSource_crossAccount(childId, parentId string) string {
+	return composeConfig(
+		testAccAlternateAccountProviderConfig(),
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+resource "aws_vpc" "child" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "%[1]s-vpc"
+  }
+}
+
+resource "aws_subnet" "child" {
+  count             = length(data.aws_availability_zones.available.names)
+  vpc_id            = aws_vpc.child.id
+  cidr_block        = "10.0.${count.index}.0/24"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  tags = {
+    Name = "%[1]s-subnet-${count.index}"
+  }
+}
+
+resource "aws_db_subnet_group" "child" {
+  name       = "%[1]s-db-subnet-group"
+  subnet_ids = aws_subnet.child[*].id
+}
+
+resource "aws_rds_cluster" "child" {
+  depends_on = [aws_ram_principal_association.share, aws_ram_resource_association.share, aws_rds_cluster_instance.parent]
+
+  cluster_identifier  = "%[1]s"
+  skip_final_snapshot = true
+  engine              = aws_rds_cluster.parent.engine
+  engine_version      = aws_rds_cluster.parent.engine_version
+  restore_to_point_in_time {
+    source_cluster_identifier  = aws_rds_cluster.parent.arn
+    restore_type               = "copy-on-write"
+    use_latest_restorable_time = true
+  }
+}
+
+data "aws_availability_zones" "parent_available" {
+  provider = "awsalternate"
+
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "parent" {
+  provider = "awsalternate"
+
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "%[2]s-vpc"
+  }
+}
+
+resource "aws_subnet" "parent" {
+  provider = "awsalternate"
+
+  count             = length(data.aws_availability_zones.parent_available.names)
+  vpc_id            = aws_vpc.parent.id
+  cidr_block        = "10.0.${count.index}.0/24"
+  availability_zone = data.aws_availability_zones.parent_available.names[count.index]
+  tags = {
+    Name = "%[2]s-subnet-${count.index}"
+  }
+}
+
+resource "aws_db_subnet_group" "parent" {
+  provider = "awsalternate"
+
+  name       = "%[2]s-db-subnet-group"
+  subnet_ids = aws_subnet.parent[*].id
+}
+
+resource "aws_rds_cluster" "parent" {
+  provider = "awsalternate"
+
+  cluster_identifier   = "%[2]s"
+  master_username      = "root"
+  master_password      = "password"
+  db_subnet_group_name = aws_db_subnet_group.parent.name
+  skip_final_snapshot  = true
+  engine               = "aurora-mysql"
+  engine_version       = "5.7.mysql_aurora.2.09.0"
+}
+
+# Source cluster must have at least one healthy instance for cross-accout cloning
+resource "aws_rds_cluster_instance" "parent" {
+  provider = "awsalternate"
+
+  identifier         = "parent-instance"
+  cluster_identifier = aws_rds_cluster.parent.id
+
+  engine               = aws_rds_cluster.parent.engine
+  engine_version       = aws_rds_cluster.parent.engine_version
+  db_subnet_group_name = aws_db_subnet_group.parent.name
+  instance_class       = "db.t3.medium"
+}
+
+resource "aws_ram_resource_share" "share" {
+  provider = "awsalternate"
+
+  name                      = "share"
+  allow_external_principals = true
+}
+
+data "aws_caller_identity" "child" {
+}
+
+resource "aws_ram_principal_association" "share" {
+  provider = "awsalternate"
+
+  principal          = data.aws_caller_identity.child.account_id
+  resource_share_arn = aws_ram_resource_share.share.arn
+}
+
+resource "aws_ram_resource_association" "share" {
+  provider = "awsalternate"
+
+  resource_arn       = aws_rds_cluster.parent.arn
+  resource_share_arn = aws_ram_resource_share.share.arn
+}
+
+`, childId, parentId))
 }
 
 func testAccAWSClusterConfigTags1(rName, tagKey1, tagValue1 string) string {
