@@ -80,9 +80,9 @@ func resourceAwsCloudTrail() *schema.Resource {
 				ValidateFunc: validateArn,
 			},
 			"event_selector": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 5,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      5,
 				ConflictsWith: []string{"advanced_event_selector"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
