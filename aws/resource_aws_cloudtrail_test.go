@@ -103,6 +103,7 @@ func TestAccAWSCloudTrail_serial(t *testing.T) {
 			"kmsKey":                     testAccAWSCloudTrail_kmsKey,
 			"tags":                       testAccAWSCloudTrail_tags,
 			"eventSelector":              testAccAWSCloudTrail_event_selector,
+			"advancedEventSelector":      testAccAWSCloudTrail_advanced_event_selector,
 			"insightSelector":            testAccAWSCloudTrail_insight_selector,
 		},
 	}
@@ -550,6 +551,98 @@ func testAccAWSCloudTrail_event_selector(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "event_selector.#", "0"),
 				),
+			},
+		},
+	})
+}
+
+func testAccAWSCloudTrail_advanced_event_selector(t *testing.T) {
+	cloudTrailRandInt := acctest.RandInt()
+	resourceName := "aws_cloudtrail.foobar"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudtrail.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudTrailDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudTrailConfig_advancedEventSelector(cloudTrailRandInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.#", "6"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.name", "s3Custom"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.#", "5"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.0.field", "eventCategory"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.0.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.0.equals.0", "Data"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.1.field", "eventName"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.1.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.1.equals.0", "DeleteObject"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.2.field", "resources.ARN"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.2.equals.#", "2"),
+					resource.TestMatchResourceAttr(resourceName, "advanced_event_selector.0.field_selector.2.equals.0", regexp.MustCompile(`^arn:[^:]+:s3:::.+/foobar$`)),
+					resource.TestMatchResourceAttr(resourceName, "advanced_event_selector.0.field_selector.2.equals.1", regexp.MustCompile(`^arn:[^:]+:s3:::.+/bar$`)),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.3.field", "readOnly"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.3.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.3.equals.0", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.4.field", "resources.type"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.4.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.4.equals.0", "AWS::S3::Object"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.name", "lambdaCustom"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.#", "4"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.0.field", "eventCategory"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.0.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.0.equals.0", "Data"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.1.field", "resources.ARN"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.1.equals.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "advanced_event_selector.1.field_selector.1.equals.0", regexp.MustCompile(`^arn:[^:]+:lambda:.+:tf-test-trail-event-select-\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.2.field", "readOnly"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.2.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.2.equals.0", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.3.field", "resources.type"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.3.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.3.equals.0", "AWS::Lambda::Function"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.name", "dynamoDBLogAllEvents"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.0.field", "eventCategory"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.0.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.0.equals.0", "Data"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.1.field", "resources.type"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.1.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.field_selector.1.equals.0", "AWS::DynamoDB::Table"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.name", "s3OutpostsReadOnlyEvents"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.0.field", "eventCategory"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.0.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.0.equals.0", "Data"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.1.field", "readOnly"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.1.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.1.equals.0", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.2.field", "resources.type"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.2.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.2.equals.0", "AWS::S3Outposts::Object"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.name", "managedBlockchainLogWriteOnlyEvents"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.0.field", "eventCategory"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.0.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.0.equals.0", "Data"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.1.field", "readOnly"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.1.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.1.equals.0", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.2.field", "resources.type"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.2.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.2.equals.0", "AWS::ManagedBlockchain::Node"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.5.name", "managementEventsSelector"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.5.field_selector.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.5.field_selector.0.field", "eventCategory"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.5.field_selector.0.equals.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.5.field_selector.0.equals.0", "Management"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -1604,6 +1697,195 @@ resource "aws_s3_bucket" "foo" {
   ]
 }
 POLICY
+}
+`, cloudTrailRandInt)
+}
+
+func testAccAWSCloudTrailConfig_advancedEventSelector(cloudTrailRandInt int) string {
+	return fmt.Sprintf(`
+resource "aws_cloudtrail" "foobar" {
+  name           = "tf-trail-foobar-%[1]d"
+  s3_bucket_name = aws_s3_bucket.foo.id
+
+  advanced_event_selector {
+    name = "s3Custom"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "eventName"
+      equals = ["DeleteObject"]
+    }
+
+    field_selector {
+      field = "resources.ARN"
+      equals = [
+        "${aws_s3_bucket.bar.arn}/foobar",
+        "${aws_s3_bucket.bar.arn}/bar",
+      ]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3::Object"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "lambdaCustom"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field = "resources.ARN"
+      equals = [
+        aws_lambda_function.lambda_function_test.arn,
+      ]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::Lambda::Function"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "dynamoDBLogAllEvents"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::DynamoDB::Table"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "s3OutpostsReadOnlyEvents"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["true"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3Outposts::Object"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "managedBlockchainLogWriteOnlyEvents"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::ManagedBlockchain::Node"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "managementEventsSelector"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Management"]
+    }
+  }
+}
+
+data "aws_partition" "current" {}
+
+resource "aws_s3_bucket" "foo" {
+  bucket        = "tf-test-trail-%[1]d"
+  force_destroy = true
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AWSCloudTrailAclCheck",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-trail-%[1]d"
+    },
+    {
+      "Sid": "AWSCloudTrailWrite",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-trail-%[1]d/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket" "bar" {
+  bucket        = "tf-test-trail-advanced-event-selector-%[1]d"
+  force_destroy = true
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "tf-test-trail-event-select-%[1]d"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.${data.aws_partition.current.dns_suffix}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_lambda_function" "lambda_function_test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "tf-test-trail-event-select-%[1]d"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.example"
+  runtime       = "nodejs12.x"
 }
 `, cloudTrailRandInt)
 }
