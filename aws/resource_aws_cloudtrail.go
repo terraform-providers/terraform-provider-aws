@@ -137,7 +137,7 @@ func resourceAwsCloudTrail() *schema.Resource {
 							ValidateFunc: validation.StringLenBetween(0, 1000),
 						},
 						"field_selector": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem: &schema.Resource{
@@ -735,7 +735,7 @@ func expandAwsCloudTrailAdvancedEventSelector(configured []interface{}) []*cloud
 
 	for _, raw := range configured {
 		data := raw.(map[string]interface{})
-		fieldSelectors := expandAwsCloudTrailAdvancedEventSelectorFieldSelector(data["field_selector"].([]interface{}))
+		fieldSelectors := expandAwsCloudTrailAdvancedEventSelectorFieldSelector(data["field_selector"].(*schema.Set))
 
 		aes := &cloudtrail.AdvancedEventSelector{
 			Name:           aws.String(data["name"].(string)),
@@ -750,10 +750,10 @@ func expandAwsCloudTrailAdvancedEventSelector(configured []interface{}) []*cloud
 
 }
 
-func expandAwsCloudTrailAdvancedEventSelectorFieldSelector(configured []interface{}) []*cloudtrail.AdvancedFieldSelector {
-	fieldSelectors := make([]*cloudtrail.AdvancedFieldSelector, 0, len(configured))
+func expandAwsCloudTrailAdvancedEventSelectorFieldSelector(configured *schema.Set) []*cloudtrail.AdvancedFieldSelector {
+	fieldSelectors := make([]*cloudtrail.AdvancedFieldSelector, 0, configured.Len())
 
-	for _, raw := range configured {
+	for _, raw := range configured.List() {
 		data := raw.(map[string]interface{})
 		fieldSelector := &cloudtrail.AdvancedFieldSelector{
 			Field: aws.String(data["field"].(string)),
