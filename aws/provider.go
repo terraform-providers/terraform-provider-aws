@@ -494,6 +494,7 @@ func Provider() *schema.Provider {
 			"aws_appmesh_virtual_node":                                resourceAwsAppmeshVirtualNode(),
 			"aws_appmesh_virtual_router":                              resourceAwsAppmeshVirtualRouter(),
 			"aws_appmesh_virtual_service":                             resourceAwsAppmeshVirtualService(),
+			"aws_appstream_fleet":                                     resourceAwsAppstreamFleet(),
 			"aws_appsync_api_key":                                     resourceAwsAppsyncApiKey(),
 			"aws_appsync_datasource":                                  resourceAwsAppsyncDatasource(),
 			"aws_appsync_function":                                    resourceAwsAppsyncFunction(),
