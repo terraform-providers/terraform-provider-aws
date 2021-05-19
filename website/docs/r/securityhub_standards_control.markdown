@@ -16,7 +16,7 @@ into management. When you _delete_ this resource configuration, Terraform "aband
 
 ## Example Usage
 
-```hcl
+```terraform
 resource aws_securityhub_account example {}
 
 resource aws_securityhub_standards_subscription cis_aws_foundations_benchmark {
