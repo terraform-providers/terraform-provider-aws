@@ -32,7 +32,7 @@ resource aws_securityhub_standards_control ensure_iam_password_policy_prevents_p
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
