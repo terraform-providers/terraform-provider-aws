@@ -20,6 +20,7 @@ func TestAccAWSSecurityHubStandardsControl_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, securityhub.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityHubStandardsControlExists(resourceName, standardsControl),
 		Steps: []resource.TestStep{
@@ -47,6 +48,7 @@ func TestAccAWSSecurityHubStandardsControl_disabledControlStatus(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, securityhub.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityHubStandardsControlExists(resourceName, standardsControl),
 		Steps: []resource.TestStep{
@@ -69,6 +71,7 @@ func TestAccAWSSecurityHubStandardsControl_enabledControlStatusAndDisabledReason
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, securityhub.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSecurityHubStandardsControlExists(resourceName, standardsControl),
 		Steps: []resource.TestStep{
