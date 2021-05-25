@@ -487,7 +487,7 @@ func testAccCheckAWSS3ObjectLambdaAccessPointHasPolicy(n string, fn func() strin
 
 		conn := testAccProvider.Meta().(*AWSClient).s3controlconn
 
-		resp, err := conn.GetAccessPointPolicyForObjectLambda(&s3control.GetAccessPointForObjectLambdaPolicyInput{
+		resp, err := conn.GetAccessPointPolicyForObjectLambda(&s3control.GetAccessPointPolicyForObjectLambdaInput{
 			AccountId: aws.String(accountId),
 			Name:      aws.String(name),
 		})

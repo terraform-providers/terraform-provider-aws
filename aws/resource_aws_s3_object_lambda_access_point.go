@@ -92,8 +92,32 @@ func resourceAwsS3ObjectLambdaAccessPoint() *schema.Resource {
 	}
 }
 
-func expandObjectLambdaTransformationConfiguration(tConfig []interface{}) *s3control.ObjectLambdaTransformationConfiguration {
-	return &s3control.ObjectLambdaTransformationConfiguration{}
+func expandObjectLambdaContentTransformation(vConfig []interface{}) *s3control.ObjectLambdaContentTransformation {
+	if len(vConfig) == 0 || vConfig[0] == nil {
+		return nil
+	}
+
+	mConfig := vConfig[0].(map[string]interface{})
+
+	return &s3control.ObjectLambdaContentTransformation{
+		AwsLambda: &s3control.AwsLambdaTransformation{
+			FunctionArn:     aws.String(mConfig["aws_lambda"]["function_arn"]),
+			FunctionPayload: aws.String(mConfig["aws_lambda"]["function_payload"]),
+		},
+	}
+
+}
+
+func expandObjectLambdaTransformationConfiguration(vConfig []interface{}) *s3control.ObjectLambdaTransformationConfiguration {
+	if len(vConfig) == 0 || vConfig[0] == nil {
+		return nil
+	}
+	mConfig := vConfig[0].(map[string]interface{})
+
+	return &s3control.ObjectLambdaTransformationConfiguration{
+		Actions:               expandStringSet(mConfig["actions"].(*schema.Set)),
+		ContentTransformation: expandObjectLambdaContentTransformation(mConfig["content_transformation"].([]interface{})),
+	}
 }
 
 func resourceAwsS3ObjectLambdaAccessPointCreate(d *schema.ResourceData, meta interface{}) error {
@@ -109,7 +133,7 @@ func resourceAwsS3ObjectLambdaAccessPointCreate(d *schema.ResourceData, meta int
 		AllowedFeatures:              expandStringSet(d.Get("allowed_features").(*schema.Set)),
 		CloudWatchMetricsEnabled:     aws.Bool(d.Get("cloud_watch_metrics_enabled").(bool)),
 		SupportingAccessPoint:        aws.String(d.Get("supporting_access_point").(string)),
-		TransformationConfigurations: expandObjectLambdaTransformationConfiguration(d.Get("transformation_configurations").([]interface{})),
+		TransformationConfigurations: expandObjectLambdaTransformationConfiguration(d.Get("transformation_configurations").([]*interface{})),
 	}
 
 	input := &s3control.CreateAccessPointForObjectLambdaInput{
