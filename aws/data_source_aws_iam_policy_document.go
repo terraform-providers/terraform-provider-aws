@@ -314,8 +314,14 @@ func dataSourceAwsIamPolicyDocumentMakeConditions(in []interface{}, version stri
 			aws.StringValueSlice(expandStringListKeepEmpty(item["values"].([]interface{}))),
 			version,
 		)
+
 		if err != nil {
 			return nil, fmt.Errorf("error reading values: %w", err)
+		}
+
+		itemValues := out[i].Values.([]string)
+		if len(itemValues) == 1 {
+			out[i].Values = itemValues[0]
 		}
 	}
 	return IAMPolicyStatementConditionSet(out), nil
