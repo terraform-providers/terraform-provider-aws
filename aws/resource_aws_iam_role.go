@@ -63,16 +63,17 @@ func resourceAwsIamRole() *schema.Resource {
 			},
 
 			"path": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "/",
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "/",
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
 			"permissions_boundary": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(0, 2048),
+				ValidateFunc: validateArn,
 			},
 
 			"description": {
@@ -141,8 +142,10 @@ func resourceAwsIamRole() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
+				},
 			},
 		},
 
