@@ -226,7 +226,7 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.file_fingerprint_lines", "2"),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.initial_position", "end_of_file"),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.multiline_start_pattern", "test*"),
-					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.timezone", "LOCAL"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.time_zone", "LOCAL"),
 				),
 			},
 		},
@@ -513,7 +513,7 @@ resource "aws_opsworks_custom_layer" "test" {
       file_fingerprint_lines  = "2"
       initial_position        = "end_of_file"
       multiline_start_pattern = "test*"
-      timezone                = "LOCAL"
+      time_zone                = "LOCAL"
     }
   }
 }

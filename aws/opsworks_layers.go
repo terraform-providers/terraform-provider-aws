@@ -300,14 +300,15 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 									ValidateFunc: validation.StringInSlice(opsworks.CloudWatchLogsInitialPosition_Values(), false),
 								},
 								"log_group_name": {
-									Type:     schema.TypeString,
-									Required: true,
+									Type:         schema.TypeString,
+									Required:     true,
+									ValidateFunc: validateLogGroupName,
 								},
 								"multiline_start_pattern": {
 									Type:     schema.TypeString,
 									Optional: true,
 								},
-								"timezone": {
+								"time_zone": {
 									Type:         schema.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringInSlice(opsworks.CloudWatchLogsTimeZone_Values(), false),
@@ -902,7 +903,7 @@ func expandOpsworksCloudWatchConfigLogStream(l []interface{}) []*opsworks.CloudW
 			logStream.MultiLineStartPattern = aws.String(v.(string))
 		}
 
-		if v, ok := item["timezone"]; ok {
+		if v, ok := item["time_zone"]; ok {
 			logStream.TimeZone = aws.String(v.(string))
 		}
 
@@ -932,7 +933,7 @@ func flattenOpsworksCloudWatchConfigLogStreams(logStreams []*opsworks.CloudWatch
 		m := make(map[string]interface{})
 
 		if logStream.TimeZone != nil {
-			m["timezone"] = aws.StringValue(logStream.TimeZone)
+			m["time_zone"] = aws.StringValue(logStream.TimeZone)
 		}
 
 		if logStream.MultiLineStartPattern != nil {

@@ -76,7 +76,7 @@ A `cloudwatch_configuration` block supports the following arguments:
     * `file_fingerprint_lines` - (Optional) Specifies the range of lines for identifying a file. The valid values are one number, or two dash-delimited numbers, such as `1`, `2-5`. The default value is `1`.
     * `initial_position` - (Optional) Specifies where to start to read data (`start_of_file` or `end_of_file`). The default is `start_of_file`.
     * `multiline_start_pattern` - (Optional) Specifies the pattern for identifying the start of a log message.
-    * `timezone` - (Optional) Specifies the time zone of log event time stamps.
+    * `time_zone` - (Optional) Specifies the time zone of log event time stamps.
 
 ## Attributes Reference
 
