@@ -513,7 +513,7 @@ resource "aws_opsworks_custom_layer" "test" {
       file_fingerprint_lines  = "2"
       initial_position        = "end_of_file"
       multiline_start_pattern = "test*"
-      time_zone                = "LOCAL"
+      time_zone               = "LOCAL"
     }
   }
 }
