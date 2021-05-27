@@ -629,7 +629,7 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, meta interface{}) er
 		o, n := d.GetChange("tags_all")
 
 		arn := d.Get("arn").(string)
-		if err := keyvaluetags.OpsworksUpdateTags(client, arn, o, n); err != nil {
+		if err := keyvaluetags.OpsworksUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Opsworks Layer (%s) tags: %w", arn, err)
 		}
 	}
