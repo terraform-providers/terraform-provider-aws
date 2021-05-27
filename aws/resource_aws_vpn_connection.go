@@ -78,7 +78,6 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"vpn_gateway_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"transit_gateway_id"},
 			},
 
@@ -96,7 +95,6 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"transit_gateway_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"vpn_gateway_id"},
 			},
 
@@ -966,6 +964,31 @@ func flattenTunnelOptions(d *schema.ResourceData, vpnConnection *ec2.VpnConnecti
 
 func resourceAwsVpnConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+
+	modifyConnection := false
+	input := &ec2.ModifyVpnConnectionInput{
+		VpnConnectionId: aws.String(d.Id()),
+	}
+
+	if d.HasChange("vpn_gateway_id") {
+		input.VpnGatewayId = aws.String(d.Get("vpn_gateway_id").(string))
+		modifyConnection = true
+	}
+
+	if d.HasChange("transit_gateway_id") {
+		input.TransitGatewayId = aws.String(d.Get("transit_gateway_id").(string))
+		modifyConnection = true
+	}
+
+	if modifyConnection {
+		if _, err := conn.ModifyVpnConnection(input); err != nil {
+			return fmt.Errorf("error modifying EC2 VPN Connection (%s): %w", d.Id(), err)
+		}
+
+		if err := waitForEc2VpnConnectionAvailableWhenModifying(conn, d.Id()); err != nil {
+			return fmt.Errorf("error waiting for VPN connection (%s) to become available: %w", d.Id(), err)
+		}
+	}
 
 	if err := modifyVpnConnectionOptions(d, conn); err != nil {
 		return err
