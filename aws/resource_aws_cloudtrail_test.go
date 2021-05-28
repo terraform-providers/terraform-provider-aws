@@ -103,6 +103,7 @@ func TestAccAWSCloudTrail_serial(t *testing.T) {
 			"kmsKey":                     testAccAWSCloudTrail_kmsKey,
 			"tags":                       testAccAWSCloudTrail_tags,
 			"eventSelector":              testAccAWSCloudTrail_event_selector,
+			"advancedEventSelector":      testAccAWSCloudTrail_advanced_event_selector,
 			"insightSelector":            testAccAWSCloudTrail_insight_selector,
 		},
 	}
@@ -550,6 +551,106 @@ func testAccAWSCloudTrail_event_selector(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "event_selector.#", "0"),
 				),
+			},
+		},
+	})
+}
+
+func testAccAWSCloudTrail_advanced_event_selector(t *testing.T) {
+	resourceName := "aws_cloudtrail.foobar"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudtrail.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudTrailDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudTrailConfig_advancedEventSelector(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.#", "5"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.name", "s3Custom"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.0.field_selector.#", "5"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.0.field_selector.*", map[string]string{
+						"field":    "eventCategory",
+						"equals.#": "1",
+						"equals.0": "Data",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.0.field_selector.*", map[string]string{
+						"field":    "eventName",
+						"equals.#": "1",
+						"equals.0": "DeleteObject",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.0.field_selector.*", map[string]string{
+						"field":    "resources.ARN",
+						"equals.#": "2",
+						"equals.0": "arn:aws:s3:::" + rName + "/foobar",
+						"equals.1": "arn:aws:s3:::" + rName + "/bar",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.0.field_selector.*", map[string]string{
+						"field":    "readOnly",
+						"equals.#": "1",
+						"equals.0": "false",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.0.field_selector.*", map[string]string{
+						"field":    "resources.type",
+						"equals.#": "1",
+						"equals.0": "AWS::S3::Object",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.name", "lambdaLogAllEvents"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.1.field_selector.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.1.field_selector.*", map[string]string{
+						"field":    "eventCategory",
+						"equals.#": "1",
+						"equals.0": "Data",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.1.field_selector.*", map[string]string{
+						"field":    "resources.type",
+						"equals.#": "1",
+						"equals.0": "AWS::Lambda::Function",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.2.name", "dynamoDbReadOnlyEvents"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.2.field_selector.*", map[string]string{
+						"field":    "readOnly",
+						"equals.#": "1",
+						"equals.0": "true",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.2.field_selector.*", map[string]string{
+						"field":    "resources.type",
+						"equals.#": "1",
+						"equals.0": "AWS::DynamoDB::Table",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.name", "s3OutpostsWriteOnlyEvents"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.3.field_selector.#", "3"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.3.field_selector.*", map[string]string{
+						"field":    "eventCategory",
+						"equals.#": "1",
+						"equals.0": "Data",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.3.field_selector.*", map[string]string{
+						"field":    "readOnly",
+						"equals.#": "1",
+						"equals.0": "false",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.3.field_selector.*", map[string]string{
+						"field":    "resources.type",
+						"equals.#": "1",
+						"equals.0": "AWS::S3Outposts::Object",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.name", "managementEventsSelector"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_event_selector.4.field_selector.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_event_selector.4.field_selector.*", map[string]string{
+						"field":    "eventCategory",
+						"equals.#": "1",
+						"equals.0": "Management",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -1606,6 +1707,141 @@ resource "aws_s3_bucket" "foo" {
 POLICY
 }
 `, cloudTrailRandInt)
+}
+
+func testAccAWSCloudTrailConfig_advancedEventSelector(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudtrail" "foobar" {
+  name           = "%[1]s"
+  s3_bucket_name = aws_s3_bucket.foo.id
+
+  advanced_event_selector {
+    name = "s3Custom"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "eventName"
+      equals = ["DeleteObject"]
+    }
+
+    field_selector {
+      field = "resources.ARN"
+      equals = [
+        "${aws_s3_bucket.bar.arn}/foobar",
+        "${aws_s3_bucket.bar.arn}/bar",
+      ]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3::Object"]
+    }
+  }
+  advanced_event_selector {
+    name = "lambdaLogAllEvents"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::Lambda::Function"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "dynamoDbReadOnlyEvents"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["true"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::DynamoDB::Table"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "s3OutpostsWriteOnlyEvents"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3Outposts::Object"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "managementEventsSelector"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Management"]
+    }
+  }
+}
+
+data "aws_partition" "current" {}
+
+resource "aws_s3_bucket" "foo" {
+  bucket        = "%[1]s-log"
+  force_destroy = true
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AWSCloudTrailAclCheck",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::%[1]s-log"
+    },
+    {
+      "Sid": "AWSCloudTrailWrite",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::%[1]s-log/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket" "bar" {
+  bucket        = "%[1]s"
+  force_destroy = true
+}
+`, rName)
 }
 
 func testAccAWSCloudTrailConfig_insightSelector(rName string) string {

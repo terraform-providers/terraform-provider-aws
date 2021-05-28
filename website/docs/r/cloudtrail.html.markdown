@@ -70,9 +70,11 @@ POLICY
 
 ### Data Event Logging
 
-CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html) for certain services such as S3 bucket objects and Lambda function invocations. Additional information about data event configuration can be found in the [CloudTrail API DataResource documentation](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html).
+CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html) for certain services such as S3 bucket objects and Lambda function invocations. Additional information about data event configuration can be found in the following links:
+* [CloudTrail API DataResource documentation](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html) (for basic event selector).
+* [CloudTrail API AdvancedFieldSelector documentation](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html) (for advanced event selector).
 
-#### Logging All Lambda Function Invocations
+#### Logging All Lambda Function Invocations By Using Basic Event Selectors
 
 ```terraform
 resource "aws_cloudtrail" "example" {
@@ -90,7 +92,7 @@ resource "aws_cloudtrail" "example" {
 }
 ```
 
-#### Logging All S3 Bucket Object Events
+#### Logging All S3 Bucket Object Events By Using Basic Event Selectors
 
 ```terraform
 resource "aws_cloudtrail" "example" {
@@ -108,7 +110,7 @@ resource "aws_cloudtrail" "example" {
 }
 ```
 
-#### Logging Individual S3 Bucket Events
+#### Logging Individual S3 Bucket Events By Using Basic Event Selectors
 
 ```terraform
 data "aws_s3_bucket" "important-bucket" {
@@ -128,6 +130,137 @@ resource "aws_cloudtrail" "example" {
       # Make sure to append a trailing '/' to your ARN if you want
       # to monitor all objects in a bucket.
       values = ["${data.aws_s3_bucket.important-bucket.arn}/"]
+    }
+  }
+}
+```
+
+#### Logging All S3 Bucket Object Events Except For Two S3 Buckets By Using Advanced Event Selectors
+```terraform
+data "aws_s3_bucket" "not-important-bucket-1" {
+  bucket = "not-important-bucket-1"
+}
+
+data "aws_s3_bucket" "not-important-bucket-2" {
+  bucket = "not-important-bucket-2"
+}
+
+resource "aws_cloudtrail" "example" {
+  # ... other configuration ...
+
+  advanced_event_selector {
+    name = "Log all S3 buckets objects events except for two S3 buckets"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field = "resources.ARN"
+      not_equals = [
+        "${data.aws_s3_bucket.not-important-bucket-1.arn}/",
+        "${data.aws_s3_bucket.not-important-bucket-2.arn}/"
+      ]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3::Object"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "Log readOnly and writeOnly management events"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Management"]
+    }
+  }
+```
+
+#### Logging Individual S3 Buckets And Specific Event Names By Using Advanced Event Selectors
+
+```terraform
+data "aws_s3_bucket" "important-bucket-1" {
+  bucket = "important-bucket-1"
+}
+
+data "aws_s3_bucket" "important-bucket-2" {
+  bucket = "important-bucket-2"
+}
+
+data "aws_s3_bucket" "important-bucket-3" {
+  bucket = "important-bucket-3"
+}
+
+resource "aws_cloudtrail" "example" {
+  # ... other configuration ...
+
+  advanced_event_selector {
+    name = "Log PutObject and DeleteObject events for two S3 buckets"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field = "eventName"
+      equals = [
+        "PutObject",
+        "DeleteObject"
+      ]
+    }
+
+    field_selector {
+      field = "resources.ARN"
+
+      #The trailing slash is intentional; do not exclude it.
+      equals = [
+        "${data.aws_s3_bucket.important-bucket-1.arn}/",
+        "${data.aws_s3_bucket.important-bucket-2.arn}/"
+      ]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3::Object"]
+    }
+  }
+
+  advanced_event_selector {
+    name = "Log Delete* events for one S3 bucket"
+    field_selector {
+      field  = "eventCategory"
+      equals = ["Data"]
+    }
+
+    field_selector {
+      field       = "eventName"
+      starts_with = ["Delete"]
+    }
+
+    field_selector {
+      field = "resources.ARN"
+
+      #The trailing slash is intentional; do not exclude it.
+      equals = [
+        "${data.aws_s3_bucket.important-bucket-3.arn}/important-prefix"
+      ]
+    }
+
+    field_selector {
+      field  = "readOnly"
+      equals = ["false"]
+    }
+
+    field_selector {
+      field  = "resources.type"
+      equals = ["AWS::S3::Object"]
     }
   }
 }
@@ -171,7 +304,8 @@ The following arguments are supported:
 * `enable_log_file_validation` - (Optional) Specifies whether log file integrity validation is enabled.
     Defaults to `false`.
 * `kms_key_id` - (Optional) Specifies the KMS key ARN to use to encrypt the logs delivered by CloudTrail.
-* `event_selector` - (Optional) Specifies an event selector for enabling data event logging. Fields documented below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these.
+* `event_selector` - (Optional) Specifies an event selector for enabling data event logging. Fields documented below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these. Conflicts with `advanced_event_selector`.
+* `advanced_event_selector` - (Optional) Specifies an advanced event selector for enabling data event logging. Fields documented below. Conflicts with `event_selector`.
 * `insight_selector` - (Optional) Specifies an insight selector for identifying unusual operational activity. Fields documented below.
 * `tags` - (Optional) A map of tags to assign to the trail. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
@@ -187,6 +321,23 @@ For **data_resource** the following attributes are supported.
 
 * `type` (Required) - The resource type in which you want to log data events. You can specify only the following value: "AWS::S3::Object", "AWS::Lambda::Function"
 * `values` (Required) - A list of ARN for the specified S3 buckets and object prefixes..
+
+### Advanced Event Selector Arguments
+For **advanced_event_selector** the following attributes are supported.
+
+* `name` (Optional) - Specifies the name of the advanced event selector.
+* `field_selector` (Required) - Specifies the selector statements in an advanced event selector. Fields documented below.
+
+#### Field Selector Arguments
+For **field_selector** the following attributes are supported.
+
+* `field` (Required) - Specifies a field in an event record on which to filter events to be logged. You can specify only the following values: `readOnly`, `eventSource`, `eventName`, `eventCategory`, `resources.type`, `resources.ARN`.
+* `equals` (Optional) - A list of values that includes events that match the exact value of the event record field specified as the value of `field`. This is the only valid operator that you can use with the `readOnly`, `eventCategory`, and `resources.type` fields.
+* `not_equals` (Optional) - A list of values that excludes events that match the exact value of the event record field specified as the value of `field`.
+* `starts_with` (Optional) - A list of values that includes events that match the first few characters of the event record field specified as the value of `field`.
+* `not_starts_with` (Optional) - A list of values that excludes events that match the first few characters of the event record field specified as the value of `field`.
+* `ends_with` (Optional) - A list of values that includes events that match the last few characters of the event record field specified as the value of `field`.
+* `not_ends_with` (Optional) - A list of values that excludes events that match the last few characters of the event record field specified as the value of `field`.
 
 ### Insight Selector Arguments
 
