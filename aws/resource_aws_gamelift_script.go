@@ -6,9 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/gamelift"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 const awsMutexGameliftScript = `aws_gamelift_script`
@@ -108,7 +110,19 @@ func resourceAwsGameliftScriptCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	log.Printf("[INFO] Creating Gamelift Script: %s", input)
-	out, err := conn.CreateScript(&input)
+	var out *gamelift.CreateScriptOutput
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+		out, err = conn.CreateScript(&input)
+		if err != nil {
+			if isAWSErr(err, gamelift.ErrCodeInvalidRequestException, "Provided resource is not accessible") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("Error creating Gamelift Script: %w", err)
 	}

@@ -104,6 +104,49 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSGameliftScript_storageLocation(t *testing.T) {
+	var conf gamelift.Script
+	resourceName := "aws_gamelift_script.test"
+	rName := acctest.RandomWithPrefix("acc-test-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSGameliftScriptConfigStorageLocation(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.bucket", "aws_s3_bucket_object.test", "bucket"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.key", "aws_s3_bucket_object.test", "key"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.role_arn", "aws_iam_role.test", "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSGameliftScriptConfigStorageLocationUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.bucket", "aws_s3_bucket_object.test", "bucket"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.key", "aws_s3_bucket_object.test", "key"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.role_arn", "aws_iam_role.test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_location.0.object_version", "aws_s3_bucket_object.test", "version_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSGameliftScript_tags(t *testing.T) {
 	var conf gamelift.Script
 	resourceName := "aws_gamelift_script.test"
@@ -263,6 +306,155 @@ func testAccAWSGameliftScriptBasicConfigUpdated(rName string) string {
 resource "aws_gamelift_script" "test" {
   name     = %[1]q
   zip_file = "test-fixtures/lambdatest_modified.zip"
+}
+`, rName)
+}
+
+func testAccAWSGameliftScriptConfigStorageLocation(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket        = %[1]q
+  acl           = "private"
+  force_destroy = true
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "gamelift.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket = aws_s3_bucket.test.bucket
+  key    = %[1]q
+  source = "test-fixtures/lambdatest.zip"
+  etag   = filemd5("test-fixtures/lambdatest.zip")
+}
+
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+		"s3:GetObject",
+		"s3:GetObjectVersion"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.test.arn}/*"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_gamelift_script" "test" {
+  name = %[1]q
+
+  storage_location {
+    bucket   = aws_s3_bucket_object.test.bucket
+    key      = aws_s3_bucket_object.test.key
+    role_arn = aws_iam_role.test.arn
+  }
+}
+`, rName)
+}
+
+func testAccAWSGameliftScriptConfigStorageLocationUpdated(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket        = %[1]q
+  acl           = "private"
+  force_destroy = true
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "gamelift.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket = aws_s3_bucket.test.bucket
+  key    = %[1]q
+  source = "test-fixtures/lambdatest.zip"
+  etag   = filemd5("test-fixtures/lambdatest.zip")
+}
+
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+		"s3:GetObject",
+		"s3:GetObjectVersion"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.test.arn}/*"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_gamelift_script" "test" {
+  name = %[1]q
+
+  storage_location {
+    bucket         = aws_s3_bucket_object.test.bucket
+    key            = aws_s3_bucket_object.test.key
+    role_arn       = aws_iam_role.test.arn
+	object_version = aws_s3_bucket_object.test.version_id
+  }
 }
 `, rName)
 }
