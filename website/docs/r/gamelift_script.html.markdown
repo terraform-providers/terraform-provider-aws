@@ -13,16 +13,23 @@ Provides an Gamelift Script resource.
 ## Example Usage
 
 ```terraform
-resource "aws_gamelift_script" "test" {
+resource "aws_gamelift_script" "example" {
   name = "example-script"
 
   storage_location {
-    bucket   = aws_s3_bucket.test.bucket
-    key      = aws_s3_bucket_object.test.key
-    role_arn = aws_iam_role.test.arn
+    bucket   = aws_s3_bucket.example.bucket
+    key      = aws_s3_bucket_object.example.key
+    role_arn = aws_iam_role.example.arn
   }
+}
+```
 
-  depends_on = ["aws_iam_role_policy.test"]
+## Example with local zip file
+
+```terraform
+resource "aws_gamelift_script" "example" {
+  name     = "example-script"
+  zip_file = "script.zip"
 }
 ```
 
