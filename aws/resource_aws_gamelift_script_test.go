@@ -59,26 +59,10 @@ func testSweepGameliftScripts(region string) error {
 
 func TestAccAWSGameliftScript_basic(t *testing.T) {
 	var conf gamelift.Script
-
 	resourceName := "aws_gamelift_script.test"
 	rName := acctest.RandomWithPrefix("acc-test-test")
 	rNameUpdated := acctest.RandomWithPrefix("acc-test-test")
-
 	region := testAccGetRegion()
-	g, err := testAccAWSGameliftSampleGame(region)
-
-	if isResourceNotFoundError(err) {
-		t.Skip(err)
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	loc := g.Location
-	bucketName := *loc.Bucket
-	roleArn := *loc.RoleArn
-	key := *loc.Key
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
@@ -87,33 +71,32 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSGameliftScriptBasicConfig(rName, bucketName, key, roleArn),
+				Config: testAccAWSGameliftScriptBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "gamelift", regexp.MustCompile(`script/script-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", bucketName),
-					resource.TestCheckResourceAttr(resourceName, "storage_location.0.key", key),
-					resource.TestCheckResourceAttr(resourceName, "storage_location.0.role_arn", roleArn),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", fmt.Sprintf("prod-gamescale-scripts-%s", region)),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_location.0.key"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"zip_file"},
 			},
 			{
-				Config: testAccAWSGameliftScriptBasicConfig(rNameUpdated, bucketName, key, roleArn),
+				Config: testAccAWSGameliftScriptBasicConfigUpdated(rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "gamelift", regexp.MustCompile(`script/script-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", bucketName),
-					resource.TestCheckResourceAttr(resourceName, "storage_location.0.key", key),
-					resource.TestCheckResourceAttr(resourceName, "storage_location.0.role_arn", roleArn),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", fmt.Sprintf("prod-gamescale-scripts-%s", region)),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_location.0.key"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -123,25 +106,8 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 
 func TestAccAWSGameliftScript_tags(t *testing.T) {
 	var conf gamelift.Script
-
 	resourceName := "aws_gamelift_script.test"
 	rName := acctest.RandomWithPrefix("acc-test-test")
-
-	region := testAccGetRegion()
-	g, err := testAccAWSGameliftSampleGame(region)
-
-	if isResourceNotFoundError(err) {
-		t.Skip(err)
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	loc := g.Location
-	bucketName := *loc.Bucket
-	roleArn := *loc.RoleArn
-	key := *loc.Key
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
@@ -150,7 +116,7 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSGameliftScriptConfigTags1(rName, bucketName, key, roleArn, "key1", "value1"),
+				Config: testAccAWSGameliftScriptConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -158,12 +124,13 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"zip_file"},
 			},
 			{
-				Config: testAccAWSGameliftScriptConfigTags2(rName, bucketName, key, roleArn, "key1", "value1updated", "key2", "value2"),
+				Config: testAccAWSGameliftScriptConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -172,7 +139,7 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSGameliftScriptConfigTags1(rName, bucketName, key, roleArn, "key2", "value2"),
+				Config: testAccAWSGameliftScriptConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -185,25 +152,8 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 
 func TestAccAWSGameliftScript_disappears(t *testing.T) {
 	var conf gamelift.Script
-
 	resourceName := "aws_gamelift_script.test"
 	rName := acctest.RandomWithPrefix("acc-test-script")
-
-	region := testAccGetRegion()
-	g, err := testAccAWSGameliftSampleGame(region)
-
-	if isResourceNotFoundError(err) {
-		t.Skip(err)
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	loc := g.Location
-	bucketName := *loc.Bucket
-	roleArn := *loc.RoleArn
-	key := *loc.Key
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGameliftScripts(t) },
@@ -212,7 +162,7 @@ func TestAccAWSGameliftScript_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSGameliftScriptBasicConfig(rName, bucketName, key, roleArn),
+				Config: testAccAWSGameliftScriptBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsGameliftScript(), resourceName),
@@ -299,53 +249,47 @@ func testAccPreCheckAWSGameliftScripts(t *testing.T) {
 	}
 }
 
-func testAccAWSGameliftScriptBasicConfig(rName, bucketName, key, roleArn string) string {
+func testAccAWSGameliftScriptBasicConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_script" "test" {
-  name = "%s"
-
-  storage_location {
-    bucket   = "%s"
-    key      = "%s"
-    role_arn = "%s"
-  }
+  name     = %[1]q
+  zip_file = "test-fixtures/lambdatest.zip"
 }
-`, rName, bucketName, key, roleArn)
+`, rName)
 }
 
-func testAccAWSGameliftScriptConfigTags1(rName, bucketName, key, roleArn, tagKey1, tagValue1 string) string {
+func testAccAWSGameliftScriptBasicConfigUpdated(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_script" "test" {
-  name = %[1]q
+  name     = %[1]q
+  zip_file = "test-fixtures/lambdatest_modified.zip"
+}
+`, rName)
+}
 
-  storage_location {
-    bucket   = %[2]q
-    key      = %[3]q
-    role_arn = %[4]q
-  }
+func testAccAWSGameliftScriptConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_gamelift_script" "test" {
+  name     = %[1]q
+  zip_file = "test-fixtures/lambdatest.zip"
 
   tags = {
-    %[5]q = %[6]q
+    %[2]q = %[3]q
   }
 }
-`, rName, bucketName, key, roleArn, tagKey1, tagValue1)
+`, rName, tagKey1, tagValue1)
 }
 
-func testAccAWSGameliftScriptConfigTags2(rName, bucketName, key, roleArn, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+func testAccAWSGameliftScriptConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_script" "test" {
-  name = %[1]q
-
-  storage_location {
-    bucket   = %[2]q
-    key      = %[3]q
-    role_arn = %[4]q
-  }
+  name     = %[1]q
+  zip_file = "test-fixtures/lambdatest.zip"
 
   tags = {
-    %[5]q = %[6]q
-    %[7]q = %[8]q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, rName, bucketName, key, roleArn, tagKey1, tagValue1, tagKey2, tagValue2)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

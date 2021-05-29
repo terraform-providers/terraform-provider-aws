@@ -222,9 +222,16 @@ func resourceAwsGameliftBuildDelete(d *schema.ResourceData, meta interface{}) er
 
 func expandGameliftStorageLocation(cfg []interface{}) *gamelift.S3Location {
 	loc := cfg[0].(map[string]interface{})
-	return &gamelift.S3Location{
+
+	location := &gamelift.S3Location{
 		Bucket:  aws.String(loc["bucket"].(string)),
 		Key:     aws.String(loc["key"].(string)),
 		RoleArn: aws.String(loc["role_arn"].(string)),
 	}
+
+	if v, ok := loc["object_version"].(string); ok && v != "" {
+		location.ObjectVersion = aws.String(v)
+	}
+
+	return location
 }
