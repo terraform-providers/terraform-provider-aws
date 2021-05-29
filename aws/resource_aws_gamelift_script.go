@@ -183,7 +183,6 @@ func resourceAwsGameliftScriptUpdate(d *schema.ResourceData, meta interface{}) e
 		input := gamelift.UpdateScriptInput{
 			ScriptId: aws.String(d.Id()),
 			Name:     aws.String(d.Get("name").(string)),
-			// StorageLocation: expandGameliftStorageLocation(d.Get("storage_location").([]interface{})),
 		}
 
 		if d.HasChange("version") {
