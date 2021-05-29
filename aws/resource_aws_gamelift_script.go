@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const awsMutexGameliftScript = `aws_gamelift_script`
@@ -123,6 +124,9 @@ func resourceAwsGameliftScriptCreate(d *schema.ResourceData, meta interface{}) e
 
 		return nil
 	})
+	if tfresource.TimedOut(err) {
+		out, err = conn.CreateScript(&input)
+	}
 	if err != nil {
 		return fmt.Errorf("Error creating Gamelift Script: %w", err)
 	}
