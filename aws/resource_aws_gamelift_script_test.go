@@ -453,7 +453,7 @@ resource "aws_gamelift_script" "test" {
     bucket         = aws_s3_bucket_object.test.bucket
     key            = aws_s3_bucket_object.test.key
     role_arn       = aws_iam_role.test.arn
-	object_version = aws_s3_bucket_object.test.version_id
+    object_version = aws_s3_bucket_object.test.version_id
   }
 }
 `, rName)
