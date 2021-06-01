@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayApiKey_basic(t *testing.T) {
@@ -183,6 +183,28 @@ func TestAccAWSAPIGatewayApiKey_Value(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayApiKey_disappears(t *testing.T) {
+	var apiKey1 apigateway.ApiKey
+	resourceName := "aws_api_gateway_api_key.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayApiKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayApiKeyConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayApiKeyExists(resourceName, &apiKey1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayApiKey(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAPIGatewayApiKeyExists(n string, res *apigateway.ApiKey) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -269,7 +291,7 @@ resource "aws_api_gateway_api_key" "test" {
   name = %[1]q
 
   tags = {
-	%[2]q = %[3]q
+    %[2]q = %[3]q
   }
 }
 `, rName, tagKey1, tagValue1)
@@ -281,8 +303,8 @@ resource "aws_api_gateway_api_key" "test" {
   name = %[1]q
 
   tags = {
-	%[2]q = %[3]q
-	%[4]q = %[5]q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)

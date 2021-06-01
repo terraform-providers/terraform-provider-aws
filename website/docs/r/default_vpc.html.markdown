@@ -42,7 +42,7 @@ arguments are computed. The following arguments are still supported:
 * `enable_classiclink` - (Optional) A boolean flag to enable/disable ClassicLink
   for the VPC. Only valid in regions and accounts that support EC2 Classic.
   See the [ClassicLink documentation][1] for more information. Defaults false.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Removing `aws_default_vpc` from your configuration
 

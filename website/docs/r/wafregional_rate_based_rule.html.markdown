@@ -16,14 +16,14 @@ Provides a WAF Rate Based Rule Resource
 resource "aws_wafregional_ipset" "ipset" {
   name = "tfIPSet"
 
-  ip_set_descriptors {
+  ip_set_descriptor {
     type  = "IPV4"
     value = "192.0.7.0/24"
   }
 }
 
 resource "aws_wafregional_rate_based_rule" "wafrule" {
-  depends_on  = ["aws_wafregional_ipset.ipset"]
+  depends_on  = [aws_wafregional_ipset.ipset]
   name        = "tfWAFRule"
   metric_name = "tfWAFRule"
 
@@ -31,7 +31,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit = 100
 
   predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -47,7 +47,7 @@ The following arguments are supported:
 * `rate_key` - (Required) Valid value is IP.
 * `rate_limit` - (Required) The maximum number of requests, which have an identical value in the field specified by the RateKey, allowed in a five-minute period. Minimum value is 100.
 * `predicate` - (Optional) The objects to include in a rule (documented below).
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Nested Blocks
 

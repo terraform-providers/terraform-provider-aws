@@ -9,10 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -123,7 +122,7 @@ func TestAccAWSWafRegionalRateBasedRule_basic(t *testing.T) {
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -151,7 +150,7 @@ func TestAccAWSWafRegionalRateBasedRule_tags(t *testing.T) {
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -196,7 +195,7 @@ func TestAccAWSWafRegionalRateBasedRule_changeNameForceNew(t *testing.T) {
 	wafRuleNewName := fmt.Sprintf("wafrulenew%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -233,7 +232,7 @@ func TestAccAWSWafRegionalRateBasedRule_disappears(t *testing.T) {
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -241,7 +240,7 @@ func TestAccAWSWafRegionalRateBasedRule_disappears(t *testing.T) {
 				Config: testAccAWSWafRegionalRateBasedRuleConfig(wafRuleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &v),
-					testAccCheckAWSWafRegionalRateBasedRuleDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsWafRegionalRateBasedRule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -254,12 +253,11 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 	var byteMatchSet waf.ByteMatchSet
 
 	var before, after waf.RateBasedRule
-	var idx int
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -270,9 +268,10 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
-					computeWafRegionalRateBasedRulePredicateWithIpSet(&ipset, false, "IPMatch", &idx),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicate.%d.negated", &idx, "false"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicate.%d.type", &idx, "IPMatch"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+						"negated": "false",
+						"type":    "IPMatch",
+					}),
 				),
 			},
 			{
@@ -282,9 +281,10 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
-					computeWafRegionalRateBasedRulePredicateWithByteMatchSet(&byteMatchSet, true, "ByteMatch", &idx),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicate.%d.negated", &idx, "true"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicate.%d.type", &idx, "ByteMatch"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+						"negated": "true",
+						"type":    "ByteMatch",
+					}),
 				),
 			},
 			{
@@ -304,7 +304,7 @@ func TestAccAWSWafRegionalRateBasedRule_changeRateLimit(t *testing.T) {
 	rateLimitAfter := "2001"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -333,51 +333,13 @@ func TestAccAWSWafRegionalRateBasedRule_changeRateLimit(t *testing.T) {
 	})
 }
 
-// computeWafRegionalRateBasedRulePredicateWithIpSet calculates index
-// which isn't static because dataId is generated as part of the test
-func computeWafRegionalRateBasedRulePredicateWithIpSet(ipSet *waf.IPSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		predicateResource := resourceAwsWafRegionalRateBasedRule().Schema["predicate"].Elem.(*schema.Resource)
-
-		m := map[string]interface{}{
-			"data_id": *ipSet.IPSetId,
-			"negated": negated,
-			"type":    pType,
-		}
-
-		f := schema.HashResource(predicateResource)
-		*idx = f(m)
-
-		return nil
-	}
-}
-
-// computeWafRegionalRateBasedRulePredicateWithByteMatchSet calculates index
-// which isn't static because dataId is generated as part of the test
-func computeWafRegionalRateBasedRulePredicateWithByteMatchSet(set *waf.ByteMatchSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		predicateResource := resourceAwsWafRegionalRateBasedRule().Schema["predicate"].Elem.(*schema.Resource)
-
-		m := map[string]interface{}{
-			"data_id": *set.ByteMatchSetId,
-			"negated": negated,
-			"type":    pType,
-		}
-
-		f := schema.HashResource(predicateResource)
-		*idx = f(m)
-
-		return nil
-	}
-}
-
 func TestAccAWSWafRegionalRateBasedRule_noPredicates(t *testing.T) {
 	var rule waf.RateBasedRule
 	resourceName := "aws_wafregional_rate_based_rule.wafrule"
 	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
 		Steps: []resource.TestStep{
@@ -402,51 +364,6 @@ func testAccCheckAWSWafRateBasedRuleIdDiffers(before, after *waf.RateBasedRule) 
 	return func(s *terraform.State) error {
 		if *before.RuleId == *after.RuleId {
 			return fmt.Errorf("Expected different IDs, given %q for both rules", *before.RuleId)
-		}
-		return nil
-	}
-}
-
-func testAccCheckAWSWafRegionalRateBasedRuleDisappears(v *waf.RateBasedRule) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).wafregionalconn
-		region := testAccProvider.Meta().(*AWSClient).region
-
-		wr := newWafRegionalRetryer(conn, region)
-		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
-			req := &waf.UpdateRateBasedRuleInput{
-				ChangeToken: token,
-				RuleId:      v.RuleId,
-				RateLimit:   v.RateLimit,
-			}
-
-			for _, Predicate := range v.MatchPredicates {
-				Predicate := &waf.RuleUpdate{
-					Action: aws.String("DELETE"),
-					Predicate: &waf.Predicate{
-						Negated: Predicate.Negated,
-						Type:    Predicate.Type,
-						DataId:  Predicate.DataId,
-					},
-				}
-				req.Updates = append(req.Updates, Predicate)
-			}
-
-			return conn.UpdateRateBasedRule(req)
-		})
-		if err != nil {
-			return fmt.Errorf("Error Updating WAF Rule: %s", err)
-		}
-
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
-			opts := &waf.DeleteRateBasedRuleInput{
-				ChangeToken: token,
-				RuleId:      v.RuleId,
-			}
-			return conn.DeleteRateBasedRule(opts)
-		})
-		if err != nil {
-			return fmt.Errorf("Error Deleting WAF Rule: %s", err)
 		}
 		return nil
 	}
@@ -528,7 +445,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit  = 2000
 
   predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -554,7 +471,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit  = 2000
 
   predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -584,7 +501,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit  = 2000
 
   predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -615,7 +532,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit  = 2000
 
   predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -656,7 +573,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit  = 2000
 
   predicate {
-    data_id = "${aws_wafregional_byte_match_set.set.id}"
+    data_id = aws_wafregional_byte_match_set.set.id
     negated = true
     type    = "ByteMatch"
   }

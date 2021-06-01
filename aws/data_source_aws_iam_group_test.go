@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceIAMGroup_basic(t *testing.T) {
@@ -64,7 +64,7 @@ resource "aws_iam_group" "group" {
 }
 
 data "aws_iam_group" "test" {
-  group_name = "${aws_iam_group.group.name}"
+  group_name = aws_iam_group.group.name
 }
 `, name)
 }
@@ -72,23 +72,23 @@ data "aws_iam_group" "test" {
 func testAccAwsIAMGroupConfigWithUser(groupName, userName, membershipName string, userCount int) string {
 	return fmt.Sprintf(`
 resource "aws_iam_group" "group" {
-	name = "%s"
-	path = "/"
+  name = "%s"
+  path = "/"
 }
 
 resource "aws_iam_user" "user" {
-	name = "%s-${count.index}"
-	count = %d
+  name  = "%s-${count.index}"
+  count = %d
 }
 
 resource "aws_iam_group_membership" "team" {
-	name = "%s"
-	users = "${aws_iam_user.user.*.name}"
-	group = "${aws_iam_group.group.name}"
+  name  = "%s"
+  users = aws_iam_user.user.*.name
+  group = aws_iam_group.group.name
 }
 
 data "aws_iam_group" "test" {
-	group_name = "${aws_iam_group_membership.team.group}"	
+  group_name = aws_iam_group_membership.team.group
 }
 `, groupName, userName, userCount, membershipName)
 }

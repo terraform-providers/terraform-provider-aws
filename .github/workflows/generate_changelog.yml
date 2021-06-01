@@ -1,0 +1,20 @@
+name: Generate CHANGELOG
+on:
+  pull_request:
+    types: [closed]
+jobs:
+  GenerateChangelog:
+    if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: cd tools && go install github.com/hashicorp/go-changelog/cmd/changelog-build
+      - run: |
+          ./scripts/generate-changelog.sh
+          git config --local user.email "changelogbot@hashicorp.com"
+          git config --local user.name "changelogbot"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for #${{ github.event.pull_request.number }}" 
+          git push   

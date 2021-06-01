@@ -3,11 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -66,7 +65,8 @@ func dataSourceAwsVpcsRead(d *schema.ResourceData, meta interface{}) error {
 		vpcs = append(vpcs, aws.StringValue(vpc.VpcId))
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
+
 	if err := d.Set("ids", vpcs); err != nil {
 		return fmt.Errorf("Error setting vpc ids: %s", err)
 	}

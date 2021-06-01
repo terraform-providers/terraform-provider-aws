@@ -19,8 +19,7 @@ resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
 
   encrypted  = true
-  kms_key_id = "${data.aws_ebs_default_kms_key.current.key_arn}"
-
+  kms_key_id = data.aws_ebs_default_kms_key.current.key_arn
 }
 ```
 
@@ -29,3 +28,4 @@ resource "aws_ebs_volume" "example" {
 The following attributes are exported:
 
 * `key_arn` - Amazon Resource Name (ARN) of the default KMS key uses to encrypt an EBS volume in this region when no key is specified in an API call that creates the volume and encryption by default is enabled.
+* `id` - Region of the default KMS Key.

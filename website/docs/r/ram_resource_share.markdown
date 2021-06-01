@@ -8,7 +8,7 @@ description: |-
 
 # Resource: aws_ram_resource_share
 
-Manages a Resource Access Manager (RAM) Resource Share. To association principals with the share, see the [`aws_ram_principal_association` resource](/docs/providers/aws/r/ram_principal_association.html). To associate resources with the share, see the [`aws_ram_resource_association` resource](/docs/providers/aws/r/ram_resource_association.html).
+Manages a Resource Access Manager (RAM) Resource Share. To associate principals with the share, see the [`aws_ram_principal_association` resource](/docs/providers/aws/r/ram_principal_association.html). To associate resources with the share, see the [`aws_ram_resource_association` resource](/docs/providers/aws/r/ram_resource_association.html).
 
 ## Example Usage
 
@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the resource share.
 * `allow_external_principals` - (Optional) Indicates whether principals outside your organization can be associated with a resource share.
-* `tags` - (Optional) A mapping of tags to assign to the resource share.
+* `tags` - (Optional) A map of tags to assign to the resource share.
 
 ## Attributes Reference
 

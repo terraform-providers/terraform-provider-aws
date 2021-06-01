@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const awsAppautoscalingScheduleTimeLayout = "2006-01-02T15:04:05Z"
@@ -150,25 +150,40 @@ func resourceAwsAppautoscalingScheduledActionRead(d *schema.ResourceData, meta i
 
 	saName := d.Get("name").(string)
 	input := &applicationautoscaling.DescribeScheduledActionsInput{
+		ResourceId:           aws.String(d.Get("resource_id").(string)),
 		ScheduledActionNames: []*string{aws.String(saName)},
 		ServiceNamespace:     aws.String(d.Get("service_namespace").(string)),
 	}
 	resp, err := conn.DescribeScheduledActions(input)
 	if err != nil {
-		return err
+		return fmt.Errorf("error describing Application Auto Scaling Scheduled Action (%s): %w", d.Id(), err)
 	}
-	if len(resp.ScheduledActions) < 1 {
+
+	var scheduledAction *applicationautoscaling.ScheduledAction
+
+	if resp == nil {
+		return fmt.Errorf("error describing Application Auto Scaling Scheduled Action (%s): empty response", d.Id())
+	}
+
+	for _, sa := range resp.ScheduledActions {
+		if sa == nil {
+			continue
+		}
+
+		if aws.StringValue(sa.ScheduledActionName) == saName {
+			scheduledAction = sa
+			break
+		}
+	}
+
+	if scheduledAction == nil {
 		log.Printf("[WARN] Application Autoscaling Scheduled Action (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
-	if len(resp.ScheduledActions) != 1 {
-		return fmt.Errorf("Expected 1 scheduled action under %s, found %d", saName, len(resp.ScheduledActions))
-	}
-	if *resp.ScheduledActions[0].ScheduledActionName != saName {
-		return fmt.Errorf("Scheduled Action (%s) not found", saName)
-	}
-	d.Set("arn", resp.ScheduledActions[0].ScheduledActionARN)
+
+	d.Set("arn", scheduledAction.ScheduledActionARN)
+
 	return nil
 }
 

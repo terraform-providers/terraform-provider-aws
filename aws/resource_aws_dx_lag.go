@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -42,13 +42,6 @@ func resourceAwsDxLag() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"number_of_connections": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				Removed:  "Use `aws_dx_connection` and `aws_dx_connection_association` resources instead",
 			},
 			"force_destroy": {
 				Type:     schema.TypeBool,
@@ -106,6 +99,7 @@ func resourceAwsDxLagCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsDxLagRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeLags(&directconnect.DescribeLagsInput{
 		LagId: aws.String(d.Id()),
@@ -158,7 +152,7 @@ func resourceAwsDxLagRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for Direct Connect LAG (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

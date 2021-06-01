@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSCodeCommitRepositoryDataSource_basic(t *testing.T) {
@@ -37,7 +37,7 @@ resource "aws_codecommit_repository" "default" {
 }
 
 data "aws_codecommit_repository" "default" {
-  repository_name = "${aws_codecommit_repository.default.repository_name}"
+  repository_name = aws_codecommit_repository.default.repository_name
 }
 `, rName)
 }

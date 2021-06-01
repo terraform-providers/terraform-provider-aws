@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -83,6 +83,7 @@ func TestAccAWSDataSyncLocationSmb_basic(t *testing.T) {
 	var locationSmb1 datasync.DescribeLocationSmbOutput
 
 	resourceName := "aws_datasync_location_smb.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
@@ -90,7 +91,7 @@ func TestAccAWSDataSyncLocationSmb_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSDataSyncLocationSmbDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSyncLocationSmbConfig(),
+				Config: testAccAWSDataSyncLocationSmbConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDataSyncLocationSmbExists(resourceName, &locationSmb1),
 
@@ -116,6 +117,7 @@ func TestAccAWSDataSyncLocationSmb_basic(t *testing.T) {
 func TestAccAWSDataSyncLocationSmb_disappears(t *testing.T) {
 	var locationSmb1 datasync.DescribeLocationSmbOutput
 	resourceName := "aws_datasync_location_smb.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
@@ -123,7 +125,7 @@ func TestAccAWSDataSyncLocationSmb_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAWSDataSyncLocationSmbDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSyncLocationSmbConfig(),
+				Config: testAccAWSDataSyncLocationSmbConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDataSyncLocationSmbExists(resourceName, &locationSmb1),
 					testAccCheckAWSDataSyncLocationSmbDisappears(&locationSmb1),
@@ -137,6 +139,7 @@ func TestAccAWSDataSyncLocationSmb_disappears(t *testing.T) {
 func TestAccAWSDataSyncLocationSmb_Tags(t *testing.T) {
 	var locationSmb1, locationSmb2, locationSmb3 datasync.DescribeLocationSmbOutput
 	resourceName := "aws_datasync_location_smb.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
@@ -144,7 +147,7 @@ func TestAccAWSDataSyncLocationSmb_Tags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSDataSyncLocationSmbDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSyncLocationSmbConfigTags1("key1", "value1"),
+				Config: testAccAWSDataSyncLocationSmbConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDataSyncLocationSmbExists(resourceName, &locationSmb1),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -158,7 +161,7 @@ func TestAccAWSDataSyncLocationSmb_Tags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"password", "server_hostname"},
 			},
 			{
-				Config: testAccAWSDataSyncLocationSmbConfigTags2("key1", "value1updated", "key2", "value2"),
+				Config: testAccAWSDataSyncLocationSmbConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDataSyncLocationSmbExists(resourceName, &locationSmb2),
 					testAccCheckAWSDataSyncLocationSmbNotRecreated(&locationSmb1, &locationSmb2),
@@ -168,7 +171,7 @@ func TestAccAWSDataSyncLocationSmb_Tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSDataSyncLocationSmbConfigTags1("key1", "value1"),
+				Config: testAccAWSDataSyncLocationSmbConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDataSyncLocationSmbExists(resourceName, &locationSmb3),
 					testAccCheckAWSDataSyncLocationSmbNotRecreated(&locationSmb2, &locationSmb3),
@@ -258,31 +261,16 @@ func testAccCheckAWSDataSyncLocationSmbNotRecreated(i, j *datasync.DescribeLocat
 	}
 }
 
-func testAccAWSDataSyncLocationSmbConfigBase() string {
-	gatewayUid := acctest.RandString(5)
+func testAccAWSDataSyncLocationSmbConfigBase(rName string) string {
+	return composeConfig(
+		// Reference: https://docs.aws.amazon.com/datasync/latest/userguide/agent-requirements.html
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "m5.2xlarge", "m5.4xlarge"),
+		fmt.Sprintf(`
+data "aws_partition" "current" {}
 
-	return fmt.Sprintf(`
-data "aws_ami" "aws_thinstaller" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["aws-thinstaller-*"]
-  }
-}
-
-data "aws_ami" "aws_datasync" {
-  most_recent = true
-	# I do not know why, but only in us-west-2 
-	# does the datasync ami _not_ have the amazon-alias.
-	# Reverting to amazon-owner id.
-  owners      = ["633936118553"]
-
-  filter {
-    name   = "name"
-    values = ["aws-datasync-*"]
-  }
+# Reference: https://docs.aws.amazon.com/datasync/latest/userguide/deploy-agents.html
+data "aws_ssm_parameter" "aws_service_datasync_ami" {
+  name = "/aws/service/datasync/ami"
 }
 
 resource "aws_vpc" "test" {
@@ -295,7 +283,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-smb"
@@ -303,73 +291,20 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-smb"
   }
 }
 
-resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+resource "aws_default_route_table" "test" {
+  default_route_table_id = aws_vpc.test.default_route_table_id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.test.id}"
+    gateway_id = aws_internet_gateway.test.id
   }
-
-  tags = {
-    Name = "tf-acc-test-datasync-location-smb"
-  }
-}
-
-resource "aws_route_table_association" "test" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
-}
-
-resource "aws_iam_role" "test" {
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "storagegateway.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
-}
-
-resource "aws_iam_role_policy" "test" {
-  role = "${aws_iam_role.test.name}"
-
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "s3:*"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.test.arn}",
-        "${aws_s3_bucket.test.arn}/*"
-      ],
-      "Effect": "Allow"
-    }
-  ]
-}
-POLICY
-}
-
-resource "aws_s3_bucket" "test" {
-  force_destroy = true
 
   tags = {
     Name = "tf-acc-test-datasync-location-smb"
@@ -377,7 +312,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   egress {
     from_port   = 0
@@ -398,79 +333,14 @@ resource "aws_security_group" "test" {
   }
 }
 
+resource "aws_instance" "test" {
+  depends_on = [aws_default_route_table.test]
 
-resource "aws_instance" "test_gateway" {
-	depends_on = ["aws_internet_gateway.test"]
-
-  ami                         = "${data.aws_ami.aws_thinstaller.id}"
+  ami                         = data.aws_ssm_parameter.aws_service_datasync_ami.value
   associate_public_ip_address = true
-
-  instance_type          = "c5.2xlarge"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
-
-  ebs_block_device {
-    device_name = "/dev/sdf"
-    volume_size = "150"
-  }
-
-  tags = {
-    Name = "tf-acc-test-datasync-smb"
-  }
-}
-
-resource "aws_storagegateway_gateway" "test" {
-  gateway_ip_address = "${aws_instance.test_gateway.public_ip}"
-  gateway_name       = "datasyncsmb-%s"
-  gateway_timezone   = "GMT"
-  gateway_type       = "FILE_S3"
-  smb_guest_password = "ZaphodBeeblebroxPW"
-}
-
-data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "/dev/nvme1n1"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_cache" "test" {
-  # ACCEPTANCE TESTING WORKAROUND:
-	# (Shamelessly stolen from:
-	# https://github.com/terraform-providers/terraform-provider-aws/
-	# blob/1647a5ba13c5abaf5cf65ecdeb7c5fdf0107e56f/aws
-	# /resource_aws_storagegateway_cache_test.go#L219 )
-  # Data sources are not refreshed before plan after apply in TestStep
-  # Step 0 error: After applying this step, the plan was not empty:
-  #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
-  # We expect this data source value to change due to how Storage Gateway works.
-  lifecycle {
-    ignore_changes = ["disk_id"]
-  }
-
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_smb_file_share" "test" {
-  # Use GuestAccess to simplify testing
-  authentication = "GuestAccess"
-  gateway_arn    = "${aws_storagegateway_gateway.test.arn}"
-  location_arn   = "${aws_s3_bucket.test.arn}"
-  role_arn       = "${aws_iam_role.test.arn}"
-
-	# I'm not super sure why this depends_on sadness is required in
-	# the test framework but not the binary so... yolo!
-	depends_on = ["aws_storagegateway_cache.test"]
-}
-
-resource "aws_instance" "test_datasync" {
-  depends_on = ["aws_internet_gateway.test"]
-
-  ami                         = "${data.aws_ami.aws_datasync.id}"
-  associate_public_ip_address = true
-
-  instance_type          = "c5.large"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
+  instance_type               = data.aws_ec2_instance_type_offering.available.instance_type
+  vpc_security_group_ids      = [aws_security_group.test.id]
+  subnet_id                   = aws_subnet.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-smb"
@@ -478,55 +348,52 @@ resource "aws_instance" "test_datasync" {
 }
 
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test_datasync.public_ip}"
-  name       = "datasyncsmb-%s"
+  ip_address = aws_instance.test.public_ip
+  name       = %[1]q
 }
-`, gatewayUid, gatewayUid)
+`, rName))
 }
 
-func testAccAWSDataSyncLocationSmbConfig() string {
-	return testAccAWSDataSyncLocationSmbConfigBase() + fmt.Sprintf(`
+func testAccAWSDataSyncLocationSmbConfig(rName string) string {
+	return testAccAWSDataSyncLocationSmbConfigBase(rName) + `
 resource "aws_datasync_location_smb" "test" {
-	user               = "Guest"
-	password           = "ZaphodBeeblebroxPW"
-	subdirectory       = "/${aws_s3_bucket.test.id}/"
-
-	server_hostname  = "${aws_instance.test_datasync.public_ip}"
-	agent_arns       = ["${aws_datasync_agent.test.arn}"]
+  agent_arns      = [aws_datasync_agent.test.arn]
+  password        = "ZaphodBeeblebroxPW"
+  server_hostname = aws_instance.test.public_ip
+  subdirectory    = "/test/"
+  user            = "Guest"
 }
-`)
+`
 }
 
-func testAccAWSDataSyncLocationSmbConfigTags1(key1, value1 string) string {
-	return testAccAWSDataSyncLocationSmbConfigBase() + fmt.Sprintf(`
+func testAccAWSDataSyncLocationSmbConfigTags1(rName, key1, value1 string) string {
+	return testAccAWSDataSyncLocationSmbConfigBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_location_smb" "test" {
-	user               = "Guest"
-	password           = "ZaphodBeeblebroxPW"
-	subdirectory       = "/${aws_s3_bucket.test.id}/"
-
-	server_hostname  = "${aws_instance.test_datasync.public_ip}"
-	agent_arns       = ["${aws_datasync_agent.test.arn}"]
+  agent_arns      = [aws_datasync_agent.test.arn]
+  password        = "ZaphodBeeblebroxPW"
+  server_hostname = aws_instance.test.public_ip
+  subdirectory    = "/test/"
+  user            = "Guest"
 
   tags = {
-    %q = %q
+    %[1]q = %[2]q
   }
 }
 `, key1, value1)
 }
 
-func testAccAWSDataSyncLocationSmbConfigTags2(key1, value1, key2, value2 string) string {
-	return testAccAWSDataSyncLocationSmbConfigBase() + fmt.Sprintf(`
+func testAccAWSDataSyncLocationSmbConfigTags2(rName, key1, value1, key2, value2 string) string {
+	return testAccAWSDataSyncLocationSmbConfigBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_location_smb" "test" {
-	user               = "Guest"
-	password           = "ZaphodBeeblebroxPW"
-	subdirectory       = "/${aws_s3_bucket.test.id}/"
-
-	server_hostname  = "${aws_instance.test_datasync.public_ip}"
-	agent_arns       = ["${aws_datasync_agent.test.arn}"]
+  agent_arns      = [aws_datasync_agent.test.arn]
+  password        = "ZaphodBeeblebroxPW"
+  server_hostname = aws_instance.test.public_ip
+  subdirectory    = "/test/"
+  user            = "Guest"
 
   tags = {
-    %q = %q
-    %q = %q
+    %[1]q = %[2]q
+    %[3]q = %[4]q
   }
 }
 `, key1, value1, key2, value2)

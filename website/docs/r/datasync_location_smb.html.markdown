@@ -22,7 +22,7 @@ resource "aws_datasync_location_smb" "example" {
   user     = "Guest"
   password = "ANotGreatPassword"
 
-  agent_arns = ["${aws_datasync_agent.example.arn}"]
+  agent_arns = [aws_datasync_agent.example.arn]
 }
 ```
 
@@ -45,7 +45,7 @@ The following arguments are supported inside the `mount_options` configuration b
 
 * `version` - (Optional) The specific SMB version that you want DataSync to use for mounting your SMB share. Valid values: `AUTOMATIC`, `SMB2`, and `SMB3`. Default: `AUTOMATIC`
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

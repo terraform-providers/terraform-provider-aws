@@ -64,3 +64,21 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network ACL Rule
+
+## Import
+
+Individual rules can be imported using `NETWORK_ACL_ID:RULE_NUMBER:PROTOCOL:EGRESS`, where `PROTOCOL` can be a decimal (e.g. 6) or string (e.g. tcp) value.
+If importing a rule previously provisioned by Terraform, the `PROTOCOL` must be the input value used at creation time.
+For more information on protocol numbers and keywords, see here: https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+
+For example, import a network ACL Rule with an argument like this:
+
+```console
+$ terraform import aws_network_acl_rule.my_rule acl-7aaabd18:100:tcp:false
+```
+
+Or by the procotol's decimal value:
+
+```console
+$ terraform import aws_network_acl_rule.my_rule acl-7aaabd18:100:6:false
+```

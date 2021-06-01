@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsPrefixList() *schema.Resource {
@@ -28,6 +28,7 @@ func dataSourceAwsPrefixList() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"filter": dataSourceFiltersSchema(),
 		},
 	}
 }
@@ -35,16 +36,21 @@ func dataSourceAwsPrefixList() *schema.Resource {
 func dataSourceAwsPrefixListRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	req := &ec2.DescribePrefixListsInput{}
+	filters, filtersOk := d.GetOk("filter")
 
+	req := &ec2.DescribePrefixListsInput{}
+	if filtersOk {
+		req.Filters = buildAwsDataSourceFilters(filters.(*schema.Set))
+	}
 	if prefixListID := d.Get("prefix_list_id"); prefixListID != "" {
 		req.PrefixListIds = aws.StringSlice([]string{prefixListID.(string)})
 	}
-	req.Filters = buildEC2AttributeFilterList(
-		map[string]string{
-			"prefix-list-name": d.Get("name").(string),
-		},
-	)
+	if prefixListName := d.Get("name"); prefixListName.(string) != "" {
+		req.Filters = append(req.Filters, &ec2.Filter{
+			Name:   aws.String("prefix-list-name"),
+			Values: aws.StringSlice([]string{prefixListName.(string)}),
+		})
+	}
 
 	log.Printf("[DEBUG] Reading Prefix List: %s", req)
 	resp, err := conn.DescribePrefixLists(req)
@@ -57,7 +63,7 @@ func dataSourceAwsPrefixListRead(d *schema.ResourceData, meta interface{}) error
 
 	pl := resp.PrefixLists[0]
 
-	d.SetId(*pl.PrefixListId)
+	d.SetId(aws.StringValue(pl.PrefixListId))
 	d.Set("name", pl.PrefixListName)
 
 	cidrs := make([]string, len(pl.Cidrs))

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // Base64Encode encodes data if the input isn't already encoded using base64.StdEncoding.EncodeToString.
@@ -51,4 +51,13 @@ func isResourceNotFoundError(err error) bool {
 func isResourceTimeoutError(err error) bool {
 	timeoutErr, ok := err.(*resource.TimeoutError)
 	return ok && timeoutErr.LastError == nil
+}
+
+func appendUniqueString(slice []string, elem string) []string {
+	for _, e := range slice {
+		if e == elem {
+			return slice
+		}
+	}
+	return append(slice, elem)
 }

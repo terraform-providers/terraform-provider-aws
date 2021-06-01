@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsConfigOrganizationCustomRule() *schema.Resource {
@@ -53,7 +53,7 @@ func resourceAwsConfigOrganizationCustomRule() *schema.Resource {
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(0, 2048),
-					validation.ValidateJsonString,
+					validation.StringIsJSON,
 				),
 			},
 			"lambda_function_arn": {

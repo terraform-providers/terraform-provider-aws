@@ -23,7 +23,7 @@ resource "aws_ec2_traffic_mirror_filter" "filter" {
 
 resource "aws_ec2_traffic_mirror_filter_rule" "ruleout" {
   description              = "test rule"
-  traffic_mirror_filter_id = "${aws_ec2_traffic_mirror_filter.filter.id}"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
   destination_cidr_block   = "10.0.0.0/8"
   source_cidr_block        = "10.0.0.0/8"
   rule_number              = 1
@@ -33,7 +33,7 @@ resource "aws_ec2_traffic_mirror_filter_rule" "ruleout" {
 
 resource "aws_ec2_traffic_mirror_filter_rule" "rulein" {
   description              = "test rule"
-  traffic_mirror_filter_id = "${aws_ec2_traffic_mirror_filter.filter.id}"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
   destination_cidr_block   = "10.0.0.0/8"
   source_cidr_block        = "10.0.0.0/8"
   rule_number              = 1

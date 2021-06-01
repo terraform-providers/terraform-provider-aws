@@ -6,7 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsBatchJobQueue() *schema.Resource {
@@ -17,7 +18,6 @@ func dataSourceAwsBatchJobQueue() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"arn": {
@@ -39,6 +39,8 @@ func dataSourceAwsBatchJobQueue() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchemaComputed(),
 
 			"priority": {
 				Type:     schema.TypeInt,
@@ -67,6 +69,7 @@ func dataSourceAwsBatchJobQueue() *schema.Resource {
 
 func dataSourceAwsBatchJobQueueRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &batch.DescribeJobQueuesInput{
 		JobQueues: []*string{aws.String(d.Get("name").(string))},
@@ -104,6 +107,10 @@ func dataSourceAwsBatchJobQueueRead(d *schema.ResourceData, meta interface{}) er
 	}
 	if err := d.Set("compute_environment_order", ceos); err != nil {
 		return fmt.Errorf("error setting compute_environment_order: %s", err)
+	}
+
+	if err := d.Set("tags", keyvaluetags.BatchKeyValueTags(jobQueue.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

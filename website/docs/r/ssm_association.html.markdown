@@ -14,11 +14,11 @@ Associates an SSM Document to an instance or EC2 tag.
 
 ```hcl
 resource "aws_ssm_association" "example" {
-  name = "${aws_ssm_document.example.name}"
+  name = aws_ssm_document.example.name
 
   targets {
     key    = "InstanceIds"
-    values = ["${aws_instance.example.id}"]
+    values = [aws_instance.example.id]
   }
 }
 ```

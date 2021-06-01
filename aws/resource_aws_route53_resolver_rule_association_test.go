@@ -6,13 +6,12 @@ import (
 	"testing"
 	"time"
 
-	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -77,7 +76,7 @@ func testSweepRoute53ResolverRuleAssociations(region string) error {
 	return errors
 }
 
-func TestAccAwsRoute53ResolverRuleAssociation_basic(t *testing.T) {
+func TestAccAWSRoute53ResolverRuleAssociation_basic(t *testing.T) {
 	var assn route53resolver.ResolverRuleAssociation
 	resourceNameVpc := "aws_vpc.example"
 	resourceNameRule := "aws_route53_resolver_rule.example"
@@ -86,6 +85,7 @@ func TestAccAwsRoute53ResolverRuleAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverRuleAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -175,8 +175,8 @@ resource "aws_route53_resolver_rule" "example" {
 
 resource "aws_route53_resolver_rule_association" "example" {
   name             = %[1]q
-  resolver_rule_id = "${aws_route53_resolver_rule.example.id}"
-  vpc_id           = "${aws_vpc.example.id}"
+  resolver_rule_id = aws_route53_resolver_rule.example.id
+  vpc_id           = aws_vpc.example.id
 }
 `, name)
 }

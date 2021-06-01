@@ -9,8 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAvailabilityZonesSort(t *testing.T) {
@@ -88,36 +88,70 @@ func TestAccAWSAvailabilityZones_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSAvailabilityZones_BlacklistedNames(t *testing.T) {
-	allDataSourceName := "data.aws_availability_zones.all"
-	blacklistedDataSourceName := "data.aws_availability_zones.test"
+func TestAccAWSAvailabilityZones_AllAvailabilityZones(t *testing.T) {
+	dataSourceName := "data.aws_availability_zones.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsAvailabilityZonesConfigBlacklistedNames(),
+				Config: testAccCheckAwsAvailabilityZonesConfigAllAvailabilityZones(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsAvailabilityZonesBlacklisting(allDataSourceName, blacklistedDataSourceName),
+					testAccCheckAwsAvailabilityZonesMeta(dataSourceName),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSAvailabilityZones_BlacklistedZoneIds(t *testing.T) {
-	allDataSourceName := "data.aws_availability_zones.all"
-	blacklistedDataSourceName := "data.aws_availability_zones.test"
+func TestAccAWSAvailabilityZones_Filter(t *testing.T) {
+	dataSourceName := "data.aws_availability_zones.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsAvailabilityZonesConfigBlacklistedZoneIds(),
+				Config: testAccCheckAwsAvailabilityZonesConfigFilter(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsAvailabilityZonesBlacklisting(allDataSourceName, blacklistedDataSourceName),
+					testAccCheckAwsAvailabilityZonesMeta(dataSourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAvailabilityZones_ExcludeNames(t *testing.T) {
+	allDataSourceName := "data.aws_availability_zones.all"
+	excludeDataSourceName := "data.aws_availability_zones.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsAvailabilityZonesConfigExcludeNames(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAvailabilityZonesExcluded(allDataSourceName, excludeDataSourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAvailabilityZones_ExcludeZoneIds(t *testing.T) {
+	allDataSourceName := "data.aws_availability_zones.all"
+	excludeDataSourceName := "data.aws_availability_zones.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsAvailabilityZonesConfigExcludeZoneIds(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAvailabilityZonesExcluded(allDataSourceName, excludeDataSourceName),
 				),
 			},
 		},
@@ -164,16 +198,16 @@ func testAccCheckAwsAvailabilityZonesMeta(n string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckAwsAvailabilityZonesBlacklisting(allDataSourceName, blacklistedDataSourceName string) resource.TestCheckFunc {
+func testAccCheckAwsAvailabilityZonesExcluded(allDataSourceName, excludeDataSourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		allResourceState, ok := s.RootModule().Resources[allDataSourceName]
 		if !ok {
 			return fmt.Errorf("Resource does not exist: %s", allDataSourceName)
 		}
 
-		blacklistedResourceState, ok := s.RootModule().Resources[blacklistedDataSourceName]
+		excludeResourceState, ok := s.RootModule().Resources[excludeDataSourceName]
 		if !ok {
-			return fmt.Errorf("Resource does not exist: %s", blacklistedDataSourceName)
+			return fmt.Errorf("Resource does not exist: %s", excludeDataSourceName)
 		}
 
 		for _, attribute := range []string{"names.#", "zone_ids.#"} {
@@ -183,13 +217,13 @@ func testAccCheckAwsAvailabilityZonesBlacklisting(allDataSourceName, blacklisted
 				return fmt.Errorf("cannot find %s in %s resource state attributes: %+v", attribute, allDataSourceName, allResourceState.Primary.Attributes)
 			}
 
-			blacklistedValue, ok := blacklistedResourceState.Primary.Attributes[attribute]
+			excludeValue, ok := excludeResourceState.Primary.Attributes[attribute]
 
 			if !ok {
-				return fmt.Errorf("cannot find %s in %s resource state attributes: %+v", attribute, blacklistedDataSourceName, blacklistedResourceState.Primary.Attributes)
+				return fmt.Errorf("cannot find %s in %s resource state attributes: %+v", attribute, excludeDataSourceName, excludeResourceState.Primary.Attributes)
 			}
 
-			if allValue == blacklistedValue {
+			if allValue == excludeValue {
 				return fmt.Errorf("expected %s attribute value difference, got: %s", attribute, allValue)
 			}
 		}
@@ -219,6 +253,22 @@ func testAccCheckAwsAvailabilityZoneState(n string) resource.TestCheckFunc {
 }
 
 func testAccCheckAwsAvailabilityZonesBuildAvailable(attrs map[string]string) ([]string, error) {
+	groupNames, groupNamesOk := attrs["group_names.#"]
+
+	if !groupNamesOk {
+		return nil, fmt.Errorf("Availability Zone Group names list is missing.")
+	}
+
+	groupNamesQty, err := strconv.Atoi(groupNames)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if groupNamesQty < 1 {
+		return nil, fmt.Errorf("No Availability Zone Groups found in region, this is probably a bug.")
+	}
+
 	v, ok := attrs["names.#"]
 	if !ok {
 		return nil, fmt.Errorf("Available AZ name list is missing.")
@@ -246,31 +296,50 @@ func testAccCheckAwsAvailabilityZonesBuildAvailable(attrs map[string]string) ([]
 }
 
 const testAccCheckAwsAvailabilityZonesConfig = `
-data "aws_availability_zones" "availability_zones" { }
+data "aws_availability_zones" "availability_zones" {}
 `
 
-func testAccCheckAwsAvailabilityZonesConfigBlacklistedNames() string {
-	return fmt.Sprintf(`
+func testAccCheckAwsAvailabilityZonesConfigAllAvailabilityZones() string {
+	return `
+data "aws_availability_zones" "test" {
+  all_availability_zones = true
+}
+`
+}
+
+func testAccCheckAwsAvailabilityZonesConfigFilter() string {
+	return `
+data "aws_availability_zones" "test" {
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
+}
+`
+}
+
+func testAccCheckAwsAvailabilityZonesConfigExcludeNames() string {
+	return `
 data "aws_availability_zones" "all" {}
 
 data "aws_availability_zones" "test" {
-  blacklisted_names = ["${data.aws_availability_zones.all.names[0]}"]
+  exclude_names = [data.aws_availability_zones.all.names[0]]
 }
-`)
+`
 }
 
-func testAccCheckAwsAvailabilityZonesConfigBlacklistedZoneIds() string {
-	return fmt.Sprintf(`
+func testAccCheckAwsAvailabilityZonesConfigExcludeZoneIds() string {
+	return `
 data "aws_availability_zones" "all" {}
 
 data "aws_availability_zones" "test" {
-  blacklisted_zone_ids = ["${data.aws_availability_zones.all.zone_ids[0]}"]
+  exclude_zone_ids = [data.aws_availability_zones.all.zone_ids[0]]
 }
-`)
+`
 }
 
 const testAccCheckAwsAvailabilityZonesStateConfig = `
 data "aws_availability_zones" "state_filter" {
-	state = "available"
+  state = "available"
 }
 `

@@ -44,4 +44,5 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - AWS Region.
 * `instance_types` - Set of EC2 Instance Types.

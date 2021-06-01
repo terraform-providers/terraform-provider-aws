@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -59,7 +59,7 @@ func resourceAwsEc2TrafficMirrorFilterCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error while creating traffic filter %s", err)
 	}
 
-	d.SetId(*out.TrafficMirrorFilter.TrafficMirrorFilterId)
+	d.SetId(aws.StringValue(out.TrafficMirrorFilter.TrafficMirrorFilterId))
 
 	if v, ok := d.GetOk("network_services"); ok {
 		input := &ec2.ModifyTrafficMirrorFilterNetworkServicesInput{
@@ -86,14 +86,14 @@ func resourceAwsEc2TrafficMirrorFilterUpdate(d *schema.ResourceData, meta interf
 		}
 
 		o, n := d.GetChange("network_services")
-		newServices := n.(*schema.Set).Difference(o.(*schema.Set)).List()
-		if len(newServices) > 0 {
-			input.AddNetworkServices = expandStringList(newServices)
+		newServices := n.(*schema.Set).Difference(o.(*schema.Set))
+		if newServices.Len() > 0 {
+			input.AddNetworkServices = expandStringSet(newServices)
 		}
 
-		removeServices := o.(*schema.Set).Difference(n.(*schema.Set)).List()
-		if len(removeServices) > 0 {
-			input.RemoveNetworkServices = expandStringList(removeServices)
+		removeServices := o.(*schema.Set).Difference(n.(*schema.Set))
+		if removeServices.Len() > 0 {
+			input.RemoveNetworkServices = expandStringSet(removeServices)
 		}
 
 		_, err := conn.ModifyTrafficMirrorFilterNetworkServices(input)
@@ -115,6 +115,7 @@ func resourceAwsEc2TrafficMirrorFilterUpdate(d *schema.ResourceData, meta interf
 
 func resourceAwsEc2TrafficMirrorFilterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &ec2.DescribeTrafficMirrorFiltersInput{
 		TrafficMirrorFilterIds: aws.StringSlice([]string{d.Id()}),
@@ -141,7 +142,7 @@ func resourceAwsEc2TrafficMirrorFilterRead(d *schema.ResourceData, meta interfac
 	trafficMirrorFilter := out.TrafficMirrorFilters[0]
 	d.Set("description", trafficMirrorFilter.Description)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(trafficMirrorFilter.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(trafficMirrorFilter.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

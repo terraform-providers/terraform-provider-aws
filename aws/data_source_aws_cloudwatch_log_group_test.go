@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSCloudwatchLogGroupDataSource_basic(t *testing.T) {
@@ -104,7 +104,7 @@ resource aws_cloudwatch_log_group "test" {
 }
 
 data aws_cloudwatch_log_group "test" {
-  name = "${aws_cloudwatch_log_group.test.name}"
+  name = aws_cloudwatch_log_group.test.name
 }
 `, rName)
 }
@@ -122,7 +122,7 @@ resource aws_cloudwatch_log_group "test" {
 }
 
 data aws_cloudwatch_log_group "test" {
-  name = "${aws_cloudwatch_log_group.test.name}"
+  name = aws_cloudwatch_log_group.test.name
 }
 `, rName)
 }
@@ -153,12 +153,12 @@ POLICY
 }
 
 resource aws_cloudwatch_log_group "test" {
-  name = "%s"
-  kms_key_id = "${aws_kms_key.foo.arn}"
+  name       = "%s"
+  kms_key_id = aws_kms_key.foo.arn
 }
 
 data aws_cloudwatch_log_group "test" {
-  name = "${aws_cloudwatch_log_group.test.name}"
+  name = aws_cloudwatch_log_group.test.name
 }
 `, rName, rName)
 }
@@ -166,12 +166,12 @@ data aws_cloudwatch_log_group "test" {
 func testAccCheckAWSCloudwatchLogGroupDataSourceConfigRetention(rName string) string {
 	return fmt.Sprintf(`
 resource aws_cloudwatch_log_group "test" {
-  name = "%s"
+  name              = "%s"
   retention_in_days = 365
 }
 
 data aws_cloudwatch_log_group "test" {
-  name = "${aws_cloudwatch_log_group.test.name}"
+  name = aws_cloudwatch_log_group.test.name
 }
 `, rName)
 }

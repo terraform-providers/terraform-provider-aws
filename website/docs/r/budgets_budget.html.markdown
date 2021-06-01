@@ -161,19 +161,19 @@ Refer to [AWS CostTypes documentation](https://docs.aws.amazon.com/aws-cost-mana
 Valid keys for `cost_filters` parameter vary depending on the `budget_type` value.
 
 * `cost`
-  * `AZ`
-  * `LinkedAccount`
-  * `Operation`
-  * `PurchaseType`
-  * `Service`
-  * `TagKeyValue`
+    * `AZ`
+    * `LinkedAccount`
+    * `Operation`
+    * `PurchaseType`
+    * `Service`
+    * `TagKeyValue`
 * `usage`
-  * `AZ`
-  * `LinkedAccount`
-  * `Operation`
-  * `PurchaseType`
-  * `UsageType:<service name>`
-  * `TagKeyValue`
+    * `AZ`
+    * `LinkedAccount`
+    * `Operation`
+    * `PurchaseType`
+    * `UsageType:<service name>`
+    * `TagKeyValue`
 
 Refer to [AWS CostFilter documentation](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/data-type-filter.html) for further detail.
 

@@ -19,6 +19,8 @@ Any tagging functions that cannot be generated should be hand implemented in a s
 ```text
 aws/internal/keyvaluetags
 ├── generators
+│   ├── createtags (generates create_tags_gen.go)
+│   ├── gettag (generates get_tag_gen.go)
 │   ├── listtags (generates list_tags_gen.go)
 │   ├── servicetags (generates service_tags_gen.go)
 │   └── updatetags (generates update_tags_gen.go)

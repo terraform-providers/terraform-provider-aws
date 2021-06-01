@@ -7,14 +7,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEgressOnlyInternetGateway() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsEgressOnlyInternetGatewayCreate,
 		Read:   resourceAwsEgressOnlyInternetGatewayRead,
+		Update: resourceAwsEgressOnlyInternetGatewayUpdate,
 		Delete: resourceAwsEgressOnlyInternetGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -26,6 +28,7 @@ func resourceAwsEgressOnlyInternetGateway() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -34,7 +37,8 @@ func resourceAwsEgressOnlyInternetGatewayCreate(d *schema.ResourceData, meta int
 	conn := meta.(*AWSClient).ec2conn
 
 	resp, err := conn.CreateEgressOnlyInternetGateway(&ec2.CreateEgressOnlyInternetGatewayInput{
-		VpcId: aws.String(d.Get("vpc_id").(string)),
+		VpcId:             aws.String(d.Get("vpc_id").(string)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "egress-only-internet-gateway"),
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating egress internet gateway: %s", err)
@@ -47,6 +51,7 @@ func resourceAwsEgressOnlyInternetGatewayCreate(d *schema.ResourceData, meta int
 
 func resourceAwsEgressOnlyInternetGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var req = &ec2.DescribeEgressOnlyInternetGatewaysInput{
 		EgressOnlyInternetGatewayIds: []*string{aws.String(d.Id())},
@@ -85,6 +90,10 @@ func resourceAwsEgressOnlyInternetGatewayRead(d *schema.ResourceData, meta inter
 		d.Set("vpc_id", igw.Attachments[0].VpcId)
 	}
 
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(igw.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	return nil
 }
 
@@ -97,6 +106,20 @@ func getEc2EgressOnlyInternetGateway(id string, resp *ec2.DescribeEgressOnlyInte
 		}
 	}
 	return nil
+}
+
+func resourceAwsEgressOnlyInternetGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).ec2conn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating Egress Only Internet Gateway (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	return resourceAwsEgressOnlyInternetGatewayRead(d, meta)
 }
 
 func resourceAwsEgressOnlyInternetGatewayDelete(d *schema.ResourceData, meta interface{}) error {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func wafSizeConstraintSetSchema() map[string]*schema.Schema {
@@ -28,7 +28,7 @@ func wafSizeConstraintSetSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"field_to_match": {
-						Type:     schema.TypeSet,
+						Type:     schema.TypeList,
 						Required: true,
 						MaxItems: 1,
 						Elem: &schema.Resource{
@@ -76,7 +76,7 @@ func diffWafSizeConstraints(oldS, newS []interface{}) []*waf.SizeConstraintSetUp
 		updates = append(updates, &waf.SizeConstraintSetUpdate{
 			Action: aws.String(waf.ChangeActionDelete),
 			SizeConstraint: &waf.SizeConstraint{
-				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].(*schema.Set).List()[0].(map[string]interface{})),
+				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].([]interface{})[0].(map[string]interface{})),
 				ComparisonOperator: aws.String(constraint["comparison_operator"].(string)),
 				Size:               aws.Int64(int64(constraint["size"].(int))),
 				TextTransformation: aws.String(constraint["text_transformation"].(string)),
@@ -90,7 +90,7 @@ func diffWafSizeConstraints(oldS, newS []interface{}) []*waf.SizeConstraintSetUp
 		updates = append(updates, &waf.SizeConstraintSetUpdate{
 			Action: aws.String(waf.ChangeActionInsert),
 			SizeConstraint: &waf.SizeConstraint{
-				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].(*schema.Set).List()[0].(map[string]interface{})),
+				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].([]interface{})[0].(map[string]interface{})),
 				ComparisonOperator: aws.String(constraint["comparison_operator"].(string)),
 				Size:               aws.Int64(int64(constraint["size"].(int))),
 				TextTransformation: aws.String(constraint["text_transformation"].(string)),
@@ -310,6 +310,15 @@ func flattenWafRegexMatchTuples(tuples []*waf.RegexMatchTuple) []interface{} {
 	return out
 }
 
+func expandWafRegexMatchTuple(tuple map[string]interface{}) *waf.RegexMatchTuple {
+	ftm := tuple["field_to_match"].([]interface{})
+	return &waf.RegexMatchTuple{
+		FieldToMatch:       expandFieldToMatch(ftm[0].(map[string]interface{})),
+		RegexPatternSetId:  aws.String(tuple["regex_pattern_set_id"].(string)),
+		TextTransformation: aws.String(tuple["text_transformation"].(string)),
+	}
+}
+
 func diffWafRegexMatchSetTuples(oldT, newT []interface{}) []*waf.RegexMatchSetUpdate {
 	updates := make([]*waf.RegexMatchSetUpdate, 0)
 
@@ -321,28 +330,18 @@ func diffWafRegexMatchSetTuples(oldT, newT []interface{}) []*waf.RegexMatchSetUp
 			continue
 		}
 
-		ftm := tuple["field_to_match"].([]interface{})
 		updates = append(updates, &waf.RegexMatchSetUpdate{
-			Action: aws.String(waf.ChangeActionDelete),
-			RegexMatchTuple: &waf.RegexMatchTuple{
-				FieldToMatch:       expandFieldToMatch(ftm[0].(map[string]interface{})),
-				RegexPatternSetId:  aws.String(tuple["regex_pattern_set_id"].(string)),
-				TextTransformation: aws.String(tuple["text_transformation"].(string)),
-			},
+			Action:          aws.String(waf.ChangeActionDelete),
+			RegexMatchTuple: expandWafRegexMatchTuple(tuple),
 		})
 	}
 
 	for _, nt := range newT {
 		tuple := nt.(map[string]interface{})
 
-		ftm := tuple["field_to_match"].([]interface{})
 		updates = append(updates, &waf.RegexMatchSetUpdate{
-			Action: aws.String(waf.ChangeActionInsert),
-			RegexMatchTuple: &waf.RegexMatchTuple{
-				FieldToMatch:       expandFieldToMatch(ftm[0].(map[string]interface{})),
-				RegexPatternSetId:  aws.String(tuple["regex_pattern_set_id"].(string)),
-				TextTransformation: aws.String(tuple["text_transformation"].(string)),
-			},
+			Action:          aws.String(waf.ChangeActionInsert),
+			RegexMatchTuple: expandWafRegexMatchTuple(tuple),
 		})
 	}
 	return updates

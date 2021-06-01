@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSOpsworksGangliaLayer_basic(t *testing.T) {
@@ -15,7 +15,7 @@ func TestAccAWSOpsworksGangliaLayer_basic(t *testing.T) {
 	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_ganglia_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksGangliaLayerDestroy,
 		Steps: []resource.TestStep{
@@ -35,7 +35,7 @@ func TestAccAWSOpsworksGangliaLayer_tags(t *testing.T) {
 	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_ganglia_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksGangliaLayerDestroy,
 		Steps: []resource.TestStep{
@@ -77,13 +77,13 @@ func testAccAwsOpsworksGangliaLayerConfigVpcCreate(name string) string {
 		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_ganglia_layer" "test" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
   name     = %[1]q
   password = %[1]q
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 }
 `, name)
@@ -94,13 +94,13 @@ func testAccAwsOpsworksGangliaLayerConfigTags1(name, tagKey1, tagValue1 string) 
 		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_ganglia_layer" "test" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
   name     = %[1]q
   password = %[1]q
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 
   tags = {
@@ -115,13 +115,13 @@ func testAccAwsOpsworksGangliaLayerConfigTags2(name, tagKey1, tagValue1, tagKey2
 		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_ganglia_layer" "test" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
   name     = %[1]q
   password = %[1]q
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 
   tags = {

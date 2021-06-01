@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudhsmv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -154,6 +154,10 @@ func resourceAwsCloudHsmV2ClusterCreate(d *schema.ResourceData, meta interface{}
 		SubnetIds: expandStringSet(d.Get("subnet_ids").(*schema.Set)),
 	}
 
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		input.TagList = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Cloudhsmv2Tags()
+	}
+
 	backupId := d.Get("source_backup_identifier").(string)
 	if len(backupId) != 0 {
 		input.SourceBackupId = aws.String(backupId)
@@ -211,17 +215,12 @@ func resourceAwsCloudHsmV2ClusterCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Cloudhsmv2UpdateTags(conn, d.Id(), nil, v); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
-	}
-
 	return resourceAwsCloudHsmV2ClusterRead(d, meta)
 }
 
 func resourceAwsCloudHsmV2ClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudhsmv2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	cluster, err := describeCloudHsmV2Cluster(conn, d.Id())
 
@@ -251,13 +250,7 @@ func resourceAwsCloudHsmV2ClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error saving Subnet IDs to state for CloudHSMv2 Cluster (%s): %s", d.Id(), err)
 	}
 
-	tags, err := keyvaluetags.Cloudhsmv2ListTags(conn, d.Id())
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for resource (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Cloudhsmv2KeyValueTags(cluster.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -314,12 +307,12 @@ func resourceAwsCloudHsmV2ClusterDelete(d *schema.ResourceData, meta interface{}
 func readCloudHsmV2ClusterCertificates(cluster *cloudhsmv2.Cluster) []map[string]interface{} {
 	certs := map[string]interface{}{}
 	if cluster.Certificates != nil {
-		if aws.StringValue(cluster.State) == "UNINITIALIZED" {
+		if aws.StringValue(cluster.State) == cloudhsmv2.ClusterStateUninitialized {
 			certs["cluster_csr"] = aws.StringValue(cluster.Certificates.ClusterCsr)
 			certs["aws_hardware_certificate"] = aws.StringValue(cluster.Certificates.AwsHardwareCertificate)
 			certs["hsm_certificate"] = aws.StringValue(cluster.Certificates.HsmCertificate)
 			certs["manufacturer_hardware_certificate"] = aws.StringValue(cluster.Certificates.ManufacturerHardwareCertificate)
-		} else if aws.StringValue(cluster.State) == "ACTIVE" {
+		} else if aws.StringValue(cluster.State) == cloudhsmv2.ClusterStateActive {
 			certs["cluster_certificate"] = aws.StringValue(cluster.Certificates.ClusterCertificate)
 		}
 	}

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAWSELB_basic(t *testing.T) {
 	// Must be less than 32 characters for ELB name
-	rName := fmt.Sprintf("TestAccDataSourceAWSELB-%s", acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("TestAccDataSourceAWSELB-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -37,12 +37,12 @@ func TestAccDataSourceAWSELB_basic(t *testing.T) {
 }
 
 func testAccDataSourceAWSELBConfigBasic(rName, testName string) string {
-	return fmt.Sprintf(`
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
 resource "aws_elb" "elb_test" {
   name            = "%[1]s"
   internal        = true
-  security_groups = ["${aws_security_group.elb_test.id}"]
-  subnets         = ["${aws_subnet.elb_test.0.id}", "${aws_subnet.elb_test.1.id}"]
+  security_groups = [aws_security_group.elb_test.id]
+  subnets         = aws_subnet.elb_test[*].id
 
   idle_timeout = 30
 
@@ -63,8 +63,6 @@ variable "subnets" {
   type    = "list"
 }
 
-data "aws_availability_zones" "available" {}
-
 resource "aws_vpc" "elb_test" {
   cidr_block = "10.0.0.0/16"
 
@@ -75,10 +73,10 @@ resource "aws_vpc" "elb_test" {
 
 resource "aws_subnet" "elb_test" {
   count                   = 2
-  vpc_id                  = "${aws_vpc.elb_test.id}"
-  cidr_block              = "${element(var.subnets, count.index)}"
+  vpc_id                  = aws_vpc.elb_test.id
+  cidr_block              = element(var.subnets, count.index)
   map_public_ip_on_launch = true
-  availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
     Name = "tf-acc-elb-data-source"
@@ -88,7 +86,7 @@ resource "aws_subnet" "elb_test" {
 resource "aws_security_group" "elb_test" {
   name        = "%[1]s"
   description = "%[2]s"
-  vpc_id      = "${aws_vpc.elb_test.id}"
+  vpc_id      = aws_vpc.elb_test.id
 
   ingress {
     from_port = 0
@@ -110,7 +108,7 @@ resource "aws_security_group" "elb_test" {
 }
 
 data "aws_elb" "elb_test" {
-  name = "${aws_elb.elb_test.name}"
+  name = aws_elb.elb_test.name
 }
 `, rName, testName)
 }

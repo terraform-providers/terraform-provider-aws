@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsSfnActivity() *schema.Resource {
@@ -73,7 +73,7 @@ func dataSourceAwsSfnActivityRead(d *schema.ResourceData, meta interface{}) erro
 
 		act := acts[0]
 
-		d.SetId(*act.ActivityArn)
+		d.SetId(aws.StringValue(act.ActivityArn))
 		d.Set("name", act.Name)
 		d.Set("arn", act.ActivityArn)
 		if err := d.Set("creation_date", act.CreationDate.Format(time.RFC3339)); err != nil {
@@ -96,7 +96,7 @@ func dataSourceAwsSfnActivityRead(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("No activity found with arn %s in this region", arn)
 		}
 
-		d.SetId(*act.ActivityArn)
+		d.SetId(aws.StringValue(act.ActivityArn))
 		d.Set("name", act.Name)
 		d.Set("arn", act.ActivityArn)
 		if err := d.Set("creation_date", act.CreationDate.Format(time.RFC3339)); err != nil {

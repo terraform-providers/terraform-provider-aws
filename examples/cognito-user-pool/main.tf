@@ -1,3 +1,11 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
 resource "aws_iam_role" "main" {
   name = "terraform-example-lambda"
 
@@ -21,7 +29,7 @@ EOF
 resource "aws_lambda_function" "main" {
   filename      = "lambda.zip"
   function_name = "terraform-example"
-  role          = "${aws_iam_role.main.arn}"
+  role          = aws_iam_role.main.arn
   handler       = "exports.example"
   runtime       = "nodejs4.3"
 }
@@ -54,7 +62,7 @@ POLICY
 
 resource "aws_iam_role_policy" "main" {
   name = "terraform-example-cognito-idp"
-  role = "${aws_iam_role.cidp.id}"
+  role = aws_iam_role.cidp.id
 
   policy = <<EOF
 {
@@ -99,16 +107,16 @@ resource "aws_cognito_user_pool" "pool" {
   }
 
   lambda_config {
-    create_auth_challenge          = "${aws_lambda_function.main.arn}"
-    custom_message                 = "${aws_lambda_function.main.arn}"
-    define_auth_challenge          = "${aws_lambda_function.main.arn}"
-    post_authentication            = "${aws_lambda_function.main.arn}"
-    post_confirmation              = "${aws_lambda_function.main.arn}"
-    pre_authentication             = "${aws_lambda_function.main.arn}"
-    pre_sign_up                    = "${aws_lambda_function.main.arn}"
-    pre_token_generation           = "${aws_lambda_function.main.arn}"
-    user_migration                 = "${aws_lambda_function.main.arn}"
-    verify_auth_challenge_response = "${aws_lambda_function.main.arn}"
+    create_auth_challenge          = aws_lambda_function.main.arn
+    custom_message                 = aws_lambda_function.main.arn
+    define_auth_challenge          = aws_lambda_function.main.arn
+    post_authentication            = aws_lambda_function.main.arn
+    post_confirmation              = aws_lambda_function.main.arn
+    pre_authentication             = aws_lambda_function.main.arn
+    pre_sign_up                    = aws_lambda_function.main.arn
+    pre_token_generation           = aws_lambda_function.main.arn
+    user_migration                 = aws_lambda_function.main.arn
+    verify_auth_challenge_response = aws_lambda_function.main.arn
   }
 
   schema {
@@ -139,7 +147,7 @@ resource "aws_cognito_user_pool" "pool" {
 
   sms_configuration {
     external_id    = "12345"
-    sns_caller_arn = "${aws_iam_role.cidp.arn}"
+    sns_caller_arn = aws_iam_role.cidp.arn
   }
 
   tags = {

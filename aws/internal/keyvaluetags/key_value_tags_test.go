@@ -60,6 +60,203 @@ func TestKeyValueTagsIgnoreAws(t *testing.T) {
 	}
 }
 
+func TestKeyValueTagsIgnoreConfig(t *testing.T) {
+	testCases := []struct {
+		name         string
+		tags         KeyValueTags
+		ignoreConfig *IgnoreConfig
+		want         map[string]string
+	}{
+		{
+			name: "empty config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: nil,
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no tags",
+			tags: New(map[string]string{}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key1",
+					"key2",
+					"key3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "keys all matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "keys some matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New(map[string]string{
+					"key1": "value1",
+				}),
+			},
+			want: map[string]string{
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys none matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New(map[string]string{
+					"key4": "value4",
+					"key5": "value5",
+					"key6": "value6",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys and key prefixes",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New([]string{
+					"key1",
+				}),
+				KeyPrefixes: New([]string{
+					"key2",
+				}),
+			},
+			want: map[string]string{
+				"key3": "value3",
+			},
+		},
+		{
+			name: "key prefixes all exact",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key1",
+					"key2",
+					"key3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "key prefixes all prefixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "key prefixes some prefixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key1",
+				}),
+			},
+			want: map[string]string{
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "key prefixes none prefixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key4",
+					"key5",
+					"key6",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.IgnoreConfig(testCase.ignoreConfig)
+
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+		})
+	}
+}
+
 func TestKeyValueTagsIgnoreElasticbeanstalk(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -336,6 +533,348 @@ func TestKeyValueTagsIgnore(t *testing.T) {
 	}
 }
 
+func TestKeyValueTagsKeyAdditionalBoolValue(t *testing.T) {
+	testCases := []struct {
+		name  string
+		tags  KeyValueTags
+		key   string
+		field string
+		want  *bool
+	}{
+		{
+			name:  "empty",
+			tags:  New(map[string]*string{}),
+			key:   "key1",
+			field: "field1",
+			want:  nil,
+		},
+		{
+			name:  "non-existent key",
+			tags:  New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:   "key2",
+			field: "field2",
+			want:  nil,
+		},
+		{
+			name:  "non-existent TagData",
+			tags:  New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:   "key1",
+			field: "field1",
+			want:  nil,
+		},
+		{
+			name: "non-existent field",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+					Value:                testStringPtr("value1"),
+				},
+			}),
+			key:   "key1",
+			field: "field2",
+			want:  nil,
+		},
+		{
+			name: "matching value",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+					Value:                testStringPtr("value1"),
+				},
+			}),
+			key:   "key1",
+			field: "field1",
+			want:  testBoolPtr(true),
+		},
+		{
+			name: "matching nil",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalBoolFields: map[string]*bool{"field1": nil},
+					Value:                testStringPtr("value1"),
+				},
+			}),
+			key:   "key1",
+			field: "field1",
+			want:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyAdditionalBoolValue(testCase.key, testCase.field)
+
+			if testCase.want == nil && got != nil {
+				t.Fatalf("expected: nil, got: %#v", got)
+			}
+
+			if testCase.want != nil && got == nil {
+				t.Fatalf("expected: %#v, got: nil", testCase.want)
+			}
+
+			if testCase.want != nil && got != nil && *testCase.want != *got {
+				t.Fatalf("expected: %#v, got: %#v", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestKeyValueTagsKeyAdditionalStringValue(t *testing.T) {
+	testCases := []struct {
+		name  string
+		tags  KeyValueTags
+		key   string
+		field string
+		want  *string
+	}{
+		{
+			name:  "empty",
+			tags:  New(map[string]*string{}),
+			key:   "key1",
+			field: "field1",
+			want:  nil,
+		},
+		{
+			name:  "non-existent key",
+			tags:  New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:   "key2",
+			field: "field2",
+			want:  nil,
+		},
+		{
+			name:  "non-existent TagData",
+			tags:  New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:   "key1",
+			field: "field1",
+			want:  nil,
+		},
+		{
+			name: "non-existent field",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+					Value:                  testStringPtr("value1"),
+				},
+			}),
+			key:   "key1",
+			field: "field2",
+			want:  nil,
+		},
+		{
+			name: "matching value",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+					Value:                  testStringPtr("value1"),
+				},
+			}),
+			key:   "key1",
+			field: "field1",
+			want:  testStringPtr("field1value"),
+		},
+		{
+			name: "matching nil",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalStringFields: map[string]*string{"field1": nil},
+					Value:                  testStringPtr("value1"),
+				},
+			}),
+			key:   "key1",
+			field: "field1",
+			want:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyAdditionalStringValue(testCase.key, testCase.field)
+
+			if testCase.want == nil && got != nil {
+				t.Fatalf("expected: nil, got: %#v", got)
+			}
+
+			if testCase.want != nil && got == nil {
+				t.Fatalf("expected: %#v, got: nil", testCase.want)
+			}
+
+			if testCase.want != nil && got != nil && *testCase.want != *got {
+				t.Fatalf("expected: %#v, got: %#v", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestKeyValueTagsKeyExists(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		key  string
+		want bool
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]*string{}),
+			key:  "key1",
+			want: false,
+		},
+		{
+			name: "non-existent",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key2",
+			want: false,
+		},
+		{
+			name: "matching with string value",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key1",
+			want: true,
+		},
+		{
+			name: "matching with nil value",
+			tags: New(map[string]*string{"key1": nil}),
+			key:  "key1",
+			want: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyExists(testCase.key)
+
+			if got != testCase.want {
+				t.Fatalf("expected: %t, got: %t", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestKeyValueTagsKeyTagData(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		key  string
+		want *TagData
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]*string{}),
+			key:  "key1",
+			want: nil,
+		},
+		{
+			name: "non-existent",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key2",
+			want: nil,
+		},
+		{
+			name: "matching with additional boolean fields",
+			tags: New(map[string]*TagData{
+				"key1": {
+					AdditionalBoolFields: map[string]*bool{"boolfield": testBoolPtr(true)},
+					Value:                testStringPtr("value1"),
+				},
+			}),
+			key: "key1",
+			want: &TagData{
+				AdditionalBoolFields: map[string]*bool{"boolfield": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+		},
+		{
+			name: "matching with string value",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key1",
+			want: &TagData{
+				Value: testStringPtr("value1"),
+			},
+		},
+		{
+			name: "matching with nil value",
+			tags: New(map[string]*string{"key1": nil}),
+			key:  "key1",
+			want: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyTagData(testCase.key)
+
+			if testCase.want == nil && got != nil {
+				t.Fatalf("expected: nil, got: %#v", *got)
+			}
+
+			if testCase.want != nil && got == nil {
+				t.Fatalf("expected: %#v, got: nil", *testCase.want)
+			}
+
+			if testCase.want != nil && got != nil && !testCase.want.Equal(got) {
+				t.Fatalf("expected: %#v, got: %#v", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestKeyValueTagsKeyValues(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		key  string
+		want *string
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]*string{}),
+			key:  "key1",
+			want: nil,
+		},
+		{
+			name: "non-existent",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key2",
+			want: nil,
+		},
+		{
+			name: "matching with string value",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key1",
+			want: testStringPtr("value1"),
+		},
+		{
+			name: "matching with nil value",
+			tags: New(map[string]*string{"key1": nil}),
+			key:  "key1",
+			want: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyValue(testCase.key)
+
+			if testCase.want == nil && got != nil {
+				t.Fatalf("expected: nil, got: %s", *got)
+			}
+
+			if testCase.want != nil && got == nil {
+				t.Fatalf("expected: %s, got: nil", *testCase.want)
+			}
+
+			if testCase.want != nil && got != nil && *testCase.want != *got {
+				t.Fatalf("expected: %s, got: %s", *testCase.want, *got)
+			}
+		})
+	}
+}
+
 func TestKeyValueTagsKeys(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -503,6 +1042,15 @@ func TestKeyValueTagsMap(t *testing.T) {
 				"key3": "value3",
 			},
 		},
+		{
+			name: "nil_value",
+			tags: New(map[string]*string{
+				"key1": nil,
+			}),
+			want: map[string]string{
+				"key1": "",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -589,6 +1137,80 @@ func TestKeyValueTagsMerge(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			got := testCase.tags.Merge(testCase.mergeTags)
+
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+		})
+	}
+}
+
+func TestKeyValueTagsOnly(t *testing.T) {
+	testCases := []struct {
+		name     string
+		tags     KeyValueTags
+		onlyTags KeyValueTags
+		want     map[string]string
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]string{}),
+			onlyTags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			want: map[string]string{},
+		},
+		{
+			name: "all",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			onlyTags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "mixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			onlyTags: New(map[string]string{
+				"key1": "value1",
+			}),
+			want: map[string]string{
+				"key1": "value1",
+			},
+		},
+		{
+			name: "none",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			onlyTags: New(map[string]string{
+				"key4": "value4",
+				"key5": "value5",
+				"key6": "value6",
+			}),
+			want: map[string]string{},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.Only(testCase.onlyTags)
 
 			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
 		})
@@ -855,6 +1477,16 @@ func TestKeyValueTagsContainsAll(t *testing.T) {
 			want:   true,
 		},
 		{
+			name: "nil value matches",
+			source: New(map[string]*string{
+				"key1": nil,
+			}),
+			target: New(map[string]*string{
+				"key1": nil,
+			}),
+			want: true,
+		},
+		{
 			name: "exact_match",
 			source: New(map[string]string{
 				"key1": "value1",
@@ -917,6 +1549,13 @@ func TestKeyValueTagsHash(t *testing.T) {
 			zero: true,
 		},
 		{
+			name: "nil value",
+			tags: New(map[string]*string{
+				"key1": nil,
+			}),
+			zero: false,
+		},
+		{
 			name: "not_empty",
 			tags: New(map[string]string{
 				"key1": "value1",
@@ -948,6 +1587,13 @@ func TestKeyValueTagsUrlEncode(t *testing.T) {
 		{
 			name: "empty",
 			tags: New(map[string]string{}),
+			want: "",
+		},
+		{
+			name: "nil value",
+			tags: New(map[string]*string{
+				"key1": nil,
+			}),
 			want: "",
 		},
 		{
@@ -983,6 +1629,280 @@ func TestKeyValueTagsUrlEncode(t *testing.T) {
 
 			if got != testCase.want {
 				t.Errorf("unexpected URL encoded value: %q", got)
+			}
+		})
+	}
+}
+
+func TestTagDataEqual(t *testing.T) {
+	testCases := []struct {
+		name     string
+		tagData1 *TagData
+		tagData2 *TagData
+		want     bool
+	}{
+		{
+			name:     "both nil",
+			tagData1: nil,
+			tagData2: nil,
+			want:     true,
+		},
+		{
+			name:     "first nil",
+			tagData1: nil,
+			tagData2: &TagData{
+				Value: testStringPtr("value1"),
+			},
+			want: false,
+		},
+		{
+			name: "second nil",
+			tagData1: &TagData{
+				Value: testStringPtr("value1"),
+			},
+			tagData2: nil,
+			want:     false,
+		},
+		{
+			name: "differing value",
+			tagData1: &TagData{
+				Value: testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				Value: testStringPtr("value2"),
+			},
+			want: false,
+		},
+		{
+			name: "differing additional bool fields",
+			tagData1: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field2": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+			want: false,
+		},
+		{
+			name: "differing additional bool field values",
+			tagData1: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(false)},
+				Value:                testStringPtr("value1"),
+			},
+			want: false,
+		},
+		{
+			name: "differing additional string fields",
+			tagData1: &TagData{
+				AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+				Value:                  testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				AdditionalStringFields: map[string]*string{"field2": testStringPtr("field1value")},
+				Value:                  testStringPtr("value1"),
+			},
+			want: false,
+		},
+		{
+			name: "differing additional string field values",
+			tagData1: &TagData{
+				AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+				Value:                  testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				AdditionalStringFields: map[string]*string{"field1": testStringPtr("field2value")},
+				Value:                  testStringPtr("value1"),
+			},
+			want: false,
+		},
+		{
+			name: "same value",
+			tagData1: &TagData{
+				Value: testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				Value: testStringPtr("value1"),
+			},
+			want: true,
+		},
+		{
+			name: "same additional bool fields",
+			tagData1: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+			want: true,
+		},
+		{
+			name: "same additional string fields",
+			tagData1: &TagData{
+				AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+				Value:                  testStringPtr("value1"),
+			},
+			tagData2: &TagData{
+				AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+				Value:                  testStringPtr("value1"),
+			},
+			want: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tagData1.Equal(testCase.tagData2)
+
+			if testCase.want != got {
+				t.Fatalf("expected: %t, got: %t", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestTagDataString(t *testing.T) {
+	testCases := []struct {
+		name    string
+		tagData *TagData
+		want    string
+	}{
+		{
+			name:    "nil",
+			tagData: nil,
+			want:    "",
+		},
+		{
+			name: "value",
+			tagData: &TagData{
+				Value: testStringPtr("value1"),
+			},
+			want: "TagData{Value: value1}",
+		},
+		{
+			name: "additional bool fields",
+			tagData: &TagData{
+				AdditionalBoolFields: map[string]*bool{"field1": testBoolPtr(true)},
+				Value:                testStringPtr("value1"),
+			},
+			want: "TagData{AdditionalBoolFields: map[field1:true], Value: value1}",
+		},
+		{
+			name: "additional string fields",
+			tagData: &TagData{
+				AdditionalStringFields: map[string]*string{"field1": testStringPtr("field1value")},
+				Value:                  testStringPtr("value1"),
+			},
+			want: "TagData{AdditionalStringFields: map[field1:field1value], Value: value1}",
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tagData.String()
+
+			if testCase.want != got {
+				t.Fatalf("expected: %s, got: %s", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestToSnakeCase(t *testing.T) {
+	testCases := []struct {
+		Input    string
+		Expected string
+	}{
+		{
+			Input:    "ARN",
+			Expected: "arn",
+		},
+		{
+			Input:    "PropagateAtLaunch",
+			Expected: "propagate_at_launch",
+		},
+		{
+			Input:    "ResourceId",
+			Expected: "resource_id",
+		},
+		{
+			Input:    "ResourceArn",
+			Expected: "resource_arn",
+		},
+		{
+			Input:    "ResourceARN",
+			Expected: "resource_arn",
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.Input, func(t *testing.T) {
+			got := ToSnakeCase(testCase.Input)
+
+			if got != testCase.Expected {
+				t.Errorf("got %s, expected %s", got, testCase.Expected)
+			}
+		})
+	}
+}
+
+func TestKeyValueTagsString(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		want string
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]string{}),
+			want: "map[]",
+		},
+		{
+			name: "no value",
+			tags: New(map[string]*string{
+				"key1": nil,
+			}),
+			want: "map[key1:]",
+		},
+		{
+			name: "single",
+			tags: New(map[string]string{
+				"key1": "value1",
+			}),
+			want: "map[key1:TagData{Value: value1}]",
+		},
+		{
+			name: "multiple",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key3": "value3",
+				"key2": "value2",
+				"key5": "value5",
+				"key4": "value4",
+			}),
+			want: "map[key1:TagData{Value: value1} key2:TagData{Value: value2} key3:TagData{Value: value3} key4:TagData{Value: value4} key5:TagData{Value: value5}]",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.String()
+
+			if got != testCase.want {
+				t.Errorf("unexpected string value: %q", got)
 			}
 		})
 	}
@@ -1039,6 +1959,10 @@ func testKeyValueTagsVerifyMap(t *testing.T, got map[string]string, want map[str
 			t.Errorf("got extra key: %s", k)
 		}
 	}
+}
+
+func testBoolPtr(b bool) *bool {
+	return &b
 }
 
 func testStringPtr(str string) *string {

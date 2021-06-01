@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsAutoscalingPolicy() *schema.Resource {
@@ -70,11 +70,6 @@ func resourceAwsAutoscalingPolicy() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"min_adjustment_step": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Removed:  "Use `min_adjustment_magnitude` argument instead",
 			},
 			"scaling_adjustment": {
 				Type:          schema.TypeInt,
@@ -462,7 +457,7 @@ func expandTargetTrackingConfiguration(configs []interface{}) *autoscaling.Targe
 			MetricName: aws.String(spec["metric_name"].(string)),
 			Statistic:  aws.String(spec["statistic"].(string)),
 		}
-		if val, ok := spec["unit"]; ok {
+		if val, ok := spec["unit"]; ok && len(val.(string)) > 0 {
 			customSpec.Unit = aws.String(val.(string))
 		}
 		if val, ok := spec["metric_dimension"]; ok {

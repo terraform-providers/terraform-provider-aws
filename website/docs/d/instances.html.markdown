@@ -38,14 +38,14 @@ data "aws_instances" "test" {
 }
 
 resource "aws_eip" "test" {
-  count    = "${length(data.aws_instances.test.ids)}"
-  instance = "${data.aws_instances.test.ids[count.index]}"
+  count    = length(data.aws_instances.test.ids)
+  instance = data.aws_instances.test.ids[count.index]
 }
 ```
 
 ## Argument Reference
 
-* `instance_tags` - (Optional) A mapping of tags, each pair of which must
+* `instance_tags` - (Optional) A map of tags, each pair of which must
 exactly match a pair on desired instances.
 
 * `instance_state_names` - (Optional) A list of instance states that should be applicable to the desired instances. The permitted values are: `pending, running, shutting-down, stopped, stopping, terminated`. The default value is `running`.
@@ -56,6 +56,7 @@ several valid keys, for a full reference, check out
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - IDs of instances found through the filter
 * `private_ips` - Private IP addresses of instances found through the filter
 * `public_ips` - Public IP addresses of instances found through the filter

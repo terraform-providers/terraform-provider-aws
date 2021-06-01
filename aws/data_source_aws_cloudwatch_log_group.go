@@ -3,7 +3,7 @@ package aws
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -40,6 +40,7 @@ func dataSourceAwsCloudwatchLogGroup() *schema.Resource {
 func dataSourceAwsCloudwatchLogGroupRead(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	conn := meta.(*AWSClient).cloudwatchlogsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	logGroup, err := lookupCloudWatchLogGroup(conn, name)
 	if err != nil {
@@ -61,7 +62,7 @@ func dataSourceAwsCloudwatchLogGroupRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for CloudWatch Logs Group (%s): %s", name, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

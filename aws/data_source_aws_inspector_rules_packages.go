@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsInspectorRulesPackages() *schema.Resource {
@@ -29,7 +28,6 @@ func dataSourceAwsInspectorRulesPackagesRead(d *schema.ResourceData, meta interf
 	conn := meta.(*AWSClient).inspectorconn
 
 	log.Printf("[DEBUG] Reading Rules Packages.")
-	d.SetId(time.Now().UTC().String())
 
 	var arns []string
 
@@ -48,6 +46,8 @@ func dataSourceAwsInspectorRulesPackagesRead(d *schema.ResourceData, meta interf
 	if len(arns) == 0 {
 		return errors.New("No rules packages found.")
 	}
+
+	d.SetId(meta.(*AWSClient).region)
 
 	sort.Strings(arns)
 	d.Set("arns", arns)

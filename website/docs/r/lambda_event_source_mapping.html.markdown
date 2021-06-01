@@ -19,8 +19,8 @@ For information about event source mappings, see [CreateEventSourceMapping][2] i
 
 ```hcl
 resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn  = "${aws_dynamodb_table.example.stream_arn}"
-  function_name     = "${aws_lambda_function.example.arn}"
+  event_source_arn  = aws_dynamodb_table.example.stream_arn
+  function_name     = aws_lambda_function.example.arn
   starting_position = "LATEST"
 }
 ```
@@ -29,8 +29,8 @@ resource "aws_lambda_event_source_mapping" "example" {
 
 ```hcl
 resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn  = "${aws_kinesis_stream.example.arn}"
-  function_name     = "${aws_lambda_function.example.arn}"
+  event_source_arn  = aws_kinesis_stream.example.arn
+  function_name     = aws_lambda_function.example.arn
   starting_position = "LATEST"
 }
 ```
@@ -39,15 +39,15 @@ resource "aws_lambda_event_source_mapping" "example" {
 
 ```hcl
 resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn = "${aws_sqs_queue.sqs_queue_test.arn}"
-  function_name    = "${aws_lambda_function.example.arn}"
+  event_source_arn = aws_sqs_queue.sqs_queue_test.arn
+  function_name    = aws_lambda_function.example.arn
 }
 ```
 
 ## Argument Reference
 
 * `batch_size` - (Optional) The largest number of records that Lambda will retrieve from your event source at the time of invocation. Defaults to `100` for DynamoDB and Kinesis, `10` for SQS.
-* `maximum_batching_window_in_seconds` - (Optional) The maximum amount of time to gather records before invoking the function, in seconds.  Records will continue to buffer until either `maximum_batching_window_in_seconds` expires or `batch_size` has been met. Defaults to as soon as records are available in the stream. If the batch it reads from the stream only has one record in it, Lambda only sends one record to the function.
+* `maximum_batching_window_in_seconds` - (Optional) The maximum amount of time to gather records before invoking the function, in seconds (between 0 and 300). Records will continue to buffer (or accumulate in the case of an SQS queue event source) until either `maximum_batching_window_in_seconds` expires or `batch_size` has been met. For streaming event sources, defaults to as soon as records are available in the stream. If the batch it reads from the stream/queue only has one record in it, Lambda only sends one record to the function.
 * `event_source_arn` - (Required) The event source ARN - can be a Kinesis stream, DynamoDB stream, or SQS queue.
 * `enabled` - (Optional) Determines if the mapping will be enabled on creation. Defaults to `true`.
 * `function_name` - (Required) The name or the ARN of the Lambda function that will be subscribing to events.
@@ -68,6 +68,8 @@ resource "aws_lambda_event_source_mapping" "example" {
 * `destination_arn` - (Required) The Amazon Resource Name (ARN) of the destination resource.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `function_arn` - The the ARN of the Lambda function the event source mapping is sending events to. (Note: this is a computed value that differs from `function_name` above.)
 * `last_modified` - The date this resource was last modified.

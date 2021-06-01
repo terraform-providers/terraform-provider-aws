@@ -35,7 +35,7 @@ resource "aws_autoscaling_policy" "bat" {
   scaling_adjustment     = 4
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = "${aws_autoscaling_group.bar.name}"
+  autoscaling_group_name = aws_autoscaling_group.bar.name
 }
 
 resource "aws_cloudwatch_metric_alarm" "bat" {
@@ -49,11 +49,11 @@ resource "aws_cloudwatch_metric_alarm" "bat" {
   threshold           = "80"
 
   dimensions = {
-    AutoScalingGroupName = "${aws_autoscaling_group.bar.name}"
+    AutoScalingGroupName = aws_autoscaling_group.bar.name
   }
 
   alarm_description = "This metric monitors ec2 cpu utilization"
-  alarm_actions     = ["${aws_autoscaling_policy.bat.arn}"]
+  alarm_actions     = [aws_autoscaling_policy.bat.arn]
 }
 ```
 
@@ -146,7 +146,7 @@ resource "aws_cloudwatch_metric_alarm" "xx_anomaly_detection" {
 ## Example of monitoring Healthy Hosts on NLB using Target Group and NLB
 
 ```hcl
-resource "aws_cloudwatch_metric_alarm" "xxx_nlb_healthyhosts" {
+resource "aws_cloudwatch_metric_alarm" "nlb_healthyhosts" {
   alarm_name          = "alarmname"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
@@ -155,7 +155,7 @@ resource "aws_cloudwatch_metric_alarm" "xxx_nlb_healthyhosts" {
   period              = "60"
   statistic           = "Average"
   threshold           = var.logstash_servers_count
-  alarm_description   = "Number of XXXX nodes healthy in Target Group"
+  alarm_description   = "Number of healthy nodes in Target Group"
   actions_enabled     = "true"
   alarm_actions       = [aws_sns_topic.sns.arn]
   ok_actions          = [aws_sns_topic.sns.arn]
@@ -205,7 +205,7 @@ If you specify `evaluate` or omit this parameter, the alarm will always be
 evaluated and possibly change state no matter how many data points are available.
 The following values are supported: `ignore`, and `evaluate`.
 * `metric_query` (Optional) Enables you to create an alarm based on a metric math expression. You may specify at most 20.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ~> **NOTE:**  If you specify at least one `metric_query`, you may not specify a `metric_name`, `namespace`, `period` or `statistic`. If you do not specify a `metric_query`, you must specify each of these (although you may use `extended_statistic` instead of `statistic`).
 

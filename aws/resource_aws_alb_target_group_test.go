@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestALBTargetGroupCloudwatchSuffixFromARN(t *testing.T) {
@@ -21,12 +21,12 @@ func TestALBTargetGroupCloudwatchSuffixFromARN(t *testing.T) {
 	}{
 		{
 			name:   "valid suffix",
-			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup/my-targets/73e2d6bc24d8a067`),
+			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup/my-targets/73e2d6bc24d8a067`), //lintignore:AWSAT003,AWSAT005
 			suffix: `targetgroup/my-targets/73e2d6bc24d8a067`,
 		},
 		{
 			name:   "no suffix",
-			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup`),
+			arn:    aws.String(`arn:aws:elasticloadbalancing:us-east-1:123456:targetgroup`), //lintignore:AWSAT003,AWSAT005
 			suffix: ``,
 		},
 		{
@@ -46,7 +46,7 @@ func TestALBTargetGroupCloudwatchSuffixFromARN(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_basic(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -128,8 +128,8 @@ func TestAccAWSALBTargetGroup_generatedName(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupNameBefore := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
-	targetGroupNameAfter := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(4, acctest.CharSetAlphaNum))
+	targetGroupNameBefore := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	targetGroupNameAfter := fmt.Sprintf("test-target-group-%s", acctest.RandString(4))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -157,7 +157,7 @@ func TestAccAWSALBTargetGroup_changeNameForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -185,7 +185,7 @@ func TestAccAWSALBTargetGroup_changeProtocolForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -213,7 +213,7 @@ func TestAccAWSALBTargetGroup_changePortForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -239,7 +239,7 @@ func TestAccAWSALBTargetGroup_changeVpcForceNew(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -270,7 +270,7 @@ func TestAccAWSALBTargetGroup_tags(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -332,7 +332,7 @@ func TestAccAWSALBTargetGroup_updateHealthCheck(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -417,7 +417,7 @@ func TestAccAWSALBTargetGroup_updateSticknessEnabled(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 	var before, after elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -445,7 +445,7 @@ func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 
 func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
 	var conf elbv2.TargetGroup
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -628,7 +628,7 @@ func TestAccAWSALBTargetGroup_lambdaMultiValueHeadersEnabled(t *testing.T) {
 }
 
 func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -652,28 +652,29 @@ func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
 }
 
 func testAccAWSALBTargetGroupConfig_basic(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health"
-    interval = 60
-    port = 8081
-    protocol = "HTTP"
-    timeout = 3
-    healthy_threshold = 3
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
 
   tags = {
@@ -691,28 +692,29 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_updatedPort(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 442
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 442
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health"
-    interval = 60
-    port = 8081
-    protocol = "HTTP"
-    timeout = 3
-    healthy_threshold = 3
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
 
   tags = {
@@ -730,28 +732,29 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_updatedProtocol(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTP"
-  vpc_id = "${aws_vpc.test2.id}"
+  vpc_id   = aws_vpc.test2.id
 
   deregistration_delay = 200
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health"
-    interval = 60
-    port = 8081
-    protocol = "HTTP"
-    timeout = 3
-    healthy_threshold = 3
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
 
   tags = {
@@ -777,28 +780,29 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_updatedVpc(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health"
-    interval = 60
-    port = 8081
-    protocol = "HTTP"
-    timeout = 3
-    healthy_threshold = 3
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
 
   tags = {
@@ -816,33 +820,34 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_updateTags(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health"
-    interval = 60
-    port = 8081
-    protocol = "HTTP"
-    timeout = 3
-    healthy_threshold = 3
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
 
   tags = {
     Environment = "Production"
-    Type = "ALB Target Group"
+    Type        = "ALB Target Group"
   }
 }
 
@@ -856,28 +861,29 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_updateHealthCheck(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health2"
-    interval = 30
-    port = 8082
-    protocol = "HTTPS"
-    timeout = 4
-    healthy_threshold = 4
+    path                = "/health2"
+    interval            = 30
+    port                = 8082
+    protocol            = "HTTPS"
+    timeout             = 4
+    healthy_threshold   = 4
     unhealthy_threshold = 4
-    matcher = "200"
+    matcher             = "200"
   }
 }
 
@@ -894,32 +900,34 @@ func testAccAWSALBTargetGroupConfig_stickiness(targetGroupName string, addSticki
 	var stickinessBlock string
 
 	if addStickinessBlock {
-		stickinessBlock = fmt.Sprintf(`stickiness {
-	    enabled = "%t"
-	    type = "lb_cookie"
+		stickinessBlock = fmt.Sprintf(`
+	  stickiness {
+	    enabled         = "%t"
+	    type            = "lb_cookie"
 	    cookie_duration = 10000
 	  }`, enabled)
 	}
 
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
 
   %s
 
   health_check {
-    path = "/health2"
-    interval = 30
-    port = 8082
-    protocol = "HTTPS"
-    timeout = 4
-    healthy_threshold = 4
+    path                = "/health2"
+    interval            = 30
+    port                = 8082
+    protocol            = "HTTPS"
+    timeout             = 4
+    healthy_threshold   = 4
     unhealthy_threshold = 4
-    matcher = "200"
+    matcher             = "200"
   }
 }
 
@@ -939,14 +947,14 @@ func testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName strin
 		algoTypeParam = fmt.Sprintf(`load_balancing_algorithm_type = "%s"`, algoType)
 	}
 
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   %s
-
 }
 
 resource "aws_vpc" "test" {
@@ -959,29 +967,30 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName string, slowStartDuration int) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
-  port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTP"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
-  slow_start = %d
+  slow_start           = %d
 
   stickiness {
-    type = "lb_cookie"
+    type            = "lb_cookie"
     cookie_duration = 10000
   }
 
   health_check {
-    path = "/health"
-    interval = 60
-    port = 8081
-    protocol = "HTTP"
-    timeout = 3
-    healthy_threshold = 3
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
 
   tags = {
@@ -1001,48 +1010,48 @@ resource "aws_vpc" "test" {
 const testAccAWSALBTargetGroupConfig_namePrefix = `
 resource "aws_alb_target_group" "test" {
   name_prefix = "tf-"
-  port = 80
-  protocol = "HTTP"
-  vpc_id = "${aws_vpc.test.id}"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.test.id
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-alb-target-group-name-prefix"
-	}
+  tags = {
+    Name = "terraform-testacc-alb-target-group-name-prefix"
+  }
 }
 `
 
 const testAccAWSALBTargetGroupConfig_generatedName = `
 resource "aws_alb_target_group" "test" {
-  port = 80
+  port     = 80
   protocol = "HTTP"
-	vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 
-	health_check {
-    path = "/health"
-    interval = 60
-    timeout = 3
-    healthy_threshold = 3
+  health_check {
+    path                = "/health"
+    interval            = 60
+    timeout             = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    matcher = "200-299"
+    matcher             = "200-299"
   }
-
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-alb-target-group-generated-name"
-	}
+  tags = {
+    Name = "terraform-testacc-alb-target-group-generated-name"
+  }
 }
 `
 
 func testAccAWSALBTargetGroupConfig_lambda(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-	name = "%s"
-	target_type = "lambda"
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name        = "%s"
+  target_type = "lambda"
 }`, targetGroupName)
 }
 
@@ -1057,10 +1066,11 @@ resource "aws_alb_target_group" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_missing_port(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-  name = "%s"
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id   = aws_vpc.test.id
 }
 
 resource "aws_vpc" "test" {
@@ -1069,10 +1079,11 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_missing_protocol(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-	name = "%s"
-	port = 443
-  vpc_id = "${aws_vpc.test.id}"
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name   = "%s"
+  port   = 443
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_vpc" "test" {
@@ -1081,9 +1092,10 @@ resource "aws_vpc" "test" {
 }
 
 func testAccAWSALBTargetGroupConfig_missing_vpc(targetGroupName string) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
-	name = "%s"
-	port = 443
+	return fmt.Sprintf(`
+resource "aws_alb_target_group" "test" {
+  name     = "%s"
+  port     = 443
   protocol = "HTTPS"
 }
 `, targetGroupName)

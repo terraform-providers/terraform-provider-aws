@@ -6,7 +6,7 @@ description: |-
   Setting AWS SES Identity Notification Topic
 ---
 
-# Resource: ses_identity_notification_topic
+# Resource: aws_ses_identity_notification_topic
 
 Resource for managing SES Identity Notification Topics
 
@@ -14,9 +14,9 @@ Resource for managing SES Identity Notification Topics
 
 ```hcl
 resource "aws_ses_identity_notification_topic" "test" {
-  topic_arn                = "${aws_sns_topic.example.arn}"
+  topic_arn                = aws_sns_topic.example.arn
   notification_type        = "Bounce"
-  identity                 = "${aws_ses_domain_identity.example.domain}"
+  identity                 = aws_ses_domain_identity.example.domain
   include_original_headers = true
 }
 ```

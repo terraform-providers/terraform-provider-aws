@@ -63,6 +63,7 @@ The following arguments are supported:
 * `parameters` - (Optional) Specifies the parameter substitution placeholders to set in the job definition.
 * `retry_strategy` - (Optional) Specifies the retry strategy to use for failed jobs that are submitted with this job definition.
     Maximum number of `retry_strategy` is `1`.  Defined below.
+* `tags` - (Optional) Key-value map of resource tags
 * `timeout` - (Optional) Specifies the timeout for jobs so that if a job runs longer, AWS Batch terminates the job. Maximum number of `timeout` is `1`. Defined below.
 * `type` - (Required) The type of job definition.  Must be `container`
 
@@ -78,7 +79,7 @@ The following arguments are supported:
 
 * `attempt_duration_seconds` - (Optional) The time duration in seconds after which AWS Batch terminates your jobs if they have not finished. The minimum value for the timeout is `60` seconds.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

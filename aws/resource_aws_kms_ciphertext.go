@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsKmsCiphertext() *schema.Resource {
@@ -49,6 +49,7 @@ func resourceAwsKmsCiphertext() *schema.Resource {
 func resourceAwsKmsCiphertextCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kmsconn
 
+	//lintignore:R017 // Allow legacy unstable ID usage in managed resource
 	d.SetId(time.Now().UTC().String())
 
 	req := &kms.EncryptInput{

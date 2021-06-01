@@ -16,7 +16,7 @@ Provides details about a specific Nat Gateway.
 variable "subnet_id" {}
 
 data "aws_nat_gateway" "default" {
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = aws_subnet.public.id
 }
 ```
 
@@ -24,7 +24,7 @@ Usage with tags:
 
 ```hcl
 data "aws_nat_gateway" "default" {
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = aws_subnet.public.id
 
   tags = {
     Name = "gw NAT"
@@ -42,7 +42,7 @@ Nat Gateway whose data will be exported as attributes.
 * `subnet_id` - (Optional) The id of subnet that the Nat Gateway resides in.
 * `vpc_id` - (Optional) The id of the VPC that the Nat Gateway resides in.
 * `state` - (Optional) The state of the NAT gateway (pending | failed | available | deleting | deleted ).
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired Nat Gateway.
 * `filter` - (Optional) Custom filter block as described below.
 
@@ -62,7 +62,7 @@ any fields that are not included in the configuration with the data for
 the selected Nat Gateway.
 
 `addresses` are also exported with the following attributes, when they are relevant:
-Each attachement supports the following:
+Each attachment supports the following:
 
 * `allocation_id` - The Id of the EIP allocated to the selected Nat Gateway.
 * `network_interface_id` - The Id of the ENI allocated to the selected Nat Gateway.

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/servicequotas"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // This resource is different than many since quotas are pre-existing
@@ -159,9 +159,9 @@ data "aws_servicequotas_service_quota" "test" {
 }
 
 resource "aws_servicequotas_service_quota" "test" {
-  quota_code   = "${data.aws_servicequotas_service_quota.test.quota_code}"
-  service_code = "${data.aws_servicequotas_service_quota.test.service_code}"
-  value        = "${data.aws_servicequotas_service_quota.test.value}"
+  quota_code   = data.aws_servicequotas_service_quota.test.quota_code
+  service_code = data.aws_servicequotas_service_quota.test.service_code
+  value        = data.aws_servicequotas_service_quota.test.value
 }
 `, quotaCode, serviceCode)
 }

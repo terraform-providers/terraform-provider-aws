@@ -8,15 +8,22 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/waf/lister"
 )
 
 func init() {
 	resource.AddTestSweepers("aws_waf_regex_match_set", &resource.Sweeper{
 		Name: "aws_waf_regex_match_set",
 		F:    testSweepWafRegexMatchSet,
+		Dependencies: []string{
+			"aws_waf_rate_based_rule",
+			"aws_waf_rule",
+			"aws_waf_rule_group",
+		},
 	})
 }
 
@@ -27,57 +34,65 @@ func testSweepWafRegexMatchSet(region string) error {
 	}
 	conn := client.(*AWSClient).wafconn
 
-	req := &waf.ListRegexMatchSetsInput{}
-	resp, err := conn.ListRegexMatchSets(req)
-	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping WAF Regex Match Set sweep for %s: %s", region, err)
-			return nil
-		}
-		return fmt.Errorf("Error describing WAF Regex Match Sets: %s", err)
-	}
+	var sweeperErrs *multierror.Error
 
-	if len(resp.RegexMatchSets) == 0 {
-		log.Print("[DEBUG] No AWS WAF Regex Match Sets to sweep")
-		return nil
-	}
+	input := &waf.ListRegexMatchSetsInput{}
 
-	for _, s := range resp.RegexMatchSets {
-		resp, err := conn.GetRegexMatchSet(&waf.GetRegexMatchSetInput{
-			RegexMatchSetId: s.RegexMatchSetId,
-		})
-		if err != nil {
-			return err
-		}
-		set := resp.RegexMatchSet
-
-		oldTuples := flattenWafRegexMatchTuples(set.RegexMatchTuples)
-		noTuples := []interface{}{}
-		err = updateRegexMatchSetResource(*set.RegexMatchSetId, oldTuples, noTuples, conn)
-		if err != nil {
-			return fmt.Errorf("Error updating WAF Regex Match Set: %s", err)
+	err = lister.ListRegexMatchSetsPages(conn, input, func(page *waf.ListRegexMatchSetsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		wr := newWafRetryer(conn)
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
-			req := &waf.DeleteRegexMatchSetInput{
-				ChangeToken:     token,
-				RegexMatchSetId: set.RegexMatchSetId,
+		for _, regexMatchSet := range page.RegexMatchSets {
+			id := aws.StringValue(regexMatchSet.RegexMatchSetId)
+
+			r := resourceAwsWafRegexMatchSet()
+			d := r.Data(nil)
+			d.SetId(id)
+
+			// Need to Read first to fill in regex_match_tuple attribute
+			err := r.Read(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error reading WAF Regex Match Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
 			}
-			log.Printf("[INFO] Deleting WAF Regex Match Set: %s", req)
-			return conn.DeleteRegexMatchSet(req)
-		})
-		if err != nil {
-			return fmt.Errorf("error deleting WAF Regex Match Set (%s): %s", aws.StringValue(set.RegexMatchSetId), err)
+
+			// In case it was already deleted
+			if d.Id() == "" {
+				continue
+			}
+
+			err = r.Delete(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting WAF Regex Match Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
 		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping WAF Regex Match Set sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
 	}
 
-	return nil
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAF Regex Match Sets: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
 }
 
 // Serialized acceptance tests due to WAF account limits
 // https://docs.aws.amazon.com/waf/latest/developerguide/limits.html
-func TestAccAWSWafRegexMatchSet(t *testing.T) {
+func TestAccAWSWafRegexMatchSet_serial(t *testing.T) {
 	testCases := map[string]func(t *testing.T){
 		"basic":          testAccAWSWafRegexMatchSet_basic,
 		"changePatterns": testAccAWSWafRegexMatchSet_changePatterns,
@@ -121,10 +136,12 @@ func testAccAWSWafRegexMatchSet_basic(t *testing.T) {
 					computeWafRegexMatchSetTuple(&patternSet, &fieldToMatch, "NONE", &idx),
 					resource.TestCheckResourceAttr(resourceName, "name", matchSetName),
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.#", &idx, "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.data", &idx, "user-agent"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.type", &idx, "HEADER"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.text_transformation", &idx, "NONE"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "user-agent",
+						"field_to_match.0.type": "HEADER",
+						"text_transformation":   "NONE",
+					}),
 				),
 			},
 			{
@@ -158,10 +175,12 @@ func testAccAWSWafRegexMatchSet_changePatterns(t *testing.T) {
 					computeWafRegexMatchSetTuple(&patternSet, &waf.FieldToMatch{Data: aws.String("User-Agent"), Type: aws.String("HEADER")}, "NONE", &idx1),
 					resource.TestCheckResourceAttr(resourceName, "name", matchSetName),
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.#", &idx1, "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.data", &idx1, "user-agent"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.type", &idx1, "HEADER"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.text_transformation", &idx1, "NONE"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "user-agent",
+						"field_to_match.0.type": "HEADER",
+						"text_transformation":   "NONE",
+					}),
 				),
 			},
 			{
@@ -172,10 +191,12 @@ func testAccAWSWafRegexMatchSet_changePatterns(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
 
 					computeWafRegexMatchSetTuple(&patternSet, &waf.FieldToMatch{Data: aws.String("Referer"), Type: aws.String("HEADER")}, "COMPRESS_WHITE_SPACE", &idx2),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.#", &idx2, "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.data", &idx2, "referer"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.type", &idx2, "HEADER"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.text_transformation", &idx2, "COMPRESS_WHITE_SPACE"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "referer",
+						"field_to_match.0.type": "HEADER",
+						"text_transformation":   "COMPRESS_WHITE_SPACE",
+					}),
 				),
 			},
 			{
@@ -358,7 +379,7 @@ resource "aws_waf_regex_match_set" "test" {
       type = "HEADER"
     }
 
-    regex_pattern_set_id = "${aws_waf_regex_pattern_set.test.id}"
+    regex_pattern_set_id = aws_waf_regex_pattern_set.test.id
     text_transformation  = "NONE"
   }
 }
@@ -381,7 +402,7 @@ resource "aws_waf_regex_match_set" "test" {
       type = "HEADER"
     }
 
-    regex_pattern_set_id = "${aws_waf_regex_pattern_set.test.id}"
+    regex_pattern_set_id = aws_waf_regex_pattern_set.test.id
     text_transformation  = "COMPRESS_WHITE_SPACE"
   }
 }

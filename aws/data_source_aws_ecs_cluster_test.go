@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEcsDataSource_ecsCluster(t *testing.T) {
@@ -53,20 +53,21 @@ resource "aws_ecs_cluster" "default" {
 }
 
 data "aws_ecs_cluster" "default" {
-  cluster_name = "${aws_ecs_cluster.default.name}"
+  cluster_name = aws_ecs_cluster.default.name
 }
 `, acctest.RandInt())
 
 var testAccCheckAwsEcsClusterDataSourceConfigContainerInsights = fmt.Sprintf(`
 resource "aws_ecs_cluster" "default" {
   name = "default-%d"
+
   setting {
-    name = "containerInsights"
+    name  = "containerInsights"
     value = "enabled"
   }
 }
 
 data "aws_ecs_cluster" "default" {
-  cluster_name = "${aws_ecs_cluster.default.name}"
+  cluster_name = aws_ecs_cluster.default.name
 }
 `, acctest.RandInt())

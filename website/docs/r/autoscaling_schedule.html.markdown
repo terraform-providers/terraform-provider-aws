@@ -31,7 +31,7 @@ resource "aws_autoscaling_schedule" "foobar" {
   desired_capacity       = 0
   start_time             = "2016-12-11T18:00:00Z"
   end_time               = "2016-12-12T06:00:00Z"
-  autoscaling_group_name = "${aws_autoscaling_group.foobar.name}"
+  autoscaling_group_name = aws_autoscaling_group.foobar.name
 }
 ```
 
@@ -54,7 +54,9 @@ Set to -1 if you don't want to change the maximum size at the scheduled time.
 
 ~> **NOTE:** When `start_time` and `end_time` are specified with `recurrence` , they form the boundaries of when the recurring action will start and stop.
 
-## Attribute Reference
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN assigned by AWS to the autoscaling schedule.
 

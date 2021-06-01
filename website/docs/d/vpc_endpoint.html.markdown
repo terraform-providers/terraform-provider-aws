@@ -16,13 +16,13 @@ a specific VPC endpoint.
 ```hcl
 # Declare the data source
 data "aws_vpc_endpoint" "s3" {
-  vpc_id       = "${aws_vpc.foo.id}"
+  vpc_id       = aws_vpc.foo.id
   service_name = "com.amazonaws.us-west-2.s3"
 }
 
 resource "aws_vpc_endpoint_route_table_association" "private_s3" {
-  vpc_endpoint_id = "${data.aws_vpc_endpoint.s3.id}"
-  route_table_id  = "${aws_route_table.private.id}"
+  vpc_endpoint_id = data.aws_vpc_endpoint.s3.id
+  route_table_id  = aws_route_table.private.id
 }
 ```
 
@@ -35,7 +35,7 @@ The given filters must match exactly one VPC endpoint whose data will be exporte
 * `id` - (Optional) The ID of the specific VPC Endpoint to retrieve.
 * `service_name` - (Optional) The service name of the specific VPC Endpoint to retrieve. For AWS services the service name is usually in the form `com.amazonaws.<region>.<service>` (the SageMaker Notebook service is an exception to this rule, the service name is in the form `aws.sagemaker.<region>.notebook`).
 * `state` - (Optional) The state of the specific VPC Endpoint to retrieve.
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the specific VPC Endpoint to retrieve.
 * `vpc_id` - (Optional) The ID of the VPC in which the specific VPC Endpoint is used.
 
@@ -51,6 +51,7 @@ which take the following arguments:
 
 In addition to all arguments above except `filter`, the following attributes are exported:
 
+* `arn` - The Amazon Resource Name (ARN) of the VPC endpoint.
 * `cidr_blocks` - The list of CIDR blocks for the exposed AWS service. Applicable for endpoints of type `Gateway`.
 * `dns_entry` - The DNS entries for the VPC Endpoint. Applicable for endpoints of type `Interface`. DNS blocks are documented below.
 * `network_interface_ids` - One or more network interfaces for the VPC Endpoint. Applicable for endpoints of type `Interface`.

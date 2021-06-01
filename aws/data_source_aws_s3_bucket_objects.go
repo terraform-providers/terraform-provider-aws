@@ -5,8 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const keyRequestPageSize = 1000
@@ -70,8 +69,6 @@ func dataSourceAwsS3BucketObjectsRead(d *schema.ResourceData, meta interface{}) 
 	bucket := d.Get("bucket").(string)
 	prefix := d.Get("prefix").(string)
 
-	d.SetId(resource.UniqueId())
-
 	listInput := s3.ListObjectsV2Input{
 		Bucket: aws.String(bucket),
 	}
@@ -133,6 +130,8 @@ func dataSourceAwsS3BucketObjectsRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("error listing S3 Bucket (%s) Objects: %s", bucket, err)
 	}
+
+	d.SetId(bucket)
 
 	if err := d.Set("common_prefixes", commonPrefixes); err != nil {
 		return fmt.Errorf("error setting common_prefixes: %s", err)

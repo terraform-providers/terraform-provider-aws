@@ -54,11 +54,6 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
 You can subscribe SNS topics to SQS queues in different Amazon accounts and regions:
 
 ```hcl
-/*
-#
-# Variables
-#
-*/
 variable "sns" {
   default = {
     account-id   = "111111111111"

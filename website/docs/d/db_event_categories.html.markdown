@@ -10,13 +10,13 @@ description: |-
 
 ## Example Usage
 
-List the event categories of all the RDS resources. 
+List the event categories of all the RDS resources.
 
 ```hcl
 data "aws_db_event_categories" "example" {}
 
 output "example" {
-  value = "${data.aws_db_event_categories.example.event_categories}"
+  value = data.aws_db_event_categories.example.event_categories
 }
 ```
 
@@ -28,7 +28,7 @@ data "aws_db_event_categories" "example" {
 }
 
 output "example" {
-  value = "${data.aws_db_event_categories.example.event_categories}"
+  value = data.aws_db_event_categories.example.event_categories
 }
 ```
 
@@ -43,3 +43,4 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `event_categories` - A list of the event categories.
+* `id` - Region of the event categories.

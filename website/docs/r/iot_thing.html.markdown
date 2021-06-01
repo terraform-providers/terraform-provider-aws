@@ -30,7 +30,7 @@ resource "aws_iot_thing" "example" {
 
 ## Attributes Reference
 
-In addition to the arguments above, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `default_client_id` - The default client ID.
 * `version` - The current version of the thing record in the registry.

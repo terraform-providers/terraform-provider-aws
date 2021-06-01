@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccConfigOrganizationCustomRule_basic(t *testing.T) {
@@ -65,7 +63,7 @@ func testAccConfigOrganizationCustomRule_disappears(t *testing.T) {
 				Config: testAccConfigOrganizationCustomRuleConfigTriggerTypes1(rName, "ConfigurationItemChangeNotification"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckConfigOrganizationCustomRuleExists(resourceName, &rule),
-					testAccCheckConfigOrganizationCustomRuleDisappears(&rule),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsConfigOrganizationCustomRule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -475,33 +473,16 @@ func testAccCheckConfigOrganizationCustomRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckConfigOrganizationCustomRuleDisappears(rule *configservice.OrganizationConfigRule) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).configconn
-
-		input := &configservice.DeleteOrganizationConfigRuleInput{
-			OrganizationConfigRuleName: rule.OrganizationConfigRuleName,
-		}
-
-		_, err := conn.DeleteOrganizationConfigRule(input)
-
-		if err != nil {
-			return err
-		}
-
-		return configWaitForOrganizationRuleStatusDeleteSuccessful(conn, aws.StringValue(rule.OrganizationConfigRuleName), 5*time.Minute)
-	}
-}
-
 func testAccConfigOrganizationCustomRuleConfigBase(rName string) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_config_configuration_recorder" "test" {
-  depends_on = ["aws_iam_role_policy_attachment.config"]
+  depends_on = [aws_iam_role_policy_attachment.config]
 
   name     = %[1]q
-  role_arn = "${aws_iam_role.config.arn}"
+  role_arn = aws_iam_role.config.arn
 }
 
 resource "aws_iam_role" "config" {
@@ -526,7 +507,7 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "config" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRole"
-  role       = "${aws_iam_role.config.name}"
+  role       = aws_iam_role.config.name
 }
 
 resource "aws_iam_role" "lambda" {
@@ -551,20 +532,20 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "lambda" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRulesExecutionRole"
-  role       = "${aws_iam_role.lambda.name}"
+  role       = aws_iam_role.lambda.name
 }
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   handler       = "exports.example"
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.test.arn}"
+  function_name = aws_lambda_function.test.arn
   principal     = "config.amazonaws.com"
   statement_id  = "AllowExecutionFromConfig"
 }
@@ -579,10 +560,10 @@ resource "aws_organizations_organization" "test" {
 func testAccConfigOrganizationCustomRuleConfigDescription(rName, description string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
   description         = %[2]q
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = ["ScheduledNotification"]
 }
@@ -591,7 +572,8 @@ resource "aws_config_organization_custom_rule" "test" {
 
 func testAccConfigOrganizationCustomRuleConfigErrorHandling(rName string) string {
 	return fmt.Sprintf(`
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
 resource "aws_iam_role" "lambda" {
   name = "%[1]s-lambda"
@@ -615,13 +597,13 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "lambda" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRulesExecutionRole"
-  role       = "${aws_iam_role.lambda.name}"
+  role       = aws_iam_role.lambda.name
 }
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   handler       = "exports.example"
   runtime       = "nodejs12.x"
 }
@@ -632,9 +614,9 @@ resource "aws_organizations_organization" "test" {
 }
 
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_organizations_organization.test"]
+  depends_on = [aws_organizations_organization.test]
 
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = ["ScheduledNotification"]
 }
@@ -644,10 +626,10 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigExcludedAccounts1(rName string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
   excluded_accounts   = ["111111111111"]
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = ["ScheduledNotification"]
 }
@@ -657,10 +639,10 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigExcludedAccounts2(rName string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
   excluded_accounts   = ["111111111111", "222222222222"]
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = ["ScheduledNotification"]
 }
@@ -670,13 +652,13 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigInputParameters(rName, inputParameters string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
   input_parameters = <<PARAMS
 %[2]s
 PARAMS
 
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = ["ScheduledNotification"]
 }
@@ -686,11 +668,11 @@ PARAMS
 func testAccConfigOrganizationCustomRuleConfigLambdaFunctionArn1(rName string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn  = "${aws_lambda_function.test.arn}"
-  name                 = %[1]q
-  trigger_types        = ["ScheduledNotification"]
+  lambda_function_arn = aws_lambda_function.test.arn
+  name                = %[1]q
+  trigger_types       = ["ScheduledNotification"]
 }
 `, rName)
 }
@@ -700,24 +682,24 @@ func testAccConfigOrganizationCustomRuleConfigLambdaFunctionArn2(rName string) s
 resource "aws_lambda_function" "test2" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%[1]s2"
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   handler       = "exports.example"
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test2" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.test2.arn}"
+  function_name = aws_lambda_function.test2.arn
   principal     = "config.amazonaws.com"
   statement_id  = "AllowExecutionFromConfig"
 }
 
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test2", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test2, aws_organizations_organization.test]
 
-  lambda_function_arn  = "${aws_lambda_function.test2.arn}"
-  name                 = %[1]q
-  trigger_types        = ["ScheduledNotification"]
+  lambda_function_arn = aws_lambda_function.test2.arn
+  name                = %[1]q
+  trigger_types       = ["ScheduledNotification"]
 }
 `, rName)
 }
@@ -725,9 +707,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigMaximumExecutionFrequency(rName, maximumExecutionFrequency string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn         = "${aws_lambda_function.test.arn}"
+  lambda_function_arn         = aws_lambda_function.test.arn
   maximum_execution_frequency = %[2]q
   name                        = %[1]q
   trigger_types               = ["ScheduledNotification"]
@@ -738,9 +720,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigResourceIdScope(rName, resourceIdScope string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn  = "${aws_lambda_function.test.arn}"
+  lambda_function_arn  = aws_lambda_function.test.arn
   name                 = %[1]q
   resource_id_scope    = %[2]q
   resource_types_scope = ["AWS::EC2::Instance"]
@@ -752,9 +734,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigResourceTypesScope1(rName string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn  = "${aws_lambda_function.test.arn}"
+  lambda_function_arn  = aws_lambda_function.test.arn
   name                 = %[1]q
   resource_types_scope = ["AWS::EC2::Instance"]
   trigger_types        = ["ScheduledNotification"]
@@ -765,9 +747,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigResourceTypesScope2(rName string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn  = "${aws_lambda_function.test.arn}"
+  lambda_function_arn  = aws_lambda_function.test.arn
   name                 = %[1]q
   resource_types_scope = ["AWS::EC2::Instance", "AWS::EC2::VPC"]
   trigger_types        = ["ScheduledNotification"]
@@ -778,9 +760,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigTagKeyScope(rName, tagKeyScope string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   tag_key_scope       = %[2]q
   trigger_types       = ["ScheduledNotification"]
@@ -791,9 +773,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigTagValueScope(rName, tagValueScope string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   tag_key_scope       = "key1"
   tag_value_scope     = %[2]q
@@ -805,9 +787,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigTriggerTypes1(rName, triggerType1 string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = [%[2]q]
 }
@@ -817,9 +799,9 @@ resource "aws_config_organization_custom_rule" "test" {
 func testAccConfigOrganizationCustomRuleConfigTriggerTypes2(rName, triggerType1, triggerType2 string) string {
 	return testAccConfigOrganizationCustomRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_config_organization_custom_rule" "test" {
-  depends_on = ["aws_config_configuration_recorder.test", "aws_lambda_permission.test", "aws_organizations_organization.test"]
+  depends_on = [aws_config_configuration_recorder.test, aws_lambda_permission.test, aws_organizations_organization.test]
 
-  lambda_function_arn = "${aws_lambda_function.test.arn}"
+  lambda_function_arn = aws_lambda_function.test.arn
   name                = %[1]q
   trigger_types       = [%[2]q, %[3]q]
 }

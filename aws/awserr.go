@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 // Returns true if the error matches all these conditions:
@@ -48,6 +49,11 @@ func retryOnAwsCode(code string, f func() (interface{}, error)) (interface{}, er
 		}
 		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = f()
+	}
+
 	return resp, err
 }
 
@@ -71,5 +77,10 @@ func RetryOnAwsCodes(codes []string, f func() (interface{}, error)) (interface{}
 		}
 		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = f()
+	}
+
 	return resp, err
 }

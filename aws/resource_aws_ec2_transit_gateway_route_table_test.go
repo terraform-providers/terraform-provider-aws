@@ -3,12 +3,13 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2TransitGatewayRouteTable_basic(t *testing.T) {
@@ -25,6 +26,7 @@ func TestAccAWSEc2TransitGatewayRouteTable_basic(t *testing.T) {
 				Config: testAccAWSEc2TransitGatewayRouteTableConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayRouteTableExists(resourceName, &transitGatewayRouteTable1),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`transit-gateway-route-table/tgw-rtb-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "default_association_route_table", "false"),
 					resource.TestCheckResourceAttr(resourceName, "default_propagation_route_table", "false"),
 					resource.TestCheckResourceAttrPair(resourceName, "transit_gateway_id", transitGatewayResourceName, "id"),
@@ -53,7 +55,7 @@ func TestAccAWSEc2TransitGatewayRouteTable_disappears(t *testing.T) {
 				Config: testAccAWSEc2TransitGatewayRouteTableConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayRouteTableExists(resourceName, &transitGatewayRouteTable1),
-					testAccCheckAWSEc2TransitGatewayRouteTableDisappears(&transitGatewayRouteTable1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TransitGatewayRouteTable(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -77,7 +79,7 @@ func TestAccAWSEc2TransitGatewayRouteTable_disappears_TransitGateway(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayExists(transitGatewayResourceName, &transitGateway1),
 					testAccCheckAWSEc2TransitGatewayRouteTableExists(resourceName, &transitGatewayRouteTable1),
-					testAccCheckAWSEc2TransitGatewayDisappears(&transitGateway1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TransitGateway(), transitGatewayResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -193,24 +195,6 @@ func testAccCheckAWSEc2TransitGatewayRouteTableDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccCheckAWSEc2TransitGatewayRouteTableDisappears(transitGatewayRouteTable *ec2.TransitGatewayRouteTable) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-
-		input := &ec2.DeleteTransitGatewayRouteTableInput{
-			TransitGatewayRouteTableId: transitGatewayRouteTable.TransitGatewayRouteTableId,
-		}
-
-		_, err := conn.DeleteTransitGatewayRouteTable(input)
-
-		if err != nil {
-			return err
-		}
-
-		return waitForEc2TransitGatewayRouteTableDeletion(conn, aws.StringValue(transitGatewayRouteTable.TransitGatewayRouteTableId))
-	}
-}
-
 func testAccCheckAWSEc2TransitGatewayRouteTableNotRecreated(i, j *ec2.TransitGatewayRouteTable) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if aws.StringValue(i.TransitGatewayRouteTableId) != aws.StringValue(j.TransitGatewayRouteTableId) {
@@ -222,13 +206,13 @@ func testAccCheckAWSEc2TransitGatewayRouteTableNotRecreated(i, j *ec2.TransitGat
 }
 
 func testAccAWSEc2TransitGatewayRouteTableConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_route_table" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
 }
-`)
+`
 }
 
 func testAccAWSEc2TransitGatewayRouteTableConfigTags1(tagKey1, tagValue1 string) string {
@@ -236,7 +220,7 @@ func testAccAWSEc2TransitGatewayRouteTableConfigTags1(tagKey1, tagValue1 string)
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_route_table" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
 
   tags = {
     %q = %q
@@ -250,7 +234,7 @@ func testAccAWSEc2TransitGatewayRouteTableConfigTags2(tagKey1, tagValue1, tagKey
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_route_table" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
 
   tags = {
     %q = %q

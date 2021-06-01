@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccResourceAwsKmsCiphertext_basic(t *testing.T) {
@@ -66,11 +66,11 @@ func TestAccResourceAwsKmsCiphertext_validate_withContext(t *testing.T) {
 const testAccResourceAwsKmsCiphertextConfig_basic = `
 resource "aws_kms_key" "foo" {
   description = "tf-test-acc-data-source-aws-kms-ciphertext-basic"
-  is_enabled = true
+  is_enabled  = true
 }
 
 resource "aws_kms_ciphertext" "foo" {
-  key_id = "${aws_kms_key.foo.key_id}"
+  key_id = aws_kms_key.foo.key_id
 
   plaintext = "Super secret data"
 }
@@ -79,19 +79,19 @@ resource "aws_kms_ciphertext" "foo" {
 const testAccResourceAwsKmsCiphertextConfig_validate = `
 resource "aws_kms_key" "foo" {
   description = "tf-test-acc-data-source-aws-kms-ciphertext-validate"
-  is_enabled = true
+  is_enabled  = true
 }
 
 resource "aws_kms_ciphertext" "foo" {
-  key_id = "${aws_kms_key.foo.key_id}"
+  key_id = aws_kms_key.foo.key_id
 
   plaintext = "Super secret data"
 }
 
 data "aws_kms_secrets" "foo" {
   secret {
-    name = "plaintext"
-    payload = "${aws_kms_ciphertext.foo.ciphertext_blob}"
+    name    = "plaintext"
+    payload = aws_kms_ciphertext.foo.ciphertext_blob
   }
 }
 `
@@ -99,11 +99,11 @@ data "aws_kms_secrets" "foo" {
 const testAccResourceAwsKmsCiphertextConfig_validate_withContext = `
 resource "aws_kms_key" "foo" {
   description = "tf-test-acc-data-source-aws-kms-ciphertext-validate-with-context"
-  is_enabled = true
+  is_enabled  = true
 }
 
 resource "aws_kms_ciphertext" "foo" {
-  key_id = "${aws_kms_key.foo.key_id}"
+  key_id = aws_kms_key.foo.key_id
 
   plaintext = "Super secret data"
 
@@ -114,11 +114,11 @@ resource "aws_kms_ciphertext" "foo" {
 
 data "aws_kms_secrets" "foo" {
   secret {
-    name = "plaintext"
-    payload = "${aws_kms_ciphertext.foo.ciphertext_blob}"
+    name    = "plaintext"
+    payload = aws_kms_ciphertext.foo.ciphertext_blob
 
-  context = {
-    name = "value"
+    context = {
+      name = "value"
     }
   }
 }

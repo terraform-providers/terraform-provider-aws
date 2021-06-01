@@ -9,13 +9,65 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_sns_platform_application", &resource.Sweeper{
+		Name: "aws_sns_platform_application",
+		F:    testSweepSnsPlatformApplications,
+	})
+}
+
+func testSweepSnsPlatformApplications(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).snsconn
+	var sweeperErrs *multierror.Error
+
+	err = conn.ListPlatformApplicationsPages(&sns.ListPlatformApplicationsInput{}, func(page *sns.ListPlatformApplicationsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, platformApplication := range page.PlatformApplications {
+			arn := aws.StringValue(platformApplication.PlatformApplicationArn)
+
+			log.Printf("[INFO] Deleting SNS Platform Application: %s", arn)
+			_, err := conn.DeletePlatformApplication(&sns.DeletePlatformApplicationInput{
+				PlatformApplicationArn: aws.String(arn),
+			})
+			if isAWSErr(err, sns.ErrCodeNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting SNS Platform Application (%s): %w", arn, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping SNS Platform Applications sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving SNS Platform Applications: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 /**
  Before running this test, at least one of these ENV variables combinations must be set:
@@ -74,7 +126,6 @@ func testAccAwsSnsPlatformApplicationPlatformFromEnv(t *testing.T) []*testAccAws
 }
 
 func TestDecodeResourceAwsSnsPlatformApplicationID(t *testing.T) {
-
 	var testCases = []struct {
 		Input            string
 		ExpectedArn      string
@@ -83,35 +134,35 @@ func TestDecodeResourceAwsSnsPlatformApplicationID(t *testing.T) {
 		ErrCount         int
 	}{
 		{
-			Input:            "arn:aws:sns:us-east-1:123456789012:app/APNS_SANDBOX/myAppName",
-			ExpectedArn:      "arn:aws:sns:us-east-1:123456789012:app/APNS_SANDBOX/myAppName",
+			Input:            "arn:aws:sns:us-east-1:123456789012:app/APNS_SANDBOX/myAppName", //lintignore:AWSAT003,AWSAT005
+			ExpectedArn:      "arn:aws:sns:us-east-1:123456789012:app/APNS_SANDBOX/myAppName", //lintignore:AWSAT003,AWSAT005
 			ExpectedName:     "myAppName",
 			ExpectedPlatform: "APNS_SANDBOX",
 			ErrCount:         0,
 		},
 		{
-			Input:            "arn:aws:sns:us-east-1:123456789012:app/APNS_SANDBOX/myAppName/extra",
+			Input:            "arn:aws:sns:us-east-1:123456789012:app/APNS_SANDBOX/myAppName/extra", //lintignore:AWSAT003,AWSAT005
 			ExpectedArn:      "",
 			ExpectedName:     "",
 			ExpectedPlatform: "",
 			ErrCount:         1,
 		},
 		{
-			Input:            "arn:aws:sns:us-east-1:123456789012:endpoint/APNS_SANDBOX/myAppName/someID",
+			Input:            "arn:aws:sns:us-east-1:123456789012:endpoint/APNS_SANDBOX/myAppName/someID", //lintignore:AWSAT003,AWSAT005
 			ExpectedArn:      "",
 			ExpectedName:     "",
 			ExpectedPlatform: "",
 			ErrCount:         1,
 		},
 		{
-			Input:            "arn:aws:sns:us-east-1:123456789012:APNS_SANDBOX/myAppName",
+			Input:            "arn:aws:sns:us-east-1:123456789012:APNS_SANDBOX/myAppName", //lintignore:AWSAT003,AWSAT005
 			ExpectedArn:      "",
 			ExpectedName:     "",
 			ExpectedPlatform: "",
 			ErrCount:         1,
 		},
 		{
-			Input:            "arn:aws:sns:us-east-1:123456789012:app",
+			Input:            "arn:aws:sns:us-east-1:123456789012:app", //lintignore:AWSAT003,AWSAT005
 			ExpectedArn:      "",
 			ExpectedName:     "",
 			ExpectedPlatform: "",
@@ -183,7 +234,7 @@ func TestAccAWSSnsPlatformApplication_basic(t *testing.T) {
 						Config: testAccAwsSnsPlatformApplicationConfig_basic(name, platform),
 						Check: resource.ComposeTestCheckFunc(
 							testAccCheckAwsSnsPlatformApplicationExists(resourceName),
-							resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:sns:[^:]+:[^:]+:app/%s/%s$", platform.Name, name))),
+							testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sns", regexp.MustCompile(fmt.Sprintf("app/%s/%s$", platform.Name, name))),
 							resource.TestCheckResourceAttr(resourceName, "name", name),
 							resource.TestCheckResourceAttr(resourceName, "platform", platform.Name),
 							resource.TestCheckResourceAttrSet(resourceName, "platform_credential"),
@@ -451,13 +502,17 @@ resource "aws_sns_platform_application" "test" {
 
 func testAccAwsSnsPlatformApplicationConfig_iamRoleAttribute(name string, platform *testAccAwsSnsPlatformApplicationPlatform, attributeKey, iamRoleName string) string {
 	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test" {
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": {
     "Effect": "Allow",
-    "Principal": {"Service": "sns.amazonaws.com"},
+    "Principal": {
+      "Service": "sns.${data.aws_partition.current.dns_suffix}"
+    },
     "Action": "sts:AssumeRole"
   }
 }
@@ -467,12 +522,11 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "test" {
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-  role       = "${aws_iam_role.test.id}"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/CloudWatchLogsFullAccess"
+  role       = aws_iam_role.test.id
 }
 
 %s
-
 `, iamRoleName, testAccAwsSnsPlatformApplicationConfig_basicAttribute(name, platform, attributeKey, "${aws_iam_role.test.arn}"))
 }
 
@@ -483,6 +537,5 @@ resource "aws_sns_topic" "test" {
 }
 
 %s
-
 `, snsTopicName, testAccAwsSnsPlatformApplicationConfig_basicAttribute(name, platform, attributeKey, "${aws_sns_topic.test.arn}"))
 }

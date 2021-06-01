@@ -4,12 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsGlueScript() *schema.Resource {
@@ -109,7 +108,7 @@ func dataSourceAwsGlueScriptRead(d *schema.ResourceData, meta interface{}) error
 		DagNodes: expandGlueCodeGenNodes(dagNode),
 	}
 
-	if v, ok := d.GetOk("language"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("language"); ok {
 		input.Language = aws.String(v.(string))
 	}
 
@@ -123,7 +122,7 @@ func dataSourceAwsGlueScriptRead(d *schema.ResourceData, meta interface{}) error
 		return errors.New("script not created")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 	d.Set("python_script", output.PythonScript)
 	d.Set("scala_code", output.ScalaCode)
 

@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/licensemanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -203,9 +203,9 @@ resource "aws_licensemanager_license_configuration" "example" {
 
 const testAccLicenseManagerLicenseConfigurationConfig_update = `
 resource "aws_licensemanager_license_configuration" "example" {
-  name                     = "NewName"
-  license_count            = 123
-  license_counting_type    = "Socket"
+  name                  = "NewName"
+  license_count         = 123
+  license_counting_type = "Socket"
 
   license_rules = [
     "#minimumSockets=3"
@@ -213,7 +213,7 @@ resource "aws_licensemanager_license_configuration" "example" {
 
   tags = {
     test = "test"
-    abc = "def"
+    abc  = "def"
   }
 }
 `

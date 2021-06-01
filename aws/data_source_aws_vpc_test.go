@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsVpc_basic(t *testing.T) {
@@ -142,7 +142,7 @@ resource "aws_vpc" "test" {
 }
 
 data "aws_vpc" "by_id" {
-  id = "${aws_vpc.test.id}"
+  id = aws_vpc.test.id
 }
 `, cidr, tag)
 }
@@ -158,23 +158,23 @@ resource "aws_vpc" "test" {
 }
 
 data "aws_vpc" "by_id" {
-  id = "${aws_vpc.test.id}"
+  id = aws_vpc.test.id
 }
 
 data "aws_vpc" "by_cidr" {
-  cidr_block = "${aws_vpc.test.cidr_block}"
+  cidr_block = aws_vpc.test.cidr_block
 }
 
 data "aws_vpc" "by_tag" {
   tags = {
-    Name = "${aws_vpc.test.tags["Name"]}"
+    Name = aws_vpc.test.tags["Name"]
   }
 }
 
 data "aws_vpc" "by_filter" {
   filter {
     name   = "cidr"
-    values = ["${aws_vpc.test.cidr_block}"]
+    values = [aws_vpc.test.cidr_block]
   }
 }
 `, cidr, tag)
@@ -187,14 +187,14 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "test" {
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
   cidr_block = "172.%d.0.0/16"
 }
 
 data "aws_vpc" "test" {
   filter {
     name   = "cidr-block-association.cidr-block"
-    values = ["${aws_vpc_ipv4_cidr_block_association.test.cidr_block}"]
+    values = [aws_vpc_ipv4_cidr_block_association.test.cidr_block]
   }
 }
 `, octet, octet)

@@ -25,4 +25,4 @@ data "aws_qldb_ledger" "example" {
 ## Attributes Reference
 
 * `arn` - Amazon Resource Name (ARN) of the ledger.
-* `deletion_protection` - Deletion protection on the QLDB Ledger instance. Set to `true` by default. 
+* `deletion_protection` - Deletion protection on the QLDB Ledger instance. Set to `true` by default.

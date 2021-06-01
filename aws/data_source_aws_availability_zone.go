@@ -3,10 +3,11 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsAvailabilityZone() *schema.Resource {
@@ -14,31 +15,56 @@ func dataSourceAwsAvailabilityZone() *schema.Resource {
 		Read: dataSourceAwsAvailabilityZoneRead,
 
 		Schema: map[string]*schema.Schema{
+			"all_availability_zones": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"filter": ec2CustomFiltersSchema(),
+			"group_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
-			"region": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name_suffix": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
+			"network_border_group": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"opt_in_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"parent_zone_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"parent_zone_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"region": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"state": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
 			"zone_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"zone_type": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -49,6 +75,10 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).ec2conn
 
 	req := &ec2.DescribeAvailabilityZonesInput{}
+
+	if v, ok := d.GetOk("all_availability_zones"); ok {
+		req.AllAvailabilityZones = aws.Bool(v.(bool))
+	}
 
 	if v := d.Get("name").(string); v != "" {
 		req.ZoneNames = []*string{aws.String(v)}
@@ -61,6 +91,13 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 			"state": d.Get("state").(string),
 		},
 	)
+
+	if filters, filtersOk := d.GetOk("filter"); filtersOk {
+		req.Filters = append(req.Filters, buildEC2CustomFilterList(
+			filters.(*schema.Set),
+		)...)
+	}
+
 	if len(req.Filters) == 0 {
 		// Don't send an empty filters list; the EC2 API won't accept it.
 		req.Filters = nil
@@ -84,14 +121,22 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 	// the AZ suffix alone, without the region name.
 	// This can be used e.g. to create lookup tables by AZ letter that
 	// work regardless of region.
-	nameSuffix := (*az.ZoneName)[len(*az.RegionName):]
+	nameSuffix := aws.StringValue(az.ZoneName)[len(aws.StringValue(az.RegionName)):]
+	// For Local and Wavelength zones, remove any leading "-".
+	nameSuffix = strings.TrimLeft(nameSuffix, "-")
 
 	d.SetId(aws.StringValue(az.ZoneName))
+	d.Set("group_name", az.GroupName)
 	d.Set("name", az.ZoneName)
 	d.Set("name_suffix", nameSuffix)
+	d.Set("network_border_group", az.NetworkBorderGroup)
+	d.Set("opt_in_status", az.OptInStatus)
+	d.Set("parent_zone_id", az.ParentZoneId)
+	d.Set("parent_zone_name", az.ParentZoneName)
 	d.Set("region", az.RegionName)
 	d.Set("state", az.State)
 	d.Set("zone_id", az.ZoneId)
+	d.Set("zone_type", az.ZoneType)
 
 	return nil
 }

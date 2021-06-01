@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSKmsAlias_basic(t *testing.T) {
@@ -200,16 +200,16 @@ resource "aws_kms_key" "test2" {
 
 resource "aws_kms_alias" "name_prefix" {
   name_prefix   = "alias/tf-acc-key-alias-%d"
-  target_key_id = "${aws_kms_key.test.key_id}"
+  target_key_id = aws_kms_key.test.key_id
 }
 
 resource "aws_kms_alias" "nothing" {
-  target_key_id = "${aws_kms_key.test.key_id}"
+  target_key_id = aws_kms_key.test.key_id
 }
 
 resource "aws_kms_alias" "test" {
   name          = "alias/tf-acc-key-alias-%d"
-  target_key_id = "${aws_kms_key.test.key_id}"
+  target_key_id = aws_kms_key.test.key_id
 }
 `, timestamp, timestamp, rInt, rInt)
 }
@@ -228,7 +228,7 @@ resource "aws_kms_key" "test2" {
 
 resource "aws_kms_alias" "test" {
   name          = "alias/tf-acc-key-alias-%d"
-  target_key_id = "${aws_kms_key.test2.key_id}"
+  target_key_id = aws_kms_key.test2.key_id
 }
 `, timestamp, timestamp, rInt)
 }
@@ -242,12 +242,12 @@ resource "aws_kms_key" "test" {
 
 resource "aws_kms_alias" "test" {
   name          = "alias/tf-acc-alias-test-%d"
-  target_key_id = "${aws_kms_key.test.key_id}"
+  target_key_id = aws_kms_key.test.key_id
 }
 
 resource "aws_kms_alias" "test2" {
   name          = "alias/tf-acc-alias-test2-%d"
-  target_key_id = "${aws_kms_key.test.key_id}"
+  target_key_id = aws_kms_key.test.key_id
 }
 `, timestamp, rInt, rInt)
 }
@@ -261,7 +261,7 @@ resource "aws_kms_key" "test" {
 
 resource "aws_kms_alias" "test" {
   name          = "alias/tf-acc-key-alias-%d"
-  target_key_id = "${aws_kms_key.test.arn}"
+  target_key_id = aws_kms_key.test.arn
 }
 `, timestamp, rInt)
 }

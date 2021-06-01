@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/licensemanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLicenseManagerAssociation_basic(t *testing.T) {
@@ -105,7 +105,7 @@ data "aws_ami" "example" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "${data.aws_ami.example.id}"
+  ami           = data.aws_ami.example.id
   instance_type = "t2.micro"
 }
 
@@ -115,7 +115,7 @@ resource "aws_licensemanager_license_configuration" "example" {
 }
 
 resource "aws_licensemanager_association" "example" {
-  license_configuration_arn = "${aws_licensemanager_license_configuration.example.id}"
-  resource_arn              = "${aws_instance.example.arn}"
+  license_configuration_arn = aws_licensemanager_license_configuration.example.id
+  resource_arn              = aws_instance.example.arn
 }
 `

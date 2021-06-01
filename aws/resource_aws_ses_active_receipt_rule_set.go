@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsSesActiveReceiptRuleSet() *schema.Resource {
@@ -51,6 +51,11 @@ func resourceAwsSesActiveReceiptRuleSetRead(d *schema.ResourceData, meta interfa
 
 	response, err := conn.DescribeActiveReceiptRuleSet(describeOpts)
 	if err != nil {
+		if isAWSErr(err, ses.ErrCodeRuleSetDoesNotExistException, "") {
+			log.Printf("[WARN] SES Receipt Rule Set (%s) belonging to SES Active Receipt Rule Set not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 

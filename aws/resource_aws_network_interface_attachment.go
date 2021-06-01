@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsNetworkInterfaceAttachment() *schema.Resource {
@@ -88,7 +88,7 @@ func resourceAwsNetworkInterfaceAttachmentCreate(d *schema.ResourceData, meta in
 			"Error waiting for Volume (%s) to attach to Instance: %s, error: %s", network_interface_id, instance_id, err)
 	}
 
-	d.SetId(*resp.AttachmentId)
+	d.SetId(aws.StringValue(resp.AttachmentId))
 	return resourceAwsNetworkInterfaceAttachmentRead(d, meta)
 }
 

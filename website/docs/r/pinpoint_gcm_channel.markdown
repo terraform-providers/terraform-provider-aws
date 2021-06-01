@@ -11,13 +11,13 @@ description: |-
 Provides a Pinpoint GCM Channel resource.
 
 ~> **Note:** Api Key argument will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
 ```hcl
 resource "aws_pinpoint_gcm_channel" "gcm" {
-  application_id = "${aws_pinpoint_app.app.application_id}"
+  application_id = aws_pinpoint_app.app.application_id
   api_key        = "api_key"
 }
 

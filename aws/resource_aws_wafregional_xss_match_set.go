@@ -7,7 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsWafRegionalXssMatchSet() *schema.Resource {
@@ -32,7 +33,7 @@ func resourceAwsWafRegionalXssMatchSet() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"field_to_match": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -42,15 +43,17 @@ func resourceAwsWafRegionalXssMatchSet() *schema.Resource {
 										Optional: true,
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(wafregional.MatchFieldType_Values(), false),
 									},
 								},
 							},
 						},
 						"text_transformation": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(wafregional.TextTransformation_Values(), false),
 						},
 					},
 				},
@@ -75,13 +78,20 @@ func resourceAwsWafRegionalXssMatchSetCreate(d *schema.ResourceData, meta interf
 		return conn.CreateXssMatchSet(params)
 	})
 	if err != nil {
-		return fmt.Errorf("Failed creating regional WAF XSS Match Set: %s", err)
+		return fmt.Errorf("Failed creating regional WAF XSS Match Set: %w", err)
 	}
 	resp := out.(*waf.CreateXssMatchSetOutput)
 
-	d.SetId(*resp.XssMatchSet.XssMatchSetId)
+	d.SetId(aws.StringValue(resp.XssMatchSet.XssMatchSetId))
 
-	return resourceAwsWafRegionalXssMatchSetUpdate(d, meta)
+	if v, ok := d.Get("xss_match_tuple").(*schema.Set); ok && v.Len() > 0 {
+		err := updateXssMatchSetResourceWR(d.Id(), nil, v.List(), conn, region)
+		if err != nil {
+			return fmt.Errorf("Failed updating regional WAF XSS Match Set: %w", err)
+		}
+	}
+
+	return resourceAwsWafRegionalXssMatchSetRead(d, meta)
 }
 
 func resourceAwsWafRegionalXssMatchSetRead(d *schema.ResourceData, meta interface{}) error {
@@ -104,7 +114,9 @@ func resourceAwsWafRegionalXssMatchSetRead(d *schema.ResourceData, meta interfac
 
 	set := resp.XssMatchSet
 
-	d.Set("xss_match_tuple", flattenWafXssMatchTuples(set.XssMatchTuples))
+	if err := d.Set("xss_match_tuple", flattenWafXssMatchTuples(set.XssMatchTuples)); err != nil {
+		return fmt.Errorf("error setting xss_match_tuple: %w", err)
+	}
 	d.Set("name", set.Name)
 
 	return nil
@@ -120,7 +132,7 @@ func resourceAwsWafRegionalXssMatchSetUpdate(d *schema.ResourceData, meta interf
 
 		err := updateXssMatchSetResourceWR(d.Id(), oldT, newT, conn, region)
 		if err != nil {
-			return fmt.Errorf("Failed updating regional WAF XSS Match Set: %s", err)
+			return fmt.Errorf("Failed updating regional WAF XSS Match Set: %w", err)
 		}
 	}
 
@@ -137,7 +149,7 @@ func resourceAwsWafRegionalXssMatchSetDelete(d *schema.ResourceData, meta interf
 			noTuples := []interface{}{}
 			err := updateXssMatchSetResourceWR(d.Id(), oldTuples, noTuples, conn, region)
 			if err != nil {
-				return fmt.Errorf("Error updating regional WAF XSS Match Set: %s", err)
+				return fmt.Errorf("Error updating regional WAF XSS Match Set: %w", err)
 			}
 		}
 	}
@@ -152,7 +164,7 @@ func resourceAwsWafRegionalXssMatchSetDelete(d *schema.ResourceData, meta interf
 		return conn.DeleteXssMatchSet(req)
 	})
 	if err != nil {
-		return fmt.Errorf("Failed deleting regional WAF XSS Match Set: %s", err)
+		return fmt.Errorf("Failed deleting regional WAF XSS Match Set: %w", err)
 	}
 
 	return nil
@@ -171,7 +183,7 @@ func updateXssMatchSetResourceWR(id string, oldT, newT []interface{}, conn *wafr
 		return conn.UpdateXssMatchSet(req)
 	})
 	if err != nil {
-		return fmt.Errorf("Failed updating regional WAF XSS Match Set: %s", err)
+		return fmt.Errorf("Failed updating regional WAF XSS Match Set: %w", err)
 	}
 
 	return nil

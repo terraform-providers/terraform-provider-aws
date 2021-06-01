@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
@@ -124,16 +124,16 @@ func resourceAwsDxHostedPrivateVirtualInterfaceCreate(d *schema.ResourceData, me
 		},
 		OwnerAccount: aws.String(d.Get("owner_account_id").(string)),
 	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("amazon_address"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.AmazonAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("bgp_auth_key"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("bgp_auth_key"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.AuthKey = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("customer_address"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.CustomerAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("mtu"); ok && v.(int) != 0 {
+	if v, ok := d.GetOk("mtu"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.Mtu = aws.Int64(int64(v.(int)))
 	}
 

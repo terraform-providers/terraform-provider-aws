@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/athena"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsAthenaNamedQuery() *schema.Resource {
@@ -68,7 +68,7 @@ func resourceAwsAthenaNamedQueryCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	d.SetId(*resp.NamedQueryId)
+	d.SetId(aws.StringValue(resp.NamedQueryId))
 	return resourceAwsAthenaNamedQueryRead(d, meta)
 }
 

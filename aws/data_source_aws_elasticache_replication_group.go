@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticache/finder"
 )
 
 func dataSourceAwsElasticacheReplicationGroup() *schema.Resource {
@@ -18,6 +18,10 @@ func dataSourceAwsElasticacheReplicationGroup() *schema.Resource {
 				Required: true,
 			},
 			"replication_group_description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -41,6 +45,10 @@ func dataSourceAwsElasticacheReplicationGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"reader_endpoint_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"number_cache_clusters": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -49,7 +57,6 @@ func dataSourceAwsElasticacheReplicationGroup() *schema.Resource {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 			"node_type": {
 				Type:     schema.TypeString,
@@ -69,31 +76,20 @@ func dataSourceAwsElasticacheReplicationGroup() *schema.Resource {
 
 func dataSourceAwsElasticacheReplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
-	input := &elasticache.DescribeReplicationGroupsInput{
-		ReplicationGroupId: aws.String(d.Get("replication_group_id").(string)),
-	}
 
-	log.Printf("[DEBUG] Reading ElastiCache Replication Group: %s", input)
-	resp, err := conn.DescribeReplicationGroups(input)
+	groupID := d.Get("replication_group_id").(string)
+
+	rg, err := finder.ReplicationGroupByID(conn, groupID)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading ElastiCache Replication Group (%s): %w", groupID, err)
 	}
 
-	var rg *elasticache.ReplicationGroup
-	for _, r := range resp.ReplicationGroups {
-		if *r.ReplicationGroupId == d.Get("replication_group_id").(string) {
-			rg = r
-		}
-	}
-	if rg == nil {
-		return fmt.Errorf("Elasticache Replication Group (%s) not found", d.Get("replication_group_id").(string))
-	}
-
-	d.SetId(*rg.ReplicationGroupId)
+	d.SetId(aws.StringValue(rg.ReplicationGroupId))
 	d.Set("replication_group_description", rg.Description)
+	d.Set("arn", rg.ARN)
 	d.Set("auth_token_enabled", rg.AuthTokenEnabled)
 	if rg.AutomaticFailover != nil {
-		switch *rg.AutomaticFailover {
+		switch aws.StringValue(rg.AutomaticFailover) {
 		case elasticache.AutomaticFailoverStatusDisabled, elasticache.AutomaticFailoverStatusDisabling:
 			d.Set("automatic_failover_enabled", false)
 		case elasticache.AutomaticFailoverStatusEnabled, elasticache.AutomaticFailoverStatusEnabling:
@@ -106,14 +102,15 @@ func dataSourceAwsElasticacheReplicationGroupRead(d *schema.ResourceData, meta i
 	} else {
 		if rg.NodeGroups == nil {
 			d.SetId("")
-			return fmt.Errorf("Elasticache Replication Group (%s) doesn't have node groups.", d.Get("replication_group_id").(string))
+			return fmt.Errorf("ElastiCache Replication Group (%s) doesn't have node groups", aws.StringValue(rg.ReplicationGroupId))
 		}
 		d.Set("port", rg.NodeGroups[0].PrimaryEndpoint.Port)
 		d.Set("primary_endpoint_address", rg.NodeGroups[0].PrimaryEndpoint.Address)
+		d.Set("reader_endpoint_address", rg.NodeGroups[0].ReaderEndpoint.Address)
 	}
 	d.Set("number_cache_clusters", len(rg.MemberClusters))
 	if err := d.Set("member_clusters", flattenStringList(rg.MemberClusters)); err != nil {
-		return fmt.Errorf("error setting member_clusters: %s", err)
+		return fmt.Errorf("error setting member_clusters: %w", err)
 	}
 	d.Set("node_type", rg.CacheNodeType)
 	d.Set("snapshot_window", rg.SnapshotWindow)

@@ -14,7 +14,7 @@ Provides an OpsWorks memcached layer resource.
 
 ```hcl
 resource "aws_opsworks_memcached_layer" "cache" {
-  stack_id = "${aws_opsworks_stack.main.id}"
+  stack_id = aws_opsworks_stack.main.id
 }
 ```
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 * `use_ebs_optimized_instances` - (Optional) Whether to use EBS-optimized instances.
 * `ebs_volume` - (Optional) `ebs_volume` blocks, as described below, will each create an EBS volume and connect it to the layer's instances.
 * `custom_json` - (Optional) Custom JSON attributes to apply to the layer.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The following extra optional arguments, all lists of Chef recipe names, allow
 custom Chef recipes to be applied to layer instances at the five different

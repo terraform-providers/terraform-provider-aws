@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"net"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -232,18 +231,4 @@ func validatePorts(to int64, from int64, expected expectedPortPair) bool {
 	}
 
 	return true
-}
-
-// validateCIDRBlock ensures the passed CIDR block represents an implied
-// network, and not an overly-specified IP address.
-func validateCIDRBlock(cidr string) error {
-	_, ipnet, err := net.ParseCIDR(cidr)
-	if err != nil {
-		return err
-	}
-	if ipnet.String() != cidr {
-		return fmt.Errorf("%s is not a valid mask; did you mean %s?", cidr, ipnet)
-	}
-
-	return nil
 }

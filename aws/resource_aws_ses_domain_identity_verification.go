@@ -3,14 +3,15 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsSesDomainIdentityVerification() *schema.Resource {
@@ -25,12 +26,10 @@ func resourceAwsSesDomainIdentityVerification() *schema.Resource {
 				Computed: true,
 			},
 			"domain": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				StateFunc: func(v interface{}) string {
-					return strings.TrimSuffix(v.(string), ".")
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "cannot end with a period"),
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -56,7 +55,7 @@ func getAwsSesIdentityVerificationAttributes(conn *ses.SES, domainName string) (
 
 func resourceAwsSesDomainIdentityVerificationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sesconn
-	domainName := strings.TrimSuffix(d.Get("domain").(string), ".")
+	domainName := d.Get("domain").(string)
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		att, err := getAwsSesIdentityVerificationAttributes(conn, domainName)
 		if err != nil {

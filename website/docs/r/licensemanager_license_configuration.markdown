@@ -42,7 +42,7 @@ The following arguments are supported:
 * `license_count_hard_limit` - (Optional) Sets the number of available licenses as a hard limit.
 * `license_counting_type` - (Required) Dimension to use to track license inventory. Specify either `vCPU`, `Instance`, `Core` or `Socket`.
 * `license_rules` - (Optional) Array of configured License Manager rules.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Rules
 

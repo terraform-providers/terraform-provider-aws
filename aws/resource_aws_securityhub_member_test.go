@@ -6,8 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	tfsecurityhub "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/securityhub"
 )
 
 func testAccAWSSecurityHubMember_basic(t *testing.T) {
@@ -99,11 +101,16 @@ func testAccCheckAWSSecurityHubMemberDestroy(s *terraform.State) error {
 			AccountIds: []*string{aws.String(rs.Primary.ID)},
 		})
 
+		if tfawserr.ErrCodeEquals(err, tfsecurityhub.ErrCodeBadRequestException) {
+			continue
+		}
+
+		if tfawserr.ErrCodeEquals(err, securityhub.ErrCodeResourceNotFoundException) {
+			continue
+		}
+
 		if err != nil {
-			if isAWSErr(err, securityhub.ErrCodeResourceNotFoundException, "") {
-				return nil
-			}
-			return err
+			return fmt.Errorf("error getting Security Hub Member (%s): %w", rs.Primary.ID, err)
 		}
 
 		if len(resp.Members) != 0 {
@@ -121,7 +128,7 @@ func testAccAWSSecurityHubMemberConfig_basic(accountId, email string) string {
 resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_member" "example" {
-  depends_on = ["aws_securityhub_account.example"]
+  depends_on = [aws_securityhub_account.example]
   account_id = "%s"
   email      = "%s"
 }
@@ -133,7 +140,7 @@ func testAccAWSSecurityHubMemberConfig_invite(accountId, email string, invite bo
 resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_member" "example" {
-  depends_on = ["aws_securityhub_account.example"]
+  depends_on = [aws_securityhub_account.example]
   account_id = "%s"
   email      = "%s"
   invite     = %t

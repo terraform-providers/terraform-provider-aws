@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsKmsCiphertext_basic(t *testing.T) {
@@ -57,11 +57,11 @@ func TestAccDataSourceAwsKmsCiphertext_validate_withContext(t *testing.T) {
 const testAccDataSourceAwsKmsCiphertextConfig_basic = `
 resource "aws_kms_key" "foo" {
   description = "tf-test-acc-data-source-aws-kms-ciphertext-basic"
-  is_enabled = true
+  is_enabled  = true
 }
 
 data "aws_kms_ciphertext" "foo" {
-  key_id = "${aws_kms_key.foo.key_id}"
+  key_id = aws_kms_key.foo.key_id
 
   plaintext = "Super secret data"
 }
@@ -70,31 +70,29 @@ data "aws_kms_ciphertext" "foo" {
 const testAccDataSourceAwsKmsCiphertextConfig_validate = `
 resource "aws_kms_key" "foo" {
   description = "tf-test-acc-data-source-aws-kms-ciphertext-validate"
-  is_enabled = true
+  is_enabled  = true
 }
 
 data "aws_kms_ciphertext" "foo" {
-  key_id = "${aws_kms_key.foo.key_id}"
+  key_id = aws_kms_key.foo.key_id
 
   plaintext = "Super secret data"
 }
-
 `
 
 const testAccDataSourceAwsKmsCiphertextConfig_validate_withContext = `
 resource "aws_kms_key" "foo" {
   description = "tf-test-acc-data-source-aws-kms-ciphertext-validate-with-context"
-  is_enabled = true
+  is_enabled  = true
 }
 
 data "aws_kms_ciphertext" "foo" {
-  key_id = "${aws_kms_key.foo.key_id}"
+  key_id = aws_kms_key.foo.key_id
 
   plaintext = "Super secret data"
 
   context = {
-		name = "value"
+    name = "value"
   }
 }
-
 `

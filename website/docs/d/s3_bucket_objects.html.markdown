@@ -22,9 +22,9 @@ data "aws_s3_bucket_objects" "my_objects" {
 }
 
 data "aws_s3_bucket_object" "object_info" {
-  count  = "${length(data.aws_s3_bucket_objects.my_objects.keys)}"
-  key    = "${element(data.aws_s3_bucket_objects.my_objects.keys, count.index)}"
-  bucket = "${data.aws_s3_bucket_objects.my_objects.bucket}"
+  count  = length(data.aws_s3_bucket_objects.my_objects.keys)
+  key    = element(data.aws_s3_bucket_objects.my_objects.keys, count.index)
+  bucket = data.aws_s3_bucket_objects.my_objects.bucket
 }
 ```
 
@@ -46,4 +46,5 @@ In addition to all arguments above, the following attributes are exported:
 
 * `keys` - List of strings representing object keys
 * `common_prefixes` - List of any keys between `prefix` and the next occurrence of `delimiter` (i.e., similar to subdirectories of the `prefix` "directory"); the list is only returned when you specify `delimiter`
+* `id` - S3 Bucket.
 * `owners` - List of strings representing object owner IDs (see `fetch_owner` above)

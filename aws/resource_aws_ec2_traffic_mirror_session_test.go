@@ -6,13 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2TrafficMirrorSession_basic(t *testing.T) {
@@ -20,7 +18,7 @@ func TestAccAWSEc2TrafficMirrorSession_basic(t *testing.T) {
 	resourceName := "aws_ec2_traffic_mirror_session.test"
 	description := "test session"
 	session := acctest.RandIntRange(1, 32766)
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 	pLen := acctest.RandIntRange(1, 255)
 	vni := acctest.RandIntRange(1, 16777216)
 
@@ -42,6 +40,7 @@ func TestAccAWSEc2TrafficMirrorSession_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "session_number", strconv.Itoa(session)),
 					resource.TestMatchResourceAttr(resourceName, "virtual_network_id", regexp.MustCompile(`\d+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`traffic-mirror-session/tms-.+`)),
 				),
 			},
 			// update of description, packet length and VNI
@@ -80,7 +79,7 @@ func TestAccAWSEc2TrafficMirrorSession_tags(t *testing.T) {
 	var v ec2.TrafficMirrorSession
 	resourceName := "aws_ec2_traffic_mirror_session.test"
 	session := acctest.RandIntRange(1, 32766)
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -128,7 +127,7 @@ func TestAccAWSEc2TrafficMirrorSession_disappears(t *testing.T) {
 	var v ec2.TrafficMirrorSession
 	resourceName := "aws_ec2_traffic_mirror_session.test"
 	session := acctest.RandIntRange(1, 32766)
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -142,7 +141,7 @@ func TestAccAWSEc2TrafficMirrorSession_disappears(t *testing.T) {
 				Config: testAccTrafficMirrorSessionConfig(rName, session),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TrafficMirrorSessionExists(resourceName, &v),
-					testAccCheckAWSEc2TrafficMirrorSessionDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TrafficMirrorSession(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -181,37 +180,15 @@ func testAccCheckAWSEc2TrafficMirrorSessionExists(name string, session *ec2.Traf
 	}
 }
 
-func testAccCheckAWSEc2TrafficMirrorSessionDisappears(session *ec2.TrafficMirrorSession) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		_, err := conn.DeleteTrafficMirrorSession(&ec2.DeleteTrafficMirrorSessionInput{
-			TrafficMirrorSessionId: session.TrafficMirrorSessionId,
-		})
-
-		return err
-	}
-}
-
 func testAccTrafficMirrorSessionConfigBase(rName string) string {
-	return fmt.Sprintf(`
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 data "aws_availability_zones" "azs" {
   state = "available"
-}
-
-data "aws_ami" "amzn-linux" {
-  most_recent = true
 
   filter {
-    name = "name"
-    values = ["amzn2-ami-hvm-2.0*"]
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
   }
-
-  filter {
-    name = "architecture"
-    values = ["x86_64"]
-  }
-
-  owners = ["137112412989"]
 }
 
 resource "aws_vpc" "vpc" {
@@ -223,9 +200,9 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "sub1" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  cidr_block = "10.0.0.0/24"
-  availability_zone = "${data.aws_availability_zones.azs.names[0]}"
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = "10.0.0.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[0]
 
   tags = {
     Name = %[1]q
@@ -233,9 +210,9 @@ resource "aws_subnet" "sub1" {
 }
 
 resource "aws_subnet" "sub2" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "${data.aws_availability_zones.azs.names[1]}"
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[1]
 
   tags = {
     Name = %[1]q
@@ -243,9 +220,9 @@ resource "aws_subnet" "sub2" {
 }
 
 resource "aws_instance" "src" {
-  ami = "${data.aws_ami.amzn-linux.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "m5.large" # m5.large required because only Nitro instances support mirroring
-  subnet_id = "${aws_subnet.sub1.id}"
+  subnet_id     = aws_subnet.sub1.id
 
   tags = {
     Name = %[1]q
@@ -256,12 +233,12 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
-  enable_deletion_protection  = false
+  enable_deletion_protection = false
 
   tags = {
-	Name = %[1]q
+    Name        = %[1]q
     Environment = "production"
   }
 }
@@ -270,68 +247,65 @@ resource "aws_ec2_traffic_mirror_filter" "filter" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "target" {
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  network_load_balancer_arn = aws_lb.lb.arn
 }
-
-`, rName)
+`, rName))
 }
 
 func testAccTrafficMirrorSessionConfig(rName string, session int) string {
-	return testAccTrafficMirrorSessionConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccTrafficMirrorSessionConfigBase(rName), fmt.Sprintf(`
 resource "aws_ec2_traffic_mirror_session" "test" {
-  traffic_mirror_filter_id = "${aws_ec2_traffic_mirror_filter.filter.id}"
-  traffic_mirror_target_id = "${aws_ec2_traffic_mirror_target.target.id}"
-  network_interface_id = "${aws_instance.src.primary_network_interface_id}"
-  session_number = %d
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.target.id
+  network_interface_id     = aws_instance.src.primary_network_interface_id
+  session_number           = %d
 }
-`, session)
+`, session))
 }
 
 func testAccTrafficMirrorSessionConfigTags1(rName, tagKey1, tagValue1 string, session int) string {
-	return testAccTrafficMirrorSessionConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccTrafficMirrorSessionConfigBase(rName), fmt.Sprintf(`
 resource "aws_ec2_traffic_mirror_session" "test" {
-  traffic_mirror_filter_id = "${aws_ec2_traffic_mirror_filter.filter.id}"
-  traffic_mirror_target_id = "${aws_ec2_traffic_mirror_target.target.id}"
-  network_interface_id = "${aws_instance.src.primary_network_interface_id}"
-  session_number = %[3]d
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.target.id
+  network_interface_id     = aws_instance.src.primary_network_interface_id
+  session_number           = %[3]d
 
   tags = {
     %[1]q = %[2]q
   }
 }
-`, tagKey1, tagValue1, session)
+`, tagKey1, tagValue1, session))
 }
 
 func testAccTrafficMirrorSessionConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string, session int) string {
-	return testAccTrafficMirrorSessionConfigBase(rName) + fmt.Sprintf(`
+	return composeConfig(testAccTrafficMirrorSessionConfigBase(rName), fmt.Sprintf(`
 resource "aws_ec2_traffic_mirror_session" "test" {
-  traffic_mirror_filter_id = "${aws_ec2_traffic_mirror_filter.filter.id}"
-  traffic_mirror_target_id = "${aws_ec2_traffic_mirror_target.target.id}"
-  network_interface_id = "${aws_instance.src.primary_network_interface_id}"
-  session_number = %[5]d
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.target.id
+  network_interface_id     = aws_instance.src.primary_network_interface_id
+  session_number           = %[5]d
 
   tags = {
     %[1]q = %[2]q
     %[3]q = %[4]q
   }
 }
-`, tagKey1, tagValue1, tagKey2, tagValue2, session)
+`, tagKey1, tagValue1, tagKey2, tagValue2, session))
 }
 
 func testAccTrafficMirrorSessionConfigWithOptionals(description string, rName string, session, pLen, vni int) string {
-	return fmt.Sprintf(`
-%s
-
+	return composeConfig(testAccTrafficMirrorSessionConfigBase(rName), fmt.Sprintf(`
 resource "aws_ec2_traffic_mirror_session" "test" {
-  description = "%s"
-  traffic_mirror_filter_id = "${aws_ec2_traffic_mirror_filter.filter.id}"
-  traffic_mirror_target_id = "${aws_ec2_traffic_mirror_target.target.id}"
-  network_interface_id = "${aws_instance.src.primary_network_interface_id}"
-  session_number = %d
-  packet_length = %d
-  virtual_network_id = %d
+  description              = "%s"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.filter.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.target.id
+  network_interface_id     = aws_instance.src.primary_network_interface_id
+  session_number           = %d
+  packet_length            = %d
+  virtual_network_id       = %d
 }
-`, testAccTrafficMirrorSessionConfigBase(rName), description, session, pLen, vni)
+`, description, session, pLen, vni))
 }
 
 func testAccPreCheckAWSEc2TrafficMirrorSession(t *testing.T) {

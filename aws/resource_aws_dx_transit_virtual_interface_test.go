@@ -9,12 +9,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAwsDxTransitVirtualInterface(t *testing.T) {
+func TestAccAwsDxTransitVirtualInterface_serial(t *testing.T) {
 	testCases := map[string]func(t *testing.T){
 		"basic": testAccAwsDxTransitVirtualInterface_basic,
 		"tags":  testAccAwsDxTransitVirtualInterface_Tags,
@@ -39,9 +39,9 @@ func testAccAwsDxTransitVirtualInterface_basic(t *testing.T) {
 	resourceName := "aws_dx_transit_virtual_interface.test"
 	dxGatewayResourceName := "aws_dx_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-transit-vif-%s", acctest.RandString(9))
-	amzAsn := randIntRange(64512, 65534)
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	amzAsn := acctest.RandIntRange(64512, 65534)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -111,9 +111,9 @@ func testAccAwsDxTransitVirtualInterface_Tags(t *testing.T) {
 	resourceName := "aws_dx_transit_virtual_interface.test"
 	dxGatewayResourceName := "aws_dx_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-transit-vif-%s", acctest.RandString(9))
-	amzAsn := randIntRange(64512, 65534)
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	amzAsn := acctest.RandIntRange(64512, 65534)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -200,7 +200,7 @@ func testAccDxTransitVirtualInterfaceConfig_basic(cid, rName string, amzAsn, bgp
 resource "aws_dx_transit_virtual_interface" "test" {
   address_family = "ipv4"
   bgp_asn        = %[3]d
-  dx_gateway_id  = "${aws_dx_gateway.test.id}"
+  dx_gateway_id  = aws_dx_gateway.test.id
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[4]d
@@ -213,7 +213,7 @@ func testAccDxTransitVirtualInterfaceConfig_updated(cid, rName string, amzAsn, b
 resource "aws_dx_transit_virtual_interface" "test" {
   address_family = "ipv4"
   bgp_asn        = %[3]d
-  dx_gateway_id  = "${aws_dx_gateway.test.id}"
+  dx_gateway_id  = aws_dx_gateway.test.id
   connection_id  = %[1]q
   mtu            = 8500
   name           = %[2]q
@@ -227,7 +227,7 @@ func testAccDxTransitVirtualInterfaceConfig_tags(cid, rName string, amzAsn, bgpA
 resource "aws_dx_transit_virtual_interface" "test" {
   address_family = "ipv4"
   bgp_asn        = %[3]d
-  dx_gateway_id  = "${aws_dx_gateway.test.id}"
+  dx_gateway_id  = aws_dx_gateway.test.id
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[4]d
@@ -246,7 +246,7 @@ func testAccDxTransitVirtualInterfaceConfig_tagsUpdated(cid, rName string, amzAs
 resource "aws_dx_transit_virtual_interface" "test" {
   address_family = "ipv4"
   bgp_asn        = %[3]d
-  dx_gateway_id  = "${aws_dx_gateway.test.id}"
+  dx_gateway_id  = aws_dx_gateway.test.id
   connection_id  = %[1]q
   name           = %[2]q
   vlan           = %[4]d

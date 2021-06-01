@@ -48,7 +48,7 @@ The following arguments are supported:
 * `name_prefix` - (Optional, Forces new resource) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
 * `assume_role_policy` - (Required) The policy that grants an entity permission to assume the role.
 
-~> **NOTE:** This `assume_role_policy` is very similar but slightly different than just a standard IAM policy and cannot use an `aws_iam_policy` resource.  It _can_ however, use an `aws_iam_policy_document` [data source](https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html), see example below for how this could work.
+~> **NOTE:** This `assume_role_policy` is very similar but slightly different than just a standard IAM policy and cannot use an `aws_iam_policy` resource.  It _can_ however, use an `aws_iam_policy_document` [data source](/docs/providers/aws/d/iam_policy_document.html), see example below for how this could work.
 
 * `force_detach_policies` - (Optional) Specifies to force detaching any policies the role has before destroying it. Defaults to `false`.
 * `path` - (Optional) The path to the role.
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `max_session_duration` - (Optional) The maximum session duration (in seconds) that you want to set for the specified role. If you do not specify a value for this setting, the default maximum of one hour is applied. This setting can have a value from 1 hour to 12 hours.
 * `permissions_boundary` - (Optional) The ARN of the policy that is used to set the permissions boundary for the role.
-* `tags` - Key-value mapping of tags for the IAM role
+* `tags` - Key-value map of tags for the IAM role
 
 ## Attributes Reference
 
@@ -87,7 +87,7 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
 resource "aws_iam_role" "instance" {
   name               = "instance_role"
   path               = "/system/"
-  assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.instance-assume-role-policy.json
 }
 ```
 

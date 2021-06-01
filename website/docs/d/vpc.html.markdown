@@ -24,13 +24,13 @@ within it.
 variable "vpc_id" {}
 
 data "aws_vpc" "selected" {
-  id = "${var.vpc_id}"
+  id = var.vpc_id
 }
 
 resource "aws_subnet" "example" {
-  vpc_id            = "${data.aws_vpc.selected.id}"
+  vpc_id            = data.aws_vpc.selected.id
   availability_zone = "us-west-2a"
-  cidr_block        = "${cidrsubnet(data.aws_vpc.selected.cidr_block, 4, 1)}"
+  cidr_block        = cidrsubnet(data.aws_vpc.selected.cidr_block, 4, 1)
 }
 ```
 
@@ -54,7 +54,7 @@ VPC whose data will be exported as attributes.
 * `state` - (Optional) The current state of the desired VPC.
   Can be either `"pending"` or `"available"`.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired VPC.
 
 More complex filters can be expressed using one or more `filter` sub-blocks,

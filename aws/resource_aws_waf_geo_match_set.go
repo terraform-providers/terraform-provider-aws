@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsWafGeoMatchSet() *schema.Resource {
@@ -69,7 +69,7 @@ func resourceAwsWafGeoMatchSetCreate(d *schema.ResourceData, meta interface{}) e
 	}
 	resp := out.(*waf.CreateGeoMatchSetOutput)
 
-	d.SetId(*resp.GeoMatchSet.GeoMatchSetId)
+	d.SetId(aws.StringValue(resp.GeoMatchSet.GeoMatchSetId))
 
 	return resourceAwsWafGeoMatchSetUpdate(d, meta)
 }

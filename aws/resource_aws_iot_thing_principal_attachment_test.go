@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIotThingPrincipalAttachment_basic(t *testing.T) {
@@ -175,7 +175,7 @@ func testAccCheckAWSIotThingPrincipalAttachmentStatus(thingName string, exists b
 func testAccAWSIotThingPrincipalAttachmentConfig(thingName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -184,8 +184,8 @@ resource "aws_iot_thing" "thing" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 `, thingName)
 }
@@ -193,7 +193,7 @@ resource "aws_iot_thing_principal_attachment" "att" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate1(thingName, thingName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -206,13 +206,13 @@ resource "aws_iot_thing" "thing2" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 
 resource "aws_iot_thing_principal_attachment" "att2" {
-  thing     = "${aws_iot_thing.thing2.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing2.name
+  principal = aws_iot_certificate.cert.arn
 }
 `, thingName, thingName2)
 }
@@ -220,7 +220,7 @@ resource "aws_iot_thing_principal_attachment" "att2" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate2(thingName, thingName2 string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -233,8 +233,8 @@ resource "aws_iot_thing" "thing2" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 `, thingName, thingName2)
 }
@@ -242,12 +242,12 @@ resource "aws_iot_thing_principal_attachment" "att" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate3(thingName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
 resource "aws_iot_certificate" "cert2" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -256,13 +256,13 @@ resource "aws_iot_thing" "thing" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert.arn
 }
 
 resource "aws_iot_thing_principal_attachment" "att2" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert2.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert2.arn
 }
 `, thingName)
 }
@@ -270,7 +270,7 @@ resource "aws_iot_thing_principal_attachment" "att2" {
 func testAccAWSIotThingPrincipalAttachmentConfigUpdate4(thingName string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_certificate" "cert2" {
-  csr    = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 
@@ -279,8 +279,8 @@ resource "aws_iot_thing" "thing" {
 }
 
 resource "aws_iot_thing_principal_attachment" "att2" {
-  thing     = "${aws_iot_thing.thing.name}"
-  principal = "${aws_iot_certificate.cert2.arn}"
+  thing     = aws_iot_thing.thing.name
+  principal = aws_iot_certificate.cert2.arn
 }
 `, thingName)
 }

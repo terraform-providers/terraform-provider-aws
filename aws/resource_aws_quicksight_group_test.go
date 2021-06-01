@@ -5,13 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/quicksight"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSQuickSightGroup_basic(t *testing.T) {
@@ -210,7 +209,7 @@ func testAccAWSQuickSightGroupConfigWithDescription(rName, description string) s
 data "aws_caller_identity" "current" {}
 
 resource "aws_quicksight_group" "default" {
-  aws_account_id = "${data.aws_caller_identity.current.account_id}"
+  aws_account_id = data.aws_caller_identity.current.account_id
   group_name     = %[1]q
   description    = %[2]q
 }

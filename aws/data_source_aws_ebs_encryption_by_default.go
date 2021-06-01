@@ -2,10 +2,9 @@ package aws
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsEbsEncryptionByDefault() *schema.Resource {
@@ -28,7 +27,7 @@ func dataSourceAwsEbsEncryptionByDefaultRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error reading default EBS encryption toggle: %q", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 	d.Set("enabled", res.EbsEncryptionByDefault)
 
 	return nil

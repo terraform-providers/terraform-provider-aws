@@ -6,15 +6,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSESDomainMailFrom_basic(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	mailFromDomain1 := fmt.Sprintf("bounce1.%s", domain)
 	mailFromDomain2 := fmt.Sprintf("bounce2.%s", domain)
 	resourceName := "aws_ses_domain_mail_from.test"
@@ -54,7 +54,7 @@ func TestAccAWSSESDomainMailFrom_basic(t *testing.T) {
 func TestAccAWSSESDomainMailFrom_disappears(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	mailFromDomain := fmt.Sprintf("bounce.%s", domain)
 	resourceName := "aws_ses_domain_mail_from.test"
 
@@ -78,7 +78,7 @@ func TestAccAWSSESDomainMailFrom_disappears(t *testing.T) {
 func TestAccAWSSESDomainMailFrom_disappears_Identity(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	mailFromDomain := fmt.Sprintf("bounce.%s", domain)
 	resourceName := "aws_ses_domain_mail_from.test"
 
@@ -102,7 +102,7 @@ func TestAccAWSSESDomainMailFrom_disappears_Identity(t *testing.T) {
 func TestAccAWSSESDomainMailFrom_behaviorOnMxFailure(t *testing.T) {
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
-		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+		acctest.RandString(10))
 	resourceName := "aws_ses_domain_mail_from.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -212,7 +212,7 @@ resource "aws_ses_domain_identity" "test" {
 }
 
 resource "aws_ses_domain_mail_from" "test" {
-  domain           = "${aws_ses_domain_identity.test.domain}"
+  domain           = aws_ses_domain_identity.test.domain
   mail_from_domain = "%s"
 }
 `, domain, mailFromDomain)
@@ -226,7 +226,7 @@ resource "aws_ses_domain_identity" "test" {
 
 resource "aws_ses_domain_mail_from" "test" {
   behavior_on_mx_failure = "%s"
-  domain                 = "${aws_ses_domain_identity.test.domain}"
+  domain                 = aws_ses_domain_identity.test.domain
   mail_from_domain       = "bounce.${aws_ses_domain_identity.test.domain}"
 }
 `, domain, behaviorOnMxFailure)

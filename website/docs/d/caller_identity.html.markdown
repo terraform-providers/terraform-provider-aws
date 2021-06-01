@@ -18,15 +18,15 @@ which Terraform is authorized.
 data "aws_caller_identity" "current" {}
 
 output "account_id" {
-  value = "${data.aws_caller_identity.current.account_id}"
+  value = data.aws_caller_identity.current.account_id
 }
 
 output "caller_arn" {
-  value = "${data.aws_caller_identity.current.arn}"
+  value = data.aws_caller_identity.current.arn
 }
 
 output "caller_user" {
-  value = "${data.aws_caller_identity.current.user_id}"
+  value = data.aws_caller_identity.current.user_id
 }
 ```
 
@@ -38,4 +38,5 @@ There are no arguments available for this data source.
 
 * `account_id` - The AWS Account ID number of the account that owns or contains the calling entity.
 * `arn` - The AWS ARN associated with the calling entity.
+* `id` - The AWS Account ID number of the account that owns or contains the calling entity.
 * `user_id` - The unique identifier of the calling entity.

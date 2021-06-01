@@ -20,7 +20,7 @@ resource "aws_ses_domain_identity" "example" {
 data "aws_iam_policy_document" "example" {
   statement {
     actions   = ["SES:SendEmail", "SES:SendRawEmail"]
-    resources = ["${aws_ses_domain_identity.example.arn}"]
+    resources = [aws_ses_domain_identity.example.arn]
 
     principals {
       identifiers = ["*"]
@@ -30,9 +30,9 @@ data "aws_iam_policy_document" "example" {
 }
 
 resource "aws_ses_identity_policy" "example" {
-  identity = "${aws_ses_domain_identity.example.arn}"
+  identity = aws_ses_domain_identity.example.arn
   name     = "example"
-  policy   = "${data.aws_iam_policy_document.example.json}"
+  policy   = data.aws_iam_policy_document.example.json
 }
 ```
 

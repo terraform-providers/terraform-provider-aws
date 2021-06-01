@@ -32,7 +32,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the DB security group.
 * `description` - (Optional) The description of the DB security group. Defaults to "Managed by Terraform".
 * `ingress` - (Required) A list of ingress rules.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 Ingress blocks support the following:
 

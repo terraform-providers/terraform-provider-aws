@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "example" {
 }
 
 resource "aws_s3_bucket_metric" "example-entire-bucket" {
-  bucket = "${aws_s3_bucket.example.bucket}"
+  bucket = aws_s3_bucket.example.bucket
   name   = "EntireBucket"
 }
 ```
@@ -33,7 +33,7 @@ resource "aws_s3_bucket" "example" {
 }
 
 resource "aws_s3_bucket_metric" "example-filtered" {
-  bucket = "${aws_s3_bucket.example.bucket}"
+  bucket = aws_s3_bucket.example.bucket
   name   = "ImportantBlueDocuments"
 
   filter {
@@ -56,6 +56,8 @@ The following arguments are supported:
 * `filter` - (Optional) [Object filtering](http://docs.aws.amazon.com/AmazonS3/latest/dev/metrics-configurations.html#metrics-configurations-filter) that accepts a prefix, tags, or a logical AND of prefix and tags (documented below).
 
 The `filter` metric configuration supports the following:
+
+~> **NOTE**: At least one of `prefix` or `tags` is required when specifying a `filter`
 
 * `prefix` - (Optional) Object prefix for filtering (singular).
 * `tags` - (Optional) Object tags for filtering (up to 10).

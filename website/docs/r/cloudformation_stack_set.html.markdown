@@ -30,12 +30,12 @@ data "aws_iam_policy_document" "AWSCloudFormationStackSetAdministrationRole_assu
 }
 
 resource "aws_iam_role" "AWSCloudFormationStackSetAdministrationRole" {
-  assume_role_policy = "${data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_assume_role_policy.json
   name               = "AWSCloudFormationStackSetAdministrationRole"
 }
 
 resource "aws_cloudformation_stack_set" "example" {
-  administration_role_arn = "${aws_iam_role.AWSCloudFormationStackSetAdministrationRole.arn}"
+  administration_role_arn = aws_iam_role.AWSCloudFormationStackSetAdministrationRole.arn
   name                    = "example"
 
   parameters = {
@@ -76,8 +76,8 @@ data "aws_iam_policy_document" "AWSCloudFormationStackSetAdministrationRole_Exec
 
 resource "aws_iam_role_policy" "AWSCloudFormationStackSetAdministrationRole_ExecutionPolicy" {
   name   = "ExecutionPolicy"
-  policy = "${data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_ExecutionPolicy.json}"
-  role   = "${aws_iam_role.AWSCloudFormationStackSetAdministrationRole.name}"
+  policy = data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_ExecutionPolicy.json
+  role   = aws_iam_role.AWSCloudFormationStackSetAdministrationRole.name
 }
 ```
 
@@ -105,7 +105,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_cloudformation_stack_set` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_cloudformation_stack_set` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `update` - (Default `30m`) How long to wait for a StackSet to be updated.
 
@@ -114,5 +114,5 @@ In addition to all arguments above, the following attributes are exported:
 CloudFormation StackSets can be imported using the `name`, e.g.
 
 ```
-$ terraform import aws_cloudformation_stack.example example
+$ terraform import aws_cloudformation_stack_set.example example
 ```

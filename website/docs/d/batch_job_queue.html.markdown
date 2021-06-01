@@ -34,9 +34,10 @@ In addition to all arguments above, the following attributes are exported:
 * `status_reason` - A short, human-readable string to provide additional details about the current status
     of the job queue.
 * `state` - Describes the ability of the queue to accept new jobs (for example, `ENABLED` or `DISABLED`).
+* `tags` - Key-value map of resource tags
 * `priority` - The priority of the job queue. Job queues with a higher priority are evaluated first when
     associated with the same compute environment.
 * `compute_environment_order` - The compute environments that are attached to the job queue and the order in
     which job placement is preferred. Compute environments are selected for job placement in ascending order.
-  * `compute_environment_order.#.order` - The order of the compute environment.
-  * `compute_environment_order.#.compute_environment` - The ARN of the compute environment.
+    * `compute_environment_order.#.order` - The order of the compute environment.
+    * `compute_environment_order.#.compute_environment` - The ARN of the compute environment.

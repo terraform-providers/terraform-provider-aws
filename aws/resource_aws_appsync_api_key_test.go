@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appsync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAppsyncApiKey_basic(t *testing.T) {
@@ -20,7 +20,7 @@ func TestAccAWSAppsyncApiKey_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncApiKeyDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +48,7 @@ func TestAccAWSAppsyncApiKey_Description(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncApiKeyDestroy,
 		Steps: []resource.TestStep{
@@ -83,7 +83,7 @@ func TestAccAWSAppsyncApiKey_Expires(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncApiKeyDestroy,
 		Steps: []resource.TestStep{
@@ -188,7 +188,7 @@ resource "aws_appsync_graphql_api" "test" {
 }
 
 resource "aws_appsync_api_key" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
+  api_id      = aws_appsync_graphql_api.test.id
   description = %q
 }
 `, rName, description)
@@ -202,7 +202,7 @@ resource "aws_appsync_graphql_api" "test" {
 }
 
 resource "aws_appsync_api_key" "test" {
-  api_id  = "${aws_appsync_graphql_api.test.id}"
+  api_id  = aws_appsync_graphql_api.test.id
   expires = %q
 }
 `, rName, expires)
@@ -216,7 +216,7 @@ resource "aws_appsync_graphql_api" "test" {
 }
 
 resource "aws_appsync_api_key" "test" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
 }
 `, rName)
 }

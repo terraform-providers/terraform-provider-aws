@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSInspectorResourceGroup_basic(t *testing.T) {
@@ -34,7 +34,7 @@ func TestAccAWSInspectorResourceGroup_basic(t *testing.T) {
 					testAccCheckAWSInspectorResourceGroupExists(resourceName, &v2),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "inspector", regexp.MustCompile(`resourcegroup/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", "bar"),
-					testAccCheckAWSInspectorResourceGroupRecreated(t, &v1, &v2),
+					testAccCheckAWSInspectorResourceGroupRecreated(&v1, &v2),
 				),
 			},
 		},
@@ -69,7 +69,7 @@ func testAccCheckAWSInspectorResourceGroupExists(name string, rg *inspector.Reso
 	}
 }
 
-func testAccCheckAWSInspectorResourceGroupRecreated(t *testing.T, v1, v2 *inspector.ResourceGroup) resource.TestCheckFunc {
+func testAccCheckAWSInspectorResourceGroupRecreated(v1, v2 *inspector.ResourceGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if v2.CreatedAt.Equal(*v1.CreatedAt) {
 			return fmt.Errorf("Inspector resource group not recreated when changing tags")
@@ -82,13 +82,15 @@ func testAccCheckAWSInspectorResourceGroupRecreated(t *testing.T, v1, v2 *inspec
 var testAccAWSInspectorResourceGroup = `
 resource "aws_inspector_resource_group" "test" {
   tags = {
-    Name  = "foo"
+    Name = "foo"
   }
-}`
+}
+`
 
 var testAccCheckAWSInspectorResourceGroupModified = `
 resource "aws_inspector_resource_group" "test" {
   tags = {
-    Name  = "bar"
+    Name = "bar"
   }
-}`
+}
+`

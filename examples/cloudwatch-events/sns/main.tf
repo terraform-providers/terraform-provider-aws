@@ -1,9 +1,13 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
 }
 
 resource "aws_cloudwatch_event_rule" "foo" {
-  name = "${var.rule_name}"
+  name = var.rule_name
 
   event_pattern = <<PATTERN
 {
@@ -20,11 +24,11 @@ PATTERN
 }
 
 resource "aws_cloudwatch_event_target" "bar" {
-  rule      = "${aws_cloudwatch_event_rule.foo.name}"
-  target_id = "${var.target_name}"
-  arn       = "${aws_sns_topic.foo.arn}"
+  rule      = aws_cloudwatch_event_rule.foo.name
+  target_id = var.target_name
+  arn       = aws_sns_topic.foo.arn
 }
 
 resource "aws_sns_topic" "foo" {
-  name = "${var.sns_topic_name}"
+  name = var.sns_topic_name
 }

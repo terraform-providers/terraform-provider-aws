@@ -2,11 +2,14 @@ package aws
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsGlueWorkflow() *schema.Resource {
@@ -20,6 +23,10 @@ func resourceAwsGlueWorkflow() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"default_run_properties": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -29,12 +36,17 @@ func resourceAwsGlueWorkflow() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"max_concurrent_runs": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -45,24 +57,25 @@ func resourceAwsGlueWorkflowCreate(d *schema.ResourceData, meta interface{}) err
 
 	input := &glue.CreateWorkflowInput{
 		Name: aws.String(name),
+		Tags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
 	}
 
 	if kv, ok := d.GetOk("default_run_properties"); ok {
-		defaultRunPropertiesMap := make(map[string]string)
-		for k, v := range kv.(map[string]interface{}) {
-			defaultRunPropertiesMap[k] = v.(string)
-		}
-		input.DefaultRunProperties = aws.StringMap(defaultRunPropertiesMap)
+		input.DefaultRunProperties = stringMapToPointers(kv.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("max_concurrent_runs"); ok {
+		input.MaxConcurrentRuns = aws.Int64(int64(v.(int)))
+	}
+
 	log.Printf("[DEBUG] Creating Glue Workflow: %s", input)
 	_, err := conn.CreateWorkflow(input)
 	if err != nil {
-		return fmt.Errorf("error creating Glue Trigger (%s): %s", name, err)
+		return fmt.Errorf("error creating Glue Trigger (%s): %w", name, err)
 	}
 	d.SetId(name)
 
@@ -71,12 +84,13 @@ func resourceAwsGlueWorkflowCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetWorkflowInput{
 		Name: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Reading Glue Workflow: %s", input)
+	log.Printf("[DEBUG] Reading Glue Workflow: %#v", input)
 	output, err := conn.GetWorkflow(input)
 	if err != nil {
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
@@ -84,7 +98,7 @@ func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error reading Glue Workflow (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading Glue Workflow (%s): %w", d.Id(), err)
 	}
 
 	workflow := output.Workflow
@@ -94,11 +108,31 @@ func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
+	workFlowArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "glue",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("workflow/%s", d.Id()),
+	}.String()
+	d.Set("arn", workFlowArn)
+
 	if err := d.Set("default_run_properties", aws.StringValueMap(workflow.DefaultRunProperties)); err != nil {
-		return fmt.Errorf("error setting default_run_properties: %s", err)
+		return fmt.Errorf("error setting default_run_properties: %w", err)
 	}
 	d.Set("description", workflow.Description)
+	d.Set("max_concurrent_runs", workflow.MaxConcurrentRuns)
 	d.Set("name", workflow.Name)
+
+	tags, err := keyvaluetags.GlueListTags(conn, workFlowArn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Glue Workflow (%s): %w", workFlowArn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
 
 	return nil
 }
@@ -106,26 +140,35 @@ func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsGlueWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
 
-	input := &glue.UpdateWorkflowInput{
-		Name: aws.String(d.Get("name").(string)),
-	}
-
-	if kv, ok := d.GetOk("default_run_properties"); ok {
-		defaultRunPropertiesMap := make(map[string]string)
-		for k, v := range kv.(map[string]interface{}) {
-			defaultRunPropertiesMap[k] = v.(string)
+	if d.HasChanges("default_run_properties", "description", "max_concurrent_runs") {
+		input := &glue.UpdateWorkflowInput{
+			Name: aws.String(d.Get("name").(string)),
 		}
-		input.DefaultRunProperties = aws.StringMap(defaultRunPropertiesMap)
+
+		if kv, ok := d.GetOk("default_run_properties"); ok {
+			input.DefaultRunProperties = stringMapToPointers(kv.(map[string]interface{}))
+		}
+
+		if v, ok := d.GetOk("description"); ok {
+			input.Description = aws.String(v.(string))
+		}
+
+		if v, ok := d.GetOk("max_concurrent_runs"); ok {
+			input.MaxConcurrentRuns = aws.Int64(int64(v.(int)))
+		}
+
+		log.Printf("[DEBUG] Updating Glue Workflow: %#v", input)
+		_, err := conn.UpdateWorkflow(input)
+		if err != nil {
+			return fmt.Errorf("error updating Glue Workflow (%s): %w", d.Id(), err)
+		}
 	}
 
-	if v, ok := d.GetOk("description"); ok {
-		input.Description = aws.String(v.(string))
-	}
-
-	log.Printf("[DEBUG] Updating Glue Workflow: %s", input)
-	_, err := conn.UpdateWorkflow(input)
-	if err != nil {
-		return fmt.Errorf("error updating Glue Workflow (%s): %s", d.Id(), err)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
+		}
 	}
 
 	return resourceAwsGlueWorkflowRead(d, meta)
@@ -137,7 +180,7 @@ func resourceAwsGlueWorkflowDelete(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[DEBUG] Deleting Glue Workflow: %s", d.Id())
 	err := deleteWorkflow(conn, d.Id())
 	if err != nil {
-		return fmt.Errorf("error deleting Glue Workflow (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting Glue Workflow (%s): %w", d.Id(), err)
 	}
 
 	return nil

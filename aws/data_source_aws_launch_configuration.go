@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsLaunchConfiguration() *schema.Resource {
@@ -105,6 +105,11 @@ func dataSourceAwsLaunchConfiguration() *schema.Resource {
 							Computed: true,
 						},
 
+						"no_device": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
 						"iops": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -145,6 +150,27 @@ func dataSourceAwsLaunchConfiguration() *schema.Resource {
 
 						"virtual_name": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"metadata_options": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_endpoint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_tokens": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_put_response_hop_limit": {
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 					},
@@ -238,6 +264,10 @@ func dataSourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface
 	}
 	if err := d.Set("security_groups", vpcSGs); err != nil {
 		return fmt.Errorf("error setting security_groups: %s", err)
+	}
+
+	if err := d.Set("metadata_options", flattenLaunchConfigInstanceMetadataOptions(lc.MetadataOptions)); err != nil {
+		return fmt.Errorf("error setting metadata_options: %s", err)
 	}
 
 	classicSGs := make([]string, 0, len(lc.ClassicLinkVPCSecurityGroups))

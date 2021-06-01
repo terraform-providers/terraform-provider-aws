@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ram"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsRamResourceAssociation_basic(t *testing.T) {
@@ -153,7 +152,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-ram-resource-association"
@@ -165,8 +164,8 @@ resource "aws_ram_resource_share" "test" {
 }
 
 resource "aws_ram_resource_association" "test" {
-  resource_arn       = "${aws_subnet.test.arn}"
-  resource_share_arn = "${aws_ram_resource_share.test.id}"
+  resource_arn       = aws_subnet.test.arn
+  resource_share_arn = aws_ram_resource_share.test.id
 }
 `, rName)
 }

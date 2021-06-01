@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudformation/waiter"
 )
 
 func resourceAwsCloudFormationStackSet() *schema.Resource {
@@ -26,7 +26,7 @@ func resourceAwsCloudFormationStackSet() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(waiter.StackSetUpdatedDefaultTimeout),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -86,8 +86,8 @@ func resourceAwsCloudFormationStackSet() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"template_url"},
-				DiffSuppressFunc: suppressCloudFormationTemplateBodyDiffs,
-				ValidateFunc:     validateCloudFormationTemplate,
+				DiffSuppressFunc: suppressEquivalentJsonOrYamlDiffs,
+				ValidateFunc:     validateStringIsJsonOrYaml,
 			},
 			"template_url": {
 				Type:          schema.TypeString,
@@ -147,6 +147,7 @@ func resourceAwsCloudFormationStackSetCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsCloudFormationStackSetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &cloudformation.DescribeStackSetInput{
 		StackSetName: aws.String(d.Id()),
@@ -188,7 +189,7 @@ func resourceAwsCloudFormationStackSetRead(d *schema.ResourceData, meta interfac
 
 	d.Set("stack_set_id", stackSet.StackSetId)
 
-	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stackSet.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stackSet.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -239,7 +240,7 @@ func resourceAwsCloudFormationStackSetUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error updating CloudFormation StackSet (%s): %s", d.Id(), err)
 	}
 
-	if err := waitForCloudFormationStackSetOperation(conn, d.Id(), aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
+	if err := waiter.StackSetOperationSucceeded(conn, d.Id(), aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
 		return fmt.Errorf("error waiting for CloudFormation StackSet (%s) update: %s", d.Id(), err)
 	}
 

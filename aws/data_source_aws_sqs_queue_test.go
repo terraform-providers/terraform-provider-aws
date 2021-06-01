@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsSqsQueue_basic(t *testing.T) {
@@ -95,7 +95,7 @@ resource "aws_sqs_queue" "test" {
 }
 
 data "aws_sqs_queue" "by_name" {
-  name = "${aws_sqs_queue.test.name}"
+  name = aws_sqs_queue.test.name
 }
 `, rName)
 }
@@ -113,7 +113,7 @@ resource "aws_sqs_queue" "test" {
 }
 
 data "aws_sqs_queue" "by_name" {
-  name = "${aws_sqs_queue.test.name}"
+  name = aws_sqs_queue.test.name
 }
 `, rName)
 }

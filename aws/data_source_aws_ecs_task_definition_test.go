@@ -5,11 +5,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEcsDataSource_ecsTaskDefinition(t *testing.T) {
+	resourceName := "data.aws_ecs_task_definition.mongo"
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -19,11 +20,11 @@ func TestAccAWSEcsDataSource_ecsTaskDefinition(t *testing.T) {
 			{
 				Config: testAccCheckAwsEcsTaskDefinitionDataSourceConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_ecs_task_definition.mongo", "family", rName),
-					resource.TestCheckResourceAttr("data.aws_ecs_task_definition.mongo", "network_mode", "bridge"),
-					resource.TestMatchResourceAttr("data.aws_ecs_task_definition.mongo", "revision", regexp.MustCompile("^[1-9][0-9]*$")),
-					resource.TestCheckResourceAttr("data.aws_ecs_task_definition.mongo", "status", "ACTIVE"),
-					resource.TestMatchResourceAttr("data.aws_ecs_task_definition.mongo", "task_role_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:iam::[^:]+:role/%s$", rName))),
+					resource.TestCheckResourceAttr(resourceName, "family", rName),
+					resource.TestCheckResourceAttr(resourceName, "network_mode", "bridge"),
+					resource.TestMatchResourceAttr(resourceName, "revision", regexp.MustCompile("^[1-9][0-9]*$")),
+					resource.TestCheckResourceAttr(resourceName, "status", "ACTIVE"),
+					resource.TestCheckResourceAttrPair(resourceName, "task_role_arn", "aws_iam_role.mongo_role", "arn"),
 				),
 			},
 		},
@@ -54,17 +55,19 @@ POLICY
 
 resource "aws_ecs_task_definition" "mongo" {
   family        = "%[1]s"
-  task_role_arn = "${aws_iam_role.mongo_role.arn}"
+  task_role_arn = aws_iam_role.mongo_role.arn
   network_mode  = "bridge"
 
   container_definitions = <<DEFINITION
 [
   {
     "cpu": 128,
-    "environment": [{
-      "name": "SECRET",
-      "value": "KEY"
-    }],
+    "environment": [
+      {
+        "name": "SECRET",
+        "value": "KEY"
+      }
+    ],
     "essential": true,
     "image": "mongo:latest",
     "memory": 128,
@@ -76,7 +79,7 @@ DEFINITION
 }
 
 data "aws_ecs_task_definition" "mongo" {
-  task_definition = "${aws_ecs_task_definition.mongo.family}"
+  task_definition = aws_ecs_task_definition.mongo.family
 }
 `, rName)
 }

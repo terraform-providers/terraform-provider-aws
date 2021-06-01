@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -34,6 +35,22 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"target_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"file_system_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"local_mount_path": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -153,12 +170,26 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 				Computed: true,
 			},
 			"tags": tagsSchemaComputed(),
+			"signing_profile_version_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"signing_job_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"code_signing_config_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lambdaconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	functionName := d.Get("function_name").(string)
 
 	input := &lambda.GetFunctionInput{
@@ -225,6 +256,16 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("memory_size", function.MemorySize)
 	d.Set("qualified_arn", qualifiedARN)
 
+	// Add Signing Profile Version ARN
+	if err := d.Set("signing_profile_version_arn", function.SigningProfileVersionArn); err != nil {
+		return fmt.Errorf("Error setting signing profile version arn for Lambda Function: %s", err)
+	}
+
+	// Add Signing Job ARN
+	if err := d.Set("signing_job_arn", function.SigningJobArn); err != nil {
+		return fmt.Errorf("Error setting signing job arn for Lambda Function: %s", err)
+	}
+
 	reservedConcurrentExecutions := int64(-1)
 	if output.Concurrency != nil {
 		reservedConcurrentExecutions = aws.Int64Value(output.Concurrency.ReservedConcurrentExecutions)
@@ -236,7 +277,7 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("source_code_hash", function.CodeSha256)
 	d.Set("source_code_size", function.CodeSize)
 
-	if err := d.Set("tags", keyvaluetags.LambdaKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.LambdaKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -258,6 +299,39 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("vpc_config", flattenLambdaVpcConfigResponse(function.VpcConfig)); err != nil {
 		return fmt.Errorf("error setting vpc_config: %s", err)
 	}
+
+	if err := d.Set("file_system_config", flattenLambdaFileSystemConfigs(function.FileSystemConfigs)); err != nil {
+		return fmt.Errorf("error setting file_system_config: %s", err)
+	}
+
+	// Currently, this functionality is only enabled in AWS Commercial partition
+	// and other partitions return ambiguous error codes (e.g. AccessDeniedException
+	// in AWS GovCloud (US)) so we cannot just ignore the error as would typically.
+	if meta.(*AWSClient).partition != endpoints.AwsPartitionID {
+		d.SetId(aws.StringValue(function.FunctionName))
+
+		return nil
+	}
+
+	// Get Code Signing Config Output.
+	// Code Signing is only supported on zip packaged lambda functions.
+	var codeSigningConfigArn string
+
+	if aws.StringValue(function.PackageType) == lambda.PackageTypeZip {
+		codeSigningConfigInput := &lambda.GetFunctionCodeSigningConfigInput{
+			FunctionName: function.FunctionName,
+		}
+		getCodeSigningConfigOutput, err := conn.GetFunctionCodeSigningConfig(codeSigningConfigInput)
+		if err != nil {
+			return fmt.Errorf("error getting Lambda Function (%s) Code Signing Config: %w", aws.StringValue(function.FunctionName), err)
+		}
+
+		if getCodeSigningConfigOutput != nil {
+			codeSigningConfigArn = aws.StringValue(getCodeSigningConfigOutput.CodeSigningConfigArn)
+		}
+	}
+
+	d.Set("code_signing_config_arn", codeSigningConfigArn)
 
 	d.SetId(aws.StringValue(function.FunctionName))
 

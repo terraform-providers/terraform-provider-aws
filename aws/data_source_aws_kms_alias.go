@@ -3,11 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsKmsAlias() *schema.Resource {
@@ -60,7 +59,7 @@ func dataSourceAwsKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("No alias with name %q found in this region.", target)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(aws.StringValue(alias.AliasArn))
 	d.Set("arn", alias.AliasArn)
 
 	// ListAliases can return an alias for an AWS service key (e.g.

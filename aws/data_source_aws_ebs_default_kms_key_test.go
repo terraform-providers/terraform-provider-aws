@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsEBSDefaultKmsKey_basic(t *testing.T) {
@@ -53,5 +53,5 @@ func testAccCheckDataSourceAwsEBSDefaultKmsKey(n string) resource.TestCheckFunc 
 }
 
 const testAccDataSourceAwsEBSDefaultKmsKeyConfig = `
-data "aws_ebs_default_kms_key" "current" { }
+data "aws_ebs_default_kms_key" "current" {}
 `

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/service/pinpoint"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/pinpoint"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSPinpointEmailChannel_basic(t *testing.T) {
@@ -80,11 +79,11 @@ func testAccAWSPinpointEmailChannelConfig_FromAddress(fromAddress string) string
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_email_channel" "test_email_channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
+  application_id = aws_pinpoint_app.test_app.application_id
   enabled        = "false"
   from_address   = %[1]q
-  identity       = "${aws_ses_domain_identity.test_identity.arn}"
-  role_arn       = "${aws_iam_role.test_role.arn}"
+  identity       = aws_ses_domain_identity.test_identity.arn
+  role_arn       = aws_iam_role.test_role.arn
 }
 
 resource "aws_ses_domain_identity" "test_identity" {
@@ -110,8 +109,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "test_role_policy" {
-  name   = "test_policy"
-  role   = "${aws_iam_role.test_role.id}"
+  name = "test_policy"
+  role = aws_iam_role.test_role.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",

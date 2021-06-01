@@ -1,0 +1,25 @@
+on:
+  pull_request_target:
+    types: [closed]
+name: Add merged PR and linked issues to current milestone of target branch
+jobs:
+  AddMergedToCurrentMilestone:
+    if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+      - id: get-current-milestone
+        run: |
+            echo ::set-output name=current_milestone::v$(head -1 CHANGELOG.md | cut -d " " -f 2)
+      - run: echo ${{ steps.get-current-milestone.outputs.current_milestone }}
+      - id: get-milestone-id 
+        run: |
+          echo ::set-output name=milestone_id::$(curl -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}" https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/milestones | jq 'map(select(.title == "${{ steps.get-current-milestone.outputs.current_milestone }}"))[0].number')
+      - run: echo ${{ steps.get-milestone-id.outputs.milestone_id }}
+      - uses: breathingdust/current-milestone-action@v4
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pull_number: ${{ github.event.pull_request.number }}
+          milestone_number: ${{ steps.get-milestone-id.outputs.milestone_id }}

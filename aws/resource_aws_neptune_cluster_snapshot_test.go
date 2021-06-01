@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSNeptuneClusterSnapshot_basic(t *testing.T) {
@@ -28,7 +28,7 @@ func TestAccAWSNeptuneClusterSnapshot_basic(t *testing.T) {
 					testAccCheckNeptuneClusterSnapshotExists(resourceName, &dbClusterSnapshot),
 					resource.TestCheckResourceAttrSet(resourceName, "allocated_storage"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zones.#"),
-					resource.TestMatchResourceAttr(resourceName, "db_cluster_snapshot_arn", regexp.MustCompile(`^arn:[^:]+:rds:[^:]+:\d{12}:cluster-snapshot:.+`)),
+					testAccCheckResourceAttrRegionalARN(resourceName, "db_cluster_snapshot_arn", "rds", fmt.Sprintf("cluster-snapshot:%s", rName)),
 					resource.TestCheckResourceAttrSet(resourceName, "engine"),
 					resource.TestCheckResourceAttrSet(resourceName, "engine_version"),
 					resource.TestCheckResourceAttr(resourceName, "kms_key_id", ""),
@@ -113,13 +113,13 @@ func testAccCheckNeptuneClusterSnapshotExists(resourceName string, dbClusterSnap
 func testAccAwsNeptuneClusterSnapshotConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_neptune_cluster" "test" {
-  cluster_identifier  = %q
+  cluster_identifier  = %[1]q
   skip_final_snapshot = true
 }
 
 resource "aws_neptune_cluster_snapshot" "test" {
-  db_cluster_identifier          = "${aws_neptune_cluster.test.id}"
-  db_cluster_snapshot_identifier = %q
+  db_cluster_identifier          = aws_neptune_cluster.test.id
+  db_cluster_snapshot_identifier = %[1]q
 }
-`, rName, rName)
+`, rName)
 }

@@ -41,7 +41,7 @@ EOF
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
@@ -61,9 +61,9 @@ POLICY
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id = "${aws_transfer_server.foo.id}"
+  server_id = aws_transfer_server.foo.id
   user_name = "tftestuser"
-  role      = "${aws_iam_role.foo.arn}"
+  role      = aws_iam_role.foo.arn
 }
 ```
 
@@ -74,9 +74,16 @@ The following arguments are supported:
 * `server_id` - (Requirement) The Server ID of the Transfer Server (e.g. `s-12345678`)
 * `user_name` - (Requirement) The name used for log in to your SFTP server.
 * `home_directory` - (Optional) The landing directory (folder) for a user when they log in to the server using their SFTP client.  It should begin with a `/`.  The first item in the path is the name of the home bucket (accessible as `${Transfer:HomeBucket}` in the policy) and the rest is the home directory (accessible as `${Transfer:HomeDirectory}` in the policy). For example, `/example-bucket-1234/username` would set the home bucket to `example-bucket-1234` and the home directory to `username`.
+* `home_directory_mappings` - (Optional) Logical directory mappings that specify what S3 paths and keys should be visible to your user and how you want to make them visible. documented below.
+* `home_directory_type` - (Optional) The type of landing directory (folder) you mapped for your users' home directory. Valid values are `PATH` and `LOGICAL`.
 * `policy` - (Optional) An IAM JSON policy document that scopes down user access to portions of their Amazon S3 bucket. IAM variables you can use inside this policy include `${Transfer:UserName}`, `${Transfer:HomeDirectory}`, and `${Transfer:HomeBucket}`. Since the IAM variable syntax matches Terraform's interpolation syntax, they must be escaped inside Terraform configuration strings (`$${Transfer:UserName}`).  These are evaluated on-the-fly when navigating the bucket.
 * `role` - (Requirement) Amazon Resource Name (ARN) of an IAM role that allows the service to controls your user’s access to your Amazon S3 bucket.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
+
+Home Directory Mappings (`home_directory_mappings`) support the following:
+
+* `entry` - (Requirement) Represents an entry and a target.
+* `target` - (Requirement) Represents the map target.
 
 ## Attributes Reference
 In addition to all arguments above, the following attributes are exported:

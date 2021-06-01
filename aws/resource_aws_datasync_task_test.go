@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -421,7 +421,7 @@ func TestAccAWSDataSyncTask_DefaultSyncOptions_Uid(t *testing.T) {
 }
 
 func TestAccAWSDataSyncTask_DefaultSyncOptions_VerifyMode(t *testing.T) {
-	var task1, task2 datasync.DescribeTaskOutput
+	var task1, task2, task3 datasync.DescribeTaskOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_datasync_task.test"
 
@@ -452,12 +452,21 @@ func TestAccAWSDataSyncTask_DefaultSyncOptions_VerifyMode(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "options.0.verify_mode", "POINT_IN_TIME_CONSISTENT"),
 				),
 			},
+			{
+				Config: testAccAWSDataSyncTaskConfigDefaultSyncOptionsVerifyMode(rName, "ONLY_FILES_TRANSFERRED"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDataSyncTaskExists(resourceName, &task3),
+					testAccCheckAWSDataSyncTaskNotRecreated(&task2, &task3),
+					resource.TestCheckResourceAttr(resourceName, "options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "options.0.verify_mode", "ONLY_FILES_TRANSFERRED"),
+				),
+			},
 		},
 	})
 }
 
 func TestAccAWSDataSyncTask_Tags(t *testing.T) {
-	t.Skip("Tagging on creation is inconsistent")
+	TestAccSkip(t, "Tagging on creation is inconsistent")
 	var task1, task2, task3 datasync.DescribeTaskOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_datasync_task.test"
@@ -650,11 +659,11 @@ POLICY
 }
 
 resource "aws_datasync_location_s3" "destination" {
-  s3_bucket_arn = "${aws_s3_bucket.destination.arn}"
+  s3_bucket_arn = aws_s3_bucket.destination.arn
   subdirectory  = "/destination"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.destination.arn}"
+    bucket_access_role_arn = aws_iam_role.destination.arn
   }
 
   depends_on = [aws_iam_role_policy.destination]
@@ -663,15 +672,13 @@ resource "aws_datasync_location_s3" "destination" {
 }
 
 func testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName string) string {
-	return fmt.Sprintf(`
-data "aws_ami" "source-aws-thinstaller" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["aws-thinstaller-*"]
-  }
+	return composeConfig(
+		// Reference: https://docs.aws.amazon.com/datasync/latest/userguide/agent-requirements.html
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.source.availability_zone", "m5.2xlarge", "m5.4xlarge"),
+		fmt.Sprintf(`
+# Reference: https://docs.aws.amazon.com/datasync/latest/userguide/deploy-agents.html
+data "aws_ssm_parameter" "aws_service_datasync_ami" {
+  name = "/aws/service/datasync/ami"
 }
 
 resource "aws_vpc" "source" {
@@ -684,18 +691,9 @@ resource "aws_vpc" "source" {
   }
 }
 
-resource "aws_vpc_dhcp_options" "source" {
-  domain_name_servers = ["AmazonProvidedDNS"]
-}
-
-resource "aws_vpc_dhcp_options_association" "source" {
-  dhcp_options_id = "${aws_vpc_dhcp_options.source.id}"
-  vpc_id          = "${aws_vpc.source.id}"
-}
-
 resource "aws_subnet" "source" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.source.id}"
+  vpc_id     = aws_vpc.source.id
 
   tags = {
     Name = "tf-acc-test-datasync-task"
@@ -703,19 +701,19 @@ resource "aws_subnet" "source" {
 }
 
 resource "aws_internet_gateway" "source" {
-  vpc_id = "${aws_vpc.source.id}"
+  vpc_id = aws_vpc.source.id
 
   tags = {
     Name = "tf-acc-test-datasync-task"
   }
 }
 
-resource "aws_route_table" "source" {
-  vpc_id = "${aws_vpc.source.id}"
+resource "aws_default_route_table" "source" {
+  default_route_table_id = aws_vpc.source.default_route_table_id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.source.id}"
+    gateway_id = aws_internet_gateway.source.id
   }
 
   tags = {
@@ -723,13 +721,8 @@ resource "aws_route_table" "source" {
   }
 }
 
-resource "aws_route_table_association" "source" {
-  subnet_id      = "${aws_subnet.source.id}"
-  route_table_id = "${aws_route_table.source.id}"
-}
-
 resource "aws_security_group" "source" {
-  vpc_id = "${aws_vpc.source.id}"
+  vpc_id = aws_vpc.source.id
 
   egress {
     from_port   = 0
@@ -751,24 +744,25 @@ resource "aws_security_group" "source" {
 }
 
 # EFS as our NFS server
-resource "aws_efs_file_system" "source" {}
+resource "aws_efs_file_system" "source" {
+}
 
 resource "aws_efs_mount_target" "source" {
-  file_system_id  = "${aws_efs_file_system.source.id}"
-  security_groups = ["${aws_security_group.source.id}"]
-  subnet_id       = "${aws_subnet.source.id}"
+  file_system_id  = aws_efs_file_system.source.id
+  security_groups = [aws_security_group.source.id]
+  subnet_id       = aws_subnet.source.id
 }
 
 resource "aws_instance" "source" {
-  depends_on = ["aws_internet_gateway.source", "aws_vpc_dhcp_options_association.source"]
+  depends_on = [
+    aws_default_route_table.source,
+  ]
 
-  ami                         = "${data.aws_ami.source-aws-thinstaller.id}"
+  ami                         = data.aws_ssm_parameter.aws_service_datasync_ami.value
   associate_public_ip_address = true
-
-  # Default instance type from sync.sh
-  instance_type          = "c5.2xlarge"
-  vpc_security_group_ids = ["${aws_security_group.source.id}"]
-  subnet_id              = "${aws_subnet.source.id}"
+  instance_type               = data.aws_ec2_instance_type_offering.available.instance_type
+  vpc_security_group_ids      = [aws_security_group.source.id]
+  subnet_id                   = aws_subnet.source.id
 
   tags = {
     Name = "tf-acc-test-datasync-task"
@@ -776,30 +770,27 @@ resource "aws_instance" "source" {
 }
 
 resource "aws_datasync_agent" "source" {
-  ip_address = "${aws_instance.source.public_ip}"
+  ip_address = aws_instance.source.public_ip
   name       = %q
 }
 
-# Using EFS File System DNS name due to DNS propagation delays
 resource "aws_datasync_location_nfs" "source" {
-  depends_on = ["aws_efs_mount_target.source"]
-
-  server_hostname = "${aws_efs_file_system.source.dns_name}"
+  server_hostname = aws_efs_mount_target.source.dns_name
   subdirectory    = "/"
 
   on_prem_config {
-    agent_arns = ["${aws_datasync_agent.source.arn}"]
+    agent_arns = [aws_datasync_agent.source.arn]
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSDataSyncTaskConfig(rName string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 }
 `, rName)
 }
@@ -811,10 +802,10 @@ resource "aws_cloudwatch_log_group" "test" {
 }
 
 resource "aws_datasync_task" "test" {
-  cloudwatch_log_group_arn = "${replace(aws_cloudwatch_log_group.test.arn, ":*", "")}"
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  cloudwatch_log_group_arn = aws_cloudwatch_log_group.test.arn
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 }
 `, rName, rName)
 }
@@ -822,9 +813,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsAtimeMtime(rName, atime, mtime string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     atime = %q
@@ -837,9 +828,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsBytesPerSecond(rName string, bytesPerSecond int) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     bytes_per_second = %d
@@ -851,9 +842,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsGid(rName, gid string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     gid = %q
@@ -865,9 +856,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsPosixPermissions(rName, posixPermissions string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     posix_permissions = %q
@@ -879,9 +870,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsPreserveDeletedFiles(rName, preserveDeletedFiles string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     preserve_deleted_files = %q
@@ -893,9 +884,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsPreserveDevices(rName, preserveDevices string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     preserve_devices = %q
@@ -907,9 +898,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsUid(rName, uid string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     uid = %q
@@ -921,9 +912,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigDefaultSyncOptionsVerifyMode(rName, verifyMode string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   options {
     verify_mode = %q
@@ -935,9 +926,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigTags1(rName, key1, value1 string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   tags = {
     %q = %q
@@ -949,9 +940,9 @@ resource "aws_datasync_task" "test" {
 func testAccAWSDataSyncTaskConfigTags2(rName, key1, value1, key2, value2 string) string {
 	return testAccAWSDataSyncTaskConfigDestinationLocationS3Base(rName) + testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_task" "test" {
-  destination_location_arn = "${aws_datasync_location_s3.destination.arn}"
+  destination_location_arn = aws_datasync_location_s3.destination.arn
   name                     = %q
-  source_location_arn      = "${aws_datasync_location_nfs.source.arn}"
+  source_location_arn      = aws_datasync_location_nfs.source.arn
 
   tags = {
     %q = %q

@@ -3,11 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsAutoscalingGroup() *schema.Resource {
@@ -18,7 +17,6 @@ func dataSourceAwsAutoscalingGroup() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -50,6 +48,26 @@ func dataSourceAwsAutoscalingGroup() *schema.Resource {
 			"launch_configuration": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"launch_template": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"load_balancers": {
 				Type:     schema.TypeSet,
@@ -106,7 +124,6 @@ func dataSourceAwsAutoscalingGroup() *schema.Resource {
 
 func dataSourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).autoscalingconn
-	d.SetId(time.Now().UTC().String())
 
 	groupName := d.Get("name").(string)
 
@@ -123,7 +140,7 @@ func dataSourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{})
 	log.Printf("[DEBUG] Checking for error: %s", err)
 
 	if err != nil {
-		return fmt.Errorf("error describing AutoScaling Groups: %s", err)
+		return fmt.Errorf("error describing AutoScaling Groups: %w", err)
 	}
 
 	log.Printf("[DEBUG] Found Autoscaling Group: %s", result)
@@ -143,25 +160,22 @@ func dataSourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[DEBUG] aws_autoscaling_group - Single Auto Scaling Group found: %s", *group.AutoScalingGroupName)
 
-	err1 := groupDescriptionAttributes(d, group)
-	return err1
-}
-
-// Populate group attribute fields with the returned group
-func groupDescriptionAttributes(d *schema.ResourceData, group *autoscaling.Group) error {
-	log.Printf("[DEBUG] Setting attributes: %s", group)
+	d.SetId(aws.StringValue(group.AutoScalingGroupName))
 	d.Set("name", group.AutoScalingGroupName)
 	d.Set("arn", group.AutoScalingGroupARN)
 	if err := d.Set("availability_zones", aws.StringValueSlice(group.AvailabilityZones)); err != nil {
-		return err
+		return fmt.Errorf("error setting availability_zones: %w", err)
 	}
 	d.Set("default_cooldown", group.DefaultCooldown)
 	d.Set("desired_capacity", group.DesiredCapacity)
 	d.Set("health_check_grace_period", group.HealthCheckGracePeriod)
 	d.Set("health_check_type", group.HealthCheckType)
 	d.Set("launch_configuration", group.LaunchConfigurationName)
+	if err := d.Set("launch_template", flattenLaunchTemplateSpecification(group.LaunchTemplate)); err != nil {
+		return fmt.Errorf("error setting launch_template: %w", err)
+	}
 	if err := d.Set("load_balancers", aws.StringValueSlice(group.LoadBalancerNames)); err != nil {
-		return err
+		return fmt.Errorf("error setting load_balancers: %w", err)
 	}
 	d.Set("new_instances_protected_from_scale_in", group.NewInstancesProtectedFromScaleIn)
 	d.Set("max_size", group.MaxSize)
@@ -170,10 +184,10 @@ func groupDescriptionAttributes(d *schema.ResourceData, group *autoscaling.Group
 	d.Set("service_linked_role_arn", group.ServiceLinkedRoleARN)
 	d.Set("status", group.Status)
 	if err := d.Set("target_group_arns", aws.StringValueSlice(group.TargetGroupARNs)); err != nil {
-		return err
+		return fmt.Errorf("error setting target_group_arns: %w", err)
 	}
 	if err := d.Set("termination_policies", aws.StringValueSlice(group.TerminationPolicies)); err != nil {
-		return err
+		return fmt.Errorf("error setting termination_policies: %w", err)
 	}
 	d.Set("vpc_zone_identifier", group.VPCZoneIdentifier)
 

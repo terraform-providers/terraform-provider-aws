@@ -6,29 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
-
-var ssmPatchComplianceLevels = []string{
-	ssm.PatchComplianceLevelCritical,
-	ssm.PatchComplianceLevelHigh,
-	ssm.PatchComplianceLevelMedium,
-	ssm.PatchComplianceLevelLow,
-	ssm.PatchComplianceLevelInformational,
-	ssm.PatchComplianceLevelUnspecified,
-}
-
-var ssmPatchOSs = []string{
-	ssm.OperatingSystemWindows,
-	ssm.OperatingSystemAmazonLinux,
-	ssm.OperatingSystemUbuntu,
-	ssm.OperatingSystemRedhatEnterpriseLinux,
-	ssm.OperatingSystemCentos,
-	ssm.OperatingSystemAmazonLinux2,
-	ssm.OperatingSystemSuse,
-}
 
 func resourceAwsSsmPatchBaseline() *schema.Resource {
 	return &schema.Resource{
@@ -84,7 +65,7 @@ func resourceAwsSsmPatchBaseline() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      ssm.PatchComplianceLevelUnspecified,
-							ValidateFunc: validation.StringInSlice(ssmPatchComplianceLevels, false),
+							ValidateFunc: validation.StringInSlice(ssm.PatchComplianceLevel_Values(), false),
 						},
 
 						"enable_non_security": {
@@ -134,14 +115,14 @@ func resourceAwsSsmPatchBaseline() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      ssm.OperatingSystemWindows,
-				ValidateFunc: validation.StringInSlice(ssmPatchOSs, false),
+				ValidateFunc: validation.StringInSlice(ssm.OperatingSystem_Values(), false),
 			},
 
 			"approved_patches_compliance_level": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      ssm.PatchComplianceLevelUnspecified,
-				ValidateFunc: validation.StringInSlice(ssmPatchComplianceLevels, false),
+				ValidateFunc: validation.StringInSlice(ssm.PatchComplianceLevel_Values(), false),
 			},
 			"tags": tagsSchema(),
 		},
@@ -166,11 +147,11 @@ func resourceAwsSsmPatchBaselineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("approved_patches"); ok && v.(*schema.Set).Len() > 0 {
-		params.ApprovedPatches = expandStringList(v.(*schema.Set).List())
+		params.ApprovedPatches = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("rejected_patches"); ok && v.(*schema.Set).Len() > 0 {
-		params.RejectedPatches = expandStringList(v.(*schema.Set).List())
+		params.RejectedPatches = expandStringSet(v.(*schema.Set))
 	}
 
 	if _, ok := d.GetOk("global_filter"); ok {
@@ -186,7 +167,7 @@ func resourceAwsSsmPatchBaselineCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	d.SetId(*resp.BaselineId)
+	d.SetId(aws.StringValue(resp.BaselineId))
 	return resourceAwsSsmPatchBaselineRead(d, meta)
 }
 
@@ -206,11 +187,11 @@ func resourceAwsSsmPatchBaselineUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("approved_patches") {
-		params.ApprovedPatches = expandStringList(d.Get("approved_patches").(*schema.Set).List())
+		params.ApprovedPatches = expandStringSet(d.Get("approved_patches").(*schema.Set))
 	}
 
 	if d.HasChange("rejected_patches") {
-		params.RejectedPatches = expandStringList(d.Get("rejected_patches").(*schema.Set).List())
+		params.RejectedPatches = expandStringSet(d.Get("rejected_patches").(*schema.Set))
 	}
 
 	if d.HasChange("approved_patches_compliance_level") {
@@ -247,6 +228,7 @@ func resourceAwsSsmPatchBaselineUpdate(d *schema.ResourceData, meta interface{})
 }
 func resourceAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &ssm.GetPatchBaselineInput{
 		BaselineId: aws.String(d.Id()),
@@ -283,7 +265,7 @@ func resourceAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error listing tags for SSM Patch Baseline (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

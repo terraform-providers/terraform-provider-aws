@@ -8,14 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/codedeploy"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
@@ -539,7 +538,7 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 	}
 
 	if attr, ok := d.GetOk("autoscaling_groups"); ok {
-		input.AutoScalingGroups = expandStringList(attr.(*schema.Set).List())
+		input.AutoScalingGroups = expandStringSet(attr.(*schema.Set))
 	}
 
 	if attr, ok := d.GetOk("on_premises_tag_set"); ok {
@@ -613,7 +612,7 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error creating CodeDeploy deployment group: %s", err)
 	}
 
-	d.SetId(*resp.DeploymentGroupId)
+	d.SetId(aws.StringValue(resp.DeploymentGroupId))
 
 	return resourceAwsCodeDeployDeploymentGroupRead(d, meta)
 }
@@ -727,10 +726,10 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 		input.DeploymentConfigName = aws.String(n.(string))
 	}
 
-	// include (original or new) autoscaling groups when blue_green_deployment_config changes
-	if d.HasChange("autoscaling_groups") || d.HasChange("blue_green_deployment_config") {
+	// include (original or new) autoscaling groups when blue_green_deployment_config changes except for ECS
+	if _, isEcs := d.GetOk("ecs_service"); d.HasChange("autoscaling_groups") || (d.HasChange("blue_green_deployment_config") && !isEcs) {
 		_, n := d.GetChange("autoscaling_groups")
-		input.AutoScalingGroups = expandStringList(n.(*schema.Set).List())
+		input.AutoScalingGroups = expandStringSet(n.(*schema.Set))
 	}
 
 	// TagFilters aren't like tags. They don't append. They simply replace.
@@ -1250,7 +1249,7 @@ func triggerConfigsToMap(list []*codedeploy.TriggerConfig) []map[string]interfac
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, tc := range list {
 		item := make(map[string]interface{})
-		item["trigger_events"] = schema.NewSet(schema.HashString, flattenStringList(tc.TriggerEvents))
+		item["trigger_events"] = flattenStringSet(tc.TriggerEvents)
 		item["trigger_name"] = *tc.TriggerName
 		item["trigger_target_arn"] = *tc.TriggerTargetArn
 		result = append(result, item)
@@ -1268,7 +1267,7 @@ func autoRollbackConfigToMap(config *codedeploy.AutoRollbackConfiguration) []map
 	if config != nil && (*config.Enabled || len(config.Events) > 0) {
 		item := make(map[string]interface{})
 		item["enabled"] = *config.Enabled
-		item["events"] = schema.NewSet(schema.HashString, flattenStringList(config.Events))
+		item["events"] = flattenStringSet(config.Events)
 		result = append(result, item)
 	}
 
@@ -1289,7 +1288,7 @@ func alarmConfigToMap(config *codedeploy.AlarmConfiguration) []map[string]interf
 		}
 
 		item := make(map[string]interface{})
-		item["alarms"] = schema.NewSet(schema.HashString, flattenStringList(names))
+		item["alarms"] = flattenStringSet(names)
 		item["enabled"] = *config.Enabled
 		item["ignore_poll_alarm_failure"] = *config.IgnorePollAlarmFailure
 
@@ -1380,7 +1379,7 @@ func flattenCodeDeployTrafficRoute(trafficRoute *codedeploy.TrafficRoute) []inte
 	}
 
 	m := map[string]interface{}{
-		"listener_arns": schema.NewSet(schema.HashString, flattenStringList(trafficRoute.ListenerArns)),
+		"listener_arns": flattenStringSet(trafficRoute.ListenerArns),
 	}
 
 	return []interface{}{m}

@@ -39,7 +39,7 @@ The following arguments are supported:
     - Must not be "default".
 
 * `subnet_ids` - (Required) A list of the EC2 subnet IDs for the subnet group.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

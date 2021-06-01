@@ -12,9 +12,26 @@ Manages an Access Analyzer Analyzer. More information can be found in the [Acces
 
 ## Example Usage
 
+### Account Analyzer
+
 ```hcl
 resource "aws_accessanalyzer_analyzer" "example" {
   analyzer_name = "example"
+}
+```
+
+### Organization Analyzer
+
+```hcl
+resource "aws_organizations_organization" "example" {
+  aws_service_access_principals = ["access-analyzer.amazonaws.com"]
+}
+
+resource "aws_accessanalyzer_analyzer" "example" {
+  depends_on = [aws_organizations_organization.example]
+
+  analyzer_name = "example"
+  type          = "ORGANIZATION"
 }
 ```
 
@@ -26,8 +43,8 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `tags` - (Optional) Key-value mapping of resource tags.
-* `type` - (Optional) Type of Analyzer. Valid value is currently only `ACCOUNT`. Defaults to `ACCOUNT`.
+* `tags` - (Optional) Key-value map of resource tags.
+* `type` - (Optional) Type of Analyzer. Valid values are `ACCOUNT` or `ORGANIZATION`. Defaults to `ACCOUNT`.
 
 ## Attributes Reference
 

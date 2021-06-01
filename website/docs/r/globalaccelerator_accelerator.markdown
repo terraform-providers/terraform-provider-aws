@@ -34,7 +34,7 @@ The following arguments are supported:
 * `ip_address_type` - (Optional) The value for the address type must be `IPV4`.
 * `enabled` - (Optional) Indicates whether the accelerator is enabled. The value is true or false. The default value is true.
 * `attributes` - (Optional) The attributes of the accelerator. Fields documented below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 **attributes** supports the following attributes:
 
@@ -59,6 +59,14 @@ In addition to all arguments above, the following attributes are exported:
 * `ip_family` - The types of IP addresses included in this IP set.
 
 [1]: https://docs.aws.amazon.com/Route53/latest/APIReference/API_AliasTarget.html
+
+## Timeouts
+
+`aws_globalaccelerator_accelerator` provides the following
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+
+* `create` - (Default `30 minutes`) How long to wait for the Global Accelerator Accelerator to be created.
+* `update` - (Default `30 minutes`) How long to wait for the Global Accelerator Accelerator to be updated.
 
 ## Import
 

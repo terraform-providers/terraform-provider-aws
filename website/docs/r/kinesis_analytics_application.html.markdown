@@ -1,5 +1,5 @@
 ---
-subcategory: "Kinesis"
+subcategory: "Kinesis Data Analytics (SQL Applications)"
 layout: "aws"
 page_title: "AWS: aws_kinesis_analytics_application"
 description: |-
@@ -12,6 +12,8 @@ Provides a Kinesis Analytics Application resource. Kinesis Analytics is a manage
 allows processing and analyzing streaming data using standard SQL.
 
 For more details, see the [Amazon Kinesis Analytics Documentation][1].
+
+-> **Note:** To manage Amazon Kinesis Data Analytics for Apache Flink applications, use the [`aws_kinesisanalyticsv2_application`](/docs/providers/aws/r/kinesisanalyticsv2_application.html) resource.
 
 ## Example Usage
 
@@ -28,8 +30,8 @@ resource "aws_kinesis_analytics_application" "test_application" {
     name_prefix = "test_prefix"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test_stream.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test_stream.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     parallelism {
@@ -70,7 +72,7 @@ See [CloudWatch Logging Options](#cloudwatch-logging-options) below for more det
 * `outputs` - (Optional) Output destination configuration of the application. See [Outputs](#outputs) below for more details.
 * `reference_data_sources` - (Optional) An S3 Reference Data Source for the application.
 See [Reference Data Sources](#reference-data-sources) below for more details.
-* `tags` - Key-value mapping of tags for the Kinesis Analytics Application.
+* `tags` - Key-value map of tags for the Kinesis Analytics Application.
 
 ### CloudWatch Logging Options
 
@@ -245,7 +247,7 @@ The `s3` blcok supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported along with all argument references:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the Kinesis Analytics Application.
 * `arn` - The ARN of the Kinesis Analytics Appliation.

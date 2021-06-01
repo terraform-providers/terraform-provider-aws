@@ -20,9 +20,9 @@ resource "aws_sns_topic" "test" {
 }
 
 resource "aws_sns_topic_policy" "default" {
-  arn = "${aws_sns_topic.test.arn}"
+  arn = aws_sns_topic.test.arn
 
-  policy = "${data.aws_iam_policy_document.sns_topic_policy.json}"
+  policy = data.aws_iam_policy_document.sns_topic_policy.json
 }
 
 data "aws_iam_policy_document" "sns_topic_policy" {
@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
       variable = "AWS:SourceOwner"
 
       values = [
-        "${var.account-id}",
+        var.account-id,
       ]
     }
 
@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     }
 
     resources = [
-      "${aws_sns_topic.test.arn}",
+      aws_sns_topic.test.arn,
     ]
 
     sid = "__default_statement_ID"

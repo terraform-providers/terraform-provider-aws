@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/s3control"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsS3AccessPoint() *schema.Resource {
@@ -137,12 +137,24 @@ func resourceAwsS3AccessPointCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[DEBUG] Creating S3 Access Point: %s", input)
-	_, err := conn.CreateAccessPoint(input)
+	output, err := conn.CreateAccessPoint(input)
+
 	if err != nil {
-		return fmt.Errorf("error creating S3 Access Point: %s", err)
+		return fmt.Errorf("error creating S3 Control Access Point (%s): %w", name, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", accountId, name))
+	if output == nil {
+		return fmt.Errorf("error creating S3 Control Access Point (%s): empty response", name)
+	}
+
+	parsedARN, err := arn.Parse(aws.StringValue(output.AccessPointArn))
+
+	if err == nil && strings.HasPrefix(parsedARN.Resource, "outpost/") {
+		d.SetId(aws.StringValue(output.AccessPointArn))
+		name = aws.StringValue(output.AccessPointArn)
+	} else {
+		d.SetId(fmt.Sprintf("%s:%s", accountId, name))
+	}
 
 	if v, ok := d.GetOk("policy"); ok {
 		log.Printf("[DEBUG] Putting S3 Access Point policy: %s", d.Id())
@@ -183,19 +195,44 @@ func resourceAwsS3AccessPointRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error reading S3 Access Point (%s): %s", d.Id(), err)
 	}
 
-	name = aws.StringValue(output.Name)
-	arn := arn.ARN{
-		AccountID: accountId,
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Resource:  fmt.Sprintf("accesspoint/%s", name),
-		Service:   "s3",
+	if strings.HasPrefix(name, "arn:") {
+		parsedAccessPointARN, err := arn.Parse(name)
+
+		if err != nil {
+			return fmt.Errorf("error parsing S3 Control Access Point ARN (%s): %w", name, err)
+		}
+
+		bucketARN := arn.ARN{
+			AccountID: parsedAccessPointARN.AccountID,
+			Partition: parsedAccessPointARN.Partition,
+			Region:    parsedAccessPointARN.Region,
+			Resource: strings.Replace(
+				parsedAccessPointARN.Resource,
+				fmt.Sprintf("accesspoint/%s", aws.StringValue(output.Name)),
+				fmt.Sprintf("bucket/%s", aws.StringValue(output.Bucket)),
+				1,
+			),
+			Service: parsedAccessPointARN.Service,
+		}
+
+		d.Set("arn", name)
+		d.Set("bucket", bucketARN.String())
+	} else {
+		accessPointARN := arn.ARN{
+			AccountID: accountId,
+			Partition: meta.(*AWSClient).partition,
+			Region:    meta.(*AWSClient).region,
+			Resource:  fmt.Sprintf("accesspoint/%s", aws.StringValue(output.Name)),
+			Service:   "s3",
+		}
+
+		d.Set("arn", accessPointARN.String())
+		d.Set("bucket", output.Bucket)
 	}
+
 	d.Set("account_id", accountId)
-	d.Set("arn", arn.String())
-	d.Set("bucket", output.Bucket)
-	d.Set("domain_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s-%s.s3-accesspoint", name, accountId)))
-	d.Set("name", name)
+	d.Set("domain_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s-%s.s3-accesspoint", aws.StringValue(output.Name), accountId)))
+	d.Set("name", output.Name)
 	d.Set("network_origin", output.NetworkOrigin)
 	if err := d.Set("public_access_block_configuration", flattenS3AccessPointPublicAccessBlockConfiguration(output.PublicAccessBlockConfiguration)); err != nil {
 		return fmt.Errorf("error setting public_access_block_configuration: %s", err)
@@ -217,6 +254,13 @@ func resourceAwsS3AccessPointRead(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		d.Set("policy", policyOutput.Policy)
+	}
+
+	// Return early since S3 on Outposts cannot have public policies
+	if strings.HasPrefix(name, "arn:") {
+		d.Set("has_public_access_policy", false)
+
+		return nil
 	}
 
 	policyStatusOutput, err := conn.GetAccessPointPolicyStatus(&s3control.GetAccessPointPolicyStatusInput{
@@ -298,7 +342,14 @@ func resourceAwsS3AccessPointDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
+// s3AccessPointParseId returns the Account ID and Access Point Name (S3) or ARN (S3 on Outposts)
 func s3AccessPointParseId(id string) (string, string, error) {
+	parsedARN, err := arn.Parse(id)
+
+	if err == nil {
+		return parsedARN.AccountID, id, nil
+	}
+
 	parts := strings.SplitN(id, ":", 2)
 
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {

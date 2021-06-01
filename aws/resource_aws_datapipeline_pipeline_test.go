@@ -6,10 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datapipeline"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDataPipelinePipeline_basic(t *testing.T) {
@@ -248,7 +247,7 @@ func testAccCheckAWSDataPipelinePipelineNotEqual(pipeline1, pipeline2 *datapipel
 func testAccAWSDataPipelinePipelineConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_datapipeline_pipeline" "default" {
-	name      = "%[1]s"
+  name = "%[1]s"
 }`, rName)
 
 }
@@ -256,8 +255,8 @@ resource "aws_datapipeline_pipeline" "default" {
 func testAccAWSDataPipelinePipelineConfigWithDescription(rName, description string) string {
 	return fmt.Sprintf(`
 resource "aws_datapipeline_pipeline" "default" {
-	name      	= "%[1]s"
-	description = %[2]q
+  name        = "%[1]s"
+  description = %[2]q
 }`, rName, description)
 
 }
@@ -265,12 +264,12 @@ resource "aws_datapipeline_pipeline" "default" {
 func testAccAWSDataPipelinePipelineConfigWithTags(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_datapipeline_pipeline" "default" {
-	name      = "%[1]s"
+  name = "%[1]s"
 
-	tags = {
-		%[2]s = %[3]q
-		%[4]s = %[5]q
-	}
+  tags = {
+    %[2]s = %[3]q
+    %[4]s = %[5]q
+  }
 }`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 
 }

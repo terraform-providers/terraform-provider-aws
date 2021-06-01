@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/licensemanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -99,12 +99,13 @@ func resourceAwsLicenseManagerLicenseConfigurationCreate(d *schema.ResourceData,
 	if err != nil {
 		return fmt.Errorf("Error creating License Manager license configuration: %s", err)
 	}
-	d.SetId(*resp.LicenseConfigurationArn)
+	d.SetId(aws.StringValue(resp.LicenseConfigurationArn))
 	return resourceAwsLicenseManagerLicenseConfigurationRead(d, meta)
 }
 
 func resourceAwsLicenseManagerLicenseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).licensemanagerconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetLicenseConfiguration(&licensemanager.GetLicenseConfigurationInput{
 		LicenseConfigurationArn: aws.String(d.Id()),
@@ -128,7 +129,7 @@ func resourceAwsLicenseManagerLicenseConfigurationRead(d *schema.ResourceData, m
 	}
 	d.Set("name", resp.Name)
 
-	if err := d.Set("tags", keyvaluetags.LicensemanagerKeyValueTags(resp.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.LicensemanagerKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -138,19 +139,13 @@ func resourceAwsLicenseManagerLicenseConfigurationRead(d *schema.ResourceData, m
 func resourceAwsLicenseManagerLicenseConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).licensemanagerconn
 
-	d.Partial(true)
-
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.LicensemanagerUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating License Manager License Configuration (%s) tags: %s", d.Id(), err)
 		}
-
-		d.SetPartial("tags")
 	}
-
-	d.Partial(false)
 
 	opts := &licensemanager.UpdateLicenseConfigurationInput{
 		LicenseConfigurationArn: aws.String(d.Id()),

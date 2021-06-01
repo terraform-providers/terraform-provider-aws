@@ -1,14 +1,15 @@
 package aws
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -25,7 +26,6 @@ func dataSourceAwsEfsFileSystem() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(0, 64),
 			},
 			"encrypted": {
@@ -36,7 +36,6 @@ func dataSourceAwsEfsFileSystem() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,
@@ -59,6 +58,10 @@ func dataSourceAwsEfsFileSystem() *schema.Resource {
 				Type:     schema.TypeFloat,
 				Computed: true,
 			},
+			"size_in_bytes": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"lifecycle_policy": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -77,6 +80,7 @@ func dataSourceAwsEfsFileSystem() *schema.Resource {
 
 func dataSourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	efsconn := meta.(*AWSClient).efsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeEfsOpts := &efs.DescribeFileSystemsInput{}
 
@@ -91,27 +95,20 @@ func dataSourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[DEBUG] Reading EFS File System: %s", describeEfsOpts)
 	describeResp, err := efsconn.DescribeFileSystems(describeEfsOpts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving EFS: %s", err)
+		return fmt.Errorf("error reading EFS FileSystem: %w", err)
 	}
-	if len(describeResp.FileSystems) != 1 {
+
+	if describeResp == nil || len(describeResp.FileSystems) == 0 {
+		return errors.New("error reading EFS FileSystem: empty output")
+	}
+
+	if len(describeResp.FileSystems) > 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(describeResp.FileSystems))
 	}
 
-	d.SetId(*describeResp.FileSystems[0].FileSystemId)
+	fs := describeResp.FileSystems[0]
 
-	var fs *efs.FileSystemDescription
-	for _, f := range describeResp.FileSystems {
-		if d.Id() == *f.FileSystemId {
-			fs = f
-			break
-		}
-	}
-	if fs == nil {
-		log.Printf("[WARN] EFS (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
+	d.SetId(aws.StringValue(fs.FileSystemId))
 	d.Set("creation_token", fs.CreationToken)
 	d.Set("performance_mode", fs.PerformanceMode)
 
@@ -129,8 +126,11 @@ func dataSourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("kms_key_id", fs.KmsKeyId)
 	d.Set("provisioned_throughput_in_mibps", fs.ProvisionedThroughputInMibps)
 	d.Set("throughput_mode", fs.ThroughputMode)
+	if fs.SizeInBytes != nil {
+		d.Set("size_in_bytes", fs.SizeInBytes.Value)
+	}
 
-	if err := d.Set("tags", keyvaluetags.EfsKeyValueTags(fs.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EfsKeyValueTags(fs.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -138,11 +138,12 @@ func dataSourceAwsEfsFileSystemRead(d *schema.ResourceData, meta interface{}) er
 		FileSystemId: fs.FileSystemId,
 	})
 	if err != nil {
-		return fmt.Errorf("Error describing lifecycle configuration for EFS file system (%s): %s",
+		return fmt.Errorf("Error describing lifecycle configuration for EFS file system (%s): %w",
 			aws.StringValue(fs.FileSystemId), err)
 	}
-	if err := resourceAwsEfsFileSystemSetLifecyclePolicy(d, res.LifecyclePolicies); err != nil {
-		return err
+
+	if err := d.Set("lifecycle_policy", flattenEfsFileSystemLifecyclePolicies(res.LifecyclePolicies)); err != nil {
+		return fmt.Errorf("error setting lifecycle_policy: %w", err)
 	}
 
 	d.Set("dns_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.efs", aws.StringValue(fs.FileSystemId))))

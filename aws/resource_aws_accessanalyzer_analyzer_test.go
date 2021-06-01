@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 // This test can be run via the pattern: TestAccAWSAccessAnalyzer
@@ -107,6 +107,38 @@ func testAccAWSAccessAnalyzerAnalyzer_Tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
+			},
+		},
+	})
+}
+
+// This test can be run via the pattern: TestAccAWSAccessAnalyzer
+func testAccAWSAccessAnalyzerAnalyzer_Type_Organization(t *testing.T) {
+	var analyzer accessanalyzer.AnalyzerSummary
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_accessanalyzer_analyzer.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSAccessAnalyzer(t)
+			testAccOrganizationsAccountPreCheck(t)
+		},
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAccessAnalyzerAnalyzerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAccessAnalyzerAnalyzerConfigTypeOrganization(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAccessAnalyzerAnalyzerExists(resourceName, &analyzer),
+					resource.TestCheckResourceAttr(resourceName, "type", accessanalyzer.TypeOrganization),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -217,4 +249,21 @@ resource "aws_accessanalyzer_analyzer" "test" {
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
+}
+
+func testAccAWSAccessAnalyzerAnalyzerConfigTypeOrganization(rName string) string {
+	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+resource "aws_organizations_organization" "test" {
+  aws_service_access_principals = ["access-analyzer.${data.aws_partition.current.dns_suffix}"]
+}
+
+resource "aws_accessanalyzer_analyzer" "test" {
+  depends_on = [aws_organizations_organization.test]
+
+  analyzer_name = %[1]q
+  type          = "ORGANIZATION"
+}
+`, rName)
 }

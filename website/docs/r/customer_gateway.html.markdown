@@ -36,11 +36,12 @@ The following arguments are supported:
   supports at this time is "ipsec.1".
 * `tags` - (Optional) Tags to apply to the gateway.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The amazon-assigned ID of the gateway.
+* `arn` - The ARN of the customer gateway.
 * `bgp_asn` - The gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).
 * `ip_address` - The IP address of the gateway's Internet-routable external interface.
 * `type` - The type of customer gateway.

@@ -6,13 +6,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/qldb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsQLDBLedger() *schema.Resource {
@@ -83,7 +82,7 @@ func resourceAwsQLDBLedgerCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	// Set QLDB ledger name
-	d.SetId(*qldbResp.Name)
+	d.SetId(aws.StringValue(qldbResp.Name))
 
 	log.Printf("[INFO] QLDB Ledger name: %s", d.Id())
 
@@ -106,6 +105,7 @@ func resourceAwsQLDBLedgerCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).qldbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	// Refresh the QLDB state
 	input := &qldb.DescribeLedgerInput{
@@ -145,7 +145,7 @@ func resourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error listing tags for QLDB Ledger: %s", err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -154,9 +154,6 @@ func resourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).qldbconn
-
-	// Turn on partial mode
-	d.Partial(true)
 
 	if d.HasChange("deletion_protection") {
 		val := d.Get("deletion_protection").(bool)
@@ -171,8 +168,6 @@ func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error
 
 			return err
 		}
-
-		d.SetPartial("deletion_protection")
 	}
 
 	if d.HasChange("tags") {
@@ -182,7 +177,6 @@ func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	d.Partial(false)
 	return resourceAwsQLDBLedgerRead(d, meta)
 }
 

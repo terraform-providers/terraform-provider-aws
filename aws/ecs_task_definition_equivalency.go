@@ -56,6 +56,9 @@ func EcsContainerDefinitionsAreEquivalent(def1, def2 string, isAWSVPC bool) (boo
 type containerDefinitions []*ecs.ContainerDefinition
 
 func (cd containerDefinitions) Reduce(isAWSVPC bool) error {
+	// Deal with fields which may be re-ordered in the API
+	cd.OrderEnvironmentVariables()
+
 	for i, def := range cd {
 		// Deal with special fields which have defaults
 		if def.Cpu != nil && *def.Cpu == 0 {
@@ -75,11 +78,6 @@ func (cd containerDefinitions) Reduce(isAWSVPC bool) error {
 				cd[i].PortMappings[j].HostPort = cd[i].PortMappings[j].ContainerPort
 			}
 		}
-
-		// Deal with fields which may be re-ordered in the API
-		sort.Slice(def.Environment, func(i, j int) bool {
-			return aws.StringValue(def.Environment[i].Name) < aws.StringValue(def.Environment[j].Name)
-		})
 
 		// Create a mutable copy
 		defCopy, err := copystructure.Copy(def)
@@ -102,4 +100,12 @@ func (cd containerDefinitions) Reduce(isAWSVPC bool) error {
 		cd[i] = &iface
 	}
 	return nil
+}
+
+func (cd containerDefinitions) OrderEnvironmentVariables() {
+	for _, def := range cd {
+		sort.Slice(def.Environment, func(i, j int) bool {
+			return aws.StringValue(def.Environment[i].Name) < aws.StringValue(def.Environment[j].Name)
+		})
+	}
 }

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsGlobalAcceleratorListener_basic(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAccAwsGlobalAcceleratorListener_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlobalAcceleratorListenerDestroy,
 		Steps: []resource.TestStep{
@@ -25,8 +25,10 @@ func TestAccAwsGlobalAcceleratorListener_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "client_affinity", "NONE"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "port_range.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "port_range.3309144275.from_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "port_range.3309144275.to_port", "81"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "port_range.*", map[string]string{
+						"from_port": "80",
+						"to_port":   "81",
+					}),
 				),
 			},
 			{
@@ -43,7 +45,7 @@ func TestAccAwsGlobalAcceleratorListener_update(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGlobalAccelerator(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlobalAcceleratorListenerDestroy,
 		Steps: []resource.TestStep{
@@ -57,8 +59,10 @@ func TestAccAwsGlobalAcceleratorListener_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "client_affinity", "SOURCE_IP"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "UDP"),
 					resource.TestCheckResourceAttr(resourceName, "port_range.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "port_range.3922064764.from_port", "443"),
-					resource.TestCheckResourceAttr(resourceName, "port_range.3922064764.to_port", "444"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "port_range.*", map[string]string{
+						"from_port": "443",
+						"to_port":   "444",
+					}),
 				),
 			},
 			{
@@ -125,7 +129,7 @@ resource "aws_globalaccelerator_accelerator" "example" {
 }
 
 resource "aws_globalaccelerator_listener" "example" {
-  accelerator_arn = "${aws_globalaccelerator_accelerator.example.id}"
+  accelerator_arn = aws_globalaccelerator_accelerator.example.id
   protocol        = "TCP"
 
   port_range {
@@ -145,7 +149,7 @@ resource "aws_globalaccelerator_accelerator" "example" {
 }
 
 resource "aws_globalaccelerator_listener" "example" {
-  accelerator_arn = "${aws_globalaccelerator_accelerator.example.id}"
+  accelerator_arn = aws_globalaccelerator_accelerator.example.id
   client_affinity = "SOURCE_IP"
   protocol        = "UDP"
 

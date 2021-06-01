@@ -11,10 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -26,6 +26,10 @@ func resourceAwsEcsService() *schema.Resource {
 		Delete: resourceAwsEcsServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAwsEcsServiceImport,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -72,7 +76,7 @@ func resourceAwsEcsService() *schema.Resource {
 
 			"task_definition": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 
 			"desired_count": {
@@ -87,6 +91,11 @@ func resourceAwsEcsService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"force_new_deployment": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"health_check_grace_period_seconds": {
@@ -151,6 +160,7 @@ func resourceAwsEcsService() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								ecs.DeploymentControllerTypeCodeDeploy,
 								ecs.DeploymentControllerTypeEcs,
+								ecs.DeploymentControllerTypeExternal,
 							}, false),
 						},
 					},
@@ -242,12 +252,10 @@ func resourceAwsEcsService() *schema.Resource {
 					},
 				},
 			},
-			"placement_strategy": {
-				Type:     schema.TypeSet,
+			"ordered_placement_strategy": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 5,
-				Removed:  "Use `ordered_placement_strategy` configuration block(s) instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -261,29 +269,6 @@ func resourceAwsEcsService() *schema.Resource {
 						},
 						"field": {
 							Type:     schema.TypeString,
-							Optional: true,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								return strings.EqualFold(old, new)
-							},
-						},
-					},
-				},
-			},
-			"ordered_placement_strategy": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 5,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							ForceNew: true,
-							Required: true,
-						},
-						"field": {
-							Type:     schema.TypeString,
-							ForceNew: true,
 							Optional: true,
 							StateFunc: func(v interface{}) string {
 								value := v.(string)
@@ -302,13 +287,11 @@ func resourceAwsEcsService() *schema.Resource {
 			"placement_constraints": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 10,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								ecs.PlacementConstraintTypeDistinctInstance,
@@ -317,7 +300,6 @@ func resourceAwsEcsService() *schema.Resource {
 						},
 						"expression": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Optional: true,
 						},
 					},
@@ -342,7 +324,7 @@ func resourceAwsEcsService() *schema.Resource {
 			},
 
 			"service_registries": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -371,6 +353,12 @@ func resourceAwsEcsService() *schema.Resource {
 				},
 			},
 			"tags": tagsSchema(),
+
+			"wait_for_steady_state": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -400,10 +388,11 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	deploymentMinimumHealthyPercent := d.Get("deployment_minimum_healthy_percent").(int)
 	schedulingStrategy := d.Get("scheduling_strategy").(string)
+	deploymentController := expandEcsDeploymentController(d.Get("deployment_controller").([]interface{}))
 
 	input := ecs.CreateServiceInput{
 		ClientToken:          aws.String(resource.UniqueId()),
-		DeploymentController: expandEcsDeploymentController(d.Get("deployment_controller").([]interface{})),
+		DeploymentController: deploymentController,
 		SchedulingStrategy:   aws.String(schedulingStrategy),
 		ServiceName:          aws.String(d.Get("name").(string)),
 		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcsTags(),
@@ -433,6 +422,13 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	if v, ok := d.GetOk("launch_type"); ok {
 		input.LaunchType = aws.String(v.(string))
+		// When creating a service that uses the EXTERNAL deployment controller,
+		// you can specify only parameters that aren't controlled at the task set level
+		// hence you cannot set LaunchType, not changing the default launch_type from EC2 to empty
+		// string to have backward compatibility
+		if deploymentController != nil && aws.StringValue(deploymentController.Type) == ecs.DeploymentControllerTypeExternal {
+			input.LaunchType = aws.String("")
+		}
 	}
 
 	if v, ok := d.GetOk("propagate_tags"); ok {
@@ -458,35 +454,25 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	if v, ok := d.GetOk("ordered_placement_strategy"); ok {
 		ps, err := expandPlacementStrategy(v.([]interface{}))
+
 		if err != nil {
 			return err
 		}
+
 		input.PlacementStrategy = ps
 	}
 
-	constraints := d.Get("placement_constraints").(*schema.Set).List()
-	if len(constraints) > 0 {
-		var pc []*ecs.PlacementConstraint
-		for _, raw := range constraints {
-			p := raw.(map[string]interface{})
-			t := p["type"].(string)
-			e := p["expression"].(string)
-			if err := validateAwsEcsPlacementConstraint(t, e); err != nil {
-				return err
-			}
-			constraint := &ecs.PlacementConstraint{
-				Type: aws.String(t),
-			}
-			if e != "" {
-				constraint.Expression = aws.String(e)
-			}
+	if v, ok := d.Get("placement_constraints").(*schema.Set); ok {
+		pc, err := expandPlacementConstraints(v.List())
 
-			pc = append(pc, constraint)
+		if err != nil {
+			return err
 		}
+
 		input.PlacementConstraints = pc
 	}
 
-	serviceRegistries := d.Get("service_registries").(*schema.Set).List()
+	serviceRegistries := d.Get("service_registries").([]interface{})
 	if len(serviceRegistries) > 0 {
 		srs := make([]*ecs.ServiceRegistry, 0, len(serviceRegistries))
 		for _, v := range serviceRegistries {
@@ -548,11 +534,18 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[DEBUG] ECS service created: %s", aws.StringValue(service.ServiceArn))
 	d.SetId(aws.StringValue(service.ServiceArn))
 
+	if d.Get("wait_for_steady_state").(bool) {
+		if err := waitForSteadyState(conn, d); err != nil {
+			return err
+		}
+	}
+
 	return resourceAwsEcsServiceRead(d, meta)
 }
 
 func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading ECS service %s", d.Id())
 	input := ecs.DescribeServicesInput{
@@ -591,6 +584,13 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if isResourceTimeoutError(err) {
 		out, err = conn.DescribeServices(&input)
 	}
+
+	if isAWSErr(err, ecs.ErrCodeClusterNotFoundException, "") {
+		log.Printf("[WARN] ECS Service %s parent cluster %s not found, removing from state.", d.Id(), d.Get("cluster").(string))
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error reading ECS service: %s", err)
 	}
@@ -618,12 +618,17 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(aws.StringValue(service.ServiceArn))
 	d.Set("name", service.ServiceName)
 
-	// Save task definition in the same format
-	if strings.HasPrefix(d.Get("task_definition").(string), "arn:"+meta.(*AWSClient).partition+":ecs:") {
-		d.Set("task_definition", service.TaskDefinition)
-	} else {
-		taskDefinition := buildFamilyAndRevisionFromARN(*service.TaskDefinition)
-		d.Set("task_definition", taskDefinition)
+	// When creating a service that uses the EXTERNAL deployment controller,
+	// you can specify only parameters that aren't controlled at the task set level
+	// hence TaskDefinition will not be set by aws sdk
+	if service.TaskDefinition != nil {
+		// Save task definition in the same format
+		if strings.HasPrefix(d.Get("task_definition").(string), "arn:"+meta.(*AWSClient).partition+":ecs:") {
+			d.Set("task_definition", service.TaskDefinition)
+		} else {
+			taskDefinition := buildFamilyAndRevisionFromARN(*service.TaskDefinition)
+			d.Set("task_definition", taskDefinition)
+		}
 	}
 
 	d.Set("scheduling_strategy", service.SchedulingStrategy)
@@ -685,7 +690,7 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting service_registries for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(service.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(service.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -726,8 +731,8 @@ func flattenEcsNetworkConfiguration(nc *ecs.NetworkConfiguration) []interface{} 
 	}
 
 	result := make(map[string]interface{})
-	result["security_groups"] = schema.NewSet(schema.HashString, flattenStringList(nc.AwsvpcConfiguration.SecurityGroups))
-	result["subnets"] = schema.NewSet(schema.HashString, flattenStringList(nc.AwsvpcConfiguration.Subnets))
+	result["security_groups"] = flattenStringSet(nc.AwsvpcConfiguration.SecurityGroups)
+	result["subnets"] = flattenStringSet(nc.AwsvpcConfiguration.Subnets)
 
 	if nc.AwsvpcConfiguration.AssignPublicIp != nil {
 		result["assign_public_ip"] = *nc.AwsvpcConfiguration.AssignPublicIp == ecs.AssignPublicIpEnabled
@@ -796,6 +801,40 @@ func flattenEcsCapacityProviderStrategy(cps []*ecs.CapacityProviderStrategyItem)
 	return results
 }
 
+func expandPlacementConstraints(tfList []interface{}) ([]*ecs.PlacementConstraint, error) {
+	if len(tfList) == 0 {
+		return nil, nil
+	}
+
+	var result []*ecs.PlacementConstraint
+
+	for _, tfMapRaw := range tfList {
+		if tfMapRaw == nil {
+			continue
+		}
+
+		tfMap := tfMapRaw.(map[string]interface{})
+
+		apiObject := &ecs.PlacementConstraint{}
+
+		if v, ok := tfMap["expression"].(string); ok && v != "" {
+			apiObject.Expression = aws.String(v)
+		}
+
+		if v, ok := tfMap["type"].(string); ok && v != "" {
+			apiObject.Type = aws.String(v)
+		}
+
+		if err := validateAwsEcsPlacementConstraint(aws.StringValue(apiObject.Type), aws.StringValue(apiObject.Expression)); err != nil {
+			return result, err
+		}
+
+		result = append(result, apiObject)
+	}
+
+	return result, nil
+}
+
 func flattenServicePlacementConstraints(pcs []*ecs.PlacementConstraint) []map[string]interface{} {
 	if len(pcs) == 0 {
 		return nil
@@ -819,9 +858,24 @@ func expandPlacementStrategy(s []interface{}) ([]*ecs.PlacementStrategy, error) 
 	}
 	pss := make([]*ecs.PlacementStrategy, 0)
 	for _, raw := range s {
-		p := raw.(map[string]interface{})
-		t := p["type"].(string)
-		f := p["field"].(string)
+		p, ok := raw.(map[string]interface{})
+
+		if !ok {
+			continue
+		}
+
+		t, ok := p["type"].(string)
+
+		if !ok {
+			return nil, fmt.Errorf("missing type attribute in placement strategy configuration block")
+		}
+
+		f, ok := p["field"].(string)
+
+		if !ok {
+			return nil, fmt.Errorf("missing field attribute in placement strategy configuration block")
+		}
+
 		if err := validateAwsEcsPlacementStrategy(t, f); err != nil {
 			return nil, err
 		}
@@ -888,8 +942,9 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	updateService := false
 
 	input := ecs.UpdateServiceInput{
-		Service: aws.String(d.Id()),
-		Cluster: aws.String(d.Get("cluster").(string)),
+		Cluster:            aws.String(d.Get("cluster").(string)),
+		ForceNewDeployment: aws.Bool(d.Get("force_new_deployment").(bool)),
+		Service:            aws.String(d.Id()),
 	}
 
 	schedulingStrategy := d.Get("scheduling_strategy").(string)
@@ -907,12 +962,46 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			input.DesiredCount = aws.Int64(int64(d.Get("desired_count").(int)))
 		}
 
-		if d.HasChange("deployment_maximum_percent") || d.HasChange("deployment_minimum_healthy_percent") {
+		if d.HasChanges("deployment_maximum_percent", "deployment_minimum_healthy_percent") {
 			updateService = true
 			input.DeploymentConfiguration = &ecs.DeploymentConfiguration{
 				MaximumPercent:        aws.Int64(int64(d.Get("deployment_maximum_percent").(int))),
 				MinimumHealthyPercent: aws.Int64(int64(d.Get("deployment_minimum_healthy_percent").(int))),
 			}
+		}
+	}
+
+	if d.HasChange("ordered_placement_strategy") {
+		updateService = true
+		// Reference: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateService.html#ECS-UpdateService-request-placementStrategy
+		// To remove an existing placement strategy, specify an empty object.
+		input.PlacementStrategy = []*ecs.PlacementStrategy{}
+
+		if v, ok := d.GetOk("ordered_placement_strategy"); ok && len(v.([]interface{})) > 0 {
+			ps, err := expandPlacementStrategy(v.([]interface{}))
+
+			if err != nil {
+				return err
+			}
+
+			input.PlacementStrategy = ps
+		}
+	}
+
+	if d.HasChange("placement_constraints") {
+		updateService = true
+		// Reference: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateService.html#ECS-UpdateService-request-placementConstraints
+		// To remove all existing placement constraints, specify an empty array.
+		input.PlacementConstraints = []*ecs.PlacementConstraint{}
+
+		if v, ok := d.Get("placement_constraints").(*schema.Set); ok && v.Len() > 0 {
+			pc, err := expandPlacementConstraints(v.List())
+
+			if err != nil {
+				return err
+			}
+
+			input.PlacementConstraints = pc
 		}
 	}
 
@@ -962,6 +1051,12 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 		if err != nil {
 			return fmt.Errorf("Error updating ECS Service (%s): %s", d.Id(), err)
+		}
+	}
+
+	if d.Get("wait_for_steady_state").(bool) {
+		if err := waitForSteadyState(conn, d); err != nil {
+			return err
 		}
 	}
 
@@ -1021,7 +1116,7 @@ func resourceAwsEcsServiceDelete(d *schema.ResourceData, meta interface{}) error
 		Cluster: aws.String(d.Get("cluster").(string)),
 	}
 	// Wait until the ECS service is drained
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		log.Printf("[DEBUG] Trying to delete ECS service %s", input)
 		_, err := conn.DeleteService(&input)
 		if err != nil {
@@ -1093,4 +1188,18 @@ func buildFamilyAndRevisionFromARN(arn string) string {
 // arn:aws:ecs:us-west-2:0123456789:cluster/radek-cluster
 func getNameFromARN(arn string) string {
 	return strings.Split(arn, "/")[1]
+}
+
+func waitForSteadyState(conn *ecs.ECS, d *schema.ResourceData) error {
+	input := &ecs.DescribeServicesInput{
+		Services: aws.StringSlice([]string{d.Id()}),
+	}
+	if v, ok := d.GetOk("cluster"); ok {
+		input.Cluster = aws.String(v.(string))
+	}
+
+	if err := conn.WaitUntilServicesStable(input); err != nil {
+		return fmt.Errorf("error waiting for service (%s) to reach a steady state: %w", d.Id(), err)
+	}
+	return nil
 }

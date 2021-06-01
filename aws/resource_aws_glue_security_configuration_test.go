@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -60,7 +60,7 @@ func testSweepGlueSecurityConfigurations(region string) error {
 	return nil
 }
 
-func TestAccAWSGlueSecurityConfiguration_Basic(t *testing.T) {
+func TestAccAWSGlueSecurityConfiguration_basic(t *testing.T) {
 	var securityConfiguration glue.SecurityConfiguration
 
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -316,7 +316,7 @@ resource "aws_glue_security_configuration" "test" {
   encryption_configuration {
     cloudwatch_encryption {
       cloudwatch_encryption_mode = "SSE-KMS"
-      kms_key_arn                = "${aws_kms_key.test.arn}"
+      kms_key_arn                = aws_kms_key.test.arn
     }
 
     job_bookmarks_encryption {
@@ -347,7 +347,7 @@ resource "aws_glue_security_configuration" "test" {
 
     job_bookmarks_encryption {
       job_bookmarks_encryption_mode = "CSE-KMS"
-      kms_key_arn                   = "${aws_kms_key.test.arn}"
+      kms_key_arn                   = aws_kms_key.test.arn
     }
 
     s3_encryption {
@@ -377,7 +377,7 @@ resource "aws_glue_security_configuration" "test" {
     }
 
     s3_encryption {
-      kms_key_arn        = "${aws_kms_key.test.arn}"
+      kms_key_arn        = aws_kms_key.test.arn
       s3_encryption_mode = "SSE-KMS"
     }
   }

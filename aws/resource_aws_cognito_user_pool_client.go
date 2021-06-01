@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsCognitoUserPoolClient() *schema.Resource {
@@ -30,8 +30,9 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 			},
 
 			"client_secret": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"generate_secret": {
@@ -260,7 +261,7 @@ func resourceAwsCognitoUserPoolClientCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating Cognito User Pool Client: %s", err)
 	}
 
-	d.SetId(*resp.UserPoolClient.ClientId)
+	d.SetId(aws.StringValue(resp.UserPoolClient.ClientId))
 
 	return resourceAwsCognitoUserPoolClientRead(d, meta)
 }
@@ -286,7 +287,7 @@ func resourceAwsCognitoUserPoolClientRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	d.SetId(*resp.UserPoolClient.ClientId)
+	d.SetId(aws.StringValue(resp.UserPoolClient.ClientId))
 	d.Set("user_pool_id", resp.UserPoolClient.UserPoolId)
 	d.Set("name", resp.UserPoolClient.ClientName)
 	d.Set("explicit_auth_flows", flattenStringSet(resp.UserPoolClient.ExplicitAuthFlows))

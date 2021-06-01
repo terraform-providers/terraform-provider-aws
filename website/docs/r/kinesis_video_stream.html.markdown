@@ -37,9 +37,11 @@ AWS account and region the Stream is created in.
 * `device_name` - (Optional) The name of the device that is writing to the stream. **In the current implementation, Kinesis Video Streams does not use this name.**
 * `kms_key_id` - (Optional) The ID of the AWS Key Management Service (AWS KMS) key that you want Kinesis Video Streams to use to encrypt stream data. If no key ID is specified, the default, Kinesis Video-managed key (`aws/kinesisvideo`) is used.
 * `media_type` - (Optional) The media type of the stream. Consumers of the stream can use this information when processing the stream. For more information about media types, see [Media Types][2]. If you choose to specify the MediaType, see [Naming Requirements][3] for guidelines.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique Stream id
 * `arn` - The Amazon Resource Name (ARN) specifying the Stream (same as `id`)
@@ -48,7 +50,7 @@ AWS account and region the Stream is created in.
 
 ## Timeouts
 
-`aws_kinesis_video_stream` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_kinesis_video_stream` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `5 minutes`)  Used for Creating a Kinesis Stream
 - `update` - (Default `120 minutes`) Used for Updating a Kinesis Stream

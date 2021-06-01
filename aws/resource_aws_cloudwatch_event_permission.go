@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfevents "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudwatchevents"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsCloudWatchEventPermission() *schema.Resource {
@@ -57,6 +58,13 @@ func resourceAwsCloudWatchEventPermission() *schema.Resource {
 					},
 				},
 			},
+			"event_bus_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateCloudWatchEventBusName,
+				Default:      tfevents.DefaultEventBusName,
+			},
 			"principal": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -75,22 +83,25 @@ func resourceAwsCloudWatchEventPermission() *schema.Resource {
 func resourceAwsCloudWatchEventPermissionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
 
+	eventBusName := d.Get("event_bus_name").(string)
 	statementID := d.Get("statement_id").(string)
 
 	input := events.PutPermissionInput{
-		Action:      aws.String(d.Get("action").(string)),
-		Condition:   expandCloudWatchEventsCondition(d.Get("condition").([]interface{})),
-		Principal:   aws.String(d.Get("principal").(string)),
-		StatementId: aws.String(statementID),
+		Action:       aws.String(d.Get("action").(string)),
+		Condition:    expandCloudWatchEventsCondition(d.Get("condition").([]interface{})),
+		EventBusName: aws.String(eventBusName),
+		Principal:    aws.String(d.Get("principal").(string)),
+		StatementId:  aws.String(statementID),
 	}
 
 	log.Printf("[DEBUG] Creating CloudWatch Events permission: %s", input)
 	_, err := conn.PutPermission(&input)
 	if err != nil {
-		return fmt.Errorf("Creating CloudWatch Events permission failed: %s", err.Error())
+		return fmt.Errorf("Creating CloudWatch Events permission failed: %w", err)
 	}
 
-	d.SetId(statementID)
+	id := tfevents.PermissionCreateID(eventBusName, statementID)
+	d.SetId(id)
 
 	return resourceAwsCloudWatchEventPermissionRead(d, meta)
 }
@@ -98,56 +109,78 @@ func resourceAwsCloudWatchEventPermissionCreate(d *schema.ResourceData, meta int
 // See also: https://docs.aws.amazon.com/AmazonCloudWatchEvents/latest/APIReference/API_DescribeEventBus.html
 func resourceAwsCloudWatchEventPermissionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
-	input := events.DescribeEventBusInput{}
+
+	eventBusName, statementID, err := tfevents.PermissionParseID(d.Id())
+	if err != nil {
+		return fmt.Errorf("error reading CloudWatch Events permission (%s): %w", d.Id(), err)
+	}
+	input := events.DescribeEventBusInput{
+		Name: aws.String(eventBusName),
+	}
 	var output *events.DescribeEventBusOutput
 	var policyStatement *CloudWatchEventPermissionPolicyStatement
 
 	// Especially with concurrent PutPermission calls there can be a slight delay
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		log.Printf("[DEBUG] Reading CloudWatch Events bus: %s", input)
-		output, err := conn.DescribeEventBus(&input)
+		output, err = conn.DescribeEventBus(&input)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("Reading CloudWatch Events permission '%s' failed: %s", d.Id(), err.Error()))
+			return resource.NonRetryableError(fmt.Errorf("reading CloudWatch Events permission (%s) failed: %w", d.Id(), err))
 		}
 
-		policyStatement, err = getPolicyStatement(output, d.Id())
-		return resource.RetryableError(err)
+		policyStatement, err = getPolicyStatement(output, statementID)
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+		return nil
 	})
 
 	if isResourceTimeoutError(err) {
 		output, err = conn.DescribeEventBus(&input)
 		if output != nil {
-			policyStatement, err = getPolicyStatement(output, d.Id())
+			policyStatement, err = getPolicyStatement(output, statementID)
 		}
 	}
 
 	if isResourceNotFoundError(err) {
-		log.Printf("[WARN] %s", err)
+		log.Printf("[WARN] CloudWatch Events permission (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 	if err != nil {
-		// Missing statement inside valid policy
-		return err
+		return fmt.Errorf("error reading CloudWatch Events permission (%s): %w", d.Id(), err)
 	}
 
 	d.Set("action", policyStatement.Action)
+	busName := aws.StringValue(output.Name)
+	if busName == "" {
+		busName = tfevents.DefaultEventBusName
+	}
+	d.Set("event_bus_name", busName)
 
 	if err := d.Set("condition", flattenCloudWatchEventPermissionPolicyStatementCondition(policyStatement.Condition)); err != nil {
-		return fmt.Errorf("error setting condition: %s", err)
+		return fmt.Errorf("error setting condition: %w", err)
 	}
 
-	principalString, ok := policyStatement.Principal.(string)
-	if ok && (principalString == "*") {
-		d.Set("principal", "*")
-	} else {
-		principalMap := policyStatement.Principal.(map[string]interface{})
-		policyARN, err := arn.Parse(principalMap["AWS"].(string))
-		if err != nil {
-			return fmt.Errorf("Reading CloudWatch Events permission '%s' failed: %s", d.Id(), err)
+	switch principal := policyStatement.Principal.(type) {
+	case string:
+		d.Set("principal", principal)
+	case map[string]interface{}:
+		if v, ok := principal["AWS"].(string); ok {
+			if arn.IsARN(v) {
+				principalARN, err := arn.Parse(v)
+
+				if err != nil {
+					return fmt.Errorf("error parsing CloudWatch Events Permission (%s) principal as ARN (%s): %w", d.Id(), v, err)
+				}
+
+				d.Set("principal", principalARN.AccountID)
+			} else {
+				d.Set("principal", v)
+			}
 		}
-		d.Set("principal", policyARN.AccountID)
 	}
+
 	d.Set("statement_id", policyStatement.Sid)
 
 	return nil
@@ -158,15 +191,14 @@ func getPolicyStatement(output *events.DescribeEventBusOutput, statementID strin
 
 	if output == nil || output.Policy == nil {
 		return nil, &resource.NotFoundError{
-			Message: fmt.Sprintf("CloudWatch Events permission %q not found"+
-				"in given results from DescribeEventBus", statementID),
+			Message:      fmt.Sprintf("CloudWatch Events permission %q not found", statementID),
 			LastResponse: output,
 		}
 	}
 
 	err := json.Unmarshal([]byte(*output.Policy), &policyDoc)
 	if err != nil {
-		return nil, fmt.Errorf("Reading CloudWatch Events permission '%s' failed: %s", statementID, err)
+		return nil, fmt.Errorf("error reading CloudWatch Events permission (%s): %w", statementID, err)
 	}
 
 	return findCloudWatchEventPermissionPolicyStatementByID(&policyDoc, statementID)
@@ -175,22 +207,27 @@ func getPolicyStatement(output *events.DescribeEventBusOutput, statementID strin
 func resourceAwsCloudWatchEventPermissionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
 
+	eventBusName, statementID, err := tfevents.PermissionParseID(d.Id())
+	if err != nil {
+		return fmt.Errorf("error updating CloudWatch Events permission (%s): %w", d.Id(), err)
+	}
 	input := events.PutPermissionInput{
-		Action:      aws.String(d.Get("action").(string)),
-		Condition:   expandCloudWatchEventsCondition(d.Get("condition").([]interface{})),
-		Principal:   aws.String(d.Get("principal").(string)),
-		StatementId: aws.String(d.Get("statement_id").(string)),
+		Action:       aws.String(d.Get("action").(string)),
+		Condition:    expandCloudWatchEventsCondition(d.Get("condition").([]interface{})),
+		EventBusName: aws.String(eventBusName),
+		Principal:    aws.String(d.Get("principal").(string)),
+		StatementId:  aws.String(statementID),
 	}
 
 	log.Printf("[DEBUG] Update CloudWatch Events permission: %s", input)
-	_, err := conn.PutPermission(&input)
+	_, err = conn.PutPermission(&input)
 	if isAWSErr(err, events.ErrCodeResourceNotFoundException, "") {
 		log.Printf("[WARN] CloudWatch Events permission %q not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("Updating CloudWatch Events permission '%s' failed: %s", d.Id(), err.Error())
+		return fmt.Errorf("error updating CloudWatch Events permission (%s): %w", d.Id(), err)
 	}
 
 	return resourceAwsCloudWatchEventPermissionRead(d, meta)
@@ -198,17 +235,23 @@ func resourceAwsCloudWatchEventPermissionUpdate(d *schema.ResourceData, meta int
 
 func resourceAwsCloudWatchEventPermissionDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
+
+	eventBusName, statementID, err := tfevents.PermissionParseID(d.Id())
+	if err != nil {
+		return fmt.Errorf("error deleting CloudWatch Events permission (%s): %w", d.Id(), err)
+	}
 	input := events.RemovePermissionInput{
-		StatementId: aws.String(d.Id()),
+		EventBusName: aws.String(eventBusName),
+		StatementId:  aws.String(statementID),
 	}
 
 	log.Printf("[DEBUG] Delete CloudWatch Events permission: %s", input)
-	_, err := conn.RemovePermission(&input)
+	_, err = conn.RemovePermission(&input)
 	if isAWSErr(err, events.ErrCodeResourceNotFoundException, "") {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("Deleting CloudWatch Events permission '%s' failed: %s", d.Id(), err.Error())
+		return fmt.Errorf("error deleting CloudWatch Events permission (%s): %w", d.Id(), err)
 	}
 	return nil
 }

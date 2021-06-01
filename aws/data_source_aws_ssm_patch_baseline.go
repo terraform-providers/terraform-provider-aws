@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsSsmPatchBaseline() *schema.Resource {
@@ -31,7 +31,7 @@ func dataSourceAwsSsmPatchBaseline() *schema.Resource {
 			"operating_system": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(ssmPatchOSs, false),
+				ValidateFunc: validation.StringInSlice(ssm.OperatingSystem_Values(), false),
 			},
 			// Computed values
 			"description": {
@@ -107,7 +107,7 @@ func dataAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error
 
 	baseline := *filteredBaselines[0]
 
-	d.SetId(*baseline.BaselineId)
+	d.SetId(aws.StringValue(baseline.BaselineId))
 	d.Set("name", baseline.BaselineName)
 	d.Set("description", baseline.BaselineDescription)
 	d.Set("default_baseline", baseline.DefaultBaseline)

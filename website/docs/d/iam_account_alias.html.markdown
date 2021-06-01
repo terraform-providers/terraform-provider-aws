@@ -18,7 +18,7 @@ for the effective account in which Terraform is working.
 data "aws_iam_account_alias" "current" {}
 
 output "account_id" {
-  value = "${data.aws_iam_account_alias.current.account_alias}"
+  value = data.aws_iam_account_alias.current.account_alias
 }
 ```
 
@@ -31,3 +31,4 @@ There are no arguments available for this data source.
 In addition to all arguments above, the following attributes are exported:
 
 * `account_alias` - The alias associated with the AWS account.
+* `id` - The alias associated with the AWS account.

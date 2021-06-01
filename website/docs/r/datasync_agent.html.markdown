@@ -30,7 +30,7 @@ The following arguments are supported:
 * `ip_address` - (Optional) DataSync Agent IP address to retrieve activation key during resource creation. Conflicts with `activation_key`. DataSync Agent must be accessible on port 80 from where Terraform is running.
 * `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Agent.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -39,7 +39,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_datasync_agent` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_datasync_agent` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for agent activation and connection to DataSync.
 

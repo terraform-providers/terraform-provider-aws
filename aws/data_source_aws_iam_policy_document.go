@@ -2,13 +2,14 @@ package aws
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 var dataSourceAwsIamPolicyDocumentVarReplacer = strings.NewReplacer("&{", "${")
@@ -242,7 +243,7 @@ func dataSourceAwsIamPolicyDocumentReplaceVarsInList(in interface{}, version str
 		}
 		return out, nil
 	default:
-		panic("dataSourceAwsIamPolicyDocumentReplaceVarsInList: input not string nor []string")
+		return nil, errors.New("dataSourceAwsIamPolicyDocumentReplaceVarsInList: input not string nor []string")
 	}
 }
 

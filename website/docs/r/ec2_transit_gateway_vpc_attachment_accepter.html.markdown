@@ -20,7 +20,7 @@ connection into management.
 
 ```hcl
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "example" {
-  transit_gateway_attachment_id = "${aws_ec2_transit_gateway_vpc_attachment.example.id}"
+  transit_gateway_attachment_id = aws_ec2_transit_gateway_vpc_attachment.example.id
 
   tags = {
     Name = "Example cross-account attachment"
@@ -28,7 +28,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "example" {
 }
 ```
 
-A full example of how to how to create a Transit Gateway in one AWS account, share it with a second AWS account, and attach a VPC in the second account to the Transit Gateway via the `aws_ec2_transit_gateway_vpc_attachment` and `aws_ec2_transit_gateway_vpc_attachment_accepter` resources can be found in [the `./examples/transit-gateway-cross-account-vpc-attachment` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-aws/tree/master/examples/transit-gateway-cross-account-vpc-attachment).
+A full example of how to how to create a Transit Gateway in one AWS account, share it with a second AWS account, and attach a VPC in the second account to the Transit Gateway via the `aws_ec2_transit_gateway_vpc_attachment` and `aws_ec2_transit_gateway_vpc_attachment_accepter` resources can be found in [the `./examples/transit-gateway-cross-account-vpc-attachment` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-aws/tree/master/examples/transit-gateway-cross-account-vpc-attachment).
 
 ## Argument Reference
 
@@ -39,11 +39,12 @@ The following arguments are supported:
 * `transit_gateway_default_route_table_propagation` - (Optional) Boolean whether the VPC Attachment should propagate routes with the EC2 Transit Gateway propagation default route table. Default value: `true`.
 * `tags` - (Optional) Key-value tags for the EC2 Transit Gateway VPC Attachment.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - EC2 Transit Gateway Attachment identifier
+* `appliance_mode_support` - Whether Appliance Mode support is enabled. Valid values: `disable`, `enable`.
 * `dns_support` - Whether DNS support is enabled. Valid values: `disable`, `enable`.
 * `ipv6_support` - Whether IPv6 support is enabled. Valid values: `disable`, `enable`.
 * `subnet_ids` - Identifiers of EC2 Subnets.

@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIAMAccountPasswordPolicy_basic(t *testing.T) {
@@ -95,17 +95,18 @@ func testAccCheckAWSIAMAccountPasswordPolicyExists(n string, res *iam.GetAccount
 
 const testAccAWSIAMAccountPasswordPolicy = `
 resource "aws_iam_account_password_policy" "test" {
-	allow_users_to_change_password = true
-	minimum_password_length = 8
-	require_numbers = true
+  allow_users_to_change_password = true
+  minimum_password_length        = 8
+  require_numbers                = true
 }
 `
+
 const testAccAWSIAMAccountPasswordPolicy_modified = `
 resource "aws_iam_account_password_policy" "test" {
-	allow_users_to_change_password = true
-	minimum_password_length = 7
-	require_numbers = false
-	require_symbols = true
-	require_uppercase_characters = true
+  allow_users_to_change_password = true
+  minimum_password_length        = 7
+  require_numbers                = false
+  require_symbols                = true
+  require_uppercase_characters   = true
 }
 `

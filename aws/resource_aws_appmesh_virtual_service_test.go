@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -87,7 +87,7 @@ func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualServiceDestroy,
 		Steps: []resource.TestStep{
@@ -97,12 +97,14 @@ func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 					testAccCheckAppmeshVirtualServiceExists(resourceName, &vs),
 					resource.TestCheckResourceAttr(resourceName, "name", vsName),
 					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
+					testAccCheckResourceAttrAccountID(resourceName, "mesh_owner"),
 					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_node.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_node.0.virtual_node_name", vnName1),
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "last_updated_date"),
+					testAccCheckResourceAttrAccountID(resourceName, "resource_owner"),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "appmesh", fmt.Sprintf("mesh/%s/virtualService/%s", meshName, vsName)),
 				),
 			},
@@ -112,6 +114,7 @@ func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 					testAccCheckAppmeshVirtualServiceExists(resourceName, &vs),
 					resource.TestCheckResourceAttr(resourceName, "name", vsName),
 					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
+					testAccCheckResourceAttrAccountID(resourceName, "mesh_owner"),
 					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_node.#", "1"),
@@ -137,7 +140,7 @@ func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualServiceDestroy,
 		Steps: []resource.TestStep{
@@ -147,12 +150,14 @@ func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 					testAccCheckAppmeshVirtualServiceExists(resourceName, &vs),
 					resource.TestCheckResourceAttr(resourceName, "name", vsName),
 					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
+					testAccCheckResourceAttrAccountID(resourceName, "mesh_owner"),
 					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_router.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_router.0.virtual_router_name", vrName1),
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "last_updated_date"),
+					testAccCheckResourceAttrAccountID(resourceName, "resource_owner"),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "appmesh", fmt.Sprintf("mesh/%s/virtualService/%s", meshName, vsName))),
 			},
 			{
@@ -161,6 +166,7 @@ func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 					testAccCheckAppmeshVirtualServiceExists(resourceName, &vs),
 					resource.TestCheckResourceAttr(resourceName, "name", vsName),
 					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
+					testAccCheckResourceAttrAccountID(resourceName, "mesh_owner"),
 					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_router.#", "1"),
@@ -180,7 +186,7 @@ func testAccAwsAppmeshVirtualService_tags(t *testing.T) {
 	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualServiceDestroy,
 		Steps: []resource.TestStep{
@@ -284,26 +290,26 @@ resource "aws_appmesh_mesh" "test" {
 
 resource "aws_appmesh_virtual_node" "foo" {
   name      = %[2]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {}
 }
 
 resource "aws_appmesh_virtual_node" "bar" {
   name      = %[3]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {}
 }
 
 resource "aws_appmesh_virtual_service" "test" {
   name      = %[4]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     provider {
       virtual_node {
-        virtual_node_name = "${%[5]s.name}"
+        virtual_node_name = %[5]s.name
       }
     }
   }
@@ -319,7 +325,7 @@ resource "aws_appmesh_mesh" "test" {
 
 resource "aws_appmesh_virtual_router" "foo" {
   name      = %[2]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     listener {
@@ -333,7 +339,7 @@ resource "aws_appmesh_virtual_router" "foo" {
 
 resource "aws_appmesh_virtual_router" "bar" {
   name      = %[3]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     listener {
@@ -347,12 +353,12 @@ resource "aws_appmesh_virtual_router" "bar" {
 
 resource "aws_appmesh_virtual_service" "test" {
   name      = %[4]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     provider {
       virtual_router {
-        virtual_router_name = "${%[5]s.name}"
+        virtual_router_name = %[5]s.name
       }
     }
   }
@@ -368,33 +374,33 @@ resource "aws_appmesh_mesh" "test" {
 
 resource "aws_appmesh_virtual_node" "foo" {
   name      = %[2]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {}
 }
 
 resource "aws_appmesh_virtual_node" "bar" {
   name      = %[3]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {}
 }
 
 resource "aws_appmesh_virtual_service" "test" {
   name      = %[4]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     provider {
       virtual_node {
-        virtual_node_name = "${%[5]s.name}"
+        virtual_node_name = %[5]s.name
       }
     }
   }
 
   tags = {
-	%[6]s = %[7]q
-	%[8]s = %[9]q
+    %[6]s = %[7]q
+    %[8]s = %[9]q
   }
 }
 `, meshName, vnName1, vnName2, vsName, rName, tagKey1, tagValue1, tagKey2, tagValue2)

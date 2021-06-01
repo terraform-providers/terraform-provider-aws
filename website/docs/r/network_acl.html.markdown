@@ -21,7 +21,7 @@ a conflict of rule settings and will overwrite rules.
 
 ```hcl
 resource "aws_network_acl" "main" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   egress {
     protocol   = "tcp"
@@ -54,10 +54,10 @@ The following arguments are supported:
 * `vpc_id` - (Required) The ID of the associated VPC.
 * `subnet_ids` - (Optional) A list of Subnet IDs to apply the ACL to
 * `ingress` - (Optional) Specifies an ingress rule. Parameters defined below.
-  This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+  This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
 * `egress` - (Optional) Specifies an egress rule. Parameters defined below.
-  This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+  This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 Both `egress` and `ingress` support the following keys:
 
@@ -80,6 +80,7 @@ valid network mask.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network ACL
+* `arn` - The ARN of the network ACL
 * `owner_id` - The ID of the AWS account that owns the network ACL.
 
 

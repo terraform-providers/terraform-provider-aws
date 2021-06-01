@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: aws_ip_ranges
 
-Use this data source to get the IP ranges of various AWS products and services. For more information about the contents of this data source and required JSON syntax if referencing a custom URL, see the [AWS IP Address Ranges documention][1].
+Use this data source to get the IP ranges of various AWS products and services. For more information about the contents of this data source and required JSON syntax if referencing a custom URL, see the [AWS IP Address Ranges documentation][1].
 
 ## Example Usage
 
@@ -30,8 +30,8 @@ resource "aws_security_group" "from_europe" {
   }
 
   tags = {
-    CreateDate = "${data.aws_ip_ranges.european_ec2.create_date}"
-    SyncToken  = "${data.aws_ip_ranges.european_ec2.sync_token}"
+    CreateDate = data.aws_ip_ranges.european_ec2.create_date
+    SyncToken  = data.aws_ip_ranges.european_ec2.sync_token
   }
 }
 ```
@@ -51,7 +51,7 @@ omitted). Valid items are `global` (for `cloudfront`) as well as all AWS regions
 ~> **NOTE:** If the specified combination of regions and services does not yield any
 CIDR blocks, Terraform will fail.
 
-* `url` - (Optional) Custom URL for source JSON file. Syntax must match [AWS IP Address Ranges documention][1]. Defaults to `https://ip-ranges.amazonaws.com/ip-ranges.json`.
+* `url` - (Optional) Custom URL for source JSON file. Syntax must match [AWS IP Address Ranges documentation][1]. Defaults to `https://ip-ranges.amazonaws.com/ip-ranges.json`.
 
 ## Attributes Reference
 

@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloudWatchLogStream_basic(t *testing.T) {
 	var ls cloudwatchlogs.LogStream
-	rName := acctest.RandString(15)
+	resourceName := "aws_cloudwatch_log_stream.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,8 +23,14 @@ func TestAccAWSCloudWatchLogStream_basic(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchLogStreamConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchLogStreamExists("aws_cloudwatch_log_stream.foobar", &ls),
+					testAccCheckCloudWatchLogStreamExists(resourceName, &ls),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSCloudWatchLogStreamImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -32,7 +38,8 @@ func TestAccAWSCloudWatchLogStream_basic(t *testing.T) {
 
 func TestAccAWSCloudWatchLogStream_disappears(t *testing.T) {
 	var ls cloudwatchlogs.LogStream
-	rName := acctest.RandString(15)
+	resourceName := "aws_cloudwatch_log_stream.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,8 +49,8 @@ func TestAccAWSCloudWatchLogStream_disappears(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchLogStreamConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchLogStreamExists("aws_cloudwatch_log_stream.foobar", &ls),
-					testAccCheckCloudWatchLogStreamDisappears(&ls, rName),
+					testAccCheckCloudWatchLogStreamExists(resourceName, &ls),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudWatchLogStream(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -51,22 +58,12 @@ func TestAccAWSCloudWatchLogStream_disappears(t *testing.T) {
 	})
 }
 
-func testAccCheckCloudWatchLogStreamDisappears(ls *cloudwatchlogs.LogStream, lgn string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).cloudwatchlogsconn
-		opts := &cloudwatchlogs.DeleteLogStreamInput{
-			LogGroupName:  aws.String(lgn),
-			LogStreamName: ls.LogStreamName,
-		}
-		_, err := conn.DeleteLogStream(opts)
-		return err
-	}
-}
-
 func TestAccAWSCloudWatchLogStream_disappears_LogGroup(t *testing.T) {
 	var ls cloudwatchlogs.LogStream
 	var lg cloudwatchlogs.LogGroup
-	rName := acctest.RandString(15)
+	resourceName := "aws_cloudwatch_log_stream.test"
+	logGroupResourceName := "aws_cloudwatch_log_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -76,9 +73,9 @@ func TestAccAWSCloudWatchLogStream_disappears_LogGroup(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchLogStreamConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchLogStreamExists("aws_cloudwatch_log_stream.foobar", &ls),
-					testAccCheckCloudWatchLogGroupExists("aws_cloudwatch_log_group.foobar", &lg),
-					testAccCheckCloudWatchLogGroupDisappears(&lg),
+					testAccCheckCloudWatchLogStreamExists(resourceName, &ls),
+					testAccCheckCloudWatchLogGroupExists(logGroupResourceName, &lg),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudWatchLogGroup(), logGroupResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -132,6 +129,17 @@ func testAccCheckAWSCloudWatchLogStreamDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAWSCloudWatchLogStreamImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not Found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s:%s", rs.Primary.Attributes["log_group_name"], rs.Primary.ID), nil
+	}
+}
+
 func TestValidateCloudWatchLogStreamName(t *testing.T) {
 	validNames := []string{
 		"test-log-stream",
@@ -161,13 +169,13 @@ func TestValidateCloudWatchLogStreamName(t *testing.T) {
 
 func testAccAWSCloudWatchLogStreamConfig(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_cloudwatch_log_group" "foobar" {
-  name = "%s"
+resource "aws_cloudwatch_log_group" "test" {
+  name = %[1]q
 }
 
-resource "aws_cloudwatch_log_stream" "foobar" {
-  name           = "%s"
-  log_group_name = "${aws_cloudwatch_log_group.foobar.id}"
+resource "aws_cloudwatch_log_stream" "test" {
+  name           = %[1]q
+  log_group_name = aws_cloudwatch_log_group.test.id
 }
-`, rName, rName)
+`, rName)
 }
