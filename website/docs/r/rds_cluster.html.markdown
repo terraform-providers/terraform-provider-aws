@@ -131,7 +131,7 @@ The following arguments are supported:
 * `snapshot_identifier` - (Optional) Specifies whether or not to create this cluster from a snapshot. You can use either the name or ARN when specifying a DB cluster snapshot, or the ARN when specifying a DB snapshot.
 * `source_region` - (Optional) The source region for an encrypted replica DB cluster.
 * `storage_encrypted` - (Optional) Specifies whether the DB cluster is encrypted. The default is `false` for `provisioned` `engine_mode` and `true` for `serverless` `engine_mode`. When restoring an unencrypted `snapshot_identifier`, the `kms_key_id` argument must be provided to encrypt the restored cluster. Terraform will only perform drift detection if a configuration value is provided.
-* `tags` - (Optional) A map of tags to assign to the DB cluster.
+* `tags` - (Optional) A map of tags to assign to the DB cluster. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpc_security_group_ids` - (Optional) List of VPC security groups to associate with the Cluster
 
 ### S3 Import Options
@@ -238,6 +238,7 @@ load-balanced across replicas
 * `storage_encrypted` - Specifies whether the DB cluster is encrypted
 * `replication_source_identifier` - ARN of the source DB cluster or DB instance if this DB cluster is created as a Read Replica.
 * `hosted_zone_id` - The Route53 Hosted Zone ID of the endpoint
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 [1]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Replication.html
 [2]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Aurora.html

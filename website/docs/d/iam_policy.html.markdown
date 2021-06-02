@@ -6,12 +6,14 @@ description: |-
   Get information on a Amazon IAM policy
 ---
 
-# aws_iam_policy
+# Data Source: aws_iam_policy
 
 This data source can be used to fetch information about a specific
 IAM policy.
 
 ## Example Usage
+
+### By ARN
 
 ```terraform
 data "aws_iam_policy" "example" {
@@ -19,17 +21,26 @@ data "aws_iam_policy" "example" {
 }
 ```
 
+### By Name
+
+```terraform
+data "aws_iam_policy" "example" {
+  name = "test_policy"
+}
+```
+
 ## Argument Reference
 
-* `arn` - (Required) ARN of the IAM policy.
+* `arn` - (Optional) The ARN of the IAM policy.
+* `name` - (Optional) The name of the IAM policy.
+* `path_prefix` - (Optional) The prefix of the path to the IAM policy. Defaults to a slash (`/`).
 
 ## Attributes Reference
 
-* `name` - The name of the IAM policy.
-* `arn` - The Amazon Resource Name (ARN) specifying the policy.
+In addition to all arguments above, the following attributes are exported:
+
 * `path` - The path to the policy.
 * `description` - The description of the policy.
 * `policy` - The policy document of the policy.
 * `policy_id` - The policy's ID.
-* `tags` - Key-value mapping of tags for the IAM Policy
-
+* `tags` - Key-value mapping of tags for the IAM Policy.

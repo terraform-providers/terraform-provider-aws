@@ -43,23 +43,28 @@ func resourceAwsDmsReplicationSubnetGroup() *schema.Resource {
 				Set:      schema.HashString,
 				Required: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDmsReplicationSubnetGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	request := &dms.CreateReplicationSubnetGroupInput{
 		ReplicationSubnetGroupIdentifier:  aws.String(d.Get("replication_subnet_group_id").(string)),
 		ReplicationSubnetGroupDescription: aws.String(d.Get("replication_subnet_group_description").(string)),
 		SubnetIds:                         expandStringSet(d.Get("subnet_ids").(*schema.Set)),
-		Tags:                              keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatabasemigrationserviceTags(),
+		Tags:                              tags.IgnoreAws().DatabasemigrationserviceTags(),
 	}
 
 	log.Println("[DEBUG] DMS create replication subnet group:", request)
@@ -75,6 +80,7 @@ func resourceAwsDmsReplicationSubnetGroupCreate(d *schema.ResourceData, meta int
 
 func resourceAwsDmsReplicationSubnetGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	response, err := conn.DescribeReplicationSubnetGroups(&dms.DescribeReplicationSubnetGroupsInput{
@@ -115,8 +121,15 @@ func resourceAwsDmsReplicationSubnetGroupRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error listing tags for DMS Replication Subnet Group (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -136,9 +149,9 @@ func resourceAwsDmsReplicationSubnetGroupUpdate(d *schema.ResourceData, meta int
 		request.ReplicationSubnetGroupDescription = aws.String(d.Get("replication_subnet_group_description").(string))
 	}
 
-	if d.HasChange("tags") {
+	if d.HasChange("tags_all") {
 		arn := d.Get("replication_subnet_group_arn").(string)
-		o, n := d.GetChange("tags")
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatabasemigrationserviceUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating DMS Replication Subnet Group (%s) tags: %s", arn, err)

@@ -96,8 +96,11 @@ func resourceAwsCodePipelineWebhook() *schema.Resource {
 				ForceNew: true,
 				Required: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -131,6 +134,8 @@ func extractCodePipelineWebhookAuthConfig(authType string, authConfig map[string
 
 func resourceAwsCodePipelineWebhookCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	authType := d.Get("authentication").(string)
 
 	var authConfig map[string]interface{}
@@ -148,7 +153,7 @@ func resourceAwsCodePipelineWebhookCreate(d *schema.ResourceData, meta interface
 			TargetPipeline:              aws.String(d.Get("target_pipeline").(string)),
 			AuthenticationConfiguration: extractCodePipelineWebhookAuthConfig(authType, authConfig),
 		},
-		Tags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodepipelineTags(),
+		Tags: tags.IgnoreAws().CodepipelineTags(),
 	}
 
 	webhook, err := conn.PutWebhook(request)
@@ -228,6 +233,7 @@ func flattenCodePipelineWebhookAuthenticationConfiguration(authConfig *codepipel
 
 func resourceAwsCodePipelineWebhookRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	arn := d.Id()
@@ -271,8 +277,15 @@ func resourceAwsCodePipelineWebhookRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting filter: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.CodepipelineKeyValueTags(webhook.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.CodepipelineKeyValueTags(webhook.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -281,8 +294,8 @@ func resourceAwsCodePipelineWebhookRead(d *schema.ResourceData, meta interface{}
 func resourceAwsCodePipelineWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CodepipelineUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating CodePipeline Webhook (%s) tags: %s", d.Id(), err)

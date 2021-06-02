@@ -3,12 +3,14 @@ package waiter
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/lambda/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const (
 	EventSourceMappingStateCreating  = "Creating"
+	EventSourceMappingStateDeleting  = "Deleting"
 	EventSourceMappingStateDisabled  = "Disabled"
 	EventSourceMappingStateDisabling = "Disabling"
 	EventSourceMappingStateEnabled   = "Enabled"
@@ -18,13 +20,9 @@ const (
 
 func EventSourceMappingState(conn *lambda.Lambda, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		input := &lambda.GetEventSourceMappingInput{
-			UUID: aws.String(id),
-		}
+		eventSourceMappingConfiguration, err := finder.EventSourceMappingConfigurationByID(conn, id)
 
-		output, err := conn.GetEventSourceMapping(input)
-
-		if tfawserr.ErrCodeEquals(err, lambda.ErrCodeResourceNotFoundException) {
+		if tfresource.NotFound(err) {
 			return nil, "", nil
 		}
 
@@ -32,10 +30,6 @@ func EventSourceMappingState(conn *lambda.Lambda, id string) resource.StateRefre
 			return nil, "", err
 		}
 
-		if output == nil {
-			return nil, "", nil
-		}
-
-		return output, aws.StringValue(output.State), nil
+		return eventSourceMappingConfiguration, aws.StringValue(eventSourceMappingConfiguration.State), nil
 	}
 }

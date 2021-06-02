@@ -96,12 +96,50 @@ func TestAccAWSDataSyncLocationS3_basic(t *testing.T) {
 				Config: testAccAWSDataSyncLocationS3Config(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDataSyncLocationS3Exists(resourceName, &locationS31),
+					resource.TestCheckResourceAttr(resourceName, "agent_arns.#", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "datasync", regexp.MustCompile(`location/loc-.+`)),
+					resource.TestCheckResourceAttrPair(resourceName, "s3_bucket_arn", s3BucketResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "s3_config.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "s3_config.0.bucket_access_role_arn", iamRoleResourceName, "arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "s3_storage_class"),
+					resource.TestCheckResourceAttr(resourceName, "subdirectory", "/test/"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestMatchResourceAttr(resourceName, "uri", regexp.MustCompile(`^s3://.+/`)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"s3_bucket_arn"},
+			},
+		},
+	})
+}
+
+func TestAccAWSDataSyncLocationS3_storageclass(t *testing.T) {
+	var locationS31 datasync.DescribeLocationS3Output
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	iamRoleResourceName := "aws_iam_role.test"
+	resourceName := "aws_datasync_location_s3.test"
+	s3BucketResourceName := "aws_s3_bucket.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDataSyncLocationS3Destroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDataSyncLocationS3ConfigStorageClass(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDataSyncLocationS3Exists(resourceName, &locationS31),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "datasync", regexp.MustCompile(`location/loc-.+`)),
 					resource.TestCheckResourceAttrPair(resourceName, "s3_bucket_arn", s3BucketResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "s3_config.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "s3_config.0.bucket_access_role_arn", iamRoleResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "subdirectory", "/test/"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "s3_storage_class", "STANDARD_IA"),
 					resource.TestMatchResourceAttr(resourceName, "uri", regexp.MustCompile(`^s3://.+/`)),
 				),
 			},
@@ -316,6 +354,22 @@ func testAccAWSDataSyncLocationS3Config(rName string) string {
 resource "aws_datasync_location_s3" "test" {
   s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
+
+  s3_config {
+    bucket_access_role_arn = aws_iam_role.test.arn
+  }
+
+  depends_on = [aws_iam_role_policy.test]
+}
+`
+}
+
+func testAccAWSDataSyncLocationS3ConfigStorageClass(rName string) string {
+	return testAccAWSDataSyncLocationS3ConfigBase(rName) + `
+resource "aws_datasync_location_s3" "test" {
+  s3_bucket_arn    = aws_s3_bucket.test.arn
+  subdirectory     = "/test"
+  s3_storage_class = "STANDARD_IA"
 
   s3_config {
     bucket_access_role_arn = aws_iam_role.test.arn

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/costandusagereportservice/finder"
 )
 
 func TestAccAwsCurReportDefinition_basic(t *testing.T) {
@@ -242,14 +243,17 @@ func testAccCheckAwsCurReportDefinitionDestroy(s *terraform.State) error {
 		if rs.Type != "aws_cur_report_definition" {
 			continue
 		}
-		reportName := rs.Primary.ID
-		matchingReportDefinition, err := describeCurReportDefinition(conn, reportName)
+
+		matchingReportDefinition, err := finder.ReportDefinitionByName(conn, rs.Primary.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading Report Definition (%s): %w", rs.Primary.ID, err)
 		}
-		if matchingReportDefinition != nil {
-			return fmt.Errorf("Report Definition still exists: %q", rs.Primary.ID)
+
+		if matchingReportDefinition == nil {
+			continue
 		}
+
+		return fmt.Errorf("Report Definition still exists: %q", rs.Primary.ID)
 	}
 	return nil
 
@@ -263,14 +267,16 @@ func testAccCheckAwsCurReportDefinitionExists(resourceName string) resource.Test
 		if !ok {
 			return fmt.Errorf("Resource not found: %s", resourceName)
 		}
-		reportName := rs.Primary.ID
-		matchingReportDefinition, err := describeCurReportDefinition(conn, reportName)
+
+		matchingReportDefinition, err := finder.ReportDefinitionByName(conn, rs.Primary.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading Report Definition (%s): %w", rs.Primary.ID, err)
 		}
+
 		if matchingReportDefinition == nil {
 			return fmt.Errorf("Report Definition does not exist: %q", rs.Primary.ID)
 		}
+
 		return nil
 	}
 }

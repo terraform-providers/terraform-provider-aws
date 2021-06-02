@@ -1136,6 +1136,54 @@ func TestAccAWSAutoScalingGroup_InstanceRefresh_Triggers(t *testing.T) {
 	})
 }
 
+func TestAccAWSAutoScalingGroup_WarmPool(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, autoscaling.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsAutoScalingGroupConfig_WarmPool_Empty(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "warm_pool.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"warm_pool",
+					"force_delete",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAwsAutoScalingGroupConfig_WarmPool_Full(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "warm_pool.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "warm_pool.0.pool_state", "Stopped"),
+					resource.TestCheckResourceAttr(resourceName, "warm_pool.0.min_size", "0"),
+					resource.TestCheckResourceAttr(resourceName, "warm_pool.0.max_group_prepared_capacity", "2"),
+				),
+			},
+			{
+				Config: testAccAwsAutoScalingGroupConfig_WarmPool_Remove(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckNoResourceAttr(resourceName, "warm_pool.#"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAutoScalingGroupExists(n string, group *autoscaling.Group) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -4697,6 +4745,78 @@ resource "aws_launch_configuration" "test" {
 `
 }
 
+func testAccAwsAutoScalingGroupConfig_WarmPool_Base() string {
+	return `
+data "aws_ami" "test" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+data "aws_availability_zones" "current" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_launch_configuration" "test" {
+  image_id      = data.aws_ami.test.id
+  instance_type = "t3.nano"
+}
+`
+}
+
+func testAccAwsAutoScalingGroupConfig_WarmPool_Empty() string {
+	return testAccAwsAutoScalingGroupConfig_WarmPool_Base() + `
+resource "aws_autoscaling_group" "test" {
+  availability_zones   = [data.aws_availability_zones.current.names[0]]
+  max_size             = 5
+  min_size             = 1
+  desired_capacity     = 1
+  launch_configuration = aws_launch_configuration.test.name
+
+  warm_pool {}
+}
+`
+}
+
+func testAccAwsAutoScalingGroupConfig_WarmPool_Full() string {
+	return testAccAwsAutoScalingGroupConfig_WarmPool_Base() + `
+resource "aws_autoscaling_group" "test" {
+  availability_zones   = [data.aws_availability_zones.current.names[0]]
+  max_size             = 5
+  min_size             = 1
+  desired_capacity     = 1
+  launch_configuration = aws_launch_configuration.test.name
+
+  warm_pool {
+    pool_state                  = "Stopped"
+    min_size                    = 0
+    max_group_prepared_capacity = 2
+  }
+}
+`
+}
+
+func testAccAwsAutoScalingGroupConfig_WarmPool_Remove() string {
+	return testAccAwsAutoScalingGroupConfig_WarmPool_Base() + `
+resource "aws_autoscaling_group" "test" {
+  availability_zones   = [data.aws_availability_zones.current.names[0]]
+  max_size             = 5
+  min_size             = 1
+  desired_capacity     = 1
+  launch_configuration = aws_launch_configuration.test.name
+}
+`
+}
+
 func testAccCheckAutoScalingInstanceRefreshCount(group *autoscaling.Group, expected int) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).autoscalingconn
@@ -4873,6 +4993,146 @@ func TestCreateAutoScalingGroupInstanceRefreshInput(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			got := createAutoScalingGroupInstanceRefreshInput(asgName, testCase.input)
+
+			if !reflect.DeepEqual(got, testCase.expected) {
+				t.Errorf("got %s, expected %s", got, testCase.expected)
+			}
+		})
+	}
+}
+
+func TestPutWarmPoolInput(t *testing.T) {
+	const asgName = "test-asg"
+	testCases := []struct {
+		name     string
+		input    []interface{}
+		expected *autoscaling.PutWarmPoolInput
+	}{
+		{
+			name:     "empty interface",
+			input:    []interface{}{},
+			expected: nil,
+		},
+		{
+			name:     "nil",
+			input:    nil,
+			expected: nil,
+		},
+		{
+			name: "only pool state",
+			input: []interface{}{map[string]interface{}{
+				"pool_state": "Stopped",
+			}},
+			expected: &autoscaling.PutWarmPoolInput{
+				AutoScalingGroupName: aws.String(asgName),
+				PoolState:            aws.String("Stopped"),
+			},
+		},
+		{
+			name: "0 min size",
+			input: []interface{}{map[string]interface{}{
+				"pool_state":                  "Stopped",
+				"min_size":                    0,
+				"max_group_prepared_capacity": 5,
+			}},
+			expected: &autoscaling.PutWarmPoolInput{
+				AutoScalingGroupName:     aws.String(asgName),
+				PoolState:                aws.String("Stopped"),
+				MinSize:                  aws.Int64(0),
+				MaxGroupPreparedCapacity: aws.Int64(5),
+			},
+		},
+		{
+			name: "-1 max prepared size",
+			input: []interface{}{map[string]interface{}{
+				"pool_state":                  "Stopped",
+				"max_group_prepared_capacity": -1,
+			}},
+			expected: &autoscaling.PutWarmPoolInput{
+				AutoScalingGroupName:     aws.String(asgName),
+				PoolState:                aws.String("Stopped"),
+				MaxGroupPreparedCapacity: aws.Int64(-1),
+			},
+		},
+		{
+			name: "all values",
+			input: []interface{}{map[string]interface{}{
+				"pool_state":                  "Stopped",
+				"min_size":                    3,
+				"max_group_prepared_capacity": 2,
+			}},
+			expected: &autoscaling.PutWarmPoolInput{
+				AutoScalingGroupName:     aws.String(asgName),
+				PoolState:                aws.String("Stopped"),
+				MinSize:                  aws.Int64(3),
+				MaxGroupPreparedCapacity: aws.Int64(2),
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := createPutWarmPoolInput(asgName, testCase.input)
+
+			if !reflect.DeepEqual(got, testCase.expected) {
+				t.Errorf("got %s, expected %s", got, testCase.expected)
+			}
+		})
+	}
+}
+
+func TestFlattenWarmPoolConfiguration(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    *autoscaling.WarmPoolConfiguration
+		expected []interface{}
+	}{
+		{
+			name:     "empty interface",
+			input:    nil,
+			expected: []interface{}{},
+		},
+		{
+			name: "only pool state",
+			input: &autoscaling.WarmPoolConfiguration{
+				PoolState: aws.String("Stopped"),
+			},
+			expected: []interface{}{map[string]interface{}{
+				"pool_state":                  "Stopped",
+				"min_size":                    int64(0),
+				"max_group_prepared_capacity": int64(-1),
+			}},
+		},
+		{
+			name: "only max group prepared capacity",
+			input: &autoscaling.WarmPoolConfiguration{
+				PoolState:                aws.String("Stopped"),
+				MaxGroupPreparedCapacity: aws.Int64(2),
+			},
+			expected: []interface{}{map[string]interface{}{
+				"pool_state":                  "Stopped",
+				"min_size":                    int64(0),
+				"max_group_prepared_capacity": int64(2),
+			}},
+		},
+		{
+			name: "all values",
+			input: &autoscaling.WarmPoolConfiguration{
+				PoolState:                aws.String("Stopped"),
+				MinSize:                  aws.Int64(3),
+				MaxGroupPreparedCapacity: aws.Int64(5),
+			},
+			expected: []interface{}{map[string]interface{}{
+				"pool_state":                  "Stopped",
+				"min_size":                    int64(3),
+				"max_group_prepared_capacity": int64(5),
+			}},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := flattenWarmPoolConfiguration(testCase.input)
 
 			if !reflect.DeepEqual(got, testCase.expected) {
 				t.Errorf("got %s, expected %s", got, testCase.expected)

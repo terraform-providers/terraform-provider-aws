@@ -38,18 +38,19 @@ The following arguments are supported:
 
 * `certificate_pem` - (Optional) The contents of the .pem X.509 certificate file for the certificate. Either `certificate_pem` or `certificate_wallet` must be set.
 * `certificate_wallet` - (Optional) The contents of the Oracle Wallet certificate for use with SSL, provided as a base64-encoded String. Either `certificate_pem` or `certificate_wallet` must be set.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `certificate_arn` - The Amazon Resource Name (ARN) for the certificate.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 
-Certificates can be imported using the `certificate_arn`, e.g.
+Certificates can be imported using the `certificate_id`, e.g.
 
 ```
-$ terraform import aws_dms_certificate.test arn:aws:dms:us-west-2:123456789:cert:xxxxxxxxxx
+$ terraform import aws_dms_certificate.test test-dms-certificate-tf
 ```

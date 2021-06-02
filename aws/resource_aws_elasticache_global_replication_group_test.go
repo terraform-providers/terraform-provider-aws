@@ -35,7 +35,9 @@ func testSweepElasticacheGlobalReplicationGroups(region string) error {
 
 	var sweeperErrs *multierror.Error
 
-	input := &elasticache.DescribeGlobalReplicationGroupsInput{}
+	input := &elasticache.DescribeGlobalReplicationGroupsInput{
+		ShowMemberInfo: aws.Bool(true),
+	}
 	err = conn.DescribeGlobalReplicationGroupsPages(input, func(page *elasticache.DescribeGlobalReplicationGroupsOutput, lastPage bool) bool {
 		if page == nil {
 			return !lastPage
@@ -43,6 +45,21 @@ func testSweepElasticacheGlobalReplicationGroups(region string) error {
 
 		for _, globalReplicationGroup := range page.GlobalReplicationGroups {
 			id := aws.StringValue(globalReplicationGroup.GlobalReplicationGroupId)
+
+			for _, member := range globalReplicationGroup.Members {
+				if aws.StringValue(member.Role) == GlobalReplicationGroupMemberRolePrimary {
+					continue
+				}
+
+				if err := disassociateElasticacheReplicationGroup(conn, id, aws.StringValue(member.ReplicationGroupId), aws.StringValue(member.ReplicationGroupRegion)); err != nil {
+					sweeperErr := fmt.Errorf(
+						"error disassociating ElastiCache Replication Group (%s) in %s from Global Group (%s): %w",
+						aws.StringValue(member.ReplicationGroupId), aws.StringValue(member.ReplicationGroupRegion), id, err,
+					)
+					log.Printf("[ERROR] %s", sweeperErr)
+					sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				}
+			}
 
 			log.Printf("[INFO] Deleting ElastiCache Global Replication Group: %s", id)
 			err := deleteElasticacheGlobalReplicationGroup(conn, id)
@@ -96,6 +113,7 @@ func TestAccAWSElasticacheGlobalReplicationGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "cache_node_type", primaryReplicationGroupResourceName, "node_type"),
 					resource.TestCheckResourceAttrPair(resourceName, "cluster_enabled", primaryReplicationGroupResourceName, "cluster_enabled"),
 					resource.TestCheckResourceAttrPair(resourceName, "engine", primaryReplicationGroupResourceName, "engine"),
+					resource.TestCheckResourceAttrPair(resourceName, "engine_version_actual", primaryReplicationGroupResourceName, "engine_version"),
 					resource.TestCheckResourceAttrPair(resourceName, "actual_engine_version", primaryReplicationGroupResourceName, "engine_version"),
 					resource.TestCheckResourceAttr(resourceName, "global_replication_group_id_suffix", rName),
 					resource.TestMatchResourceAttr(resourceName, "global_replication_group_id", regexp.MustCompile(elasticacheGlobalReplicationGroupRegionPrefixFormat+rName)),

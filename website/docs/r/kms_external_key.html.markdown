@@ -29,7 +29,7 @@ The following arguments are supported:
 * `enabled` - (Optional) Specifies whether the key is enabled. Keys pending import can only be `false`. Imported keys default to `true` unless expired.
 * `key_material_base64` - (Optional) Base64 encoded 256-bit symmetric encryption key material to import. The CMK is permanently associated with this key material. The same key material can be reimported, but you cannot import different key material.
 * `policy` - (Optional) A key policy JSON document. If you do not provide a key policy, AWS KMS attaches a default key policy to the CMK.
-* `tags` - (Optional) A key-value map of tags to assign to the key.
+* `tags` - (Optional) A key-value map of tags to assign to the key. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `valid_to` - (Optional) Time at which the imported key material expires. When the key material expires, AWS KMS deletes the key material and the CMK becomes unusable. If not specified, key material does not expire. Valid values: [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`)
 
 ## Attributes Reference
@@ -41,6 +41,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The unique identifier for the key.
 * `key_state` - The state of the CMK.
 * `key_usage` - The cryptographic operations for which you can use the CMK.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

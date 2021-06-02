@@ -10,11 +10,14 @@ import (
 const (
 	EventSourceMappingCreateTimeout      = 10 * time.Minute
 	EventSourceMappingUpdateTimeout      = 10 * time.Minute
+	EventSourceMappingDeleteTimeout      = 5 * time.Minute
 	LambdaFunctionCreateTimeout          = 5 * time.Minute
 	LambdaFunctionUpdateTimeout          = 5 * time.Minute
 	LambdaFunctionPublishTimeout         = 5 * time.Minute
 	LambdaFunctionPutConcurrencyTimeout  = 1 * time.Minute
 	LambdaFunctionExtraThrottlingTimeout = 9 * time.Minute
+
+	EventSourceMappingPropagationTimeout = 5 * time.Minute
 )
 
 func EventSourceMappingCreate(conn *lambda.Lambda, id string) (*lambda.EventSourceMappingConfiguration, error) {
@@ -30,6 +33,23 @@ func EventSourceMappingCreate(conn *lambda.Lambda, id string) (*lambda.EventSour
 		},
 		Refresh: EventSourceMappingState(conn, id),
 		Timeout: EventSourceMappingCreateTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*lambda.EventSourceMappingConfiguration); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func EventSourceMappingDelete(conn *lambda.Lambda, id string) (*lambda.EventSourceMappingConfiguration, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{EventSourceMappingStateDeleting},
+		Target:  []string{},
+		Refresh: EventSourceMappingState(conn, id),
+		Timeout: EventSourceMappingDeleteTimeout,
 	}
 
 	outputRaw, err := stateConf.WaitForState()

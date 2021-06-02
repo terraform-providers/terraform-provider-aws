@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/rds/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const (
@@ -58,7 +60,6 @@ func resourceAwsRDSGlobalCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 			"force_destroy": {
 				Type:     schema.TypeBool,
@@ -211,6 +212,12 @@ func resourceAwsRDSGlobalClusterUpdate(d *schema.ResourceData, meta interface{})
 		GlobalClusterIdentifier: aws.String(d.Id()),
 	}
 
+	if d.HasChange("engine_version") {
+		if err := resourceAwsRDSGlobalClusterUpgradeEngineVersion(d, conn); err != nil {
+			return err
+		}
+	}
+
 	log.Printf("[DEBUG] Updating RDS Global Cluster (%s): %s", d.Id(), input)
 	_, err := conn.ModifyGlobalCluster(input)
 
@@ -226,7 +233,20 @@ func resourceAwsRDSGlobalClusterUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error waiting for RDS Global Cluster (%s) update: %s", d.Id(), err)
 	}
 
-	return nil
+	return resourceAwsRDSGlobalClusterRead(d, meta)
+}
+
+func resourceAwsRDSGlobalClusterGetIdByArn(conn *rds.RDS, arn string) string {
+	result, err := conn.DescribeDBClusters(&rds.DescribeDBClustersInput{})
+	if err != nil {
+		return ""
+	}
+	for _, cluster := range result.DBClusters {
+		if aws.StringValue(cluster.DBClusterArn) == arn {
+			return aws.StringValue(cluster.DBClusterIdentifier)
+		}
+	}
+	return ""
 }
 
 func resourceAwsRDSGlobalClusterDelete(d *schema.ResourceData, meta interface{}) error {
@@ -430,10 +450,11 @@ func waitForRdsGlobalClusterCreation(conn *rds.RDS, globalClusterID string) erro
 
 func waitForRdsGlobalClusterUpdate(conn *rds.RDS, globalClusterID string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"modifying"},
+		Pending: []string{"modifying", "upgrading"},
 		Target:  []string{"available"},
 		Refresh: rdsGlobalClusterRefreshFunc(conn, globalClusterID),
 		Timeout: 10 * time.Minute,
+		Delay:   30 * time.Second,
 	}
 
 	log.Printf("[DEBUG] Waiting for RDS Global Cluster (%s) availability", globalClusterID)
@@ -496,5 +517,97 @@ func waitForRdsGlobalClusterRemoval(conn *rds.RDS, dbClusterIdentifier string) e
 		return stillExistsErr
 	}
 
+	return nil
+}
+
+func resourceAwsRDSGlobalClusterUpgradeMajorEngineVersion(clusterId string, engineVersion string, conn *rds.RDS) error {
+	input := &rds.ModifyGlobalClusterInput{
+		GlobalClusterIdentifier: aws.String(clusterId),
+	}
+	input.AllowMajorVersionUpgrade = aws.Bool(true)
+	input.EngineVersion = aws.String(engineVersion)
+	err := resource.Retry(waiter.RdsClusterInitiateUpgradeTimeout, func() *resource.RetryError {
+		_, err := conn.ModifyGlobalCluster(input)
+		if err != nil {
+			if isAWSErr(err, rds.ErrCodeGlobalClusterNotFoundFault, "") {
+				return resource.NonRetryableError(err)
+			}
+			if isAWSErr(err, "InvalidParameterValue", "ModifyGlobalCluster only supports Major Version Upgrades. To patch the members of your global cluster to a newer minor version you need to call ModifyDbCluster in each one of them.") {
+				return resource.NonRetryableError(err)
+			}
+
+			return resource.RetryableError(err)
+		}
+
+		return nil
+	})
+	if tfresource.TimedOut(err) {
+		_, err = conn.ModifyGlobalCluster(input)
+	}
+	return err
+}
+
+func resourceAwsRDSGlobalClusterUpgradeMinorEngineVersion(clusterMembers *schema.Set, engineVersion string, conn *rds.RDS) error {
+	for _, clusterMemberRaw := range clusterMembers.List() {
+		clusterMember := clusterMemberRaw.(map[string]interface{})
+		if clusterMemberArn, ok := clusterMember["db_cluster_arn"]; ok && clusterMemberArn.(string) != "" {
+			modInput := &rds.ModifyDBClusterInput{
+				ApplyImmediately:    aws.Bool(true),
+				DBClusterIdentifier: aws.String(clusterMemberArn.(string)),
+				EngineVersion:       aws.String(engineVersion),
+			}
+			err := resource.Retry(waiter.RdsClusterInitiateUpgradeTimeout, func() *resource.RetryError {
+				_, err := conn.ModifyDBCluster(modInput)
+				if err != nil {
+					if isAWSErr(err, "InvalidParameterValue", "IAM role ARN value is invalid or does not include the required permissions") {
+						return resource.RetryableError(err)
+					}
+
+					if isAWSErr(err, rds.ErrCodeInvalidDBClusterStateFault, "Cannot modify engine version without a primary instance in DB cluster") {
+						return resource.NonRetryableError(err)
+					}
+
+					if isAWSErr(err, rds.ErrCodeInvalidDBClusterStateFault, "") {
+						return resource.RetryableError(err)
+					}
+					return resource.NonRetryableError(err)
+				}
+				return nil
+			})
+			if tfresource.TimedOut(err) {
+				_, err := conn.ModifyDBCluster(modInput)
+				if err != nil {
+					return err
+				}
+			}
+			if err != nil {
+				return fmt.Errorf("Failed to update engine_version on global cluster member (%s): %s", clusterMemberArn, err)
+			}
+		}
+	}
+	return nil
+}
+
+func resourceAwsRDSGlobalClusterUpgradeEngineVersion(d *schema.ResourceData, conn *rds.RDS) error {
+	log.Printf("[DEBUG] Upgrading RDS Global Cluster (%s) engine version: %s", d.Id(), d.Get("engine_version"))
+	err := resourceAwsRDSGlobalClusterUpgradeMajorEngineVersion(d.Id(), d.Get("engine_version").(string), conn)
+	if isAWSErr(err, "InvalidParameterValue", "ModifyGlobalCluster only supports Major Version Upgrades. To patch the members of your global cluster to a newer minor version you need to call ModifyDbCluster in each one of them.") {
+		err = resourceAwsRDSGlobalClusterUpgradeMinorEngineVersion(d.Get("global_cluster_members").(*schema.Set), d.Get("engine_version").(string), conn)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+	globalCluster, err := rdsDescribeGlobalCluster(conn, d.Id())
+	if err != nil {
+		return err
+	}
+	for _, clusterMember := range globalCluster.GlobalClusterMembers {
+		err := waitForRDSClusterUpdate(conn, resourceAwsRDSGlobalClusterGetIdByArn(conn, aws.StringValue(clusterMember.DBClusterArn)), d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

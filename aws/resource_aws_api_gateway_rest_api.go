@@ -135,13 +135,18 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	log.Printf("[DEBUG] Creating API Gateway")
 
 	var description *string
@@ -170,8 +175,8 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 		params.Policy = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ApigatewayTags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().ApigatewayTags()
 	}
 
 	binaryMediaTypes, binaryMediaTypesOk := d.GetOk("binary_media_types")
@@ -201,7 +206,7 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 		}
 
 		if v, ok := d.GetOk("parameters"); ok && len(v.(map[string]interface{})) > 0 {
-			input.Parameters = stringMapToPointers(v.(map[string]interface{}))
+			input.Parameters = expandStringMap(v.(map[string]interface{}))
 		}
 
 		output, err := conn.PutRestApi(input)
@@ -321,6 +326,7 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading API Gateway %s", d.Id())
@@ -366,7 +372,7 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 	// I'm not sure why it needs to be wrapped with double quotes first, but it does
 	normalized_policy, err := structure.NormalizeJsonString(`"` + aws.StringValue(api.Policy) + `"`)
 	if err != nil {
-		fmt.Printf("error normalizing policy JSON: %s\n", err)
+		return fmt.Errorf("error normalizing policy JSON: %w", err)
 	}
 	policy, err := strconv.Unquote(normalized_policy)
 	if err != nil {
@@ -398,8 +404,15 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting endpoint_configuration: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(api.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.ApigatewayKeyValueTags(api.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	rest_api_arn := arn.ARN{
@@ -542,8 +555,8 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Updating API Gateway %s", d.Id())
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.ApigatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -560,7 +573,7 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 			}
 
 			if v, ok := d.GetOk("parameters"); ok && len(v.(map[string]interface{})) > 0 {
-				input.Parameters = stringMapToPointers(v.(map[string]interface{}))
+				input.Parameters = expandStringMap(v.(map[string]interface{}))
 			}
 
 			output, err := conn.PutRestApi(input)

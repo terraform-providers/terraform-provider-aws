@@ -32,6 +32,7 @@ func resourceAwsNetworkFirewallFirewall() *schema.Resource {
 			customdiff.ComputedIf("firewall_status", func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
 				return diff.HasChange("subnet_mapping")
 			}),
+			SetTagsDiff,
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -114,7 +115,8 @@ func resourceAwsNetworkFirewallFirewall() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"update_token": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -130,6 +132,8 @@ func resourceAwsNetworkFirewallFirewall() *schema.Resource {
 
 func resourceAwsNetworkFirewallFirewallCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).networkfirewallconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 	input := &networkfirewall.CreateFirewallInput{
 		FirewallName:      aws.String(name),
@@ -153,8 +157,8 @@ func resourceAwsNetworkFirewallFirewallCreate(ctx context.Context, d *schema.Res
 	if v, ok := d.GetOk("subnet_change_protection"); ok {
 		input.SubnetChangeProtection = aws.Bool(v.(bool))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().NetworkfirewallTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().NetworkfirewallTags()
 	}
 
 	log.Printf("[DEBUG] Creating NetworkFirewall Firewall %s", name)
@@ -175,6 +179,7 @@ func resourceAwsNetworkFirewallFirewallCreate(ctx context.Context, d *schema.Res
 
 func resourceAwsNetworkFirewallFirewallRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).networkfirewallconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading NetworkFirewall Firewall %s", d.Id())
@@ -214,8 +219,15 @@ func resourceAwsNetworkFirewallFirewallRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting subnet_mappings: %w", err))
 	}
 
-	if err := d.Set("tags", keyvaluetags.NetworkfirewallKeyValueTags(firewall.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.NetworkfirewallKeyValueTags(firewall.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting tags: %w", err))
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags_all: %w", err))
 	}
 
 	return nil
@@ -356,8 +368,8 @@ func resourceAwsNetworkFirewallFirewallUpdate(ctx context.Context, d *schema.Res
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.NetworkfirewallUpdateTags(conn, arn, o, n); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating NetworkFirewall Firewall (%s) tags: %w", arn, err))
 		}

@@ -189,13 +189,18 @@ func resourceAwsStorageGatewayNfsFileShare() *schema.Resource {
 					validation.StringLenBetween(2, 100),
 				),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsStorageGatewayNfsFileShareCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	fileShareDefaults, err := expandStorageGatewayNfsFileShareDefaults(d.Get("nfs_file_share_defaults").([]interface{}))
 	if err != nil {
@@ -216,7 +221,7 @@ func resourceAwsStorageGatewayNfsFileShareCreate(d *schema.ResourceData, meta in
 		RequesterPays:        aws.Bool(d.Get("requester_pays").(bool)),
 		Role:                 aws.String(d.Get("role_arn").(string)),
 		Squash:               aws.String(d.Get("squash").(string)),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
+		Tags:                 tags.IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("kms_key_arn"); ok {
@@ -252,6 +257,7 @@ func resourceAwsStorageGatewayNfsFileShareCreate(d *schema.ResourceData, meta in
 
 func resourceAwsStorageGatewayNfsFileShareRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &storagegateway.DescribeNFSFileSharesInput{
@@ -309,8 +315,15 @@ func resourceAwsStorageGatewayNfsFileShareRead(d *schema.ResourceData, meta inte
 	d.Set("squash", fileshare.Squash)
 	d.Set("notification_policy", fileshare.NotificationPolicy)
 
-	if err := d.Set("tags", keyvaluetags.StoragegatewayKeyValueTags(fileshare.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.StoragegatewayKeyValueTags(fileshare.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -319,8 +332,8 @@ func resourceAwsStorageGatewayNfsFileShareRead(d *schema.ResourceData, meta inte
 func resourceAwsStorageGatewayNfsFileShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

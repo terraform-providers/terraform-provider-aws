@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_networkfirewall_rule_group: Correctly update resource on `rules` change
+```

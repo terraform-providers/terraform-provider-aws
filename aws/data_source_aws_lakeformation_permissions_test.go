@@ -176,6 +176,9 @@ resource "aws_lakeformation_permissions" "test" {
   principal        = aws_iam_role.test.arn
   permissions      = ["CREATE_DATABASE"]
   catalog_resource = true
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 
 data "aws_lakeformation_permissions" "test" {
@@ -234,7 +237,8 @@ resource "aws_lakeformation_permissions" "test" {
     arn = aws_s3_bucket.test.arn
   }
 
-  depends_on = ["aws_lakeformation_data_lake_settings.test"]
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 
 data "aws_lakeformation_permissions" "test" {
@@ -295,7 +299,8 @@ resource "aws_lakeformation_permissions" "test" {
     name = aws_glue_catalog_database.test.name
   }
 
-  depends_on = ["aws_lakeformation_data_lake_settings.test"]
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 
 data "aws_lakeformation_permissions" "test" {
@@ -360,6 +365,9 @@ resource "aws_lakeformation_permissions" "test" {
     database_name = aws_glue_catalog_table.test.database_name
     name          = aws_glue_catalog_table.test.name
   }
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 
 data "aws_lakeformation_permissions" "test" {
@@ -437,6 +445,9 @@ resource "aws_lakeformation_permissions" "test" {
     name          = aws_glue_catalog_table.test.name
     column_names  = ["event", "timestamp"]
   }
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 
 data "aws_lakeformation_permissions" "test" {

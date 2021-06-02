@@ -56,13 +56,18 @@ func resourceAwsSagemakerImage() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSagemakerImageCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("image_name").(string)
 	input := &sagemaker.CreateImageInput{
@@ -78,8 +83,8 @@ func resourceAwsSagemakerImageCreate(d *schema.ResourceData, meta interface{}) e
 		input.Description = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	// for some reason even if the operation is retried the same error response is given even though the role is valid. a short sleep before creation solves it.
@@ -100,6 +105,7 @@ func resourceAwsSagemakerImageCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsSagemakerImageRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	image, err := finder.ImageByName(conn, d.Id())
@@ -126,8 +132,15 @@ func resourceAwsSagemakerImageRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for SageMaker Image (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -175,8 +188,8 @@ func resourceAwsSagemakerImageUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating SageMaker Image (%s) tags: %s", d.Id(), err)

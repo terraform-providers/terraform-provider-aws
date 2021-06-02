@@ -42,20 +42,25 @@ func resourceAwsApiGatewayClientCertificate() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := apigateway.GenerateClientCertificateInput{}
 	if v, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ApigatewayTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().ApigatewayTags()
 	}
 	log.Printf("[DEBUG] Generating API Gateway Client Certificate: %s", input)
 	out, err := conn.GenerateClientCertificate(&input)
@@ -70,6 +75,7 @@ func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta i
 
 func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := apigateway.GetClientCertificateInput{
@@ -86,8 +92,15 @@ func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta int
 	}
 	log.Printf("[DEBUG] Received API Gateway Client Certificate: %s", out)
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.ApigatewayKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -129,8 +142,8 @@ func resourceAwsApiGatewayClientCertificateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Updating API Gateway Client Certificate failed: %s", err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.ApigatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

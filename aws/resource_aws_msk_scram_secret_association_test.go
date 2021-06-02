@@ -240,7 +240,7 @@ POLICY
 
 func testAccMskScramSecretAssociation_basic(rName string, count int) string {
 	return composeConfig(
-		testAccMskClusterBaseConfig(),
+		testAccMskClusterBaseConfig(rName),
 		testAccMskScramSecretAssociationBaseConfig(rName, count), `
 resource "aws_msk_scram_secret_association" "test" {
   cluster_arn     = aws_msk_cluster.test.arn

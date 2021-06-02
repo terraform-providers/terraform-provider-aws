@@ -120,13 +120,18 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAthenaWorkgroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).athenaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
 
@@ -141,8 +146,8 @@ func resourceAwsAthenaWorkgroupCreate(d *schema.ResourceData, meta interface{}) 
 
 	// Prevent the below error:
 	// InvalidRequestException: Tags provided upon WorkGroup creation must not be empty
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().AthenaTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().AthenaTags()
 	}
 
 	_, err := conn.CreateWorkGroup(input)
@@ -169,6 +174,7 @@ func resourceAwsAthenaWorkgroupCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsAthenaWorkgroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).athenaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &athena.GetWorkGroupInput{
@@ -217,8 +223,15 @@ func resourceAwsAthenaWorkgroupRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for resource (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -275,8 +288,8 @@ func resourceAwsAthenaWorkgroupUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.AthenaUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

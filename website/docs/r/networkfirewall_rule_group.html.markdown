@@ -198,7 +198,7 @@ The following arguments are supported:
 
 * `rules` - (Optional) The stateful rule group rules specifications in Suricata file format, with one rule per line. Use this to import your existing Suricata compatible rule groups. Required unless `rule_group` is specified.
 
-* `tags` - (Optional) A map of key:value pairs to associate with the resource.
+* `tags` - (Optional) A map of key:value pairs to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 * `type` - (Required) Whether the rule group is stateless (containing stateless rules) or stateful (containing stateful rules). Valid values include: `STATEFUL` or `STATELESS`.
 
@@ -416,6 +416,8 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Amazon Resource Name (ARN) that identifies the rule group.
 
 * `arn` - The Amazon Resource Name (ARN) that identifies the rule group.
+
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 * `update_token` - A string token used when updating the rule group.
 

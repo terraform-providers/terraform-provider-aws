@@ -143,23 +143,28 @@ func resourceAwsRouteTable() *schema.Resource {
 				},
 				Set: resourceAwsRouteTableHash,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRouteTableCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Create the routing table
 	createOpts := &ec2.CreateRouteTableInput{
 		VpcId:             aws.String(d.Get("vpc_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeRouteTable),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeRouteTable),
 	}
 	log.Printf("[DEBUG] RouteTable create config: %#v", createOpts)
 
@@ -184,6 +189,7 @@ func resourceAwsRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	routeTable, err := finder.RouteTableByID(conn, d.Id())
@@ -273,8 +279,15 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("route", route)
 
 	// Tags
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(routeTable.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.Ec2KeyValueTags(routeTable.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	ownerID := aws.StringValue(routeTable.OwnerId)
@@ -490,8 +503,8 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") && !d.IsNewResource() {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") && !d.IsNewResource() {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Route Table (%s) tags: %w", d.Id(), err)

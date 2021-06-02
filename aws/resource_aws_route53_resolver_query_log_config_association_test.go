@@ -29,9 +29,9 @@ func testSweepRoute53ResolverQueryLogConfigAssociations(region string) error {
 	conn := client.(*AWSClient).route53resolverconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListResolverQueryLogConfigAssociationsPages(&route53resolver.ListResolverQueryLogConfigAssociationsInput{}, func(page *route53resolver.ListResolverQueryLogConfigAssociationsOutput, isLast bool) bool {
+	err = conn.ListResolverQueryLogConfigAssociationsPages(&route53resolver.ListResolverQueryLogConfigAssociationsInput{}, func(page *route53resolver.ListResolverQueryLogConfigAssociationsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, queryLogConfigAssociation := range page.ResolverQueryLogConfigAssociations {
@@ -50,7 +50,7 @@ func testSweepRoute53ResolverQueryLogConfigAssociations(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping Route53 Resolver Query Log Config Associations sweep for %s: %s", region, err)

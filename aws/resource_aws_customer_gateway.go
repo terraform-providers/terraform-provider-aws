@@ -59,18 +59,23 @@ func resourceAwsCustomerGateway() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCustomerGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	ipAddress := d.Get("ip_address").(string)
 	vpnType := d.Get("type").(string)
@@ -95,7 +100,7 @@ func resourceAwsCustomerGatewayCreate(d *schema.ResourceData, meta interface{}) 
 		BgpAsn:            aws.Int64(i64BgpAsn),
 		PublicIp:          aws.String(ipAddress),
 		Type:              aws.String(vpnType),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeCustomerGateway),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeCustomerGateway),
 	}
 
 	if len(deviceName) != 0 {
@@ -203,6 +208,7 @@ func resourceAwsCustomerGatewayExists(vpnType, ipAddress, bgpAsn, deviceName str
 
 func resourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	gatewayFilter := &ec2.Filter{
@@ -240,8 +246,15 @@ func resourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("type", customerGateway.Type)
 	d.Set("device_name", customerGateway.DeviceName)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(customerGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(customerGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -260,8 +273,8 @@ func resourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsCustomerGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Customer Gateway (%s) tags: %s", d.Id(), err)

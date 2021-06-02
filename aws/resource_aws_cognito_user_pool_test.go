@@ -37,7 +37,7 @@ func testSweepCognitoUserPools(region string) error {
 		MaxResults: aws.Int64(int64(50)),
 	}
 
-	err = conn.ListUserPoolsPages(input, func(resp *cognitoidentityprovider.ListUserPoolsOutput, isLast bool) bool {
+	err = conn.ListUserPoolsPages(input, func(resp *cognitoidentityprovider.ListUserPoolsOutput, lastPage bool) bool {
 		if len(resp.UserPools) == 0 {
 			log.Print("[DEBUG] No Cognito User Pools to sweep")
 			return false
@@ -54,7 +54,7 @@ func testSweepCognitoUserPools(region string) error {
 				log.Printf("[ERROR] Failed deleting Cognito User Pool (%s): %s", name, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {

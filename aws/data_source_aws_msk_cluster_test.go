@@ -39,7 +39,7 @@ func TestAccAWSMskClusterDataSource_Name(t *testing.T) {
 }
 
 func testAccMskClusterDataSourceConfigName(rName string) string {
-	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
+	return composeConfig(testAccMskClusterBaseConfig(rName), fmt.Sprintf(`
 resource "aws_msk_cluster" "test" {
   cluster_name           = %[1]q
   kafka_version          = "2.2.1"
@@ -60,5 +60,5 @@ resource "aws_msk_cluster" "test" {
 data "aws_msk_cluster" "test" {
   cluster_name = aws_msk_cluster.test.cluster_name
 }
-`, rName)
+`, rName))
 }

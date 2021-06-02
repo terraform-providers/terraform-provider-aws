@@ -1,0 +1,11 @@
+```release-note:new-resource
+aws_schemas_discoverer
+```
+
+```release-note:new-resource
+aws_schemas_registry
+```
+
+```release-note:new-resource
+aws_schemas_schema
+```

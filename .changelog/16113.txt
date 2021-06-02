@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_lambda_event_source_mapping: Support -1 (forever) as a valid value for `maximum_retry_attempts`
+```
+
+```release-note:bug
+resource/aws_lambda_event_source_mapping: Support -1 (forever) as a valid value for `maximum_record_age_in_seconds`
+```

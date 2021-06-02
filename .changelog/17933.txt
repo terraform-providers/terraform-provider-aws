@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_lambda_event_source_mapping: Fix update of `batch_size` for MSK event source mappings
+```
+
+```release-note:enhancement
+resource/aws_lambda_event_source_mapping: Don't incorrectly update unspecified `maximum_batching_window_in_seconds`, `maximum_record_age_in_seconds` and `maximum_retry_attempts` arguments from their default values
+```

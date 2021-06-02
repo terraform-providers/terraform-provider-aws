@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tftransfer "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/transfer"
 )
 
 func resourceAwsTransferUser() *schema.Resource {
@@ -85,6 +85,8 @@ func resourceAwsTransferUser() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"tags_all": tagsSchemaComputed(),
+
 			"user_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -92,11 +94,15 @@ func resourceAwsTransferUser() *schema.Resource {
 				ValidateFunc: validateTransferUserName,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsTransferUserCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).transferconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	userName := d.Get("user_name").(string)
 	serverID := d.Get("server_id").(string)
 
@@ -122,8 +128,8 @@ func resourceAwsTransferUserCreate(d *schema.ResourceData, meta interface{}) err
 		createOpts.Policy = aws.String(attr.(string))
 	}
 
-	if attr, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = keyvaluetags.New(attr.(map[string]interface{})).IgnoreAws().TransferTags()
+	if len(tags) > 0 {
+		createOpts.Tags = tags.IgnoreAws().TransferTags()
 	}
 
 	log.Printf("[DEBUG] Create Transfer User Option: %#v", createOpts)
@@ -133,16 +139,17 @@ func resourceAwsTransferUserCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error creating Transfer User: %s", err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/%s", serverID, userName))
+	d.SetId(tftransfer.UserCreateResourceID(serverID, userName))
 
 	return resourceAwsTransferUserRead(d, meta)
 }
 
 func resourceAwsTransferUserRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).transferconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	serverID, userName, err := decodeTransferUserId(d.Id())
+	serverID, userName, err := tftransfer.UserParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("error parsing Transfer User ID: %s", err)
 	}
@@ -176,8 +183,15 @@ func resourceAwsTransferUserRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting home_directory_mappings: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.TransferKeyValueTags(resp.User.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
+	tags := keyvaluetags.TransferKeyValueTags(resp.User.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 	return nil
 }
@@ -185,7 +199,7 @@ func resourceAwsTransferUserRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsTransferUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).transferconn
 	updateFlag := false
-	serverID, userName, err := decodeTransferUserId(d.Id())
+	serverID, userName, err := tftransfer.UserParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("error parsing Transfer User ID: %s", err)
 	}
@@ -232,8 +246,8 @@ func resourceAwsTransferUserUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.TransferUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -244,7 +258,7 @@ func resourceAwsTransferUserUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsTransferUserDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).transferconn
-	serverID, userName, err := decodeTransferUserId(d.Id())
+	serverID, userName, err := tftransfer.UserParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("error parsing Transfer User ID: %s", err)
 	}
@@ -269,14 +283,6 @@ func resourceAwsTransferUserDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return nil
-}
-
-func decodeTransferUserId(id string) (string, string, error) {
-	idParts := strings.SplitN(id, "/", 2)
-	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-		return "", "", fmt.Errorf("unexpected format of ID (%s), expected SERVERID/USERNAME", id)
-	}
-	return idParts[0], idParts[1], nil
 }
 
 func waitForTransferUserDeletion(conn *transfer.Transfer, serverID, userName string) error {

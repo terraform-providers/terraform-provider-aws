@@ -303,7 +303,7 @@ func TestAccAWSLaunchTemplateDataSource_NonExistent(t *testing.T) {
 func testAccAWSLaunchTemplateDataSourceConfig_Basic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
-  name = %q
+  name = %[1]q
 }
 
 data "aws_launch_template" "test" {
@@ -315,7 +315,7 @@ data "aws_launch_template" "test" {
 func testAccAWSLaunchTemplateDataSourceConfig_BasicId(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_launch_template" "test" {
-  name = %q
+  name = %[1]q
 }
 
 data "aws_launch_template" "test" {

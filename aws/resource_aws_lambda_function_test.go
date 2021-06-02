@@ -19,10 +19,18 @@ import (
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(lambda.EndpointsID, testAccErrorCheckSkipLambda)
+
 	resource.AddTestSweepers("aws_lambda_function", &resource.Sweeper{
 		Name: "aws_lambda_function",
 		F:    testSweepLambdaFunctions,
 	})
+}
+
+func testAccErrorCheckSkipLambda(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"InvalidParameterValueException: Unsupported source arn",
+	)
 }
 
 func testSweepLambdaFunctions(region string) error {
@@ -184,8 +192,11 @@ func TestAccAWSLambdaFunction_disappears(t *testing.T) {
 }
 
 func TestAccAWSLambdaFunction_codeSigningConfig(t *testing.T) {
-	var conf lambda.GetFunctionOutput
+	if testAccGetPartition() == "aws-us-gov" {
+		t.Skip("Lambda code signing config is not supported in GovCloud partition")
+	}
 
+	var conf lambda.GetFunctionOutput
 	rString := acctest.RandString(8)
 	funcName := fmt.Sprintf("tf_acc_lambda_func_csc_%s", rString)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_func_csc_%s", rString)
@@ -982,18 +993,17 @@ func TestAccAWSLambdaFunction_imageConfig(t *testing.T) {
 }
 
 func TestAccAWSLambdaFunction_tracingConfig(t *testing.T) {
-	var conf lambda.GetFunctionOutput
+	if testAccGetPartition() == "aws-us-gov" {
+		t.Skip("Lambda tracing config is not supported in GovCloud partition")
+	}
 
+	var conf lambda.GetFunctionOutput
 	rString := acctest.RandString(8)
 	funcName := fmt.Sprintf("tf_acc_lambda_func_tracing_cfg_%s", rString)
 	policyName := fmt.Sprintf("tf_acc_policy_lambda_func_tracing_cfg_%s", rString)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_func_tracing_cfg_%s", rString)
 	sgName := fmt.Sprintf("tf_acc_sg_lambda_func_tracing_cfg_%s", rString)
 	resourceName := "aws_lambda_function.test"
-
-	if testAccGetPartition() == "aws-us-gov" {
-		t.Skip("Lambda tracing config is not supported in GovCloud partition")
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

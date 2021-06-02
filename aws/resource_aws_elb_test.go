@@ -31,7 +31,7 @@ func testSweepELBs(region string) error {
 	}
 	conn := client.(*AWSClient).elbconn
 
-	err = conn.DescribeLoadBalancersPages(&elb.DescribeLoadBalancersInput{}, func(out *elb.DescribeLoadBalancersOutput, isLast bool) bool {
+	err = conn.DescribeLoadBalancersPages(&elb.DescribeLoadBalancersInput{}, func(out *elb.DescribeLoadBalancersOutput, lastPage bool) bool {
 		if len(out.LoadBalancerDescriptions) == 0 {
 			log.Println("[INFO] No ELBs found for sweeping")
 			return false
@@ -52,7 +52,7 @@ func testSweepELBs(region string) error {
 				log.Printf("[WARN] Failed to cleanup ENIs for ELB %q: %s", *lb.LoadBalancerName, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -69,11 +69,10 @@ func TestAccAWSELB_basic(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfig,
@@ -130,11 +129,10 @@ func TestAccAWSELB_fullCharacterRange(t *testing.T) {
 	lbName := fmt.Sprintf("Tf-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccAWSELBFullRangeOfCharacters, lbName),
@@ -153,11 +151,10 @@ func TestAccAWSELB_AccessLogs_enabled(t *testing.T) {
 	rName := fmt.Sprintf("tf-test-access-logs-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBAccessLogs,
@@ -194,11 +191,10 @@ func TestAccAWSELB_AccessLogs_disabled(t *testing.T) {
 	rName := fmt.Sprintf("tf-test-access-logs-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBAccessLogs,
@@ -234,11 +230,10 @@ func TestAccAWSELB_namePrefix(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELB_namePrefix,
@@ -257,11 +252,10 @@ func TestAccAWSELB_generatedName(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBGeneratedName,
@@ -280,11 +274,10 @@ func TestAccAWSELB_generatesNameForZeroValue(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELB_zeroValueName,
@@ -302,11 +295,10 @@ func TestAccAWSELB_availabilityZones(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfig,
@@ -332,11 +324,10 @@ func TestAccAWSELB_tags(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfigTags1("key1", "value1"),
@@ -421,11 +412,10 @@ func TestAccAWSELB_swap_subnets(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfig_subnets,
@@ -460,11 +450,10 @@ func TestAccAWSELB_InstanceAttaching(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfig,
@@ -490,11 +479,10 @@ func TestAccAWSELB_listener(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfig,
@@ -617,11 +605,10 @@ func TestAccAWSELB_HealthCheck(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfigHealthCheck,
@@ -644,11 +631,10 @@ func TestAccAWSELB_Timeout(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfigIdleTimeout,
@@ -670,11 +656,10 @@ func TestAccAWSELB_ConnectionDraining(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfigConnectionDraining,
@@ -704,11 +689,10 @@ func TestAccAWSELB_SecurityGroups(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBConfig,

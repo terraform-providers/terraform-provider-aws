@@ -14,11 +14,10 @@ func TestAccAWSNetworkInterfaceAttachment_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: "aws_network_interface.bar",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSENIDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSENIDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSNetworkInterfaceAttachmentConfig_basic(rInt),

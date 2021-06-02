@@ -144,7 +144,7 @@ The following arguments are supported:
 * `source_bucket_arn` - (Required) The Amazon Resource Name (ARN) of your Amazon S3 storage bucket. For example, arn:aws:s3:::airflow-mybucketname.
 * `webserver_access_mode` - (Optional) Specifies whether the webserver should be accessible over the internet or via your specified VPC. Possible options: `PRIVATE_ONLY` (default) and `PUBLIC_ONLY`.
 * `weekly_maintenance_window_start` - (Optional) Specifies the start date for the weekly maintenance window.
-* `tags` - (Optional) An array of key:value pairs to associate with the resource.
+* `tags` - (Optional) A map of resource tags to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Logging configurations
 
@@ -176,9 +176,10 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the MWAA Environment
 * `created_at` - The Created At date of the MWAA Environment
-* `logging_configuration.<LOG_TYPE>.cloud_watch_log_group_arn` - Provides the ARN for the CloudWatch group where the logs will be published
+* `logging_configuration[0].<LOG_CONFIGURATION_TYPE>[0].cloud_watch_log_group_arn` - Provides the ARN for the CloudWatch group where the logs will be published
 * `service_role_arn` - The Service Role ARN of the Amazon MWAA Environment
 * `status` - The status of the Amazon MWAA Environment
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `webserver_url` - The webserver URL of the MWAA Environment
 
 

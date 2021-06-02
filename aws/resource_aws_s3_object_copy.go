@@ -270,7 +270,8 @@ func resourceAwsS3ObjectCopy() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(s3.TaggingDirective_Values(), false),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"version_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -281,6 +282,8 @@ func resourceAwsS3ObjectCopy() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -290,6 +293,7 @@ func resourceAwsS3ObjectCopyCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsS3ObjectCopyRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	bucket := d.Get("bucket").(string)
@@ -356,7 +360,7 @@ func resourceAwsS3ObjectCopyRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	// Retry due to S3 eventual consistency
-	tags, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+	tagsRaw, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
 		return keyvaluetags.S3ObjectListTags(s3conn, bucket, key)
 	})
 
@@ -364,8 +368,21 @@ func resourceAwsS3ObjectCopyRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %w", bucket, key, err)
 	}
 
-	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags, ok := tagsRaw.(keyvaluetags.KeyValueTags)
+
+	if !ok {
+		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): unable to convert tags", bucket, key)
+	}
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -417,6 +434,7 @@ func resourceAwsS3ObjectCopyUpdate(d *schema.ResourceData, meta interface{}) err
 		"storage_class",
 		"tagging_directive",
 		"tags",
+		"tags_all",
 		"website_redirect",
 	}
 	if d.HasChanges(args...) {
@@ -451,6 +469,8 @@ func resourceAwsS3ObjectCopyDelete(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsS3ObjectCopyDoCopy(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).s3conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &s3.CopyObjectInput{
 		Bucket:     aws.String(d.Get("bucket").(string)),
@@ -545,7 +565,7 @@ func resourceAwsS3ObjectCopyDoCopy(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		input.Metadata = stringMapToPointers(v.(map[string]interface{}))
+		input.Metadata = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("metadata_directive"); ok {
@@ -592,9 +612,9 @@ func resourceAwsS3ObjectCopyDoCopy(d *schema.ResourceData, meta interface{}) err
 		input.TaggingDirective = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+	if len(tags) > 0 {
 		// The tag-set must be encoded as URL Query parameters.
-		input.Tagging = aws.String(keyvaluetags.New(v).IgnoreAws().UrlEncode())
+		input.Tagging = aws.String(tags.IgnoreAws().UrlEncode())
 	}
 
 	if v, ok := d.GetOk("website_redirect"); ok {

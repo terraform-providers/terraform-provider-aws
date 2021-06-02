@@ -127,7 +127,8 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_endpoint_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -147,6 +148,8 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -157,13 +160,15 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateVpcEndpointInput{
 		VpcId:             aws.String(d.Get("vpc_id").(string)),
 		VpcEndpointType:   aws.String(d.Get("vpc_endpoint_type").(string)),
 		ServiceName:       aws.String(d.Get("service_name").(string)),
 		PrivateDnsEnabled: aws.Bool(d.Get("private_dns_enabled").(bool)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint"),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, "vpc-endpoint"),
 	}
 
 	if v, ok := d.GetOk("policy"); ok {
@@ -202,6 +207,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vpceRaw, state, err := vpcEndpointStateRefresh(conn, d.Id())()
@@ -295,8 +301,15 @@ func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("vpc_endpoint_type", vpceType)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -347,8 +360,8 @@ func resourceAwsVpcEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -417,7 +430,7 @@ func vpcEndpointAccept(conn *ec2.EC2, vpceId, svcName string, timeout time.Durat
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pendingAcceptance"},
+		Pending:    []string{"pendingAcceptance", "pending"},
 		Target:     []string{"available"},
 		Refresh:    vpcEndpointStateRefresh(conn, vpceId),
 		Timeout:    timeout,

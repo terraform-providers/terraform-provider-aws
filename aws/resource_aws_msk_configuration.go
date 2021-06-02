@@ -32,7 +32,7 @@ func resourceAwsMskConfiguration() *schema.Resource {
 			},
 			"kafka_versions": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -59,13 +59,16 @@ func resourceAwsMskConfigurationCreate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).kafkaconn
 
 	input := &kafka.CreateConfigurationInput{
-		KafkaVersions:    expandStringSet(d.Get("kafka_versions").(*schema.Set)),
 		Name:             aws.String(d.Get("name").(string)),
 		ServerProperties: []byte(d.Get("server_properties").(string)),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("kafka_versions"); ok && v.(*schema.Set).Len() > 0 {
+		input.KafkaVersions = expandStringSet(v.(*schema.Set))
 	}
 
 	output, err := conn.CreateConfiguration(input)

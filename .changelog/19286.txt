@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_lb_listener: Add `tags` argument & `tags_all` attribute.
+```
+
+```release-note:enhancement
+data-source/aws_lb_listener: Add `tags` attribute.
+```

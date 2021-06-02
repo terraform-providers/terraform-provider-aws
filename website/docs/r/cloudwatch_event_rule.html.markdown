@@ -70,7 +70,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the rule.
 * `role_arn` - (Optional) The Amazon Resource Name (ARN) associated with the role that is used for target invocation.
 * `is_enabled` - (Optional) Whether the rule should be enabled (defaults to `true`).
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -78,7 +78,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the rule.
 * `arn` - The Amazon Resource Name (ARN) of the rule.
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

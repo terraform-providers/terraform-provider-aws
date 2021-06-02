@@ -29,9 +29,9 @@ func testSweepFlowLogs(region string) error {
 	conn := client.(*AWSClient).ec2conn
 	var sweeperErrs *multierror.Error
 
-	err = conn.DescribeFlowLogsPages(&ec2.DescribeFlowLogsInput{}, func(page *ec2.DescribeFlowLogsOutput, isLast bool) bool {
+	err = conn.DescribeFlowLogsPages(&ec2.DescribeFlowLogsInput{}, func(page *ec2.DescribeFlowLogsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, flowLog := range page.FlowLogs {
@@ -52,7 +52,7 @@ func testSweepFlowLogs(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping Flow Logs sweep for %s: %s", region, err)

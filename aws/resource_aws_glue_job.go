@@ -22,6 +22,8 @@ func resourceAwsGlueJob() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -123,7 +125,8 @@ func resourceAwsGlueJob() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateArn,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -156,13 +159,15 @@ func resourceAwsGlueJob() *schema.Resource {
 
 func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 
 	input := &glue.CreateJobInput{
 		Command: expandGlueJobCommand(d.Get("command").([]interface{})),
 		Name:    aws.String(name),
 		Role:    aws.String(d.Get("role_arn").(string)),
-		Tags:    keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:    tags.IgnoreAws().GlueTags(),
 		Timeout: aws.Int64(int64(d.Get("timeout").(int))),
 	}
 
@@ -177,11 +182,11 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if kv, ok := d.GetOk("default_arguments"); ok {
-		input.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+		input.DefaultArguments = expandStringMap(kv.(map[string]interface{}))
 	}
 
 	if kv, ok := d.GetOk("non_overridable_arguments"); ok {
-		input.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
+		input.NonOverridableArguments = expandStringMap(kv.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -229,6 +234,7 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetJobInput{
@@ -293,8 +299,15 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for Glue Job (%s): %s", jobARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("timeout", job.Timeout)
@@ -335,11 +348,11 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if kv, ok := d.GetOk("default_arguments"); ok {
-			jobUpdate.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+			jobUpdate.DefaultArguments = expandStringMap(kv.(map[string]interface{}))
 		}
 
 		if kv, ok := d.GetOk("non_overridable_arguments"); ok {
-			jobUpdate.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
+			jobUpdate.NonOverridableArguments = expandStringMap(kv.(map[string]interface{}))
 		}
 
 		if v, ok := d.GetOk("description"); ok {
@@ -382,8 +395,8 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

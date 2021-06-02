@@ -111,7 +111,8 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"xray_tracing_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -121,11 +122,15 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := apigateway.CreateStageInput{
 		RestApiId:    aws.String(d.Get("rest_api_id").(string)),
@@ -158,8 +163,8 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 		}
 		input.Variables = aws.StringMap(variables)
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ApigatewayTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().ApigatewayTags()
 	}
 
 	out, err := conn.CreateStage(&input)
@@ -200,6 +205,7 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading API Gateway Stage %s", d.Id())
@@ -242,8 +248,15 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("documentation_version", stage.DocumentationVersion)
 	d.Set("xray_tracing_enabled", stage.TracingEnabled)
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(stage.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.ApigatewayKeyValueTags(stage.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	stageArn := arn.ARN{
@@ -281,8 +294,8 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		Service:   "apigateway",
 		Resource:  fmt.Sprintf("/restapis/%s/stages/%s", d.Get("rest_api_id").(string), d.Get("stage_name").(string)),
 	}.String()
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.ApigatewayUpdateTags(conn, stageArn, o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

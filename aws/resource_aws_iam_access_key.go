@@ -58,7 +58,7 @@ func resourceAwsIamAccessKey() *schema.Resource {
 			"status": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "Active",
 				ValidateFunc: validation.StringInSlice([]string{
 					iam.StatusTypeActive,
 					iam.StatusTypeInactive,

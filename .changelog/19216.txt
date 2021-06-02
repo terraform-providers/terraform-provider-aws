@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_ssoadmin_managed_policy_attachment: Retry attachment/detachment when other permission-set attachment event was not yet propagated, to avoid ConflictException.
+```

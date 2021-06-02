@@ -25,6 +25,7 @@ The following arguments are supported:
 * `availability_zone` - (Optional) Availability Zone name.
 * `availability_zone_id` - (Optional) Availability Zone identifier.
 * `site_id` - (Optional) Site identifier.
+* `owner_id` - (Optional) AWS Account identifier of the Outpost owner.
 
 ## Attribute Reference
 

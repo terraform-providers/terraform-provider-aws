@@ -2,11 +2,12 @@ package aws
 
 import (
 	"fmt"
-	"log"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsLb() *schema.Resource {
@@ -155,26 +156,115 @@ func dataSourceAwsLb() *schema.Resource {
 
 func dataSourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elbv2conn
-	lbArn := d.Get("arn").(string)
-	lbName := d.Get("name").(string)
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	describeLbOpts := &elbv2.DescribeLoadBalancersInput{}
-	switch {
-	case lbArn != "":
-		describeLbOpts.LoadBalancerArns = []*string{aws.String(lbArn)}
-	case lbName != "":
-		describeLbOpts.Names = []*string{aws.String(lbName)}
+	input := &elbv2.DescribeLoadBalancersInput{}
+
+	if v, ok := d.GetOk("arn"); ok {
+		input.LoadBalancerArns = aws.StringSlice([]string{v.(string)})
+	} else if v, ok := d.GetOk("name"); ok {
+		input.Names = aws.StringSlice([]string{v.(string)})
 	}
 
-	log.Printf("[DEBUG] Reading Load Balancer: %s", describeLbOpts)
-	describeResp, err := conn.DescribeLoadBalancers(describeLbOpts)
+	var results []*elbv2.LoadBalancer
+
+	err := conn.DescribeLoadBalancersPages(input, func(page *elbv2.DescribeLoadBalancersOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		results = append(results, page.LoadBalancers...)
+
+		return !lastPage
+	})
+
 	if err != nil {
-		return fmt.Errorf("Error retrieving LB: %w", err)
+		return fmt.Errorf("error retrieving LB: %w", err)
 	}
-	if len(describeResp.LoadBalancers) != 1 {
-		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(describeResp.LoadBalancers))
-	}
-	d.SetId(aws.StringValue(describeResp.LoadBalancers[0].LoadBalancerArn))
 
-	return flattenAwsLbResource(d, meta, describeResp.LoadBalancers[0])
+	if len(results) != 1 {
+		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(results))
+	}
+
+	lb := results[0]
+
+	d.SetId(aws.StringValue(lb.LoadBalancerArn))
+
+	d.Set("arn", lb.LoadBalancerArn)
+	d.Set("arn_suffix", lbSuffixFromARN(lb.LoadBalancerArn))
+	d.Set("name", lb.LoadBalancerName)
+	d.Set("internal", lb.Scheme != nil && aws.StringValue(lb.Scheme) == "internal")
+	d.Set("security_groups", flattenStringList(lb.SecurityGroups))
+	d.Set("vpc_id", lb.VpcId)
+	d.Set("zone_id", lb.CanonicalHostedZoneId)
+	d.Set("dns_name", lb.DNSName)
+	d.Set("ip_address_type", lb.IpAddressType)
+	d.Set("load_balancer_type", lb.Type)
+	d.Set("customer_owned_ipv4_pool", lb.CustomerOwnedIpv4Pool)
+
+	if err := d.Set("subnets", flattenSubnetsFromAvailabilityZones(lb.AvailabilityZones)); err != nil {
+		return fmt.Errorf("error setting subnets: %w", err)
+	}
+
+	if err := d.Set("subnet_mapping", flattenSubnetMappingsFromAvailabilityZones(lb.AvailabilityZones)); err != nil {
+		return fmt.Errorf("error setting subnet_mapping: %w", err)
+	}
+
+	tags, err := keyvaluetags.Elbv2ListTags(conn, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for (%s): %w", d.Id(), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	attributesResp, err := conn.DescribeLoadBalancerAttributes(&elbv2.DescribeLoadBalancerAttributesInput{
+		LoadBalancerArn: aws.String(d.Id()),
+	})
+	if err != nil {
+		return fmt.Errorf("error retrieving LB Attributes: %w", err)
+	}
+
+	accessLogMap := map[string]interface{}{
+		"bucket":  "",
+		"enabled": false,
+		"prefix":  "",
+	}
+
+	for _, attr := range attributesResp.Attributes {
+		switch aws.StringValue(attr.Key) {
+		case "access_logs.s3.enabled":
+			accessLogMap["enabled"] = aws.StringValue(attr.Value) == "true"
+		case "access_logs.s3.bucket":
+			accessLogMap["bucket"] = aws.StringValue(attr.Value)
+		case "access_logs.s3.prefix":
+			accessLogMap["prefix"] = aws.StringValue(attr.Value)
+		case "idle_timeout.timeout_seconds":
+			timeout, err := strconv.Atoi(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("error parsing ALB timeout: %w", err)
+			}
+			d.Set("idle_timeout", timeout)
+		case "routing.http.drop_invalid_header_fields.enabled":
+			dropInvalidHeaderFieldsEnabled := aws.StringValue(attr.Value) == "true"
+			d.Set("drop_invalid_header_fields", dropInvalidHeaderFieldsEnabled)
+		case "deletion_protection.enabled":
+			protectionEnabled := aws.StringValue(attr.Value) == "true"
+			d.Set("enable_deletion_protection", protectionEnabled)
+		case "routing.http2.enabled":
+			http2Enabled := aws.StringValue(attr.Value) == "true"
+			d.Set("enable_http2", http2Enabled)
+		case "load_balancing.cross_zone.enabled":
+			crossZoneLbEnabled := aws.StringValue(attr.Value) == "true"
+			d.Set("enable_cross_zone_load_balancing", crossZoneLbEnabled)
+		}
+	}
+
+	if err := d.Set("access_logs", []interface{}{accessLogMap}); err != nil {
+		return fmt.Errorf("error setting access_logs: %w", err)
+	}
+
+	return nil
 }

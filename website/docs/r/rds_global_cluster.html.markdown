@@ -14,7 +14,60 @@ More information about Aurora global databases can be found in the [Aurora User 
 
 ## Example Usage
 
-### New Global Cluster
+### New MySQL Global Cluster
+
+```terraform
+resource "aws_rds_global_cluster" "example" {
+  global_cluster_identifier = "global-test"
+  engine                    = "aurora"
+  engine_version            = "5.6.mysql_aurora.1.22.2"
+  database_name             = "example_db"
+}
+
+resource "aws_rds_cluster" "primary" {
+  provider                  = aws.primary
+  engine                    = aws_rds_global_cluster.example.engine
+  engine_version            = aws_rds_global_cluster.example.engine_version
+  cluster_identifier        = "test-primary-cluster"
+  master_username           = "username"
+  master_password           = "somepass123"
+  database_name             = "example_db"
+  global_cluster_identifier = aws_rds_global_cluster.example.id
+  db_subnet_group_name      = "default"
+}
+
+resource "aws_rds_cluster_instance" "primary" {
+  provider             = aws.primary
+  identifier           = "test-primary-cluster-instance"
+  cluster_identifier   = aws_rds_cluster.primary.id
+  instance_class       = "db.r4.large"
+  db_subnet_group_name = "default"
+}
+
+resource "aws_rds_cluster" "secondary" {
+  provider                  = aws.secondary
+  engine                    = aws_rds_global_cluster.example.engine
+  engine_version            = aws_rds_global_cluster.example.engine_version
+  cluster_identifier        = "test-secondary-cluster"
+  global_cluster_identifier = aws_rds_global_cluster.example.id
+  db_subnet_group_name      = "default"
+}
+
+resource "aws_rds_cluster_instance" "secondary" {
+  provider             = aws.secondary
+  identifier           = "test-secondary-cluster-instance"
+  cluster_identifier   = aws_rds_cluster.secondary.id
+  instance_class       = "db.r4.large"
+  db_subnet_group_name = "default"
+
+  depends_on = [
+    aws_rds_cluster_instance.primary
+  ]
+}
+```
+
+### New PostgreSQL Global Cluster
+
 
 ```terraform
 provider "aws" {
@@ -24,44 +77,63 @@ provider "aws" {
 
 provider "aws" {
   alias  = "secondary"
-  region = "us-west-2"
+  region = "us-east-1"
 }
 
 resource "aws_rds_global_cluster" "example" {
-  provider = aws.primary
-
-  global_cluster_identifier = "example"
+  global_cluster_identifier = "global-test"
+  engine                    = "aurora-postgresql"
+  engine_version            = "11.9"
+  database_name             = "example_db"
 }
 
 resource "aws_rds_cluster" "primary" {
-  provider = aws.primary
-
-  # ... other configuration ...
+  provider                  = aws.primary
+  engine                    = aws_rds_global_cluster.example.engine
+  engine_version            = aws_rds_global_cluster.example.engine_version
+  cluster_identifier        = "test-primary-cluster"
+  master_username           = "username"
+  master_password           = "somepass123"
+  database_name             = "example_db"
   global_cluster_identifier = aws_rds_global_cluster.example.id
+  db_subnet_group_name      = "default"
 }
 
 resource "aws_rds_cluster_instance" "primary" {
-  provider = aws.primary
-
-  # ... other configuration ...
-  cluster_identifier = aws_rds_cluster.primary.id
+  provider             = aws.primary
+  engine               = aws_rds_global_cluster.example.engine
+  engine_version       = aws_rds_global_cluster.example.engine_version
+  identifier           = "test-primary-cluster-instance"
+  cluster_identifier   = aws_rds_cluster.primary.id
+  instance_class       = "db.r4.large"
+  db_subnet_group_name = "default"
 }
 
 resource "aws_rds_cluster" "secondary" {
-  depends_on = [aws_rds_cluster_instance.primary]
-  provider   = aws.secondary
-
-  # ... other configuration ...
+  provider                  = aws.secondary
+  engine                    = aws_rds_global_cluster.example.engine
+  engine_version            = aws_rds_global_cluster.example.engine_version
+  cluster_identifier        = "test-secondary-cluster"
   global_cluster_identifier = aws_rds_global_cluster.example.id
+  skip_final_snapshot       = true
+  db_subnet_group_name      = "default"
+
+  depends_on = [
+    aws_rds_cluster_instance.primary
+  ]
 }
 
 resource "aws_rds_cluster_instance" "secondary" {
-  provider = aws.secondary
-
-  # ... other configuration ...
-  cluster_identifier = aws_rds_cluster.secondary.id
+  provider             = aws.secondary
+  engine               = aws_rds_global_cluster.example.engine
+  engine_version       = aws_rds_global_cluster.example.engine_version
+  identifier           = "test-secondary-cluster-instance"
+  cluster_identifier   = aws_rds_cluster.secondary.id
+  instance_class       = "db.r4.large"
+  db_subnet_group_name = "default"
 }
 ```
+
 
 ### New Global Cluster From Existing DB Cluster
 
@@ -94,7 +166,7 @@ The following arguments are supported:
 * `database_name` - (Optional, Forces new resources) Name for an automatically created database on cluster creation.
 * `deletion_protection` - (Optional) If the Global Cluster should have deletion protection enabled. The database can't be deleted when this value is set to `true`. The default is `false`.
 * `engine` - (Optional, Forces new resources) Name of the database engine to be used for this DB cluster. Terraform will only perform drift detection if a configuration value is provided. Valid values: `aurora`, `aurora-mysql`, `aurora-postgresql`. Defaults to `aurora`. Conflicts with `source_db_cluster_identifier`.
-* `engine_version` - (Optional, Forces new resources) Engine version of the Aurora global database.
+* `engine_version` - (Optional) Engine version of the Aurora global database. Upgrading the engine version will result in all cluster members being immediately updated.
     * **NOTE:** When the engine is set to `aurora-mysql`, an engine version compatible with global database is required. The earliest available version is `5.7.mysql_aurora.2.06.0`.
 * `force_destroy` - (Optional) Enable to remove DB Cluster members from Global Cluster on destroy. Required with `source_db_cluster_identifier`.
 * `source_db_cluster_identifier` - (Optional) Amazon Resource Name (ARN) to use as the primary DB Cluster of the Global Cluster on creation. Terraform cannot perform drift detection of this value.

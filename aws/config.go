@@ -14,9 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go/service/appconfig"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go/service/applicationinsights"
 	"github.com/aws/aws-sdk-go/service/appmesh"
+	"github.com/aws/aws-sdk-go/service/apprunner"
 	"github.com/aws/aws-sdk-go/service/appstream"
 	"github.com/aws/aws-sdk-go/service/appsync"
 	"github.com/aws/aws-sdk-go/service/athena"
@@ -26,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/aws/aws-sdk-go/service/budgets"
+	"github.com/aws/aws-sdk-go/service/chime"
 	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
@@ -52,6 +55,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/datapipeline"
 	"github.com/aws/aws-sdk-go/service/datasync"
 	"github.com/aws/aws-sdk-go/service/dax"
+	"github.com/aws/aws-sdk-go/service/detective"
 	"github.com/aws/aws-sdk-go/service/devicefarm"
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
@@ -136,6 +140,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/aws/aws-sdk-go/service/s3outposts"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/aws/aws-sdk-go/service/schemas"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
@@ -216,8 +221,10 @@ type AWSClient struct {
 	apigatewayconn                      *apigateway.APIGateway
 	apigatewayv2conn                    *apigatewayv2.ApiGatewayV2
 	appautoscalingconn                  *applicationautoscaling.ApplicationAutoScaling
+	appconfigconn                       *appconfig.AppConfig
 	applicationinsightsconn             *applicationinsights.ApplicationInsights
 	appmeshconn                         *appmesh.AppMesh
+	apprunnerconn                       *apprunner.AppRunner
 	appstreamconn                       *appstream.AppStream
 	appsyncconn                         *appsync.AppSync
 	athenaconn                          *athena.Athena
@@ -228,6 +235,7 @@ type AWSClient struct {
 	batchconn                           *batch.Batch
 	budgetconn                          *budgets.Budgets
 	cfconn                              *cloudformation.CloudFormation
+	chimeconn                           *chime.Chime
 	cloud9conn                          *cloud9.Cloud9
 	cloudfrontconn                      *cloudfront.CloudFront
 	cloudhsmv2conn                      *cloudhsmv2.CloudHSMV2
@@ -253,6 +261,7 @@ type AWSClient struct {
 	datasyncconn                        *datasync.DataSync
 	daxconn                             *dax.DAX
 	DefaultTagsConfig                   *keyvaluetags.DefaultConfig
+	detectiveconn                       *detective.Detective
 	devicefarmconn                      *devicefarm.DeviceFarm
 	dlmconn                             *dlm.DLM
 	dmsconn                             *databasemigrationservice.DatabaseMigrationService
@@ -346,6 +355,7 @@ type AWSClient struct {
 	s3outpostsconn                      *s3outposts.S3Outposts
 	sagemakerconn                       *sagemaker.SageMaker
 	scconn                              *servicecatalog.ServiceCatalog
+	schemasconn                         *schemas.Schemas
 	sdconn                              *servicediscovery.ServiceDiscovery
 	secretsmanagerconn                  *secretsmanager.SecretsManager
 	securityhubconn                     *securityhub.SecurityHub
@@ -461,8 +471,10 @@ func (c *Config) Client() (interface{}, error) {
 		apigatewayconn:                      apigateway.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["apigateway"])})),
 		apigatewayv2conn:                    apigatewayv2.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["apigateway"])})),
 		appautoscalingconn:                  applicationautoscaling.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["applicationautoscaling"])})),
+		appconfigconn:                       appconfig.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["appconfig"])})),
 		applicationinsightsconn:             applicationinsights.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["applicationinsights"])})),
 		appmeshconn:                         appmesh.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["appmesh"])})),
+		apprunnerconn:                       apprunner.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["apprunner"])})),
 		appstreamconn:                       appstream.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["appstream"])})),
 		appsyncconn:                         appsync.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["appsync"])})),
 		athenaconn:                          athena.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["athena"])})),
@@ -473,6 +485,7 @@ func (c *Config) Client() (interface{}, error) {
 		batchconn:                           batch.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["batch"])})),
 		budgetconn:                          budgets.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["budgets"])})),
 		cfconn:                              cloudformation.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["cloudformation"])})),
+		chimeconn:                           chime.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["chime"])})),
 		cloud9conn:                          cloud9.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["cloud9"])})),
 		cloudfrontconn:                      cloudfront.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["cloudfront"])})),
 		cloudhsmv2conn:                      cloudhsmv2.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["cloudhsm"])})),
@@ -498,6 +511,7 @@ func (c *Config) Client() (interface{}, error) {
 		datasyncconn:                        datasync.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["datasync"])})),
 		daxconn:                             dax.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["dax"])})),
 		DefaultTagsConfig:                   c.DefaultTagsConfig,
+		detectiveconn:                       detective.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["detective"])})),
 		devicefarmconn:                      devicefarm.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["devicefarm"])})),
 		dlmconn:                             dlm.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["dlm"])})),
 		dmsconn:                             databasemigrationservice.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["dms"])})),
@@ -586,6 +600,7 @@ func (c *Config) Client() (interface{}, error) {
 		s3outpostsconn:                      s3outposts.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["s3outposts"])})),
 		sagemakerconn:                       sagemaker.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["sagemaker"])})),
 		scconn:                              servicecatalog.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["servicecatalog"])})),
+		schemasconn:                         schemas.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["schemas"])})),
 		sdconn:                              servicediscovery.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["servicediscovery"])})),
 		secretsmanagerconn:                  secretsmanager.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["secretsmanager"])})),
 		securityhubconn:                     securityhub.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["securityhub"])})),
@@ -685,6 +700,12 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	})
 
+	client.cloudhsmv2conn.Handlers.Retry.PushBack(func(r *request.Request) {
+		if tfawserr.ErrMessageContains(r.Error, cloudhsmv2.ErrCodeCloudHsmInternalFailureException, "request was rejected because of an AWS CloudHSM internal failure") {
+			r.Retryable = aws.Bool(true)
+		}
+	})
+
 	client.configconn.Handlers.Retry.PushBack(func(r *request.Request) {
 		// When calling Config Organization Rules API actions immediately
 		// after Organization creation, the API can randomly return the
@@ -744,6 +765,23 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	})
 
+	client.fmsconn.Handlers.Retry.PushBack(func(r *request.Request) {
+		// Acceptance testing creates and deletes resources in quick succession.
+		// The FMS onboarding process into Organizations is opaque to consumers.
+		// Since we cannot reasonably check this status before receiving the error,
+		// set the operation as retryable.
+		switch r.Operation.Name {
+		case "AssociateAdminAccount":
+			if tfawserr.ErrMessageContains(r.Error, fms.ErrCodeInvalidOperationException, "Your AWS Organization is currently offboarding with AWS Firewall Manager. Please submit onboard request after offboarded.") {
+				r.Retryable = aws.Bool(true)
+			}
+		case "DisassociateAdminAccount":
+			if tfawserr.ErrMessageContains(r.Error, fms.ErrCodeInvalidOperationException, "Your AWS Organization is currently onboarding with AWS Firewall Manager and cannot be offboarded.") {
+				r.Retryable = aws.Bool(true)
+			}
+		}
+	})
+
 	client.kafkaconn.Handlers.Retry.PushBack(func(r *request.Request) {
 		if isAWSErr(r.Error, kafka.ErrCodeTooManyRequestsException, "Too Many Requests") {
 			r.Retryable = aws.Bool(true)
@@ -776,6 +814,15 @@ func (c *Config) Client() (interface{}, error) {
 		switch r.Operation.Name {
 		case "EnableOrganizationAdminAccount":
 			if tfawserr.ErrCodeEquals(r.Error, securityhub.ErrCodeResourceConflictException) {
+				r.Retryable = aws.Bool(true)
+			}
+		}
+	})
+
+	// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/19215
+	client.ssoadminconn.Handlers.Retry.PushBack(func(r *request.Request) {
+		if r.Operation.Name == "AttachManagedPolicyToPermissionSet" || r.Operation.Name == "DetachManagedPolicyFromPermissionSet" {
+			if tfawserr.ErrCodeEquals(r.Error, ssoadmin.ErrCodeConflictException) {
 				r.Retryable = aws.Bool(true)
 			}
 		}

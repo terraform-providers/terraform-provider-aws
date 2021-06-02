@@ -22,6 +22,8 @@ func resourceAwsGlueWorkflow() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -46,22 +48,25 @@ func resourceAwsGlueWorkflow() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsGlueWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 
 	input := &glue.CreateWorkflowInput{
 		Name: aws.String(name),
-		Tags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags: tags.IgnoreAws().GlueTags(),
 	}
 
 	if kv, ok := d.GetOk("default_run_properties"); ok {
-		input.DefaultRunProperties = stringMapToPointers(kv.(map[string]interface{}))
+		input.DefaultRunProperties = expandStringMap(kv.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -84,6 +89,7 @@ func resourceAwsGlueWorkflowCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetWorkflowInput{
@@ -130,8 +136,15 @@ func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for Glue Workflow (%s): %w", workFlowArn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -146,7 +159,7 @@ func resourceAwsGlueWorkflowUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if kv, ok := d.GetOk("default_run_properties"); ok {
-			input.DefaultRunProperties = stringMapToPointers(kv.(map[string]interface{}))
+			input.DefaultRunProperties = expandStringMap(kv.(map[string]interface{}))
 		}
 
 		if v, ok := d.GetOk("description"); ok {
@@ -164,8 +177,8 @@ func resourceAwsGlueWorkflowUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

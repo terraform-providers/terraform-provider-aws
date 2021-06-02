@@ -5,9 +5,39 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	tfevents "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudwatchevents"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudwatchevents/lister"
 )
+
+func ConnectionByName(conn *events.CloudWatchEvents, name string) (*events.DescribeConnectionOutput, error) {
+	input := &events.DescribeConnectionInput{
+		Name: aws.String(name),
+	}
+
+	output, err := conn.DescribeConnection(input)
+
+	if tfawserr.ErrCodeEquals(err, events.ErrCodeResourceNotFoundException) {
+		return nil, &resource.NotFoundError{
+			LastError:   err,
+			LastRequest: input,
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return nil, &resource.NotFoundError{
+			Message:     "Empty result",
+			LastRequest: input,
+		}
+	}
+
+	return output, nil
+}
 
 func Rule(conn *events.CloudWatchEvents, eventBusName, ruleName string) (*events.DescribeRuleOutput, error) {
 	input := events.DescribeRuleInput{

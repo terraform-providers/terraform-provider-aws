@@ -42,10 +42,10 @@ func testSweepElasticacheReplicationGroups(region string) error {
 	sweepResources := make([]*testSweepResource, 0)
 	var errs *multierror.Error
 
-	err = conn.DescribeReplicationGroupsPages(&elasticache.DescribeReplicationGroupsInput{}, func(page *elasticache.DescribeReplicationGroupsOutput, isLast bool) bool {
+	err = conn.DescribeReplicationGroupsPages(&elasticache.DescribeReplicationGroupsInput{}, func(page *elasticache.DescribeReplicationGroupsOutput, lastPage bool) bool {
 		if len(page.ReplicationGroups) == 0 {
 			log.Print("[DEBUG] No ElastiCache Replicaton Groups to sweep")
-			return !isLast // in rare cases across API, one page may have empty results but not be last page
+			return !lastPage // in rare cases across API, one page may have empty results but not be last page
 		}
 
 		for _, replicationGroup := range page.ReplicationGroups {
@@ -61,7 +61,7 @@ func testSweepElasticacheReplicationGroups(region string) error {
 			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if err != nil {
@@ -109,6 +109,8 @@ func TestAccAWSElasticacheReplicationGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_mode.0.replicas_per_node_group", "1"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_mode.0.num_node_groups", "1"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "6.x"),
+					resource.TestMatchResourceAttr(resourceName, "engine_version_actual", regexp.MustCompile(`^6\.[[:digit:]]+\.[[:digit:]]+$`)),
 				),
 			},
 			{
@@ -145,6 +147,71 @@ func TestAccAWSElasticacheReplicationGroup_Uppercase(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"apply_immediately"},
+			},
+		},
+	})
+}
+
+func TestAccAWSElasticacheReplicationGroup_EngineVersion_Update(t *testing.T) {
+	var v1, v2, v3, v4, v5 elasticache.ReplicationGroup
+	var c1, c2, c3, c4, c5 map[string]*elasticache.CacheCluster
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_elasticache_replication_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticache.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSElasticacheReplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSElasticacheReplicationGroupConfig_EngineVersion(rName, "3.2.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &v1),
+					testAccCheckAWSElastiCacheReplicationGroupMemberClusters(resourceName, &c1),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.2.6"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "3.2.6"),
+				),
+			},
+			{
+				Config: testAccAWSElasticacheReplicationGroupConfig_EngineVersion(rName, "3.2.4"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &v2),
+					testAccCheckAWSElastiCacheReplicationGroupMemberClusters(resourceName, &c2),
+					testAccCheckAWSElastiCacheReplicationGroupRecreated(&c1, &c2),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.2.4"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "3.2.4"),
+				),
+			},
+			{
+				Config: testAccAWSElasticacheReplicationGroupConfig_EngineVersion(rName, "3.2.10"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &v3),
+					testAccCheckAWSElastiCacheReplicationGroupMemberClusters(resourceName, &c3),
+					testAccCheckAWSElastiCacheReplicationGroupNotRecreated(&c2, &c3),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "3.2.10"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "3.2.10"),
+				),
+			},
+			{
+				Config: testAccAWSElasticacheReplicationGroupConfig_EngineVersion(rName, "6.x"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &v4),
+					testAccCheckAWSElastiCacheReplicationGroupMemberClusters(resourceName, &c4),
+					testAccCheckAWSElastiCacheReplicationGroupNotRecreated(&c3, &c4),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "6.x"),
+					resource.TestMatchResourceAttr(resourceName, "engine_version_actual", regexp.MustCompile(`^6\.[[:digit:]]+\.[[:digit:]]+$`)),
+				),
+			},
+			{
+				Config: testAccAWSElasticacheReplicationGroupConfig_EngineVersion(rName, "5.0.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &v5),
+					testAccCheckAWSElastiCacheReplicationGroupMemberClusters(resourceName, &c5),
+					testAccCheckAWSElastiCacheReplicationGroupRecreated(&c4, &c5),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.0.6"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version_actual", "5.0.6"),
+				),
 			},
 		},
 	})
@@ -1624,6 +1691,67 @@ func testAccCheckAWSElasticacheReplicationDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccCheckAWSElastiCacheReplicationGroupMemberClusters(n string, v *map[string]*elasticache.CacheCluster) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		var rg elasticache.ReplicationGroup
+
+		err := testAccCheckAWSElasticacheReplicationGroupExists(n, &rg)(s)
+		if err != nil {
+			return err
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).elasticacheconn
+
+		clusters := make(map[string]*elasticache.CacheCluster, len(rg.MemberClusters))
+		for _, clusterID := range rg.MemberClusters {
+			c, err := finder.CacheClusterWithNodeInfoByID(conn, aws.StringValue(clusterID))
+			if err != nil {
+				return fmt.Errorf("could not read ElastiCache replication group (%s) member cluster (%s): %w", n, aws.StringValue(clusterID), err)
+			}
+
+			clusters[aws.StringValue(c.CacheClusterId)] = c
+		}
+
+		*v = clusters
+
+		return nil
+	}
+}
+
+func testAccCheckAWSElastiCacheReplicationGroupRecreated(i, j *map[string]*elasticache.CacheCluster) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for key, iv := range *i {
+			jv, ok := (*j)[key]
+			if !ok {
+				continue
+			}
+
+			if aws.TimeValue(iv.CacheClusterCreateTime).Equal(aws.TimeValue(jv.CacheClusterCreateTime)) {
+				return fmt.Errorf("ElastiCache replication group not recreated: member cluster (%s) not recreated", key)
+			}
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSElastiCacheReplicationGroupNotRecreated(i, j *map[string]*elasticache.CacheCluster) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for key, iv := range *i {
+			jv, ok := (*j)[key]
+			if !ok {
+				continue
+			}
+
+			if !aws.TimeValue(iv.CacheClusterCreateTime).Equal(aws.TimeValue(jv.CacheClusterCreateTime)) {
+				return fmt.Errorf("ElastiCache replication group recreated: member cluster (%s) recreated", key)
+			}
+		}
+
+		return nil
+	}
+}
+
 func testAccAWSElasticacheReplicationGroupConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_elasticache_replication_group" "test" {
@@ -1685,6 +1813,23 @@ resource "aws_elasticache_replication_group" "test" {
   subnet_group_name             = aws_elasticache_subnet_group.test.name
 }
 `, rName)
+}
+
+func testAccAWSElasticacheReplicationGroupConfig_EngineVersion(rName, engineVersion string) string {
+	return fmt.Sprintf(`
+resource "aws_elasticache_replication_group" "test" {
+  replication_group_id          = %[1]q
+  replication_group_description = "test description"
+
+  node_type             = "cache.t3.small"
+  number_cache_clusters = 2
+
+  engine_version     = %[2]q
+  apply_immediately  = true
+  maintenance_window = "tue:06:30-tue:07:30"
+  snapshot_window    = "01:00-02:00"
+}
+`, rName, engineVersion)
 }
 
 func testAccAWSElasticacheReplicationGroupConfigEnableSnapshotting(rName string) string {

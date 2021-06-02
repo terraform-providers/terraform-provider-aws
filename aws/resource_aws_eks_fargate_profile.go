@@ -26,6 +26,8 @@ func resourceAwsEksFargateProfile() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
@@ -40,7 +42,7 @@ func resourceAwsEksFargateProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validateEKSClusterName,
 			},
 			"fargate_profile_name": {
 				Type:         schema.TypeString,
@@ -87,13 +89,16 @@ func resourceAwsEksFargateProfile() *schema.Resource {
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEksFargateProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	clusterName := d.Get("cluster_name").(string)
 	fargateProfileName := d.Get("fargate_profile_name").(string)
 	id := fmt.Sprintf("%s:%s", clusterName, fargateProfileName)
@@ -107,8 +112,8 @@ func resourceAwsEksFargateProfileCreate(d *schema.ResourceData, meta interface{}
 		Subnets:             expandStringSet(d.Get("subnet_ids").(*schema.Set)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().EksTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EksTags()
 	}
 
 	// mutex lock for creation/deletion serialization
@@ -158,6 +163,7 @@ func resourceAwsEksFargateProfileCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsEksFargateProfileRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterName, fargateProfileName, err := resourceAwsEksFargateProfileParseId(d.Id())
@@ -205,8 +211,15 @@ func resourceAwsEksFargateProfileRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting subnets: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(fargateProfile.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EksKeyValueTags(fargateProfile.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -215,8 +228,8 @@ func resourceAwsEksFargateProfileRead(d *schema.ResourceData, meta interface{}) 
 func resourceAwsEksFargateProfileUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.EksUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -277,7 +290,7 @@ func expandEksFargateProfileSelectors(l []interface{}) []*eks.FargateProfileSele
 		fargateProfileSelector := &eks.FargateProfileSelector{}
 
 		if v, ok := m["labels"].(map[string]interface{}); ok && len(v) > 0 {
-			fargateProfileSelector.Labels = stringMapToPointers(v)
+			fargateProfileSelector.Labels = expandStringMap(v)
 		}
 
 		if v, ok := m["namespace"].(string); ok && v != "" {

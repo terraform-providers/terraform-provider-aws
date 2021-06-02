@@ -115,7 +115,7 @@ and use the `aws_vpc_peering_connection_accepter` to manage the accepter side.
 the peering connection (a maximum of one).
 * `requester` (Optional) - A optional configuration block that allows for [VPC Peering Connection](https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that requests
 the peering connection (a maximum of one).
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 #### Accepter and Requester Arguments
 
@@ -148,7 +148,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the VPC Peering Connection.
 * `accept_status` - The status of the VPC Peering Connection request.
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Notes
 

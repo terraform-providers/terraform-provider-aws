@@ -283,6 +283,28 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"target_table": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"catalog_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"database_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"view_original_text": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -407,6 +429,14 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting parameters: %w", err)
 	}
 
+	if table.TargetTable != nil {
+		if err := d.Set("target_table", []interface{}{flattenGlueTableTargetTable(table.TargetTable)}); err != nil {
+			return fmt.Errorf("error setting target_table: %w", err)
+		}
+	} else {
+		d.Set("target_table", nil)
+	}
+
 	partIndexInput := &glue.GetPartitionIndexesInput{
 		CatalogId:    out.Table.CatalogId,
 		TableName:    out.Table.Name,
@@ -507,7 +537,11 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		tableInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		tableInput.Parameters = expandStringMap(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("target_table"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		tableInput.TargetTable = expandGlueTableTargetTable(v.([]interface{})[0].(map[string]interface{}))
 	}
 
 	return tableInput
@@ -581,7 +615,7 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 	}
 
 	if v, ok := s["parameters"]; ok {
-		storageDescriptor.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		storageDescriptor.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := s["stored_as_sub_directories"]; ok {
@@ -613,7 +647,7 @@ func expandGlueColumns(columns []interface{}) []*glue.Column {
 		}
 
 		if v, ok := elementMap["parameters"]; ok {
-			column.Parameters = stringMapToPointers(v.(map[string]interface{}))
+			column.Parameters = expandStringMap(v.(map[string]interface{}))
 		}
 
 		columnSlice = append(columnSlice, column)
@@ -635,7 +669,7 @@ func expandGlueSerDeInfo(l []interface{}) *glue.SerDeInfo {
 	}
 
 	if v := s["parameters"]; len(v.(map[string]interface{})) > 0 {
-		serDeInfo.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		serDeInfo.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v := s["serialization_library"]; len(v.(string)) > 0 {
@@ -678,7 +712,7 @@ func expandGlueSkewedInfo(l []interface{}) *glue.SkewedInfo {
 	}
 
 	if v, ok := s["skewed_column_value_location_maps"]; ok {
-		skewedInfo.SkewedColumnValueLocationMaps = stringMapToPointers(v.(map[string]interface{}))
+		skewedInfo.SkewedColumnValueLocationMaps = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := s["skewed_column_values"]; ok {
@@ -944,4 +978,48 @@ func flattenGlueTableSchemaReferenceSchemaID(s *glue.SchemaId) []map[string]inte
 	schemaIDInfoSlice[0] = schemaIDInfo
 
 	return schemaIDInfoSlice
+}
+
+func expandGlueTableTargetTable(tfMap map[string]interface{}) *glue.TableIdentifier {
+	if tfMap == nil {
+		return nil
+	}
+
+	apiObject := &glue.TableIdentifier{}
+
+	if v, ok := tfMap["catalog_id"].(string); ok && v != "" {
+		apiObject.CatalogId = aws.String(v)
+	}
+
+	if v, ok := tfMap["database_name"].(string); ok && v != "" {
+		apiObject.DatabaseName = aws.String(v)
+	}
+
+	if v, ok := tfMap["name"].(string); ok && v != "" {
+		apiObject.Name = aws.String(v)
+	}
+
+	return apiObject
+}
+
+func flattenGlueTableTargetTable(apiObject *glue.TableIdentifier) map[string]interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	if v := apiObject.CatalogId; v != nil {
+		tfMap["catalog_id"] = aws.StringValue(v)
+	}
+
+	if v := apiObject.DatabaseName; v != nil {
+		tfMap["database_name"] = aws.StringValue(v)
+	}
+
+	if v := apiObject.Name; v != nil {
+		tfMap["name"] = aws.StringValue(v)
+	}
+
+	return tfMap
 }

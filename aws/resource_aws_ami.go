@@ -230,7 +230,8 @@ func resourceAwsAmi() *schema.Resource {
 				ForceNew: true,
 				Default:  "simple",
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"usage_operation": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -243,11 +244,15 @@ func resourceAwsAmi() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(ec2.VirtualizationType_Values(), false),
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAmiCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.RegisterImageInput{
 		Architecture:       aws.String(d.Get("architecture").(string)),
@@ -307,8 +312,8 @@ func resourceAwsAmiCreate(d *schema.ResourceData, meta interface{}) error {
 	id := aws.StringValue(res.ImageId)
 	d.SetId(id)
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, id, v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(client, id, tags); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
@@ -323,6 +328,7 @@ func resourceAwsAmiCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	id := d.Id()
@@ -433,8 +439,15 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting ephemeral_block_device: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -443,8 +456,8 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsAmiUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(client, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating AMI (%s) tags: %s", d.Id(), err)

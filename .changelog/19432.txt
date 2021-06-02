@@ -1,0 +1,15 @@
+```release-note:new-resource
+aws_apprunner_auto_scaling_configuration_version
+```
+
+```release-note:new-resource
+aws_apprunner_connection
+```
+
+```release-note:new-resource
+aws_apprunner_custom_domain_association
+```
+
+```release-note:new-resource
+aws_apprunner_service
+```

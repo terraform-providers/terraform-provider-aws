@@ -19,11 +19,10 @@ func TestAccAWSAppautoScalingTarget_basic(t *testing.T) {
 	randClusterName := fmt.Sprintf("cluster-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, applicationautoscaling.EndpointsID),
-		IDRefreshName: "aws_appautoscaling_target.bar",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSAppautoscalingTargetDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, applicationautoscaling.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAppautoscalingTargetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAppautoscalingTargetConfig(randClusterName),
@@ -82,11 +81,10 @@ func TestAccAWSAppautoScalingTarget_spotFleetRequest(t *testing.T) {
 	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, applicationautoscaling.EndpointsID),
-		IDRefreshName: "aws_appautoscaling_target.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSAppautoscalingTargetDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, applicationautoscaling.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAppautoscalingTargetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAppautoscalingTargetSpotFleetRequestConfig(validUntil),

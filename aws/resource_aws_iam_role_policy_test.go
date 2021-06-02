@@ -100,11 +100,10 @@ func TestAccAWSIAMRolePolicy_namePrefix(t *testing.T) {
 	roleName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, iam.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckIAMRolePolicyDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMRolePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIAMRolePolicyConfig_namePrefix(role, "*"),
@@ -146,11 +145,10 @@ func TestAccAWSIAMRolePolicy_generatedName(t *testing.T) {
 	roleName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, iam.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckIAMRolePolicyDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMRolePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIAMRolePolicyConfig_generatedName(role, "*"),

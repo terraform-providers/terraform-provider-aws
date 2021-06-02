@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ErrUnknownRawStateType is returned when a RawState has no Flatmap or JSON
@@ -70,7 +70,7 @@ type RawState struct {
 // cannot be unmarshaled, and must have their Flatmap property read directly.
 func (s RawState) Unmarshal(typ tftypes.Type) (tftypes.Value, error) {
 	if s.JSON != nil {
-		return jsonUnmarshal(s.JSON, typ, tftypes.AttributePath{})
+		return tftypes.ValueFromJSON(s.JSON, typ) //nolint:staticcheck
 	}
 	if s.Flatmap != nil {
 		return tftypes.Value{}, fmt.Errorf("flatmap states cannot be unmarshaled, only states written by Terraform 0.12 and higher can be unmarshaled")

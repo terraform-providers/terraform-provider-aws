@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_cloudformation_type
+```
+
+```release-note:new-data-source
+aws_cloudformation_type
+```

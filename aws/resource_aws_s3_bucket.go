@@ -625,8 +625,11 @@ func resourceAwsS3Bucket() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -708,8 +711,8 @@ func resourceAwsS3BucketCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		// Retry due to S3 eventual consistency
 		_, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
@@ -803,6 +806,7 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &s3.HeadBucketInput{
@@ -1322,7 +1326,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Retry due to S3 eventual consistency
-	tags, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+	tagsRaw, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
 		return keyvaluetags.S3BucketListTags(s3conn, d.Id())
 	})
 
@@ -1330,8 +1334,21 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for S3 Bucket (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags, ok := tagsRaw.(keyvaluetags.KeyValueTags)
+
+	if !ok {
+		return fmt.Errorf("error listing tags for S3 Bucket (%s): unable to convert tags", d.Id())
+	}
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{

@@ -414,7 +414,7 @@ func TestAccAWSSNSTopicSubscription_firehose(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheckSkipSNS(t),
+		ErrorCheck:   testAccErrorCheck(t, sns.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSNSTopicSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -480,13 +480,6 @@ func TestAccAWSSNSTopicSubscription_disappears_topic(t *testing.T) {
 			},
 		},
 	})
-}
-
-// testAccErrorCheckSkipSNS skips SNS tests that have error messages indicating unsupported features
-func testAccErrorCheckSkipSNS(t *testing.T) resource.ErrorCheckFunc {
-	return testAccErrorCheckSkipMessagesContaining(t,
-		"Invalid protocol type: firehose",
-	)
 }
 
 func testAccCheckAWSSNSTopicSubscriptionDestroy(s *terraform.State) error {
@@ -589,10 +582,10 @@ func testAccCheckAWSSNSTopicSubscriptionRedrivePolicyAttribute(attributes map[st
 const awsSNSPasswordObfuscationPattern = "****"
 
 // returns the endpoint with obfuscated password, if any
-func obfuscateEndpoint(endpoint string) string {
+func obfuscateEndpoint(t *testing.T, endpoint string) string {
 	res, err := url.Parse(endpoint)
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("error parsing URL: %s", err)
 	}
 
 	var obfuscatedEndpoint = res.String()
@@ -614,7 +607,7 @@ func TestObfuscateEndpointPassword(t *testing.T) {
 		"https://username:password@example.com/myroute": "https://username:****@example.com/myroute",
 	}
 	for endpoint, expected := range checks {
-		out := obfuscateEndpoint(endpoint)
+		out := obfuscateEndpoint(t, endpoint)
 
 		if expected != out {
 			t.Fatalf("Expected %v, got %v", expected, out)

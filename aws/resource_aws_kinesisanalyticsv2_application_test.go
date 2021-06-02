@@ -34,9 +34,9 @@ func testSweepKinesisAnalyticsV2Application(region string) error {
 	input := &kinesisanalyticsv2.ListApplicationsInput{}
 	var sweeperErrs *multierror.Error
 
-	err = lister.ListApplicationsPages(conn, input, func(page *kinesisanalyticsv2.ListApplicationsOutput, isLast bool) bool {
+	err = lister.ListApplicationsPages(conn, input, func(page *kinesisanalyticsv2.ListApplicationsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, applicationSummary := range page.ApplicationSummaries {
@@ -66,7 +66,7 @@ func testSweepKinesisAnalyticsV2Application(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

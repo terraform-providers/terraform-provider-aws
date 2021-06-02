@@ -44,6 +44,38 @@ func TestAccAWSCodeStarConnectionsConnection_Basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSCodeStarConnectionsConnection_HostArn(t *testing.T) {
+	var v codestarconnections.Connection
+	resourceName := "aws_codestarconnections_connection.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarconnections.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeStarConnectionsConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeStarConnectionsConnectionConfigHostArn(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCodeStarConnectionsConnectionExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "id", "codestar-connections", regexp.MustCompile("connection/.+")),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "codestar-connections", regexp.MustCompile("connection/.+")),
+					testAccMatchResourceAttrRegionalARN(resourceName, "host_arn", "codestar-connections", regexp.MustCompile("host/.+")),
+					resource.TestCheckResourceAttr(resourceName, "provider_type", codestarconnections.ProviderTypeGitHubEnterpriseServer),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "connection_status", codestarconnections.ConnectionStatusPending),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCodeStarConnectionsConnection_disappears(t *testing.T) {
 	var v codestarconnections.Connection
 	resourceName := "aws_codestarconnections_connection.test"
@@ -162,6 +194,21 @@ func testAccAWSCodeStarConnectionsConnectionConfigBasic(rName string) string {
 resource "aws_codestarconnections_connection" "test" {
   name          = %[1]q
   provider_type = "Bitbucket"
+}
+`, rName)
+}
+
+func testAccAWSCodeStarConnectionsConnectionConfigHostArn(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_codestarconnections_host" "test" {
+  name              = %[1]q
+  provider_endpoint = "https://test.com"
+  provider_type     = "GitHubEnterpriseServer"
+}
+
+resource "aws_codestarconnections_connection" "test" {
+  name     = %[1]q
+  host_arn = aws_codestarconnections_host.test.arn
 }
 `, rName)
 }

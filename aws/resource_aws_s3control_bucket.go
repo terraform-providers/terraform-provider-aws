@@ -64,13 +64,18 @@ func resourceAwsS3ControlBucket() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsS3ControlBucketCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).s3controlconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	bucket := d.Get("bucket").(string)
 
@@ -91,8 +96,8 @@ func resourceAwsS3ControlBucketCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(aws.StringValue(output.BucketArn))
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.S3controlBucketUpdateTags(conn, d.Id(), nil, v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.S3controlBucketUpdateTags(conn, d.Id(), nil, tags); err != nil {
 			return fmt.Errorf("error adding S3 Control Bucket (%s) tags: %w", d.Id(), err)
 		}
 	}
@@ -102,6 +107,7 @@ func resourceAwsS3ControlBucketCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsS3ControlBucketRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).s3controlconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	parsedArn, err := arn.Parse(d.Id())
@@ -160,8 +166,15 @@ func resourceAwsS3ControlBucketRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for S3 Control Bucket (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -170,8 +183,8 @@ func resourceAwsS3ControlBucketRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsS3ControlBucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).s3controlconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.S3controlBucketUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating S3 Control Bucket (%s) tags: %w", d.Id(), err)

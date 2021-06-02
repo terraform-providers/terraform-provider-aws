@@ -317,7 +317,7 @@ func expandGluePartitionInput(d *schema.ResourceData) *glue.PartitionInput {
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		tableInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		tableInput.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("partition_values"); ok && len(v.([]interface{})) > 0 {

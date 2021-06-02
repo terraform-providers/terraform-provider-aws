@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_ami_copy: Add `destination_outpost_arn` argument
+```

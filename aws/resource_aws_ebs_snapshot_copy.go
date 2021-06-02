@@ -20,6 +20,8 @@ func resourceAwsEbsSnapshotCopy() *schema.Resource {
 		Update: resourceAwsEbsSnapshotCopyUpdate,
 		Delete: resourceAwsEbsSnapshotCopyDelete,
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -70,18 +72,21 @@ func resourceAwsEbsSnapshotCopy() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEbsSnapshotCopyCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	request := &ec2.CopySnapshotInput{
 		SourceRegion:      aws.String(d.Get("source_region").(string)),
 		SourceSnapshotId:  aws.String(d.Get("source_snapshot_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeSnapshot),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeSnapshot),
 	}
 	if v, ok := d.GetOk("description"); ok {
 		request.Description = aws.String(v.(string))
@@ -110,6 +115,7 @@ func resourceAwsEbsSnapshotCopyCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsEbsSnapshotCopyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &ec2.DescribeSnapshotsInput{
@@ -137,8 +143,15 @@ func resourceAwsEbsSnapshotCopyRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("kms_key_id", snapshot.KmsKeyId)
 	d.Set("volume_size", snapshot.VolumeSize)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(snapshot.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(snapshot.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	snapshotArn := arn.ARN{
@@ -189,8 +202,8 @@ func resourceAwsEbsSnapshotCopyDelete(d *schema.ResourceData, meta interface{}) 
 func resourceAwsEbsSnapshotCopyUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

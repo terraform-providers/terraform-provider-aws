@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_lb_listener_rule: Add plan time validation to `listener_arn`, `action.target_group_arn`, `action.forward.target_group.arn`, `action.redirect.host`, `action.redirect.path`, `action.redirect.query`, `action.redirect.status_code`, `action.fixed_response.message_body`, `action.authenticate_cognito.user_pool_arn`.
+```
+
+```release-note:enhancement
+resource/aws_lb_listener_rule: Add tagging support.
+```

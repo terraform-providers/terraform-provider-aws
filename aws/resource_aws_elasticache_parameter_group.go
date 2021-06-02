@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsElasticacheParameterGroup() *schema.Resource {
@@ -45,6 +46,10 @@ func resourceAwsElasticacheParameterGroup() *schema.Resource {
 				ForceNew: true,
 				Default:  "Managed by Terraform",
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"parameter": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -62,17 +67,23 @@ func resourceAwsElasticacheParameterGroup() *schema.Resource {
 				},
 				Set: resourceAwsElasticacheParameterHash,
 			},
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsElasticacheParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	createOpts := elasticache.CreateCacheParameterGroupInput{
 		CacheParameterGroupName:   aws.String(d.Get("name").(string)),
 		CacheParameterGroupFamily: aws.String(d.Get("family").(string)),
 		Description:               aws.String(d.Get("description").(string)),
+		Tags:                      tags.IgnoreAws().ElasticacheTags(),
 	}
 
 	log.Printf("[DEBUG] Create ElastiCache Parameter Group: %#v", createOpts)
@@ -82,6 +93,7 @@ func resourceAwsElasticacheParameterGroupCreate(d *schema.ResourceData, meta int
 	}
 
 	d.SetId(aws.StringValue(resp.CacheParameterGroup.CacheParameterGroupName))
+	d.Set("arn", resp.CacheParameterGroup.ARN)
 	log.Printf("[INFO] ElastiCache Parameter Group ID: %s", d.Id())
 
 	return resourceAwsElasticacheParameterGroupUpdate(d, meta)
@@ -89,6 +101,8 @@ func resourceAwsElasticacheParameterGroupCreate(d *schema.ResourceData, meta int
 
 func resourceAwsElasticacheParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := elasticache.DescribeCacheParameterGroupsInput{
 		CacheParameterGroupName: aws.String(d.Id()),
@@ -107,6 +121,24 @@ func resourceAwsElasticacheParameterGroupRead(d *schema.ResourceData, meta inter
 	d.Set("name", describeResp.CacheParameterGroups[0].CacheParameterGroupName)
 	d.Set("family", describeResp.CacheParameterGroups[0].CacheParameterGroupFamily)
 	d.Set("description", describeResp.CacheParameterGroups[0].Description)
+	d.Set("arn", describeResp.CacheParameterGroups[0].ARN)
+
+	tags, err := keyvaluetags.ElasticacheListTags(conn, aws.StringValue(describeResp.CacheParameterGroups[0].ARN))
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for ElastiCache Parameter Group (%s): %w", d.Id(), err)
+	}
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 
 	// Only include user customized parameters as there's hundreds of system/default ones
 	describeParametersOpts := elasticache.DescribeCacheParametersInput{
@@ -126,6 +158,14 @@ func resourceAwsElasticacheParameterGroupRead(d *schema.ResourceData, meta inter
 
 func resourceAwsElasticacheParameterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
+
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
+
+		if err := keyvaluetags.ElasticacheUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating ElastiCache Parameter Group (%s) tags: %w", d.Get("arn").(string), err)
+		}
+	}
 
 	if d.HasChange("parameter") {
 		o, n := d.GetChange("parameter")

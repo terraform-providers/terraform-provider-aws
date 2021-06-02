@@ -29,6 +29,8 @@ func resourceAwsGlueCrawler() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -36,7 +38,7 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				Required: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(1, 255),
-					validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9-_$#]+$`), ""),
+					validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9-_$#\/]+$`), ""),
 				),
 			},
 			"arn": {
@@ -276,7 +278,8 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
@@ -285,7 +288,7 @@ func resourceAwsGlueCrawlerCreate(d *schema.ResourceData, meta interface{}) erro
 	glueConn := meta.(*AWSClient).glueconn
 	name := d.Get("name").(string)
 
-	crawlerInput, err := createCrawlerInput(name, d)
+	crawlerInput, err := createCrawlerInput(d, name, meta.(*AWSClient).DefaultTagsConfig)
 	if err != nil {
 		return err
 	}
@@ -323,12 +326,14 @@ func resourceAwsGlueCrawlerCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceAwsGlueCrawlerRead(d, meta)
 }
 
-func createCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.CreateCrawlerInput, error) {
+func createCrawlerInput(d *schema.ResourceData, crawlerName string, defaultTagsConfig *keyvaluetags.DefaultConfig) (*glue.CreateCrawlerInput, error) {
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 	crawlerInput := &glue.CreateCrawlerInput{
 		Name:         aws.String(crawlerName),
 		DatabaseName: aws.String(d.Get("database_name").(string)),
 		Role:         aws.String(d.Get("role").(string)),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:         tags.IgnoreAws().GlueTags(),
 		Targets:      expandGlueCrawlerTargets(d),
 	}
 	if description, ok := d.GetOk("description"); ok {
@@ -373,7 +378,7 @@ func createCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.Creat
 	return crawlerInput, nil
 }
 
-func updateCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.UpdateCrawlerInput, error) {
+func updateCrawlerInput(d *schema.ResourceData, crawlerName string) (*glue.UpdateCrawlerInput, error) {
 	crawlerInput := &glue.UpdateCrawlerInput{
 		Name:         aws.String(crawlerName),
 		DatabaseName: aws.String(d.Get("database_name").(string)),
@@ -600,8 +605,8 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 	glueConn := meta.(*AWSClient).glueconn
 	name := d.Get("name").(string)
 
-	if d.HasChangesExcept("tags") {
-		updateCrawlerInput, err := updateCrawlerInput(name, d)
+	if d.HasChangesExcept("tags", "tags_all") {
+		updateCrawlerInput, err := updateCrawlerInput(d, name)
 		if err != nil {
 			return err
 		}
@@ -638,8 +643,8 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(glueConn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}
@@ -650,6 +655,7 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error {
 	glueConn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetCrawlerInput{
@@ -731,8 +737,15 @@ func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for Glue Crawler (%s): %w", crawlerARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("lineage_configuration", flattenGlueCrawlerLineageConfiguration(crawler.LineageConfiguration)); err != nil {

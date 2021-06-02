@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"testing"
 
@@ -19,6 +20,8 @@ import (
 )
 
 func init() {
+	RegisterServiceErrorCheckFunc(events.EndpointsID, testAccErrorCheckSkipEvents)
+
 	resource.AddTestSweepers("aws_cloudwatch_event_rule", &resource.Sweeper{
 		Name: "aws_cloudwatch_event_rule",
 		F:    testSweepCloudWatchEventRules,
@@ -40,9 +43,9 @@ func testSweepCloudWatchEventRules(region string) error {
 
 	rulesInput := &events.ListRulesInput{}
 
-	err = lister.ListRulesPages(conn, rulesInput, func(rulesPage *events.ListRulesOutput, lastRulesPage bool) bool {
+	err = lister.ListRulesPages(conn, rulesInput, func(rulesPage *events.ListRulesOutput, lastPage bool) bool {
 		if rulesPage == nil {
-			return !lastRulesPage
+			return !lastPage
 		}
 
 		for _, rule := range rulesPage.Rules {
@@ -60,7 +63,7 @@ func testSweepCloudWatchEventRules(region string) error {
 			}
 		}
 
-		return !lastRulesPage
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {
@@ -75,6 +78,12 @@ func testSweepCloudWatchEventRules(region string) error {
 	log.Printf("[INFO] Deleted %d CloudWatch Events rules", count)
 
 	return sweeperErrs.ErrorOrNil()
+}
+
+func testAccErrorCheckSkipEvents(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"Operation is disabled in this region",
+	)
 }
 
 func TestAccAWSCloudWatchEventRule_basic(t *testing.T) {
@@ -480,6 +489,47 @@ func TestAccAWSCloudWatchEventRule_IsEnabled(t *testing.T) {
 	})
 }
 
+func TestAccAWSCloudWatchEventRule_PartnerEventBus(t *testing.T) {
+	key := "EVENT_BRIDGE_PARTNER_EVENT_BUS_NAME"
+	busName := os.Getenv(key)
+	if busName == "" {
+		t.Skipf("Environment variable %s is not set", key)
+	}
+
+	var v events.DescribeRuleOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test-rule")
+	resourceName := "aws_cloudwatch_event_rule.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatchevents.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchEventRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudWatchEventRulePartnerEventBusConfig(rName, busName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchEventRuleExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "events", regexp.MustCompile(fmt.Sprintf(`rule/%s/%s$`, busName, rName))),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "event_bus_name", busName),
+					testAccCheckResourceAttrEquivalentJSON(resourceName, "event_pattern", "{\"source\":[\"aws.ec2\"]}"),
+					resource.TestCheckResourceAttr(resourceName, "is_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "role_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "schedule_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckCloudWatchEventRuleExists(n string, rule *events.DescribeRuleOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -732,4 +782,19 @@ resource "aws_cloudwatch_event_rule" "test" {
   role_arn            = aws_iam_role.test.arn
 }
 `, name)
+}
+
+func testAccAWSCloudWatchEventRulePartnerEventBusConfig(rName, eventBusName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudwatch_event_rule" "test" {
+  name           = %[1]q
+  event_bus_name = %[2]q
+
+  event_pattern = <<PATTERN
+{
+  "source": ["aws.ec2"]
+}
+PATTERN
+}
+`, rName, eventBusName)
 }

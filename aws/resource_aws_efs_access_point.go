@@ -23,6 +23,8 @@ func resourceAwsEfsAccessPoint() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"file_system_arn": {
 				Type:     schema.TypeString,
@@ -111,19 +113,22 @@ func resourceAwsEfsAccessPoint() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEfsAccessPointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	fsId := d.Get("file_system_id").(string)
 
 	input := efs.CreateAccessPointInput{
 		FileSystemId: aws.String(fsId),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EfsTags(),
+		Tags:         tags.IgnoreAws().EfsTags(),
 	}
 
 	if v, ok := d.GetOk("posix_user"); ok {
@@ -153,8 +158,8 @@ func resourceAwsEfsAccessPointCreate(d *schema.ResourceData, meta interface{}) e
 func resourceAwsEfsAccessPointUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EfsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EFS file system (%s) tags: %w", d.Id(), err)
@@ -166,6 +171,7 @@ func resourceAwsEfsAccessPointUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeAccessPoints(&efs.DescribeAccessPointsInput{
@@ -209,8 +215,15 @@ func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error setting root directory: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EfsKeyValueTags(ap.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.EfsKeyValueTags(ap.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

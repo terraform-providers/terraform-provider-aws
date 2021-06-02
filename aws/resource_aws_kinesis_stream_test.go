@@ -778,7 +778,7 @@ func testAccKinesisStreamUpdateKmsKeyId(rInt int, key int) string {
 resource "aws_kms_key" "key" {
   count = 2
 
-  description             = "KMS key ${count.index+1}"
+  description             = "KMS key ${count.index + 1}"
   deletion_window_in_days = 10
 }
 

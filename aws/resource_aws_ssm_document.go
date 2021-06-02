@@ -163,7 +163,8 @@ func resourceAwsSsmDocument() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"target_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -181,11 +182,15 @@ func resourceAwsSsmDocument() *schema.Resource {
 				),
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Validates permissions keys, if set, to be type and account_ids
 	// since ValidateFunc validates only the value not the key.
@@ -204,8 +209,8 @@ func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) erro
 		DocumentType:   aws.String(d.Get("document_type").(string)),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		docInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsmTags()
+	if len(tags) > 0 {
+		docInput.Tags = tags.IgnoreAws().SsmTags()
 	}
 
 	if v, ok := d.GetOk("attachments_source"); ok {
@@ -245,6 +250,7 @@ func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading SSM Document: %s", d.Id())
@@ -348,8 +354,15 @@ func resourceAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(doc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.SsmKeyValueTags(doc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("target_type", doc.TargetType); err != nil {
@@ -370,8 +383,8 @@ func resourceAwsSsmDocumentUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SsmUpdateTags(conn, d.Id(), ssm.ResourceTypeForTaggingDocument, o, n); err != nil {
 			return fmt.Errorf("error updating SSM Document (%s) tags: %s", d.Id(), err)
@@ -393,7 +406,7 @@ func resourceAwsSsmDocumentUpdate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	if d.HasChangesExcept("tags", "permissions") {
+	if d.HasChangesExcept("tags", "tags_all", "permissions") {
 		if err := updateAwsSSMDocument(d, meta); err != nil {
 			return err
 		}

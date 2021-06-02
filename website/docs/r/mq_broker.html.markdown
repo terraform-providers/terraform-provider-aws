@@ -68,7 +68,6 @@ resource "aws_mq_broker" "example" {
     password = "MindTheGap"
   }
 }
-
 ```
 
 ## Argument Reference
@@ -96,7 +95,7 @@ The following arguments are optional:
 * `security_groups` - (Optional) List of security group IDs assigned to the broker.
 * `storage_type` - (Optional) Storage type of the broker. For `engine_type` `ActiveMQ`, the valid values are `efs` and `ebs`, and the AWS-default is `efs`. For `engine_type` `RabbitMQ`, only `ebs` is supported. When using `ebs`, only the `mq.m5` broker instance type family is supported.
 * `subnet_ids` - (Optional) List of subnet IDs in which to launch the broker. A `SINGLE_INSTANCE` deployment requires one subnet. An `ACTIVE_STANDBY_MULTI_AZ` deployment requires multiple subnets.
-* `tags` - (Optional) Map of tags to assign to the broker.
+* `tags` - (Optional) Map of tags to assign to the broker. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### configuration
 
@@ -172,6 +171,7 @@ In addition to all arguments above, the following attributes are exported:
             * `wss://broker-id.mq.us-west-2.amazonaws.com:61619`
         * For `RabbitMQ`:
             * `amqps://broker-id.mq.us-west-2.amazonaws.com:5671`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

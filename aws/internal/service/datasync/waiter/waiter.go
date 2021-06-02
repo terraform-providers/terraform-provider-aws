@@ -10,17 +10,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// TaskStatusAvailable waits for a Task to return Available
-func TaskStatusAvailable(conn *datasync.DataSync, arn string, timeout time.Duration) (*datasync.DescribeTaskOutput, error) {
+func AgentReady(conn *datasync.DataSync, arn string, timeout time.Duration) (*datasync.DescribeAgentOutput, error) {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{
-			datasync.TaskStatusCreating,
-			datasync.TaskStatusUnavailable,
-		},
-		Target: []string{
-			datasync.TaskStatusAvailable,
-			datasync.TaskStatusRunning,
-		},
+		Pending: []string{},
+		Target:  []string{agentStatusReady},
+		Refresh: AgentStatus(conn, arn),
+		Timeout: timeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*datasync.DescribeAgentOutput); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func TaskAvailable(conn *datasync.DataSync, arn string, timeout time.Duration) (*datasync.DescribeTaskOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{datasync.TaskStatusCreating, datasync.TaskStatusUnavailable},
+		Target:  []string{datasync.TaskStatusAvailable, datasync.TaskStatusRunning},
 		Refresh: TaskStatus(conn, arn),
 		Timeout: timeout,
 	}

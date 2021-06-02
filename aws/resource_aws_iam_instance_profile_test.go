@@ -169,12 +169,10 @@ func TestAccAWSIAMInstanceProfile_namePrefix(t *testing.T) {
 	resourceName := "aws_iam_instance_profile.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:        func() { testAccPreCheck(t) },
-		ErrorCheck:      testAccErrorCheck(t, iam.EndpointsID),
-		IDRefreshName:   resourceName,
-		IDRefreshIgnore: []string{"name_prefix"},
-		Providers:       testAccProviders,
-		CheckDestroy:    testAccCheckAWSInstanceProfileDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSInstanceProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSInstanceProfilePrefixNameConfig(rName),

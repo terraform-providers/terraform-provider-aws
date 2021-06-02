@@ -91,18 +91,24 @@ func resourceAwsAppmeshMesh() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAppmeshMeshCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	meshName := d.Get("name").(string)
 	req := &appmesh.CreateMeshInput{
 		MeshName: aws.String(meshName),
 		Spec:     expandAppmeshMeshSpec(d.Get("spec").([]interface{})),
-		Tags:     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+		Tags:     tags.IgnoreAws().AppmeshTags(),
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh service mesh: %#v", req)
@@ -118,6 +124,7 @@ func resourceAwsAppmeshMeshCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsAppmeshMeshRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &appmesh.DescribeMeshInput{
@@ -191,8 +198,15 @@ func resourceAwsAppmeshMeshRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for App Mesh service mesh (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -216,8 +230,8 @@ func resourceAwsAppmeshMeshUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.AppmeshUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating App Mesh service mesh (%s) tags: %s", arn, err)

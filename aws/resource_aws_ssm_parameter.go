@@ -95,7 +95,8 @@ func resourceAwsSsmParameter() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 
 		CustomizeDiff: customdiff.All(
@@ -106,12 +107,15 @@ func resourceAwsSsmParameter() *schema.Resource {
 			customdiff.ForceNewIfChange("tier", func(_ context.Context, old, new, meta interface{}) bool {
 				return old.(string) == ssm.ParameterTierAdvanced && (new.(string) == ssm.ParameterTierStandard || new.(string) == ssm.ParameterTierIntelligentTiering)
 			}),
+			SetTagsDiff,
 		),
 	}
 }
 
 func resourceAwsSsmParameterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
 
@@ -139,8 +143,8 @@ func resourceAwsSsmParameterCreate(d *schema.ResourceData, meta interface{}) err
 	// AWS SSM Service only supports PutParameter requests with Tags
 	// iff Overwrite is not provided or is false; in this resource's case,
 	// the Overwrite value is always set in the paramInput so we check for the value
-	if v, ok := d.GetOk("tags"); ok && !aws.BoolValue(paramInput.Overwrite) {
-		paramInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsmTags()
+	if len(tags) > 0 && !aws.BoolValue(paramInput.Overwrite) {
+		paramInput.Tags = tags.IgnoreAws().SsmTags()
 	}
 
 	_, err := conn.PutParameter(paramInput)
@@ -157,8 +161,8 @@ func resourceAwsSsmParameterCreate(d *schema.ResourceData, meta interface{}) err
 	// Since the AWS SSM Service does not support PutParameter requests with
 	// Tags and Overwrite set to true, we make an additional API call
 	// to Update the resource's tags if necessary
-	if d.HasChange("tags") && paramInput.Tags == nil {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") && paramInput.Tags == nil {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SsmUpdateTags(conn, name, ssm.ResourceTypeForTaggingParameter, o, n); err != nil {
 			return fmt.Errorf("error updating SSM Parameter (%s) tags: %w", name, err)
@@ -172,6 +176,7 @@ func resourceAwsSsmParameterCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &ssm.GetParameterInput{
@@ -252,8 +257,15 @@ func resourceAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for SSM Parameter (%s): %w", name, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("arn", param.ARN)
@@ -264,7 +276,7 @@ func resourceAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsSsmParameterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssmconn
 
-	if d.HasChangesExcept("tags") {
+	if d.HasChangesExcept("tags", "tags_all") {
 		paramInput := &ssm.PutParameterInput{
 			Name:           aws.String(d.Get("name").(string)),
 			Type:           aws.String(d.Get("type").(string)),
@@ -298,8 +310,8 @@ func resourceAwsSsmParameterUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SsmUpdateTags(conn, d.Id(), ssm.ResourceTypeForTaggingParameter, o, n); err != nil {
 			return fmt.Errorf("error updating SSM Parameter (%s) tags: %w", d.Id(), err)

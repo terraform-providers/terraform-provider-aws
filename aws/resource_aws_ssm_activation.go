@@ -63,13 +63,18 @@ func resourceAwsSsmActivation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchemaForceNew(),
+			"tags":     tagsSchemaForceNew(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSsmActivationCreate(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	log.Printf("[DEBUG] SSM activation create: %s", d.Id())
 
@@ -97,8 +102,8 @@ func resourceAwsSsmActivationCreate(d *schema.ResourceData, meta interface{}) er
 	if _, ok := d.GetOk("registration_limit"); ok {
 		activationInput.RegistrationLimit = aws.Int64(int64(d.Get("registration_limit").(int)))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		activationInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsmTags()
+	if len(tags) > 0 {
+		activationInput.Tags = tags.IgnoreAws().SsmTags()
 	}
 
 	// Retry to allow iam_role to be created and policy attachment to take place
@@ -138,6 +143,7 @@ func resourceAwsSsmActivationCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsSsmActivationRead(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading SSM Activation: %s", d.Id())
@@ -173,8 +179,15 @@ func resourceAwsSsmActivationRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("iam_role", activation.IamRole)
 	d.Set("registration_limit", activation.RegistrationLimit)
 	d.Set("registration_count", activation.RegistrationsCount)
-	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(activation.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.SsmKeyValueTags(activation.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

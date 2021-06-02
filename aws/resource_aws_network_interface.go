@@ -110,7 +110,8 @@ func resourceAwsNetworkInterface() *schema.Resource {
 				Set: resourceAwsEniAttachmentHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"ipv6_address_count": {
 				Type:          schema.TypeInt,
 				Optional:      true,
@@ -127,17 +128,29 @@ func resourceAwsNetworkInterface() *schema.Resource {
 				},
 				ConflictsWith: []string{"ipv6_address_count"},
 			},
+
+			"interface_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.NetworkInterfaceCreationType_Values(), false),
+			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	request := &ec2.CreateNetworkInterfaceInput{
 		SubnetId:          aws.String(d.Get("subnet_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeNetworkInterface),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeNetworkInterface),
 	}
 
 	if v, ok := d.GetOk("security_groups"); ok && v.(*schema.Set).Len() > 0 {
@@ -162,6 +175,10 @@ func resourceAwsNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("ipv6_addresses"); ok && v.(*schema.Set).Len() > 0 {
 		request.Ipv6Addresses = expandIP6Addresses(v.(*schema.Set).List())
+	}
+
+	if v, ok := d.GetOk("interface_type"); ok {
+		request.InterfaceType = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Creating network interface")
@@ -208,6 +225,7 @@ func resourceAwsNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describe_network_interfaces_request := &ec2.DescribeNetworkInterfacesInput{
@@ -241,6 +259,7 @@ func resourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting attachment: %s", err)
 	}
 
+	d.Set("interface_type", eni.InterfaceType)
 	d.Set("description", eni.Description)
 	d.Set("private_dns_name", eni.PrivateDnsName)
 	d.Set("mac_address", eni.MacAddress)
@@ -265,8 +284,15 @@ func resourceAwsNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting ipv6 addresses: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(eni.TagSet).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(eni.TagSet).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -539,8 +565,8 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Network Interface (%s) tags: %s", d.Id(), err)

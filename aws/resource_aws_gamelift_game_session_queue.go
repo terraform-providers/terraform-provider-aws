@@ -61,19 +61,25 @@ func resourceAwsGameliftGameSessionQueue() *schema.Resource {
 				Computed: true,
 			},
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsGameliftGameSessionQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).gameliftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := gamelift.CreateGameSessionQueueInput{
 		Name:                  aws.String(d.Get("name").(string)),
 		Destinations:          expandGameliftGameSessionQueueDestinations(d.Get("destinations").([]interface{})),
 		PlayerLatencyPolicies: expandGameliftGameSessionPlayerLatencyPolicies(d.Get("player_latency_policy").([]interface{})),
 		TimeoutInSeconds:      aws.Int64(int64(d.Get("timeout_in_seconds").(int))),
-		Tags:                  keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GameliftTags(),
+		Tags:                  tags.IgnoreAws().GameliftTags(),
 	}
 	log.Printf("[INFO] Creating Gamelift Session Queue: %s", input)
 	out, err := conn.CreateGameSessionQueue(&input)
@@ -88,6 +94,7 @@ func resourceAwsGameliftGameSessionQueueCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsGameliftGameSessionQueueRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).gameliftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Describing Gamelift Session Queues: %s", d.Id())
@@ -134,8 +141,15 @@ func resourceAwsGameliftGameSessionQueueRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error listing tags for Game Lift Session Queue (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -184,8 +198,8 @@ func resourceAwsGameliftGameSessionQueueUpdate(d *schema.ResourceData, meta inte
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.GameliftUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Game Lift Session Queue (%s) tags: %s", arn, err)

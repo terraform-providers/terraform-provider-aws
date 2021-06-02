@@ -209,7 +209,8 @@ func resourceAwsMwaaEnvironment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"webserver_access_mode": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -226,11 +227,15 @@ func resourceAwsMwaaEnvironment() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsMwaaEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mwaaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := mwaa.CreateEnvironmentInput{
 		DagS3Path:            aws.String(d.Get("dag_s3_path").(string)),
@@ -241,7 +246,7 @@ func resourceAwsMwaaEnvironmentCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("airflow_configuration_options"); ok {
-		input.AirflowConfigurationOptions = stringMapToPointers(v.(map[string]interface{}))
+		input.AirflowConfigurationOptions = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("airflow_version"); ok {
@@ -292,8 +297,8 @@ func resourceAwsMwaaEnvironmentCreate(d *schema.ResourceData, meta interface{}) 
 		input.WeeklyMaintenanceWindowStart = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().MwaaTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().MwaaTags()
 	}
 
 	log.Printf("[INFO] Creating MWAA Environment: %s", input)
@@ -313,6 +318,7 @@ func resourceAwsMwaaEnvironmentCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsMwaaEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mwaaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading MWAA Environment: %s", d.Id())
@@ -364,8 +370,15 @@ func resourceAwsMwaaEnvironmentRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("webserver_url", environment.WebserverUrl)
 	d.Set("weekly_maintenance_window_start", environment.WeeklyMaintenanceWindowStart)
 
-	if err := d.Set("tags", keyvaluetags.MwaaKeyValueTags(environment.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.MwaaKeyValueTags(environment.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -378,14 +391,14 @@ func resourceAwsMwaaEnvironmentUpdate(d *schema.ResourceData, meta interface{}) 
 		Name: aws.String(d.Get("name").(string)),
 	}
 
-	if d.HasChangesExcept("tags") {
+	if d.HasChangesExcept("tags", "tags_all") {
 		if d.HasChange("airflow_configuration_options") {
 			options, ok := d.GetOk("airflow_configuration_options")
 			if !ok {
 				options = map[string]interface{}{}
 			}
 
-			input.AirflowConfigurationOptions = stringMapToPointers(options.(map[string]interface{}))
+			input.AirflowConfigurationOptions = expandStringMap(options.(map[string]interface{}))
 		}
 
 		if d.HasChange("airflow_version") {
@@ -418,6 +431,10 @@ func resourceAwsMwaaEnvironmentUpdate(d *schema.ResourceData, meta interface{}) 
 
 		if d.HasChange("network_configuration") {
 			input.NetworkConfiguration = expandMwaaEnvironmentNetworkConfigurationUpdate(d.Get("network_configuration").([]interface{}))
+		}
+
+		if d.HasChange("plugins_s3_object_version") {
+			input.PluginsS3ObjectVersion = aws.String(d.Get("plugins_s3_object_version").(string))
 		}
 
 		if d.HasChange("plugins_s3_path") {
@@ -456,8 +473,8 @@ func resourceAwsMwaaEnvironmentUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.MwaaUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating MWAA Environment (%s) tags: %s", d.Get("arn").(string), err)

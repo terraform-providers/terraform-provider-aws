@@ -18,6 +18,7 @@ func defaultCacheBehaviorConf() map[string]interface{} {
 		"min_ttl":                     0,
 		"trusted_signers":             trustedSignersConf(),
 		"lambda_function_association": lambdaFunctionAssociationsConf(),
+		"function_association":        functionAssociationsConf(),
 		"max_ttl":                     31536000,
 		"smooth_streaming":            false,
 		"default_ttl":                 86400,
@@ -49,6 +50,21 @@ func lambdaFunctionAssociationsConf() *schema.Set {
 	}
 
 	return schema.NewSet(lambdaFunctionAssociationHash, x)
+}
+
+func functionAssociationsConf() *schema.Set {
+	x := []interface{}{
+		map[string]interface{}{
+			"event_type":   "viewer-request",
+			"function_arn": "arn:aws:cloudfront::999999999:function/function1", //lintignore:AWSAT003,AWSAT005
+		},
+		map[string]interface{}{
+			"event_type":   "viewer-response",
+			"function_arn": "arn:aws:cloudfront::999999999:function/function2", //lintignore:AWSAT003,AWSAT005
+		},
+	}
+
+	return schema.NewSet(functionAssociationHash, x)
 }
 
 func forwardedValuesConf() map[string]interface{} {
@@ -120,6 +136,13 @@ func customOriginSslProtocolsConf() *schema.Set {
 	return schema.NewSet(schema.HashString, []interface{}{"SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2"})
 }
 
+func originShield() map[string]interface{} {
+	return map[string]interface{}{
+		"enabled":              true,
+		"origin_shield_region": "testRegion",
+	}
+}
+
 func s3OriginConf() map[string]interface{} {
 	return map[string]interface{}{
 		"origin_access_identity": "origin-access-identity/cloudfront/E127EXAMPLE51Z",
@@ -135,6 +158,7 @@ func originWithCustomConf() map[string]interface{} {
 		"custom_header":        originCustomHeadersConf(),
 	}
 }
+
 func originWithS3Conf() map[string]interface{} {
 	return map[string]interface{}{
 		"origin_id":        "S3Origin",
@@ -304,6 +328,9 @@ func TestCloudFrontStructure_expandCloudFrontDefaultCacheBehavior(t *testing.T) 
 	if *dcb.LambdaFunctionAssociations.Quantity != 2 {
 		t.Fatalf("Expected LambdaFunctionAssociations to be 2, got %v", *dcb.LambdaFunctionAssociations.Quantity)
 	}
+	if *dcb.FunctionAssociations.Quantity != 2 {
+		t.Fatalf("Expected FunctionAssociations to be 2, got %v", *dcb.FunctionAssociations.Quantity)
+	}
 	if !reflect.DeepEqual(dcb.AllowedMethods.Items, expandStringSet(allowedMethodsConf())) {
 		t.Fatalf("Expected AllowedMethods.Items to be %v, got %v", allowedMethodsConf().List(), dcb.AllowedMethods.Items)
 	}
@@ -387,6 +414,47 @@ func TestCloudFrontStructure_expandlambdaFunctionAssociations_empty(t *testing.T
 		t.Fatalf("Expected Items to be len 0, got %v", len(lfa.Items))
 	}
 	if !reflect.DeepEqual(lfa.Items, []*cloudfront.LambdaFunctionAssociation{}) {
+		t.Fatalf("Expected Items to be empty, got %v", lfa.Items)
+	}
+}
+
+func TestCloudFrontStructure_expandFunctionAssociations(t *testing.T) {
+	data := functionAssociationsConf()
+	lfa := expandFunctionAssociations(data.List())
+	if *lfa.Quantity != 2 {
+		t.Fatalf("Expected Quantity to be 2, got %v", *lfa.Quantity)
+	}
+	if len(lfa.Items) != 2 {
+		t.Fatalf("Expected Items to be len 2, got %v", len(lfa.Items))
+	}
+	if et := "viewer-response"; *lfa.Items[0].EventType != et {
+		t.Fatalf("Expected first Item's EventType to be %q, got %q", et, *lfa.Items[0].EventType)
+	}
+	if et := "viewer-request"; *lfa.Items[1].EventType != et {
+		t.Fatalf("Expected second Item's EventType to be %q, got %q", et, *lfa.Items[1].EventType)
+	}
+}
+
+func TestCloudFrontStructure_flattenFunctionAssociations(t *testing.T) {
+	in := functionAssociationsConf()
+	lfa := expandFunctionAssociations(in.List())
+	out := flattenFunctionAssociations(lfa)
+
+	if !reflect.DeepEqual(in.List(), out.List()) {
+		t.Fatalf("Expected out to be %v, got %v", in, out)
+	}
+}
+
+func TestCloudFrontStructure_expandFunctionAssociations_empty(t *testing.T) {
+	data := new(schema.Set)
+	lfa := expandFunctionAssociations(data.List())
+	if *lfa.Quantity != 0 {
+		t.Fatalf("Expected Quantity to be 0, got %v", *lfa.Quantity)
+	}
+	if len(lfa.Items) != 0 {
+		t.Fatalf("Expected Items to be len 0, got %v", len(lfa.Items))
+	}
+	if !reflect.DeepEqual(lfa.Items, []*cloudfront.FunctionAssociation{}) {
 		t.Fatalf("Expected Items to be empty, got %v", lfa.Items)
 	}
 }
@@ -752,6 +820,27 @@ func TestCloudFrontStructure_flattenCustomOriginConfigSSL(t *testing.T) {
 	out := flattenCustomOriginConfigSSL(ocs)
 
 	if !in.Equal(out) {
+		t.Fatalf("Expected out to be %v, got %v", in, out)
+	}
+}
+
+func TestCloudFrontStructure_expandOriginShield(t *testing.T) {
+	data := originShield()
+	o := expandOriginShield(data)
+	if *o.Enabled != true {
+		t.Fatalf("Expected Enabled to be true, got %v", *o.Enabled)
+	}
+	if *o.OriginShieldRegion != "testRegion" {
+		t.Fatalf("Expected OriginShieldRegion to be testRegion, got %v", *o.OriginShieldRegion)
+	}
+}
+
+func TestCloudFrontStructure_flattenOriginShield(t *testing.T) {
+	in := originShield()
+	o := expandOriginShield(in)
+	out := flattenOriginShield(o)
+
+	if !reflect.DeepEqual(in, out) {
 		t.Fatalf("Expected out to be %v, got %v", in, out)
 	}
 }

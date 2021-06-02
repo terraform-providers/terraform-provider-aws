@@ -25,6 +25,8 @@ func resourceAwsKeyPair() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		SchemaVersion: 1,
 		MigrateState:  resourceAwsKeyPairMigrateState,
 
@@ -65,7 +67,8 @@ func resourceAwsKeyPair() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -76,6 +79,8 @@ func resourceAwsKeyPair() *schema.Resource {
 
 func resourceAwsKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var keyName string
 	if v, ok := d.GetOk("key_name"); ok {
@@ -92,7 +97,7 @@ func resourceAwsKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           aws.String(keyName),
 		PublicKeyMaterial: []byte(publicKey),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeKeyPair),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeKeyPair),
 	}
 	resp, err := conn.ImportKeyPair(req)
 	if err != nil {
@@ -106,6 +111,7 @@ func resourceAwsKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsKeyPairRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &ec2.DescribeKeyPairsInput{
@@ -136,8 +142,15 @@ func resourceAwsKeyPairRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("key_name", kp.KeyName)
 	d.Set("fingerprint", kp.KeyFingerprint)
 	d.Set("key_pair_id", kp.KeyPairId)
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(kp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(kp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -156,8 +169,8 @@ func resourceAwsKeyPairRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsKeyPairUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Get("key_pair_id").(string), o, n); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}

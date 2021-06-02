@@ -50,23 +50,26 @@ func resourceAwsWorkspacesIpGroup() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWorkspacesIpGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).workspacesconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	rules := d.Get("rules").(*schema.Set).List()
-
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().WorkspacesTags()
 
 	resp, err := conn.CreateIpGroup(&workspaces.CreateIpGroupInput{
 		GroupName: aws.String(d.Get("name").(string)),
 		GroupDesc: aws.String(d.Get("description").(string)),
 		UserRules: expandIpGroupRules(rules),
-		Tags:      tags,
+		Tags:      tags.IgnoreAws().WorkspacesTags(),
 	})
 	if err != nil {
 		return err
@@ -79,6 +82,7 @@ func resourceAwsWorkspacesIpGroupCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsWorkspacesIpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).workspacesconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeIpGroups(&workspaces.DescribeIpGroupsInput{
@@ -113,8 +117,15 @@ func resourceAwsWorkspacesIpGroupRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error listing tags for WorkSpaces IP Group (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -136,8 +147,8 @@ func resourceAwsWorkspacesIpGroupUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.WorkspacesUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

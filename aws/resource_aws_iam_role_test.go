@@ -220,12 +220,10 @@ func TestAccAWSIAMRole_namePrefix(t *testing.T) {
 	resourceName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:        func() { testAccPreCheck(t) },
-		ErrorCheck:      testAccErrorCheck(t, iam.EndpointsID),
-		IDRefreshName:   resourceName,
-		IDRefreshIgnore: []string{"name_prefix"},
-		Providers:       testAccProviders,
-		CheckDestroy:    testAccCheckAWSRoleDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMRolePrefixNameConfig(rName),

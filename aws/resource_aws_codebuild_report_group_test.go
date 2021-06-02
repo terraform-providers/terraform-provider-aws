@@ -32,9 +32,9 @@ func testSweepCodeBuildReportGroups(region string) error {
 	input := &codebuild.ListReportGroupsInput{}
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListReportGroupsPages(input, func(page *codebuild.ListReportGroupsOutput, isLast bool) bool {
+	err = conn.ListReportGroupsPages(input, func(page *codebuild.ListReportGroupsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, arn := range page.ReportGroups {
@@ -53,7 +53,7 @@ func testSweepCodeBuildReportGroups(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

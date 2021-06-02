@@ -94,11 +94,10 @@ func TestAccAWSPinpointAPNSSandboxChannel_basicCertificate(t *testing.T) {
 	configuration := testAccAwsPinpointAPNSSandboxChannelCertConfigurationFromEnv(t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointAPNSSandboxChannelDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointAPNSSandboxChannelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointAPNSSandboxChannelConfig_basicCertificate(configuration),
@@ -129,11 +128,10 @@ func TestAccAWSPinpointAPNSSandboxChannel_basicToken(t *testing.T) {
 	configuration := testAccAwsPinpointAPNSSandboxChannelTokenConfigurationFromEnv(t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointAPNSSandboxChannelDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointAPNSSandboxChannelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointAPNSSandboxChannelConfig_basicToken(configuration),

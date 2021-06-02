@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fms"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -37,14 +38,14 @@ func resourceAwsFmsAdminAccountCreate(d *schema.ResourceData, meta interface{}) 
 	conn := meta.(*AWSClient).fmsconn
 
 	// Ensure there is not an existing FMS Admin Account
-	getAdminAccountOutput, err := conn.GetAdminAccount(&fms.GetAdminAccountInput{})
+	output, err := conn.GetAdminAccount(&fms.GetAdminAccountInput{})
 
-	if err != nil && !isAWSErr(err, fms.ErrCodeResourceNotFoundException, "") {
-		return fmt.Errorf("error getting FMS Admin Account: %s", err)
+	if err != nil && !tfawserr.ErrCodeEquals(err, fms.ErrCodeResourceNotFoundException) {
+		return fmt.Errorf("error getting FMS Admin Account: %w", err)
 	}
 
-	if getAdminAccountOutput != nil && getAdminAccountOutput.AdminAccount != nil {
-		return fmt.Errorf("FMS Admin Account (%s) already associated: import this Terraform resource to manage", aws.StringValue(getAdminAccountOutput.AdminAccount))
+	if output != nil && output.AdminAccount != nil && aws.StringValue(output.RoleStatus) == fms.AccountRoleStatusReady {
+		return fmt.Errorf("FMS Admin Account (%s) already associated: import this Terraform resource to manage", aws.StringValue(output.AdminAccount))
 	}
 
 	accountID := meta.(*AWSClient).accountid
@@ -54,14 +55,18 @@ func resourceAwsFmsAdminAccountCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Target:  []string{accountID},
+		Pending: []string{
+			fms.AccountRoleStatusDeleted, // Recreating association can return this status
+			fms.AccountRoleStatusCreating,
+		},
+		Target:  []string{fms.AccountRoleStatusReady},
 		Refresh: associateFmsAdminAccountRefreshFunc(conn, accountID),
-		Timeout: 10 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Delay:   10 * time.Second,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("error waiting for FMS Admin Account (%s) association: %s", accountID, err)
+		return fmt.Errorf("error waiting for FMS Admin Account (%s) association: %w", accountID, err)
 	}
 
 	d.SetId(accountID)
@@ -86,15 +91,20 @@ func associateFmsAdminAccountRefreshFunc(conn *fms.FMS, accountId string) resour
 		if err != nil {
 			// FMS returns an AccessDeniedException if no account is associated,
 			// but does not define this in its error codes
-			if isAWSErr(err, "AccessDeniedException", "is not currently delegated by AWS FM") {
+			if tfawserr.ErrMessageContains(err, "AccessDeniedException", "is not currently delegated by AWS FM") {
 				return nil, "", nil
 			}
-			if isAWSErr(err, fms.ErrCodeResourceNotFoundException, "") {
+			if tfawserr.ErrCodeEquals(err, fms.ErrCodeResourceNotFoundException) {
 				return nil, "", nil
 			}
 			return nil, "", err
 		}
-		return *res, *res.AdminAccount, err
+
+		if aws.StringValue(res.AdminAccount) != accountId {
+			return nil, "", nil
+		}
+
+		return res, aws.StringValue(res.RoleStatus), err
 	}
 }
 
@@ -103,18 +113,22 @@ func resourceAwsFmsAdminAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	output, err := conn.GetAdminAccount(&fms.GetAdminAccountInput{})
 
-	if isAWSErr(err, fms.ErrCodeResourceNotFoundException, "") {
-		log.Printf("[WARN] FMS Admin Account not found, removing from state")
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, fms.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] FMS Admin Account (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error getting FMS Admin Account: %s", err)
+		return fmt.Errorf("error getting FMS Admin Account (%s): %w", d.Id(), err)
 	}
 
 	if aws.StringValue(output.RoleStatus) == fms.AccountRoleStatusDeleted {
-		log.Printf("[WARN] FMS Admin Account not found, removing from state")
+		if d.IsNewResource() {
+			return fmt.Errorf("error getting FMS Admin Account (%s): %s after creation", d.Id(), aws.StringValue(output.RoleStatus))
+		}
+
+		log.Printf("[WARN] FMS Admin Account (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -130,11 +144,11 @@ func resourceAwsFmsAdminAccountDelete(d *schema.ResourceData, meta interface{}) 
 	_, err := conn.DisassociateAdminAccount(&fms.DisassociateAdminAccountInput{})
 
 	if err != nil {
-		return fmt.Errorf("error disassociating FMS Admin Account: %s", err)
+		return fmt.Errorf("error disassociating FMS Admin Account (%s): %w", d.Id(), err)
 	}
 
 	if err := waitForFmsAdminAccountDeletion(conn); err != nil {
-		return fmt.Errorf("error waiting for FMS Admin Account (%s) disassociation: %s", d.Id(), err)
+		return fmt.Errorf("error waiting for FMS Admin Account (%s) disassociation: %w", d.Id(), err)
 	}
 
 	return nil
@@ -151,7 +165,7 @@ func waitForFmsAdminAccountDeletion(conn *fms.FMS) error {
 		Refresh: func() (interface{}, string, error) {
 			output, err := conn.GetAdminAccount(&fms.GetAdminAccountInput{})
 
-			if isAWSErr(err, fms.ErrCodeResourceNotFoundException, "") {
+			if tfawserr.ErrCodeEquals(err, fms.ErrCodeResourceNotFoundException) {
 				return output, fms.AccountRoleStatusDeleted, nil
 			}
 
@@ -161,7 +175,7 @@ func waitForFmsAdminAccountDeletion(conn *fms.FMS) error {
 
 			return output, aws.StringValue(output.RoleStatus), nil
 		},
-		Timeout: 1 * time.Minute,
+		Timeout: 10 * time.Minute,
 		Delay:   10 * time.Second,
 	}
 

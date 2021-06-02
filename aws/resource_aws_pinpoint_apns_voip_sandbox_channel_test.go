@@ -94,11 +94,10 @@ func TestAccAWSPinpointAPNSVoipSandboxChannel_basicCertificate(t *testing.T) {
 	configuration := testAccAwsPinpointAPNSVoipSandboxChannelCertConfigurationFromEnv(t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointAPNSVoipSandboxChannelDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointAPNSVoipSandboxChannelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointAPNSVoipSandboxChannelConfig_basicCertificate(configuration),
@@ -129,11 +128,10 @@ func TestAccAWSPinpointAPNSVoipSandboxChannel_basicToken(t *testing.T) {
 	configuration := testAccAwsPinpointAPNSVoipSandboxChannelTokenConfigurationFromEnv(t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointAPNSVoipSandboxChannelDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointAPNSVoipSandboxChannelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointAPNSVoipSandboxChannelConfig_basicToken(configuration),

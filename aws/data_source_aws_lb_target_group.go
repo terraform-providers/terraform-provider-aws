@@ -2,11 +2,12 @@ package aws
 
 import (
 	"fmt"
-	"log"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsLbTargetGroup() *schema.Resource {
@@ -141,29 +142,122 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 }
 
 func dataSourceAwsLbTargetGroupRead(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbv2conn
-	tgArn := d.Get("arn").(string)
-	tgName := d.Get("name").(string)
+	conn := meta.(*AWSClient).elbv2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	describeTgOpts := &elbv2.DescribeTargetGroupsInput{}
-	switch {
-	case tgArn != "":
-		describeTgOpts.TargetGroupArns = []*string{aws.String(tgArn)}
-	case tgName != "":
-		describeTgOpts.Names = []*string{aws.String(tgName)}
+	input := &elbv2.DescribeTargetGroupsInput{}
+
+	if v, ok := d.GetOk("arn"); ok {
+		input.TargetGroupArns = aws.StringSlice([]string{v.(string)})
+	} else if v, ok := d.GetOk("name"); ok {
+		input.Names = aws.StringSlice([]string{v.(string)})
 	}
 
-	log.Printf("[DEBUG] Reading Load Balancer Target Group: %s", describeTgOpts)
-	describeResp, err := elbconn.DescribeTargetGroups(describeTgOpts)
+	var results []*elbv2.TargetGroup
+
+	err := conn.DescribeTargetGroupsPages(input, func(page *elbv2.DescribeTargetGroupsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		results = append(results, page.TargetGroups...)
+
+		return !lastPage
+	})
+
 	if err != nil {
-		return fmt.Errorf("Error retrieving LB Target Group: %w", err)
+		return fmt.Errorf("error retrieving LB Target Group: %w", err)
 	}
-	if len(describeResp.TargetGroups) != 1 {
-		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(describeResp.TargetGroups))
+	if len(results) != 1 {
+		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(results))
 	}
 
-	targetGroup := describeResp.TargetGroups[0]
+	targetGroup := results[0]
 
 	d.SetId(aws.StringValue(targetGroup.TargetGroupArn))
-	return flattenAwsLbTargetGroupResource(d, meta, targetGroup)
+
+	d.Set("arn", targetGroup.TargetGroupArn)
+	d.Set("arn_suffix", lbTargetGroupSuffixFromARN(targetGroup.TargetGroupArn))
+	d.Set("name", targetGroup.TargetGroupName)
+	d.Set("target_type", targetGroup.TargetType)
+
+	if err := d.Set("health_check", flattenLbTargetGroupHealthCheck(targetGroup)); err != nil {
+		return fmt.Errorf("error setting health_check: %w", err)
+	}
+
+	if v, _ := d.Get("target_type").(string); v != elbv2.TargetTypeEnumLambda {
+		d.Set("vpc_id", targetGroup.VpcId)
+		d.Set("port", targetGroup.Port)
+		d.Set("protocol", targetGroup.Protocol)
+	}
+	switch d.Get("protocol").(string) {
+	case elbv2.ProtocolEnumHttp, elbv2.ProtocolEnumHttps:
+		d.Set("protocol_version", targetGroup.ProtocolVersion)
+	}
+
+	attrResp, err := conn.DescribeTargetGroupAttributes(&elbv2.DescribeTargetGroupAttributesInput{
+		TargetGroupArn: aws.String(d.Id()),
+	})
+	if err != nil {
+		return fmt.Errorf("error retrieving Target Group Attributes: %w", err)
+	}
+
+	for _, attr := range attrResp.Attributes {
+		switch aws.StringValue(attr.Key) {
+		case "deregistration_delay.timeout_seconds":
+			timeout, err := strconv.Atoi(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("error converting deregistration_delay.timeout_seconds to int: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("deregistration_delay", timeout)
+		case "lambda.multi_value_headers.enabled":
+			enabled, err := strconv.ParseBool(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("error converting lambda.multi_value_headers.enabled to bool: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("lambda_multi_value_headers_enabled", enabled)
+		case "proxy_protocol_v2.enabled":
+			enabled, err := strconv.ParseBool(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("error converting proxy_protocol_v2.enabled to bool: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("proxy_protocol_v2", enabled)
+		case "slow_start.duration_seconds":
+			slowStart, err := strconv.Atoi(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("error converting slow_start.duration_seconds to int: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("slow_start", slowStart)
+		case "load_balancing.algorithm.type":
+			loadBalancingAlgorithm := aws.StringValue(attr.Value)
+			d.Set("load_balancing_algorithm_type", loadBalancingAlgorithm)
+		case "preserve_client_ip.enabled":
+			_, err := strconv.ParseBool(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("error converting preserve_client_ip.enabled to bool: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("preserve_client_ip", attr.Value)
+		}
+	}
+
+	stickinessAttr, err := flattenAwsLbTargetGroupStickiness(attrResp.Attributes)
+	if err != nil {
+		return fmt.Errorf("error flattening stickiness: %w", err)
+	}
+
+	if err := d.Set("stickiness", stickinessAttr); err != nil {
+		return fmt.Errorf("error setting stickiness: %w", err)
+	}
+
+	tags, err := keyvaluetags.Elbv2ListTags(conn, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for LB Target Group (%s): %w", d.Id(), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	return nil
 }

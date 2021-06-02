@@ -51,13 +51,18 @@ func resourceAwsOrganizationsPolicy() *schema.Resource {
 				Default:      organizations.PolicyTypeServiceControlPolicy,
 				ValidateFunc: validation.StringInSlice(organizations.PolicyType_Values(), false),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsOrganizationsPolicyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).organizationsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
 
@@ -66,7 +71,7 @@ func resourceAwsOrganizationsPolicyCreate(ctx context.Context, d *schema.Resourc
 		Description: aws.String(d.Get("description").(string)),
 		Name:        aws.String(name),
 		Type:        aws.String(d.Get("type").(string)),
-		Tags:        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().OrganizationsTags(),
+		Tags:        tags.IgnoreAws().OrganizationsTags(),
 	}
 
 	log.Printf("[DEBUG] Creating Organizations Policy (%s): %v", name, input)
@@ -102,6 +107,7 @@ func resourceAwsOrganizationsPolicyCreate(ctx context.Context, d *schema.Resourc
 
 func resourceAwsOrganizationsPolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).organizationsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &organizations.DescribePolicyInput{
@@ -146,8 +152,15 @@ func resourceAwsOrganizationsPolicyRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(fmt.Errorf("error listing tags for Organizations policy (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting tags for Organizations policy (%s): %w", d.Id(), err))
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags: %w", err))
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags_all: %w", err))
 	}
 
 	return nil
@@ -178,8 +191,8 @@ func resourceAwsOrganizationsPolicyUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error updating Organizations policy (%s): %w", d.Id(), err))
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.OrganizationsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating tags for Organizations policy (%s): %w", d.Id(), err))
 		}

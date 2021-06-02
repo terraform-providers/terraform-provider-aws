@@ -1,0 +1,54 @@
+name: Post Publish
+on:
+  release:
+    types: [published]
+jobs:
+  tidy:
+    name: Tidy Asana
+    runs-on: ubuntu-latest
+    steps:
+      - uses: breathingdust/github-asana-tidy@v1
+        with:
+          asana_pat: ${{ secrets.asana_pat }}
+          asana_target_section_gid: '1141945723817371'
+          asana_workspace_gid: '90955849329269'
+          asana_project_gid: '632425409545160'
+          asana_github_url_field_gid: '1134594824474912'
+          github_release_name: ${{ github.event.release.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  project-archive:
+    name: Archive Released Cards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: breathingdust/github-project-archive@v1
+        with:
+          github_done_column_id: 11513756
+          github_release_name: ${{ github.event.release.tag_name }}
+          github_token: ${{ secrets.GITHUB_ACTIONS_TOKEN }}
+  changelog-newversion:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            fetch-depth: 0
+            ref: main
+        - run: |
+            CHANGELOG_FILE_NAME="CHANGELOG.md"
+            PREVIOUS_RELEASE_TAG=$(git describe --abbrev=0 --match='v*.*.*' --tags)
+            echo Previous release is: $PREVIOUS_RELEASE_TAG
+
+            NEW_RELEASE_LINE=$(echo $PREVIOUS_RELEASE_TAG | awk -F. '{
+                $1 = substr($1,2)
+                $2 += 1
+                printf("%s.%02d.%s\n\n", $1, $2, $3);
+            }')
+
+            echo New minor version is: v$NEW_RELEASE_LINE
+
+            echo -e "## $NEW_RELEASE_LINE (Unreleased)\n$(cat $CHANGELOG_FILE_NAME)" > $CHANGELOG_FILE_NAME
+        - run: |
+              git config --local user.email changelogbot@hashicorp.com
+              git config --local user.name changelogbot
+              git add CHANGELOG.md
+              git commit -m "Update CHANGELOG.md after ${{ github.event.release.tag_name }}" 
+              git push

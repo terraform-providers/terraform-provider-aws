@@ -68,19 +68,23 @@ func resourceAwsWafRegionalRuleGroup() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWafRegionalRuleGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	region := meta.(*AWSClient).region
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().WafregionalTags()
 
 	wr := newWafRegionalRetryer(conn, region)
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
@@ -91,7 +95,7 @@ func resourceAwsWafRegionalRuleGroupCreate(d *schema.ResourceData, meta interfac
 		}
 
 		if len(tags) > 0 {
-			params.Tags = tags
+			params.Tags = tags.IgnoreAws().WafregionalTags()
 		}
 
 		return conn.CreateRuleGroup(params)
@@ -117,6 +121,7 @@ func resourceAwsWafRegionalRuleGroupCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsWafRegionalRuleGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &waf.GetRuleGroupInput{
@@ -154,8 +159,15 @@ func resourceAwsWafRegionalRuleGroupRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("error listing tags for WAF Regional Rule Group (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("activated_rule", flattenWafActivatedRules(rResp.ActivatedRules))
@@ -179,8 +191,8 @@ func resourceAwsWafRegionalRuleGroupUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.WafregionalUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)

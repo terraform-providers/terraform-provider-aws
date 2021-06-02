@@ -529,13 +529,18 @@ func resourceAwsDbInstance() *schema.Resource {
 				Default:  true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Some API calls (e.g. CreateDBInstanceReadReplica and
 	// RestoreDBInstanceFromDBSnapshot do not support all parameters to
@@ -552,8 +557,6 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	// a database instance reboot to take effect. During resource creation,
 	// we expect everything to be in sync before returning completion.
 	var requiresRebootDbInstance bool
-
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags()
 
 	var identifier string
 	if v, ok := d.GetOk("identifier"); ok {
@@ -577,7 +580,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			DBInstanceIdentifier:       aws.String(identifier),
 			PubliclyAccessible:         aws.Bool(d.Get("publicly_accessible").(bool)),
 			SourceDBInstanceIdentifier: aws.String(v.(string)),
-			Tags:                       tags,
+			Tags:                       tags.IgnoreAws().RdsTags(),
 		}
 
 		if attr, ok := d.GetOk("allocated_storage"); ok {
@@ -739,7 +742,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			StorageEncrypted:        aws.Bool(d.Get("storage_encrypted").(bool)),
 			SourceEngine:            aws.String(s3_bucket["source_engine"].(string)),
 			SourceEngineVersion:     aws.String(s3_bucket["source_engine_version"].(string)),
-			Tags:                    tags,
+			Tags:                    tags.IgnoreAws().RdsTags(),
 		}
 
 		if attr, ok := d.GetOk("multi_az"); ok {
@@ -892,7 +895,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			DBSnapshotIdentifier:    aws.String(d.Get("snapshot_identifier").(string)),
 			DeletionProtection:      aws.Bool(d.Get("deletion_protection").(bool)),
 			PubliclyAccessible:      aws.Bool(d.Get("publicly_accessible").(bool)),
-			Tags:                    tags,
+			Tags:                    tags.IgnoreAws().RdsTags(),
 		}
 
 		if attr, ok := d.GetOk("name"); ok {
@@ -1080,7 +1083,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			input.DBInstanceClass = aws.String(d.Get("instance_class").(string))
 			input.DeletionProtection = aws.Bool(d.Get("deletion_protection").(bool))
 			input.PubliclyAccessible = aws.Bool(d.Get("publicly_accessible").(bool))
-			input.Tags = tags
+			input.Tags = tags.IgnoreAws().RdsTags()
 			input.TargetDBInstanceIdentifier = aws.String(d.Get("identifier").(string))
 
 			if v, ok := d.GetOk("availability_zone"); ok {
@@ -1189,7 +1192,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			StorageEncrypted:        aws.Bool(d.Get("storage_encrypted").(bool)),
 			AutoMinorVersionUpgrade: aws.Bool(d.Get("auto_minor_version_upgrade").(bool)),
 			PubliclyAccessible:      aws.Bool(d.Get("publicly_accessible").(bool)),
-			Tags:                    tags,
+			Tags:                    tags.IgnoreAws().RdsTags(),
 			CopyTagsToSnapshot:      aws.Bool(d.Get("copy_tags_to_snapshot").(bool)),
 		}
 
@@ -1385,6 +1388,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	v, err := resourceAwsDbInstanceRetrieve(d.Id(), conn)
@@ -1478,8 +1482,15 @@ func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for RDS DB Instance (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	// Create an empty schema.Set to hold all vpc security group ids
@@ -1811,8 +1822,8 @@ func resourceAwsDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS DB Instance (%s) tags: %s", d.Get("arn").(string), err)

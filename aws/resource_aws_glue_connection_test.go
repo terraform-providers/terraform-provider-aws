@@ -157,6 +157,40 @@ func TestAccAWSGlueConnection_Kafka(t *testing.T) {
 	})
 }
 
+func TestAccAWSGlueConnection_Network(t *testing.T) {
+	var connection glue.Connection
+
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_glue_connection.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGlueConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSGlueConnectionConfig_Network(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueConnectionExists(resourceName, &connection),
+					resource.TestCheckResourceAttr(resourceName, "connection_properties.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "NETWORK"),
+					resource.TestCheckResourceAttr(resourceName, "match_criteria.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "physical_connection_requirements.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "physical_connection_requirements.0.availability_zone"),
+					resource.TestCheckResourceAttr(resourceName, "physical_connection_requirements.0.security_group_id_list.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "physical_connection_requirements.0.subnet_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSGlueConnection_Description(t *testing.T) {
 	var connection glue.Connection
 
@@ -561,6 +595,60 @@ resource "aws_glue_connection" "test" {
   connection_type = "KAFKA"
 
   name = "%s"
+}
+`, rName)
+}
+
+func testAccAWSGlueConnectionConfig_Network(rName string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-glue-connection-network"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.0.0.0/24"
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "terraform-testacc-glue-connection-network"
+  }
+}
+
+resource "aws_security_group" "test" {
+  name   = "%[1]s"
+  vpc_id = aws_vpc.test.id
+
+  ingress {
+    protocol  = "tcp"
+    self      = true
+    from_port = 1
+    to_port   = 65535
+  }
+}
+
+resource "aws_glue_connection" "test" {
+  connection_type = "NETWORK"
+  name            = "%[1]s"
+
+  physical_connection_requirements {
+    availability_zone      = aws_subnet.test.availability_zone
+    security_group_id_list = [aws_security_group.test.id]
+    subnet_id              = aws_subnet.test.id
+  }
 }
 `, rName)
 }

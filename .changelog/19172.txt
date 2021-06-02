@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_glue_connection: Add plan time validation for `connection_properties`, `description`, `match_criteria`, `name`, and `physical_connection_requirements.security_group_id_list`
+```

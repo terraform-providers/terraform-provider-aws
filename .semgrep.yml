@@ -151,6 +151,24 @@ rules:
         - pattern: '*aws.Time($VALUE)'
     severity: WARNING
 
+  - id: data-source-with-resource-read
+    languages: [go]
+    message: Calling a resource's Read method from within a data-source is discouraged
+    paths:
+      include:
+        - aws/data_source_aws_*.go
+    patterns:
+      - pattern-regex: '(resource.+Read|flatten.+Resource)'
+      - pattern-inside: func $FUNCNAME(...) $RETURNTYPE { ... }
+      - pattern-not-inside: |
+          d.Set(..., []interface{}{ ... })
+      - pattern-not-inside: |
+          d.Set($ATTRIBUTE, $FUNC($APIOBJECT))
+      - metavariable-regex:
+          metavariable: "$FUNCNAME"
+          regex: "dataSource.+Read"
+    severity: WARNING
+
   - id: helper-acctest-RandInt-compiled
     languages: [go]
     message: Using `acctest.RandInt()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
@@ -211,7 +229,6 @@ rules:
             expandStringList($LIST)
     severity: WARNING
 
-
   - id: helper-schema-ResourceData-GetOk-with-extraneous-conditional
     languages: [go]
     message: Zero value conditional check after `d.GetOk()` is extraneous
@@ -242,6 +259,58 @@ rules:
           - pattern: d.Set($ATTRIBUTE, aws.Int64Value($APIOBJECT))
           - pattern: d.Set($ATTRIBUTE, int(aws.Int64Value($APIOBJECT)))
           - pattern: d.Set($ATTRIBUTE, aws.StringValue($APIOBJECT))
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-DataSource-Set-tags
+    languages: [go]
+    message: (schema.ResourceData).Set() call with the tags key should include IgnoreConfig in the value
+    paths:
+      include:
+        - aws/data_source*.go
+      exclude:
+        - aws/resource*.go
+    patterns:
+      - pattern-inside: func $READMETHOD(...) $ERRORTYPE { ... }
+      - pattern: if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+      - pattern-not: if err := d.Set("tags", $KEYVALUETAGS.IgnoreAws().IgnoreConfig($CONFIG).Map()); err != nil { ... }
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-Resource-Set-tags
+    languages: [go]
+    message: (schema.ResourceData).Set() call with the tags key should be preceded by a call to IgnoreConfig or include IgnoreConfig in the value in the case of ASG
+    paths:
+      include:
+        - aws/resource*.go
+      exclude:
+        - aws/data_source*.go
+    patterns:
+      - pattern-inside: func $READMETHOD(...) $ERRORTYPE { ... }
+      - pattern-either:
+          - pattern: |
+              tags := $TAGS
+              ...
+              if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+          - pattern: |
+              tags = $TAGS
+              ...
+              if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+          - pattern: |
+              $ASGTAGS := keyvaluetags.AutoscalingKeyValueTags(...)
+              ...
+              if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+      - pattern-not-regex: 'keyvaluetags.AutoscalingKeyValueTags\(.+\).IgnoreAws\(\).IgnoreConfig'
+      - pattern-not: |
+          tags = $KEYVALUETAGS.IgnoreAws().IgnoreConfig($CONFIG)
+          ...
+      - pattern-not: |
+          tags = $KEYVALUETAGS.$IGNORESERVICE().IgnoreConfig($CONFIG)
+          ...
+      - pattern-not: |
+          tags := keyvaluetags.$VALUETAGS($RESOURCETAGS).IgnoreAws().IgnoreConfig($CONFIG)
+          ...
+      - pattern-not: |
+          tags = keyvaluetags.$VALUETAGS($RESOURCETAGS).IgnoreAws().IgnoreConfig($CONFIG)
+          ...
     severity: WARNING
 
   - id: helper-schema-ResourceData-SetId-empty-without-IsNewResource-check
@@ -291,38 +360,74 @@ rules:
         - aws/
     patterns:
       - pattern-either:
-        - pattern: |
-            $ERR := resource.Retry(...)
-            ...
-            return ...
-        - pattern: |
-            $ERR = resource.Retry(...)
-            ...
-            return ...
-      - pattern-not: |
-          $ERR := resource.Retry(...)
-          ...
-          if isResourceTimeoutError($ERR) { ... }
-          ...
-          return ...
-      - pattern-not: |
-          $ERR = resource.Retry(...)
-          ...
-          if isResourceTimeoutError($ERR) { ... }
-          ...
-          return ...
-      - pattern-not: |
-          $ERR := resource.Retry(...)
-          ...
-          if tfresource.TimedOut($ERR) { ... }
-          ...
-          return ...
-      - pattern-not: |
-          $ERR = resource.Retry(...)
-          ...
-          if tfresource.TimedOut($ERR) { ... }
-          ...
-          return ...
+        - patterns:
+          - pattern-either:
+            - pattern: |
+                $ERR := resource.Retry(...)
+                ...
+                return ...
+            - pattern: |
+                $ERR = resource.Retry(...)
+                ...
+                return ...
+          - pattern-not: |
+              $ERR := resource.Retry(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.Retry(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR := resource.Retry(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.Retry(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
+        - patterns:
+          - pattern-either:
+            - pattern: |
+                $ERR := resource.RetryContext(...)
+                ...
+                return ...
+            - pattern: |
+                $ERR = resource.RetryContext(...)
+                ...
+                return ...
+          - pattern-not: |
+              $ERR := resource.RetryContext(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.RetryContext(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR := resource.RetryContext(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.RetryContext(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
     severity: WARNING
 
   - id: is-not-found-error
@@ -373,4 +478,46 @@ rules:
             $X == ($Y : time.Time)
         - pattern: |
             $X != ($Y : time.Time)
+    severity: WARNING
+
+  - id: prefer-pagination-bool-var-last-page
+    languages: [go]
+    message: Use lastPage for bool variable in pagination functions
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern: |
+          $X.$Z(..., func(..., $Y bool) {
+            ...
+          })
+      - pattern-not: |
+          $X.$Z(..., func(..., lastPage bool) {
+            ...
+          })
+      - pattern-not: |
+          $X.$Z(..., func(..., _ bool) {
+            ...
+          })
+      - metavariable-regex:
+          metavariable: '$Z'
+          regex: '.*Pages$'
+    severity: WARNING
+
+  - id: calling-fmt.Print-and-variants
+    languages: [go]
+    message: Do not call `fmt.Print` and variant
+    paths:
+      exclude:
+        - awsproviderlint/vendor/
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            fmt.Print(...)
+        - pattern: |
+            fmt.Printf(...)
+        - pattern: |
+            fmt.Println(...)
     severity: WARNING

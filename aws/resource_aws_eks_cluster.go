@@ -27,6 +27,8 @@ func resourceAwsEksCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
@@ -141,7 +143,7 @@ func resourceAwsEksCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validateEKSClusterName,
 			},
 			"platform_version": {
 				Type:     schema.TypeString,
@@ -157,7 +159,8 @@ func resourceAwsEksCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"version": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -228,6 +231,8 @@ func resourceAwsEksCluster() *schema.Resource {
 
 func resourceAwsEksClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 
 	input := &eks.CreateClusterInput{
@@ -238,8 +243,8 @@ func resourceAwsEksClusterCreate(d *schema.ResourceData, meta interface{}) error
 		Logging:            expandEksLoggingTypes(d.Get("enabled_cluster_log_types").(*schema.Set)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().EksTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EksTags()
 	}
 
 	if _, ok := d.GetOk("kubernetes_network_config"); ok {
@@ -302,6 +307,7 @@ func resourceAwsEksClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &eks.DescribeClusterInput{
@@ -349,8 +355,15 @@ func resourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("role_arn", cluster.RoleArn)
 	d.Set("status", cluster.Status)
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("version", cluster.Version)
@@ -372,8 +385,8 @@ func resourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsEksClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.EksUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

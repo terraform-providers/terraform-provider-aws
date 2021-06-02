@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
@@ -92,7 +92,7 @@ func AttributePathToPath(ap *tftypes.AttributePath) cty.Path {
 	if ap == nil {
 		return p
 	}
-	for _, step := range ap.Steps {
+	for _, step := range ap.Steps() {
 		switch step.(type) {
 		case tftypes.AttributeName:
 			p = p.GetAttr(string(step.(tftypes.AttributeName)))
@@ -110,20 +110,20 @@ func PathToAttributePath(p cty.Path) *tftypes.AttributePath {
 	if p == nil || len(p) < 1 {
 		return nil
 	}
-	ap := &tftypes.AttributePath{}
+	ap := tftypes.NewAttributePath()
 	for _, step := range p {
 		switch selector := step.(type) {
 		case cty.GetAttrStep:
-			ap.Steps = append(ap.Steps, tftypes.AttributeName(selector.Name))
+			ap = ap.WithAttributeName(selector.Name)
 
 		case cty.IndexStep:
 			key := selector.Key
 			switch key.Type() {
 			case cty.String:
-				ap.Steps = append(ap.Steps, tftypes.ElementKeyString(key.AsString()))
+				ap = ap.WithElementKeyString(key.AsString())
 			case cty.Number:
 				v, _ := key.AsBigFloat().Int64()
-				ap.Steps = append(ap.Steps, tftypes.ElementKeyInt(v))
+				ap = ap.WithElementKeyInt(v)
 			default:
 				// We'll bail early if we encounter anything else, and just
 				// return the valid prefix.

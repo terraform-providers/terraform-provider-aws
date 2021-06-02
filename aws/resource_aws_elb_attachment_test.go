@@ -15,11 +15,10 @@ func TestAccAWSELBAttachment_basic(t *testing.T) {
 	resourceName := "aws_elb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBAttachmentConfig1(),
@@ -76,11 +75,10 @@ func TestAccAWSELBAttachment_drift(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elb.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSELBAttachmentConfig1(),

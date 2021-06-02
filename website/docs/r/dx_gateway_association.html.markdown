@@ -128,5 +128,5 @@ Direct Connect gateway associations can be imported using `dx_gateway_id` togeth
 e.g.
 
 ```
-$ terraform import aws_dx_gateway_association.example dxgw-12345678/vgw-98765432
+$ terraform import aws_dx_gateway_association.example 345508c3-7215-4aef-9832-07c125d5bd0f/vgw-98765432
 ```

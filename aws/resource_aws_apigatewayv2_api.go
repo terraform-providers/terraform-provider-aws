@@ -132,7 +132,8 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				Optional: true,
 				Default:  "$request.method $request.path",
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"target": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -144,11 +145,14 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAPIGatewayV2ImportOpenAPI(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 
 	if body, ok := d.GetOk("body"); ok {
 		revertReq := &apigatewayv2.UpdateApiInput{
@@ -174,7 +178,8 @@ func resourceAwsAPIGatewayV2ImportOpenAPI(d *schema.ResourceData, meta interface
 			return fmt.Errorf("error importing API Gateway v2 API (%s) OpenAPI specification: %s", d.Id(), err)
 		}
 
-		tags := d.Get("tags")
+		tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 		corsConfiguration := d.Get("cors_configuration")
 
 		if err := resourceAwsApiGatewayV2ApiRead(d, meta); err != nil {
@@ -195,7 +200,7 @@ func resourceAwsAPIGatewayV2ImportOpenAPI(d *schema.ResourceData, meta interface
 			}
 		}
 
-		if err := keyvaluetags.Apigatewayv2UpdateTags(conn, d.Get("arn").(string), d.Get("tags"), tags); err != nil {
+		if err := keyvaluetags.Apigatewayv2UpdateTags(conn, d.Get("arn").(string), d.Get("tags_all"), tags); err != nil {
 			return fmt.Errorf("error updating API Gateway v2 API (%s) tags: %s", d.Id(), err)
 		}
 
@@ -211,12 +216,14 @@ func resourceAwsAPIGatewayV2ImportOpenAPI(d *schema.ResourceData, meta interface
 
 func resourceAwsApiGatewayV2ApiCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	protocolType := d.Get("protocol_type").(string)
 	req := &apigatewayv2.CreateApiInput{
 		Name:         aws.String(d.Get("name").(string)),
 		ProtocolType: aws.String(protocolType),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Apigatewayv2Tags(),
+		Tags:         tags.IgnoreAws().Apigatewayv2Tags(),
 	}
 	if v, ok := d.GetOk("api_key_selection_expression"); ok {
 		req.ApiKeySelectionExpression = aws.String(v.(string))
@@ -264,6 +271,7 @@ func resourceAwsApiGatewayV2ApiCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsApiGatewayV2ApiRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetApi(&apigatewayv2.GetApiInput{
@@ -303,8 +311,16 @@ func resourceAwsApiGatewayV2ApiRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("protocol_type", resp.ProtocolType)
 	d.Set("route_selection_expression", resp.RouteSelectionExpression)
-	if err := d.Set("tags", keyvaluetags.Apigatewayv2KeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+
+	tags := keyvaluetags.Apigatewayv2KeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 	d.Set("version", resp.Version)
 
@@ -365,8 +381,8 @@ func resourceAwsApiGatewayV2ApiUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Apigatewayv2UpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating API Gateway v2 API (%s) tags: %s", d.Id(), err)
 		}

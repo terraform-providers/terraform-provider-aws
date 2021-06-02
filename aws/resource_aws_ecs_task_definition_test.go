@@ -32,9 +32,9 @@ func testSweepEcsTaskDefinitions(region string) error {
 	conn := client.(*AWSClient).ecsconn
 	var sweeperErrs *multierror.Error
 
-	err = conn.ListTaskDefinitionsPages(&ecs.ListTaskDefinitionsInput{}, func(page *ecs.ListTaskDefinitionsOutput, isLast bool) bool {
+	err = conn.ListTaskDefinitionsPages(&ecs.ListTaskDefinitionsInput{}, func(page *ecs.ListTaskDefinitionsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, taskDefinitionArn := range page.TaskDefinitionArns {
@@ -52,7 +52,7 @@ func testSweepEcsTaskDefinitions(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping ECS Task Definitions sweep for %s: %s", region, err)

@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_outposts_outpost: `owner_id` is now an optional argument 
+```
+
+```release-note:enhancement
+data-source/aws_outposts_outposts: Add `owner_id` argument
+```

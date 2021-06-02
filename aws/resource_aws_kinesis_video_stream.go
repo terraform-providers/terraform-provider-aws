@@ -24,6 +24,8 @@ func resourceAwsKinesisVideoStream() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(120 * time.Minute),
@@ -81,12 +83,16 @@ func resourceAwsKinesisVideoStream() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsKinesisVideoStreamCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisvideoconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	createOpts := &kinesisvideo.CreateStreamInput{
 		StreamName:           aws.String(d.Get("name").(string)),
@@ -105,8 +111,8 @@ func resourceAwsKinesisVideoStreamCreate(d *schema.ResourceData, meta interface{
 		createOpts.MediaType = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		createOpts.Tags = keyvaluetags.New(v).IgnoreAws().KinesisvideoTags()
+	if len(tags) > 0 {
+		createOpts.Tags = tags.IgnoreAws().KinesisvideoTags()
 	}
 
 	resp, err := conn.CreateStream(createOpts)
@@ -135,6 +141,7 @@ func resourceAwsKinesisVideoStreamCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsKinesisVideoStreamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisvideoconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	descOpts := &kinesisvideo.DescribeStreamInput{
@@ -168,8 +175,15 @@ func resourceAwsKinesisVideoStreamRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for Kinesis Video Stream (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -200,8 +214,8 @@ func resourceAwsKinesisVideoStreamUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error updating Kinesis Video Stream (%s): %s", d.Id(), err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.KinesisvideoUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Kinesis Video Stream (%s) tags: %s", d.Id(), err)

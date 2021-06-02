@@ -196,17 +196,22 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"xray_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAppsyncGraphqlApiCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appsyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &appsync.CreateGraphqlApiInput{
 		AuthenticationType: aws.String(d.Get("authentication_type").(string)),
@@ -229,8 +234,8 @@ func resourceAwsAppsyncGraphqlApiCreate(d *schema.ResourceData, meta interface{}
 		input.AdditionalAuthenticationProviders = expandAppsyncGraphqlApiAdditionalAuthProviders(v.([]interface{}), meta.(*AWSClient).region)
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().AppsyncTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().AppsyncTags()
 	}
 
 	if v, ok := d.GetOk("xray_enabled"); ok {
@@ -253,6 +258,7 @@ func resourceAwsAppsyncGraphqlApiCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsAppsyncGraphqlApiRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appsyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &appsync.GetGraphqlApiInput{
@@ -295,8 +301,15 @@ func resourceAwsAppsyncGraphqlApiRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting uris: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.AppsyncKeyValueTags(resp.GraphqlApi.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.AppsyncKeyValueTags(resp.GraphqlApi.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("xray_enabled", resp.GraphqlApi.XrayEnabled); err != nil {
@@ -309,8 +322,8 @@ func resourceAwsAppsyncGraphqlApiRead(d *schema.ResourceData, meta interface{}) 
 func resourceAwsAppsyncGraphqlApiUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appsyncconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.AppsyncUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating AppSync GraphQL API (%s) tags: %s", d.Get("arn").(string), err)

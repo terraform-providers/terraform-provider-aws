@@ -93,6 +93,7 @@ The following arguments are supported:
 * `ami` - (Required) AMI to use for the instance.
 * `associate_public_ip_address` - (Optional) Whether to associate a public IP address with an instance in a VPC.
 * `availability_zone` - (Optional) AZ to start the instance in.
+* `capacity_reservation_specification` - (Optional) Describes an instance's Capacity Reservation targeting option. See [Capacity Reservation Specification](#capacity-reservation-specification) below for more details.
 
 -> **NOTE:** Changing `cpu_core_count` and/or `cpu_threads_per_core` will cause the resource to be destroyed and re-created.
 
@@ -126,7 +127,7 @@ The following arguments are supported:
 
 * `source_dest_check` - (Optional) Controls if traffic is routed to the instance when the destination address does not match the instance. Used for NAT or VPNs. Defaults true.
 * `subnet_id` - (Optional) VPC Subnet ID to launch in.
-* `tags` - (Optional) A map of tags to assign to the resource. Note that these tags apply to the instance and not block storage devices.
+* `tags` - (Optional) A map of tags to assign to the resource. Note that these tags apply to the instance and not block storage devices. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `tenancy` - (Optional) Tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware. The host tenancy is not supported for the import-instance command.
 * `user_data` - (Optional) User data to provide when launching the instance. Do not pass gzip-compressed data via this argument; see `user_data_base64` instead.
 * `user_data_base64` - (Optional) Can be used instead of `user_data` to pass base64-encoded binary data directly. Use this instead of `user_data` whenever the value is not a valid UTF-8 string. For example, gzip-encoded user data must be base64-encoded and passed via this argument to avoid corruption.
@@ -143,6 +144,29 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 10 mins) Used when launching the instance (until it reaches the initial `running` state)
 * `update` - (Defaults to 10 mins) Used when stopping and starting the instance when necessary during update - e.g. when changing instance type
 * `delete` - (Defaults to 20 mins) Used when terminating the instance
+
+### Capacity Reservation Specification
+
+~> **NOTE:** You can specify only one argument at a time. If you specify both `capacity_reservation_preference` and `capacity_reservation_target`, the request fails. Modifying `capacity_reservation_preference` or `capacity_reservation_target` in this block requires the instance to be in `stopped` state.
+
+Capacity reservation specification can be applied/modified to the EC2 Instance at creation time or when the instance is `stopped`.
+
+The `capacity_reservation_specification` block supports the following:
+
+* `capacity_reservation_preference` - (Optional) Indicates the instance's Capacity Reservation preferences. Can be `"open"` or `"none"`. (Default: `"open"`).
+* `capacity_reservation_target` - (Optional) Information about the target Capacity Reservation. See [Capacity Reservation Target](#capacity-reservation-target) below for more details.
+
+For more information, see the documentation on [Capacity Reservations](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.html).
+
+### Capacity Reservation Target
+
+~> **NOTE:** Modifying `capacity_reservation_id` in this block requires the instance to be in `stopped` state.
+
+Describes a target Capacity Reservation.
+
+This `capacity_reservation_target` block supports the following:
+
+* `capacity_reservation_id` - (Optional) The ID of the Capacity Reservation in which to run the instance.
 
 ### Credit Specification
 
@@ -231,6 +255,7 @@ Each `network_interface` block supports the following:
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the instance.
+* `capacity_reservation_specification` - Capacity reservation specification of the instance.
 * `instance_state` - The state of the instance. One of: `pending`, `running`, `shutting-down`, `terminated`, `stopping`, `stopped`. See [Instance Lifecycle](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html) for more information.
 * `outpost_arn` - The ARN of the Outpost the instance is assigned to.
 * `password_data` - Base-64 encoded encrypted password data for the instance. Useful for getting the administrator password for instances running Microsoft Windows. This attribute is only exported if `get_password_data` is true. Note that this encrypted value will be stored in the state file, as with all exported attributes. See [GetPasswordData](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetPasswordData.html) for more information.
@@ -238,6 +263,7 @@ In addition to all arguments above, the following attributes are exported:
 * `private_dns` - The private DNS name assigned to the instance. Can only be used inside the Amazon EC2, and only available if you've enabled DNS hostnames for your VPC.
 * `public_dns` - The public DNS name assigned to the instance. For EC2-VPC, this is only available if you've enabled DNS hostnames for your VPC.
 * `public_ip` - The public IP address assigned to the instance, if applicable. **NOTE**: If you are using an [`aws_eip`](/docs/providers/aws/r/eip.html) with your instance, you should refer to the EIP's address directly and not use `public_ip` as this field will change after the EIP is attached.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 For `ebs_block_device`, in addition to the arguments above, the following attribute is exported:
 

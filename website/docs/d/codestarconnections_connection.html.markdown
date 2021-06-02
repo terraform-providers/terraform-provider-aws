@@ -30,6 +30,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `connection_status` - The CodeStar Connection status. Possible values are `PENDING`, `AVAILABLE` and `ERROR`.
 * `id` - The CodeStar Connection ARN.
+* `host_arn` - The Amazon Resource Name (ARN) of the host associated with the connection.
 * `name` - The name of the CodeStar Connection. The name is unique in the calling AWS account.
 * `provider_type` - The name of the external provider where your third-party code repository is configured. Possible values are `Bitbucket`, `GitHub`, or `GitHubEnterpriseServer`.
 * `tags` - Map of key-value resource tags to associate with the resource.

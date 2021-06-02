@@ -140,11 +140,10 @@ func TestAccAWSCodeCommitRepository_tags(t *testing.T) {
 	resourceName := "aws_codecommit_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, codecommit.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckCodeCommitRepositoryDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, codecommit.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCodeCommitRepositoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCodeCommitRepositoryConfigTags1(rName, "key1", "value1"),

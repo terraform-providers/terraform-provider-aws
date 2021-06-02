@@ -73,18 +73,23 @@ func resourceAwsSagemakerApp() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"user_profile_name": {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSagemakerAppCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &sagemaker.CreateAppInput{
 		AppName:         aws.String(d.Get("app_name").(string)),
@@ -93,8 +98,8 @@ func resourceAwsSagemakerAppCreate(d *schema.ResourceData, meta interface{}) err
 		UserProfileName: aws.String(d.Get("user_profile_name").(string)),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	if v, ok := d.GetOk("resource_spec"); ok {
@@ -124,6 +129,7 @@ func resourceAwsSagemakerAppCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsSagemakerAppRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	domainID, userProfileName, appType, appName, err := decodeSagemakerAppID(d.Id())
@@ -164,8 +170,15 @@ func resourceAwsSagemakerAppRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for SageMaker App (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -174,8 +187,8 @@ func resourceAwsSagemakerAppRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsSagemakerAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating SageMaker App (%s) tags: %w", d.Id(), err)

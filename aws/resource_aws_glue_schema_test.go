@@ -160,7 +160,7 @@ func TestAccAWSGlueSchema_compatibility(t *testing.T) {
 	})
 }
 
-func TestAccAWSGlueSchema_tags(t *testing.T) {
+func TestAccAWSGlueSchema_Tags(t *testing.T) {
 	var schema glue.GetSchemaOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_schema.test"

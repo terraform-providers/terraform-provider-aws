@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_pinpoint_email_channel: `role_arn` argument is optional
+```

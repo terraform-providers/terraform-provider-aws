@@ -1,11 +1,9 @@
 package tfprotov5
 
 import (
-	"bytes"
 	"errors"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
-	"github.com/vmihailenco/msgpack"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ErrUnknownDynamicValueType is returned when a DynamicValue has no MsgPack or
@@ -80,12 +78,10 @@ type DynamicValue struct {
 // received from RPC requests.
 func (d DynamicValue) Unmarshal(typ tftypes.Type) (tftypes.Value, error) {
 	if d.JSON != nil {
-		return jsonUnmarshal(d.JSON, typ, tftypes.AttributePath{})
+		return tftypes.ValueFromJSON(d.JSON, typ) //nolint:staticcheck
 	}
 	if d.MsgPack != nil {
-		r := bytes.NewReader(d.MsgPack)
-		dec := msgpack.NewDecoder(r)
-		return msgpackUnmarshal(dec, typ, tftypes.AttributePath{})
+		return tftypes.ValueFromMsgPack(d.MsgPack, typ) //nolint:staticcheck
 	}
 	return tftypes.Value{}, ErrUnknownDynamicValueType
 }

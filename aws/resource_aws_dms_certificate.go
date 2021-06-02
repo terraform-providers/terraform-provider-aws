@@ -53,18 +53,23 @@ func resourceAwsDmsCertificate() *schema.Resource {
 				ForceNew:  true,
 				Sensitive: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDmsCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	certificateID := d.Get("certificate_id").(string)
 
 	request := &dms.ImportCertificateInput{
 		CertificateIdentifier: aws.String(certificateID),
-		Tags:                  keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatabasemigrationserviceTags(),
+		Tags:                  tags.IgnoreAws().DatabasemigrationserviceTags(),
 	}
 
 	pem, pemSet := d.GetOk("certificate_pem")
@@ -99,6 +104,7 @@ func resourceAwsDmsCertificateCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsDmsCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	response, err := conn.DescribeCertificates(&dms.DescribeCertificatesInput{
@@ -140,8 +146,15 @@ func resourceAwsDmsCertificateRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for DMS Certificate (%s): %w", d.Get("certificate_arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -150,9 +163,9 @@ func resourceAwsDmsCertificateRead(d *schema.ResourceData, meta interface{}) err
 func resourceAwsDmsCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
 
-	if d.HasChange("tags") {
+	if d.HasChange("tags_all") {
 		arn := d.Get("certificate_arn").(string)
-		o, n := d.GetChange("tags")
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatabasemigrationserviceUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating DMS Certificate (%s) tags: %w", arn, err)

@@ -32,7 +32,7 @@ The following arguments are supported:
 * `domain_id` - (Required) The domain ID.
 * `user_profile_name` - (Required) The user profile name.
 * `resource_spec` - (Optional) The instance type and the Amazon Resource Name (ARN) of the SageMaker image created on the instance.See [Resource Spec](#resource-spec) below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Resource Spec
 
@@ -46,6 +46,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) of the app.
 * `arn` - The Amazon Resource Name (ARN) of the app.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

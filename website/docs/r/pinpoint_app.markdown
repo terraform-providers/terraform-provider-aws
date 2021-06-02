@@ -37,7 +37,7 @@ The following arguments are supported:
 * `campaign_hook` - (Optional) The default campaign limits for the app. These limits apply to each campaign for the app, unless the campaign overrides the default with limits of its own
 * `limits` - (Optional) The default campaign limits for the app. These limits apply to each campaign for the app, unless the campaign overrides the default with limits of its own
 * `quiet_time` - (Optional) The default quiet time for the app. Each campaign for this app sends no messages during this time unless the campaign overrides the default with a quiet time of its own
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 `campaign_hook` supports the following:
 
@@ -64,6 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `application_id` - The Application ID of the Pinpoint App.
 * `arn` - Amazon Resource Name (ARN) of the PinPoint Application
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

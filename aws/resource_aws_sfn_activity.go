@@ -35,18 +35,23 @@ func resourceAwsSfnActivity() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSfnActivityCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sfnconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	log.Print("[DEBUG] Creating Step Function Activity")
 
 	params := &sfn.CreateActivityInput{
 		Name: aws.String(d.Get("name").(string)),
-		Tags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().SfnTags(),
+		Tags: tags.IgnoreAws().SfnTags(),
 	}
 
 	activity, err := conn.CreateActivity(params)
@@ -62,8 +67,8 @@ func resourceAwsSfnActivityCreate(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsSfnActivityUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sfnconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.SfnUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
@@ -74,6 +79,7 @@ func resourceAwsSfnActivityUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsSfnActivityRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sfnconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading Step Function Activity: %s", d.Id())
@@ -101,8 +107,15 @@ func resourceAwsSfnActivityRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for SFN Activity (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

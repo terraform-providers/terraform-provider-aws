@@ -8,9 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/finder"
 )
 
 func TestAccAWSLBListener_basic(t *testing.T) {
@@ -19,11 +21,10 @@ func TestAccAWSLBListener_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_basic(rName),
@@ -39,12 +40,58 @@ func TestAccAWSLBListener_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "default_action.0.target_group_arn", "aws_lb_target_group.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "default_action.0.redirect.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_action.0.fixed_response.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSLBListener_tags(t *testing.T) {
+	var conf elbv2.Listener
+	resourceName := "aws_lb_listener.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBListenerTagsConfig1(rName, "key1", "value1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBListenerExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSLBListenerTagsConfig2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBListenerExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSLBListenerTagsConfig1(rName, "key2", "value2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBListenerExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -57,11 +104,10 @@ func TestAccAWSLBListener_forwardWeighted(t *testing.T) {
 	rName2 := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_forwardWeighted(rName, rName2),
@@ -137,11 +183,10 @@ func TestAccAWSLBListener_basicUdp(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_basicUdp(rName),
@@ -174,11 +219,10 @@ func TestAccAWSLBListener_BackwardsCompatibility(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfigBackwardsCompatibility(rName),
@@ -213,11 +257,10 @@ func TestAccAWSLBListener_https(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_https(rName, key, certificate),
@@ -307,11 +350,10 @@ func TestAccAWSLBListener_redirect(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_redirect(rName),
@@ -350,11 +392,10 @@ func TestAccAWSLBListener_fixedResponse(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_fixedResponse(rName),
@@ -392,11 +433,10 @@ func TestAccAWSLBListener_cognito(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheckSkipELBV2(t),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipELBV2(t),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_cognito(rName, key, certificate),
@@ -437,11 +477,10 @@ func TestAccAWSLBListener_oidc(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBListenerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBListenerConfig_oidc(rName, key, certificate),
@@ -588,20 +627,17 @@ func testAccCheckAWSLBListenerExists(n string, res *elbv2.Listener) resource.Tes
 
 		conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
-		describe, err := conn.DescribeListeners(&elbv2.DescribeListenersInput{
-			ListenerArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		listener, err := finder.ListenerByARN(conn, rs.Primary.ID)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading ELBv2 Listener (%s): %w", rs.Primary.ID, err)
 		}
 
-		if len(describe.Listeners) != 1 ||
-			aws.StringValue(describe.Listeners[0].ListenerArn) != rs.Primary.ID {
-			return errors.New("Listener not found")
+		if listener == nil {
+			return fmt.Errorf("ELBv2 Listener (%s) not found", rs.Primary.ID)
 		}
 
-		*res = *describe.Listeners[0]
+		*res = *listener
 		return nil
 	}
 }
@@ -614,23 +650,21 @@ func testAccCheckAWSLBListenerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		describe, err := conn.DescribeListeners(&elbv2.DescribeListenersInput{
-			ListenerArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		listener, err := finder.ListenerByARN(conn, rs.Primary.ID)
 
-		if err == nil {
-			if len(describe.Listeners) != 0 &&
-				aws.StringValue(describe.Listeners[0].ListenerArn) == rs.Primary.ID {
-				return fmt.Errorf("Listener %q still exists", rs.Primary.ID)
-			}
+		if tfawserr.ErrCodeEquals(err, elbv2.ErrCodeListenerNotFoundException) {
+			continue
 		}
 
-		// Verify the error
-		if isAWSErr(err, elbv2.ErrCodeListenerNotFoundException, "") {
-			return nil
-		} else {
-			return fmt.Errorf("Unexpected error checking LB Listener destroyed: %s", err)
+		if err != nil {
+			return fmt.Errorf("error reading ELBv2 Listener (%s): %w", rs.Primary.ID, err)
 		}
+
+		if listener == nil {
+			continue
+		}
+
+		return fmt.Errorf("ELBv2 Listener %q still exists", rs.Primary.ID)
 	}
 
 	return nil
@@ -1590,4 +1624,115 @@ resource "aws_lb_target_group" "test" {
   }
 }
 `, rName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key)))
+}
+
+func testAccAWSLBListenerTagsConfig1(rName, tagKey1, tagValue1 string) string {
+	return composeConfig(testAccAWSLBListenerConfigBase(rName), fmt.Sprintf(`
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = aws_lb.test.id
+  protocol          = "HTTP"
+  port              = "80"
+
+  default_action {
+    target_group_arn = aws_lb_target_group.test.id
+    type             = "forward"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+
+resource "aws_lb" "test" {
+  name            = %[1]q
+  internal        = true
+  security_groups = [aws_security_group.test.id]
+  subnets         = aws_subnet.test[*].id
+
+  idle_timeout               = 30
+  enable_deletion_protection = false
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.test.id
+
+  health_check {
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200-299"
+  }
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName, tagKey1, tagValue1))
+}
+
+func testAccAWSLBListenerTagsConfig2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return composeConfig(testAccAWSLBListenerConfigBase(rName), fmt.Sprintf(`
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = aws_lb.test.id
+  protocol          = "HTTP"
+  port              = "80"
+
+  default_action {
+    target_group_arn = aws_lb_target_group.test.id
+    type             = "forward"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+
+resource "aws_lb" "test" {
+  name            = %[1]q
+  internal        = true
+  security_groups = [aws_security_group.test.id]
+  subnets         = aws_subnet.test[*].id
+
+  idle_timeout               = 30
+  enable_deletion_protection = false
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.test.id
+
+  health_check {
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200-299"
+  }
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }

@@ -24,6 +24,11 @@ func dataSourceAwsCodeStarConnectionsConnection() *schema.Resource {
 				Computed: true,
 			},
 
+			"host_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -54,6 +59,7 @@ func dataSourceAwsCodeStarConnectionsConnectionRead(d *schema.ResourceData, meta
 
 	d.SetId(arn)
 	d.Set("connection_status", connection.ConnectionStatus)
+	d.Set("host_arn", connection.HostArn)
 	d.Set("name", connection.ConnectionName)
 	d.Set("provider_type", connection.ProviderType)
 

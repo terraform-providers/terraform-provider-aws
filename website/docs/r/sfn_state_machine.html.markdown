@@ -99,27 +99,33 @@ EOF
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the state machine.
-* `definition` - (Required) The Amazon States Language definition of the state machine.
-* `role_arn` - (Required) The Amazon Resource Name (ARN) of the IAM role to use for this state machine.
-* `tags` - (Optional) Key-value map of resource tags
+* `definition` - (Required) The [Amazon States Language](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html) definition of the state machine.
 * `logging_configuration` - (Optional) Defines what execution history events are logged and where they are logged. The `logging_configuration` parameter is only valid when `type` is set to `EXPRESS`. Defaults to `OFF`. For more information see [Logging Express Workflows](https://docs.aws.amazon.com/step-functions/latest/dg/cw-logs.html) and [Log Levels](https://docs.aws.amazon.com/step-functions/latest/dg/cloudwatch-log-level.html) in the AWS Step Functions User Guide.
-* `type` - (Optional) Determines whether a Standard or Express state machine is created. The default is STANDARD. You cannot update the type of a state machine once it has been created. Valid Values: STANDARD | EXPRESS
+* `name` - (Required) The name of the state machine. To enable logging with CloudWatch Logs, the name should only contain `0`-`9`, `A`-`Z`, `a`-`z`, `-` and `_`.
+* `role_arn` - (Required) The Amazon Resource Name (ARN) of the IAM role to use for this state machine.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
+* `tracing_configuration` - (Optional) Selects whether AWS X-Ray tracing is enabled.
+* `type` - (Optional) Determines whether a Standard or Express state machine is created. The default is `STANDARD`. You cannot update the type of a state machine once it has been created. Valid values: `STANDARD`, `EXPRESS`.
 
 ### `logging_configuration` Configuration Block
 
-* `log_destination` - (Optional) Amazon Resource Name (ARN) of CloudWatch log group. Make sure the State Machine does have the right IAM Policies for Logging. The ARN must end with `:*`
-* `include_execution_data` - (Optional) Determines whether execution data is included in your log. When set to FALSE, data is excluded.
-* `level` - (Optional) Defines which category of execution history events are logged. Valid Values: ALL | ERROR | FATAL | OFF
+* `include_execution_data` - (Optional) Determines whether execution data is included in your log. When set to `false`, data is excluded.
+* `level` - (Optional) Defines which category of execution history events are logged. Valid values: `ALL`, `ERROR`, `FATAL`, `OFF`
+* `log_destination` - (Optional) Amazon Resource Name (ARN) of a CloudWatch log group. Make sure the State Machine has the correct IAM policies for logging. The ARN must end with `:*`
+
+### `tracing_configuration` Configuration Block
+
+* `enabled` - (Optional) When set to `true`, AWS X-Ray tracing is enabled. Make sure the State Machine has the correct IAM policies for logging. See the [AWS Step Functions Developer Guide](https://docs.aws.amazon.com/step-functions/latest/dg/xray-iam.html) for details.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the state machine.
-* `creation_date` - The date the state machine was created.
-* `status` - The current status of the state machine. Either "ACTIVE" or "DELETING".
 * `arn` - The ARN of the state machine.
+* `creation_date` - The date the state machine was created.
+* `status` - The current status of the state machine. Either `ACTIVE` or `DELETING`.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

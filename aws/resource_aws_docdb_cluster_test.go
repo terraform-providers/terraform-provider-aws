@@ -33,7 +33,7 @@ func TestAccAWSDocDBCluster_basic(t *testing.T) {
 					testAccCheckDocDBClusterExists(resourceName, &dbCluster),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "rds", regexp.MustCompile(`cluster:.+`)),
 					resource.TestCheckResourceAttr(resourceName, "storage_encrypted", "false"),
-					resource.TestCheckResourceAttr(resourceName, "db_cluster_parameter_group_name", "default.docdb3.6"),
+					resource.TestCheckResourceAttr(resourceName, "db_cluster_parameter_group_name", "default.docdb4.0"),
 					resource.TestCheckResourceAttrSet(resourceName, "reader_endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "cluster_resource_id"),
 					resource.TestCheckResourceAttr(resourceName, "engine", "docdb"),
@@ -307,7 +307,7 @@ func TestAccAWSDocDBCluster_encrypted(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_docdb_cluster.default", "storage_encrypted", "true"),
 					resource.TestCheckResourceAttr(
-						"aws_docdb_cluster.default", "db_cluster_parameter_group_name", "default.docdb3.6"),
+						"aws_docdb_cluster.default", "db_cluster_parameter_group_name", "default.docdb4.0"),
 				),
 			},
 			{
@@ -620,7 +620,7 @@ resource "aws_docdb_cluster" "default" {
 
   master_username                 = "foo"
   master_password                 = "mustbeeightcharaters"
-  db_cluster_parameter_group_name = "default.docdb3.6"
+  db_cluster_parameter_group_name = "default.docdb4.0"
   skip_final_snapshot             = true
 
   tags = {
@@ -669,7 +669,7 @@ resource "aws_docdb_cluster" "default" {
 
   master_username                 = "foo"
   master_password                 = "mustbeeightcharaters"
-  db_cluster_parameter_group_name = "default.docdb3.6"
+  db_cluster_parameter_group_name = "default.docdb4.0"
   final_snapshot_identifier       = "tf-acctest-docdbcluster-snapshot-%[1]d"
 
   tags = {
@@ -708,7 +708,7 @@ resource "aws_docdb_cluster" "default" {
 
   master_username                 = "foo"
   master_password                 = "mustbeeightcharaters"
-  db_cluster_parameter_group_name = "default.docdb3.6"
+  db_cluster_parameter_group_name = "default.docdb4.0"
   skip_final_snapshot             = true
 
   tags = {
@@ -732,7 +732,7 @@ resource "aws_docdb_cluster" "default" {
 
   master_username                 = "foo"
   master_password                 = "mustbeeightcharaters"
-  db_cluster_parameter_group_name = "default.docdb3.6"
+  db_cluster_parameter_group_name = "default.docdb4.0"
   skip_final_snapshot             = true
 
   tags = {
@@ -776,7 +776,7 @@ resource "aws_docdb_cluster" "default" {
 
   master_username                 = "foo"
   master_password                 = "mustbeeightcharaters"
-  db_cluster_parameter_group_name = "default.docdb3.6"
+  db_cluster_parameter_group_name = "default.docdb4.0"
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.foo.arn
   skip_final_snapshot             = true
@@ -856,7 +856,7 @@ resource "aws_docdb_cluster" "test" {
   ]
 
   cluster_identifier              = "tf-acc-test-%d"
-  db_cluster_parameter_group_name = "default.docdb3.6"
+  db_cluster_parameter_group_name = "default.docdb4.0"
   engine                          = "docdb"
   master_password                 = "mustbeeightcharaters"
   master_username                 = "foo"

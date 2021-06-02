@@ -435,7 +435,113 @@ func TestAccAWSCloudFrontDistribution_Origin_EmptyOriginID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudFrontDistributionConfig_Origin_EmptyOriginID(),
-				ExpectError: regexp.MustCompile(`origin_id must not be empty`),
+				ExpectError: regexp.MustCompile(`origin.0.origin_id must not be empty`),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_Origin_ConnectionAttempts(t *testing.T) {
+	var distribution cloudfront.Distribution
+	resourceName := "aws_cloudfront_distribution.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rInt := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("cloudfront", t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, `connection_attempts = 0`),
+				ExpectError: regexp.MustCompile(`expected origin.0.connection_attempts to be in the range`),
+			},
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, `connection_attempts = 4`),
+				ExpectError: regexp.MustCompile(`expected origin.0.connection_attempts to be in the range`),
+			},
+			{
+				Config: testAccAWSCloudFrontDistributionOriginItem(rName, rInt, `connection_attempts = 2`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExists(resourceName, &distribution),
+					resource.TestCheckResourceAttr(resourceName, "origin.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "origin.0.connection_attempts", `2`),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_Origin_ConnectionTimeout(t *testing.T) {
+	var distribution cloudfront.Distribution
+	resourceName := "aws_cloudfront_distribution.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rInt := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("cloudfront", t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, `connection_timeout = 0`),
+				ExpectError: regexp.MustCompile(`expected origin.0.connection_timeout to be in the range`),
+			},
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, `connection_timeout = 11`),
+				ExpectError: regexp.MustCompile(`expected origin.0.connection_timeout to be in the range`),
+			},
+			{
+				Config: testAccAWSCloudFrontDistributionOriginItem(rName, rInt, `connection_timeout = 6`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExists(resourceName, &distribution),
+					resource.TestCheckResourceAttr(resourceName, "origin.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "origin.0.connection_timeout", `6`),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_Origin_OriginShield(t *testing.T) {
+	var distribution cloudfront.Distribution
+	resourceName := "aws_cloudfront_distribution.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rInt := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("cloudfront", t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, originShieldItem(`null`, `data.aws_region.current.name`)),
+				ExpectError: regexp.MustCompile(`Missing required argument`),
+			},
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, originShieldItem(`false`, `null`)),
+				ExpectError: regexp.MustCompile(`Missing required argument`),
+			},
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, originShieldItem(`true`, `null`)),
+				ExpectError: regexp.MustCompile(`Missing required argument`),
+			},
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, originShieldItem(`false`, `""`)),
+				ExpectError: regexp.MustCompile(`.*must be a valid AWS Region Code.*`),
+			},
+			{
+				Config:      testAccAWSCloudFrontDistributionOriginItem(rName, rInt, originShieldItem(`true`, `"US East (Ohio)"`)),
+				ExpectError: regexp.MustCompile(`.*must be a valid AWS Region Code.*`),
+			},
+			{
+				Config: testAccAWSCloudFrontDistributionOriginItem(rName, rInt, originShieldItem(`true`, `"us-east-1"`)), //lintignore:AWSAT003
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExists(resourceName, &distribution),
+					resource.TestCheckResourceAttr(resourceName, "origin.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "origin.0.origin_shield.0.enabled", `true`),
+					resource.TestCheckResourceAttr(resourceName, "origin.0.origin_shield.0.origin_shield_region", "us-east-1"), //lintignore:AWSAT003
+				),
 			},
 		},
 	})
@@ -476,9 +582,11 @@ func TestAccAWSCloudFrontDistribution_noOptionalItemsConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.forwarded_values.0.query_string", "false"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.forwarded_values.0.query_string_cache_keys.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.lambda_function_association.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.function_association.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.min_ttl", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.smooth_streaming", "false"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.target_origin_id", "myCustomOrigin"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.trusted_key_groups.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.trusted_signers.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.viewer_protocol_policy", "allow-all"),
 					resource.TestMatchResourceAttr(resourceName, "domain_name", regexp.MustCompile(`^[a-z0-9]+\.cloudfront\.net$`)),
@@ -700,6 +808,45 @@ func TestAccAWSCloudFrontDistribution_DefaultCacheBehavior_ForwardedValues_Heade
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.forwarded_values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.forwarded_values.0.headers.#", "2"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_DefaultCacheBehavior_TrustedKeyGroups(t *testing.T) {
+	var distribution cloudfront.Distribution
+	resourceName := "aws_cloudfront_distribution.test"
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	retainOnDelete := testAccAWSCloudFrontDistributionRetainOnDeleteFromEnv()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudfront.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudFrontDistributionConfigDefaultCacheBehaviorTrustedKeyGroups(retainOnDelete, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExists(resourceName, &distribution),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.0.items.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "trusted_key_groups.0.items.0.key_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "trusted_key_groups.0.items.0.key_pair_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.0.trusted_key_groups.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"retain_on_delete",
+					"wait_for_deployment",
+				},
 			},
 		},
 	})
@@ -3035,6 +3182,67 @@ resource "aws_cloudfront_distribution" "test" {
 `, retainOnDelete)
 }
 
+func testAccAWSCloudFrontDistributionConfigDefaultCacheBehaviorTrustedKeyGroups(retainOnDelete bool, rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudfront_distribution" "test" {
+  # Faster acceptance testing
+  enabled             = false
+  retain_on_delete    = %[1]t
+  wait_for_deployment = false
+
+  default_cache_behavior {
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "test"
+    trusted_key_groups     = [aws_cloudfront_key_group.test.id]
+    viewer_protocol_policy = "allow-all"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "all"
+      }
+    }
+  }
+
+  origin {
+    domain_name = "www.example.com"
+    origin_id   = "test"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+
+resource "aws_cloudfront_public_key" "test" {
+  comment     = "test key"
+  encoded_key = file("test-fixtures/cloudfront-public-key.pem")
+  name        = %[2]q
+}
+
+resource "aws_cloudfront_key_group" "test" {
+  comment = "test key group"
+  items   = [aws_cloudfront_public_key.test.id]
+  name    = %[2]q
+}
+`, retainOnDelete, rName)
+}
+
 func testAccAWSCloudFrontDistributionConfigDefaultCacheBehaviorTrustedSignersSelf(retainOnDelete bool) string {
 	return fmt.Sprintf(`
 resource "aws_cloudfront_distribution" "test" {
@@ -3418,4 +3626,60 @@ resource "aws_cloudfront_distribution" "test" {
   }
 }
 `, retainOnDelete))
+}
+
+func originShieldItem(enabled, region string) string {
+	return fmt.Sprintf(`
+origin_shield {
+  enabled              = %[1]s
+  origin_shield_region = %[2]s
+}
+`, enabled, region)
+}
+
+func testAccAWSCloudFrontDistributionOriginItem(rName string, rInt int, item string) string {
+	return composeConfig(
+		originBucket,
+		testAccAWSCloudFrontDistributionConfigCacheBehaviorRealtimeLogConfigBase(rName),
+		fmt.Sprintf(`
+variable rand_id {
+  default = %[1]d
+}
+
+data "aws_region" "current" {}
+
+resource "aws_cloudfront_distribution" "test" {
+  origin {
+    domain_name = "${aws_s3_bucket.s3_bucket_origin.id}.s3.amazonaws.com"
+    origin_id   = "myOrigin"
+    %[2]s
+  }
+  enabled = true
+  default_cache_behavior {
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "myOrigin"
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+    viewer_protocol_policy = "allow-all"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+  price_class = "PriceClass_200"
+  restrictions {
+    geo_restriction {
+      restriction_type = "whitelist"
+      locations        = ["US", "CA", "GB", "DE"]
+    }
+  }
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+`, rInt, item))
 }

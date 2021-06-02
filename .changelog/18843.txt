@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_codebuild_project: Fix removing `secondary_sources` and `secondary_artifacts`
+```
+
+```release-note:bug
+resource/aws_codebuild_project: Allow fetching submodules for bitbucket source types
+```
+
+```release-note:enhancement
+resource/aws_codebuild_project: Add plan time validation for `secondary_artifacts`, `secondary_sources`, `service_role`
+```

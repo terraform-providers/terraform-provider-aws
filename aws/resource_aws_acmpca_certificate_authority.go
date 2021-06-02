@@ -236,6 +236,12 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 										Optional:     true,
 										ValidateFunc: validation.StringLenBetween(0, 255),
 									},
+									"s3_object_acl": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringInSlice(acmpca.S3ObjectAcl_Values(), false),
+									},
 								},
 							},
 						},
@@ -256,7 +262,8 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 				Default:      30,
 				ValidateFunc: validation.IntBetween(7, 30),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -268,12 +275,15 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 				}, false),
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).acmpcaconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AcmpcaTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &acmpca.CreateCertificateAuthorityInput{
 		CertificateAuthorityConfiguration: expandAcmpcaCertificateAuthorityConfiguration(d.Get("certificate_authority_configuration").([]interface{})),
@@ -283,7 +293,7 @@ func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta in
 	}
 
 	if len(tags) > 0 {
-		input.Tags = tags
+		input.Tags = tags.IgnoreAws().AcmpcaTags()
 	}
 
 	log.Printf("[DEBUG] Creating ACM PCA Certificate Authority: %s", input)
@@ -320,6 +330,7 @@ func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta in
 
 func resourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).acmpcaconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	certificateAuthority, err := finder.CertificateAuthorityByARN(conn, d.Id())
@@ -420,8 +431,15 @@ func resourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error listing tags for ACM PCA Certificate Authority (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -456,8 +474,8 @@ func resourceAwsAcmpcaCertificateAuthorityUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.AcmpcaUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating ACM PCA Certificate Authority (%s) tags: %s", d.Id(), err)
@@ -590,6 +608,9 @@ func expandAcmpcaCrlConfiguration(l []interface{}) *acmpca.CrlConfiguration {
 	if v, ok := m["s3_bucket_name"]; ok && v.(string) != "" {
 		config.S3BucketName = aws.String(v.(string))
 	}
+	if v, ok := m["s3_object_acl"]; ok && v.(string) != "" {
+		config.S3ObjectAcl = aws.String(v.(string))
+	}
 
 	return config
 }
@@ -656,6 +677,7 @@ func flattenAcmpcaCrlConfiguration(config *acmpca.CrlConfiguration) []interface{
 		"enabled":            aws.BoolValue(config.Enabled),
 		"expiration_in_days": int(aws.Int64Value(config.ExpirationInDays)),
 		"s3_bucket_name":     aws.StringValue(config.S3BucketName),
+		"s3_object_acl":      aws.StringValue(config.S3ObjectAcl),
 	}
 
 	return []interface{}{m}

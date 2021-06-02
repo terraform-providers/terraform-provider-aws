@@ -50,3 +50,18 @@ func TestSkipIfEmpty(t testing.T, name string, usageMessage string) string {
 
 	return value
 }
+
+// TestSkipIfAllEmpty verifies that at least one environment variable is non-empty or skips the test.
+//
+// If at lease one environment variable is non-empty, returns the first name and value.
+func TestSkipIfAllEmpty(t testing.T, names []string, usageMessage string) (string, string) {
+	t.Helper()
+
+	name, value, err := RequireOneOf(names, usageMessage)
+	if err != nil {
+		t.Skipf("skipping test because %s.", err)
+		return "", ""
+	}
+
+	return name, value
+}

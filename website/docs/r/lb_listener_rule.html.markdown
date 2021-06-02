@@ -212,6 +212,7 @@ The following arguments are supported:
 * `priority` - (Optional) The priority for the rule between `1` and `50000`. Leaving it unset will automatically set the rule with next available priority after currently existing highest rule. A listener can't have multiple rules with the same priority.
 * `action` - (Required) An Action block. Action blocks are documented below.
 * `condition` - (Required) A Condition block. Multiple condition blocks of different types can be set and all must be satisfied for the rule to match. Condition blocks are documented below.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Action Blocks
 
@@ -326,6 +327,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the rule (matches `arn`)
 * `arn` - The ARN of the rule (matches `id`)
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -192,13 +192,18 @@ func resourceAwsSagemakerModel() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSagemakerModelCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -223,8 +228,8 @@ func resourceAwsSagemakerModelCreate(d *schema.ResourceData, meta interface{}) e
 		createOpts.ExecutionRoleArn = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	if len(tags) > 0 {
+		createOpts.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	if v, ok := d.GetOk("vpc_config"); ok {
@@ -263,6 +268,7 @@ func expandSageMakerVpcConfigRequest(l []interface{}) *sagemaker.VpcConfig {
 
 func resourceAwsSagemakerModelRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	request := &sagemaker.DescribeModelInput{
@@ -306,8 +312,15 @@ func resourceAwsSagemakerModelRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for Sagemaker Model (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -329,8 +342,8 @@ func flattenSageMakerVpcConfigResponse(vpcConfig *sagemaker.VpcConfig) []map[str
 func resourceAwsSagemakerModelUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Sagemaker Model (%s) tags: %w", d.Id(), err)
@@ -384,7 +397,7 @@ func expandContainer(m map[string]interface{}) *sagemaker.ContainerDefinition {
 		container.ModelDataUrl = aws.String(v.(string))
 	}
 	if v, ok := m["environment"]; ok {
-		container.Environment = stringMapToPointers(v.(map[string]interface{}))
+		container.Environment = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := m["image_config"]; ok {

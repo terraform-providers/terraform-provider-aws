@@ -81,7 +81,7 @@ The following arguments are supported:
 * `name` – (Required) The name you assign to this job. It must be unique in your account.
 * `notification_property` - (Optional) Notification property of the job. Defined below.
 * `role_arn` – (Required) The ARN of the IAM role associated with this job.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `timeout` – (Optional) The job timeout in minutes. The default is 2880 minutes (48 hours).
 * `security_configuration` - (Optional) The name of the Security Configuration to be associated with the job.
 * `worker_type` - (Optional) The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.
@@ -107,6 +107,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of Glue Job
 * `id` - Job name
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

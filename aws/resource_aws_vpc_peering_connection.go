@@ -64,18 +64,23 @@ func resourceAwsVpcPeeringConnection() *schema.Resource {
 			"accepter":  vpcPeeringConnectionOptionsSchema(),
 			"requester": vpcPeeringConnectionOptionsSchema(),
 			"tags":      tagsSchema(),
+			"tags_all":  tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsVPCPeeringCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Create the vpc peering connection
 	createOpts := &ec2.CreateVpcPeeringConnectionInput{
 		PeerVpcId:         aws.String(d.Get("peer_vpc_id").(string)),
 		VpcId:             aws.String(d.Get("vpc_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeVpcPeeringConnection),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeVpcPeeringConnection),
 	}
 
 	if v, ok := d.GetOk("peer_owner_id"); ok {
@@ -111,6 +116,7 @@ func resourceAwsVPCPeeringCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsVPCPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient)
+	defaultTagsConfig := client.DefaultTagsConfig
 	ignoreTagsConfig := client.IgnoreTagsConfig
 
 	pcRaw, statusCode, err := vpcPeeringConnectionRefreshState(client.ec2conn, d.Id())()
@@ -165,7 +171,16 @@ func resourceAwsVPCPeeringRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting VPC Peering Connection requester information: %s", err)
 	}
 
-	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(pc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
+	tags := keyvaluetags.Ec2KeyValueTags(pc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 	if err != nil {
 		return fmt.Errorf("Error setting VPC Peering Connection tags: %s", err)
 	}
@@ -191,8 +206,8 @@ func resourceVPCPeeringConnectionAccept(conn *ec2.EC2, id string) (string, error
 func resourceAwsVPCPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") && !d.IsNewResource() {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") && !d.IsNewResource() {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 VPC Peering Connection (%s) tags: %s", d.Id(), err)

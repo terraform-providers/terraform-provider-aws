@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -145,7 +146,7 @@ func testAccCheckLBSSLNegotiationPolicy(elbResource string, policyResource strin
 		})
 
 		if err != nil {
-			fmt.Printf("[ERROR] Problem describing load balancer policy '%s': %s", policyName, err)
+			log.Printf("[ERROR] Problem describing load balancer policy '%s': %s", policyName, err)
 			return err
 		}
 

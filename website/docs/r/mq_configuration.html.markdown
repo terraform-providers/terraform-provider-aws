@@ -47,7 +47,7 @@ The following arguments are optional:
 
 * `authentication_strategy` - (Optional) Authentication strategy associated with the configuration. Valid values are `simple` and `ldap`. `ldap` is not supported for `engine_type` `RabbitMQ`.
 * `description` - (Optional) Description of the configuration.
-* `tags` - (Optional) Map of tags to assign to the resource.
+* `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -56,6 +56,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - ARN of the configuration.
 * `id` - Unique ID that Amazon MQ generates for the configuration.
 * `latest_revision` - Latest revision of the configuration.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

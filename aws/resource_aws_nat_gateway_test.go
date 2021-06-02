@@ -61,11 +61,10 @@ func TestAccAWSNatGateway_basic(t *testing.T) {
 	resourceName := "aws_nat_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, ec2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckNatGatewayDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNatGatewayConfig,

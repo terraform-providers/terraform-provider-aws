@@ -98,11 +98,11 @@ func resourceAwsCognitoIdentityProviderCreate(d *schema.ResourceData, meta inter
 	}
 
 	if v, ok := d.GetOk("attribute_mapping"); ok {
-		params.AttributeMapping = stringMapToPointers(v.(map[string]interface{}))
+		params.AttributeMapping = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("provider_details"); ok {
-		params.ProviderDetails = stringMapToPointers(v.(map[string]interface{}))
+		params.ProviderDetails = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("idp_identifiers"); ok {
@@ -183,11 +183,11 @@ func resourceAwsCognitoIdentityProviderUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if d.HasChange("attribute_mapping") {
-		params.AttributeMapping = stringMapToPointers(d.Get("attribute_mapping").(map[string]interface{}))
+		params.AttributeMapping = expandStringMap(d.Get("attribute_mapping").(map[string]interface{}))
 	}
 
 	if d.HasChange("provider_details") {
-		params.ProviderDetails = stringMapToPointers(d.Get("provider_details").(map[string]interface{}))
+		params.ProviderDetails = expandStringMap(d.Get("provider_details").(map[string]interface{}))
 	}
 
 	if d.HasChange("idp_identifiers") {

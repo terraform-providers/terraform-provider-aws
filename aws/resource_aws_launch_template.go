@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
 )
 
 func resourceAwsLaunchTemplate() *schema.Resource {
@@ -41,6 +42,7 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
 				ValidateFunc:  validateLaunchTemplateName,
@@ -510,6 +512,11 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"interface_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"efa", "interface"}, false),
+						},
 					},
 				},
 			},
@@ -535,6 +542,12 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 						"host_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+						"host_resource_group_arn": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"placement.0.host_id"},
+							ValidateFunc:  validateArn,
 						},
 						"spread_domain": {
 							Type:     schema.TypeString,
@@ -600,8 +613,8 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"hibernation_options": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -642,21 +655,17 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 				}
 				return false
 			}),
+			SetTagsDiff,
 		),
 	}
 }
 
 func resourceAwsLaunchTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
-	var ltName string
-	if v, ok := d.GetOk("name"); ok {
-		ltName = v.(string)
-	} else if v, ok := d.GetOk("name_prefix"); ok {
-		ltName = resource.PrefixedUniqueId(v.(string))
-	} else {
-		ltName = resource.UniqueId()
-	}
+	ltName := naming.Generate(d.Get("name").(string), d.Get("name_prefix").(string))
 
 	launchTemplateData, err := buildLaunchTemplateData(d)
 	if err != nil {
@@ -667,7 +676,7 @@ func resourceAwsLaunchTemplateCreate(d *schema.ResourceData, meta interface{}) e
 		ClientToken:        aws.String(resource.UniqueId()),
 		LaunchTemplateName: aws.String(ltName),
 		LaunchTemplateData: launchTemplateData,
-		TagSpecifications:  ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeLaunchTemplate),
+		TagSpecifications:  ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeLaunchTemplate),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -690,6 +699,7 @@ func resourceAwsLaunchTemplateCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading launch template %s", d.Id())
@@ -729,10 +739,18 @@ func resourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) err
 
 	lt := dlt.LaunchTemplates[0]
 	d.Set("name", lt.LaunchTemplateName)
+	d.Set("name_prefix", naming.NamePrefixFromName(aws.StringValue(lt.LaunchTemplateName)))
 	d.Set("latest_version", lt.LatestVersionNumber)
 	d.Set("default_version", lt.DefaultVersionNumber)
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(lt.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(lt.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -895,8 +913,8 @@ func resourceAwsLaunchTemplateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
@@ -1168,6 +1186,7 @@ func getNetworkInterfaces(n []*ec2.LaunchTemplateInstanceNetworkInterfaceSpecifi
 		networkInterface := map[string]interface{}{
 			"description":          aws.StringValue(v.Description),
 			"device_index":         aws.Int64Value(v.DeviceIndex),
+			"interface_type":       aws.StringValue(v.InterfaceType),
 			"ipv4_address_count":   aws.Int64Value(v.SecondaryPrivateIpAddressCount),
 			"ipv6_address_count":   aws.Int64Value(v.Ipv6AddressCount),
 			"network_interface_id": aws.StringValue(v.NetworkInterfaceId),
@@ -1232,13 +1251,14 @@ func getPlacement(p *ec2.LaunchTemplatePlacement) []interface{} {
 	var s []interface{}
 	if p != nil {
 		s = append(s, map[string]interface{}{
-			"affinity":          aws.StringValue(p.Affinity),
-			"availability_zone": aws.StringValue(p.AvailabilityZone),
-			"group_name":        aws.StringValue(p.GroupName),
-			"host_id":           aws.StringValue(p.HostId),
-			"spread_domain":     aws.StringValue(p.SpreadDomain),
-			"tenancy":           aws.StringValue(p.Tenancy),
-			"partition_number":  aws.Int64Value(p.PartitionNumber),
+			"affinity":                aws.StringValue(p.Affinity),
+			"availability_zone":       aws.StringValue(p.AvailabilityZone),
+			"group_name":              aws.StringValue(p.GroupName),
+			"host_id":                 aws.StringValue(p.HostId),
+			"host_resource_group_arn": aws.StringValue(p.HostResourceGroupArn),
+			"spread_domain":           aws.StringValue(p.SpreadDomain),
+			"tenancy":                 aws.StringValue(p.Tenancy),
+			"partition_number":        aws.Int64Value(p.PartitionNumber),
 		})
 	}
 	return s
@@ -1597,6 +1617,10 @@ func readNetworkInterfacesFromConfig(ni map[string]interface{}) (*ec2.LaunchTemp
 		networkInterface.NetworkInterfaceId = aws.String(v)
 	}
 
+	if v, ok := ni["interface_type"].(string); ok && v != "" {
+		networkInterface.InterfaceType = aws.String(v)
+	}
+
 	if v, ok := ni["associate_carrier_ip_address"]; ok && v.(string) != "" {
 		vBool, err := strconv.ParseBool(v.(string))
 		if err != nil {
@@ -1829,6 +1853,10 @@ func readPlacementFromConfig(p map[string]interface{}) *ec2.LaunchTemplatePlacem
 
 	if v, ok := p["host_id"].(string); ok && v != "" {
 		placement.HostId = aws.String(v)
+	}
+
+	if v, ok := p["host_resource_group_arn"].(string); ok && v != "" {
+		placement.HostResourceGroupArn = aws.String(v)
 	}
 
 	if v, ok := p["spread_domain"].(string); ok && v != "" {

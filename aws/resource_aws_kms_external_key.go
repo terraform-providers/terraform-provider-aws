@@ -32,6 +32,8 @@ func resourceAwsKmsExternalKey() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -81,7 +83,8 @@ func resourceAwsKmsExternalKey() *schema.Resource {
 					validation.StringIsJSON,
 				),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"valid_to": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -93,6 +96,8 @@ func resourceAwsKmsExternalKey() *schema.Resource {
 
 func resourceAwsKmsExternalKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kmsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &kms.CreateKeyInput{
 		KeyUsage: aws.String(kms.KeyUsageTypeEncryptDecrypt),
@@ -107,8 +112,8 @@ func resourceAwsKmsExternalKeyCreate(d *schema.ResourceData, meta interface{}) e
 		input.Policy = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().KmsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().KmsTags()
 	}
 
 	var output *kms.CreateKeyOutput
@@ -160,6 +165,7 @@ func resourceAwsKmsExternalKeyCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsKmsExternalKeyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kmsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &kms.DescribeKeyInput{
@@ -244,8 +250,15 @@ func resourceAwsKmsExternalKeyRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for KMS Key (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("valid_to", "")
@@ -309,8 +322,8 @@ func resourceAwsKmsExternalKeyUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.KmsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating KMS External Key (%s) tags: %s", d.Id(), err)

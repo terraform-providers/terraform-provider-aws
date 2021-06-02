@@ -290,18 +290,24 @@ func resourceAwsAppmeshGatewayRoute() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAppmeshGatewayRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &appmesh.CreateGatewayRouteInput{
 		GatewayRouteName:   aws.String(d.Get("name").(string)),
 		MeshName:           aws.String(d.Get("mesh_name").(string)),
 		Spec:               expandAppmeshGatewayRouteSpec(d.Get("spec").([]interface{})),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+		Tags:               tags.IgnoreAws().AppmeshTags(),
 		VirtualGatewayName: aws.String(d.Get("virtual_gateway_name").(string)),
 	}
 	if v, ok := d.GetOk("mesh_owner"); ok {
@@ -322,6 +328,7 @@ func resourceAwsAppmeshGatewayRouteCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsAppmeshGatewayRouteRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var gatewayRoute *appmesh.GatewayRouteData
@@ -396,8 +403,15 @@ func resourceAwsAppmeshGatewayRouteRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for App Mesh gateway route (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -426,8 +440,8 @@ func resourceAwsAppmeshGatewayRouteUpdate(d *schema.ResourceData, meta interface
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.AppmeshUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating App Mesh gateway route (%s) tags: %s", arn, err)

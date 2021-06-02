@@ -14,3 +14,351 @@ bug:
   - "(doesn't support update|failed to satisfy constraint: Member must not be null|Invalid address to set|panic:|produced an (invalid|unexpected) new value|Provider produced inconsistent (final plan|result after apply))"
 crash:
   - 'panic:'
+#
+# AWS Per-Service Labeling
+#
+# Catch the following in issues to prevent false positives:
+# *aws_XXX
+# * aws_XXX
+# * `aws_XXX`
+# -aws_XXX
+# - aws_XXX
+# - `aws_XXX`
+# data aws_XXX
+# data "aws_XXX"
+# resource aws_XXX
+# resource "aws_XXX"
+service/accessanalyzer:
+  - '((\*|-) ?`?|(data|resource) "?)aws_accessanalyzer_'
+service/acm:
+  - '((\*|-) ?`?|(data|resource) "?)aws_acm_'
+service/acmpca:
+  - '((\*|-) ?`?|(data|resource) "?)aws_acmpca_'
+service/alexaforbusiness:
+  - '((\*|-) ?`?|(data|resource) "?)aws_alexaforbusiness_'
+service/amplify:
+  - '((\*|-) ?`?|(data|resource) "?)aws_amplify_'
+service/apigateway:
+  - '((\*|-) ?`?|(data|resource) "?)aws_api_gateway_'
+service/apigatewayv2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_apigatewayv2_'
+service/appconfig:
+  - '((\*|-) ?`?|(data|resource) "?)aws_appconfig_'
+service/applicationautoscaling:
+  - '((\*|-) ?`?|(data|resource) "?)aws_appautoscaling_'
+service/applicationdiscoveryservice:
+  - '((\*|-) ?`?|(data|resource) "?)aws_applicationdiscoveryservice_'
+service/applicationinsights:
+  - '((\*|-) ?`?|(data|resource) "?)aws_applicationinsights_'
+service/appmesh:
+  - '((\*|-) ?`?|(data|resource) "?)aws_appmesh_'
+service/apprunner:
+  - '((\*|-) ?`?|(data|resource) "?)aws_apprunner_'
+service/appstream:
+  - '((\*|-) ?`?|(data|resource) "?)aws_appstream_'
+service/appsync:
+  - '((\*|-) ?`?|(data|resource) "?)aws_appsync_'
+service/athena:
+  - '((\*|-) ?`?|(data|resource) "?)aws_athena_'
+service/auditmanager:
+  - '((\*|-) ?`?|(data|resource) "?)aws_auditmanager_'
+service/autoscaling:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(autoscaling_|launch_configuration)'
+service/autoscalingplans:
+  - '((\*|-) ?`?|(data|resource) "?)aws_autoscalingplans_'
+service/backup:
+  - '((\*|-) ?`?|(data|resource) "?)aws_backup_'
+service/batch:
+  - '((\*|-) ?`?|(data|resource) "?)aws_batch_'
+service/budgets:
+  - '((\*|-) ?`?|(data|resource) "?)aws_budgets_'
+service/chime:
+  - '((\*|-) ?`?|(data|resource) "?)aws_chime_'
+service/cloud9:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloud9_'
+service/clouddirectory:
+  - '((\*|-) ?`?|(data|resource) "?)aws_clouddirectory_'
+service/cloudformation:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudformation_'
+service/cloudfront:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudfront_'
+service/cloudhsmv2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudhsm_v2_'
+service/cloudsearch:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudsearch_'
+service/cloudtrail:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudtrail'
+service/cloudwatch:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudwatch_(?!(event_|log_|query_))'
+service/cloudwatchevents:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudwatch_event_'
+service/cloudwatchlogs:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudwatch_(log_|query_)'
+service/codeartifact:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codeartifact_'
+service/codebuild:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codebuild_'
+service/codecommit:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codecommit_'
+service/codedeploy:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codedeploy_'
+service/codepipeline:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codepipeline'
+service/codestar:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codestar_'
+service/codestarconnections:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codestarconnections_'
+service/codestarnotifications:
+  - '((\*|-) ?`?|(data|resource) "?)aws_codestarnotifications_'
+service/cognito:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cognito_'
+service/configservice:
+  - '((\*|-) ?`?|(data|resource) "?)aws_config_'
+service/connect:
+  - '((\*|-) ?`?|(data|resource) "?)aws_connect_'
+service/databasemigrationservice:
+  - '((\*|-) ?`?|(data|resource) "?)aws_dms_'
+service/dataexchange:
+  - '((\*|-) ?`?|(data|resource) "?)aws_dataexchange_'
+service/datapipeline:
+  - '((\*|-) ?`?|(data|resource) "?)aws_datapipeline_'
+service/datasync:
+  - '((\*|-) ?`?|(data|resource) "?)aws_datasync_'
+service/dax:
+  - '((\*|-) ?`?|(data|resource) "?)aws_dax_'
+service/detective:
+  - '((\*|-) ?`?|(data|resource) "?)aws_detective'
+service/devicefarm:
+  - '((\*|-) ?`?|(data|resource) "?)aws_devicefarm_'
+service/directconnect:
+  - '((\*|-) ?`?|(data|resource) "?)aws_dx_'
+service/directoryservice:
+  - '((\*|-) ?`?|(data|resource) "?)aws_directory_service_'
+service/dlm:
+  - '((\*|-) ?`?|(data|resource) "?)aws_dlm_'
+service/docdb:
+  - '((\*|-) ?`?|(data|resource) "?)aws_docdb_'
+service/dynamodb:
+  - '((\*|-) ?`?|(data|resource) "?)aws_dynamodb_'
+service/ec2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(ami|availability_zone|customer_gateway|(default_)?(network_acl|route_table|security_group|subnet|vpc)|ebs_|ec2_|egress_only_internet_gateway|eip|flow_log|instance|internet_gateway|key_pair|launch_template|main_route_table_association|network_interface|placement_group|prefix_list|spot|route(\"|`|$)|vpn_|volume_attachment)'
+service/ecr:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ecr_'
+service/ecrpublic:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ecrpublic_'
+service/ecs:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ecs_'
+service/efs:
+  - '((\*|-) ?`?|(data|resource) "?)aws_efs_'
+service/eks:
+  - '((\*|-) ?`?|(data|resource) "?)aws_eks_'
+elastic-transcoder:
+  - '((\*|-) ?`?|(data|resource) "?)aws_elastictranscoder_'
+service/elasticache:
+  - '((\*|-) ?`?|(data|resource) "?)aws_elasticache_'
+service/elasticbeanstalk:
+  - '((\*|-) ?`?|(data|resource) "?)aws_elastic_beanstalk_'
+service/elasticsearch:
+  - '((\*|-) ?`?|(data|resource) "?)aws_elasticsearch_'
+service/elb:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(app_cookie_stickiness_policy|elb|lb_cookie_stickiness_policy|lb_ssl_negotiation_policy|load_balancer_|proxy_protocol_policy)'
+service/elbv2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(a)?lb(\"|`|_listener|_target_group|$)'
+service/emr:
+  - '((\*|-) ?`?|(data|resource) "?)aws_emr_'
+service/emrcontainers:
+  - '((\*|-) ?`?|(data|resource) "?)aws_emrcontainers_'
+service/eventbridge:
+  - '((\*|-) ?`?|(data|resource) "?)aws_cloudwatch_event_'
+service/firehose:
+  - '((\*|-) ?`?|(data|resource) "?)aws_kinesis_firehose_'
+service/fms:
+  - '((\*|-) ?`?|(data|resource) "?)aws_fms_'
+service/forecast:
+  - '((\*|-) ?`?|(data|resource) "?)aws_forecast_'
+service/fsx:
+  - '((\*|-) ?`?|(data|resource) "?)aws_fsx_'
+service/gamelift:
+  - '((\*|-) ?`?|(data|resource) "?)aws_gamelift_'
+service/glacier:
+  - '((\*|-) ?`?|(data|resource) "?)aws_glacier_'
+service/globalaccelerator:
+  - '((\*|-) ?`?|(data|resource) "?)aws_globalaccelerator_'
+service/glue:
+  - '((\*|-) ?`?|(data|resource) "?)aws_glue_'
+service/greengrass:
+  - '((\*|-) ?`?|(data|resource) "?)aws_greengrass_'
+service/guardduty:
+  - '((\*|-) ?`?|(data|resource) "?)aws_guardduty_'
+service/iam:
+  - '((\*|-) ?`?|(data|resource) "?)aws_iam_'
+service/identitystore:
+  - '((\*|-) ?`?|(data|resource) "?)aws_identitystore_'
+service/imagebuilder:
+  - '((\*|-) ?`?|(data|resource) "?)aws_imagebuilder_'
+service/inspector:
+  - '((\*|-) ?`?|(data|resource) "?)aws_inspector_'
+service/iot:
+  - '((\*|-) ?`?|(data|resource) "?)aws_iot_'
+service/iotanalytics:
+  - '((\*|-) ?`?|(data|resource) "?)aws_iotanalytics_'
+service/iotevents:
+  - '((\*|-) ?`?|(data|resource) "?)aws_iotevents_'
+service/kafka:
+  - '((\*|-) ?`?|(data|resource) "?)aws_msk_'
+service/kinesis:
+  - '((\*|-) ?`?|(data|resource) "?)aws_kinesis_stream'
+service/kinesisanalytics:
+  - '((\*|-) ?`?|(data|resource) "?)aws_kinesis_analytics_'
+service/kinesisanalyticsv2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_kinesisanalyticsv2_'
+service/kms:
+  - '((\*|-) ?`?|(data|resource) "?)aws_kms_'
+service/lakeformation:
+  - '((\*|-) ?`?|(data|resource) "?)aws_lakeformation_'
+service/lambda:
+  - '((\*|-) ?`?|(data|resource) "?)aws_lambda_'
+service/lexmodelbuildingservice:
+  - '((\*|-) ?`?|(data|resource) "?)aws_lex_'
+service/licensemanager:
+  - '((\*|-) ?`?|(data|resource) "?)aws_licensemanager_'
+service/lightsail:
+  - '((\*|-) ?`?|(data|resource) "?)aws_lightsail_'
+service/machinelearning:
+  - '((\*|-) ?`?|(data|resource) "?)aws_machinelearning_'
+service/macie:
+  - '((\*|-) ?`?|(data|resource) "?)aws_macie_'
+service/macie2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_macie2_'
+service/marketplacecatalog:
+  - '((\*|-) ?`?|(data|resource) "?)aws_marketplace_catalog_'
+service/mediaconnect:
+  - '((\*|-) ?`?|(data|resource) "?)aws_media_connect_'
+service/mediaconvert:
+  - '((\*|-) ?`?|(data|resource) "?)aws_media_convert_'
+service/medialive:
+  - '((\*|-) ?`?|(data|resource) "?)aws_media_live_'
+service/mediapackage:
+  - '((\*|-) ?`?|(data|resource) "?)aws_media_package_'
+service/mediastore:
+  - '((\*|-) ?`?|(data|resource) "?)aws_media_store_'
+service/mediatailor:
+  - '((\*|-) ?`?|(data|resource) "?)aws_media_tailor_'
+service/mobile:
+  - '((\*|-) ?`?|(data|resource) "?)aws_mobile_'
+service/mq:
+  - '((\*|-) ?`?|(data|resource) "?)aws_mq_'
+service/mwaa:
+  - '((\*|-) ?`?|(data|resource) "?)aws_mwaa_'
+service/neptune:
+  - '((\*|-) ?`?|(data|resource) "?)aws_neptune_'
+service/networkfirewall:
+  - '((\*|-) ?`?|(data|resource) "?)aws_networkfirewall_'
+service/networkmanager:
+  - '((\*|-) ?`?|(data|resource) "?)aws_networkmanager_'
+service/opsworks:
+  - '((\*|-) ?`?|(data|resource) "?)aws_opsworks_'
+service/organizations:
+  - '((\*|-) ?`?|(data|resource) "?)aws_organizations_'
+service/outposts:
+  - '((\*|-) ?`?|(data|resource) "?)aws_outposts_'
+service/personalize:
+  - '((\*|-) ?`?|(data|resource) "?)aws_personalize_'
+service/pinpoint:
+  - '((\*|-) ?`?|(data|resource) "?)aws_pinpoint_'
+service/polly:
+  - '((\*|-) ?`?|(data|resource) "?)aws_polly_'
+service/pricing:
+  - '((\*|-) ?`?|(data|resource) "?)aws_pricing_'
+service/prometheusservice:
+  - '((\*|-) ?`?|(data|resource) "?)aws_prometheus_'
+service/qldb:
+  - '((\*|-) ?`?|(data|resource) "?)aws_qldb_'
+service/quicksight:
+  - '((\*|-) ?`?|(data|resource) "?)aws_quicksight_'
+service/ram:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ram_'
+service/rds:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(db_|rds_)'
+service/redshift:
+  - '((\*|-) ?`?|(data|resource) "?)aws_redshift_'
+service/resourcegroups:
+  - '((\*|-) ?`?|(data|resource) "?)aws_resourcegroups_'
+service/resourcegroupstaggingapi:
+  - '((\*|-) ?`?|(data|resource) "?)aws_resourcegroupstaggingapi_'
+service/robomaker:
+  - '((\*|-) ?`?|(data|resource) "?)aws_robomaker_'
+service/route53:
+  - '((\*|-) ?`?|(data|resource) "?)aws_route53_(?!resolver_)'
+service/route53domains:
+  - '((\*|-) ?`?|(data|resource) "?)aws_route53domains_'
+service/route53resolver:
+  - '((\*|-) ?`?|(data|resource) "?)aws_route53_resolver_'
+service/s3:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(canonical_user_id|s3_bucket|s3_object)'
+service/s3control:
+  - '((\*|-) ?`?|(data|resource) "?)aws_(s3_account_|s3control_)'
+service/s3outposts:
+  - '((\*|-) ?`?|(data|resource) "?)aws_s3outposts_'
+service/sagemaker:
+  - '((\*|-) ?`?|(data|resource) "?)aws_sagemaker_'
+service/schemas:
+  - '((\*|-) ?`?|(data|resource) "?)aws_schemas_'
+service/secretsmanager:
+  - '((\*|-) ?`?|(data|resource) "?)aws_secretsmanager_'
+service/securityhub:
+  - '((\*|-) ?`?|(data|resource) "?)aws_securityhub_'
+service/serverlessapplicationrepository:
+  - '((\*|-) ?`?|(data|resource) "?)aws_serverlessapplicationrepository_'
+service/servicecatalog:
+  - '((\*|-) ?`?|(data|resource) "?)aws_servicecatalog_'
+service/servicediscovery:
+  - '((\*|-) ?`?|(data|resource) "?)aws_service_discovery_'
+service/servicequotas:
+  - '((\*|-) ?`?|(data|resource) "?)aws_servicequotas_'
+service/ses:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ses_'
+service/sfn:
+  - '((\*|-) ?`?|(data|resource) "?)aws_sfn_'
+service/shield:
+  - '((\*|-) ?`?|(data|resource) "?)aws_shield_'
+service/signer:
+  - '((\*|-) ?`?|(data|resource) "?)aws_signer_'
+service/simpledb:
+  - '((\*|-) ?`?|(data|resource) "?)aws_simpledb_'
+service/snowball:
+  - '((\*|-) ?`?|(data|resource) "?)aws_snowball_'
+service/sns:
+  - '((\*|-) ?`?|(data|resource) "?)aws_sns_'
+service/sqs:
+  - '((\*|-) ?`?|(data|resource) "?)aws_sqs_'
+service/ssm:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ssm_'
+service/ssoadmin:
+  - '((\*|-) ?`?|(data|resource) "?)aws_ssoadmin_'
+service/storagegateway:
+  - '((\*|-) ?`?|(data|resource) "?)aws_storagegateway_'
+service/sts:
+  - '((\*|-) ?`?|(data|resource) "?)aws_caller_identity'
+service/swf:
+  - '((\*|-) ?`?|(data|resource) "?)aws_swf_'
+service/synthetics:
+  - '((\*|-) ?`?|(data|resource) "?)aws_synthetics_'
+service/timestreamwrite:
+  - '((\*|-) ?`?|(data|resource) "?)aws_timestreamwrite_'
+service/transfer:
+  - '((\*|-) ?`?|(data|resource) "?)aws_transfer_'
+service/waf:
+  - '((\*|-) ?`?|(data|resource) "?)aws_waf(regional)?_'
+service/wafv2:
+  - '((\*|-) ?`?|(data|resource) "?)aws_wafv2_'
+service/workdocs:
+  - '((\*|-) ?`?|(data|resource) "?)aws_workdocs_'
+service/worklink:
+  - '((\*|-) ?`?|(data|resource) "?)aws_worklink_'
+service/workmail:
+  - '((\*|-) ?`?|(data|resource) "?)aws_workmail_'
+service/workspaces:
+  - '((\*|-) ?`?|(data|resource) "?)aws_workspaces_'
+service/xray:
+  - '((\*|-) ?`?|(data|resource) "?)aws_xray_'

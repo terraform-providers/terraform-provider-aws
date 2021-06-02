@@ -1,6 +1,7 @@
 package waiter
 
 import (
+	"context"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,6 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/dynamodb/finder"
 )
+
+func DynamoDBKinesisStreamingDestinationStatus(ctx context.Context, conn *dynamodb.DynamoDB, streamArn, tableName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		result, err := finder.DynamoDBKinesisDataStreamDestination(ctx, conn, streamArn, tableName)
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if result == nil {
+			return nil, "", nil
+		}
+
+		return result, aws.StringValue(result.DestinationStatus), nil
+	}
+}
 
 func DynamoDBTableStatus(conn *dynamodb.DynamoDB, tableName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {

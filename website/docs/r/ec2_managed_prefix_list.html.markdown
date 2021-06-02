@@ -46,29 +46,26 @@ resource "aws_ec2_managed_prefix_list" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this resource. The name must not start with `com.amazonaws`.
-* `address_family` - (Required, Forces new resource) The address family (`IPv4` or `IPv6`) of
-    this prefix list.
-* `entry` - (Optional) Can be specified multiple times for each prefix list entry.
-    Each entry block supports fields documented below. Different entries may have
-    overlapping CIDR blocks, but a particular CIDR should not be duplicated.
-* `max_entries` - (Required, Forces new resource) The maximum number of entries that
-    this prefix list can contain.
-* `tags` - (Optional) A map of tags to assign to this resource.
+* `address_family` - (Required, Forces new resource) Address family (`IPv4` or `IPv6`) of this prefix list.
+* `entry` - (Optional) Configuration block for prefix list entry. Detailed below. Different entries may have overlapping CIDR blocks, but a particular CIDR should not be duplicated.
+* `max_entries` - (Required, Forces new resource) Maximum number of entries that this prefix list can contain.
+* `name` - (Required) Name of this resource. The name must not start with `com.amazonaws`.
+* `tags` - (Optional) Map of tags to assign to this resource. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
-The `entry` block supports:
+### `entry`
 
-* `cidr` - (Required) The CIDR block of this entry.
-* `description` - (Optional) Description of this entry.
+* `cidr` - (Required) CIDR block of this entry.
+* `description` - (Optional) Description of this entry. Due to API limitations, updating only the description of an existing entry requires temporarily removing and re-adding the entry.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the prefix list.
-* `arn` - The ARN of the prefix list.
-* `owner_id` - The ID of the AWS account that owns this prefix list.
-* `version` - The latest version of this prefix list.
+* `arn` - ARN of the prefix list.
+* `id` - ID of the prefix list.
+* `owner_id` - ID of the AWS account that owns this prefix list.
+* `tags_all` - Map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
+* `version` - Latest version of this prefix list.
 
 ## Import
 

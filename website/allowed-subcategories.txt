@@ -4,7 +4,10 @@ ACM
 API Gateway (REST APIs)
 API Gateway v2 (WebSocket and HTTP APIs)
 Access Analyzer
+Amplify Console
+AppConfig
 AppMesh
+App Runner
 AppSync
 Application Autoscaling
 Athena
@@ -15,6 +18,7 @@ Amazon Managed Service for Prometheus (AMP)
 Backup
 Batch
 Budgets
+Chime
 Cloud9
 CloudFormation
 CloudFront
@@ -36,6 +40,7 @@ Data Lifecycle Manager (DLM)
 DataPipeline
 DataSync
 Database Migration Service (DMS)
+Detective
 Device Farm
 Direct Connect
 Directory Service
@@ -57,6 +62,7 @@ Elastic Map Reduce Containers
 Elastic Transcoder
 ElasticSearch
 EventBridge (CloudWatch Events)
+EventBridge Schemas
 File System (FSx)
 Firewall Manager (FMS)
 Gamelift

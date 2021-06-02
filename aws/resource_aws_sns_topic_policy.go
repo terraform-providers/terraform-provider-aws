@@ -3,10 +3,8 @@ package aws
 import (
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -25,15 +23,20 @@ func resourceAwsSnsTopicPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
 			},
 			"policy": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
+			},
+			"owner": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -64,14 +67,14 @@ func resourceAwsSnsTopicPolicyUpsert(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsSnsTopicPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	snsconn := meta.(*AWSClient).snsconn
+	conn := meta.(*AWSClient).snsconn
 
-	attributeOutput, err := snsconn.GetTopicAttributes(&sns.GetTopicAttributesInput{
+	attributeOutput, err := conn.GetTopicAttributes(&sns.GetTopicAttributesInput{
 		TopicArn: aws.String(d.Id()),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFound" {
-			log.Printf("[WARN] SNS Topic (%s) not found, error code (404)", d.Id())
+		if isAWSErr(err, sns.ErrCodeNotFoundException, "") {
+			log.Printf("[WARN] SNS Topic (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -80,7 +83,7 @@ func resourceAwsSnsTopicPolicyRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if attributeOutput.Attributes == nil {
-		log.Printf("[WARN] SNS Topic (%q) attributes not found (nil)", d.Id())
+		log.Printf("[WARN] SNS Topic (%q) attributes not found (nil), removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -88,30 +91,26 @@ func resourceAwsSnsTopicPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 	policy, ok := attrmap["Policy"]
 	if !ok {
-		log.Printf("[WARN] SNS Topic (%q) policy not found in attributes", d.Id())
+		log.Printf("[WARN] SNS Topic (%q) policy not found in attributes, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("policy", policy)
 	d.Set("arn", attrmap["TopicArn"])
+	d.Set("owner", attrmap["Owner"])
 
 	return nil
 }
 
 func resourceAwsSnsTopicPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	accountId, err := getAccountIdFromSnsTopicArn(d.Id(), meta.(*AWSClient).partition)
-	if err != nil {
-		return err
-	}
-
 	req := sns.SetTopicAttributesInput{
 		TopicArn:      aws.String(d.Id()),
 		AttributeName: aws.String("Policy"),
 		// It is impossible to delete a policy or set to empty
 		// (confirmed by AWS Support representative)
 		// so we instead set it back to the default one
-		AttributeValue: aws.String(buildDefaultSnsTopicPolicy(d.Id(), accountId)),
+		AttributeValue: aws.String(buildDefaultSnsTopicPolicy(d.Id(), d.Get("owner").(string))),
 	}
 
 	// Retry the update in the event of an eventually consistent style of
@@ -119,21 +118,10 @@ func resourceAwsSnsTopicPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	// actually available. See https://github.com/hashicorp/terraform/issues/3660
 	log.Printf("[DEBUG] Resetting SNS Topic Policy to default: %s", req)
 	conn := meta.(*AWSClient).snsconn
-	_, err = retryOnAwsCode("InvalidParameter", func() (interface{}, error) {
+	_, err := retryOnAwsCode("InvalidParameter", func() (interface{}, error) {
 		return conn.SetTopicAttributes(&req)
 	})
 	return err
-}
-
-func getAccountIdFromSnsTopicArn(arn, partition string) (string, error) {
-	// arn:aws:sns:us-west-2:123456789012:test-new
-	// arn:aws-us-gov:sns:us-west-2:123456789012:test-new
-	re := regexp.MustCompile(fmt.Sprintf("^arn:%s:sns:[^:]+:([0-9]{12}):.+", partition))
-	matches := re.FindStringSubmatch(arn)
-	if len(matches) != 2 {
-		return "", fmt.Errorf("Unable to get account ID from ARN (%q)", arn)
-	}
-	return matches[1], nil
 }
 
 func buildDefaultSnsTopicPolicy(topicArn, accountId string) string {

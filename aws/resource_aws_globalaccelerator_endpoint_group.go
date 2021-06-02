@@ -43,7 +43,6 @@ func resourceAwsGlobalAcceleratorEndpointGroup() *schema.Resource {
 			"endpoint_configuration": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				MaxItems: 10,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"client_ip_preservation_enabled": {

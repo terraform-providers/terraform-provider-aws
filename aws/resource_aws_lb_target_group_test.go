@@ -9,9 +9,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elbv2/finder"
 )
 
 func init() {
@@ -31,7 +33,7 @@ func testSweepLBTargetGroups(region string) error {
 	}
 	conn := client.(*AWSClient).elbv2conn
 
-	err = conn.DescribeTargetGroupsPages(&elbv2.DescribeTargetGroupsInput{}, func(page *elbv2.DescribeTargetGroupsOutput, isLast bool) bool {
+	err = conn.DescribeTargetGroupsPages(&elbv2.DescribeTargetGroupsInput{}, func(page *elbv2.DescribeTargetGroupsOutput, lastPage bool) bool {
 		if page == nil || len(page.TargetGroups) == 0 {
 			log.Print("[DEBUG] No LB Target Groups to sweep")
 			return false
@@ -48,7 +50,7 @@ func testSweepLBTargetGroups(region string) error {
 				log.Printf("[ERROR] Failed to delete LB Target Group (%s): %s", name, err)
 			}
 		}
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -97,11 +99,10 @@ func TestAccAWSLBTargetGroup_basic(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basic(rName),
@@ -143,11 +144,10 @@ func TestAccAWSLBTargetGroup_basicUdp(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basicUdp(rName),
@@ -175,11 +175,10 @@ func TestAccAWSLBTargetGroup_ProtocolVersion(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_ProtocolVersion(rName),
@@ -221,11 +220,10 @@ func TestAccAWSLBTargetGroup_withoutHealthcheck(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_withoutHealthcheck(rName),
@@ -247,11 +245,10 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCP(rName),
@@ -267,15 +264,11 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&targetGroup1, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "traffic-port"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&targetGroup1, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "3"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&targetGroup1, 3),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "3"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&targetGroup1, 3),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 				),
@@ -298,15 +291,11 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&targetGroup2, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "traffic-port"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&targetGroup2, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "5"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&targetGroup2, 5),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "5"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&targetGroup2, 5),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 				),
@@ -361,11 +350,10 @@ func TestAccAWSLBTargetGroup_Protocol_Tcp_HealthCheck_Protocol(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCPIntervalUpdated(rName),
@@ -416,11 +404,10 @@ func TestAccAWSLBTargetGroup_ProtocolVersion_GRPC_HealthCheck(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_GRPC_ProtocolVersion(rName),
@@ -472,11 +459,10 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroupWithProxy(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCP(rName),
@@ -502,11 +488,10 @@ func TestAccAWSLBTargetGroup_TCP_HTTPHealthCheck(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCP_HTTPHealthCheck(rName, "/healthz", 2),
@@ -520,16 +505,12 @@ func TestAccAWSLBTargetGroup_TCP_HTTPHealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "300"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&confBefore, 30),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/healthz"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "443"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&confBefore, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "2"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&confBefore, 2),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "2"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&confBefore, 2),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 				),
@@ -546,16 +527,12 @@ func TestAccAWSLBTargetGroup_TCP_HTTPHealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "300"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&confAfter, 30),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/healthz2"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "443"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&confAfter, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&confAfter, 4),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&confAfter, 4),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 				),
@@ -570,11 +547,10 @@ func TestAccAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
 	resourceName := "aws_alb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfigBackwardsCompatibility(rName),
@@ -614,11 +590,10 @@ func TestAccAWSLBTargetGroup_namePrefix(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_namePrefix(rName),
@@ -637,11 +612,10 @@ func TestAccAWSLBTargetGroup_generatedName(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_generatedName(rName),
@@ -660,11 +634,10 @@ func TestAccAWSLBTargetGroup_changeNameForceNew(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basic(rNameBefore),
@@ -690,11 +663,10 @@ func TestAccAWSLBTargetGroup_changeProtocolForceNew(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basic(rName),
@@ -720,11 +692,10 @@ func TestAccAWSLBTargetGroup_changePortForceNew(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basic(rName),
@@ -750,11 +721,10 @@ func TestAccAWSLBTargetGroup_changeVpcForceNew(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basic(rName),
@@ -778,11 +748,10 @@ func TestAccAWSLBTargetGroup_tags(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfigTags1(rName, "key1", "value1"),
@@ -819,11 +788,10 @@ func TestAccAWSLBTargetGroup_enableHealthCheck(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_withoutHealthcheck(rName),
@@ -833,7 +801,6 @@ func TestAccAWSLBTargetGroup_enableHealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "false"),
-					testAccCheckAWSLBTargetGroupHealthCheckEnabled(&conf, false),
 				),
 			},
 			{
@@ -844,7 +811,6 @@ func TestAccAWSLBTargetGroup_enableHealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
-					testAccCheckAWSLBTargetGroupHealthCheckEnabled(&conf, true),
 				),
 			},
 		},
@@ -857,11 +823,10 @@ func TestAccAWSLBTargetGroup_updateHealthCheck(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_basic(rName),
@@ -880,14 +845,11 @@ func TestAccAWSLBTargetGroup_updateHealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "60"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&conf, 60),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8081"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "3"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "3"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&conf, 3),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "3"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&conf, 3),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200-299"),
 				),
 			},
@@ -906,17 +868,13 @@ func TestAccAWSLBTargetGroup_updateHealthCheck(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
-					testAccCheckAWSLBTargetGroupHealthCheckEnabled(&conf, true),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&conf, 30),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&conf, 4),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&conf, 4),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
 				),
 			},
@@ -930,11 +888,10 @@ func TestAccAWSLBTargetGroup_updateSticknessEnabled(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_stickiness(rName, false, false),
@@ -1017,11 +974,10 @@ func TestAccAWSLBTargetGroup_defaults_application(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccALB_defaults(rName),
@@ -1079,11 +1035,10 @@ protocol = "TCP"
     `
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccNLB_defaults(rName, healthCheckInvalid1),
@@ -1129,11 +1084,10 @@ func TestAccAWSLBTargetGroup_stickinessDefaultNLB(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_stickinessDefault(rName, "TCP"),
@@ -1172,11 +1126,10 @@ func TestAccAWSLBTargetGroup_stickinessDefaultALB(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_stickinessDefault(rName, "HTTP"),
@@ -1197,11 +1150,10 @@ func TestAccAWSLBTargetGroup_stickinessValidNLB(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_stickinessValidity(rName, "TCP", "source_ip", false),
@@ -1258,11 +1210,10 @@ func TestAccAWSLBTargetGroup_stickinessValidALB(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupConfig_stickinessValidity(rName, "HTTP", "lb_cookie", true),
@@ -1385,20 +1336,17 @@ func testAccCheckAWSLBTargetGroupExists(n string, res *elbv2.TargetGroup) resour
 
 		conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
-		describe, err := conn.DescribeTargetGroups(&elbv2.DescribeTargetGroupsInput{
-			TargetGroupArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		targetGroup, err := finder.TargetGroupByARN(conn, rs.Primary.ID)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading ELBv2 Target Group (%s): %w", rs.Primary.ID, err)
 		}
 
-		if len(describe.TargetGroups) != 1 ||
-			*describe.TargetGroups[0].TargetGroupArn != rs.Primary.ID {
-			return errors.New("Target Group not found")
+		if targetGroup == nil {
+			return fmt.Errorf("Target Group (%s) not found", rs.Primary.ID)
 		}
 
-		*res = *describe.TargetGroups[0]
+		*res = *targetGroup
 		return nil
 	}
 }
@@ -1423,76 +1371,6 @@ func testAccCheckAWSLBTargetGroupRecreated(i, j *elbv2.TargetGroup) resource.Tes
 	}
 }
 
-func testAccCheckAWSLBTargetGroupHealthCheckEnabled(res *elbv2.TargetGroup, expected bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if res.HealthCheckEnabled == nil {
-			return fmt.Errorf("Expected HealthCheckEnabled to be %t, given %#v",
-				expected, res.HealthCheckEnabled)
-		}
-		if *res.HealthCheckEnabled != expected {
-			return fmt.Errorf("Expected HealthCheckEnabled to be %t, given %t",
-				expected, *res.HealthCheckEnabled)
-		}
-		return nil
-	}
-}
-
-func testAccCheckAWSLBTargetGroupHealthCheckInterval(res *elbv2.TargetGroup, expected int64) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if res.HealthCheckIntervalSeconds == nil {
-			return fmt.Errorf("Expected HealthCheckIntervalSeconds to be %d, given: %#v",
-				expected, res.HealthCheckIntervalSeconds)
-		}
-		if *res.HealthCheckIntervalSeconds != expected {
-			return fmt.Errorf("Expected HealthCheckIntervalSeconds to be %d, given: %d",
-				expected, *res.HealthCheckIntervalSeconds)
-		}
-		return nil
-	}
-}
-
-func testAccCheckAWSLBTargetGroupHealthCheckTimeout(res *elbv2.TargetGroup, expected int64) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if res.HealthCheckTimeoutSeconds == nil {
-			return fmt.Errorf("Expected HealthCheckTimeoutSeconds to be %d, given: %#v",
-				expected, res.HealthCheckTimeoutSeconds)
-		}
-		if *res.HealthCheckTimeoutSeconds != expected {
-			return fmt.Errorf("Expected HealthCheckTimeoutSeconds to be %d, given: %d",
-				expected, *res.HealthCheckTimeoutSeconds)
-		}
-		return nil
-	}
-}
-
-func testAccCheckAWSLBTargetGroupHealthyThreshold(res *elbv2.TargetGroup, expected int64) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if res.HealthyThresholdCount == nil {
-			return fmt.Errorf("Expected HealthyThresholdCount to be %d, given: %#v",
-				expected, res.HealthyThresholdCount)
-		}
-		if *res.HealthyThresholdCount != expected {
-			return fmt.Errorf("Expected HealthyThresholdCount to be %d, given: %d",
-				expected, *res.HealthyThresholdCount)
-		}
-		return nil
-	}
-}
-
-func testAccCheckAWSLBTargetGroupUnhealthyThreshold(res *elbv2.TargetGroup, expected int64) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if res.UnhealthyThresholdCount == nil {
-			return fmt.Errorf("Expected.UnhealthyThresholdCount to be %d, given: %#v",
-				expected, res.UnhealthyThresholdCount)
-		}
-		if *res.UnhealthyThresholdCount != expected {
-			return fmt.Errorf("Expected.UnhealthyThresholdCount to be %d, given: %d",
-				expected, *res.UnhealthyThresholdCount)
-		}
-		return nil
-	}
-}
-
 func testAccCheckAWSLBTargetGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
@@ -1501,23 +1379,21 @@ func testAccCheckAWSLBTargetGroupDestroy(s *terraform.State) error {
 			continue
 		}
 
-		describe, err := conn.DescribeTargetGroups(&elbv2.DescribeTargetGroupsInput{
-			TargetGroupArns: []*string{aws.String(rs.Primary.ID)},
-		})
+		targetGroup, err := finder.TargetGroupByARN(conn, rs.Primary.ID)
 
-		if err == nil {
-			if len(describe.TargetGroups) != 0 &&
-				*describe.TargetGroups[0].TargetGroupArn == rs.Primary.ID {
-				return fmt.Errorf("Target Group %q still exists", rs.Primary.ID)
-			}
+		if tfawserr.ErrCodeEquals(err, elbv2.ErrCodeTargetGroupNotFoundException) {
+			continue
 		}
 
-		// Verify the error
-		if isAWSErr(err, elbv2.ErrCodeTargetGroupNotFoundException, "") {
-			return nil
-		} else {
-			return fmt.Errorf("unexpected error checking ALB destroyed: %w", err)
+		if err != nil {
+			return fmt.Errorf("unexpected error checking ALB (%s) destroyed: %w", rs.Primary.ID, err)
 		}
+
+		if targetGroup == nil {
+			continue
+		}
+
+		return fmt.Errorf("Target Group %q still exists", rs.Primary.ID)
 	}
 
 	return nil

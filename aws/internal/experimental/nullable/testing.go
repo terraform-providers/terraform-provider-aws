@@ -2,9 +2,9 @@ package nullable
 
 import (
 	"regexp"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	testing "github.com/mitchellh/go-testing-interface"
 )
 
 type testCase struct {
@@ -13,7 +13,7 @@ type testCase struct {
 	expectedErr *regexp.Regexp
 }
 
-func runTestCases(t testing.T, cases []testCase) {
+func runTestCases(t *testing.T, cases []testCase) {
 	t.Helper()
 
 	matchErr := func(errs []error, r *regexp.Regexp) bool {

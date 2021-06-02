@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_apprunner_service: Handle asynchronous IAM eventual consistency error on creation
+```
+
+```release-note:bug
+resource/aws_apprunner_service: Suppress `instance_configuration` `cpu` and `memory` differences
+```

@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
+	tfsqs "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sqs"
 )
 
 func init() {
@@ -94,9 +96,6 @@ func TestAccAWSSQSQueue_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 			{
 				Config: testAccAWSSQSConfigWithOverrides(queueName),
@@ -140,9 +139,6 @@ func TestAccAWSSQSQueue_tags(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 			{
 				Config: testAccAWSSQSConfigWithTagsChanged(queueName),
@@ -165,42 +161,67 @@ func TestAccAWSSQSQueue_tags(t *testing.T) {
 	})
 }
 
-func TestAccAWSSQSQueue_namePrefix(t *testing.T) {
+func TestAccAWSSQSQueue_Name_Generated(t *testing.T) {
 	var queueAttributes map[string]*string
+	resourceName := "aws_sqs_queue.test"
 
-	resourceName := "aws_sqs_queue.queue"
-	prefix := "acctest-sqs-queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, sqs.EndpointsID),
 		Providers:    testAccProviders,
+		ErrorCheck:   testAccErrorCheck(t, sqs.EndpointsID),
 		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSQSConfigWithNamePrefix(prefix),
+				Config: testAccAWSSQSQueueConfigNameGenerated,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
-					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^acctest-sqs-queue`)),
+					naming.TestCheckResourceAttrNameGenerated(resourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", "terraform-"),
+					resource.TestCheckResourceAttr(resourceName, "fifo_queue", "false"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
 }
 
-func TestAccAWSSQSQueue_namePrefix_fifo(t *testing.T) {
+func TestAccAWSSQSQueue_Name_Generated_FIFOQueue(t *testing.T) {
 	var queueAttributes map[string]*string
+	resourceName := "aws_sqs_queue.test"
 
-	resourceName := "aws_sqs_queue.queue"
-	prefix := "acctest-sqs-queue"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		ErrorCheck:   testAccErrorCheck(t, sqs.EndpointsID),
+		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSQSQueueConfigNameGeneratedFIFOQueue,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
+					naming.TestCheckResourceAttrNameWithSuffixGenerated(resourceName, "name", tfsqs.FifoQueueNameSuffix),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", "terraform-"),
+					resource.TestCheckResourceAttr(resourceName, "fifo_queue", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSQSQueue_NamePrefix(t *testing.T) {
+	var queueAttributes map[string]*string
+	resourceName := "aws_sqs_queue.test"
+	rName := "tf-acc-test-prefix-"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, sqs.EndpointsID),
@@ -208,20 +229,49 @@ func TestAccAWSSQSQueue_namePrefix_fifo(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSQSFifoConfigWithNamePrefix(prefix),
+				Config: testAccAWSSQSQueueConfigNamePrefix(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^acctest-sqs-queue.*\.fifo$`)),
+					naming.TestCheckResourceAttrNameFromPrefix(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", rName),
+					resource.TestCheckResourceAttr(resourceName, "fifo_queue", "false"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
+			},
+		},
+	})
+}
+
+func TestAccAWSSQSQueue_NamePrefix_FIFOQueue(t *testing.T) {
+	var queueAttributes map[string]*string
+	resourceName := "aws_sqs_queue.test"
+	rName := "tf-acc-test-prefix-"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sqs.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSQSQueueConfigNamePrefixFIFOQueue(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
+					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
+					naming.TestCheckResourceAttrNameWithSuffixFromPrefix(resourceName, "name", rName, tfsqs.FifoQueueNameSuffix),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", rName),
+					resource.TestCheckResourceAttr(resourceName, "fifo_queue", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -250,9 +300,6 @@ func TestAccAWSSQSQueue_policy(t *testing.T) {
 				ResourceName:      "aws_sqs_queue.test-email-events",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
@@ -308,9 +355,6 @@ func TestAccAWSSQSQueue_redrivePolicy(t *testing.T) {
 				ResourceName:      "aws_sqs_queue.my_dead_letter_queue",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
@@ -339,9 +383,6 @@ func TestAccAWSSQSQueue_Policybasic(t *testing.T) {
 				ResourceName:      "aws_sqs_queue.test-email-events",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
@@ -368,9 +409,6 @@ func TestAccAWSSQSQueue_FIFO(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
@@ -385,7 +423,7 @@ func TestAccAWSSQSQueue_FIFOExpectNameError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSSQSConfigWithFIFOExpectError(acctest.RandString(10)),
-				ExpectError: regexp.MustCompile(`Error validating the FIFO queue name`),
+				ExpectError: regexp.MustCompile(`invalid queue name:`),
 			},
 		},
 	})
@@ -413,9 +451,6 @@ func TestAccAWSSQSQueue_FIFOWithContentBasedDeduplication(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
@@ -430,7 +465,7 @@ func TestAccAWSSQSQueue_ExpectContentBasedDeduplicationError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccExpectContentBasedDeduplicationError(acctest.RandString(10)),
-				ExpectError: regexp.MustCompile(`Content based deduplication can only be set with FIFO queues`),
+				ExpectError: regexp.MustCompile(`content-based deduplication can only be set for FIFO queue`),
 			},
 		},
 	})
@@ -457,9 +492,6 @@ func TestAccAWSSQSQueue_Encryption(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"name_prefix",
-				},
 			},
 		},
 	})
@@ -612,6 +644,16 @@ func testAccCheckAWSSQSQueueOverrideAttributes(queueAttributes *map[string]*stri
 	}
 }
 
+const testAccAWSSQSQueueConfigNameGenerated = `
+resource "aws_sqs_queue" "test" {}
+`
+
+const testAccAWSSQSQueueConfigNameGeneratedFIFOQueue = `
+resource "aws_sqs_queue" "test" {
+  fifo_queue = true
+}
+`
+
 func testAccAWSSQSConfigWithDefaults(r string) string {
 	return fmt.Sprintf(`
 resource "aws_sqs_queue" "queue" {
@@ -620,21 +662,21 @@ resource "aws_sqs_queue" "queue" {
 `, r)
 }
 
-func testAccAWSSQSConfigWithNamePrefix(r string) string {
+func testAccAWSSQSQueueConfigNamePrefix(prefix string) string {
 	return fmt.Sprintf(`
-resource "aws_sqs_queue" "queue" {
-  name_prefix = "%s"
+resource "aws_sqs_queue" "test" {
+  name_prefix = %[1]q
 }
-`, r)
+`, prefix)
 }
 
-func testAccAWSSQSFifoConfigWithNamePrefix(r string) string {
+func testAccAWSSQSQueueConfigNamePrefixFIFOQueue(prefix string) string {
 	return fmt.Sprintf(`
-resource "aws_sqs_queue" "queue" {
-  name_prefix = "%s"
+resource "aws_sqs_queue" "test" {
+  name_prefix = %[1]q
   fifo_queue  = true
 }
-`, r)
+`, prefix)
 }
 
 func testAccAWSSQSConfigWithOverrides(r string) string {

@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_servicecatalog_constraint
+```
+
+```release-note:new-resource
+aws_servicecatalog_product_portfolio_association
+```

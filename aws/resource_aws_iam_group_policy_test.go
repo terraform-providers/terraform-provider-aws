@@ -86,11 +86,10 @@ func TestAccAWSIAMGroupPolicy_namePrefix(t *testing.T) {
 	var groupPolicy1, groupPolicy2 iam.GetGroupPolicyOutput
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, iam.EndpointsID),
-		IDRefreshName: "aws_iam_group_policy.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckIAMGroupPolicyDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMGroupPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIAMGroupPolicyConfig_namePrefix(rInt, "*"),
@@ -127,11 +126,10 @@ func TestAccAWSIAMGroupPolicy_generatedName(t *testing.T) {
 	var groupPolicy1, groupPolicy2 iam.GetGroupPolicyOutput
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		ErrorCheck:    testAccErrorCheck(t, iam.EndpointsID),
-		IDRefreshName: "aws_iam_group_policy.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckIAMGroupPolicyDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMGroupPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIAMGroupPolicyConfig_generatedName(rInt, "*"),

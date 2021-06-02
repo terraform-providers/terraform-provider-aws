@@ -53,7 +53,7 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEKSFargatePodExecutionR
 
 The following arguments are required:
 
-* `cluster_name` – (Required) Name of the EKS Cluster.
+* `cluster_name` – (Required) Name of the EKS Cluster. Must be between 1-100 characters in length. Must begin with an alphanumeric character, and must only contain alphanumeric characters, dashes and underscores (`^[0-9A-Za-z][A-Za-z0-9\-_]+$`).
 * `fargate_profile_name` – (Required) Name of the EKS Fargate Profile.
 * `pod_execution_role_arn` – (Required) Amazon Resource Name (ARN) of the IAM Role that provides permissions for the EKS Fargate Profile.
 * `selector` - (Required) Configuration block(s) for selecting Kubernetes Pods to execute with this EKS Fargate Profile. Detailed below.
@@ -61,7 +61,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `tags` - (Optional) Key-value map of resource tags.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### selector Configuration Block
 
@@ -80,6 +80,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - Amazon Resource Name (ARN) of the EKS Fargate Profile.
 * `id` - EKS Cluster name and EKS Fargate Profile name separated by a colon (`:`).
 * `status` - Status of the EKS Fargate Profile.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

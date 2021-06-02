@@ -72,7 +72,7 @@ The following arguments are supported:
 * `comment` - (Optional) A comment for the hosted zone. Defaults to 'Managed by Terraform'.
 * `delegation_set_id` - (Optional) The ID of the reusable delegation set whose NS records you want to assign to the hosted zone. Conflicts with `vpc` as delegation sets can only be used for public zones.
 * `force_destroy` - (Optional) Whether to destroy all records (possibly managed outside of Terraform) in the zone when destroying the zone.
-* `tags` - (Optional) A map of tags to assign to the zone.
+* `tags` - (Optional) A map of tags to assign to the zone. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpc` - (Optional) Configuration block(s) specifying VPC(s) to associate with a private hosted zone. Conflicts with the `delegation_set_id` argument in this resource and any [`aws_route53_zone_association` resource](/docs/providers/aws/r/route53_zone_association.html) specifying the same zone ID. Detailed below.
 
 ### vpc Argument Reference
@@ -87,6 +87,7 @@ In addition to all arguments above, the following attributes are exported:
 * `zone_id` - The Hosted Zone ID. This can be referenced by zone records.
 * `name_servers` - A list of name servers in associated (or default) delegation set.
   Find more about delegation sets in [AWS docs](https://docs.aws.amazon.com/Route53/latest/APIReference/actions-on-reusable-delegation-sets.html).
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -106,6 +106,31 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 				},
 			},
 
+			"http_target": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"header_parameters": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"query_string_parameters": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"path_parameter_values": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
+			},
+
 			"ecs_target": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -354,6 +379,14 @@ func resourceAwsCloudWatchEventTargetRead(d *schema.ResourceData, meta interface
 		}
 	}
 
+	if t.HttpParameters != nil {
+		if err := d.Set("http_target", []interface{}{flattenAwsCloudWatchEventTargetHttpParameters(t.HttpParameters)}); err != nil {
+			return fmt.Errorf("error setting http_target: %w", err)
+		}
+	} else {
+		d.Set("http_target", nil)
+	}
+
 	if t.EcsParameters != nil {
 		if err := d.Set("ecs_target", flattenAwsCloudWatchEventTargetEcsParameters(t.EcsParameters)); err != nil {
 			return fmt.Errorf("Error setting ecs_target error: %w", err)
@@ -461,9 +494,15 @@ func buildPutTargetInputStruct(d *schema.ResourceData) *events.PutTargetsInput {
 	if v, ok := d.GetOk("run_command_targets"); ok {
 		e.RunCommandParameters = expandAwsCloudWatchEventTargetRunParameters(v.([]interface{}))
 	}
+
 	if v, ok := d.GetOk("ecs_target"); ok {
 		e.EcsParameters = expandAwsCloudWatchEventTargetEcsParameters(v.([]interface{}))
 	}
+
+	if v, ok := d.GetOk("http_target"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		e.HttpParameters = expandAwsCloudWatchEventTargetHttpParameters(v.([]interface{})[0].(map[string]interface{}))
+	}
+
 	if v, ok := d.GetOk("batch_target"); ok {
 		e.BatchParameters = expandAwsCloudWatchEventTargetBatchParameters(v.([]interface{}))
 	}
@@ -637,6 +676,28 @@ func expandAwsCloudWatchEventTargetSqsParameters(config []interface{}) *events.S
 	return sqsParameters
 }
 
+func expandAwsCloudWatchEventTargetHttpParameters(tfMap map[string]interface{}) *events.HttpParameters {
+	if tfMap == nil {
+		return nil
+	}
+
+	apiObject := &events.HttpParameters{}
+
+	if v, ok := tfMap["header_parameters"].(map[string]interface{}); ok && len(v) > 0 {
+		apiObject.HeaderParameters = expandStringMap(v)
+	}
+
+	if v, ok := tfMap["path_parameter_values"].(*schema.Set); ok && v.Len() > 0 {
+		apiObject.PathParameterValues = expandStringSet(v)
+	}
+
+	if v, ok := tfMap["query_string_parameters"].(map[string]interface{}); ok && len(v) > 0 {
+		apiObject.QueryStringParameters = expandStringMap(v)
+	}
+
+	return apiObject
+}
+
 func expandAwsCloudWatchEventTransformerParameters(config []interface{}) *events.InputTransformer {
 	transformerParameters := &events.InputTransformer{}
 
@@ -670,6 +731,7 @@ func flattenAwsCloudWatchEventTargetRunParameters(runCommand *events.RunCommandP
 
 	return result
 }
+
 func flattenAwsCloudWatchEventTargetEcsParameters(ecsParameters *events.EcsParameters) []map[string]interface{} {
 	config := make(map[string]interface{})
 	if ecsParameters.Group != nil {
@@ -730,6 +792,28 @@ func flattenAwsCloudWatchEventTargetSqsParameters(sqsParameters *events.SqsParam
 	config["message_group_id"] = aws.StringValue(sqsParameters.MessageGroupId)
 	result := []map[string]interface{}{config}
 	return result
+}
+
+func flattenAwsCloudWatchEventTargetHttpParameters(apiObject *events.HttpParameters) map[string]interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	if v := apiObject.HeaderParameters; v != nil {
+		tfMap["header_parameters"] = aws.StringValueMap(v)
+	}
+
+	if v := apiObject.PathParameterValues; v != nil {
+		tfMap["path_parameter_values"] = aws.StringValueSlice(v)
+	}
+
+	if v := apiObject.QueryStringParameters; v != nil {
+		tfMap["query_string_parameters"] = aws.StringValueMap(v)
+	}
+
+	return tfMap
 }
 
 func flattenAwsCloudWatchInputTransformer(inputTransformer *events.InputTransformer) []map[string]interface{} {

@@ -29,9 +29,9 @@ func testSweepEcrRepositories(region string) error {
 	conn := client.(*AWSClient).ecrconn
 
 	var errors error
-	err = conn.DescribeRepositoriesPages(&ecr.DescribeRepositoriesInput{}, func(page *ecr.DescribeRepositoriesOutput, isLast bool) bool {
+	err = conn.DescribeRepositoriesPages(&ecr.DescribeRepositoriesInput{}, func(page *ecr.DescribeRepositoriesOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, repository := range page.Repositories {
@@ -54,7 +54,7 @@ func testSweepEcrRepositories(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {

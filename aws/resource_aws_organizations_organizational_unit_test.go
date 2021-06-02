@@ -31,6 +31,7 @@ func testAccAwsOrganizationsOrganizationalUnit_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "accounts.#", "0"),
 					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "organizations", regexp.MustCompile(`ou/o-.+/ou-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -98,6 +99,52 @@ func testAccAwsOrganizationsOrganizationalUnit_Name(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsOrganizationsOrganizationalUnitExists(resourceName, &unit),
 					resource.TestCheckResourceAttr(resourceName, "name", name2),
+				),
+			},
+		},
+	})
+}
+
+func testAccAwsOrganizationsOrganizationalUnit_Tags(t *testing.T) {
+	var unit organizations.OrganizationalUnit
+
+	rInt := acctest.RandInt()
+	name := fmt.Sprintf("tf_outest_%d", rInt)
+	resourceName := "aws_organizations_organizational_unit.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, organizations.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsOrganizationalUnitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsOrganizationalUnitConfigTags1(name, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationalUnitExists(resourceName, &unit),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsOrganizationsOrganizationalUnitConfigTags2(name, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationalUnitExists(resourceName, &unit),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsOrganizationsOrganizationalUnitConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationalUnitExists(resourceName, &unit),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -177,4 +224,35 @@ resource "aws_organizations_organizational_unit" "test" {
   parent_id = aws_organizations_organization.test.roots[0].id
 }
 `, name)
+}
+
+func testAccAwsOrganizationsOrganizationalUnitConfigTags1(name, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_organizational_unit" "test" {
+  name      = %[1]q
+  parent_id = aws_organizations_organization.test.roots[0].id
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, name, tagKey1, tagValue1)
+}
+
+func testAccAwsOrganizationsOrganizationalUnitConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_organizational_unit" "test" {
+  name      = %[1]q
+  parent_id = aws_organizations_organization.test.roots[0].id
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, name, tagKey1, tagValue1, tagKey2, tagValue2)
 }

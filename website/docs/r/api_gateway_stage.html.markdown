@@ -113,7 +113,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the stage
 * `documentation_version` - (Optional) The version of the associated API documentation
 * `variables` - (Optional) A map that defines the stage variables
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `xray_tracing_enabled` - (Optional) Whether active tracing with X-ray is enabled. Defaults to `false`.
 
 ### Nested Blocks
@@ -135,6 +135,7 @@ In addition to all arguments above, the following attributes are exported:
 * `execution_arn` - The execution ARN to be used in [`lambda_permission`](/docs/providers/aws/r/lambda_permission.html)'s `source_arn`
   when allowing API Gateway to invoke a Lambda function,
   e.g. `arn:aws:execute-api:eu-west-2:123456789012:z4675bid1j/prod`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

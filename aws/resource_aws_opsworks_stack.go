@@ -171,7 +171,8 @@ func resourceAwsOpsworksStack() *schema.Resource {
 				Default:  "Layer_Dependent",
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"use_custom_cookbooks": {
 				Type:     schema.TypeBool,
@@ -197,6 +198,8 @@ func resourceAwsOpsworksStack() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -272,6 +275,7 @@ func resourceAwsOpsworksSetStackCustomCookbooksSource(d *schema.ResourceData, v 
 
 func resourceAwsOpsworksStackRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).opsworksconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var conErr error
@@ -381,8 +385,15 @@ func resourceAwsOpsworksStackRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing tags for Opsworks stack (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -571,8 +582,8 @@ func resourceAwsOpsworksStackUpdate(d *schema.ResourceData, meta interface{}) er
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("stack/%s/", d.Id()),
 	}.String()
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.OpsworksUpdateTags(client, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Opsworks stack (%s) tags: %s", arn, err)

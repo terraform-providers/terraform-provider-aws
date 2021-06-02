@@ -40,7 +40,7 @@ func resourceAwsGlueCatalogDatabase() *schema.Resource {
 				Required: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(1, 255),
-					validation.StringDoesNotMatch(regexp.MustCompile(`[A-Z]`), "uppercase charcters cannot be used"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`[A-Z]`), "uppercase characters cannot be used"),
 				),
 			},
 			"description": {
@@ -56,6 +56,24 @@ func resourceAwsGlueCatalogDatabase() *schema.Resource {
 				Type:     schema.TypeMap,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
+			},
+			"target_database": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"catalog_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"database_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -79,7 +97,11 @@ func resourceAwsGlueCatalogDatabaseCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		dbInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		dbInput.Parameters = expandStringMap(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("target_database"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		dbInput.TargetDatabase = expandGlueDatabaseTargetDatabase(v.([]interface{})[0].(map[string]interface{}))
 	}
 
 	input := &glue.CreateDatabaseInput{
@@ -123,7 +145,7 @@ func resourceAwsGlueCatalogDatabaseUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		dbInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		dbInput.Parameters = expandStringMap(v.(map[string]interface{}))
 	}
 
 	dbUpdateInput.DatabaseInput = dbInput
@@ -177,6 +199,14 @@ func resourceAwsGlueCatalogDatabaseRead(d *schema.ResourceData, meta interface{}
 	d.Set("location_uri", database.LocationUri)
 	d.Set("parameters", aws.StringValueMap(database.Parameters))
 
+	if database.TargetDatabase != nil {
+		if err := d.Set("target_database", []interface{}{flattenGlueDatabaseTargetDatabase(database.TargetDatabase)}); err != nil {
+			return fmt.Errorf("error setting target_database: %w", err)
+		}
+	} else {
+		d.Set("target_database", nil)
+	}
+
 	return nil
 }
 
@@ -209,4 +239,40 @@ func createAwsGlueCatalogID(d *schema.ResourceData, accountid string) (catalogID
 		catalogID = accountid
 	}
 	return
+}
+
+func expandGlueDatabaseTargetDatabase(tfMap map[string]interface{}) *glue.DatabaseIdentifier {
+	if tfMap == nil {
+		return nil
+	}
+
+	apiObject := &glue.DatabaseIdentifier{}
+
+	if v, ok := tfMap["catalog_id"].(string); ok && v != "" {
+		apiObject.CatalogId = aws.String(v)
+	}
+
+	if v, ok := tfMap["database_name"].(string); ok && v != "" {
+		apiObject.DatabaseName = aws.String(v)
+	}
+
+	return apiObject
+}
+
+func flattenGlueDatabaseTargetDatabase(apiObject *glue.DatabaseIdentifier) map[string]interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	if v := apiObject.CatalogId; v != nil {
+		tfMap["catalog_id"] = aws.StringValue(v)
+	}
+
+	if v := apiObject.DatabaseName; v != nil {
+		tfMap["database_name"] = aws.StringValue(v)
+	}
+
+	return tfMap
 }

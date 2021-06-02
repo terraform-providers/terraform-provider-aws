@@ -403,6 +403,7 @@ func TestAccAwsAcmpcaCertificateAuthority_RevocationConfiguration_CrlConfigurati
 					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.expiration_in_days", "1"),
 					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.s3_bucket_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.s3_object_acl", "PUBLIC_READ"),
 				),
 			},
 			// Test importing revocation configuration
@@ -434,6 +435,56 @@ func TestAccAwsAcmpcaCertificateAuthority_RevocationConfiguration_CrlConfigurati
 					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAwsAcmpcaCertificateAuthority_RevocationConfiguration_CrlConfiguration_S3ObjectAcl(t *testing.T) {
+	var certificateAuthority acmpca.CertificateAuthority
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_acmpca_certificate_authority.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, acmpca.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAcmpcaCertificateAuthorityDestroy,
+		Steps: []resource.TestStep{
+			// Test creating revocation configuration on resource creation
+			{
+				Config: testAccAwsAcmpcaCertificateAuthorityConfig_RevocationConfiguration_CrlConfiguration_s3ObjectAcl(rName, "BUCKET_OWNER_FULL_CONTROL"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAcmpcaCertificateAuthorityExists(resourceName, &certificateAuthority),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.expiration_in_days", "1"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.s3_bucket_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.s3_object_acl", "BUCKET_OWNER_FULL_CONTROL"),
+				),
+			},
+			// Test importing revocation configuration
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"permanent_deletion_time_in_days",
+				},
+			},
+			// Test updating revocation configuration
+			{
+				Config: testAccAwsAcmpcaCertificateAuthorityConfig_RevocationConfiguration_CrlConfiguration_s3ObjectAcl(rName, "PUBLIC_READ"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAcmpcaCertificateAuthorityExists(resourceName, &certificateAuthority),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.expiration_in_days", "1"),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.s3_bucket_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "revocation_configuration.0.crl_configuration.0.s3_object_acl", "PUBLIC_READ"),
 				),
 			},
 		},
@@ -795,6 +846,36 @@ resource "aws_acmpca_certificate_authority" "test" {
   }
 }
 `, testAccAwsAcmpcaCertificateAuthorityConfig_S3Bucket(rName), expirationInDays)
+}
+
+func testAccAwsAcmpcaCertificateAuthorityConfig_RevocationConfiguration_CrlConfiguration_s3ObjectAcl(rName, s3ObjectAcl string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "aws_acmpca_certificate_authority" "test" {
+  permanent_deletion_time_in_days = 7
+
+  certificate_authority_configuration {
+    key_algorithm     = "RSA_4096"
+    signing_algorithm = "SHA512WITHRSA"
+
+    subject {
+      common_name = "terraformtesting.com"
+    }
+  }
+
+  revocation_configuration {
+    crl_configuration {
+      enabled            = true
+      expiration_in_days = 1
+      s3_bucket_name     = aws_s3_bucket.test.id
+      s3_object_acl      = "%s"
+    }
+  }
+
+  depends_on = [aws_s3_bucket_policy.test]
+}
+`, testAccAwsAcmpcaCertificateAuthorityConfig_S3Bucket(rName), s3ObjectAcl)
 }
 
 func testAccAwsAcmpcaCertificateAuthorityConfig_S3Bucket(rName string) string {

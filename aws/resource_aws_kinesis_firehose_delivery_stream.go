@@ -813,6 +813,8 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 			},
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		SchemaVersion: 1,
 		MigrateState:  resourceAwsKinesisFirehoseMigrateState,
 		Schema: map[string]*schema.Schema{
@@ -824,6 +826,8 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 
 			"server_side_encryption": {
 				Type:             schema.TypeList,
@@ -1798,7 +1802,7 @@ func expandFirehoseOpenXJsonSerDe(l []interface{}) *firehose.OpenXJsonSerDe {
 
 	return &firehose.OpenXJsonSerDe{
 		CaseInsensitive:                    aws.Bool(m["case_insensitive"].(bool)),
-		ColumnToJsonKeyMappings:            stringMapToPointers(m["column_to_json_key_mappings"].(map[string]interface{})),
+		ColumnToJsonKeyMappings:            expandStringMap(m["column_to_json_key_mappings"].(map[string]interface{})),
 		ConvertDotsInJsonKeysToUnderscores: aws.Bool(m["convert_dots_in_json_keys_to_underscores"].(bool)),
 	}
 }
@@ -2463,6 +2467,8 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 	}
 
 	conn := meta.(*AWSClient).firehoseconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	sn := d.Get("name").(string)
 
@@ -2513,8 +2519,8 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 		}
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		createInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().FirehoseTags()
+	if len(tags) > 0 {
+		createInput.Tags = tags.IgnoreAws().FirehoseTags()
 	}
 
 	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
@@ -2704,8 +2710,8 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 			sn, err)
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.FirehoseUpdateTags(conn, sn, o, n); err != nil {
 			return fmt.Errorf("error updating Kinesis Firehose Delivery Stream (%s) tags: %s", sn, err)
@@ -2750,6 +2756,7 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 
 func resourceAwsKinesisFirehoseDeliveryStreamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).firehoseconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	sn := d.Get("name").(string)
@@ -2778,8 +2785,15 @@ func resourceAwsKinesisFirehoseDeliveryStreamRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error listing tags for Kinesis Firehose Delivery Stream (%s): %s", sn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

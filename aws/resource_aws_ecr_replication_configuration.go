@@ -14,7 +14,7 @@ func resourceAwsEcrReplicationConfiguration() *schema.Resource {
 		Create: resourceAwsEcrReplicationConfigurationPut,
 		Read:   resourceAwsEcrReplicationConfigurationRead,
 		Update: resourceAwsEcrReplicationConfigurationPut,
-		Delete: schema.Noop,
+		Delete: resourceAwsEcrReplicationConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -93,6 +93,23 @@ func resourceAwsEcrReplicationConfigurationRead(d *schema.ResourceData, meta int
 
 	if err := d.Set("replication_configuration", flattenEcrReplicationConfigurationReplicationConfiguration(out.ReplicationConfiguration)); err != nil {
 		return fmt.Errorf("error setting replication_configuration for ECR Replication Configuration: %w", err)
+	}
+
+	return nil
+}
+
+func resourceAwsEcrReplicationConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).ecrconn
+
+	input := ecr.PutReplicationConfigurationInput{
+		ReplicationConfiguration: &ecr.ReplicationConfiguration{
+			Rules: []*ecr.ReplicationRule{},
+		},
+	}
+
+	_, err := conn.PutReplicationConfiguration(&input)
+	if err != nil {
+		return fmt.Errorf("error deleting ECR Replication Configuration: %w", err)
 	}
 
 	return nil

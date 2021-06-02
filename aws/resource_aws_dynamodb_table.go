@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -62,6 +63,7 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 				}
 				return nil
 			},
+			SetTagsDiff,
 		),
 
 		SchemaVersion: 1,
@@ -282,7 +284,8 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 					dynamodb.StreamViewTypeKeysOnly,
 				}, false),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"ttl": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -298,6 +301,12 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"kms_key_arn": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validateArn,
+						},
 					},
 				},
 				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
@@ -312,6 +321,8 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 
 func resourceAwsDynamoDbTableCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dynamodbconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	keySchemaMap := map[string]interface{}{
 		"hash_key": d.Get("hash_key").(string),
@@ -322,13 +333,11 @@ func resourceAwsDynamoDbTableCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[DEBUG] Creating DynamoDB table with key schema: %#v", keySchemaMap)
 
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DynamodbTags()
-
 	req := &dynamodb.CreateTableInput{
 		TableName:   aws.String(d.Get("name").(string)),
 		BillingMode: aws.String(d.Get("billing_mode").(string)),
 		KeySchema:   expandDynamoDbKeySchema(keySchemaMap),
-		Tags:        tags,
+		Tags:        tags.IgnoreAws().DynamodbTags(),
 	}
 
 	billingMode := d.Get("billing_mode").(string)
@@ -462,53 +471,129 @@ func resourceAwsDynamoDbTableCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dynamodbconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	result, err := conn.DescribeTable(&dynamodb.DescribeTableInput{
 		TableName: aws.String(d.Id()),
 	})
 
-	if err != nil {
-		if isAWSErr(err, dynamodb.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Dynamodb Table (%s) not found, error code (404)", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return err
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, dynamodb.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] Dynamodb Table (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	err = flattenDynamoDbTableResource(d, result.Table)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading Dynamodb Table (%s): %w", d.Id(), err)
+	}
+
+	if result == nil || result.Table == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading Dynamodb Table (%s): empty output after creation", d.Id())
+		}
+		log.Printf("[WARN] Dynamodb Table (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	table := result.Table
+
+	d.Set("arn", table.TableArn)
+	d.Set("name", table.TableName)
+
+	if table.BillingModeSummary != nil {
+		d.Set("billing_mode", table.BillingModeSummary.BillingMode)
+	} else {
+		d.Set("billing_mode", dynamodb.BillingModeProvisioned)
+	}
+
+	if table.ProvisionedThroughput != nil {
+		d.Set("write_capacity", table.ProvisionedThroughput.WriteCapacityUnits)
+		d.Set("read_capacity", table.ProvisionedThroughput.ReadCapacityUnits)
+	}
+
+	if err := d.Set("attribute", flattenDynamoDbTableAttributeDefinitions(table.AttributeDefinitions)); err != nil {
+		return fmt.Errorf("error setting attribute: %w", err)
+	}
+
+	for _, attribute := range table.KeySchema {
+		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeHash {
+			d.Set("hash_key", attribute.AttributeName)
+		}
+
+		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
+			d.Set("range_key", attribute.AttributeName)
+		}
+	}
+
+	if err := d.Set("local_secondary_index", flattenDynamoDbTableLocalSecondaryIndex(table.LocalSecondaryIndexes)); err != nil {
+		return fmt.Errorf("error setting local_secondary_index: %w", err)
+	}
+
+	if err := d.Set("global_secondary_index", flattenDynamoDbTableGlobalSecondaryIndex(table.GlobalSecondaryIndexes)); err != nil {
+		return fmt.Errorf("error setting global_secondary_index: %w", err)
+	}
+
+	if table.StreamSpecification != nil {
+		d.Set("stream_view_type", table.StreamSpecification.StreamViewType)
+		d.Set("stream_enabled", table.StreamSpecification.StreamEnabled)
+	} else {
+		d.Set("stream_view_type", "")
+		d.Set("stream_enabled", false)
+	}
+
+	d.Set("stream_arn", table.LatestStreamArn)
+	d.Set("stream_label", table.LatestStreamLabel)
+
+	if err := d.Set("server_side_encryption", flattenDynamodDbTableServerSideEncryption(table.SSEDescription)); err != nil {
+		return fmt.Errorf("error setting server_side_encryption: %w", err)
+	}
+
+	if err := d.Set("replica", flattenDynamoDbReplicaDescriptions(table.Replicas)); err != nil {
+		return fmt.Errorf("error setting replica: %w", err)
+	}
+
+	pitrOut, err := conn.DescribeContinuousBackups(&dynamodb.DescribeContinuousBackupsInput{
+		TableName: aws.String(d.Id()),
+	})
+
+	if err != nil && !tfawserr.ErrCodeEquals(err, "UnknownOperationException") {
+		return fmt.Errorf("error describing DynamoDB Table (%s) Continuous Backups: %w", d.Id(), err)
+	}
+
+	if err := d.Set("point_in_time_recovery", flattenDynamoDbPitr(pitrOut)); err != nil {
+		return fmt.Errorf("error setting point_in_time_recovery: %w", err)
 	}
 
 	ttlOut, err := conn.DescribeTimeToLive(&dynamodb.DescribeTimeToLiveInput{
 		TableName: aws.String(d.Id()),
 	})
+
 	if err != nil {
 		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %w", d.Id(), err)
 	}
+
 	if err := d.Set("ttl", flattenDynamoDbTtl(ttlOut)); err != nil {
 		return fmt.Errorf("error setting ttl: %w", err)
 	}
 
 	tags, err := keyvaluetags.DynamodbListTags(conn, d.Get("arn").(string))
 
-	if err != nil && !isAWSErr(err, "UnknownOperationException", "Tagging is not currently supported in DynamoDB Local.") {
+	if err != nil && !tfawserr.ErrMessageContains(err, "UnknownOperationException", "Tagging is not currently supported in DynamoDB Local.") {
 		return fmt.Errorf("error listing tags for DynamoDB Table (%s): %w", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
 	}
 
-	pitrOut, err := conn.DescribeContinuousBackups(&dynamodb.DescribeContinuousBackupsInput{
-		TableName: aws.String(d.Id()),
-	})
-	if err != nil && !isAWSErr(err, "UnknownOperationException", "") {
-		return err
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
-	d.Set("point_in_time_recovery", flattenDynamoDbPitr(pitrOut))
 
 	return nil
 }
@@ -676,8 +761,8 @@ func resourceAwsDynamoDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.DynamodbUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating DynamoDB Table (%s) tags: %w", d.Id(), err)
 		}
@@ -1097,71 +1182,90 @@ func deleteDynamoDbReplicas(tableName string, tfList []interface{}, conn *dynamo
 
 // flatteners, expanders
 
-func flattenDynamoDbTableResource(d *schema.ResourceData, table *dynamodb.TableDescription) error {
-	d.Set("billing_mode", dynamodb.BillingModeProvisioned)
-	if table.BillingModeSummary != nil {
-		d.Set("billing_mode", table.BillingModeSummary.BillingMode)
+func flattenDynamoDbTableAttributeDefinitions(definitions []*dynamodb.AttributeDefinition) []interface{} {
+	if len(definitions) == 0 {
+		return []interface{}{}
 	}
 
-	d.Set("write_capacity", table.ProvisionedThroughput.WriteCapacityUnits)
-	d.Set("read_capacity", table.ProvisionedThroughput.ReadCapacityUnits)
+	var attributes []interface{}
 
-	attributes := make([]interface{}, len(table.AttributeDefinitions))
-	for i, attrdef := range table.AttributeDefinitions {
-		attributes[i] = map[string]string{
-			"name": aws.StringValue(attrdef.AttributeName),
-			"type": aws.StringValue(attrdef.AttributeType),
+	for _, d := range definitions {
+		if d == nil {
+			continue
 		}
+
+		m := map[string]string{
+			"name": aws.StringValue(d.AttributeName),
+			"type": aws.StringValue(d.AttributeType),
+		}
+
+		attributes = append(attributes, m)
 	}
 
-	d.Set("attribute", attributes)
-	d.Set("name", table.TableName)
+	return attributes
+}
 
-	for _, attribute := range table.KeySchema {
-		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeHash {
-			d.Set("hash_key", attribute.AttributeName)
-		}
-
-		if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
-			d.Set("range_key", attribute.AttributeName)
-		}
+func flattenDynamoDbTableLocalSecondaryIndex(lsi []*dynamodb.LocalSecondaryIndexDescription) []interface{} {
+	if len(lsi) == 0 {
+		return []interface{}{}
 	}
 
-	lsiList := make([]map[string]interface{}, 0, len(table.LocalSecondaryIndexes))
-	for _, lsiObject := range table.LocalSecondaryIndexes {
-		lsi := map[string]interface{}{
-			"name":            aws.StringValue(lsiObject.IndexName),
-			"projection_type": aws.StringValue(lsiObject.Projection.ProjectionType),
+	var output []interface{}
+
+	for _, l := range lsi {
+		if l == nil {
+			continue
 		}
 
-		for _, attribute := range lsiObject.KeySchema {
+		m := map[string]interface{}{
+			"name": aws.StringValue(l.IndexName),
+		}
+
+		if l.Projection != nil {
+			m["projection_type"] = aws.StringValue(l.Projection.ProjectionType)
+			m["non_key_attributes"] = aws.StringValueSlice(l.Projection.NonKeyAttributes)
+		}
+
+		for _, attribute := range l.KeySchema {
+			if attribute == nil {
+				continue
+			}
 			if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeRange {
-				lsi["range_key"] = aws.StringValue(attribute.AttributeName)
+				m["range_key"] = aws.StringValue(attribute.AttributeName)
 			}
 		}
-		nkaList := make([]string, len(lsiObject.Projection.NonKeyAttributes))
-		for i, nka := range lsiObject.Projection.NonKeyAttributes {
-			nkaList[i] = aws.StringValue(nka)
-		}
-		lsi["non_key_attributes"] = nkaList
 
-		lsiList = append(lsiList, lsi)
+		output = append(output, m)
 	}
 
-	err := d.Set("local_secondary_index", lsiList)
-	if err != nil {
-		return err
+	return output
+}
+
+func flattenDynamoDbTableGlobalSecondaryIndex(gsi []*dynamodb.GlobalSecondaryIndexDescription) []interface{} {
+	if len(gsi) == 0 {
+		return []interface{}{}
 	}
 
-	gsiList := make([]map[string]interface{}, len(table.GlobalSecondaryIndexes))
-	for i, gsiObject := range table.GlobalSecondaryIndexes {
-		gsi := map[string]interface{}{
-			"write_capacity": aws.Int64Value(gsiObject.ProvisionedThroughput.WriteCapacityUnits),
-			"read_capacity":  aws.Int64Value(gsiObject.ProvisionedThroughput.ReadCapacityUnits),
-			"name":           aws.StringValue(gsiObject.IndexName),
+	var output []interface{}
+
+	for _, g := range gsi {
+		if g == nil {
+			continue
 		}
 
-		for _, attribute := range gsiObject.KeySchema {
+		gsi := make(map[string]interface{})
+
+		if g.ProvisionedThroughput != nil {
+			gsi["write_capacity"] = aws.Int64Value(g.ProvisionedThroughput.WriteCapacityUnits)
+			gsi["read_capacity"] = aws.Int64Value(g.ProvisionedThroughput.ReadCapacityUnits)
+			gsi["name"] = aws.StringValue(g.IndexName)
+		}
+
+		for _, attribute := range g.KeySchema {
+			if attribute == nil {
+				continue
+			}
+
 			if aws.StringValue(attribute.KeyType) == dynamodb.KeyTypeHash {
 				gsi["hash_key"] = aws.StringValue(attribute.AttributeName)
 			}
@@ -1171,53 +1275,28 @@ func flattenDynamoDbTableResource(d *schema.ResourceData, table *dynamodb.TableD
 			}
 		}
 
-		gsi["projection_type"] = aws.StringValue(gsiObject.Projection.ProjectionType)
-
-		nonKeyAttrs := make([]string, len(gsiObject.Projection.NonKeyAttributes))
-		for i, nonKeyAttr := range gsiObject.Projection.NonKeyAttributes {
-			nonKeyAttrs[i] = aws.StringValue(nonKeyAttr)
+		if g.Projection != nil {
+			gsi["projection_type"] = aws.StringValue(g.Projection.ProjectionType)
+			gsi["non_key_attributes"] = aws.StringValueSlice(g.Projection.NonKeyAttributes)
 		}
-		gsi["non_key_attributes"] = nonKeyAttrs
 
-		gsiList[i] = gsi
+		output = append(output, gsi)
 	}
 
-	if table.StreamSpecification != nil {
-		d.Set("stream_view_type", table.StreamSpecification.StreamViewType)
-		d.Set("stream_enabled", table.StreamSpecification.StreamEnabled)
-	} else {
-		d.Set("stream_view_type", "")
-		d.Set("stream_enabled", false)
+	return output
+}
+
+func flattenDynamodDbTableServerSideEncryption(description *dynamodb.SSEDescription) []interface{} {
+	if description == nil {
+		return []interface{}{}
 	}
 
-	d.Set("stream_arn", table.LatestStreamArn)
-	d.Set("stream_label", table.LatestStreamLabel)
-
-	err = d.Set("global_secondary_index", gsiList)
-	if err != nil {
-		return err
+	m := map[string]interface{}{
+		"enabled":     aws.StringValue(description.Status) == dynamodb.SSEStatusEnabled,
+		"kms_key_arn": aws.StringValue(description.KMSMasterKeyArn),
 	}
 
-	sseOptions := []map[string]interface{}{}
-	if sseDescription := table.SSEDescription; sseDescription != nil {
-		sseOptions = []map[string]interface{}{{
-			"enabled":     aws.StringValue(sseDescription.Status) == dynamodb.SSEStatusEnabled,
-			"kms_key_arn": aws.StringValue(sseDescription.KMSMasterKeyArn),
-		}}
-	}
-	err = d.Set("server_side_encryption", sseOptions)
-	if err != nil {
-		return err
-	}
-
-	err = d.Set("replica", flattenDynamoDbReplicaDescriptions(table.Replicas))
-	if err != nil {
-		return err
-	}
-
-	d.Set("arn", table.TableArn)
-
-	return nil
+	return []interface{}{m}
 }
 
 func expandDynamoDbAttributes(cfg []interface{}) []*dynamodb.AttributeDefinition {

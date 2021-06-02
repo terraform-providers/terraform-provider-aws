@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `snapshot_type` - (Optional) The type of snapshots to be returned. If you don't specify a SnapshotType
 value, then both automated and manual DB cluster snapshots are returned. Shared and public DB Cluster Snapshots are not
-included in the returned results by default. Possible values are, `automated`, `manual`, `shared` and `public`.
+included in the returned results by default. Possible values are, `automated`, `manual`, `shared`, `public` and `awsbackup`.
 
 * `include_shared` - (Optional) Set this value to true to include shared manual DB Cluster Snapshots from other
 AWS accounts that this AWS account has been given permission to copy or restore, otherwise set this value to false.

@@ -34,10 +34,11 @@ func resourceAwsGlueConnection() *schema.Resource {
 				Computed: true,
 			},
 			"connection_properties": {
-				Type:      schema.TypeMap,
-				Required:  true,
-				Sensitive: true,
-				Elem:      &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: MapKeyInSlice(glue.ConnectionPropertyKey_Values(), false),
+				Elem:         &schema.Schema{Type: schema.TypeString},
 			},
 			"connection_type": {
 				Type:         schema.TypeString,
@@ -46,19 +47,24 @@ func resourceAwsGlueConnection() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(glue.ConnectionType_Values(), false),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 2048),
 			},
 			"match_criteria": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				MaxItems: 10,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringLenBetween(1, 255),
+				},
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 			"physical_connection_requirements": {
 				Type:     schema.TypeList,
@@ -73,6 +79,7 @@ func resourceAwsGlueConnection() *schema.Resource {
 						"security_group_id_list": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							MaxItems: 50,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"subnet_id": {
@@ -236,8 +243,10 @@ func deleteGlueConnection(conn *glue.Glue, catalogID, connectionName string) err
 
 func expandGlueConnectionInput(d *schema.ResourceData) *glue.ConnectionInput {
 	connectionProperties := make(map[string]string)
-	for k, v := range d.Get("connection_properties").(map[string]interface{}) {
-		connectionProperties[k] = v.(string)
+	if val, ok := d.GetOkExists("connection_properties"); ok {
+		for k, v := range val.(map[string]interface{}) {
+			connectionProperties[k] = v.(string)
+		}
 	}
 
 	connectionInput := &glue.ConnectionInput{

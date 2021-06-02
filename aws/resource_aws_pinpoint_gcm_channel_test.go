@@ -28,11 +28,10 @@ func TestAccAWSPinpointGCMChannel_basic(t *testing.T) {
 	apiKey := os.Getenv("GCM_API_KEY")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointGCMChannelDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointGCMChannelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointGCMChannelConfig_basic(apiKey),

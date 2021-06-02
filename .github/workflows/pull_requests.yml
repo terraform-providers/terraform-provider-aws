@@ -3,6 +3,15 @@ on:
 
 name: Pull Request Target (All types)
 jobs:
+  Labeler:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Apply Labels
+      uses: actions/labeler@v3
+      with:
+        configuration-path: .github/labeler-pr-triage.yml
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
   NeedsTriageLabeler:
     runs-on: ubuntu-latest
     steps:

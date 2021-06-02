@@ -32,6 +32,8 @@ func resourceAwsEcsCluster() *schema.Resource {
 			State: resourceAwsEcsClusterImport,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -93,7 +95,8 @@ func resourceAwsEcsCluster() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
@@ -112,6 +115,8 @@ func resourceAwsEcsClusterImport(d *schema.ResourceData, meta interface{}) ([]*s
 
 func resourceAwsEcsClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	clusterName := d.Get("name").(string)
 	log.Printf("[DEBUG] Creating ECS cluster %s", clusterName)
@@ -119,7 +124,7 @@ func resourceAwsEcsClusterCreate(d *schema.ResourceData, meta interface{}) error
 	input := &ecs.CreateClusterInput{
 		ClusterName:                     aws.String(clusterName),
 		DefaultCapacityProviderStrategy: expandEcsCapacityProviderStrategy(d.Get("default_capacity_provider_strategy").(*schema.Set)),
-		Tags:                            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcsTags(),
+		Tags:                            tags.IgnoreAws().EcsTags(),
 	}
 
 	if v, ok := d.GetOk("capacity_providers"); ok {
@@ -169,6 +174,7 @@ func resourceAwsEcsClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &ecs.DescribeClustersInput{
@@ -244,8 +250,15 @@ func resourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting setting: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EcsKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -272,8 +285,8 @@ func resourceAwsEcsClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EcsUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating ECS Cluster (%s) tags: %s", d.Id(), err)

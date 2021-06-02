@@ -73,7 +73,8 @@ func resourceAwsSignerSigningProfile() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -115,11 +116,15 @@ func resourceAwsSignerSigningProfile() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSignerSigningProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).signerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	log.Printf("[DEBUG] Creating Signer signing profile")
 
@@ -139,8 +144,8 @@ func resourceAwsSignerSigningProfileCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if v, exists := d.GetOk("tags"); exists {
-		signingProfileInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SignerTags()
+	if len(tags) > 0 {
+		signingProfileInput.Tags = tags.IgnoreAws().SignerTags()
 	}
 
 	_, err := conn.PutSigningProfile(signingProfileInput)
@@ -155,6 +160,7 @@ func resourceAwsSignerSigningProfileCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsSignerSigningProfileRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).signerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	signingProfileOutput, err := conn.GetSigningProfile(&signer.GetSigningProfileInput{
@@ -208,8 +214,15 @@ func resourceAwsSignerSigningProfileRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting signer signing profile status: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.SignerKeyValueTags(signingProfileOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting signer signing profile tags: %s", err)
+	tags := keyvaluetags.SignerKeyValueTags(signingProfileOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("revocation_record", flattenSignerSigningProfileRevocationRecord(signingProfileOutput.RevocationRecord)); err != nil {
@@ -223,8 +236,8 @@ func resourceAwsSignerSigningProfileUpdate(d *schema.ResourceData, meta interfac
 	conn := meta.(*AWSClient).signerconn
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SignerUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating Signer signing profile (%s) tags: %s", arn, err)

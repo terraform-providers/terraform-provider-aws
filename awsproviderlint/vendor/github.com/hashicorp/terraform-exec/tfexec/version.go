@@ -3,12 +3,14 @@ package tfexec
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-json"
 )
 
 var (
@@ -37,9 +39,52 @@ func (tf *Terraform) Version(ctx context.Context, skipCache bool) (tfVersion *ve
 
 // version does not use the locking on the Terraform instance and should probably not be used directly, prefer Version.
 func (tf *Terraform) version(ctx context.Context) (*version.Version, map[string]*version.Version, error) {
-	// TODO: 0.13.0-beta2? and above supports a `-json` on the version command, should add support
-	// for that here and fallback to string parsing
+	versionCmd := tf.buildTerraformCmd(ctx, nil, "version", "-json")
 
+	var outBuf bytes.Buffer
+	versionCmd.Stdout = &outBuf
+
+	err := tf.runTerraformCmd(ctx, versionCmd)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tfVersion, providerVersions, err := parseJsonVersionOutput(outBuf.Bytes())
+	if err != nil {
+		if _, ok := err.(*json.SyntaxError); ok {
+			return tf.versionFromPlaintext(ctx)
+		}
+	}
+
+	return tfVersion, providerVersions, err
+}
+
+func parseJsonVersionOutput(stdout []byte) (*version.Version, map[string]*version.Version, error) {
+	var out tfjson.VersionOutput
+	err := json.Unmarshal(stdout, &out)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tfVersion, err := version.NewVersion(out.Version)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to parse version %q: %w", out.Version, err)
+	}
+
+	providerVersions := make(map[string]*version.Version, 0)
+	for provider, versionStr := range out.ProviderSelections {
+		v, err := version.NewVersion(versionStr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("unable to parse %q version %q: %w",
+				provider, versionStr, err)
+		}
+		providerVersions[provider] = v
+	}
+
+	return tfVersion, providerVersions, nil
+}
+
+func (tf *Terraform) versionFromPlaintext(ctx context.Context) (*version.Version, map[string]*version.Version, error) {
 	versionCmd := tf.buildTerraformCmd(ctx, nil, "version")
 
 	var outBuf bytes.Buffer
@@ -50,7 +95,7 @@ func (tf *Terraform) version(ctx context.Context) (*version.Version, map[string]
 		return nil, nil, err
 	}
 
-	tfVersion, providerVersions, err := parseVersionOutput(outBuf.String())
+	tfVersion, providerVersions, err := parsePlaintextVersionOutput(outBuf.String())
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to parse version: %w", err)
 	}
@@ -65,7 +110,7 @@ var (
 	providerVersionOutputRe = regexp.MustCompile(`(\n\+ provider[\. ](?P<name>\S+) ` + simpleVersionRe + `)`)
 )
 
-func parseVersionOutput(stdout string) (*version.Version, map[string]*version.Version, error) {
+func parsePlaintextVersionOutput(stdout string) (*version.Version, map[string]*version.Version, error) {
 	stdout = strings.TrimSpace(stdout)
 
 	submatches := versionOutputRe.FindStringSubmatch(stdout)

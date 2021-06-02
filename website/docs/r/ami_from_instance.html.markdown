@@ -45,7 +45,7 @@ The following arguments are supported:
   the instance before snapshotting. This is risky since it may cause a snapshot of an
   inconsistent filesystem state, but can be used to avoid downtime if the user otherwise
   guarantees that no filesystem writes will be underway at the time of snapshot.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Timeouts
 

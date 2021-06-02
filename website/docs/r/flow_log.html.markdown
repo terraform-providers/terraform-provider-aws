@@ -106,7 +106,7 @@ The following arguments are supported:
   during which a flow of packets is captured and aggregated into a flow
   log record. Valid Values: `60` seconds (1 minute) or `600` seconds (10
   minutes). Default: `600`.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -114,6 +114,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Flow Log ID
 * `arn` - The ARN of the Flow Log.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

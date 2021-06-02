@@ -455,8 +455,11 @@ func resourceAwsRDSCluster() *schema.Resource {
 				Default:  false,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -471,7 +474,8 @@ func resourceAwsRdsClusterImport(
 
 func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Some API calls (e.g. RestoreDBClusterFromSnapshot do not support all
 	// parameters to correctly apply all settings in one pass. For missing
@@ -501,7 +505,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			EngineMode:           aws.String(d.Get("engine_mode").(string)),
 			ScalingConfiguration: expandRdsClusterScalingConfiguration(d.Get("scaling_configuration").([]interface{})),
 			SnapshotIdentifier:   aws.String(d.Get("snapshot_identifier").(string)),
-			Tags:                 tags,
+			Tags:                 tags.IgnoreAws().RdsTags(),
 		}
 
 		if attr := d.Get("availability_zones").(*schema.Set); attr.Len() > 0 {
@@ -605,7 +609,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			S3Prefix:            aws.String(s3_bucket["bucket_prefix"].(string)),
 			SourceEngine:        aws.String(s3_bucket["source_engine"].(string)),
 			SourceEngineVersion: aws.String(s3_bucket["source_engine_version"].(string)),
-			Tags:                tags,
+			Tags:                tags.IgnoreAws().RdsTags(),
 		}
 
 		if v, ok := d.GetOk("backtrack_window"); ok {
@@ -706,7 +710,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			DBClusterIdentifier:       aws.String(identifier),
 			DeletionProtection:        aws.Bool(d.Get("deletion_protection").(bool)),
 			SourceDBClusterIdentifier: aws.String(pointInTime["source_cluster_identifier"].(string)),
-			Tags:                      tags,
+			Tags:                      tags.IgnoreAws().RdsTags(),
 		}
 
 		if v, ok := pointInTime["restore_to_time"].(string); ok && v != "" {
@@ -806,7 +810,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			Engine:               aws.String(d.Get("engine").(string)),
 			EngineMode:           aws.String(d.Get("engine_mode").(string)),
 			ScalingConfiguration: expandRdsClusterScalingConfiguration(d.Get("scaling_configuration").([]interface{})),
-			Tags:                 tags,
+			Tags:                 tags.IgnoreAws().RdsTags(),
 		}
 
 		// Note: Username and password credentials are required and valid
@@ -972,6 +976,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsRDSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &rds.DescribeDBClustersInput{
@@ -1087,8 +1092,15 @@ func resourceAwsRDSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error listing tags for RDS Cluster (%s): %s", aws.StringValue(dbc.DBClusterArn), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	// Fetch and save Global Cluster if engine mode global
@@ -1301,8 +1313,8 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)

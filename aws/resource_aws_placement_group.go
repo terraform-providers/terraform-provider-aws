@@ -48,19 +48,24 @@ func resourceAwsPlacementGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsPlacementGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("name").(string)
 	input := ec2.CreatePlacementGroupInput{
 		GroupName:         aws.String(name),
 		Strategy:          aws.String(d.Get("strategy").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypePlacementGroup),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypePlacementGroup),
 	}
 	log.Printf("[DEBUG] Creating EC2 Placement group: %s", input)
 	_, err := conn.CreatePlacementGroup(&input)
@@ -110,6 +115,7 @@ func resourceAwsPlacementGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := ec2.DescribePlacementGroupsInput{
@@ -132,8 +138,15 @@ func resourceAwsPlacementGroupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", pg.GroupName)
 	d.Set("strategy", pg.Strategy)
 	d.Set("placement_group_id", pg.GroupId)
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(pg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(pg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -152,8 +165,8 @@ func resourceAwsPlacementGroupRead(d *schema.ResourceData, meta interface{}) err
 func resourceAwsPlacementGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		pgId := d.Get("placement_group_id").(string)
 		if err := keyvaluetags.Ec2UpdateTags(conn, pgId, o, n); err != nil {

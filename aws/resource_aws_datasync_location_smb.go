@@ -87,7 +87,8 @@ func resourceAwsDataSyncLocationSmb() *schema.Resource {
 				},
 				*/
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -98,11 +99,15 @@ func resourceAwsDataSyncLocationSmb() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsDataSyncLocationSmbCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &datasync.CreateLocationSmbInput{
 		AgentArns:      expandStringSet(d.Get("agent_arns").(*schema.Set)),
@@ -110,7 +115,7 @@ func resourceAwsDataSyncLocationSmbCreate(d *schema.ResourceData, meta interface
 		Password:       aws.String(d.Get("password").(string)),
 		ServerHostname: aws.String(d.Get("server_hostname").(string)),
 		Subdirectory:   aws.String(d.Get("subdirectory").(string)),
-		Tags:           keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatasyncTags(),
+		Tags:           tags.IgnoreAws().DatasyncTags(),
 		User:           aws.String(d.Get("user").(string)),
 	}
 
@@ -131,6 +136,7 @@ func resourceAwsDataSyncLocationSmbCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &datasync.DescribeLocationSmbInput{
@@ -179,8 +185,15 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("subdirectory", subdirectory)
 
-	if err := d.Set("tags", keyvaluetags.DatasyncKeyValueTags(tagsOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.DatasyncKeyValueTags(tagsOutput.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("user", output.User)
@@ -193,8 +206,8 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 func resourceAwsDataSyncLocationSmbUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Datasync SMB location (%s) tags: %s", d.Id(), err)

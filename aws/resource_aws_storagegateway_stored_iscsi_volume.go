@@ -108,13 +108,18 @@ func resourceAwsStorageGatewayStoredIscsiVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsStorageGatewayStoredIscsiVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &storagegateway.CreateStorediSCSIVolumeInput{
 		DiskId:               aws.String(d.Get("disk_id").(string)),
@@ -122,7 +127,7 @@ func resourceAwsStorageGatewayStoredIscsiVolumeCreate(d *schema.ResourceData, me
 		NetworkInterfaceId:   aws.String(d.Get("network_interface_id").(string)),
 		TargetName:           aws.String(d.Get("target_name").(string)),
 		PreserveExistingData: aws.Bool(d.Get("preserve_existing_data").(bool)),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
+		Tags:                 tags.IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("snapshot_id"); ok {
@@ -157,8 +162,8 @@ func resourceAwsStorageGatewayStoredIscsiVolumeCreate(d *schema.ResourceData, me
 func resourceAwsStorageGatewayStoredIscsiVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}
@@ -169,6 +174,7 @@ func resourceAwsStorageGatewayStoredIscsiVolumeUpdate(d *schema.ResourceData, me
 
 func resourceAwsStorageGatewayStoredIscsiVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &storagegateway.DescribeStorediSCSIVolumesInput{
@@ -212,8 +218,15 @@ func resourceAwsStorageGatewayStoredIscsiVolumeRead(d *schema.ResourceData, meta
 	if err != nil {
 		return fmt.Errorf("error listing tags for resource (%s): %w", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	attr := volume.VolumeiSCSIAttributes

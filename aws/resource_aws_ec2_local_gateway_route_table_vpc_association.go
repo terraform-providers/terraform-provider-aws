@@ -26,6 +26,8 @@ func resourceAwsEc2LocalGatewayRouteTableVpcAssociation() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"local_gateway_id": {
 				Type:     schema.TypeString,
@@ -36,7 +38,8 @@ func resourceAwsEc2LocalGatewayRouteTableVpcAssociation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -48,10 +51,12 @@ func resourceAwsEc2LocalGatewayRouteTableVpcAssociation() *schema.Resource {
 
 func resourceAwsEc2LocalGatewayRouteTableVpcAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &ec2.CreateLocalGatewayRouteTableVpcAssociationInput{
 		LocalGatewayRouteTableId: aws.String(d.Get("local_gateway_route_table_id").(string)),
-		TagSpecifications:        ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2ResourceTypeLocalGatewayRouteTableVpcAssociation),
+		TagSpecifications:        ec2TagSpecificationsFromKeyValueTags(tags, ec2ResourceTypeLocalGatewayRouteTableVpcAssociation),
 		VpcId:                    aws.String(d.Get("vpc_id").(string)),
 	}
 
@@ -72,6 +77,7 @@ func resourceAwsEc2LocalGatewayRouteTableVpcAssociationCreate(d *schema.Resource
 
 func resourceAwsEc2LocalGatewayRouteTableVpcAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	association, err := getEc2LocalGatewayRouteTableVpcAssociation(conn, d.Id())
@@ -95,8 +101,15 @@ func resourceAwsEc2LocalGatewayRouteTableVpcAssociationRead(d *schema.ResourceDa
 	d.Set("local_gateway_id", association.LocalGatewayId)
 	d.Set("local_gateway_route_table_id", association.LocalGatewayRouteTableId)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(association.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(association.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("vpc_id", association.VpcId)
@@ -107,8 +120,8 @@ func resourceAwsEc2LocalGatewayRouteTableVpcAssociationRead(d *schema.ResourceDa
 func resourceAwsEc2LocalGatewayRouteTableVpcAssociationUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Local Gateway Route Table VPC Association (%s) tags: %w", d.Id(), err)

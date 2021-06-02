@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_eip: Add `address` argument to recover or an IPv4 address from an address pool, supporting BYOIP
+```

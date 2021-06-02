@@ -59,18 +59,23 @@ func resourceAwsCodeCommitRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCodeCommitRepositoryCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codecommitconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &codecommit.CreateRepositoryInput{
 		RepositoryName:        aws.String(d.Get("repository_name").(string)),
 		RepositoryDescription: aws.String(d.Get("description").(string)),
-		Tags:                  keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CodecommitTags(),
+		Tags:                  tags.IgnoreAws().CodecommitTags(),
 	}
 
 	out, err := conn.CreateRepository(input)
@@ -108,8 +113,8 @@ func resourceAwsCodeCommitRepositoryUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CodecommitUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating CodeCommit Repository (%s) tags: %s", d.Get("arn").(string), err)
@@ -121,6 +126,7 @@ func resourceAwsCodeCommitRepositoryUpdate(d *schema.ResourceData, meta interfac
 
 func resourceAwsCodeCommitRepositoryRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codecommitconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &codecommit.GetRepositoryInput{
@@ -157,8 +163,15 @@ func resourceAwsCodeCommitRepositoryRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for CodeCommit Repository (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

@@ -110,7 +110,8 @@ func resourceAwsIamRole() *schema.Resource {
 				ValidateFunc: validation.IntBetween(3600, 43200),
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 
 			"inline_policy": {
 				Type:     schema.TypeSet,
@@ -144,6 +145,8 @@ func resourceAwsIamRole() *schema.Resource {
 				Set:      schema.HashString,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -155,6 +158,8 @@ func resourceAwsIamRoleImport(
 
 func resourceAwsIamRoleCreate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -183,8 +188,8 @@ func resourceAwsIamRoleCreate(d *schema.ResourceData, meta interface{}) error {
 		request.PermissionsBoundary = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		request.Tags = keyvaluetags.New(v).IgnoreAws().IamTags()
+	if len(tags) > 0 {
+		request.Tags = tags.IgnoreAws().IamTags()
 	}
 
 	var createResp *iam.CreateRoleOutput
@@ -230,6 +235,7 @@ func resourceAwsIamRoleCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsIamRoleRead(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	request := &iam.GetRoleInput{
@@ -287,8 +293,15 @@ func resourceAwsIamRoleRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("unique_id", role.RoleId)
 
-	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(role.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.IamKeyValueTags(role.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	assumeRolePolicy, err := url.QueryUnescape(*role.AssumeRolePolicyDocument)
@@ -386,8 +399,8 @@ func resourceAwsIamRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.IamRoleUpdateTags(iamconn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating IAM Role (%s) tags: %s", d.Id(), err)

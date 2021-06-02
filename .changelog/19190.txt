@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_datasync_location_s3: Add `s3_storage_class` argument
+```

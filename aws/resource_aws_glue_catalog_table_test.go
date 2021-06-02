@@ -12,6 +12,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/finder"
 )
 
+func init() {
+	RegisterServiceErrorCheckFunc(glue.EndpointsID, testAccErrorCheckSkipGlue)
+}
+
+func testAccErrorCheckSkipGlue(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"AccessDeniedException: Operation not allowed",
+	)
+}
+
 func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_catalog_table.test"
@@ -31,7 +41,10 @@ func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "partition_keys.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "target_table.#", "0"),
 					testAccCheckResourceAttrAccountID(resourceName, "catalog_id"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.#", "0"),
 				),
 			},
 			{
@@ -575,6 +588,36 @@ func TestAccAWSGlueCatalogTable_disappears_database(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsGlueCatalogDatabase(), "aws_glue_catalog_database.test"),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlueCatalogTable_targetTable(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_catalog_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogTableConfigTargetTable(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "target_table.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_table.0.catalog_id", "aws_glue_catalog_table.test2", "catalog_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_table.0.database_name", "aws_glue_catalog_table.test2", "database_name"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_table.0.name", "aws_glue_catalog_table.test2", "name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -1298,6 +1341,34 @@ resource "aws_glue_catalog_table" "test" {
     index_name = "%[1]s-2"
     keys       = ["my_column_1"]
   }
+}
+`, rName)
+}
+
+func testAccGlueCatalogTableConfigTargetTable(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_catalog_table" "test" {
+  name          = %[1]q
+  database_name = aws_glue_catalog_database.test.name
+
+  target_table {
+    catalog_id    = aws_glue_catalog_table.test2.catalog_id
+    database_name = aws_glue_catalog_table.test2.database_name
+    name          = aws_glue_catalog_table.test2.name
+  }
+}
+
+resource "aws_glue_catalog_database" "test2" {
+  name = "%[1]s-2"
+}
+
+resource "aws_glue_catalog_table" "test2" {
+  name          = "%[1]s-2"
+  database_name = aws_glue_catalog_database.test2.name
 }
 `, rName)
 }

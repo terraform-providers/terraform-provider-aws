@@ -212,13 +212,18 @@ func resourceAwsRDSClusterInstance() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRDSClusterInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	createOpts := &rds.CreateDBInstanceInput{
 		DBInstanceClass:         aws.String(d.Get("instance_class").(string)),
@@ -228,7 +233,7 @@ func resourceAwsRDSClusterInstanceCreate(d *schema.ResourceData, meta interface{
 		PubliclyAccessible:      aws.Bool(d.Get("publicly_accessible").(bool)),
 		PromotionTier:           aws.Int64(int64(d.Get("promotion_tier").(int))),
 		AutoMinorVersionUpgrade: aws.Bool(d.Get("auto_minor_version_upgrade").(bool)),
-		Tags:                    keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags(),
+		Tags:                    tags.IgnoreAws().RdsTags(),
 	}
 
 	if attr, ok := d.GetOk("availability_zone"); ok {
@@ -398,6 +403,7 @@ func resourceAwsRDSClusterInstanceRead(d *schema.ResourceData, meta interface{})
 
 	// Retrieve DB Cluster information, to determine if this Instance is a writer
 	conn := meta.(*AWSClient).rdsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeDBClusters(&rds.DescribeDBClustersInput{
@@ -465,8 +471,15 @@ func resourceAwsRDSClusterInstanceRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("error listing tags for RDS Cluster Instance (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -584,8 +597,8 @@ func resourceAwsRDSClusterInstanceUpdate(d *schema.ResourceData, meta interface{
 
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS Cluster Instance (%s) tags: %s", d.Id(), err)

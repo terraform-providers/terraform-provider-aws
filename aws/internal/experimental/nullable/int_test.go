@@ -10,23 +10,23 @@ import (
 func TestNullableInt(t *testing.T) {
 	cases := []struct {
 		val           string
-		expectedNull  bool
+		expectNull    bool
 		expectedValue int64
 		expectedErr   error
 	}{
 		{
 			val:           "1",
-			expectedNull:  false,
+			expectNull:    false,
 			expectedValue: 1,
 		},
 		{
 			val:           "",
-			expectedNull:  true,
+			expectNull:    true,
 			expectedValue: 0,
 		},
 		{
 			val:           "A",
-			expectedNull:  false,
+			expectNull:    false,
 			expectedValue: 0,
 			expectedErr:   strconv.ErrSyntax,
 		},
@@ -35,16 +35,16 @@ func TestNullableInt(t *testing.T) {
 	for i, tc := range cases {
 		v := Int(tc.val)
 
-		if null := v.IsNull(); null != tc.expectedNull {
-			t.Fatalf("expected test case %d IsNull to return %t, got %t", i, null, tc.expectedNull)
+		if null := v.IsNull(); null != tc.expectNull {
+			t.Fatalf("expected test case %d IsNull to return %t, got %t", i, null, tc.expectNull)
 		}
 
 		value, null, err := v.Value()
 		if value != tc.expectedValue {
 			t.Fatalf("expected test case %d Value to be %d, got %d", i, tc.expectedValue, value)
 		}
-		if null != tc.expectedNull {
-			t.Fatalf("expected test case %d Value null flag to be %t, got %t", i, tc.expectedNull, null)
+		if null != tc.expectNull {
+			t.Fatalf("expected test case %d Value null flag to be %t, got %t", i, tc.expectNull, null)
 		}
 		if tc.expectedErr == nil && err != nil {
 			t.Fatalf("expected test case %d to succeed, got error %s", i, err)

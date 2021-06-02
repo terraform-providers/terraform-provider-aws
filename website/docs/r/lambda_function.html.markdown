@@ -234,7 +234,7 @@ The following arguments are optional:
 * `s3_key` - (Optional) S3 key of an object containing the function's deployment package. Conflicts with `filename` and `image_uri`.
 * `s3_object_version` - (Optional) Object version containing the function's deployment package. Conflicts with `filename` and `image_uri`.
 * `source_code_hash` - (Optional) Used to trigger updates. Must be set to a base64-encoded SHA256 hash of the package file specified with either `filename` or `s3_key`. The usual way to set this is `filebase64sha256("file.zip")` (Terraform 0.11.12 and later) or `base64sha256(file("file.zip"))` (Terraform 0.11.11 and earlier), where "file.zip" is the local filename of the lambda function source archive.
-* `tags` - (Optional) Map of tags to assign to the object.
+* `tags` - (Optional) Map of tags to assign to the object. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `timeout` - (Optional) Amount of time your Lambda Function has to run in seconds. Defaults to `3`. See [Limits][5].
 * `tracing_config` - (Optional) Configuration block. Detailed below.
 * `vpc_config` - (Optional) Configuration block. Detailed below.
@@ -288,6 +288,7 @@ In addition to all arguments above, the following attributes are exported:
 * `signing_job_arn` - ARN of the signing job.
 * `signing_profile_version_arn` - ARN of the signing profile version.
 * `source_code_size` - Size in bytes of the function .zip file.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `version` - Latest published version of your Lambda Function.
 * `vpc_config.vpc_id` - ID of the VPC.
 

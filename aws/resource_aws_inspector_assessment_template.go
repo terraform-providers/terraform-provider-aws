@@ -48,13 +48,18 @@ func resourceAWSInspectorAssessmentTemplate() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsInspectorAssessmentTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).inspectorconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	req := &inspector.CreateAssessmentTemplateInput{
 		AssessmentTargetArn:    aws.String(d.Get("target_arn").(string)),
@@ -71,8 +76,8 @@ func resourceAwsInspectorAssessmentTemplateCreate(d *schema.ResourceData, meta i
 
 	d.SetId(aws.StringValue(resp.AssessmentTemplateArn))
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.InspectorUpdateTags(conn, d.Id(), nil, v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.InspectorUpdateTags(conn, d.Id(), nil, tags); err != nil {
 			return fmt.Errorf("error adding Inspector assessment template (%s) tags: %s", d.Id(), err)
 		}
 	}
@@ -82,6 +87,7 @@ func resourceAwsInspectorAssessmentTemplateCreate(d *schema.ResourceData, meta i
 
 func resourceAwsInspectorAssessmentTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).inspectorconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeAssessmentTemplates(&inspector.DescribeAssessmentTemplatesInput{
@@ -115,8 +121,15 @@ func resourceAwsInspectorAssessmentTemplateRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error listing tags for Inspector assessment template (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -125,8 +138,8 @@ func resourceAwsInspectorAssessmentTemplateRead(d *schema.ResourceData, meta int
 func resourceAwsInspectorAssessmentTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).inspectorconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.InspectorUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating Inspector assessment template (%s) tags: %s", d.Id(), err)

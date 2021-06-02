@@ -18,11 +18,10 @@ func TestAccAWSPinpointEventStream_basic(t *testing.T) {
 	rName2 := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointEventStreamDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointEventStreamDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointEventStreamConfig_basic(rName, rName),
@@ -57,11 +56,10 @@ func TestAccAWSPinpointEventStream_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
-		ErrorCheck:    testAccErrorCheck(t, pinpoint.EndpointsID),
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSPinpointEventStreamDestroy,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
+		ErrorCheck:   testAccErrorCheck(t, pinpoint.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSPinpointEventStreamDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSPinpointEventStreamConfig_basic(rName, rName),

@@ -43,6 +43,8 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			},
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		SchemaVersion: 1,
 		MigrateState:  resourceAwsEcsTaskDefinitionMigrateState,
 
@@ -334,7 +336,8 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"inference_accelerator": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -369,6 +372,8 @@ func validateAwsEcsTaskDefinitionContainerDefinitions(v interface{}, k string) (
 
 func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	rawDefinitions := d.Get("container_definitions").(string)
 	definitions, err := expandEcsContainerDefinitions(rawDefinitions)
@@ -382,8 +387,8 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	// ClientException: Tags can not be empty.
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().EcsTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EcsTags()
 	}
 
 	if v, ok := d.GetOk("task_role_arn"); ok {
@@ -492,6 +497,7 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading task definition %s", d.Id())
@@ -540,8 +546,15 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("ipc_mode", taskDefinition.IpcMode)
 	d.Set("pid_mode", taskDefinition.PidMode)
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EcsKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("volume", flattenEcsVolumes(taskDefinition.Volumes)); err != nil {
@@ -606,8 +619,8 @@ func flattenProxyConfiguration(pc *ecs.ProxyConfiguration) []map[string]interfac
 func resourceAwsEcsTaskDefinitionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EcsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating ECS Task Definition (%s) tags: %s", d.Id(), err)

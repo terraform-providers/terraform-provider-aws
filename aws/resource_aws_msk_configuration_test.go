@@ -35,9 +35,9 @@ func testSweepMskConfigurations(region string) error {
 
 	input := &kafka.ListConfigurationsInput{}
 
-	err = conn.ListConfigurationsPages(input, func(page *kafka.ListConfigurationsOutput, isLast bool) bool {
+	err = conn.ListConfigurationsPages(input, func(page *kafka.ListConfigurationsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, configuration := range page.Configurations {
@@ -60,7 +60,7 @@ func testSweepMskConfigurations(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {
@@ -92,7 +92,7 @@ func TestAccAWSMskConfiguration_basic(t *testing.T) {
 					testAccCheckMskConfigurationExists(resourceName, &configuration1),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "kafka", regexp.MustCompile(`configuration/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "kafka_versions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "kafka_versions.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "latest_revision", "1"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestMatchResourceAttr(resourceName, "server_properties", regexp.MustCompile(`auto.create.topics.enable = true`)),
@@ -181,6 +181,8 @@ func TestAccAWSMskConfiguration_KafkaVersions(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMskConfigurationExists(resourceName, &configuration1),
 					resource.TestCheckResourceAttr(resourceName, "kafka_versions.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "kafka_versions.*", "2.6.0"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "kafka_versions.*", "2.7.0"),
 				),
 			},
 			{
@@ -291,8 +293,7 @@ func testAccCheckMskConfigurationExists(resourceName string, configuration *kafk
 func testAccMskConfigurationConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_msk_configuration" "test" {
-  kafka_versions = ["2.1.0"]
-  name           = %[1]q
+  name = %[1]q
 
   server_properties = <<PROPERTIES
 auto.create.topics.enable = true
@@ -305,9 +306,8 @@ PROPERTIES
 func testAccMskConfigurationConfigDescription(rName, description string) string {
 	return fmt.Sprintf(`
 resource "aws_msk_configuration" "test" {
-  description    = %[2]q
-  kafka_versions = ["2.1.0"]
-  name           = %[1]q
+  description = %[2]q
+  name        = %[1]q
 
   server_properties = <<PROPERTIES
 auto.create.topics.enable = true
@@ -319,7 +319,7 @@ PROPERTIES
 func testAccMskConfigurationConfigKafkaVersions(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_msk_configuration" "test" {
-  kafka_versions = ["1.1.1", "2.1.0"]
+  kafka_versions = ["2.6.0", "2.7.0"]
   name           = %[1]q
 
   server_properties = <<PROPERTIES
@@ -332,8 +332,7 @@ PROPERTIES
 func testAccMskConfigurationConfigServerProperties(rName string, serverProperty string) string {
 	return fmt.Sprintf(`
 resource "aws_msk_configuration" "test" {
-  kafka_versions = ["2.1.0"]
-  name           = %[1]q
+  name = %[1]q
 
   server_properties = <<PROPERTIES
 %[2]s

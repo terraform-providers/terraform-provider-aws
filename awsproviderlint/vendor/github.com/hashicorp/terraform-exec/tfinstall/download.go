@@ -56,7 +56,7 @@ func downloadWithVerification(ctx context.Context, tfVersion string, installDir 
 	defer os.RemoveAll(sumsTmpDir)
 
 	sumsFilename := "terraform_" + tfVersion + "_SHA256SUMS"
-	sumsSigFilename := sumsFilename + ".sig"
+	sumsSigFilename := sumsFilename + ".72D7468F.sig"
 
 	sumsURL := fmt.Sprintf("%s/%s/%s", baseURL, tfVersion, sumsFilename)
 	sumsSigURL := fmt.Sprintf("%s/%s/%s", baseURL, tfVersion, sumsSigFilename)
@@ -65,7 +65,7 @@ func downloadWithVerification(ctx context.Context, tfVersion string, installDir 
 	client.Dst = sumsTmpDir
 	err = client.Get()
 	if err != nil {
-		return "", fmt.Errorf("error fetching checksums: %s", err)
+		return "", fmt.Errorf("error fetching checksums at URL %s: %w", sumsURL, err)
 	}
 
 	client.Src = sumsSigURL

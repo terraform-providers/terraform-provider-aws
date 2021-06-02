@@ -138,11 +138,11 @@ func expandEcsVolumes(configured []interface{}) []*ecs.Volume {
 			}
 
 			if v, ok := config["driver_opts"].(map[string]interface{}); ok && len(v) > 0 {
-				l.DockerVolumeConfiguration.DriverOpts = stringMapToPointers(v)
+				l.DockerVolumeConfiguration.DriverOpts = expandStringMap(v)
 			}
 
 			if v, ok := config["labels"].(map[string]interface{}); ok && len(v) > 0 {
-				l.DockerVolumeConfiguration.Labels = stringMapToPointers(v)
+				l.DockerVolumeConfiguration.Labels = expandStringMap(v)
 			}
 		}
 
@@ -1026,6 +1026,15 @@ func expandFloat64Map(m map[string]interface{}) map[string]*float64 {
 	return float64Map
 }
 
+// Expands a map of string to interface to a map of string to *string
+func expandStringMap(m map[string]interface{}) map[string]*string {
+	stringMap := make(map[string]*string, len(m))
+	for k, v := range m {
+		stringMap[k] = aws.String(v.(string))
+	}
+	return stringMap
+}
+
 // Takes the result of schema.Set of strings and returns a []*string
 func expandStringSet(configured *schema.Set) []*string {
 	return expandStringList(configured.List()) // nosemgrep: helper-schema-Set-extraneous-expandStringList-with-List
@@ -1584,14 +1593,6 @@ func pointersMapToStringList(pointers map[string]*string) map[string]interface{}
 	return list
 }
 
-func stringMapToPointers(m map[string]interface{}) map[string]*string {
-	list := make(map[string]*string, len(m))
-	for i, v := range m {
-		list[i] = aws.String(v.(string))
-	}
-	return list
-}
-
 // diffStringMaps returns the set of keys and values that must be created, the set of keys
 // and values that must be destroyed, and the set of keys and values that are unchanged.
 func diffStringMaps(oldMap, newMap map[string]interface{}) (map[string]*string, map[string]*string, map[string]*string) {
@@ -1632,45 +1633,6 @@ func flattenDSVpcSettings(
 	settings["availability_zones"] = flattenStringSet(s.AvailabilityZones)
 
 	return []map[string]interface{}{settings}
-}
-
-func expandLambdaEventSourceMappingDestinationConfig(vDest []interface{}) *lambda.DestinationConfig {
-	if len(vDest) == 0 {
-		return nil
-	}
-
-	dest := &lambda.DestinationConfig{}
-	onFailure := &lambda.OnFailure{}
-
-	if len(vDest) > 0 {
-		if config, ok := vDest[0].(map[string]interface{}); ok {
-			if vOnFailure, ok := config["on_failure"].([]interface{}); ok && len(vOnFailure) > 0 && vOnFailure[0] != nil {
-				mOnFailure := vOnFailure[0].(map[string]interface{})
-				onFailure.SetDestination(mOnFailure["destination_arn"].(string))
-			}
-		}
-	}
-	dest.SetOnFailure(onFailure)
-	return dest
-}
-
-func flattenLambdaEventSourceMappingDestinationConfig(dest *lambda.DestinationConfig) []interface{} {
-	mDest := map[string]interface{}{}
-	mOnFailure := map[string]interface{}{}
-	if dest != nil {
-		if dest.OnFailure != nil {
-			if dest.OnFailure.Destination != nil {
-				mOnFailure["destination_arn"] = *dest.OnFailure.Destination
-				mDest["on_failure"] = []interface{}{mOnFailure}
-			}
-		}
-	}
-
-	if len(mDest) == 0 {
-		return nil
-	}
-
-	return []interface{}{mDest}
 }
 
 func flattenLambdaLayers(layers []*lambda.Layer) []interface{} {

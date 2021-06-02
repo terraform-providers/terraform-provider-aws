@@ -58,14 +58,18 @@ func resourceAwsNeptuneSubnetGroup() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNeptuneSubnetGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().NeptuneTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	subnetIdsSet := d.Get("subnet_ids").(*schema.Set)
 	subnetIds := make([]*string, subnetIdsSet.Len())
@@ -86,7 +90,7 @@ func resourceAwsNeptuneSubnetGroupCreate(d *schema.ResourceData, meta interface{
 		DBSubnetGroupName:        aws.String(groupName),
 		DBSubnetGroupDescription: aws.String(d.Get("description").(string)),
 		SubnetIds:                subnetIds,
-		Tags:                     tags,
+		Tags:                     tags.IgnoreAws().NeptuneTags(),
 	}
 
 	log.Printf("[DEBUG] Create Neptune Subnet Group: %#v", createOpts)
@@ -102,6 +106,7 @@ func resourceAwsNeptuneSubnetGroupCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsNeptuneSubnetGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := neptune.DescribeDBSubnetGroupsInput{
@@ -154,8 +159,15 @@ func resourceAwsNeptuneSubnetGroupRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for Neptune Subnet Group (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -186,8 +198,8 @@ func resourceAwsNeptuneSubnetGroupUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.NeptuneUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Neptune Subnet Group (%s) tags: %s", d.Get("arn").(string), err)

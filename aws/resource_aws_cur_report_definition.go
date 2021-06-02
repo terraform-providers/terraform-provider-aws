@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/costandusagereportservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/costandusagereportservice/finder"
 )
 
 func resourceAwsCurReportDefinition() *schema.Resource {
@@ -172,63 +173,49 @@ func resourceAwsCurReportDefinitionCreate(d *schema.ResourceData, meta interface
 func resourceAwsCurReportDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).costandusagereportconn
 
-	reportName := d.Id()
+	reportDefinition, err := finder.ReportDefinitionByName(conn, d.Id())
 
-	matchingReportDefinition, err := describeCurReportDefinition(conn, reportName)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading Report definition (%s): %w", d.Id(), err)
 	}
-	if matchingReportDefinition == nil {
+
+	if reportDefinition == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading Report definition (%s): not found after creation", d.Id())
+		}
 		log.Printf("[WARN] Report definition (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
-	d.SetId(aws.StringValue(matchingReportDefinition.ReportName))
-	d.Set("report_name", matchingReportDefinition.ReportName)
-	d.Set("time_unit", matchingReportDefinition.TimeUnit)
-	d.Set("format", matchingReportDefinition.Format)
-	d.Set("compression", matchingReportDefinition.Compression)
-	d.Set("additional_schema_elements", aws.StringValueSlice(matchingReportDefinition.AdditionalSchemaElements))
-	d.Set("s3_bucket", matchingReportDefinition.S3Bucket)
-	d.Set("s3_prefix", matchingReportDefinition.S3Prefix)
-	d.Set("s3_region", matchingReportDefinition.S3Region)
-	d.Set("additional_artifacts", aws.StringValueSlice(matchingReportDefinition.AdditionalArtifacts))
-	d.Set("refresh_closed_reports", matchingReportDefinition.RefreshClosedReports)
-	d.Set("report_versioning", matchingReportDefinition.ReportVersioning)
+
+	d.SetId(aws.StringValue(reportDefinition.ReportName))
+	d.Set("report_name", reportDefinition.ReportName)
+	d.Set("time_unit", reportDefinition.TimeUnit)
+	d.Set("format", reportDefinition.Format)
+	d.Set("compression", reportDefinition.Compression)
+	d.Set("additional_schema_elements", aws.StringValueSlice(reportDefinition.AdditionalSchemaElements))
+	d.Set("s3_bucket", reportDefinition.S3Bucket)
+	d.Set("s3_prefix", reportDefinition.S3Prefix)
+	d.Set("s3_region", reportDefinition.S3Region)
+	d.Set("additional_artifacts", aws.StringValueSlice(reportDefinition.AdditionalArtifacts))
+	d.Set("refresh_closed_reports", reportDefinition.RefreshClosedReports)
+	d.Set("report_versioning", reportDefinition.ReportVersioning)
+
 	return nil
 }
 
 func resourceAwsCurReportDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).costandusagereportconn
-	log.Printf("[DEBUG] Deleting AWS Cost and Usage Report Definition : %s", d.Id())
+
 	_, err := conn.DeleteReportDefinition(&costandusagereportservice.DeleteReportDefinitionInput{
 		ReportName: aws.String(d.Id()),
 	})
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error deleting Report Definition (%s): %w", d.Id(), err)
 	}
+
 	return nil
-}
-
-func describeCurReportDefinition(conn *costandusagereportservice.CostandUsageReportService, reportName string) (*costandusagereportservice.ReportDefinition, error) {
-	params := &costandusagereportservice.DescribeReportDefinitionsInput{}
-
-	log.Printf("[DEBUG] Reading CurReportDefinition: %s", reportName)
-
-	var matchingReportDefinition *costandusagereportservice.ReportDefinition
-	err := conn.DescribeReportDefinitionsPages(params, func(resp *costandusagereportservice.DescribeReportDefinitionsOutput, isLast bool) bool {
-		for _, reportDefinition := range resp.ReportDefinitions {
-			if aws.StringValue(reportDefinition.ReportName) == reportName {
-				matchingReportDefinition = reportDefinition
-				return false
-			}
-		}
-		return !isLast
-	})
-	if err != nil {
-		return nil, err
-	}
-	return matchingReportDefinition, nil
 }
 
 func checkAwsCurReportDefinitionPropertyCombination(additionalArtifacts []string, compression string, format string, prefix string, reportVersioning string) error {

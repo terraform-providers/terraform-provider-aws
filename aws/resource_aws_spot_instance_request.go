@@ -42,7 +42,7 @@ func resourceAwsSpotInstanceRequest() *schema.Resource {
 
 			// Everything on a spot instance is ForceNew except tags
 			for k, v := range s {
-				if k == "tags" {
+				if k == "tags" || k == "tags_all" {
 					continue
 				}
 				v.ForceNew = true
@@ -128,6 +128,8 @@ func resourceAwsSpotInstanceRequest() *schema.Resource {
 
 func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	instanceOpts, err := buildAwsInstanceOpts(d, meta)
 	if err != nil {
@@ -138,7 +140,7 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 		SpotPrice:                    aws.String(d.Get("spot_price").(string)),
 		Type:                         aws.String(d.Get("spot_type").(string)),
 		InstanceInterruptionBehavior: aws.String(d.Get("instance_interruption_behaviour").(string)),
-		TagSpecifications:            ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeSpotInstancesRequest),
+		TagSpecifications:            ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeSpotInstancesRequest),
 
 		// Though the AWS API supports creating spot instance requests for multiple
 		// instances, for TF purposes we fix this to one instance per request.
@@ -253,6 +255,7 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 // Update spot state, etc
 func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var request *ec2.SpotInstanceRequest
@@ -327,8 +330,15 @@ func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}
 	d.Set("launch_group", request.LaunchGroup)
 	d.Set("block_duration_minutes", request.BlockDurationMinutes)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(request.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(request.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("instance_interruption_behaviour", request.InstanceInterruptionBehavior)
@@ -429,8 +439,8 @@ func readInstance(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsSpotInstanceRequestUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Spot Instance Request (%s) tags: %s", d.Id(), err)

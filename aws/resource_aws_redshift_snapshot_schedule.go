@@ -57,15 +57,20 @@ func resourceAwsRedshiftSnapshotSchedule() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 
 }
 
 func resourceAwsRedshiftSnapshotScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags()
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 	var identifier string
 	if v, ok := d.GetOk("identifier"); ok {
 		identifier = v.(string)
@@ -79,7 +84,7 @@ func resourceAwsRedshiftSnapshotScheduleCreate(d *schema.ResourceData, meta inte
 	createOpts := &redshift.CreateSnapshotScheduleInput{
 		ScheduleIdentifier:  aws.String(identifier),
 		ScheduleDefinitions: expandStringSet(d.Get("definitions").(*schema.Set)),
-		Tags:                tags,
+		Tags:                tags.IgnoreAws().RedshiftTags(),
 	}
 	if attr, ok := d.GetOk("description"); ok {
 		createOpts.ScheduleDescription = aws.String(attr.(string))
@@ -97,6 +102,7 @@ func resourceAwsRedshiftSnapshotScheduleCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsRedshiftSnapshotScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	descOpts := &redshift.DescribeSnapshotSchedulesInput{
@@ -121,8 +127,15 @@ func resourceAwsRedshiftSnapshotScheduleRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error setting definitions: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(snapshotSchedule.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.RedshiftKeyValueTags(snapshotSchedule.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -141,8 +154,8 @@ func resourceAwsRedshiftSnapshotScheduleRead(d *schema.ResourceData, meta interf
 func resourceAwsRedshiftSnapshotScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Redshift Snapshot Schedule (%s) tags: %s", d.Get("arn").(string), err)

@@ -45,18 +45,23 @@ func resourceAwsIamSamlProvider() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1000, 10000000),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIamSamlProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &iam.CreateSAMLProviderInput{
 		Name:                 aws.String(d.Get("name").(string)),
 		SAMLMetadataDocument: aws.String(d.Get("saml_metadata_document").(string)),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IamTags(),
+		Tags:                 tags.IgnoreAws().IamTags(),
 	}
 
 	out, err := conn.CreateSAMLProvider(input)
@@ -71,6 +76,7 @@ func resourceAwsIamSamlProviderCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &iam.GetSAMLProviderInput{
@@ -95,8 +101,15 @@ func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("valid_until", out.ValidUntil.Format(time.RFC1123))
 	d.Set("saml_metadata_document", out.SAMLMetadataDocument)
 
-	if err := d.Set("tags", keyvaluetags.IamKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.IamKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -105,7 +118,7 @@ func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsIamSamlProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
 
-	if d.HasChangeExcept("tags") {
+	if d.HasChangesExcept("tags", "tags_all") {
 		input := &iam.UpdateSAMLProviderInput{
 			SAMLProviderArn:      aws.String(d.Id()),
 			SAMLMetadataDocument: aws.String(d.Get("saml_metadata_document").(string)),
@@ -116,8 +129,8 @@ func resourceAwsIamSamlProviderUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.IamSAMLProviderUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for IAM SAML Provider (%s): %w", d.Id(), err)

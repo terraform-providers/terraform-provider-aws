@@ -87,6 +87,7 @@ SNS actions support the following:
 
 * `topic_arn` - (Required) The ARN of an SNS topic to notify
 * `position` - (Required) The position of the action in the receipt rule
+* `encoding` - (Optional) The encoding to use for the email within the Amazon SNS notification. Default value is `UTF-8`.
 
 Stop actions support the following:
 

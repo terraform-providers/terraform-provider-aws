@@ -58,9 +58,9 @@ func testSweepSsoAdminAccountAssignments(region string) error {
 		InstanceArn: aws.String(instanceArn),
 	}
 
-	err = conn.ListPermissionSetsPages(input, func(page *ssoadmin.ListPermissionSetsOutput, isLast bool) bool {
+	err = conn.ListPermissionSetsPages(input, func(page *ssoadmin.ListPermissionSetsOutput, lastPage bool) bool {
 		if page == nil {
-			return !isLast
+			return !lastPage
 		}
 
 		for _, permissionSet := range page.PermissionSets {
@@ -117,7 +117,7 @@ func testSweepSsoAdminAccountAssignments(region string) error {
 			}
 		}
 
-		return !isLast
+		return !lastPage
 	})
 
 	if testSweepSkipSweepError(err) {

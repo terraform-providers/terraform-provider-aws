@@ -65,7 +65,7 @@ func resourceAwsIotThingCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	if v, ok := d.GetOk("attributes"); ok {
 		params.AttributePayload = &iot.AttributePayload{
-			Attributes: stringMapToPointers(v.(map[string]interface{})),
+			Attributes: expandStringMap(v.(map[string]interface{})),
 		}
 	}
 
@@ -127,7 +127,7 @@ func resourceAwsIotThingUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		if v, ok := d.GetOk("attributes"); ok {
 			if m, ok := v.(map[string]interface{}); ok {
-				attributes = stringMapToPointers(m)
+				attributes = expandStringMap(m)
 			}
 		}
 		params.AttributePayload = &iot.AttributePayload{

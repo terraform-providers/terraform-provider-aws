@@ -206,13 +206,18 @@ func resourceAwsSsmPatchBaseline() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSsmPatchBaselineCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	params := &ssm.CreatePatchBaselineInput{
 		Name:                           aws.String(d.Get("name").(string)),
@@ -220,8 +225,8 @@ func resourceAwsSsmPatchBaselineCreate(d *schema.ResourceData, meta interface{})
 		OperatingSystem:                aws.String(d.Get("operating_system").(string)),
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsmTags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().SsmTags()
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -313,15 +318,15 @@ func resourceAwsSsmPatchBaselineUpdate(d *schema.ResourceData, meta interface{})
 		params.RejectedPatchesAction = aws.String(d.Get("rejected_patches_action").(string))
 	}
 
-	if d.HasChangesExcept("tags") {
+	if d.HasChangesExcept("tags", "tags_all") {
 		_, err := conn.UpdatePatchBaseline(params)
 		if err != nil {
 			return fmt.Errorf("error updating SSM Patch Baseline (%s): %w", d.Id(), err)
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SsmUpdateTags(conn, d.Id(), ssm.ResourceTypeForTaggingPatchBaseline, o, n); err != nil {
 			return fmt.Errorf("error updating SSM Patch Baseline (%s) tags: %s", d.Id(), err)
@@ -332,6 +337,7 @@ func resourceAwsSsmPatchBaselineUpdate(d *schema.ResourceData, meta interface{})
 }
 func resourceAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssmconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &ssm.GetPatchBaselineInput{
@@ -384,8 +390,15 @@ func resourceAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error listing tags for SSM Patch Baseline (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

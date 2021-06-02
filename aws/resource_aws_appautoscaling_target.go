@@ -155,6 +155,10 @@ func resourceAwsAppautoscalingTargetDelete(d *schema.ResourceData, meta interfac
 
 	_, err := conn.DeregisterScalableTarget(input)
 
+	if isAWSErr(err, applicationautoscaling.ErrCodeObjectNotFoundException, "") {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("error deleting Application AutoScaling Target (%s): %w", d.Id(), err)
 	}
