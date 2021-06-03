@@ -79,6 +79,7 @@ var serviceNames = []string{
 	"iot",
 	"iotanalytics",
 	"iotevents",
+	"iotwireless",
 	"kafka",
 	"kinesis",
 	"kinesisanalytics",
