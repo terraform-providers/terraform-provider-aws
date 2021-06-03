@@ -24,9 +24,10 @@ func resourceAwsLakeFormationPolicyTag() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"key": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 128),
 			},
 			"values": {
 				Type:     schema.TypeSet,
@@ -34,11 +35,8 @@ func resourceAwsLakeFormationPolicyTag() *schema.Resource {
 				MinItems: 1,
 				MaxItems: 15,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.All(
-						validation.StringLenBetween(1, 255),
-						validation.StringMatch(regexp.MustCompile(`^([\p{L}\p{Z}\p{N}_.:\*\/=+\-@%]*)$`), ""),
-					),
+					Type:         schema.TypeString,
+					ValidateFunc: validatePolicyTagValues(),
 				},
 				Set: schema.HashString,
 			},
@@ -174,4 +172,11 @@ func readPolicyTagID(id string) (catalogID string, tagKey string, err error) {
 		return "", "", fmt.Errorf("Unexpected format of ID (%q), expected CATALOG-ID:TAG-KEY", id)
 	}
 	return idParts[0], idParts[1], nil
+}
+
+func validatePolicyTagValues() schema.SchemaValidateFunc {
+	return validation.All(
+		validation.StringLenBetween(1, 255),
+		validation.StringMatch(regexp.MustCompile(`^([\p{L}\p{Z}\p{N}_.:\*\/=+\-@%]*)$`), ""),
+	)
 }

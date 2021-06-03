@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSLakeFormationPolicyTag_basic(t *testing.T) {
+func testAccAWSLakeFormationPolicyTag_basic(t *testing.T) {
 	resourceName := "aws_lakeformation_policy_tag.test"
 	rKey := acctest.RandomWithPrefix("tf-acc-test")
 
@@ -41,7 +41,7 @@ func TestAccAWSLakeFormationPolicyTag_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSLakeFormationPolicyTag_disappears(t *testing.T) {
+func testAccAWSLakeFormationPolicyTag_disappears(t *testing.T) {
 	resourceName := "aws_lakeformation_policy_tag.test"
 	rKey := acctest.RandomWithPrefix("tf-acc-test")
 
@@ -63,7 +63,7 @@ func TestAccAWSLakeFormationPolicyTag_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAWSLakeFormationPolicyTag_values(t *testing.T) {
+func testAccAWSLakeFormationPolicyTag_values(t *testing.T) {
 	resourceName := "aws_lakeformation_policy_tag.test"
 	rKey := acctest.RandomWithPrefix("tf-acc-test")
 

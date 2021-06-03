@@ -34,6 +34,11 @@ func TestAccAWSLakeFormation_serial(t *testing.T) {
 			"tableDataSource":            testAccAWSLakeFormationPermissionsDataSource_table,
 			"tableWithColumnsDataSource": testAccAWSLakeFormationPermissionsDataSource_tableWithColumns,
 		},
+		"PolicyTag": {
+			"basic":      testAccAWSLakeFormationPolicyTag_basic,
+			"disappears": testAccAWSLakeFormationPolicyTag_disappears,
+			"values":     testAccAWSLakeFormationPolicyTag_values,
+		},
 	}
 
 	for group, m := range testCases {
