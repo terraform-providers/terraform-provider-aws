@@ -120,8 +120,13 @@ func testAccCheckAWSLakeFormationPolicyTagsDestroy(s *terraform.State) error {
 			CatalogId: aws.String(catalogID),
 			TagKey:    aws.String(tagKey),
 		}
+
 		if _, err := conn.GetLFTag(input); err != nil {
 			if isAWSErr(err, lakeformation.ErrCodeEntityNotFoundException, "") {
+				continue
+			}
+			// If the lake formation admin has been revoked, there will be access denied instead of entity not found
+			if isAWSErr(err, lakeformation.ErrCodeAccessDeniedException, "") {
 				continue
 			}
 			return err
@@ -166,9 +171,18 @@ func testAccCheckAWSLakeFormationPolicyTagExists(name string) resource.TestCheck
 
 func testAccAWSLakeFormationPolicyTagConfig_basic(rKey string) string {
 	return fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+
+resource "aws_lakeformation_data_lake_settings" "test" {
+  admins = [data.aws_caller_identity.current.arn]
+}
+
 resource "aws_lakeformation_policy_tag" "test" {
-  key = %[1]q
+  key    = %[1]q
   values = ["value"]
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 `, rKey)
 }
@@ -180,9 +194,18 @@ func testAccAWSLakeFormationPolicyTagConfig_values(rKey string, values []string)
 	}
 
 	return fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+
+resource "aws_lakeformation_data_lake_settings" "test" {
+  admins = [data.aws_caller_identity.current.arn]
+}
+
 resource "aws_lakeformation_policy_tag" "test" {
-  key = %[1]q
+  key    = %[1]q
   values = [%s]
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
 }
 `, rKey, strings.Join(quotedValues, ","))
 }
