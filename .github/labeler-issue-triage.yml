@@ -44,6 +44,8 @@ service/apigatewayv2:
   - '((\*|-) ?`?|(data|resource) "?)aws_apigatewayv2_'
 service/appconfig:
   - '((\*|-) ?`?|(data|resource) "?)aws_appconfig_'
+service/appflow:
+  - '((\*|-) ?`?|(data|resource) "?)aws_appflow_'
 service/applicationautoscaling:
   - '((\*|-) ?`?|(data|resource) "?)aws_appautoscaling_'
 service/applicationdiscoveryservice:

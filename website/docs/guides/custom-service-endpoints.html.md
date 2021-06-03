@@ -60,6 +60,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>amplify</code></li>
   <li><code>apigateway</code></li>
   <li><code>appconfig</code></li>
+  <li><code>appflow</code></li>
   <li><code>applicationautoscaling</code></li>
   <li><code>applicationinsights</code></li>
   <li><code>appmesh</code></li>
