@@ -85,6 +85,45 @@ func dataSourceAwsLakeFormationPermissions() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"policy_tag": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				ExactlyOneOf: []string{
+					"catalog_resource",
+					"data_location",
+					"database",
+					"table",
+					"table_with_columns",
+					"policy_tag",
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 128),
+						},
+						"values": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 15,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validatePolicyTagValues(),
+							},
+							Set: schema.HashString,
+						},
+						"catalog_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"principal": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -194,6 +233,10 @@ func dataSourceAwsLakeFormationPermissionsRead(d *schema.ResourceData, meta inte
 		input.Resource.Database = expandLakeFormationDatabaseResource(v.([]interface{})[0].(map[string]interface{}))
 	}
 
+	if v, ok := d.GetOk("policy_tag"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		input.Resource.LFTag = expandLakeFormationLFTagKeyResource(v.([]interface{})[0].(map[string]interface{}))
+	}
+
 	tableType := ""
 
 	if v, ok := d.GetOk("table"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
@@ -264,6 +307,10 @@ func dataSourceAwsLakeFormationPermissionsRead(d *schema.ResourceData, meta inte
 		cleanPermissions = filterLakeFormationDatabasePermissions(allPermissions)
 	}
 
+	if input.Resource.LFTag != nil {
+		cleanPermissions = filterLakeFormationLFTagPermissions(allPermissions)
+	}
+
 	if tableType == TableTypeTable {
 		cleanPermissions = filterLakeFormationTablePermissions(
 			aws.StringValue(input.Resource.Table.Name),
@@ -308,6 +355,14 @@ func dataSourceAwsLakeFormationPermissionsRead(d *schema.ResourceData, meta inte
 		}
 	} else {
 		d.Set("database", nil)
+	}
+
+	if cleanPermissions[0].Resource.LFTag != nil {
+		if err := d.Set("policy_tag", []interface{}{flattenLakeFormationLFTagKeyResource(cleanPermissions[0].Resource.LFTag)}); err != nil {
+			return fmt.Errorf("error setting policy tag: %w", err)
+		}
+	} else {
+		d.Set("policy_tag", nil)
 	}
 
 	tableSet := false
