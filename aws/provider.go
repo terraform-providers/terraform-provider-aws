@@ -1071,6 +1071,7 @@ func Provider() *schema.Provider {
 			"aws_ssoadmin_permission_set_inline_policy":               resourceAwsSsoAdminPermissionSetInlinePolicy(),
 			"aws_storagegateway_cache":                                resourceAwsStorageGatewayCache(),
 			"aws_storagegateway_cached_iscsi_volume":                  resourceAwsStorageGatewayCachedIscsiVolume(),
+			"aws_storagegateway_fsx_associate_file_system":            resourceAwsStorageGatewayFsxAssociateFileSystem(),
 			"aws_storagegateway_gateway":                              resourceAwsStorageGatewayGateway(),
 			"aws_storagegateway_nfs_file_share":                       resourceAwsStorageGatewayNfsFileShare(),
 			"aws_storagegateway_smb_file_share":                       resourceAwsStorageGatewaySmbFileShare(),

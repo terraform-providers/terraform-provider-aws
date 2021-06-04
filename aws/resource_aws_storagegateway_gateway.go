@@ -91,6 +91,7 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Default:  "STORED",
 				ValidateFunc: validation.StringInSlice([]string{
 					"CACHED",
+					"FILE_FSX_SMB",
 					"FILE_S3",
 					"STORED",
 					"VTL",
@@ -343,9 +344,25 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(aws.StringValue(output.GatewayARN))
+	log.Printf("[INFO] Storage Gateway Gateway ID: %s", d.Id())
+
+	log.Printf("[DEBUG] Waiting for Storage Gateway Gateway (%s) to be connected", d.Id())
 
 	if _, err = waiter.StorageGatewayGatewayConnected(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return fmt.Errorf("error waiting for Storage Gateway Gateway (%q) to be Connected: %w", d.Id(), err)
+	}
+
+	if v, ok := d.GetOk("cloudwatch_log_group_arn"); ok && v.(string) != "" {
+		input := &storagegateway.UpdateGatewayInformationInput{
+			GatewayARN:            aws.String(d.Id()),
+			CloudWatchLogGroupARN: aws.String(v.(string)),
+		}
+
+		log.Printf("[DEBUG] Storage Gateway Gateway %q setting CloudWatch Log Group", input)
+		_, err := conn.UpdateGatewayInformation(input)
+		if err != nil {
+			return fmt.Errorf("error setting CloudWatch Log Group: %w", err)
+		}
 	}
 
 	if v, ok := d.GetOk("smb_active_directory_settings"); ok && len(v.([]interface{})) > 0 {
@@ -355,7 +372,7 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		if err != nil {
 			return fmt.Errorf("error joining Active Directory domain: %w", err)
 		}
-
+		log.Printf("[DEBUG] Waiting for Storage Gateway Gateway (%s) to be connected", d.Id())
 		if _, err = waiter.StorageGatewayGatewayJoinDomainJoined(conn, d.Id()); err != nil {
 			return fmt.Errorf("error waiting for Storage Gateway Gateway (%q) to join domain (%s): %w", d.Id(), aws.StringValue(input.DomainName), err)
 		}
@@ -371,19 +388,6 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		_, err := conn.SetSMBGuestPassword(input)
 		if err != nil {
 			return fmt.Errorf("error setting SMB guest password: %w", err)
-		}
-	}
-
-	if v, ok := d.GetOk("cloudwatch_log_group_arn"); ok && v.(string) != "" {
-		input := &storagegateway.UpdateGatewayInformationInput{
-			GatewayARN:            aws.String(d.Id()),
-			CloudWatchLogGroupARN: aws.String(v.(string)),
-		}
-
-		log.Printf("[DEBUG] Storage Gateway Gateway %q setting CloudWatch Log Group", input)
-		_, err := conn.UpdateGatewayInformation(input)
-		if err != nil {
-			return fmt.Errorf("error setting CloudWatch Log Group: %w", err)
 		}
 	}
 

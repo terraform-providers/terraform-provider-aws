@@ -16,6 +16,8 @@ const (
 	NfsFileShareDeletedDelay                                = 5 * time.Second
 	SmbFileShareAvailableDelay                              = 5 * time.Second
 	SmbFileShareDeletedDelay                                = 5 * time.Second
+	FsxFileSystemAvailableDelay                             = 5 * time.Second
+	FsxFileSystemDeletedDelay                               = 5 * time.Second
 )
 
 func StorageGatewayGatewayConnected(conn *storagegateway.StorageGateway, gatewayARN string, timeout time.Duration) (*storagegateway.DescribeGatewayInformationOutput, error) {
@@ -143,6 +145,44 @@ func SmbFileShareDeleted(conn *storagegateway.StorageGateway, fileShareArn strin
 	outputRaw, err := stateConf.WaitForState()
 
 	if output, ok := outputRaw.(*storagegateway.SMBFileShareInfo); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+// FsxFileSystemAvailable waits for a FSx File System to return Available
+func FsxFileSystemAvailable(conn *storagegateway.StorageGateway, fileSystemArn string, timeout time.Duration) (*storagegateway.FileSystemAssociationInfo, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"CREATING", "UPDATING"},
+		Target:  []string{"AVAILABLE"},
+		Refresh: FsxFileSystemStatus(conn, fileSystemArn),
+		Timeout: timeout,
+		Delay:   FsxFileSystemAvailableDelay,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*storagegateway.FileSystemAssociationInfo); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func FsxFileSystemDeleted(conn *storagegateway.StorageGateway, fileSystemArn string, timeout time.Duration) (*storagegateway.FileSystemAssociationInfo, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:        []string{"AVAILABLE", "DELETING", "FORCE_DELETING"},
+		Target:         []string{},
+		Refresh:        FsxFileSystemStatus(conn, fileSystemArn),
+		Timeout:        timeout,
+		Delay:          FsxFileSystemDeletedDelay,
+		NotFoundChecks: 1,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*storagegateway.FileSystemAssociationInfo); ok {
 		return output, err
 	}
 
