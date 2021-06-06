@@ -25,19 +25,28 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 		Delete: resourceAwsEcsTaskDefinitionDelete,
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				d.Set("arn", d.Id())
 
-				idErr := fmt.Errorf("Expected ID in format of arn:PARTITION:ecs:REGION:ACCOUNTID:task-definition/FAMILY:REVISION and provided: %s", d.Id())
+				var familyRevision string
+
 				resARN, err := arn.Parse(d.Id())
-				if err != nil {
-					return nil, idErr
+				if err == nil {
+					log.Printf("[DEBUG] import aws_ecs_task_definition resource by arn: %s", d.Id())
+					d.Set("arn", d.Id())
+					familyRevision = strings.TrimPrefix(resARN.Resource, "task-definition/")
+				} else {
+					log.Printf("[DEBUG] import aws_ecs_task_definition resource by FAMILY[:REVISION]: %s", d.Id())
+					familyRevision = d.Id()
 				}
-				familyRevision := strings.TrimPrefix(resARN.Resource, "task-definition/")
+				idErr := fmt.Errorf("Expected ID in format of either arn:PARTITION:ecs:REGION:ACCOUNTID:task-definition/FAMILY:REVISION, FAMILY:REVISION, or FAMILY, and provided: %s", d.Id())
 				familyRevisionParts := strings.Split(familyRevision, ":")
-				if len(familyRevisionParts) != 2 {
+				if len(familyRevisionParts) > 2 {
 					return nil, idErr
+				} else if len(familyRevisionParts) == 2 {
+					// import resource by either ARN or FAMILY:REVISION
+					d.Set("revision", familyRevisionParts[1])
 				}
 				d.SetId(familyRevisionParts[0])
+				d.Set("family", familyRevisionParts[0])
 
 				return []*schema.ResourceData{d}, nil
 			},
@@ -57,7 +66,6 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"cpu": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"family": {
@@ -74,7 +82,6 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"container_definitions": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 				StateFunc: func(v interface{}) string {
 					// Sort the lists of environment variables as they are serialized to state, so we won't get
 					// spurious reorderings in plans (diff is suppressed if the environment variables haven't changed,
@@ -97,28 +104,24 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"task_role_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validateArn,
 			},
 
 			"execution_role_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validateArn,
 			},
 
 			"memory": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"network_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					ecs.NetworkModeBridge,
 					ecs.NetworkModeHost,
@@ -130,59 +133,51 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"volume": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"host_path": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 
 						"docker_volume_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"scope": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Computed: true,
-										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											ecs.ScopeShared,
 											ecs.ScopeTask,
 										}, false),
+										Default: ecs.ScopeTask,
 									},
 									"autoprovision": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										ForceNew: true,
 										Default:  false,
 									},
 									"driver": {
 										Type:     schema.TypeString,
-										ForceNew: true,
 										Optional: true,
+										Default:  "local",
 									},
 									"driver_opts": {
 										Type:     schema.TypeMap,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-										ForceNew: true,
 										Optional: true,
 									},
 									"labels": {
 										Type:     schema.TypeMap,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-										ForceNew: true,
 										Optional: true,
 									},
 								},
@@ -256,13 +251,11 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"placement_constraints": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 10,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								ecs.TaskDefinitionPlacementConstraintTypeMemberOf,
@@ -270,7 +263,6 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 						},
 						"expression": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Optional: true,
 						},
 					},
@@ -280,14 +272,12 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"requires_compatibilities": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"ipc_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					ecs.IpcModeHost,
 					ecs.IpcModeNone,
@@ -298,7 +288,6 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			"pid_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					ecs.PidModeHost,
 					ecs.PidModeTask,
@@ -309,25 +298,21 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"container_name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"properties": {
 							Type:     schema.TypeMap,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Optional: true,
-							ForceNew: true,
 						},
 						"type": {
 							Type:     schema.TypeString,
 							Default:  ecs.ProxyConfigurationTypeAppmesh,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								ecs.ProxyConfigurationTypeAppmesh,
 							}, false),
@@ -358,7 +343,48 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				},
 			},
 		},
+		CustomizeDiff: resourceAwsEcsTaskDefinitionCustomDiff,
 	}
+}
+
+func resourceAwsEcsTaskDefinitionCustomDiff(d *schema.ResourceDiff, meta interface{}) error {
+	for _, key := range [...]string{
+		"cpu",
+		"task_role_arn",
+		"execution_role_arn",
+		"memory",
+		"network_mode",
+		"volume",
+		"placement_constraints",
+		"requires_compatibilities",
+		"ipc_mode",
+		"pid_mode",
+		"proxy_configuration",
+	} {
+		if d.HasChange(key) {
+			log.Printf("[DEBUG] change to %s will trigger new revision/arn for resource %s", key, d.Id())
+			err := d.SetNewComputed("arn")
+			if err != nil {
+				return err
+			}
+			return d.SetNewComputed("revision")
+		}
+	}
+
+	// check for ECS container definitions changes
+	networkMode, ok := d.GetOk("network_mode")
+	isAWSVPC := ok && networkMode.(string) == ecs.NetworkModeAwsvpc
+	old, new := d.GetChange("container_definitions")
+	equal, _ := EcsContainerDefinitionsAreEquivalent(old.(string), new.(string), isAWSVPC)
+	if !equal {
+		log.Printf("[DEBUG] change to container_definitions will trigger new revision/arn for resource %s", d.Id())
+		err := d.SetNewComputed("arn")
+		if err != nil {
+			return err
+		}
+		return d.SetNewComputed("revision")
+	}
+	return nil
 }
 
 func validateAwsEcsTaskDefinitionContainerDefinitions(v interface{}, k string) (ws []string, errors []error) {
@@ -502,11 +528,18 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[DEBUG] Reading task definition %s", d.Id())
 	out, err := conn.DescribeTaskDefinition(&ecs.DescribeTaskDefinitionInput{
-		TaskDefinition: aws.String(d.Get("arn").(string)),
+		TaskDefinition: aws.String(d.Get("family").(string)),
 		Include:        []*string{aws.String(ecs.TaskDefinitionFieldTags)},
 	})
 	if err != nil {
-		return err
+		// If the task definition only has INACTIVE revisions, we will get a ClientException with a message "Unable to describe task definition."
+		// This is the same response we would get if there was no task definition at all.
+		if !isAWSErr(err, ecs.ErrCodeClientException, "Unable to describe task definition.") {
+			return err
+		}
+		log.Printf("[DEBUG] Removing ECS task definition %s because it has no ACTIVE revisions", d.Get("family"))
+		d.SetId("")
+		return nil
 	}
 	log.Printf("[DEBUG] Received task definition %s, status:%s\n %s", aws.StringValue(out.TaskDefinition.Family),
 		aws.StringValue(out.TaskDefinition.Status), out)
@@ -618,6 +651,31 @@ func flattenProxyConfiguration(pc *ecs.ProxyConfiguration) []map[string]interfac
 
 func resourceAwsEcsTaskDefinitionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+
+	if d.HasChanges(
+		"cpu",
+		"task_role_arn",
+		"execution_role_arn",
+		"memory",
+		"network_mode",
+		"volume",
+		"placement_constraints",
+		"requires_compatibilities",
+		"ipc_mode",
+		"pid_mode",
+		"proxy_configuration",
+	) {
+		return resourceAwsEcsTaskDefinitionCreate(d, meta)
+	}
+
+	// check for ECS container definitions changes
+	networkMode, ok := d.GetOk("network_mode")
+	isAWSVPC := ok && networkMode.(string) == ecs.NetworkModeAwsvpc
+	old, new := d.GetChange("container_definitions")
+	equal, _ := EcsContainerDefinitionsAreEquivalent(old.(string), new.(string), isAWSVPC)
+	if !equal {
+		return resourceAwsEcsTaskDefinitionCreate(d, meta)
+	}
 
 	if d.HasChange("tags_all") {
 		o, n := d.GetChange("tags_all")

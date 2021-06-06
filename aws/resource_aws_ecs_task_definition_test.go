@@ -97,6 +97,18 @@ func TestAccAWSEcsTaskDefinition_basic(t *testing.T) {
 				ImportStateIdFunc: testAccAWSEcsTaskDefinitionImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSEcsTaskDefinitionImportStateIdUsingFamilyAndRevisionFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSEcsTaskDefinitionImportStateIdUsingArnFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -2205,6 +2217,28 @@ TASK_DEFINITION
 }
 
 func testAccAWSEcsTaskDefinitionImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return rs.Primary.Attributes["family"], nil
+	}
+}
+
+func testAccAWSEcsTaskDefinitionImportStateIdUsingFamilyAndRevisionFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s:%s", rs.Primary.Attributes["family"], rs.Primary.Attributes["revision"]), nil
+	}
+}
+
+func testAccAWSEcsTaskDefinitionImportStateIdUsingArnFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
