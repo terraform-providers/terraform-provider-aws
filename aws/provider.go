@@ -833,6 +833,7 @@ func Provider() *schema.Provider {
 			"aws_opsworks_rds_db_instance":                            resourceAwsOpsworksRdsDbInstance(),
 			"aws_organizations_organization":                          resourceAwsOrganizationsOrganization(),
 			"aws_organizations_account":                               resourceAwsOrganizationsAccount(),
+			"aws_organizations_govcloud_account":                      resourceAwsOrganizationsGovCloudAccount(),
 			"aws_organizations_policy":                                resourceAwsOrganizationsPolicy(),
 			"aws_organizations_policy_attachment":                     resourceAwsOrganizationsPolicyAttachment(),
 			"aws_organizations_organizational_unit":                   resourceAwsOrganizationsOrganizationalUnit(),
