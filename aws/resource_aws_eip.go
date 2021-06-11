@@ -268,16 +268,8 @@ func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("association_id", address.AssociationId)
-	if address.InstanceId != nil { // nosem: helper-schema-ResourceData-Set-extraneous-nil-check
-		d.Set("instance", address.InstanceId)
-	} else {
-		d.Set("instance", "")
-	}
-	if address.NetworkInterfaceId != nil { // nosem: helper-schema-ResourceData-Set-extraneous-nil-check
-		d.Set("network_interface", address.NetworkInterfaceId)
-	} else {
-		d.Set("network_interface", "")
-	}
+	d.Set("instance", address.InstanceId)
+	d.Set("network_interface", address.NetworkInterfaceId)
 
 	region := *ec2conn.Config.Region
 	d.Set("private_ip", address.PrivateIpAddress)
