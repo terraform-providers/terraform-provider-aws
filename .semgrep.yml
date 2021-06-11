@@ -537,6 +537,10 @@ rules:
             }
         - pattern: |
             if $APIOBJECT != nil {
+              d.Set($ATTRIBUTE, $FUNC(*$APIOBJECT))
+            }
+        - pattern: |
+            if $APIOBJECT != nil {
               if $ERROR := d.Set($ATTRIBUTE, $APIOBJECT); err != nil { $BODY }
             }
         - pattern: |
@@ -548,7 +552,7 @@ rules:
         - pattern: |
             if $APIOBJECT != nil {
               ...
-              $ERROR = d.Set($ATTRIBUTE, $APIOBJECT)
+              $ERROR = d.Set($ATTRIBUTE, $FUNC(*$APIOBJECT))
               ...
             }
     severity: WARNING

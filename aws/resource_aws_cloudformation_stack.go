@@ -253,9 +253,7 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", stack.StackName)
 	d.Set("iam_role_arn", stack.RoleARN)
 
-	if stack.TimeoutInMinutes != nil {
-		d.Set("timeout_in_minutes", int(*stack.TimeoutInMinutes))
-	}
+	d.Set("timeout_in_minutes", stack.TimeoutInMinutes)
 	d.Set("description", stack.Description)
 	d.Set("disable_rollback", stack.DisableRollback)
 
