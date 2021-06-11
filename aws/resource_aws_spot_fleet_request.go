@@ -1247,49 +1247,22 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("spot_request_state", sfr.SpotFleetRequestState)
 
 	config := sfr.SpotFleetRequestConfig
-
-	if config.AllocationStrategy != nil {
-		d.Set("allocation_strategy", config.AllocationStrategy)
-	}
-
-	if config.InstancePoolsToUseCount != nil {
-		d.Set("instance_pools_to_use_count", config.InstancePoolsToUseCount)
-	}
-
-	if config.ClientToken != nil {
-		d.Set("client_token", config.ClientToken)
-	}
-
-	if config.ExcessCapacityTerminationPolicy != nil {
-		d.Set("excess_capacity_termination_policy", config.ExcessCapacityTerminationPolicy)
-	}
-
-	if config.IamFleetRole != nil {
-		d.Set("iam_fleet_role", config.IamFleetRole)
-	}
-
+	d.Set("allocation_strategy", config.AllocationStrategy)
+	d.Set("instance_pools_to_use_count", config.InstancePoolsToUseCount)
+	d.Set("client_token", config.ClientToken)
+	d.Set("excess_capacity_termination_policy", config.ExcessCapacityTerminationPolicy)
+	d.Set("iam_fleet_role", config.IamFleetRole)
 	d.Set("spot_maintenance_strategies", flattenSpotMaintenanceStrategies(config.SpotMaintenanceStrategies))
-
-	if config.SpotPrice != nil {
-		d.Set("spot_price", config.SpotPrice)
-	}
-
-	if config.TargetCapacity != nil {
-		d.Set("target_capacity", config.TargetCapacity)
-	}
-
-	if config.TerminateInstancesWithExpiration != nil {
-		d.Set("terminate_instances_with_expiration", config.TerminateInstancesWithExpiration)
-	}
+	d.Set("spot_price", config.SpotPrice)
+	d.Set("target_capacity", config.TargetCapacity)
+	d.Set("terminate_instances_with_expiration", config.TerminateInstancesWithExpiration)
 
 	if config.ValidFrom != nil {
-		d.Set("valid_from",
-			aws.TimeValue(config.ValidFrom).Format(time.RFC3339))
+		d.Set("valid_from", aws.TimeValue(config.ValidFrom).Format(time.RFC3339))
 	}
 
 	if config.ValidUntil != nil {
-		d.Set("valid_until",
-			aws.TimeValue(config.ValidUntil).Format(time.RFC3339))
+		d.Set("valid_until", aws.TimeValue(config.ValidUntil).Format(time.RFC3339))
 	}
 
 	launchSpec, err := launchSpecsToSet(config.LaunchSpecifications, conn)
