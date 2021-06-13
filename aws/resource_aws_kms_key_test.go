@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -90,7 +91,7 @@ func TestAccAWSKmsKey_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
 			},
 		},
 	})
@@ -165,12 +166,71 @@ func TestAccAWSKmsKey_policy(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
 			},
 			{
 				Config: testAccAWSKmsKey_removedPolicy(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsKeyExists(resourceName, &key),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSKmsKey_policyBypass(t *testing.T) {
+	var key kms.KeyMetadata
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
+	resourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSKmsKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSKmsKey_policyBypass(rName, false),
+				ExpectError: regexp.MustCompile(`The new key policy will not allow you to update the key policy in the future`),
+			},
+			{
+				Config: testAccAWSKmsKey_policyBypass(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSKmsKeyExists(resourceName, &key),
+					resource.TestCheckResourceAttr(resourceName, "bypass_policy_lockout_check", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
+			},
+		},
+	})
+}
+
+func TestAccAWSKmsKey_policyBypassUpdate(t *testing.T) {
+	var before, after kms.KeyMetadata
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
+	resourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSKmsKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSKmsKey(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSKmsKeyExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "bypass_policy_lockout_check", "false"),
+				),
+			},
+			{
+				Config: testAccAWSKmsKey_policyBypass(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSKmsKeyExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "bypass_policy_lockout_check", "true"),
 				),
 			},
 		},
@@ -198,7 +258,7 @@ func TestAccAWSKmsKey_Policy_IamRole(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
 			},
 		},
 	})
@@ -226,7 +286,7 @@ func TestAccAWSKmsKey_Policy_IamServiceLinkedRole(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
 			},
 		},
 	})
@@ -256,7 +316,7 @@ func TestAccAWSKmsKey_isEnabled(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
 			},
 			{
 				Config: testAccAWSKmsKey_disabled(rName),
@@ -302,7 +362,7 @@ func TestAccAWSKmsKey_tags(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days", "bypass_policy_lockout_check"},
 			},
 			{
 				Config: testAccAWSKmsKey(rName),
@@ -476,6 +536,45 @@ resource "aws_kms_key" "test" {
 POLICY
 }
 `, rName)
+}
+
+func testAccAWSKmsKey_policyBypass(rName string, bypassFlag bool) string {
+	return fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+
+resource "aws_kms_key" "test" {
+  description             = %[1]q
+  deletion_window_in_days = 7
+
+  bypass_policy_lockout_check = %t
+  policy                      = <<-POLICY
+    {
+      "Version": "2012-10-17",
+      "Id": "kms-tf-1",
+      "Statement": [
+        {
+          "Sid": "Enable IAM User Permissions",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "${data.aws_caller_identity.current.arn}"
+          },
+          "Action": [
+            "kms:CreateKey",
+            "kms:DescribeKey",
+            "kms:ScheduleKeyDeletion",
+            "kms:Describe*",
+            "kms:Get*",
+            "kms:List*",
+            "kms:TagResource",
+            "kms:UntagResource"
+          ],
+          "Resource": "*"
+        }
+      ]
+    }
+  POLICY
+}
+`, rName, bypassFlag)
 }
 
 func testAccAWSKmsKeyConfigPolicyIamRole(rName string) string {

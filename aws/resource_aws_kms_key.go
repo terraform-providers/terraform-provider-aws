@@ -77,6 +77,11 @@ func resourceAwsKmsKey() *schema.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
+			"bypass_policy_lockout_check": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"is_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -105,8 +110,9 @@ func resourceAwsKmsKeyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Allow aws to chose default values if we don't pass them
 	req := &kms.CreateKeyInput{
-		CustomerMasterKeySpec: aws.String(d.Get("customer_master_key_spec").(string)),
-		KeyUsage:              aws.String(d.Get("key_usage").(string)),
+		CustomerMasterKeySpec:          aws.String(d.Get("customer_master_key_spec").(string)),
+		KeyUsage:                       aws.String(d.Get("key_usage").(string)),
+		BypassPolicyLockoutSafetyCheck: aws.Bool(d.Get("bypass_policy_lockout_check").(bool)),
 	}
 	if v, exists := d.GetOk("description"); exists {
 		req.Description = aws.String(v.(string))
@@ -330,13 +336,15 @@ func resourceAwsKmsKeyPolicyUpdate(conn *kms.KMS, d *schema.ResourceData) error 
 		return fmt.Errorf("policy contains an invalid JSON: %s", err)
 	}
 	keyId := d.Get("key_id").(string)
+	bypassPolicyLockoutCheck := d.Get("bypass_policy_lockout_check").(bool)
 
-	log.Printf("[DEBUG] KMS key: %s, update policy: %s", keyId, policy)
+	log.Printf("[DEBUG] KMS key: %s, bypass policy lockout check: %t, update policy: %s", keyId, bypassPolicyLockoutCheck, policy)
 
 	req := &kms.PutKeyPolicyInput{
-		KeyId:      aws.String(keyId),
-		Policy:     aws.String(policy),
-		PolicyName: aws.String("default"),
+		KeyId:                          aws.String(keyId),
+		Policy:                         aws.String(policy),
+		PolicyName:                     aws.String("default"),
+		BypassPolicyLockoutSafetyCheck: aws.Bool(bypassPolicyLockoutCheck),
 	}
 	_, err = conn.PutKeyPolicy(req)
 
