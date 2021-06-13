@@ -1,0 +1,3 @@
+```release-note:new-resource
+aws_chime_voice_connector
+```

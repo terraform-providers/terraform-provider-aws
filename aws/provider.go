@@ -534,6 +534,7 @@ func Provider() *schema.Provider {
 			"aws_backup_vault_notifications":                          resourceAwsBackupVaultNotifications(),
 			"aws_backup_vault_policy":                                 resourceAwsBackupVaultPolicy(),
 			"aws_budgets_budget":                                      resourceAwsBudgetsBudget(),
+			"aws_chime_voice_connector":                               resourceAwsChimeVoiceConnector(),
 			"aws_cloud9_environment_ec2":                              resourceAwsCloud9EnvironmentEc2(),
 			"aws_cloudformation_stack":                                resourceAwsCloudFormationStack(),
 			"aws_cloudformation_stack_set":                            resourceAwsCloudFormationStackSet(),
