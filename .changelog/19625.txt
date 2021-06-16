@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_cloudwatch_log_metric_filter: Add `dimensions` argument to `metric_transformation` configuration block
+```

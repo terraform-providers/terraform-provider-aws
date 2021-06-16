@@ -20,6 +20,7 @@ func TestAccAWSCodeStarConnectionsConnection_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarconnections.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarConnectionsConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -43,6 +44,38 @@ func TestAccAWSCodeStarConnectionsConnection_Basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSCodeStarConnectionsConnection_HostArn(t *testing.T) {
+	var v codestarconnections.Connection
+	resourceName := "aws_codestarconnections_connection.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarconnections.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeStarConnectionsConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeStarConnectionsConnectionConfigHostArn(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCodeStarConnectionsConnectionExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "id", "codestar-connections", regexp.MustCompile("connection/.+")),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "codestar-connections", regexp.MustCompile("connection/.+")),
+					testAccMatchResourceAttrRegionalARN(resourceName, "host_arn", "codestar-connections", regexp.MustCompile("host/.+")),
+					resource.TestCheckResourceAttr(resourceName, "provider_type", codestarconnections.ProviderTypeGitHubEnterpriseServer),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "connection_status", codestarconnections.ConnectionStatusPending),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCodeStarConnectionsConnection_disappears(t *testing.T) {
 	var v codestarconnections.Connection
 	resourceName := "aws_codestarconnections_connection.test"
@@ -50,6 +83,7 @@ func TestAccAWSCodeStarConnectionsConnection_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarconnections.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeStarConnectionsConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -60,6 +94,51 @@ func TestAccAWSCodeStarConnectionsConnection_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsCodeStarConnectionsConnection(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSCodeStarConnectionsConnection_Tags(t *testing.T) {
+	var v codestarconnections.Connection
+	resourceName := "aws_codestarconnections_connection.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(codestarconnections.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, codestarconnections.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeStarConnectionsConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeStarConnectionsConnectionConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCodeStarConnectionsConnectionExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSCodeStarConnectionsConnectionConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCodeStarConnectionsConnectionExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSCodeStarConnectionsConnectionConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCodeStarConnectionsConnectionExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -117,4 +196,46 @@ resource "aws_codestarconnections_connection" "test" {
   provider_type = "Bitbucket"
 }
 `, rName)
+}
+
+func testAccAWSCodeStarConnectionsConnectionConfigHostArn(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_codestarconnections_host" "test" {
+  name              = %[1]q
+  provider_endpoint = "https://test.com"
+  provider_type     = "GitHubEnterpriseServer"
+}
+
+resource "aws_codestarconnections_connection" "test" {
+  name     = %[1]q
+  host_arn = aws_codestarconnections_host.test.arn
+}
+`, rName)
+}
+
+func testAccAWSCodeStarConnectionsConnectionConfigTags1(rName string, tagKey1 string, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "Bitbucket"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSCodeStarConnectionsConnectionConfigTags2(rName string, tagKey1 string, tagValue1 string, tagKey2 string, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_codestarconnections_connection" "test" {
+  name          = %[1]q
+  provider_type = "Bitbucket"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

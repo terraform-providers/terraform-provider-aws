@@ -14,7 +14,7 @@ invocation type.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lambda_invocation" "example" {
   function_name = aws_lambda_function.lambda_function_test.function_name
 

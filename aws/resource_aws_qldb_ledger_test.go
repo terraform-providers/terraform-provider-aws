@@ -69,6 +69,7 @@ func TestAccAWSQLDBLedger_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(qldb.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, qldb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSQLDBLedgerDestroy,
 		Steps: []resource.TestStep{
@@ -174,6 +175,7 @@ func TestAccAWSQLDBLedger_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(qldb.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, qldb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSQLDBLedgerDestroy,
 		Steps: []resource.TestStep{

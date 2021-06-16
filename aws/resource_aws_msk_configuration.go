@@ -32,7 +32,7 @@ func resourceAwsMskConfiguration() *schema.Resource {
 			},
 			"kafka_versions": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -59,13 +59,16 @@ func resourceAwsMskConfigurationCreate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).kafkaconn
 
 	input := &kafka.CreateConfigurationInput{
-		KafkaVersions:    expandStringSet(d.Get("kafka_versions").(*schema.Set)),
 		Name:             aws.String(d.Get("name").(string)),
 		ServerProperties: []byte(d.Get("server_properties").(string)),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("kafka_versions"); ok && v.(*schema.Set).Len() > 0 {
+		input.KafkaVersions = expandStringSet(v.(*schema.Set))
 	}
 
 	output, err := conn.CreateConfiguration(input)
@@ -122,15 +125,15 @@ func resourceAwsMskConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error describing MSK Configuration (%s) Revision (%d): missing result", d.Id(), aws.Int64Value(revision))
 	}
 
-	d.Set("arn", aws.StringValue(configurationOutput.Arn))
-	d.Set("description", aws.StringValue(revisionOutput.Description))
+	d.Set("arn", configurationOutput.Arn)
+	d.Set("description", revisionOutput.Description)
 
 	if err := d.Set("kafka_versions", aws.StringValueSlice(configurationOutput.KafkaVersions)); err != nil {
 		return fmt.Errorf("error setting kafka_versions: %s", err)
 	}
 
-	d.Set("latest_revision", aws.Int64Value(revision))
-	d.Set("name", aws.StringValue(configurationOutput.Name))
+	d.Set("latest_revision", revision)
+	d.Set("name", configurationOutput.Name)
 	d.Set("server_properties", string(revisionOutput.ServerProperties))
 
 	return nil

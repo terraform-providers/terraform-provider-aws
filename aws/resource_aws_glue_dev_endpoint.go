@@ -28,6 +28,8 @@ func resourceAwsGlueDevEndpoint() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arguments": {
 				Type:     schema.TypeMap,
@@ -113,7 +115,8 @@ func resourceAwsGlueDevEndpoint() *schema.Resource {
 				ForceNew:     true,
 				RequiredWith: []string{"security_group_ids"},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"private_address": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -159,16 +162,18 @@ func resourceAwsGlueDevEndpoint() *schema.Resource {
 
 func resourceAwsGlueDevEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 
 	input := &glue.CreateDevEndpointInput{
 		EndpointName: aws.String(name),
 		RoleArn:      aws.String(d.Get("role_arn").(string)),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:         tags.IgnoreAws().GlueTags(),
 	}
 
 	if v, ok := d.GetOk("arguments"); ok {
-		input.Arguments = stringMapToPointers(v.(map[string]interface{}))
+		input.Arguments = expandStringMap(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("extra_jars_s3_path"); ok {
@@ -257,6 +262,7 @@ func resourceAwsGlueDevEndpointCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsGlueDevEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	request := &glue.GetDevEndpointInput{
@@ -378,8 +384,15 @@ func resourceAwsGlueDevEndpointRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for Glue Dev Endpoint (%s): %s", endpointARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	if err := d.Set("yarn_endpoint_address", endpoint.YarnEndpointAddress); err != nil {
@@ -488,8 +501,8 @@ func resourceAwsDevEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}

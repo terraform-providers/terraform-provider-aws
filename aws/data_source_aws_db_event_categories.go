@@ -57,7 +57,7 @@ func dataSourceAwsDbEventCategoriesRead(d *schema.ResourceData, meta interface{}
 
 	d.SetId(meta.(*AWSClient).region)
 	if err := d.Set("event_categories", eventCategories); err != nil {
-		return fmt.Errorf("Error setting Event Categories: %s", err)
+		return fmt.Errorf("Error setting Event Categories: %w", err)
 	}
 
 	return nil

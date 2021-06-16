@@ -12,7 +12,7 @@ Information about Neptune orderable DB instances.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_neptune_orderable_db_instance" "test" {
   engine_version             = "1.0.3.0"
   preferred_instance_classes = ["db.r5.large", "db.r4.large", "db.t3.medium"]

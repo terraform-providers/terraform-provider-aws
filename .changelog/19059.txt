@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_vpc_endpoint: Fix auto_accept failing while waiting for the VPC Endpoint Connection acceptance
+```

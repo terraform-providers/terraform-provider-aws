@@ -14,7 +14,7 @@ Provides a Glacier Vault Resource. You can refer to the [Glacier Developer Guide
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_topic" "aws_sns_topic" {
   name = "glacier-sns-topic"
 }
@@ -59,7 +59,7 @@ The following arguments are supported:
 * `access_policy` - (Optional) The policy document. This is a JSON formatted string.
   The heredoc syntax or `file` function is helpful here. Use the [Glacier Developer Guide](https://docs.aws.amazon.com/amazonglacier/latest/dev/vault-access-policy.html) for more information on Glacier Vault Policy
 * `notification` - (Optional) The notifications for the Vault. Fields documented below.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 **notification** supports the following:
 
@@ -72,6 +72,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `location` - The URI of the vault that was created.
 * `arn` - The ARN of the vault.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -106,11 +106,11 @@ func dataSourceAwsBatchJobQueueRead(d *schema.ResourceData, meta interface{}) er
 		ceos = append(ceos, ceo)
 	}
 	if err := d.Set("compute_environment_order", ceos); err != nil {
-		return fmt.Errorf("error setting compute_environment_order: %s", err)
+		return fmt.Errorf("error setting compute_environment_order: %w", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.BatchKeyValueTags(jobQueue.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

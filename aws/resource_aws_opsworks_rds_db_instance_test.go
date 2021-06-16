@@ -17,6 +17,7 @@ func TestAccAWSOpsworksRdsDbInstance_basic(t *testing.T) {
 	var opsdb opsworks.RdsDbInstance
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksRdsDbDestroy,
 		Steps: []resource.TestStep{
@@ -173,7 +174,7 @@ resource "aws_opsworks_rds_db_instance" "tf-acc-opsworks-db" {
 
 resource "aws_db_instance" "foo" {
   allocated_storage    = 10
-  engine               = "MySQL"
+  engine               = "mysql"
   engine_version       = "5.6.35"
   instance_class       = "db.t2.micro"
   name                 = "baz"

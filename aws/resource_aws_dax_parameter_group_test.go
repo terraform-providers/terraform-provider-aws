@@ -17,6 +17,7 @@ func TestAccAwsDaxParameterGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDax(t) },
+		ErrorCheck:   testAccErrorCheck(t, dax.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDaxParameterGroupDestroy,
 		Steps: []resource.TestStep{

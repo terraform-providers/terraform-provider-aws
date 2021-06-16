@@ -14,7 +14,7 @@ Provides an Application AutoScaling Policy resource.
 
 ### DynamoDB Table Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
   max_capacity       = 100
   min_capacity       = 5
@@ -42,7 +42,7 @@ resource "aws_appautoscaling_policy" "dynamodb_table_read_policy" {
 
 ### ECS Service Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "ecs_target" {
   max_capacity       = 4
   min_capacity       = 1
@@ -73,7 +73,7 @@ resource "aws_appautoscaling_policy" "ecs_policy" {
 
 ### Preserve desired count when updating an autoscaled ECS Service
 
-```hcl
+```terraform
 resource "aws_ecs_service" "ecs_service" {
   name            = "serviceName"
   cluster         = "clusterName"
@@ -88,7 +88,7 @@ resource "aws_ecs_service" "ecs_service" {
 
 ### Aurora Read Replica Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "replicas" {
   service_namespace  = "rds"
   scalable_dimension = "rds:cluster:ReadReplicaCount"
@@ -138,7 +138,7 @@ The `step_scaling_policy_configuration` configuration block supports the followi
 * `min_adjustment_magnitude` - (Optional) The minimum number to adjust your scalable dimension as a result of a scaling activity. If the adjustment type is PercentChangeInCapacity, the scaling policy changes the scalable dimension of the scalable target by this amount.
 * `step_adjustment` - (Optional) A set of adjustments that manage scaling. These have the following structure:
 
- ```hcl
+ ```terraform
 resource "aws_appautoscaling_policy" "ecs_policy" {
   # ...
 
@@ -179,7 +179,7 @@ The `target_tracking_scaling_policy_configuration` configuration block supports 
 
 Example usage:
 
-```hcl
+```terraform
 resource "aws_appautoscaling_policy" "example" {
   policy_type = "TargetTrackingScaling"
 

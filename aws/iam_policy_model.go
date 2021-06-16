@@ -170,7 +170,7 @@ func (cs IAMPolicyStatementConditionSet) MarshalJSON() ([]byte, error) {
 			if _, ok := raw[c.Test][c.Variable]; !ok {
 				raw[c.Test][c.Variable] = make([]string, 0, len(i))
 			}
-			sort.Sort(sort.Reverse(sort.StringSlice(i)))
+			// order matters with values so not sorting here
 			raw[c.Test][c.Variable] = append(raw[c.Test][c.Variable].([]string), i...)
 		case string:
 			raw[c.Test][c.Variable] = i

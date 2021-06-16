@@ -3,14 +3,13 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/efs/waiter"
 )
 
 func resourceAwsEfsAccessPoint() *schema.Resource {
@@ -23,6 +22,8 @@ func resourceAwsEfsAccessPoint() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		CustomizeDiff: SetTagsDiff,
 
 		Schema: map[string]*schema.Schema{
 			"file_system_arn": {
@@ -112,19 +113,22 @@ func resourceAwsEfsAccessPoint() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsEfsAccessPointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	fsId := d.Get("file_system_id").(string)
 
 	input := efs.CreateAccessPointInput{
 		FileSystemId: aws.String(fsId),
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EfsTags(),
+		Tags:         tags.IgnoreAws().EfsTags(),
 	}
 
 	if v, ok := d.GetOk("posix_user"); ok {
@@ -143,39 +147,10 @@ func resourceAwsEfsAccessPointCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(aws.StringValue(ap.AccessPointId))
-	log.Printf("[INFO] EFS access point ID: %s", d.Id())
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{efs.LifeCycleStateCreating},
-		Target:  []string{efs.LifeCycleStateAvailable},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := conn.DescribeAccessPoints(&efs.DescribeAccessPointsInput{
-				AccessPointId: aws.String(d.Id()),
-			})
-			if err != nil {
-				return nil, "error", err
-			}
-
-			if hasEmptyAccessPoints(resp) {
-				return nil, "error", fmt.Errorf("EFS access point %q could not be found.", d.Id())
-			}
-
-			mt := resp.AccessPoints[0]
-
-			log.Printf("[DEBUG] Current status of %q: %q", aws.StringValue(mt.AccessPointId), aws.StringValue(mt.LifeCycleState))
-			return mt, aws.StringValue(mt.LifeCycleState), nil
-		},
-		Timeout:    10 * time.Minute,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
+	if _, err := waiter.AccessPointCreated(conn, d.Id()); err != nil {
+		return fmt.Errorf("error waiting for EFS access point (%s) to be available: %w", d.Id(), err)
 	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("Error waiting for EFS access point (%s) to create: %s", d.Id(), err)
-	}
-
-	log.Printf("[DEBUG] EFS access point created: %s", *ap.AccessPointId)
 
 	return resourceAwsEfsAccessPointRead(d, meta)
 }
@@ -183,11 +158,11 @@ func resourceAwsEfsAccessPointCreate(d *schema.ResourceData, meta interface{}) e
 func resourceAwsEfsAccessPointUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.EfsUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating EFS file system (%s) tags: %s", d.Id(), err)
+			return fmt.Errorf("error updating EFS file system (%s) tags: %w", d.Id(), err)
 		}
 	}
 
@@ -196,6 +171,7 @@ func resourceAwsEfsAccessPointUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).efsconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeAccessPoints(&efs.DescribeAccessPointsInput{
@@ -207,7 +183,7 @@ func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading EFS access point %s: %s", d.Id(), err)
+		return fmt.Errorf("Error reading EFS access point %s: %w", d.Id(), err)
 	}
 
 	if hasEmptyAccessPoints(resp) {
@@ -217,8 +193,6 @@ func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) err
 	ap := resp.AccessPoints[0]
 
 	log.Printf("[DEBUG] Found EFS access point: %#v", ap)
-
-	d.SetId(aws.StringValue(ap.AccessPointId))
 
 	fsARN := arn.ARN{
 		AccountID: meta.(*AWSClient).accountid,
@@ -234,15 +208,22 @@ func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("owner_id", ap.OwnerId)
 
 	if err := d.Set("posix_user", flattenEfsAccessPointPosixUser(ap.PosixUser)); err != nil {
-		return fmt.Errorf("error setting posix user: %s", err)
+		return fmt.Errorf("error setting posix user: %w", err)
 	}
 
 	if err := d.Set("root_directory", flattenEfsAccessPointRootDirectory(ap.RootDirectory)); err != nil {
-		return fmt.Errorf("error setting root directory: %s", err)
+		return fmt.Errorf("error setting root directory: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EfsKeyValueTags(ap.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.EfsKeyValueTags(ap.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -256,50 +237,22 @@ func resourceAwsEfsAccessPointDelete(d *schema.ResourceData, meta interface{}) e
 		AccessPointId: aws.String(d.Id()),
 	})
 	if err != nil {
+		if isAWSErr(err, efs.ErrCodeAccessPointNotFound, "") {
+			return nil
+		}
 		return fmt.Errorf("error deleting EFS Access Point (%s): %w", d.Id(), err)
 	}
 
-	err = waitForDeleteEfsAccessPoint(conn, d.Id(), 10*time.Minute)
-	if err != nil {
-		return fmt.Errorf("Error waiting for EFS access point (%q) to delete: %s", d.Id(), err.Error())
+	if _, err := waiter.AccessPointDeleted(conn, d.Id()); err != nil {
+		if isAWSErr(err, efs.ErrCodeAccessPointNotFound, "") {
+			return nil
+		}
+		return fmt.Errorf("error waiting for EFS access point (%s) deletion: %w", d.Id(), err)
 	}
 
 	log.Printf("[DEBUG] EFS access point %q deleted.", d.Id())
 
 	return nil
-}
-
-func waitForDeleteEfsAccessPoint(conn *efs.EFS, id string, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{efs.LifeCycleStateAvailable, efs.LifeCycleStateDeleting, efs.LifeCycleStateDeleted},
-		Target:  []string{},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := conn.DescribeAccessPoints(&efs.DescribeAccessPointsInput{
-				AccessPointId: aws.String(id),
-			})
-			if err != nil {
-				if isAWSErr(err, efs.ErrCodeAccessPointNotFound, "") {
-					return nil, "", nil
-				}
-
-				return nil, "error", err
-			}
-
-			if hasEmptyAccessPoints(resp) {
-				return nil, "", nil
-			}
-
-			mt := resp.AccessPoints[0]
-
-			log.Printf("[DEBUG] Current status of %q: %q", aws.StringValue(mt.AccessPointId), aws.StringValue(mt.LifeCycleState))
-			return mt, aws.StringValue(mt.LifeCycleState), nil
-		},
-		Timeout:    timeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-	_, err := stateConf.WaitForState()
-	return err
 }
 
 func hasEmptyAccessPoints(aps *efs.DescribeAccessPointsOutput) bool {

@@ -8,10 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/waiter"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsGlueTrigger() *schema.Resource {
@@ -27,6 +31,8 @@ func resourceAwsGlueTrigger() *schema.Resource {
 			Create: schema.DefaultTimeout(5 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 
 		Schema: map[string]*schema.Schema{
 			"actions": {
@@ -49,8 +55,9 @@ func resourceAwsGlueTrigger() *schema.Resource {
 							Optional: true,
 						},
 						"timeout": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 						"security_configuration": {
 							Type:     schema.TypeString,
@@ -78,8 +85,9 @@ func resourceAwsGlueTrigger() *schema.Resource {
 				Computed: true,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 2048),
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -144,7 +152,12 @@ func resourceAwsGlueTrigger() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"tags": tagsSchema(),
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -162,13 +175,15 @@ func resourceAwsGlueTrigger() *schema.Resource {
 
 func resourceAwsGlueTriggerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	name := d.Get("name").(string)
 	triggerType := d.Get("type").(string)
 
 	input := &glue.CreateTriggerInput{
 		Actions: expandGlueActions(d.Get("actions").([]interface{})),
 		Name:    aws.String(name),
-		Tags:    keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:    tags.IgnoreAws().GlueTags(),
 		Type:    aws.String(triggerType),
 	}
 
@@ -197,7 +212,21 @@ func resourceAwsGlueTriggerCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[DEBUG] Creating Glue Trigger: %s", input)
-	_, err := conn.CreateTrigger(input)
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+		_, err = conn.CreateTrigger(input)
+		if err != nil {
+			if tfawserr.ErrMessageContains(err, glue.ErrCodeInvalidInputException, "Service is unable to assume role") {
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	if isResourceTimeoutError(err) {
+		_, err = conn.CreateTrigger(input)
+	}
 	if err != nil {
 		return fmt.Errorf("error creating Glue Trigger (%s): %w", name, err)
 	}
@@ -212,19 +241,27 @@ func resourceAwsGlueTriggerCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error waiting for Glue Trigger (%s) to be Created: %w", d.Id(), err)
 	}
 
+	if d.Get("enabled").(bool) && triggerType == glue.TriggerTypeOnDemand {
+		input := &glue.StartTriggerInput{
+			Name: aws.String(d.Id()),
+		}
+
+		log.Printf("[DEBUG] Starting Glue Trigger: %s", input)
+		_, err := conn.StartTrigger(input)
+		if err != nil {
+			return fmt.Errorf("error starting Glue Trigger (%s): %w", d.Id(), err)
+		}
+	}
+
 	return resourceAwsGlueTriggerRead(d, meta)
 }
 
 func resourceAwsGlueTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	input := &glue.GetTriggerInput{
-		Name: aws.String(d.Id()),
-	}
-
-	log.Printf("[DEBUG] Reading Glue Trigger: %s", input)
-	output, err := conn.GetTrigger(input)
+	output, err := finder.TriggerByName(conn, d.Id())
 	if err != nil {
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
 			log.Printf("[WARN] Glue Trigger (%s) not found, removing from state", d.Id())
@@ -258,9 +295,10 @@ func resourceAwsGlueTriggerRead(d *schema.ResourceData, meta interface{}) error 
 
 	var enabled bool
 	state := aws.StringValue(trigger.State)
+	d.Set("state", state)
 
 	if aws.StringValue(trigger.Type) == glue.TriggerTypeOnDemand {
-		enabled = (state == glue.TriggerStateCreated || state == glue.TriggerStateCreating)
+		enabled = (state == glue.TriggerStateCreated || state == glue.TriggerStateCreating) && d.Get("enabled").(bool)
 	} else {
 		enabled = (state == glue.TriggerStateActivated || state == glue.TriggerStateActivating)
 	}
@@ -279,8 +317,15 @@ func resourceAwsGlueTriggerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for Glue Trigger (%s): %w", triggerARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	d.Set("type", trigger.Type)
@@ -318,6 +363,10 @@ func resourceAwsGlueTriggerUpdate(d *schema.ResourceData, meta interface{}) erro
 		if err != nil {
 			return fmt.Errorf("error updating Glue Trigger (%s): %w", d.Id(), err)
 		}
+
+		if _, err := waiter.TriggerCreated(conn, d.Id()); err != nil {
+			return fmt.Errorf("error waiting for Glue Trigger (%s) to be Update: %w", d.Id(), err)
+		}
 	}
 
 	if d.HasChange("enabled") {
@@ -332,20 +381,23 @@ func resourceAwsGlueTriggerUpdate(d *schema.ResourceData, meta interface{}) erro
 				return fmt.Errorf("error starting Glue Trigger (%s): %w", d.Id(), err)
 			}
 		} else {
-			input := &glue.StopTriggerInput{
-				Name: aws.String(d.Id()),
-			}
+			//Skip if Trigger is type is ON_DEMAND and is in CREATED state as this means the trigger is not running or has ran already.
+			if !(d.Get("type").(string) == glue.TriggerTypeOnDemand && d.Get("state").(string) == glue.TriggerStateCreated) {
+				input := &glue.StopTriggerInput{
+					Name: aws.String(d.Id()),
+				}
 
-			log.Printf("[DEBUG] Stopping Glue Trigger: %s", input)
-			_, err := conn.StopTrigger(input)
-			if err != nil {
-				return fmt.Errorf("error stopping Glue Trigger (%s): %w", d.Id(), err)
+				log.Printf("[DEBUG] Stopping Glue Trigger: %s", input)
+				_, err := conn.StopTrigger(input)
+				if err != nil {
+					return fmt.Errorf("error stopping Glue Trigger (%s): %w", d.Id(), err)
+				}
 			}
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

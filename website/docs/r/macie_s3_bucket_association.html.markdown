@@ -16,7 +16,7 @@ Associates an S3 resource with Amazon Macie for monitoring and data classificati
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_macie_s3_bucket_association" "example" {
   bucket_name = "tf-macie-example"
   prefix      = "data"

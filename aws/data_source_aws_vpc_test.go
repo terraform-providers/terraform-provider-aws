@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsVpc_basic(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
-	rInt := rand.Intn(16)
-	cidr := fmt.Sprintf("172.%d.0.0/16", rInt)
+	rInt := rand.Intn(254)
+	cidr := fmt.Sprintf("10.%d.0.0/16", rInt+1) // Prevent common 10.0.0.0/16 cidr_block matches
 	tag := fmt.Sprintf("terraform-testacc-vpc-data-source-basic-%d", rInt)
 
 	vpcResourceName := "aws_vpc.test"
@@ -22,8 +23,9 @@ func TestAccDataSourceAwsVpc_basic(t *testing.T) {
 	ds4ResourceName := "data.aws_vpc.by_filter"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsVpcConfig(cidr, tag),
@@ -79,16 +81,17 @@ func TestAccDataSourceAwsVpc_basic(t *testing.T) {
 
 func TestAccDataSourceAwsVpc_ipv6Associated(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
-	rInt := rand.Intn(16)
-	cidr := fmt.Sprintf("172.%d.0.0/16", rInt)
+	rInt := rand.Intn(255)
+	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
 	tag := fmt.Sprintf("terraform-testacc-vpc-data-source-ipv6-associated-%d", rInt)
 
 	vpcResourceName := "aws_vpc.test"
 	ds1ResourceName := "data.aws_vpc.by_id"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsVpcConfigIpv6(cidr, tag),
@@ -111,19 +114,19 @@ func TestAccDataSourceAwsVpc_ipv6Associated(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAwsVpc_multipleCidr(t *testing.T) {
-	rInt := rand.Intn(16)
-	rName := "data.aws_vpc.test"
+func TestAccDataSourceAwsVpc_CidrBlockAssociations_Multiple(t *testing.T) {
+	dataSourceName := "data.aws_vpc.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsVpcConfigMultipleCidr(rInt),
+				Config: testAccDataSourceAwsVpcConfigCidrBlockAssociationsMultiple(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(rName, "cidr_block_associations.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "cidr_block_associations.#", "2"),
 				),
 			},
 		},
@@ -173,29 +176,26 @@ data "aws_vpc" "by_tag" {
 
 data "aws_vpc" "by_filter" {
   filter {
-    name   = "cidr"
-    values = [aws_vpc.test.cidr_block]
+    name   = "vpc-id"
+    values = [aws_vpc.test.id]
   }
 }
 `, cidr, tag)
 }
 
-func testAccDataSourceAwsVpcConfigMultipleCidr(octet int) string {
-	return fmt.Sprintf(`
+func testAccDataSourceAwsVpcConfigCidrBlockAssociationsMultiple() string {
+	return `
 resource "aws_vpc" "test" {
-  cidr_block = "10.%d.0.0/16"
+  cidr_block = "10.0.0.0/16"
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "test" {
   vpc_id     = aws_vpc.test.id
-  cidr_block = "172.%d.0.0/16"
+  cidr_block = "172.0.0.0/16"
 }
 
 data "aws_vpc" "test" {
-  filter {
-    name   = "cidr-block-association.cidr-block"
-    values = [aws_vpc_ipv4_cidr_block_association.test.cidr_block]
-  }
+  id = aws_vpc_ipv4_cidr_block_association.test.vpc_id
 }
-`, octet, octet)
+`
 }

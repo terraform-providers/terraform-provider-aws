@@ -93,7 +93,7 @@ func dataSourceAwsEc2ManagedPrefixListRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error describing EC2 Managed Prefix Lists: %s", err)
 	}
 
-	if len(out.PrefixLists) < 1 {
+	if out == nil || len(out.PrefixLists) < 1 || out.PrefixLists[0] == nil {
 		return diag.Errorf("no managed prefix lists matched the given criteria")
 	}
 
@@ -101,7 +101,7 @@ func dataSourceAwsEc2ManagedPrefixListRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("more than 1 prefix list matched the given criteria")
 	}
 
-	pl := *out.PrefixLists[0]
+	pl := out.PrefixLists[0]
 
 	d.SetId(aws.StringValue(pl.PrefixListId))
 	d.Set("name", pl.PrefixListName)
@@ -121,7 +121,7 @@ func dataSourceAwsEc2ManagedPrefixListRead(ctx context.Context, d *schema.Resour
 		&ec2.GetManagedPrefixListEntriesInput{
 			PrefixListId: pl.PrefixListId,
 		},
-		func(output *ec2.GetManagedPrefixListEntriesOutput, last bool) bool {
+		func(output *ec2.GetManagedPrefixListEntriesOutput, lastPage bool) bool {
 			for _, entry := range output.Entries {
 				entries = append(entries, map[string]interface{}{
 					"cidr":        aws.StringValue(entry.Cidr),
@@ -129,7 +129,7 @@ func dataSourceAwsEc2ManagedPrefixListRead(ctx context.Context, d *schema.Resour
 				})
 			}
 
-			return true
+			return !lastPage
 		},
 	)
 

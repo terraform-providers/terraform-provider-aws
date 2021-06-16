@@ -1,0 +1,19 @@
+```release-note:enhancement
+resource/aws_kinesisanalyticsv2_application: Add `start_application` attribute
+```
+
+```release-note:enhancement
+resource/aws_kinesisanalyticsv2_application: `starting_position_configuration` can be specified when starting a SQL application
+```
+
+```release-note:enhancement
+resource/aws_kinesisanalyticsv2_application: Add `run_configuration` attribute for starting a Flink application
+```
+
+```release-note:enhancement
+resource/aws_kinesisanalyticsv2_application: Add `force_stop` attribute
+```
+
+```release-note:new-resource
+aws_kinesisanalyticsv2_application_snapshot
+```

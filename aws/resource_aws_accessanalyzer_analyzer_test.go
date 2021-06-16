@@ -20,6 +20,7 @@ func testAccAWSAccessAnalyzerAnalyzer_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAccessAnalyzer(t) },
+		ErrorCheck:   testAccErrorCheck(t, accessanalyzer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAccessAnalyzerAnalyzerDestroy,
 		Steps: []resource.TestStep{
@@ -51,6 +52,7 @@ func testAccAWSAccessAnalyzerAnalyzer_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAccessAnalyzer(t) },
+		ErrorCheck:   testAccErrorCheck(t, accessanalyzer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAccessAnalyzerAnalyzerDestroy,
 		Steps: []resource.TestStep{
@@ -75,6 +77,7 @@ func testAccAWSAccessAnalyzerAnalyzer_Tags(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAccessAnalyzer(t) },
+		ErrorCheck:   testAccErrorCheck(t, accessanalyzer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAccessAnalyzerAnalyzerDestroy,
 		Steps: []resource.TestStep{
@@ -125,6 +128,7 @@ func testAccAWSAccessAnalyzerAnalyzer_Type_Organization(t *testing.T) {
 			testAccPreCheckAWSAccessAnalyzer(t)
 			testAccOrganizationsAccountPreCheck(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, accessanalyzer.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAccessAnalyzerAnalyzerDestroy,
 		Steps: []resource.TestStep{

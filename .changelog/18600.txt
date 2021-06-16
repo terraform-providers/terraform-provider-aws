@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_fms_policy: Use API model regular expression for `resource_type` and `resource_type_list` argument plan time validation
+```

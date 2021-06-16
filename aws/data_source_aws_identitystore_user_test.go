@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/identitystore"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -19,6 +20,7 @@ func TestAccAWSIdentityStoreUserDataSource_UserName(t *testing.T) {
 			testAccPreCheckAWSSSOAdminInstances(t)
 			testAccPreCheckAWSIdentityStoreUserName(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, identitystore.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -45,6 +47,7 @@ func TestAccAWSIdentityStoreUserDataSource_UserID(t *testing.T) {
 			testAccPreCheckAWSIdentityStoreUserName(t)
 			testAccPreCheckAWSIdentityStoreUserID(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, identitystore.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -62,6 +65,7 @@ func TestAccAWSIdentityStoreUserDataSource_UserID(t *testing.T) {
 func TestAccAWSIdentityStoreUserDataSource_NonExistent(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSSOAdminInstances(t) },
+		ErrorCheck:   testAccErrorCheck(t, identitystore.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{

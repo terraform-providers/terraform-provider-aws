@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_cloudfront_distribution: Add `function_association` argument to `ordered_cache_behavior` and `default_cache_behavior` configuration blocks
+```
+
+```release-note:new-resource
+aws_cloudfront_function
+```
+
+```release-note:new-data-source
+aws_cloudfront_function
+```

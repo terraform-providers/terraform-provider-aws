@@ -23,6 +23,10 @@ func dataSourceAwsMskCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"bootstrap_brokers_sasl_iam": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"bootstrap_brokers_sasl_scram": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -66,7 +70,7 @@ func dataSourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error
 		listClustersOutput, err := conn.ListClusters(listClustersInput)
 
 		if err != nil {
-			return fmt.Errorf("error listing MSK Clusters: %s", err)
+			return fmt.Errorf("error listing MSK Clusters: %w", err)
 		}
 
 		if listClustersOutput == nil {
@@ -96,25 +100,26 @@ func dataSourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error
 		ClusterArn: cluster.ClusterArn,
 	}
 
-	bootstrapBrokersoOutput, err := conn.GetBootstrapBrokers(bootstrapBrokersInput)
+	bootstrapBrokersOutput, err := conn.GetBootstrapBrokers(bootstrapBrokersInput)
 
 	if err != nil {
-		return fmt.Errorf("error reading MSK Cluster (%s) bootstrap brokers: %s", aws.StringValue(cluster.ClusterArn), err)
+		return fmt.Errorf("error reading MSK Cluster (%s) bootstrap brokers: %w", aws.StringValue(cluster.ClusterArn), err)
 	}
 
-	d.Set("arn", aws.StringValue(cluster.ClusterArn))
-	d.Set("bootstrap_brokers", aws.StringValue(bootstrapBrokersoOutput.BootstrapBrokerString))
-	d.Set("bootstrap_brokers_sasl_scram", aws.StringValue(bootstrapBrokersoOutput.BootstrapBrokerStringSaslScram))
-	d.Set("bootstrap_brokers_tls", aws.StringValue(bootstrapBrokersoOutput.BootstrapBrokerStringTls))
-	d.Set("cluster_name", aws.StringValue(cluster.ClusterName))
-	d.Set("kafka_version", aws.StringValue(cluster.CurrentBrokerSoftwareInfo.KafkaVersion))
-	d.Set("number_of_broker_nodes", aws.Int64Value(cluster.NumberOfBrokerNodes))
+	d.Set("arn", cluster.ClusterArn)
+	d.Set("bootstrap_brokers", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerString)))
+	d.Set("bootstrap_brokers_sasl_iam", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringSaslIam)))
+	d.Set("bootstrap_brokers_sasl_scram", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringSaslScram)))
+	d.Set("bootstrap_brokers_tls", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringTls)))
+	d.Set("cluster_name", cluster.ClusterName)
+	d.Set("kafka_version", cluster.CurrentBrokerSoftwareInfo.KafkaVersion)
+	d.Set("number_of_broker_nodes", cluster.NumberOfBrokerNodes)
 
 	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
-	d.Set("zookeeper_connect_string", aws.StringValue(cluster.ZookeeperConnectString))
+	d.Set("zookeeper_connect_string", sortMskClusterEndpoints(aws.StringValue(cluster.ZookeeperConnectString)))
 
 	d.SetId(aws.StringValue(cluster.ClusterArn))
 

@@ -12,7 +12,7 @@ Provides details about a specific Amazon Lex Bot.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lex_bot" "order_flowers_bot" {
   name    = "OrderFlowers"
   version = "$LATEST"

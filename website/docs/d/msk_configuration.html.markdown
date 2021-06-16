@@ -12,7 +12,7 @@ Get information on an Amazon MSK Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_msk_configuration" "example" {
   name = "example"
 }

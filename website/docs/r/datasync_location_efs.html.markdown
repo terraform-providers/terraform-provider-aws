@@ -14,7 +14,7 @@ Manages an AWS DataSync EFS Location.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_datasync_location_efs" "example" {
   # The below example uses aws_efs_mount_target as a reference to ensure a mount target already exists when resource creation occurs.
   # You can accomplish the same behavior with depends_on or an aws_efs_mount_target data source reference.
@@ -34,7 +34,7 @@ The following arguments are supported:
 * `ec2_config` - (Required) Configuration block containing EC2 configurations for connecting to the EFS File System.
 * `efs_file_system_arn` - (Required) Amazon Resource Name (ARN) of EFS File System.
 * `subdirectory` - (Optional) Subdirectory to perform actions as source or destination. Default `/`.
-* `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Location.
+* `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Location. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### ec2_config Argument Reference
 
@@ -49,6 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Amazon Resource Name (ARN) of the DataSync Location.
 * `arn` - Amazon Resource Name (ARN) of the DataSync Location.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

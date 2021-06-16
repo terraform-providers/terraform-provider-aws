@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_autoscaling_policy: Add `PredictiveScaling` `policy_type` and `predictive_scaling_configuration` argument
+```

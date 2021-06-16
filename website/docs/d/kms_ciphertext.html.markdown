@@ -18,7 +18,7 @@ resource](/docs/providers/aws/r/kms_ciphertext.html).
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_kms_key" "oauth_config" {
   description = "oauth config"
   is_enabled  = true

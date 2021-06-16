@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -23,13 +24,14 @@ func TestAccAWSAPIGatewayDomainName_CertificateArn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckApigatewayEdgeDomainName(t) },
+		ErrorCheck:        testAccErrorCheck(t, apigateway.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckAWSAPIGatewayDomainNameDestroy,
+		CheckDestroy:      testAccCheckAWSAPIGatewayEdgeDomainNameDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAPIGatewayDomainNameConfig_CertificateArn(rootDomain, domain),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayDomainNameExists(resourceName, &domainName),
+					testAccCheckAWSAPIGatewayEdgeDomainNameExists(resourceName, &domainName),
 					testAccCheckResourceAttrRegionalARNApigatewayEdgeDomainName(resourceName, "arn", "apigateway", domain),
 					resource.TestCheckResourceAttrPair(resourceName, "certificate_arn", acmCertificateResourceName, "arn"),
 					resource.TestMatchResourceAttr(resourceName, "cloudfront_domain_name", regexp.MustCompile(`[a-z0-9]+.cloudfront.net`)),
@@ -84,6 +86,7 @@ func TestAccAWSAPIGatewayDomainName_CertificateName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -119,6 +122,7 @@ func TestAccAWSAPIGatewayDomainName_RegionalCertificateArn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -162,6 +166,7 @@ func TestAccAWSAPIGatewayDomainName_RegionalCertificateName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -194,6 +199,7 @@ func TestAccAWSAPIGatewayDomainName_SecurityPolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -223,6 +229,7 @@ func TestAccAWSAPIGatewayDomainName_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -270,6 +277,7 @@ func TestAccAWSAPIGatewayDomainName_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -297,6 +305,7 @@ func TestAccAWSAPIGatewayDomainName_MutualTlsAuthentication(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
 		Steps: []resource.TestStep{
@@ -380,6 +389,66 @@ func testAccCheckAWSAPIGatewayDomainNameDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("API Gateway Domain Name still exists: %s", rs.Primary.ID)
+	}
+
+	return nil
+}
+
+func testAccCheckAWSAPIGatewayEdgeDomainNameExists(resourceName string, domainName *apigateway.DomainName) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("resource ID not set")
+		}
+
+		conn := testAccProviderApigatewayEdgeDomainName.Meta().(*AWSClient).apigatewayconn
+
+		input := &apigateway.GetDomainNameInput{
+			DomainName: aws.String(rs.Primary.ID),
+		}
+
+		output, err := conn.GetDomainName(input)
+
+		if err != nil {
+			return fmt.Errorf("error reading API Gateway Domain Name (%s): %w", rs.Primary.ID, err)
+		}
+
+		*domainName = *output
+
+		return nil
+	}
+}
+
+func testAccCheckAWSAPIGatewayEdgeDomainNameDestroy(s *terraform.State) error {
+	conn := testAccProviderApigatewayEdgeDomainName.Meta().(*AWSClient).apigatewayconn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_api_gateway_domain_name" {
+			continue
+		}
+
+		input := &apigateway.GetDomainNameInput{
+			DomainName: aws.String(rs.Primary.ID),
+		}
+
+		output, err := conn.GetDomainName(input)
+
+		if tfawserr.ErrCodeEquals(err, apigateway.ErrCodeNotFoundException) {
+			continue
+		}
+
+		if err != nil {
+			return fmt.Errorf("error reading API Gateway Domain Name (%s): %w", rs.Primary.ID, err)
+		}
+
+		if output != nil && aws.StringValue(output.DomainName) == rs.Primary.ID {
+			return fmt.Errorf("API Gateway Domain Name (%s) still exists", rs.Primary.ID)
+		}
 	}
 
 	return nil

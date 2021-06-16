@@ -1,10 +1,17 @@
 package aws
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecr/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsEcrLifecyclePolicy() *schema.Resource {
@@ -62,17 +69,50 @@ func resourceAwsEcrLifecyclePolicyRead(d *schema.ResourceData, meta interface{})
 		RepositoryName: aws.String(d.Id()),
 	}
 
-	resp, err := conn.GetLifecyclePolicy(input)
+	var resp *ecr.GetLifecyclePolicyOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = conn.GetLifecyclePolicy(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeLifecyclePolicyNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = conn.GetLifecyclePolicy(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeLifecyclePolicyNotFoundException) {
+		log.Printf("[WARN] ECR Lifecycle Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, ecr.ErrCodeRepositoryNotFoundException) {
+		log.Printf("[WARN] ECR Lifecycle Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
-			d.SetId("")
-			return nil
-		}
-		if isAWSErr(err, ecr.ErrCodeLifecyclePolicyNotFoundException, "") {
-			d.SetId("")
-			return nil
-		}
-		return err
+		return fmt.Errorf("error reading ECR Lifecycle Policy (%s): %w", d.Id(), err)
+	}
+
+	if resp == nil {
+		return fmt.Errorf("error reading ECR Lifecycle Policy (%s): empty response", d.Id())
 	}
 
 	d.Set("repository", resp.RepositoryName)

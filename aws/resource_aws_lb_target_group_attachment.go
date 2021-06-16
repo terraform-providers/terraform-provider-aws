@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
@@ -67,7 +68,22 @@ func resourceAwsLbAttachmentCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] Registering Target %s with Target Group %s", d.Get("target_id").(string),
 		d.Get("target_group_arn").(string))
 
-	_, err := elbconn.RegisterTargets(params)
+	err := resource.Retry(10*time.Minute, func() *resource.RetryError {
+		_, err := elbconn.RegisterTargets(params)
+
+		if isAWSErr(err, "InvalidTarget", "") {
+			return resource.RetryableError(fmt.Errorf("Error attaching instance to LB, retrying: %s", err))
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+	if isResourceTimeoutError(err) {
+		_, err = elbconn.RegisterTargets(params)
+	}
 	if err != nil {
 		return fmt.Errorf("Error registering targets with target group: %s", err)
 	}

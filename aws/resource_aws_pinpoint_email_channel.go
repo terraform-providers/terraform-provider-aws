@@ -25,6 +25,11 @@ func resourceAwsPinpointEmailChannel() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"configuration_set": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateArn,
+			},
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -35,12 +40,14 @@ func resourceAwsPinpointEmailChannel() *schema.Resource {
 				Required: true,
 			},
 			"identity": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"role_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateArn,
 			},
 			"messages_per_second": {
 				Type:     schema.TypeInt,
@@ -60,7 +67,14 @@ func resourceAwsPinpointEmailChannelUpsert(d *schema.ResourceData, meta interfac
 	params.Enabled = aws.Bool(d.Get("enabled").(bool))
 	params.FromAddress = aws.String(d.Get("from_address").(string))
 	params.Identity = aws.String(d.Get("identity").(string))
-	params.RoleArn = aws.String(d.Get("role_arn").(string))
+
+	if v, ok := d.GetOk("role_arn"); ok {
+		params.RoleArn = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("configuration_set"); ok {
+		params.ConfigurationSet = aws.String(v.(string))
+	}
 
 	req := pinpoint.UpdateEmailChannelInput{
 		ApplicationId:       aws.String(applicationId),
@@ -69,7 +83,7 @@ func resourceAwsPinpointEmailChannelUpsert(d *schema.ResourceData, meta interfac
 
 	_, err := conn.UpdateEmailChannel(&req)
 	if err != nil {
-		return fmt.Errorf("error updating Pinpoint Email Channel for application %s: %s", applicationId, err)
+		return fmt.Errorf("error updating Pinpoint Email Channel for application %s: %w", applicationId, err)
 	}
 
 	d.SetId(applicationId)
@@ -92,15 +106,18 @@ func resourceAwsPinpointEmailChannelRead(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("error getting Pinpoint Email Channel for application %s: %s", d.Id(), err)
+		return fmt.Errorf("error getting Pinpoint Email Channel for application %s: %w", d.Id(), err)
 	}
 
-	d.Set("application_id", output.EmailChannelResponse.ApplicationId)
-	d.Set("enabled", output.EmailChannelResponse.Enabled)
-	d.Set("from_address", output.EmailChannelResponse.FromAddress)
-	d.Set("identity", output.EmailChannelResponse.Identity)
-	d.Set("role_arn", output.EmailChannelResponse.RoleArn)
-	d.Set("messages_per_second", aws.Int64Value(output.EmailChannelResponse.MessagesPerSecond))
+	res := output.EmailChannelResponse
+	d.Set("application_id", res.ApplicationId)
+	d.Set("enabled", res.Enabled)
+	d.Set("from_address", res.FromAddress)
+	d.Set("identity", res.Identity)
+	d.Set("role_arn", res.RoleArn)
+	d.Set("configuration_set", res.ConfigurationSet)
+	d.Set("messages_per_second", res.MessagesPerSecond)
+
 	return nil
 }
 
@@ -117,7 +134,7 @@ func resourceAwsPinpointEmailChannelDelete(d *schema.ResourceData, meta interfac
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Pinpoint Email Channel for application %s: %s", d.Id(), err)
+		return fmt.Errorf("error deleting Pinpoint Email Channel for application %s: %w", d.Id(), err)
 	}
 	return nil
 }

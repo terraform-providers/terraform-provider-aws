@@ -16,6 +16,7 @@ import (
 func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 	var proj devicefarm.Project
 	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test-updated")
 	resourceName := "aws_devicefarm_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -26,6 +27,7 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
 			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
 		},
+		ErrorCheck:   testAccErrorCheck(t, devicefarm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{
@@ -34,6 +36,7 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "devicefarm", regexp.MustCompile(`project:.+`)),
 				),
 			},
@@ -41,6 +44,107 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDeviceFarmProjectConfig(rNameUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "devicefarm", regexp.MustCompile(`project:.+`)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDeviceFarmProject_timeout(t *testing.T) {
+	var proj devicefarm.Project
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_devicefarm_project.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t)
+			// Currently, DeviceFarm is only supported in us-west-2
+			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
+			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
+		},
+		ErrorCheck:   testAccErrorCheck(t, devicefarm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceFarmProjectConfigDefaultJobTimeout(rName, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "default_job_timeout_minutes", "10"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDeviceFarmProjectConfigDefaultJobTimeout(rName, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "default_job_timeout_minutes", "20"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDeviceFarmProject_tags(t *testing.T) {
+	var proj devicefarm.Project
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_devicefarm_project.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t)
+			// Currently, DeviceFarm is only supported in us-west-2
+			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
+			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
+		},
+		ErrorCheck:   testAccErrorCheck(t, devicefarm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceFarmProjectConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDeviceFarmProjectConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccDeviceFarmProjectConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDeviceFarmProjectExists(resourceName, &proj),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -59,6 +163,7 @@ func TestAccAWSDeviceFarmProject_disappears(t *testing.T) {
 			// https://docs.aws.amazon.com/general/latest/gr/devicefarm.html
 			testAccRegionPreCheck(t, endpoints.UsWest2RegionID)
 		},
+		ErrorCheck:   testAccErrorCheck(t, devicefarm.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{
@@ -134,4 +239,38 @@ resource "aws_devicefarm_project" "test" {
   name = %[1]q
 }
 `, rName)
+}
+
+func testAccDeviceFarmProjectConfigDefaultJobTimeout(rName string, timeout int) string {
+	return fmt.Sprintf(`
+resource "aws_devicefarm_project" "test" {
+  name                        = %[1]q
+  default_job_timeout_minutes = %[2]d
+}
+`, rName, timeout)
+}
+
+func testAccDeviceFarmProjectConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_devicefarm_project" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccDeviceFarmProjectConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_devicefarm_project" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

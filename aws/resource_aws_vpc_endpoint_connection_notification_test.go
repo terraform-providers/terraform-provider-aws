@@ -17,10 +17,10 @@ func TestAccAWSVpcEndpointConnectionNotification_basic(t *testing.T) {
 	resourceName := "aws_vpc_endpoint_connection_notification.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckVpcEndpointConnectionNotificationDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcEndpointConnectionNotificationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVpcEndpointConnectionNotificationBasicConfig(lbName),

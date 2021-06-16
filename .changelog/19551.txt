@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_elasticache_parameter_group: Add `tags` argument and `arn` and `tags_all` attributes
+```

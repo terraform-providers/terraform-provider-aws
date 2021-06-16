@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_network_interface: Add `interface_type` argument
+```
+
+```release-note:enhancement
+resource/aws_launch_template: Add `interface_type` argument to `network_interfaces` configuration block
+```

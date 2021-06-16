@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_sagemaker_app_image_config
+```
+
+```release-note:bug
+resource/aws_sagemaker_code_repository: fix doc name
+```

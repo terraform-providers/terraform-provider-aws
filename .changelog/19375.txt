@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_glue_connection: `connection_properties` are optional
+```

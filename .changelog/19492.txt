@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/aws_launch_template: Add `interface_type` to `network_interfaces` attribute
+```

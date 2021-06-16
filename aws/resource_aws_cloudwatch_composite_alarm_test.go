@@ -89,6 +89,7 @@ func TestAccAwsCloudWatchCompositeAlarm_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -122,6 +123,7 @@ func TestAccAwsCloudWatchCompositeAlarm_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -143,6 +145,7 @@ func TestAccAwsCloudWatchCompositeAlarm_actionsEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -180,6 +183,7 @@ func TestAccAwsCloudWatchCompositeAlarm_alarmActions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -229,6 +233,7 @@ func TestAccAwsCloudWatchCompositeAlarm_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -266,6 +271,7 @@ func TestAccAwsCloudWatchCompositeAlarm_insufficientDataActions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -315,6 +321,7 @@ func TestAccAwsCloudWatchCompositeAlarm_okActions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -364,6 +371,7 @@ func TestAccAwsCloudWatchCompositeAlarm_allActions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{
@@ -405,6 +413,7 @@ func TestAccAwsCloudWatchCompositeAlarm_updateAlarmRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, cloudwatch.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsCloudWatchCompositeAlarmDestroy,
 		Steps: []resource.TestStep{

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
@@ -66,9 +67,10 @@ func dataSourceAwsVpcEndpointService() *schema.Resource {
 				ConflictsWith: []string{"service"},
 			},
 			"service_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(ec2.ServiceType_Values(), false),
 			},
 			"tags": tagsSchemaComputed(),
 			"vpc_endpoint_policy_supported": {
@@ -104,6 +106,14 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	if serviceNameOk {
 		req.ServiceNames = aws.StringSlice([]string{serviceName})
 	}
+
+	if v, ok := d.GetOk("service_type"); ok {
+		req.Filters = append(req.Filters, &ec2.Filter{
+			Name:   aws.String("service-type"),
+			Values: aws.StringSlice([]string{v.(string)}),
+		})
+	}
+
 	if tagsOk {
 		req.Filters = append(req.Filters, ec2TagFiltersFromMap(tags.(map[string]interface{}))...)
 	}
@@ -111,7 +121,7 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	log.Printf("[DEBUG] Reading VPC Endpoint Service: %s", req)
 	resp, err := conn.DescribeVpcEndpointServices(req)
 	if err != nil {
-		return fmt.Errorf("error reading VPC Endpoint Service (%s): %s", serviceName, err)
+		return fmt.Errorf("error reading VPC Endpoint Service (%s): %w", serviceName, err)
 	}
 
 	if resp == nil || (len(resp.ServiceNames) == 0 && len(resp.ServiceDetails) == 0) {
@@ -134,29 +144,11 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("no matching VPC Endpoint Service found")
 	}
 
-	var serviceDetails []*ec2.ServiceDetail
-
-	// Client-side filtering. When the EC2 API supports this functionality
-	// server-side it should be moved.
-	for _, serviceDetail := range resp.ServiceDetails {
-		if serviceDetail == nil {
-			continue
-		}
-
-		if v, ok := d.GetOk("service_type"); ok {
-			if len(serviceDetail.ServiceType) > 0 && serviceDetail.ServiceType[0] != nil && v.(string) != aws.StringValue(serviceDetail.ServiceType[0].ServiceType) {
-				continue
-			}
-		}
-
-		serviceDetails = append(serviceDetails, serviceDetail)
-	}
-
-	if len(serviceDetails) > 1 {
+	if len(resp.ServiceDetails) > 1 {
 		return fmt.Errorf("multiple VPC Endpoint Services matched; use additional constraints to reduce matches to a single VPC Endpoint Service")
 	}
 
-	sd := serviceDetails[0]
+	sd := resp.ServiceDetails[0]
 	serviceId := aws.StringValue(sd.ServiceId)
 	serviceName = aws.StringValue(sd.ServiceName)
 
@@ -164,7 +156,7 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("vpc-endpoint-service/%s", serviceId),
@@ -174,11 +166,11 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("acceptance_required", sd.AcceptanceRequired)
 	err = d.Set("availability_zones", flattenStringSet(sd.AvailabilityZones))
 	if err != nil {
-		return fmt.Errorf("error setting availability_zones: %s", err)
+		return fmt.Errorf("error setting availability_zones: %w", err)
 	}
 	err = d.Set("base_endpoint_dns_names", flattenStringSet(sd.BaseEndpointDnsNames))
 	if err != nil {
-		return fmt.Errorf("error setting base_endpoint_dns_names: %s", err)
+		return fmt.Errorf("error setting base_endpoint_dns_names: %w", err)
 	}
 	d.Set("manages_vpc_endpoints", sd.ManagesVpcEndpoints)
 	d.Set("owner", sd.Owner)
@@ -188,7 +180,7 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("service_type", sd.ServiceType[0].ServiceType)
 	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(sd.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	if err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 	d.Set("vpc_endpoint_policy_supported", sd.VpcEndpointPolicySupported)
 

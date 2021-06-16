@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_sns_topic: Add `fifo_topic` and `content_based_deduplication` attributes
+```

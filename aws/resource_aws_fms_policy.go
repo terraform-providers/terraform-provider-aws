@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fms"
@@ -93,13 +94,23 @@ func resourceAwsFmsPolicy() *schema.Resource {
 			},
 
 			"resource_type_list": {
-				Type:     schema.TypeSet,
-				Required: true,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true,
+				Set:           schema.HashString,
+				ConflictsWith: []string{"resource_type"},
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{"AWS::ApiGateway::Stage", "AWS::ElasticLoadBalancingV2::LoadBalancer", "AWS::CloudFront::Distribution", "AWS::EC2::NetworkInterface", "AWS::EC2::Instance", "AWS::EC2::SecurityGroup"}, false),
+					ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$`), "must match a supported resource type, such as AWS::EC2::VPC, see also: https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_Policy.html"),
 				},
-				Set: schema.HashString,
+			},
+
+			"resource_type": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"resource_type_list"},
+				ValidateFunc:  validation.StringMatch(regexp.MustCompile(`^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$`), "must match a supported resource type, such as AWS::EC2::VPC, see also: https://docs.aws.amazon.com/fms/2018-01-01/APIReference/API_Policy.html"),
 			},
 
 			"policy_update_token": {
@@ -138,31 +149,7 @@ func resourceAwsFmsPolicy() *schema.Resource {
 func resourceAwsFmsPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).fmsconn
 
-	fmsPolicy := &fms.Policy{
-		PolicyName:          aws.String(d.Get("name").(string)),
-		RemediationEnabled:  aws.Bool(d.Get("remediation_enabled").(bool)),
-		ResourceType:        aws.String("ResourceTypeList"),
-		ResourceTypeList:    expandStringSet(d.Get("resource_type_list").(*schema.Set)),
-		ExcludeResourceTags: aws.Bool(d.Get("exclude_resource_tags").(bool)),
-	}
-
-	securityServicePolicy := d.Get("security_service_policy_data").([]interface{})[0].(map[string]interface{})
-	fmsPolicy.SecurityServicePolicyData = &fms.SecurityServicePolicyData{
-		ManagedServiceData: aws.String(securityServicePolicy["managed_service_data"].(string)),
-		Type:               aws.String(securityServicePolicy["type"].(string)),
-	}
-
-	if rTags, tagsOk := d.GetOk("resource_tags"); tagsOk {
-		fmsPolicy.ResourceTags = constructResourceTags(rTags)
-	}
-
-	if v, ok := d.GetOk("include_map"); ok {
-		fmsPolicy.IncludeMap = expandFMSPolicyMap(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("exclude_map"); ok {
-		fmsPolicy.ExcludeMap = expandFMSPolicyMap(v.([]interface{}))
-	}
+	fmsPolicy := resourceAwsFmsPolicyExpandPolicy(d)
 
 	params := &fms.PutPolicyInput{
 		Policy: fmsPolicy,
@@ -201,22 +188,27 @@ func resourceAwsFmsPolicyRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.Set("arn", aws.StringValue(resp.PolicyArn))
+	return resourceAwsFmsPolicyFlattenPolicy(d, resp)
+}
 
-	d.Set("name", aws.StringValue(resp.Policy.PolicyName))
-	d.Set("exclude_resource_tags", aws.BoolValue(resp.Policy.ExcludeResourceTags))
-	if err = d.Set("exclude_map", flattenFMSPolicyMap(resp.Policy.ExcludeMap)); err != nil {
+func resourceAwsFmsPolicyFlattenPolicy(d *schema.ResourceData, resp *fms.GetPolicyOutput) error {
+	d.Set("arn", resp.PolicyArn)
+
+	d.Set("name", resp.Policy.PolicyName)
+	d.Set("exclude_resource_tags", resp.Policy.ExcludeResourceTags)
+	if err := d.Set("exclude_map", flattenFMSPolicyMap(resp.Policy.ExcludeMap)); err != nil {
 		return err
 	}
-	if err = d.Set("include_map", flattenFMSPolicyMap(resp.Policy.IncludeMap)); err != nil {
+	if err := d.Set("include_map", flattenFMSPolicyMap(resp.Policy.IncludeMap)); err != nil {
 		return err
 	}
-	d.Set("remediation_enabled", aws.BoolValue(resp.Policy.RemediationEnabled))
-	if err = d.Set("resource_type_list", resp.Policy.ResourceTypeList); err != nil {
+	d.Set("remediation_enabled", resp.Policy.RemediationEnabled)
+	if err := d.Set("resource_type_list", resp.Policy.ResourceTypeList); err != nil {
 		return err
 	}
-	d.Set("policy_update_token", aws.StringValue(resp.Policy.PolicyUpdateToken))
-	if err = d.Set("resource_tags", flattenFMSResourceTags(resp.Policy.ResourceTags)); err != nil {
+	d.Set("resource_type", resp.Policy.ResourceType)
+	d.Set("policy_update_token", resp.Policy.PolicyUpdateToken)
+	if err := d.Set("resource_tags", flattenFMSResourceTags(resp.Policy.ResourceTags)); err != nil {
 		return err
 	}
 
@@ -224,24 +216,31 @@ func resourceAwsFmsPolicyRead(d *schema.ResourceData, meta interface{}) error {
 		"type":                 *resp.Policy.SecurityServicePolicyData.Type,
 		"managed_service_data": *resp.Policy.SecurityServicePolicyData.ManagedServiceData,
 	}}
-	if err = d.Set("security_service_policy_data", securityServicePolicy); err != nil {
+	if err := d.Set("security_service_policy_data", securityServicePolicy); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceAwsFmsPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).fmsconn
+func resourceAwsFmsPolicyExpandPolicy(d *schema.ResourceData) *fms.Policy {
+	resourceType := aws.String("ResourceTypeList")
+	resourceTypeList := expandStringSet(d.Get("resource_type_list").(*schema.Set))
+	if t, ok := d.GetOk("resource_type"); ok {
+		resourceType = aws.String(t.(string))
+	}
 
 	fmsPolicy := &fms.Policy{
 		PolicyName:          aws.String(d.Get("name").(string)),
-		PolicyId:            aws.String(d.Id()),
-		PolicyUpdateToken:   aws.String(d.Get("policy_update_token").(string)),
 		RemediationEnabled:  aws.Bool(d.Get("remediation_enabled").(bool)),
-		ResourceType:        aws.String("ResourceTypeList"),
-		ResourceTypeList:    expandStringSet(d.Get("resource_type_list").(*schema.Set)),
+		ResourceType:        resourceType,
+		ResourceTypeList:    resourceTypeList,
 		ExcludeResourceTags: aws.Bool(d.Get("exclude_resource_tags").(bool)),
+	}
+
+	if d.Id() != "" {
+		fmsPolicy.PolicyId = aws.String(d.Id())
+		fmsPolicy.PolicyUpdateToken = aws.String(d.Get("policy_update_token").(string))
 	}
 
 	fmsPolicy.ExcludeMap = expandFMSPolicyMap(d.Get("exclude_map").([]interface{}))
@@ -255,6 +254,14 @@ func resourceAwsFmsPolicyUpdate(d *schema.ResourceData, meta interface{}) error 
 		ManagedServiceData: aws.String(securityServicePolicy["managed_service_data"].(string)),
 		Type:               aws.String(securityServicePolicy["type"].(string)),
 	}
+
+	return fmsPolicy
+}
+
+func resourceAwsFmsPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).fmsconn
+
+	fmsPolicy := resourceAwsFmsPolicyExpandPolicy(d)
 
 	params := &fms.PutPolicyInput{Policy: fmsPolicy}
 	_, err := conn.PutPolicy(params)

@@ -14,7 +14,7 @@ Provides a Route53 Resolver rule.
 
 ### System rule
 
-```hcl
+```terraform
 resource "aws_route53_resolver_rule" "sys" {
   domain_name = "subdomain.example.com"
   rule_type   = "SYSTEM"
@@ -23,7 +23,7 @@ resource "aws_route53_resolver_rule" "sys" {
 
 ### Forward rule
 
-```hcl
+```terraform
 resource "aws_route53_resolver_rule" "fwd" {
   domain_name          = "example.com"
   name                 = "example"
@@ -51,7 +51,7 @@ The following arguments are supported:
 This argument should only be specified for `FORWARD` type rules.
 * `target_ip` - (Optional) Configuration block(s) indicating the IPs that you want Resolver to forward DNS queries to (documented below).
 This argument should only be specified for `FORWARD` type rules.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `target_ip` object supports the following:
 
@@ -67,6 +67,7 @@ In addition to all arguments above, the following attributes are exported:
 * `owner_id` - When a rule is shared with another AWS account, the account ID of the account that the rule is shared with.
 * `share_status` - Whether the rules is shared and, if so, whether the current account is sharing the rule with another account, or another account is sharing the rule with the current account.
 Values are `NOT_SHARED`, `SHARED_BY_ME` or `SHARED_WITH_ME`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

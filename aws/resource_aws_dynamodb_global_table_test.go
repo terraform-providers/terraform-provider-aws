@@ -25,6 +25,7 @@ func TestAccAWSDynamoDbGlobalTable_basic(t *testing.T) {
 			testAccPreCheckAWSDynamodbGlobalTable(t)
 			testAccDynamoDBGlobalTablePreCheck(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, dynamodb.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsDynamoDbGlobalTableDestroy,
 		Steps: []resource.TestStep{
@@ -70,6 +71,7 @@ func TestAccAWSDynamoDbGlobalTable_multipleRegions(t *testing.T) {
 			testAccMultipleRegionPreCheck(t, 2)
 			testAccDynamoDBGlobalTablePreCheck(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, dynamodb.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDynamoDbGlobalTableDestroy,
 		Steps: []resource.TestStep{

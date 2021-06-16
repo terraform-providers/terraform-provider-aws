@@ -12,7 +12,7 @@ Use this data source to get an Identity Store Group.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ssoadmin_instances" "example" {}
 
 data "aws_identitystore_group" "example" {

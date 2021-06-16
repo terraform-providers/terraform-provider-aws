@@ -12,7 +12,7 @@ Provides information about a Lambda Alias.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_lambda_alias" "production" {
   function_name = "my-lambda-func"
   name          = "production"

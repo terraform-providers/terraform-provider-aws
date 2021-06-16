@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ecs_service: Add `deployment_circuit_breaker`
+```
+
+```release-note:bug
+resource/aws_ecs_service: Improve handling of eventual consistency including security group dependency violations on deletion
+```

@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_fsx_lustre_filesystem: Allow updating `storage_capacity`.
+```

@@ -98,13 +98,21 @@ func (tf *Terraform) Init(ctx context.Context, opts ...InitOption) error {
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) initCmd(ctx context.Context, opts ...InitOption) (*exec.Cmd, error) {
 	c := defaultInitOptions
 
 	for _, o := range opts {
+		switch o.(type) {
+		case *LockOption, *LockTimeoutOption, *VerifyPluginsOption, *GetPluginsOption:
+			err := tf.compatible(ctx, nil, tf0_15_0)
+			if err != nil {
+				return nil, fmt.Errorf("-lock, -lock-timeout, -verify-plugins, and -get-plugins options are no longer available as of Terraform 0.15: %w", err)
+			}
+		}
+
 		o.configureInit(&c)
 	}
 
@@ -114,17 +122,27 @@ func (tf *Terraform) initCmd(ctx context.Context, opts ...InitOption) (*exec.Cmd
 	if c.fromModule != "" {
 		args = append(args, "-from-module="+c.fromModule)
 	}
-	if c.lockTimeout != "" {
-		args = append(args, "-lock-timeout="+c.lockTimeout)
+
+	// string opts removed in 0.15: pass if set and <0.15
+	err := tf.compatible(ctx, nil, tf0_15_0)
+	if err == nil {
+		if c.lockTimeout != "" {
+			args = append(args, "-lock-timeout="+c.lockTimeout)
+		}
 	}
 
 	// boolean opts: always pass
 	args = append(args, "-backend="+fmt.Sprint(c.backend))
 	args = append(args, "-get="+fmt.Sprint(c.get))
-	args = append(args, "-get-plugins="+fmt.Sprint(c.getPlugins))
-	args = append(args, "-lock="+fmt.Sprint(c.lock))
 	args = append(args, "-upgrade="+fmt.Sprint(c.upgrade))
-	args = append(args, "-verify-plugins="+fmt.Sprint(c.verifyPlugins))
+
+	// boolean opts removed in 0.15: pass if <0.15
+	err = tf.compatible(ctx, nil, tf0_15_0)
+	if err == nil {
+		args = append(args, "-lock="+fmt.Sprint(c.lock))
+		args = append(args, "-get-plugins="+fmt.Sprint(c.getPlugins))
+		args = append(args, "-verify-plugins="+fmt.Sprint(c.verifyPlugins))
+	}
 
 	// unary flags: pass if true
 	if c.reconfigure {

@@ -21,6 +21,7 @@ func TestAccAwsBackupRegionSettings_basic(t *testing.T) {
 			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
 			testAccPreCheckAWSBackup(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{

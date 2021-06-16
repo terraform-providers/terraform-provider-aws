@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -13,12 +14,14 @@ func TestAccDataSourceAwsNatGateway_basic(t *testing.T) {
 	rInt := acctest.RandIntRange(4, 254)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsNatGatewayConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("data.aws_nat_gateway.test_by_id", "connectivity_type", "aws_nat_gateway.test", "connectivity_type"),
 					resource.TestCheckResourceAttrPair(
 						"data.aws_nat_gateway.test_by_id", "id",
 						"aws_nat_gateway.test", "id"),

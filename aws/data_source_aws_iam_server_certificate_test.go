@@ -29,7 +29,7 @@ func TestResourceSortByExpirationDate(t *testing.T) {
 		},
 	}
 	sort.Sort(certificateByExpiration(certs))
-	if *certs[0].ServerCertificateName != "latest" {
+	if aws.StringValue(certs[0].ServerCertificateName) != "latest" {
 		t.Fatalf("Expected first item to be %q, but was %q", "latest", *certs[0].ServerCertificateName)
 	}
 }
@@ -42,6 +42,7 @@ func TestAccAWSDataSourceIAMServerCertificate_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServerCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -65,6 +66,7 @@ func TestAccAWSDataSourceIAMServerCertificate_basic(t *testing.T) {
 func TestAccAWSDataSourceIAMServerCertificate_matchNamePrefix(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServerCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -86,6 +88,7 @@ func TestAccAWSDataSourceIAMServerCertificate_path(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServerCertificateDestroy,
 		Steps: []resource.TestStep{

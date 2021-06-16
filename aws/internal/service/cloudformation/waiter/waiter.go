@@ -1,6 +1,8 @@
 package waiter
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -233,6 +235,39 @@ func StackDeleted(conn *cloudformation.CloudFormation, stackID, requestToken str
 	}
 
 	return stack, nil
+}
+
+const (
+	TypeRegistrationTimeout = 5 * time.Minute
+)
+
+func TypeRegistrationProgressStatusComplete(ctx context.Context, conn *cloudformation.CloudFormation, registrationToken string) (*cloudformation.DescribeTypeRegistrationOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{cloudformation.RegistrationStatusInProgress},
+		Target:  []string{cloudformation.RegistrationStatusComplete},
+		Refresh: TypeRegistrationProgressStatus(ctx, conn, registrationToken),
+		Timeout: TypeRegistrationTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*cloudformation.DescribeTypeRegistrationOutput); ok {
+		if err != nil && output != nil {
+			newErr := errors.New(aws.StringValue(output.Description))
+
+			var te *resource.TimeoutError
+			var use *resource.UnexpectedStateError
+			if ok := errors.As(err, &te); ok && te.LastError == nil {
+				te.LastError = newErr
+			} else if ok := errors.As(err, &use); ok && use.LastError == nil {
+				use.LastError = newErr
+			}
+		}
+
+		return output, err
+	}
+
+	return nil, err
 }
 
 func getCloudFormationDeletionReasons(conn *cloudformation.CloudFormation, stackID, requestToken string) ([]string, error) {

@@ -7,8 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamRolePolicyAttachment() *schema.Resource {
@@ -56,21 +59,49 @@ func resourceAwsIamRolePolicyAttachmentRead(d *schema.ResourceData, meta interfa
 	conn := meta.(*AWSClient).iamconn
 	role := d.Get("role").(string)
 	policyARN := d.Get("policy_arn").(string)
+	// Human friendly ID for error messages since d.Id() is non-descriptive
+	id := fmt.Sprintf("%s:%s", role, policyARN)
 
-	hasPolicyAttachment, err := iamRoleHasPolicyARNAttachment(conn, role, policyARN)
+	var hasPolicyAttachment bool
 
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-		log.Printf("[WARN] IAM Role (%s) not found, removing from state", role)
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		hasPolicyAttachment, err = iamRoleHasPolicyARNAttachment(conn, role, policyARN)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && !hasPolicyAttachment {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("IAM Role Managed Policy Attachment (%s) not found", id),
+			})
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		hasPolicyAttachment, err = iamRoleHasPolicyARNAttachment(conn, role, policyARN)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		log.Printf("[WARN] IAM Role Managed Policy Attachment (%s) not found, removing from state", id)
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error finding IAM Role (%s) Policy Attachment (%s): %s", role, policyARN, err)
+		return fmt.Errorf("error reading IAM Role Managed Policy Attachment (%s): %w", id, err)
 	}
 
-	if !hasPolicyAttachment {
-		log.Printf("[WARN] IAM Role (%s) Policy Attachment (%s) not found, removing from state", role, policyARN)
+	if !d.IsNewResource() && !hasPolicyAttachment {
+		log.Printf("[WARN] IAM Role Managed Policy Attachment (%s) not found, removing from state", id)
 		d.SetId("")
 		return nil
 	}

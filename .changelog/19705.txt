@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_cur_report_definition: Add `arn` attribute.
+```
+
+```release-note:enhancement
+resource/aws_cur_report_definition: Support updating definition.
+```
+
+```release-note:enhancement
+resource/aws_cur_report_definition: Add plan time validation for `report_name`.
+```

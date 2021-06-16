@@ -39,7 +39,7 @@ func dataSourceAwsCallerIdentityRead(d *schema.ResourceData, meta interface{}) e
 	res, err := client.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
 	if err != nil {
-		return fmt.Errorf("Error getting Caller Identity: %v", err)
+		return fmt.Errorf("Error getting Caller Identity: %w", err)
 	}
 
 	log.Printf("[DEBUG] Received Caller Identity: %s", res)

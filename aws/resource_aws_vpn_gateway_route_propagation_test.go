@@ -8,15 +8,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 )
 
 func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
 	var rtID, gwID string
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_vpn_gateway_route_propagation.foo",
-		Providers:     testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSVPNGatewayRoutePropagation_basic,
@@ -31,15 +32,16 @@ func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
 					rtID = rs.Primary.Attributes["route_table_id"]
 					gwID = rs.Primary.Attributes["vpn_gateway_id"]
 
-					rtRaw, _, err := resourceAwsRouteTableStateRefreshFunc(conn, rtID)()
+					rt, err := waiter.RouteTableReady(conn, rtID)
+
 					if err != nil {
-						return fmt.Errorf("failed to read route table: %s", err)
+						return fmt.Errorf("error getting route table (%s) while checking VPN gateway route propagation: %w", rtID, err)
 					}
-					if rtRaw == nil {
+
+					if rt == nil {
 						return errors.New("route table doesn't exist")
 					}
 
-					rt := rtRaw.(*ec2.RouteTable)
 					exists := false
 					for _, vgw := range rt.PropagatingVgws {
 						if *vgw.GatewayId == gwID {
@@ -57,11 +59,13 @@ func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
 		CheckDestroy: func(state *terraform.State) error {
 			conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
-			rtRaw, _, err := resourceAwsRouteTableStateRefreshFunc(conn, rtID)()
+			rt, err := waiter.RouteTableDeleted(conn, rtID)
+
 			if err != nil {
-				return fmt.Errorf("failed to read route table: %s", err)
+				return fmt.Errorf("error getting route table (%s) status while checking destroy: %w", rtID, err)
 			}
-			if rtRaw != nil {
+
+			if rt != nil {
 				return errors.New("route table still exists")
 			}
 			return nil

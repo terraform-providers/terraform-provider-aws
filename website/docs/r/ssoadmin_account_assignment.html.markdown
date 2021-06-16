@@ -12,7 +12,7 @@ Provides a Single Sign-On (SSO) Account Assignment resource
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ssoadmin_instances" "example" {}
 
 data "aws_ssoadmin_permission_set" "example" {
@@ -21,7 +21,7 @@ data "aws_ssoadmin_permission_set" "example" {
 }
 
 data "aws_identitystore_group" "example" {
-  identity_store_id = tolist(data.aws_ssoadmin_instances.selected.identity_store_ids)[0]
+  identity_store_id = tolist(data.aws_ssoadmin_instances.example.identity_store_ids)[0]
 
   filter {
     attribute_path  = "DisplayName"
@@ -52,7 +52,7 @@ The following arguments are supported:
 * `target_id` - (Required, Forces new resource) An AWS account identifier, typically a 10-12 digit string.
 * `target_type` - (Optional, Forces new resource) The entity type for which the assignment will be created. Valid values: `AWS_ACCOUNT`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

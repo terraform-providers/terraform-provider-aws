@@ -97,7 +97,7 @@ func dataSourceAwsEc2LocalGatewayRouteTableRead(d *schema.ResourceData, meta int
 	d.Set("state", localgatewayroutetable.State)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(localgatewayroutetable.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

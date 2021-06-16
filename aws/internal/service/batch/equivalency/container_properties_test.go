@@ -209,7 +209,7 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
 			ExpectEquivalent: true,
 		},
 		{
-			Name: "empty command, mountPoints, resourceRequirements, secrets, ulimits, volumes",
+			Name: "empty command, logConfiguration.secretOptions, mountPoints, resourceRequirements, secrets, ulimits, volumes",
 			ApiJson: `
 {
 	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
@@ -219,6 +219,10 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
 	"jobRoleArn": "arn:aws:iam::123:role/role-test",
 	"volumes": [],
 	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+	"logConfiguration": {
+		"logDriver": "awslogs",
+		"secretOptions": []
+	},
 	"mountPoints": [],
 	"ulimits": [],
 	"resourceRequirements": [],
@@ -236,7 +240,130 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
         "name": "ENVIRONMENT",
         "value": "test"
       }
-   ]
+   ],
+   "logConfiguration": {
+		"logDriver": "awslogs"
+	}
+}
+`,
+			ExpectEquivalent: true,
+		},
+		{
+			Name: "no fargatePlatformConfiguration",
+			ApiJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"resourceRequirements": [
+	  {
+		"type": "MEMORY",
+		"value": "512"
+	  },
+	  {
+		"type": "VCPU",
+		"value": "0.25"
+	  }
+	],
+	"fargatePlatformConfiguration": {
+		"platformVersion": "LATEST"
+	}
+}
+`,
+			ConfigurationJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"resourceRequirements": [
+	  {
+		  "type": "MEMORY",
+		  "value": "512"
+	  },
+	  {
+		"type": "VCPU",
+		"value": "0.25"
+	  }
+	]
+}
+`,
+			ExpectEquivalent: true,
+		},
+		{
+			Name: "empty linuxParameters.devices, linuxParameters.tmpfs, logConfiguration.options",
+			ApiJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"devices": [],
+		"initProcessEnabled": true,
+		"tmpfs": []
+	},
+	"logConfiguration": {
+		"logDriver": "awslogs",
+		"options": {}
+	}
+}
+`,
+			ConfigurationJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"initProcessEnabled": true
+	},
+	"logConfiguration": {
+		"logDriver": "awslogs"
+	}
+}
+`,
+			ExpectEquivalent: true,
+		},
+		{
+			Name: "empty linuxParameters.devices.permissions, linuxParameters.tmpfs.mountOptions",
+			ApiJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"devices": [{
+			"containerPath": "/test",
+			"hostPath": "/tmp",
+			"permissions": []
+		}],
+		"initProcessEnabled": true,
+		"tmpfs": [{
+			"containerPath": "/tmp",
+			"mountOptions": [],
+			"size": 4096
+		}]
+	}
+}
+`,
+			ConfigurationJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"devices": [{
+			"containerPath": "/test",
+			"hostPath": "/tmp"
+		}],
+		"initProcessEnabled": true,
+		"tmpfs": [{
+			"containerPath": "/tmp",
+			"size": 4096
+		}]
+	}
 }
 `,
 			ExpectEquivalent: true,

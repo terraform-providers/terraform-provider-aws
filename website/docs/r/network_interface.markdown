@@ -12,7 +12,7 @@ Provides an Elastic network interface (ENI) resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_network_interface" "test" {
   subnet_id       = aws_subnet.public_a.id
   private_ips     = ["10.0.0.50"]
@@ -38,7 +38,11 @@ The following arguments are supported:
 * `security_groups` - (Optional) List of security group IDs to assign to the ENI.
 * `attachment` - (Optional) Block to define the attachment of the ENI. Documented below.
 * `source_dest_check` - (Optional) Whether to enable source destination checking for the ENI. Default true.
-* `tags` - (Optional) A map of tags to assign to the resource.
+
+-> **NOTE:** Changing `interface_type` will cause the resource to be destroyed and re-created.
+
+* `interface_type` - (Optional) Type of network interface to create. Set to `efa` for Elastic Fabric Adapter.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `attachment` block supports:
 
@@ -50,17 +54,9 @@ The `attachment` block supports:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network interface.
-* `subnet_id` - Subnet ID the ENI is in.
 * `mac_address` - The MAC address of the network interface.
 * `private_dns_name` - The private DNS name of the network interface (IPv4).
-* `description` - A description for the network interface.
-* `private_ips` - List of private IPs assigned to the ENI.
-* `security_groups` - List of security groups attached to the ENI.
-* `attachment` - Block defining the attachment of the ENI.
-* `source_dest_check` - Whether source destination checking is enabled
-* `tags` - Tags assigned to the ENI.
-
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

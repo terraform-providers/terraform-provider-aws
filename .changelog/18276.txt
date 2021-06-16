@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_iam_policy: Add tagging support
+```
+
+```release-note:enhancement
+resource/aws_iam_policy: Add `policy_id` attribute
+```
+
+```release-note:enhancement
+data-source/aws_iam_policy: Add `policy_id` and `tags` attributes
+```

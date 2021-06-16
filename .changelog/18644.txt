@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_cloudfront_distribution: Add `trusted_key_groups` argument
+```

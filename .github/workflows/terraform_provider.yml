@@ -3,14 +3,13 @@ name: Terraform Provider Checks
 on:
   push:
     branches:
-      - master
+      - main
       - 'release/**'
   pull_request:
     paths:
       - .github/workflows/terraform_provider.yml
       - .go-version
       - .golangci.yml
-      - .goreleaser.yml
       - .semgrep.yml
       - aws/**
       - awsproviderlint/**
@@ -27,8 +26,7 @@ on:
 
 env:
   AWS_DEFAULT_REGION: us-west-2
-  GO111MODULE: on
-  TERRAFORM_VERSION: "0.12.25"
+  TERRAFORM_VERSION: "0.14.8"
 
 jobs:
   go_mod_download:
@@ -87,7 +85,7 @@ jobs:
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go build
-      run: go build -o terraform-plugin-dir/terraform-provider-aws_v99.99.99_x4 .
+      run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/aws/99.99.99/$(go env GOOS)_$(go env GOARCH)/terraform-provider-aws .
 
   terraform_providers_schema:
     name: terraform providers schema
@@ -276,32 +274,6 @@ jobs:
     - run: cd tools && go install github.com/pavius/impi/cmd/impi
     - run: impi --local . --scheme stdThirdPartyLocal ./...
 
-  goreleaser:
-    needs: [go_mod_download]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # See also: https://github.com/actions/setup-go/pull/62
-      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
-      - uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - uses: actions/cache@v2
-        continue-on-error: true
-        timeout-minutes: 2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-      - name: goreleaser check
-        continue-on-error: true
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          args: check
-      - name: goreleaser build
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          args: build --snapshot --timeout 2h
-
   semgrep:
     runs-on: ubuntu-latest
     steps:
@@ -337,9 +309,9 @@ jobs:
       run: |
         tfproviderdocs check \
           -allowed-resource-subcategories-file website/allowed-subcategories.txt \
+          -enable-contents-check \
           -ignore-file-missing-data-sources aws_alb,aws_alb_listener,aws_alb_target_group \
           -ignore-file-missing-resources aws_alb,aws_alb_listener,aws_alb_listener_certificate,aws_alb_listener_rule,aws_alb_target_group,aws_alb_target_group_attachment \
-          -ignore-side-navigation-data-sources aws_alb,aws_alb_listener,aws_alb_target_group,aws_kms_secret \
-          -provider-name aws \
+          -provider-source registry.terraform.io/hashicorp/aws \
           -providers-schema-json terraform-providers-schema/schema.json \
           -require-resource-subcategory

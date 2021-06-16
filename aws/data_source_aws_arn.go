@@ -45,7 +45,7 @@ func dataSourceAwsArnRead(d *schema.ResourceData, meta interface{}) error {
 	v := d.Get("arn").(string)
 	arn, err := arn.Parse(v)
 	if err != nil {
-		return fmt.Errorf("Error parsing '%s': %s", v, err.Error())
+		return fmt.Errorf("Error parsing '%s': %w", v, err)
 	}
 
 	d.SetId(arn.String())

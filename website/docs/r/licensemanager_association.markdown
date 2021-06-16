@@ -14,7 +14,7 @@ Provides a License Manager association.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ami" "example" {
   most_recent = true
   owners      = ["amazon"]

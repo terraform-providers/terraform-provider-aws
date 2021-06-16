@@ -14,7 +14,7 @@ Creates and manages an AWS XRay Encryption Config.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_xray_encryption_config" "example" {
   type = "NONE"
 }
@@ -22,7 +22,7 @@ resource "aws_xray_encryption_config" "example" {
 
 ## Example Usage with KMS Key
 
-```hcl
+```terraform
 resource "aws_kms_key" "example" {
   description             = "Some Key"
   deletion_window_in_days = 7

@@ -17,6 +17,7 @@ func testAccAwsGuardDutyOrganizationAdminAccount_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccOrganizationsAccountPreCheck(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, guardduty.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyOrganizationAdminAccountDestroy,
 		Steps: []resource.TestStep{

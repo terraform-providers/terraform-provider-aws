@@ -72,7 +72,7 @@ func dataSourceAwsLambdaCodeSigningConfigRead(d *schema.ResourceData, meta inter
 	})
 
 	if err != nil {
-		return fmt.Errorf("error getting Lambda code signing config (%s): %s", arn, err)
+		return fmt.Errorf("error getting Lambda code signing config (%s): %w", arn, err)
 	}
 
 	if configOutput == nil {
@@ -85,19 +85,19 @@ func dataSourceAwsLambdaCodeSigningConfigRead(d *schema.ResourceData, meta inter
 	}
 
 	if err := d.Set("config_id", codeSigningConfig.CodeSigningConfigId); err != nil {
-		return fmt.Errorf("error setting lambda code signing config id: %s", err)
+		return fmt.Errorf("error setting lambda code signing config id: %w", err)
 	}
 
 	if err := d.Set("description", codeSigningConfig.Description); err != nil {
-		return fmt.Errorf("error setting lambda code signing config description: %s", err)
+		return fmt.Errorf("error setting lambda code signing config description: %w", err)
 	}
 
 	if err := d.Set("last_modified", codeSigningConfig.LastModified); err != nil {
-		return fmt.Errorf("error setting lambda code signing config last modified: %s", err)
+		return fmt.Errorf("error setting lambda code signing config last modified: %w", err)
 	}
 
 	if err := d.Set("allowed_publishers", flattenLambdaCodeSigningConfigAllowedPublishers(codeSigningConfig.AllowedPublishers)); err != nil {
-		return fmt.Errorf("error setting lambda code signing config allowed publishers: %s", err)
+		return fmt.Errorf("error setting lambda code signing config allowed publishers: %w", err)
 	}
 
 	if err := d.Set("policies", []interface{}{
@@ -105,7 +105,7 @@ func dataSourceAwsLambdaCodeSigningConfigRead(d *schema.ResourceData, meta inter
 			"untrusted_artifact_on_deployment": codeSigningConfig.CodeSigningPolicies.UntrustedArtifactOnDeployment,
 		},
 	}); err != nil {
-		return fmt.Errorf("error setting lambda code signing config code signing policies: %s", err)
+		return fmt.Errorf("error setting lambda code signing config code signing policies: %w", err)
 	}
 
 	d.SetId(aws.StringValue(codeSigningConfig.CodeSigningConfigArn))

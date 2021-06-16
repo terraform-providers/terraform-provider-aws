@@ -18,11 +18,13 @@ linters:
     - deadcode
     - errcheck
     - gofmt
+    - gomnd
     - gosimple
     - ineffassign
     - makezero
     - misspell
     - nakedret
+    - nilerr
     - staticcheck
     - structcheck
     - unconvert
@@ -34,6 +36,132 @@ linters:
 linters-settings:
   errcheck:
     ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
+  gomnd:
+    settings:
+      mnd:
+        checks:
+          - argument
+        ignored-files:
+          # Needing constants, comment ignores, switching to customizable timeouts, or retries moved to aws/config.go
+          - awserr.go
+          - data_source_aws_cognito_user_pools.go
+          - data_source_aws_lakeformation_permissions.go
+          - resource_aws_api_gateway_base_path_mapping.go
+          - resource_aws_appautoscaling_policy.go
+          - resource_aws_appautoscaling_scheduled_action.go
+          - resource_aws_appautoscaling_target.go
+          - resource_aws_autoscaling_lifecycle_hook.go
+          - resource_aws_backup_plan.go
+          - resource_aws_cloud9_environment_ec2.go
+          - resource_aws_cloudfront_distribution.go
+          - resource_aws_cloudhsm2_cluster.go
+          - resource_aws_cloudhsm2_hsm.go
+          - resource_aws_cloudwatch_event_target.go
+          - resource_aws_cloudwatch_log_destination.go
+          - resource_aws_cloudwatch_log_stream.go
+          - resource_aws_cloudwatch_log_subscription_filter.go
+          - resource_aws_codebuild_project.go
+          - resource_aws_codedeploy_deployment_group.go
+          - resource_aws_codepipeline_webhook.go
+          - resource_aws_config_config_rule.go
+          - resource_aws_config_delivery_channel.go
+          - resource_aws_customer_gateway.ogresource_aws_elasticsearch_domain
+          - resource_aws_datapipeline_pipeline.go
+          - resource_aws_db_instance.go
+          - resource_aws_db_parameter_group.go
+          - resource_aws_dms_endpoint.go
+          - resource_aws_docdb_cluster.go
+          - resource_aws_docdb_cluster_parameter_group.go
+          - resource_aws_docdb_subnet_group.go
+          - resource_aws_dynamodb_table.go
+          - resource_aws_ebs_snapshot_copy.go
+          - resource_aws_ebs_volume.go
+          - resource_aws_ec2_transit_gateway.go
+          - resource_aws_ecs_cluster.go
+          - resource_aws_ecs_service.go
+          - resource_aws_efs_file_system.go
+          - resource_aws_efs_mount_target.go
+          - resource_aws_elastic_beanstalk_application.go
+          - resource_aws_elasticache_cluster.go
+          - resource_aws_elasticache_parameter_group.go
+          - resource_aws_elasticache_replication_group.go
+          - resource_aws_elasticache_security_group.go
+          - resource_aws_elasticache_subnet_group.go
+          - resource_aws_elasticsearch_domain.go
+          - resource_aws_elasticsearch_domain_policy.go
+          - resource_aws_elb.go
+          - resource_aws_elb_attachment.go
+          - resource_aws_gamelift_build.go
+          - resource_aws_gamelift_fleet.go
+          - resource_aws_glue_dev_endpoint.go
+          - resource_aws_iam_access_key.go
+          - resource_aws_iam_server_certificate.go
+          - resource_aws_inspector_assessment_target.go
+          - resource_aws_instance.go
+          - resource_aws_internet_gateway.go
+          - resource_aws_iot_thing_type.go
+          - resource_aws_kms_external_key.go
+          - resource_aws_kms_grant.go
+          - resource_aws_kms_key.go
+          - resource_aws_lakeformation_data_lake_settings.go
+          - resource_aws_lakeformation_permissions.go
+          - resource_aws_lambda_event_source_mapping.go
+          - resource_aws_lambda_function_event_invoke_config.go
+          - resource_aws_lambda_permission.go
+          - resource_aws_lb_listener.go
+          - resource_aws_lb_listener_rule.go
+          - resource_aws_lb_target_group_attachment.go
+          - resource_aws_media_package_channel.go
+          - resource_aws_media_store_container.go
+          - resource_aws_msk_cluster.go
+          - resource_aws_neptune_cluster.go
+          - resource_aws_neptune_parameter_group.go
+          - resource_aws_network_acl.go
+          - resource_aws_network_acl_rule.go
+          - resource_aws_opsworks_stack.go
+          - resource_aws_organizations_account.go
+          - resource_aws_organizations_organizational_unit.go
+          - resource_aws_organizations_policy.go
+          - resource_aws_organizations_policy_attachment.go
+          - resource_aws_qldb_ledger.go
+          - resource_aws_ram_resource_share_accepter.go
+          - resource_aws_rds_cluster.go
+          - resource_aws_rds_cluster_parameter_group.go
+          - resource_aws_redshift_cluster.go
+          - resource_aws_redshift_snapshot_copy_grant.go
+          - resource_aws_redshift_snapshot_schedule.go
+          - resource_aws_redshift_snapshot_schedule_association.go
+          - resource_aws_route_table.go
+          - resource_aws_route_table_association.go
+          - resource_aws_s3_bucket.go
+          - resource_aws_sagemaker_model.go
+          - resource_aws_sagemaker_notebook_instance.go
+          - resource_aws_security_group_rule.go
+          - resource_aws_sfn_state_machine.go
+          - resource_aws_sqs_queue.go
+          - resource_aws_storagegateway_cached_iscsi_volume.go
+          - resource_aws_storagegateway_stored_iscsi_volume.go
+          - resource_aws_transfer_server.go
+          - resource_aws_vpc.go
+          - resource_aws_vpc_dhcp_options.go
+          - resource_aws_vpc_peering_connection_options.go
+          - resource_aws_vpn_gateway.go
+          - resource_aws_wafregional_web_acl_association.go
+          - resource_aws_wafv2_ip_set.go
+          - resource_aws_wafv2_regex_pattern_set.go
+          - resource_aws_wafv2_rule_group.go
+          - resource_aws_wafv2_web_acl.go
+          - tls.go
+          - waf_token_handlers.go
+          - wafregional_token_handlers.go
+        ignored-functions:
+          # AWS Go SDK
+          - aws.Int64
+          - request.ConstantWaiterDelay
+          - request.WithWaiterMaxAttempts
+          # Terraform Plugin SDK
+          - schema.DefaultTimeout
+          - validation.*
 
 run:
   timeout: 10m

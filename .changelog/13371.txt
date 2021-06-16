@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_transfer_server: Add `protocols` argument
+```
+
+```release-note:enhancement
+data-source/aws_transfer_server: Add `certificate`, `endpoint_type`, `protocols` and `security_policy_name` attributes
+```

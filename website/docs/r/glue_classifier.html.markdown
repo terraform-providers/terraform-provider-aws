@@ -16,7 +16,7 @@ Provides a Glue Classifier resource.
 
 ### Csv Classifier
 
-```hcl
+```terraform
 resource "aws_glue_classifier" "example" {
   name = "example"
 
@@ -33,7 +33,7 @@ resource "aws_glue_classifier" "example" {
 
 ### Grok Classifier
 
-```hcl
+```terraform
 resource "aws_glue_classifier" "example" {
   name = "example"
 
@@ -46,7 +46,7 @@ resource "aws_glue_classifier" "example" {
 
 ### JSON Classifier
 
-```hcl
+```terraform
 resource "aws_glue_classifier" "example" {
   name = "example"
 
@@ -58,7 +58,7 @@ resource "aws_glue_classifier" "example" {
 
 ### XML Classifier
 
-```hcl
+```terraform
 resource "aws_glue_classifier" "example" {
   name = "example"
 

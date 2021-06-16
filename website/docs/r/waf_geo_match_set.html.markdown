@@ -12,7 +12,7 @@ Provides a WAF Geo Match Set Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_geo_match_set" "geo_match_set" {
   name = "geo_match_set"
 

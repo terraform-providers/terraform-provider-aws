@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -29,6 +30,7 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 			customdiff.ForceNewIfChange("smb_active_directory_settings", func(_ context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0
 			}),
+			SetTagsDiff,
 		),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -181,7 +183,8 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 					"IBM-ULT3580-TD5",
 				}, false),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"cloudwatch_log_group_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -192,6 +195,10 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(storagegateway.SMBSecurityStrategy_Values(), false),
+			},
+			"smb_file_share_visibility": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"average_download_rate_limit_in_bits_per_sec": {
 				Type:         schema.TypeInt,
@@ -233,6 +240,8 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 
 func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	region := meta.(*AWSClient).region
 
 	activationKey := d.Get("activation_key").(string)
@@ -316,7 +325,7 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		GatewayName:     aws.String(d.Get("gateway_name").(string)),
 		GatewayTimezone: aws.String(d.Get("gateway_timezone").(string)),
 		GatewayType:     aws.String(d.Get("gateway_type").(string)),
-		Tags:            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
+		Tags:            tags.IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("medium_changer_type"); ok {
@@ -391,6 +400,19 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	if v, ok := d.GetOk("smb_file_share_visibility"); ok {
+		input := &storagegateway.UpdateSMBFileShareVisibilityInput{
+			GatewayARN:        aws.String(d.Id()),
+			FileSharesVisible: aws.Bool(v.(bool)),
+		}
+
+		log.Printf("[DEBUG] Storage Gateway Gateway %q setting SMB File Share Visibility", input)
+		_, err := conn.UpdateSMBFileShareVisibility(input)
+		if err != nil {
+			return fmt.Errorf("error updating Storage Gateway Gateway (%s) SMB file share visibility: %w", d.Id(), err)
+		}
+	}
+
 	bandwidthInput := &storagegateway.UpdateBandwidthRateLimitInput{
 		GatewayARN: aws.String(d.Id()),
 	}
@@ -416,6 +438,7 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 
 func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &storagegateway.DescribeGatewayInformationInput{
@@ -435,8 +458,15 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error reading Storage Gateway Gateway: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.StoragegatewayKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags := keyvaluetags.StoragegatewayKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	smbSettingsInput := &storagegateway.DescribeSMBSettingsInput{
@@ -526,6 +556,7 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 	d.Set("tape_drive_type", d.Get("tape_drive_type").(string))
 	d.Set("cloudwatch_log_group_arn", output.CloudWatchLogGroupARN)
 	d.Set("smb_security_strategy", smbSettingsOutput.SMBSecurityStrategy)
+	d.Set("smb_file_share_visibility", smbSettingsOutput.FileSharesVisible)
 	d.Set("ec2_instance_id", output.Ec2InstanceId)
 	d.Set("endpoint_type", output.EndpointType)
 	d.Set("host_environment", output.HostEnvironment)
@@ -540,14 +571,15 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 
 	log.Printf("[DEBUG] Reading Storage Gateway Bandwidth rate limit: %s", bandwidthInput)
 	bandwidthOutput, err := conn.DescribeBandwidthRateLimit(bandwidthInput)
-	if err != nil && !isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified operation is not supported") {
-		return fmt.Errorf("error reading Storage Gateway Bandwidth rate limit: %s", err)
+	if tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified operation is not supported") ||
+		tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "This operation is not valid for the specified gateway") {
+		return nil
 	}
-	if err == nil {
-		d.Set("average_download_rate_limit_in_bits_per_sec", aws.Int64Value(bandwidthOutput.AverageDownloadRateLimitInBitsPerSec))
-		d.Set("average_upload_rate_limit_in_bits_per_sec", aws.Int64Value(bandwidthOutput.AverageUploadRateLimitInBitsPerSec))
+	if err != nil {
+		return fmt.Errorf("error reading Storage Gateway Bandwidth rate limit: %w", err)
 	}
-
+	d.Set("average_download_rate_limit_in_bits_per_sec", bandwidthOutput.AverageDownloadRateLimitInBitsPerSec)
+	d.Set("average_upload_rate_limit_in_bits_per_sec", bandwidthOutput.AverageUploadRateLimitInBitsPerSec)
 	return nil
 }
 
@@ -569,8 +601,8 @@ func resourceAwsStorageGatewayGatewayUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}
@@ -612,6 +644,19 @@ func resourceAwsStorageGatewayGatewayUpdate(d *schema.ResourceData, meta interfa
 		_, err := conn.UpdateSMBSecurityStrategy(input)
 		if err != nil {
 			return fmt.Errorf("error updating SMB Security Strategy: %w", err)
+		}
+	}
+
+	if d.HasChange("smb_file_share_visibility") {
+		input := &storagegateway.UpdateSMBFileShareVisibilityInput{
+			GatewayARN:        aws.String(d.Id()),
+			FileSharesVisible: aws.Bool(d.Get("smb_file_share_visibility").(bool)),
+		}
+
+		log.Printf("[DEBUG] Storage Gateway Gateway %q updating SMB File Share Visibility", input)
+		_, err := conn.UpdateSMBFileShareVisibility(input)
+		if err != nil {
+			return fmt.Errorf("error updating Storage Gateway Gateway (%s) SMB file share visibility: %w", d.Id(), err)
 		}
 	}
 

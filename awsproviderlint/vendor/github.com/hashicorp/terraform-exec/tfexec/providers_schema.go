@@ -12,7 +12,7 @@ func (tf *Terraform) ProvidersSchema(ctx context.Context) (*tfjson.ProviderSchem
 	schemaCmd := tf.providersSchemaCmd(ctx)
 
 	var ret tfjson.ProviderSchemas
-	err := tf.runTerraformCmdJSON(schemaCmd, &ret)
+	err := tf.runTerraformCmdJSON(ctx, schemaCmd, &ret)
 	if err != nil {
 		return nil, err
 	}

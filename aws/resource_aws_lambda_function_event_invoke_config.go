@@ -182,8 +182,8 @@ func resourceAwsLambdaFunctionEventInvokeConfigRead(d *schema.ResourceData, meta
 	}
 
 	d.Set("function_name", functionName)
-	d.Set("maximum_event_age_in_seconds", aws.Int64Value(output.MaximumEventAgeInSeconds))
-	d.Set("maximum_retry_attempts", aws.Int64Value(output.MaximumRetryAttempts))
+	d.Set("maximum_event_age_in_seconds", output.MaximumEventAgeInSeconds)
+	d.Set("maximum_retry_attempts", output.MaximumRetryAttempts)
 	d.Set("qualifier", qualifier)
 
 	return nil

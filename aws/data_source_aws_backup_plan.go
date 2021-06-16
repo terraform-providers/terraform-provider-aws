@@ -45,7 +45,7 @@ func dataSourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error
 		BackupPlanId: aws.String(id),
 	})
 	if err != nil {
-		return fmt.Errorf("Error getting Backup Plan: %v", err)
+		return fmt.Errorf("Error getting Backup Plan: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.BackupPlanId))
@@ -55,10 +55,10 @@ func dataSourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error
 
 	tags, err := keyvaluetags.BackupListTags(conn, aws.StringValue(resp.BackupPlanArn))
 	if err != nil {
-		return fmt.Errorf("error listing tags for Backup Plan (%s): %s", id, err)
+		return fmt.Errorf("error listing tags for Backup Plan (%s): %w", id, err)
 	}
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

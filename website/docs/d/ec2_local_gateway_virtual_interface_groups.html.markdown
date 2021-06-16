@@ -12,7 +12,7 @@ Provides details about multiple EC2 Local Gateway Virtual Interface Groups, such
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_local_gateway_virtual_interface_groups" "all" {}
 ```
 

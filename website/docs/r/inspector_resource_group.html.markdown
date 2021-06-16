@@ -12,7 +12,7 @@ Provides an Amazon Inspector resource group resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_inspector_resource_group" "example" {
   tags = {
     Name = "foo"

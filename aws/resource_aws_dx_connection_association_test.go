@@ -14,6 +14,7 @@ import (
 func TestAccAWSDxConnectionAssociation_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxConnectionAssociationDestroy,
 		Steps: []resource.TestStep{
@@ -30,6 +31,7 @@ func TestAccAWSDxConnectionAssociation_basic(t *testing.T) {
 func TestAccAWSDxConnectionAssociation_multiConns(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsDxConnectionAssociationDestroy,
 		Steps: []resource.TestStep{

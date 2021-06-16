@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ecs_cluster: Add support for `configuration`.
+```
+
+```release-note:enhancement
+resource/aws_ecs_cluster: Add plan time validation for `name`.
+```

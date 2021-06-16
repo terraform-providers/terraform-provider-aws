@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -48,7 +47,7 @@ func resourceAwsEbsEncryptionByDefaultRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error reading EBS encryption by default: %s", err)
 	}
 
-	d.Set("enabled", aws.BoolValue(resp.EbsEncryptionByDefault))
+	d.Set("enabled", resp.EbsEncryptionByDefault)
 
 	return nil
 }

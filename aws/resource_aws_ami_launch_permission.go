@@ -77,6 +77,10 @@ func resourceAwsAmiLaunchPermissionRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error reading AMI launch permission (%s): %w", d.Id(), err)
 	}
 	if !exists {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 AMI Launch Permission (%s): not found", d.Id())
+		}
+
 		log.Printf("[WARN] AMI launch permission (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil

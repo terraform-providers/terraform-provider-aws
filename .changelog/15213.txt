@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_ssm_patch_group: Allow for a single patch group to be registered with multiple patch baselines
+```
+
+```release-note:bug
+resource/aws_ssm_patch_group: Replace `Provider produced inconsistent result after apply` with actual error message
+```

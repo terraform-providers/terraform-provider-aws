@@ -14,7 +14,7 @@ Provides a resource to manage a CloudWatch log resource policy.
 
 ### Elasticsearch Log Publishing
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "elasticsearch-log-publishing-policy" {
   statement {
     actions = [
@@ -40,7 +40,7 @@ resource "aws_cloudwatch_log_resource_policy" "elasticsearch-log-publishing-poli
 
 ### Route53 Query Logging
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "route53-query-logging-policy" {
   statement {
     actions = [

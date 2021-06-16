@@ -119,11 +119,11 @@ func flattenRemediationConfigurationParameters(parameters map[string]*configserv
 	for key, value := range parameters {
 		item := make(map[string]interface{})
 		item["name"] = key
-		if value.ResourceValue != nil {
-			item["resource_value"] = *value.ResourceValue.Value
+		if v := value.ResourceValue; v != nil {
+			item["resource_value"] = aws.StringValue(v.Value)
 		}
-		if value.StaticValue != nil && len(value.StaticValue.Values) > 0 {
-			item["static_value"] = *value.StaticValue.Values[0]
+		if v := value.StaticValue; v != nil && len(v.Values) > 0 {
+			item["static_value"] = aws.StringValue(v.Values[0])
 		}
 
 		items = append(items, item)

@@ -13,7 +13,7 @@ Get characteristics for a single EC2 Instance Type.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_instance_type" "example" {
   instance_type = "t2.micro"
 }

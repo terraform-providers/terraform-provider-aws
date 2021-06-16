@@ -1,0 +1,3 @@
+```release-note:new-resource
+aws_sagemaker_model_package_group
+```

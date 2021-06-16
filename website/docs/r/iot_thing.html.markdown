@@ -12,7 +12,7 @@ Creates and manages an AWS IoT Thing.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iot_thing" "example" {
   name = "example"
 

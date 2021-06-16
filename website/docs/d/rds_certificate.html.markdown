@@ -12,7 +12,7 @@ Information about an RDS Certificate.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_rds_certificate" "example" {
   latest_valid_till = true
 }

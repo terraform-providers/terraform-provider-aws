@@ -79,6 +79,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -109,6 +110,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -130,6 +132,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -166,6 +169,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution(t *testing.T) 
 			testAccPreCheck(t)
 			testAccMultipleRegionPreCheck(t, 2)
 		},
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesMultipleRegion(nil, 2),
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -191,6 +195,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -234,6 +239,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -277,6 +283,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -312,6 +319,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -338,6 +346,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -373,6 +382,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -414,6 +424,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_AmiDistributio
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -451,6 +462,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Distribution_LicenseConfigu
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -486,6 +498,7 @@ func TestAccAwsImageBuilderDistributionConfiguration_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsImageBuilderDistributionConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -585,6 +598,10 @@ resource "aws_imagebuilder_distribution_configuration" "test" {
   name        = %[1]q
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.current.name
   }
 }
@@ -605,10 +622,18 @@ resource "aws_imagebuilder_distribution_configuration" "test" {
   name = %[1]q
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.current.name
   }
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.alternate.name
   }
 }
@@ -821,6 +846,10 @@ resource "aws_imagebuilder_distribution_configuration" "test" {
   name = %[1]q
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.current.name
   }
 }
@@ -835,6 +864,10 @@ resource "aws_imagebuilder_distribution_configuration" "test" {
   name = %[1]q
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.current.name
   }
 
@@ -853,6 +886,10 @@ resource "aws_imagebuilder_distribution_configuration" "test" {
   name = %[1]q
 
   distribution {
+    ami_distribution_configuration {
+      name = "{{ imagebuilder:buildDate }}"
+    }
+
     region = data.aws_region.current.name
   }
 

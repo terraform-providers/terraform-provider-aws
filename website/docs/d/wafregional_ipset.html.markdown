@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_wafregional_ipset" "example" {
   name = "tfWAFRegionalIPSet"
 }

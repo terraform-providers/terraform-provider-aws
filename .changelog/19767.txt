@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_datasync_location_nfs: Add support for updating.
+```
+
+```release-note:enhancement
+resource/aws_datasync_location_nfs: Add `mount_options` argument.
+```
+
+```release-note:enhancement
+resource/aws_datasync_location_nfs: Add plan time validation for `on_prem_config.agent_arns`, `server_hostname`, and `subdirectory`.
+```

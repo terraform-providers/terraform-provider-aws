@@ -1,0 +1,12 @@
+```release-note:enhancement
+resource/aws_ssm_patch_baseline: Adds plan time validation for `name`, `description`, `global_filter.key`, `global_filter.values`,
+`approved_patches`, `rejected_patches`, `approval_rule.approve_after_days`, `approval_rule.patch_filter.key`, and `approval_rule.patch_filter.values`.
+```
+
+```release-note:enhancement
+resource/aws_ssm_patch_baseline: Add `approved_patches_enable_non_security` and `rejected_patches_action` arguments
+```
+
+```release-note:enhancement
+resource/aws_ssm_patch_baseline: Adds `arn` attribute.
+```

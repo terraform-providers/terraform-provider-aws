@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_acmpca_certificate_authority: Add `s3_object_acl` argument to `revocation_configuration.crl_configuration` configuration block
+```

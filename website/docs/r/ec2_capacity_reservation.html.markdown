@@ -12,7 +12,7 @@ Provides an EC2 Capacity Reservation. This allows you to reserve capacity for yo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_capacity_reservation" "default" {
   instance_type     = "t2.micro"
   instance_platform = "Linux/UNIX"
@@ -34,7 +34,8 @@ The following arguments are supported:
 * `instance_match_criteria` - (Optional) Indicates the type of instance launches that the Capacity Reservation accepts. Specify either `open` or `targeted`.
 * `instance_platform` - (Required) The type of operating system for which to reserve capacity. Valid options are `Linux/UNIX`, `Red Hat Enterprise Linux`, `SUSE Linux`, `Windows`, `Windows with SQL Server`, `Windows with SQL Server Enterprise`, `Windows with SQL Server Standard` or `Windows with SQL Server Web`.
 * `instance_type` - (Required) The instance type for which to reserve capacity.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `outpost_arn` - (Optional) The Amazon Resource Name (ARN) of the Outpost on which to create the Capacity Reservation.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `tenancy` - (Optional) Indicates the tenancy of the Capacity Reservation. Specify either `default` or `dedicated`.
 
 ## Attributes Reference
@@ -42,7 +43,9 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Capacity Reservation ID.
+* `owner_id` - The ID of the AWS account that owns the Capacity Reservation.
 * `arn` - The ARN of the Capacity Reservation.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block)
 
 ## Import
 

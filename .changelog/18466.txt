@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_network_interface_sg_attachment: Handle read-after-create eventual consistency
+```

@@ -6,13 +6,16 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsNetworkAclRule() *schema.Resource {
@@ -123,6 +126,9 @@ func resourceAwsNetworkAclRule() *schema.Resource {
 
 func resourceAwsNetworkAclRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	egress := d.Get("egress").(bool)
+	networkAclID := d.Get("network_acl_id").(string)
+	ruleNumber := d.Get("rule_number").(int)
 
 	protocol := d.Get("protocol").(string)
 	p, protocolErr := strconv.Atoi(protocol)
@@ -136,9 +142,9 @@ func resourceAwsNetworkAclRuleCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] Transformed Protocol %s into %d", protocol, p)
 
 	params := &ec2.CreateNetworkAclEntryInput{
-		NetworkAclId: aws.String(d.Get("network_acl_id").(string)),
-		Egress:       aws.Bool(d.Get("egress").(bool)),
-		RuleNumber:   aws.Int64(int64(d.Get("rule_number").(int))),
+		NetworkAclId: aws.String(networkAclID),
+		Egress:       aws.Bool(egress),
+		RuleNumber:   aws.Int64(int64(ruleNumber)),
 		Protocol:     aws.String(strconv.Itoa(p)),
 		RuleAction:   aws.String(d.Get("rule_action").(string)),
 		PortRange: &ec2.PortRange{
@@ -169,63 +175,83 @@ func resourceAwsNetworkAclRuleCreate(d *schema.ResourceData, meta interface{}) e
 		if v, ok := d.GetOk("icmp_type"); ok {
 			icmpType, err := strconv.Atoi(v.(string))
 			if err != nil {
-				return fmt.Errorf("Unable to parse ICMP type %s for rule %d", v, d.Get("rule_number").(int))
+				return fmt.Errorf("Unable to parse ICMP type %s for rule %d", v, ruleNumber)
 			}
 			params.IcmpTypeCode.Type = aws.Int64(int64(icmpType))
-			log.Printf("[DEBUG] Got ICMP type %d for rule %d", icmpType, d.Get("rule_number").(int))
+			log.Printf("[DEBUG] Got ICMP type %d for rule %d", icmpType, ruleNumber)
 		}
 		if v, ok := d.GetOk("icmp_code"); ok {
 			icmpCode, err := strconv.Atoi(v.(string))
 			if err != nil {
-				return fmt.Errorf("Unable to parse ICMP code %s for rule %d", v, d.Get("rule_number").(int))
+				return fmt.Errorf("Unable to parse ICMP code %s for rule %d", v, ruleNumber)
 			}
 			params.IcmpTypeCode.Code = aws.Int64(int64(icmpCode))
-			log.Printf("[DEBUG] Got ICMP code %d for rule %d", icmpCode, d.Get("rule_number").(int))
+			log.Printf("[DEBUG] Got ICMP code %d for rule %d", icmpCode, ruleNumber)
 		}
 	}
 
-	log.Printf("[INFO] Creating Network Acl Rule: %d (%t)", d.Get("rule_number").(int), d.Get("egress").(bool))
+	log.Printf("[INFO] Creating Network Acl Rule: %d (%t)", ruleNumber, egress)
 	_, err := conn.CreateNetworkAclEntry(params)
-	if err != nil {
-		return fmt.Errorf("Error Creating Network Acl Rule: %s", err.Error())
-	}
-	d.SetId(networkAclIdRuleNumberEgressHash(d.Get("network_acl_id").(string), d.Get("rule_number").(int), d.Get("egress").(bool), d.Get("protocol").(string)))
 
-	// It appears it might be a while until the newly created rule is visible via the
-	// API (see issue GH-4721). Retry the `findNetworkAclRule` function until it is
-	// visible (which in most cases is likely immediately).
-	var r *ec2.NetworkAclEntry
-	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		r, err = findNetworkAclRule(d, meta)
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-		if r == nil {
-			return resource.RetryableError(fmt.Errorf("Network ACL rule (%s) not found", d.Id()))
-		}
-
-		return nil
-	})
-	if isResourceTimeoutError(err) {
-		r, err = findNetworkAclRule(d, meta)
-		if r == nil {
-			return fmt.Errorf("Network ACL rule (%s) not found", d.Id())
-		}
-	}
 	if err != nil {
-		return fmt.Errorf("Created Network ACL Rule was not visible in API within 3 minute period. Running 'terraform apply' again will resume infrastructure creation.")
+		return fmt.Errorf("error creating Network ACL (%s) Egress (%t) Rule (%d): %w", networkAclID, egress, ruleNumber, err)
 	}
+
+	d.SetId(networkAclIdRuleNumberEgressHash(networkAclID, ruleNumber, egress, d.Get("protocol").(string)))
 
 	return resourceAwsNetworkAclRuleRead(d, meta)
 }
 
 func resourceAwsNetworkAclRuleRead(d *schema.ResourceData, meta interface{}) error {
-	resp, err := findNetworkAclRule(d, meta)
-	if err != nil {
-		return err
+	conn := meta.(*AWSClient).ec2conn
+	egress := d.Get("egress").(bool)
+	networkAclID := d.Get("network_acl_id").(string)
+	ruleNumber := d.Get("rule_number").(int)
+
+	var resp *ec2.NetworkAclEntry
+
+	err := resource.Retry(waiter.NetworkAclEntryPropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = finder.NetworkAclEntry(conn, networkAclID, egress, ruleNumber)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, "InvalidNetworkAclID.NotFound") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if d.IsNewResource() && resp == nil {
+			return resource.RetryableError(&resource.NotFoundError{
+				LastError: fmt.Errorf("EC2 Network ACL (%s) Egress (%t) Rule (%d) not found", networkAclID, egress, ruleNumber),
+			})
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = finder.NetworkAclEntry(conn, networkAclID, egress, ruleNumber)
 	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, "InvalidNetworkAclID.NotFound") {
+		log.Printf("[WARN] EC2 Network ACL (%s) not found, removing from state", networkAclID)
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading EC2 Network ACL (%s) Egress (%t) Rule (%d): %w", networkAclID, egress, ruleNumber, err)
+	}
+
 	if resp == nil {
-		log.Printf("[DEBUG] Network ACL rule (%s) not found", d.Id())
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading EC2 Network ACL (%s) Egress (%t) Rule (%d): not found after creation", networkAclID, egress, ruleNumber)
+		}
+
+		log.Printf("[WARN] EC2 Network ACL (%s) Egress (%t) Rule (%d) not found, removing from state", networkAclID, egress, ruleNumber)
 		d.SetId("")
 		return nil
 	}
@@ -276,61 +302,6 @@ func resourceAwsNetworkAclRuleDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func findNetworkAclRule(d *schema.ResourceData, meta interface{}) (*ec2.NetworkAclEntry, error) {
-	conn := meta.(*AWSClient).ec2conn
-
-	filters := make([]*ec2.Filter, 0, 2)
-	ruleNumberFilter := &ec2.Filter{
-		Name:   aws.String("entry.rule-number"),
-		Values: []*string{aws.String(fmt.Sprintf("%d", d.Get("rule_number").(int)))},
-	}
-	filters = append(filters, ruleNumberFilter)
-	egressFilter := &ec2.Filter{
-		Name:   aws.String("entry.egress"),
-		Values: []*string{aws.String(fmt.Sprintf("%v", d.Get("egress").(bool)))},
-	}
-	filters = append(filters, egressFilter)
-	params := &ec2.DescribeNetworkAclsInput{
-		NetworkAclIds: []*string{aws.String(d.Get("network_acl_id").(string))},
-		Filters:       filters,
-	}
-
-	log.Printf("[INFO] Describing Network Acl: %s", d.Get("network_acl_id").(string))
-	log.Printf("[INFO] Describing Network Acl with the Filters %#v", params)
-	resp, err := conn.DescribeNetworkAcls(params)
-
-	if isAWSErr(err, "InvalidNetworkAclID.NotFound", "") {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("Error Finding Network Acl Rule %d: %s", d.Get("rule_number").(int), err.Error())
-	}
-
-	if resp == nil || len(resp.NetworkAcls) == 0 || resp.NetworkAcls[0] == nil {
-		// Missing NACL rule.
-		return nil, nil
-	}
-	if len(resp.NetworkAcls) > 1 {
-		return nil, fmt.Errorf(
-			"Expected to find one Network ACL, got: %#v",
-			resp.NetworkAcls)
-	}
-	networkAcl := resp.NetworkAcls[0]
-	if networkAcl.Entries != nil {
-		for _, i := range networkAcl.Entries {
-			if *i.RuleNumber == int64(d.Get("rule_number").(int)) && *i.Egress == d.Get("egress").(bool) {
-				return i, nil
-			}
-		}
-		return nil, nil
-	}
-	return nil, fmt.Errorf(
-		"Expected the Network ACL to have Entries, got: %#v",
-		networkAcl)
-
 }
 
 func networkAclIdRuleNumberEgressHash(networkAclId string, ruleNumber int, egress bool, protocol string) string {

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-cty/cty/msgpack"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/hcl2shim"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plans/objchange"
@@ -1152,7 +1152,10 @@ func pathToAttributePath(path cty.Path) *tftypes.AttributePath {
 		}
 	}
 
-	return &tftypes.AttributePath{Steps: steps}
+	if len(steps) < 1 {
+		return nil
+	}
+	return tftypes.NewAttributePathWithSteps(steps)
 }
 
 // helper/schema throws away timeout values from the config and stores them in

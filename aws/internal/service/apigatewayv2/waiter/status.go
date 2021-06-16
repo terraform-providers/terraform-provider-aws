@@ -2,10 +2,13 @@ package waiter
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/apigatewayv2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 // DeploymentStatus fetches the Deployment and its Status
@@ -29,6 +32,26 @@ func DeploymentStatus(conn *apigatewayv2.ApiGatewayV2, apiId, deploymentId strin
 		}
 
 		return output, aws.StringValue(output.DeploymentStatus), nil
+	}
+}
+
+func DomainNameStatus(conn *apigatewayv2.ApiGatewayV2, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		domainName, err := finder.DomainNameByName(conn, name)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if statusMessage := aws.StringValue(domainName.DomainNameConfigurations[0].DomainNameStatusMessage); statusMessage != "" {
+			log.Printf("[INFO] API Gateway v2 domain name (%s) status message: %s", name, statusMessage)
+		}
+
+		return domainName, aws.StringValue(domainName.DomainNameConfigurations[0].DomainNameStatus), nil
 	}
 }
 

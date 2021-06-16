@@ -16,7 +16,7 @@ To configure [Instance Groups](https://docs.aws.amazon.com/emr/latest/Management
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
@@ -148,7 +148,7 @@ example Terraform configuration at the bottom of this page.
 
 ## Instance Fleet
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
   master_instance_fleet {
@@ -245,7 +245,7 @@ is implemented as a step. It is highly recommended to utilize the
 [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` if other
 steps are being managed outside of Terraform.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 
@@ -270,7 +270,7 @@ resource "aws_emr_cluster" "example" {
 
 Available in EMR version 5.23.0 and later, an EMR Cluster can be launched with three master nodes for high availability. Additional information about this functionality and its requirements can be found in the [EMR Management Guide](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan-ha.html).
 
-```hcl
+```terraform
 # This configuration is for illustrative purposes and highlights
 # only relevant configurations for working with this functionality.
 
@@ -340,7 +340,7 @@ The following arguments are supported:
 ~> **NOTE on configurations_json:** If the `Configurations` value is empty then you should skip
 the `Configurations` field instead of providing empty list as value `"Configurations": []`.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "cluster" {
   # ... other configuration ...
 
@@ -367,7 +367,7 @@ EOF
 * `autoscaling_role` - (Optional) An IAM role for automatic scaling policies. The IAM role provides permissions that the automatic scaling feature requires to launch and terminate EC2 instances in an instance group.
 * `step` - (Optional) List of steps to run when creating the cluster. Defined below. It is highly recommended to utilize the [lifecycle configuration block](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html) with `ignore_changes` if other steps are being managed outside of Terraform. This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
 * `step_concurrency_level` - (Optional) The number of steps that can be executed concurrently. You can specify a maximum of 256 steps. Only valid for EMR clusters with `release_label` 5.28.0 or greater. (default is 1)
-* `tags` - (Optional) list of tags to apply to the EMR Cluster
+* `tags` - (Optional) list of tags to apply to the EMR Cluster. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## core_instance_group Configuration Block
 
@@ -386,6 +386,7 @@ Attributes for the Amazon EC2 instances running the job flow
 
 * `key_name` - (Optional) Amazon EC2 key pair that can be used to ssh to the master node as the user called `hadoop`
 * `subnet_id` - (Optional) VPC subnet id where you want the job flow to launch. Cannot specify the `cc1.4xlarge` instance type for nodes of a job flow launched in a Amazon VPC
+* `subnet_ids` - (Optional) List of VPC subnet id-s where you want the job flow to launch.  Amazon EMR identifies the best Availability Zone to launch instances according to your fleet specifications
 * `additional_master_security_groups` - (Optional) String containing a comma separated list of additional Amazon EC2 security group IDs for the master node
 * `additional_slave_security_groups` - (Optional) String containing a comma separated list of additional Amazon EC2 security group IDs for the slave nodes as a comma separated string
 * `emr_managed_master_security_group` - (Optional) Identifier of the Amazon EC2 EMR-Managed security group for the master node
@@ -535,7 +536,7 @@ In addition to all arguments above, the following attributes are exported:
 * `configurations` - The list of Configurations supplied to the EMR cluster.
 * `service_role` - The IAM role that will be assumed by the Amazon EMR service to access AWS resources on your behalf.
 * `visible_to_all_users` - Indicates whether the job flow is visible to all IAM users of the AWS account associated with the job flow.
-* `tags` - The list of tags associated with a cluster.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Example bootable config
 
@@ -543,7 +544,7 @@ In addition to all arguments above, the following attributes are exported:
 boot an example EMR Cluster. It is not meant to display best practices. Please
 use at your own risk.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
@@ -852,7 +853,7 @@ $ terraform import aws_emr_cluster.cluster j-123456ABCDEF
 
 Since the API does not return the actual values for Kerberos configurations, environments with those Terraform configurations will need to use the [`lifecycle` configuration block `ignore_changes` argument](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) available to all Terraform resources to prevent perpetual differences, e.g.
 
-```hcl
+```terraform
 resource "aws_emr_cluster" "example" {
   # ... other configuration ...
 

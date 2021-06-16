@@ -80,6 +80,7 @@ func TestAccAWSDBParameterGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -166,6 +167,23 @@ func TestAccAWSDBParameterGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSDBParameterGroup_caseWithMixedParameters(t *testing.T) {
+	groupName := fmt.Sprintf("parameter-group-test-terraform-%d", acctest.RandInt())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBParameterGroupConfigCaseWithMixedParameters(groupName),
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+		},
+	})
+}
+
 func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 	var v rds.DBParameterGroup
 	resourceName := "aws_db_parameter_group.test"
@@ -173,6 +191,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -286,7 +305,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "event_scheduler",
-						"value": "ON",
+						"value": "on",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "innodb_buffer_pool_dump_at_shutdown",
@@ -322,7 +341,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "log_output",
-						"value": "FILE",
+						"value": "file",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "max_allowed_packet",
@@ -346,7 +365,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "tx_isolation",
-						"value": "REPEATABLE-READ",
+						"value": "repeatable-read",
 					}),
 				),
 			},
@@ -465,7 +484,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "event_scheduler",
-						"value": "ON",
+						"value": "on",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "innodb_buffer_pool_dump_at_shutdown",
@@ -501,7 +520,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "log_output",
-						"value": "FILE",
+						"value": "file",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "max_allowed_packet",
@@ -525,7 +544,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "tx_isolation",
-						"value": "REPEATABLE-READ",
+						"value": "repeatable-read",
 					}),
 				),
 			},
@@ -540,6 +559,7 @@ func TestAccAWSDBParameterGroup_Disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -560,6 +580,7 @@ func TestAccAWSDBParameterGroup_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -579,6 +600,7 @@ func TestAccAWSDBParameterGroup_generatedName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -599,6 +621,7 @@ func TestAccAWSDBParameterGroup_withApplyMethod(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -638,6 +661,7 @@ func TestAccAWSDBParameterGroup_Only(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -666,6 +690,7 @@ func TestAccAWSDBParameterGroup_MatchDefault(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -694,6 +719,7 @@ func TestAccAWSDBParameterGroup_updateParameters(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
@@ -905,6 +931,51 @@ resource "aws_db_parameter_group" "test" {
   }
 }
 `, n)
+}
+
+func testAccAWSDBParameterGroupConfigCaseWithMixedParameters(n string) string {
+	return composeConfig(testAccAWSDBInstanceConfig_orderableClassMysql(), fmt.Sprintf(`
+resource "aws_db_parameter_group" "test" {
+  name   = %[1]q
+  family = "mysql5.6"
+
+  parameter {
+    name         = "character_set_server"
+    value        = "utf8mb4"
+    apply_method = "pending-reboot"
+  }
+  parameter {
+    name         = "innodb_large_prefix"
+    value        = 1
+    apply_method = "pending-reboot"
+  }
+  parameter {
+    name         = "innodb_file_format"
+    value        = "Barracuda"
+    apply_method = "pending-reboot"
+  }
+  parameter {
+    name         = "innodb_log_file_size"
+    value        = 2147483648
+    apply_method = "pending-reboot"
+  }
+  parameter {
+    name         = "sql_mode"
+    value        = "STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+    apply_method = "pending-reboot"
+  }
+  parameter {
+    name         = "innodb_log_buffer_size"
+    value        = 268435456
+    apply_method = "pending-reboot"
+  }
+  parameter {
+    name         = "max_allowed_packet"
+    value        = 268435456
+    apply_method = "pending-reboot"
+  }
+}
+`, n))
 }
 
 func testAccAWSDBParameterGroupConfigWithApplyMethod(n string) string {

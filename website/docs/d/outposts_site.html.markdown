@@ -12,7 +12,7 @@ Provides details about an Outposts Site.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_outposts_site" "example" {
   name = "example"
 }

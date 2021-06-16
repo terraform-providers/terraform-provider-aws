@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_servicecatalog_organizations_access
+```
+
+```release-note:new-resource
+aws_servicecatalog_portfolio_share
+```

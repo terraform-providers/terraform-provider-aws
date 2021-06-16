@@ -12,7 +12,7 @@ The CodeArtifact Repository Endpoint data source returns the endpoint of a repos
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_codeartifact_repository_endpoint" "test" {
   domain     = aws_codeartifact_domain.test.domain
   repository = aws_codeartifact_repository.test.repository

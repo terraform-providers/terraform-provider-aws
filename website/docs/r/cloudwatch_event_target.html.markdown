@@ -14,7 +14,7 @@ Provides an EventBridge Target resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_target" "yada" {
   target_id = "Yada"
   rule      = aws_cloudwatch_event_rule.console.name
@@ -58,7 +58,7 @@ resource "aws_kinesis_stream" "test_stream" {
 
 ## Example SSM Document Usage
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "ssm_lifecycle_trust" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -146,7 +146,7 @@ resource "aws_cloudwatch_event_target" "stop_instances" {
 
 ## Example RunCommand Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_event_rule" "stop_instances" {
   name                = "StopInstance"
   description         = "Stop instances nightly"
@@ -169,7 +169,7 @@ resource "aws_cloudwatch_event_target" "stop_instances" {
 
 ## Example ECS Run Task with Role and Task Override Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "ecs_events" {
   name = "ecs_events"
 
@@ -237,6 +237,39 @@ DOC
 }
 ```
 
+## Example API Gateway target
+
+```terraform
+resource "aws_cloudwatch_event_target" "example" {
+  arn  = "${aws_api_gateway_stage.example.execution_arn}/GET"
+  rule = aws_cloudwatch_event_rule.example.id
+
+  http_target {
+    query_string_parameters = {
+      Body = "$.detail.body"
+    }
+    header_parameters = {
+      Env = "Test"
+    }
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "example" {
+  # ...
+}
+
+resource "aws_api_gateway_deployment" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  # ...
+}
+
+resource "aws_api_gateway_stage" "example" {
+  rest_api_id   = aws_api_gateway_rest_api.example.id
+  deployment_id = aws_api_gateway_deployment.example.id
+  # ...
+}
+```
+
 ## Example Input Transformer Usage - JSON Object
 
 ```terraform
@@ -297,7 +330,7 @@ The following arguments are supported:
 * `rule` - (Required) The name of the rule you want to add targets to.
 * `event_bus_name` - (Optional) The event bus to associate with the rule. If you omit this, the `default` event bus is used.
 * `target_id` - (Optional) The unique target assignment ID.  If missing, will generate a random, unique id.
-* `arn` - (Required) The Amazon Resource Name (ARN) associated of the target.
+* `arn` - (Required) The Amazon Resource Name (ARN) of the target.
 * `input` - (Optional) Valid JSON text passed to the target. Conflicts with `input_path` and `input_transformer`.
 * `input_path` - (Optional) The value of the [JSONPath](http://goessner.net/articles/JsonPath/) that is used for extracting part of the matched event when passing it to the target. Conflicts with `input` and `input_transformer`.
 * `role_arn` - (Optional) The Amazon Resource Name (ARN) of the IAM role to be used for this target when the rule is triggered. Required if `ecs_target` is used.
@@ -306,7 +339,10 @@ The following arguments are supported:
 * `batch_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Batch Job. Documented below. A maximum of 1 are allowed.
 * `kinesis_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Kinesis Stream. Documented below. A maximum of 1 are allowed.
 * `sqs_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon SQS Queue. Documented below. A maximum of 1 are allowed.
+* `http_target` - (Optional) Parameters used when you are using the rule to invoke an API Gateway REST endpoint. Documented below. A maximum of 1 is allowed.
 * `input_transformer` - (Optional) Parameters used when you are providing a custom input to a target based on certain event data. Conflicts with `input` and `input_path`.
+* `retry_policy` - (Optional)  Parameters used when you are providing retry policies. Documented below. A maximum of 1 are allowed.
+* `dead_letter_config` - (Optional)  Parameters used when you are providing a dead letter config. Documented below. A maximum of 1 are allowed.
 
 `run_command_targets` support the following:
 
@@ -316,7 +352,7 @@ The following arguments are supported:
 `ecs_target` support the following:
 
 * `group` - (Optional) Specifies an ECS task group for the task. The maximum length is 255 characters.
-* `launch_type` - (Optional) Specifies the launch type on which your task is running. The launch type that you specify here must match one of the launch type (compatibilities) of the target task. Valid values are `EC2` or `FARGATE`.
+* `launch_type` - (Optional) Specifies the launch type on which your task is running. The launch type that you specify here must match one of the launch type (compatibilities) of the target task. Valid values include: an empty string `""` (to specify no launch type), `EC2`, or `FARGATE`.
 * `network_configuration` - (Optional) Use this if the ECS task uses the awsvpc network mode. This specifies the VPC subnets and security groups associated with the task, and whether a public IP address is to be used. Required if launch_type is FARGATE because the awsvpc mode is required for Fargate tasks.
 * `platform_version` - (Optional) Specifies the platform version for the task. Specify only the numeric portion of the platform version, such as 1.1.0. This is used only if LaunchType is FARGATE. For more information about valid platform versions, see [AWS Fargate Platform Versions](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/platform_versions.html).
 * `task_count` - (Optional) The number of tasks to create based on the TaskDefinition. The default is 1.
@@ -345,14 +381,33 @@ For more information, see [Task Networking](https://docs.aws.amazon.com/AmazonEC
 
 * `message_group_id` - (Optional) The FIFO message group ID to use as the target.
 
+`http_target`support the following:
+
+* `path_parameter_values` - (Optional) The list of values that correspond sequentially to any path variables in your endpoint ARN (for example `arn:aws:execute-api:us-east-1:123456:myapi/*/POST/pets/*`).
+* `query_string_parameters` - (Optional) Represents keys/values of query string parameters that are appended to the invoked endpoint.
+* `header_parameters` - (Optional) Enables you to specify HTTP headers to add to the request.
+
 `input_transformer` support the following:
 
 * `input_paths` - (Optional) Key value pairs specified in the form of JSONPath (for example, time = $.time)
-    * You can have as many as 10 key-value pairs.
+    * You can have as many as 100 key-value pairs.
     * You must use JSON dot notation, not bracket notation.
     * The keys can't start with "AWS".
 
 * `input_template` - (Required) Template to customize data sent to the target. Must be valid JSON. To send a string value, the string value must include double quotes. Values must be escaped for both JSON and Terraform, e.g. `"\"Your string goes here.\\nA new line.\""`
+
+`retry_policy` support the following:
+
+* `maximum_event_age_in_seconds` - (Optional) The age in seconds to continue to make retry attempts.
+* `maximum_retry_attempts` - (Optional) maximum number of retry attempts to make before the request fails
+
+`dead_letter_config` support the following:
+
+* `arn` - (Optional) - ARN of the SQS queue specified as the target for the dead-letter queue.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

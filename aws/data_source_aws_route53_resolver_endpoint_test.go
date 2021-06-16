@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -18,7 +19,7 @@ func TestAccAWSRoute53ResolverEndpointDataSource_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t) },
-		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		ErrorCheck: testAccErrorCheck(t, route53resolver.EndpointsID),
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAWSRoute53ResolverEndpointDataSource_Filter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t) },
-		ErrorCheck: testAccErrorCheckSkipRoute53(t),
+		ErrorCheck: testAccErrorCheck(t, route53resolver.EndpointsID),
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{

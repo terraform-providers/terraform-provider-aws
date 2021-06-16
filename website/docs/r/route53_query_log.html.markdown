@@ -18,7 +18,7 @@ See [Configuring Logging for DNS Queries](https://docs.aws.amazon.com/Route53/la
 
 ## Example Usage
 
-```hcl
+```terraform
 # Example CloudWatch log group in us-east-1
 
 provider "aws" {

@@ -14,7 +14,7 @@ Provides a resource to manage an S3 Control Bucket Policy.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3control_bucket_policy" "example" {
   bucket = aws_s3control_bucket.example.arn
   policy = jsonencode({

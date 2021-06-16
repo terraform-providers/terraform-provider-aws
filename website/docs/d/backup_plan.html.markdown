@@ -12,7 +12,7 @@ Use this data source to get information on an existing backup plan.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_backup_plan" "example" {
   plan_id = "tf_example_backup_plan_id"
 }

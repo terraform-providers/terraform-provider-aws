@@ -94,7 +94,7 @@ func dataSourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("registered_container_instances_count", cluster.RegisteredContainerInstancesCount)
 
 	if err := d.Set("setting", flattenEcsSettings(cluster.Settings)); err != nil {
-		return fmt.Errorf("error setting setting: %s", err)
+		return fmt.Errorf("error setting setting: %w", err)
 	}
 
 	return nil

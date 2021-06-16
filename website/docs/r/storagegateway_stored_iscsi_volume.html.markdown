@@ -16,7 +16,7 @@ Manages an AWS Storage Gateway stored iSCSI volume.
 
 ### Create Empty Stored iSCSI Volume
 
-```hcl
+```terraform
 resource "aws_storagegateway_stored_iscsi_volume" "example" {
   gateway_arn            = aws_storagegateway_cache.example.gateway_arn
   network_interface_id   = aws_instance.example.private_ip
@@ -28,7 +28,7 @@ resource "aws_storagegateway_stored_iscsi_volume" "example" {
 
 ### Create Stored iSCSI Volume From Snapshot
 
-```hcl
+```terraform
 resource "aws_storagegateway_stored_iscsi_volume" "example" {
   gateway_arn            = aws_storagegateway_cache.example.gateway_arn
   network_interface_id   = aws_instance.example.private_ip
@@ -51,7 +51,7 @@ The following arguments are supported:
 * `snapshot_id` - (Optional) The snapshot ID of the snapshot to restore as the new stored volume. e.g. `snap-1122aabb`.
 * `kms_encrypted` - (Optional) `true` to use Amazon S3 server side encryption with your own AWS KMS key, or `false` to use a key managed by Amazon S3. Optional.
 * `kms_key` - (Optional) The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server side encryption. This value can only be set when `kms_encrypted` is `true`.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value mapping of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -62,6 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Volume Amazon Resource Name (ARN), e.g. `arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678`.
 * `lun_number` - Logical disk number.
 * `network_interface_port` - The port used to communicate with iSCSI targets.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `target_arn` - Target Amazon Resource Name (ARN), e.g. `arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/target/iqn.1997-05.com.amazon:TargetName`.
 * `volume_arn` - Volume Amazon Resource Name (ARN), e.g. `arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678`.
 * `volume_id` - Volume ID, e.g. `vol-12345678`.
@@ -75,5 +76,5 @@ In addition to all arguments above, the following attributes are exported:
 `aws_storagegateway_stored_iscsi_volume` can be imported by using the volume Amazon Resource Name (ARN), e.g.
 
 ```
-$ terraform import aws_storagegateway_cache.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678
+$ terraform import aws_storagegateway_stored_iscsi_volume.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678
 ```

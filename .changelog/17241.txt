@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_cloudwatch_event_target: Adds `retry_policy` attributes
+```
+
+```release-note:enhancement
+resource/aws_cloudwatch_event_target: Adds `dead_letter_config` attributes
+```

@@ -12,7 +12,7 @@ Provides a WAF Web ACL Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_waf_ipset" "ipset" {
   name = "tfIPSet"
 
@@ -62,7 +62,7 @@ resource "aws_waf_web_acl" "waf_acl" {
 
 ~> *NOTE:* The Kinesis Firehose Delivery Stream name must begin with `aws-waf-logs-` and be located in `us-east-1` region. See the [AWS WAF Developer Guide](https://docs.aws.amazon.com/waf/latest/developerguide/logging.html) for more information about enabling WAF logging.
 
-```hcl
+```terraform
 resource "aws_waf_web_acl" "example" {
   # ... other configuration ...
   logging_configuration {
@@ -91,7 +91,7 @@ The following arguments are supported:
 * `name` - (Required) The name or description of the web ACL.
 * `rules` - (Optional) Configuration blocks containing rules to associate with the web ACL and the settings for each rule. Detailed below.
 * `logging_configuration` - (Optional) Configuration block to enable WAF logging. Detailed below.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### `default_action` Configuration Block
 
@@ -133,6 +133,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF WebACL.
 * `arn` - The ARN of the WAF WebACL.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

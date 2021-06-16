@@ -3,33 +3,41 @@ package waiter
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/datasync/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const (
-	TaskStatusUnknown = "Unknown"
+	agentStatusReady = "ready"
 )
 
-// TaskStatus fetches the Operation and its Status
-func TaskStatus(conn *datasync.DataSync, arn string) resource.StateRefreshFunc {
+func AgentStatus(conn *datasync.DataSync, arn string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		input := &datasync.DescribeTaskInput{
-			TaskArn: aws.String(arn),
-		}
+		output, err := finder.AgentByARN(conn, arn)
 
-		output, err := conn.DescribeTask(input)
-
-		if tfawserr.ErrMessageContains(err, datasync.ErrCodeInvalidRequestException, "not found") {
+		if tfresource.NotFound(err) {
 			return nil, "", nil
 		}
 
 		if err != nil {
-			return output, TaskStatusUnknown, err
+			return nil, "", err
 		}
 
-		if output == nil {
-			return output, TaskStatusUnknown, nil
+		return output, agentStatusReady, nil
+	}
+}
+
+func TaskStatus(conn *datasync.DataSync, arn string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.TaskByARN(conn, arn)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
 		}
 
 		return output, aws.StringValue(output.Status), nil

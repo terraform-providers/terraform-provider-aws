@@ -16,7 +16,7 @@ Provides an API Gateway REST API Policy.
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_api_gateway_rest_api" "test" {
   name = "example-rest-api"
 }

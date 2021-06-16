@@ -12,7 +12,7 @@ Provides a CloudWatch Log Metric Filter resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_metric_filter" "yada" {
   name           = "MyAppAccessCount"
   pattern        = ""
@@ -45,7 +45,8 @@ The `metric_transformation` block supports the following arguments:
 * `name` - (Required) The name of the CloudWatch metric to which the monitored log information should be published (e.g. `ErrorCount`)
 * `namespace` - (Required) The destination namespace of the CloudWatch metric.
 * `value` - (Required) What to publish to the metric. For example, if you're counting the occurrences of a particular term like "Error", the value will be "1" for each occurrence. If you're counting the bytes transferred the published value will be the value in the log event.
-* `default_value` - (Optional) The value to emit when a filter pattern does not match a log event.
+* `default_value` - (Optional) The value to emit when a filter pattern does not match a log event. Conflicts with `dimensions`.
+* `dimensions` - (Optional) Map of fields to use as dimensions for the metric. Up to 3 dimensions are allowed. Conflicts with `default_value`.
 
 ## Attributes Reference
 

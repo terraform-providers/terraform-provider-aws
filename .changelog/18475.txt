@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_sns_topic_subscription: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_sns_topic_subscription: Enforce lowercase `protocol` argument validation to match API and prevent resource errors
+```

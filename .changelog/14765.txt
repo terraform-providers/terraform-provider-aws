@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_lambda_event_source_mapping: Wait for create and update operations to complete
+```

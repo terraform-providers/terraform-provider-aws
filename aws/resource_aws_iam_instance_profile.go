@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsIamInstanceProfile() *schema.Resource {
@@ -28,17 +30,10 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"unique_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -50,7 +45,6 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`^[\w+=,.@-]*$`), "must match [\\w+=,.@-]"),
 				),
 			},
-
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -61,24 +55,32 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`^[\w+=,.@-]*$`), "must match [\\w+=,.@-]"),
 				),
 			},
-
 			"path": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "/",
 				ForceNew: true,
 			},
-
 			"role": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"unique_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -92,15 +94,16 @@ func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{
 	request := &iam.CreateInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
 		Path:                aws.String(d.Get("path").(string)),
+		Tags:                tags.IgnoreAws().IamTags(),
 	}
 
 	var err error
-	response, err := iamconn.CreateInstanceProfile(request)
+	response, err := conn.CreateInstanceProfile(request)
 	if err == nil {
-		err = instanceProfileReadResult(d, response.InstanceProfile)
+		err = instanceProfileReadResult(d, response.InstanceProfile, meta)
 	}
 	if err != nil {
-		return fmt.Errorf("Error creating IAM instance profile %s: %s", name, err)
+		return fmt.Errorf("creating IAM instance profile %s: %w", name, err)
 	}
 
 	waiterRequest := &iam.GetInstanceProfileInput{
@@ -109,27 +112,27 @@ func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{
 	// don't return until the IAM service reports that the instance profile is ready.
 	// this ensures that terraform resources which rely on the instance profile will 'see'
 	// that the instance profile exists.
-	err = iamconn.WaitUntilInstanceProfileExists(waiterRequest)
+	err = conn.WaitUntilInstanceProfileExists(waiterRequest)
 	if err != nil {
-		return fmt.Errorf("Timed out while waiting for instance profile %s: %s", name, err)
+		return fmt.Errorf("timed out while waiting for instance profile %s: %w", name, err)
 	}
 
 	return resourceAwsIamInstanceProfileUpdate(d, meta)
 }
 
-func instanceProfileAddRole(iamconn *iam.IAM, profileName, roleName string) error {
+func instanceProfileAddRole(conn *iam.IAM, profileName, roleName string) error {
 	request := &iam.AddRoleToInstanceProfileInput{
 		InstanceProfileName: aws.String(profileName),
 		RoleName:            aws.String(roleName),
 	}
 
-	err := resource.Retry(30*time.Second, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
-		_, err = iamconn.AddRoleToInstanceProfile(request)
+		_, err = conn.AddRoleToInstanceProfile(request)
 		// IAM unfortunately does not provide a better error code or message for eventual consistency
 		// InvalidParameterValue: Value (XXX) for parameter iamInstanceProfile.name is invalid. Invalid IAM Instance Profile name
 		// NoSuchEntity: The request was rejected because it referenced an entity that does not exist. The error message describes the entity. HTTP Status Code: 404
-		if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile name") || isAWSErr(err, "NoSuchEntity", "The role with name") {
+		if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile name") || isAWSErr(err, iam.ErrCodeNoSuchEntityException, "The role with name") {
 			return resource.RetryableError(err)
 		}
 		if err != nil {
@@ -138,33 +141,33 @@ func instanceProfileAddRole(iamconn *iam.IAM, profileName, roleName string) erro
 		return nil
 	})
 	if isResourceTimeoutError(err) {
-		_, err = iamconn.AddRoleToInstanceProfile(request)
+		_, err = conn.AddRoleToInstanceProfile(request)
 	}
 	if err != nil {
-		return fmt.Errorf("Error adding IAM Role %s to Instance Profile %s: %s", roleName, profileName, err)
+		return fmt.Errorf("adding IAM Role %s to Instance Profile %s: %w", roleName, profileName, err)
 	}
 
 	return err
 }
 
-func instanceProfileRemoveRole(iamconn *iam.IAM, profileName, roleName string) error {
+func instanceProfileRemoveRole(conn *iam.IAM, profileName, roleName string) error {
 	request := &iam.RemoveRoleFromInstanceProfileInput{
 		InstanceProfileName: aws.String(profileName),
 		RoleName:            aws.String(roleName),
 	}
 
-	_, err := iamconn.RemoveRoleFromInstanceProfile(request)
-	if isAWSErr(err, "NoSuchEntity", "") {
+	_, err := conn.RemoveRoleFromInstanceProfile(request)
+	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 		return nil
 	}
 	return err
 }
 
-func instanceProfileRemoveAllRoles(d *schema.ResourceData, iamconn *iam.IAM) error {
+func instanceProfileRemoveAllRoles(d *schema.ResourceData, conn *iam.IAM) error {
 	if role, ok := d.GetOk("role"); ok {
-		err := instanceProfileRemoveRole(iamconn, d.Id(), role.(string))
+		err := instanceProfileRemoveRole(conn, d.Id(), role.(string))
 		if err != nil {
-			return fmt.Errorf("Error removing role %s from IAM instance profile %s: %s", role, d.Id(), err)
+			return fmt.Errorf("removing role %s from IAM instance profile %s: %w", role, d.Id(), err)
 		}
 	}
 
@@ -172,23 +175,31 @@ func instanceProfileRemoveAllRoles(d *schema.ResourceData, iamconn *iam.IAM) err
 }
 
 func resourceAwsIamInstanceProfileUpdate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	if d.HasChange("role") {
 		oldRole, newRole := d.GetChange("role")
 
 		if oldRole.(string) != "" {
-			err := instanceProfileRemoveRole(iamconn, d.Id(), oldRole.(string))
+			err := instanceProfileRemoveRole(conn, d.Id(), oldRole.(string))
 			if err != nil {
-				return fmt.Errorf("Error adding role %s to IAM instance profile %s: %s", oldRole.(string), d.Id(), err)
+				return fmt.Errorf("removing role %s to IAM instance profile %s: %w", oldRole.(string), d.Id(), err)
 			}
 		}
 
 		if newRole.(string) != "" {
-			err := instanceProfileAddRole(iamconn, d.Id(), newRole.(string))
+			err := instanceProfileAddRole(conn, d.Id(), newRole.(string))
 			if err != nil {
-				return fmt.Errorf("Error adding role %s to IAM instance profile %s: %s", newRole.(string), d.Id(), err)
+				return fmt.Errorf("adding role %s to IAM instance profile %s: %w", newRole.(string), d.Id(), err)
 			}
+		}
+	}
+
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
+
+		if err := keyvaluetags.IamInstanceProfileUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating tags for IAM Instance Profile (%s): %w", d.Id(), err)
 		}
 	}
 
@@ -196,44 +207,69 @@ func resourceAwsIamInstanceProfileUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceAwsIamInstanceProfileRead(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	request := &iam.GetInstanceProfileInput{
 		InstanceProfileName: aws.String(d.Id()),
 	}
 
-	result, err := iamconn.GetInstanceProfile(request)
-	if isAWSErr(err, "NoSuchEntity", "") {
+	result, err := conn.GetInstanceProfile(request)
+	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 		log.Printf("[WARN] IAM Instance Profile %s is already gone", d.Id())
 		d.SetId("")
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("Error reading IAM instance profile %s: %s", d.Id(), err)
+		return fmt.Errorf("reading IAM instance profile %s: %w", d.Id(), err)
 	}
 
-	return instanceProfileReadResult(d, result.InstanceProfile)
+	instanceProfile := result.InstanceProfile
+	if instanceProfile.Roles != nil && len(instanceProfile.Roles) > 0 {
+		roleName := aws.StringValue(instanceProfile.Roles[0].RoleName)
+		input := &iam.GetRoleInput{
+			RoleName: aws.String(roleName),
+		}
+
+		_, err := conn.GetRole(input)
+		if err != nil {
+			if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+				err := instanceProfileRemoveRole(conn, d.Id(), roleName)
+				if err != nil {
+					return fmt.Errorf("removing role %s to IAM instance profile %s: %w", roleName, d.Id(), err)
+				}
+			}
+			return fmt.Errorf("reading IAM Role %s attcahed to IAM Instance Profile %s: %w", roleName, d.Id(), err)
+		}
+	}
+
+	return instanceProfileReadResult(d, instanceProfile, meta)
 }
 
 func resourceAwsIamInstanceProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
-	if err := instanceProfileRemoveAllRoles(d, iamconn); err != nil {
+	if err := instanceProfileRemoveAllRoles(d, conn); err != nil {
 		return err
 	}
 
 	request := &iam.DeleteInstanceProfileInput{
 		InstanceProfileName: aws.String(d.Id()),
 	}
-	_, err := iamconn.DeleteInstanceProfile(request)
+	_, err := conn.DeleteInstanceProfile(request)
 	if err != nil {
-		return fmt.Errorf("Error deleting IAM instance profile %s: %s", d.Id(), err)
+		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+			return nil
+		}
+		return fmt.Errorf("deleting IAM instance profile %s: %w", d.Id(), err)
 	}
 
 	return nil
 }
 
-func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfile) error {
+func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfile, meta interface{}) error {
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	d.SetId(aws.StringValue(result.InstanceProfileName))
 	if err := d.Set("name", result.InstanceProfileName); err != nil {
 		return err
@@ -251,6 +287,17 @@ func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfi
 
 	if result.Roles != nil && len(result.Roles) > 0 {
 		d.Set("role", result.Roles[0].RoleName) //there will only be 1 role returned
+	}
+
+	tags := keyvaluetags.IamKeyValueTags(result.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil

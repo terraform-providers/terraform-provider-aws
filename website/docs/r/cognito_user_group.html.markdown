@@ -12,7 +12,7 @@ Provides a Cognito User Group resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "main" {
   name = "identity pool"
 }
@@ -63,6 +63,10 @@ The following arguments are supported:
 * `description` - (Optional) The description of the user group.
 * `precedence` - (Optional) The precedence of the user group.
 * `role_arn` - (Optional) The ARN of the IAM role to be associated with the user group.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

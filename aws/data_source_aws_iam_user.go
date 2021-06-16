@@ -52,7 +52,7 @@ func dataSourceAwsIAMUserRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Reading IAM User: %s", req)
 	resp, err := iamconn.GetUser(req)
 	if err != nil {
-		return fmt.Errorf("error getting user: %s", err)
+		return fmt.Errorf("error getting user: %w", err)
 	}
 
 	user := resp.User

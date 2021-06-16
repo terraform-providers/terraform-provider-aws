@@ -8,13 +8,13 @@ description: |-
 
 # Resource: aws_route53_zone
 
-Manages a Route53 Hosted Zone.
+Manages a Route53 Hosted Zone. For managing Domain Name System Security Extensions (DNSSEC), see the [`aws_route53_key_signing_key`](route53_key_signing_key.html) and [`aws_route53_hosted_zone_dnssec`](route53_hosted_zone_dnssec.html) resources.
 
 ## Example Usage
 
 ### Public Zone
 
-```hcl
+```terraform
 resource "aws_route53_zone" "primary" {
   name = "example.com"
 }
@@ -26,7 +26,7 @@ For use in subdomains, note that you need to create a
 `aws_route53_record` of type `NS` as well as the subdomain
 zone.
 
-```hcl
+```terraform
 resource "aws_route53_zone" "main" {
   name = "example.com"
 }
@@ -54,7 +54,7 @@ resource "aws_route53_record" "dev-ns" {
 
 ~> **NOTE:** Private zones require at least one VPC association at all times.
 
-```hcl
+```terraform
 resource "aws_route53_zone" "private" {
   name = "example.com"
 
@@ -72,7 +72,7 @@ The following arguments are supported:
 * `comment` - (Optional) A comment for the hosted zone. Defaults to 'Managed by Terraform'.
 * `delegation_set_id` - (Optional) The ID of the reusable delegation set whose NS records you want to assign to the hosted zone. Conflicts with `vpc` as delegation sets can only be used for public zones.
 * `force_destroy` - (Optional) Whether to destroy all records (possibly managed outside of Terraform) in the zone when destroying the zone.
-* `tags` - (Optional) A map of tags to assign to the zone.
+* `tags` - (Optional) A map of tags to assign to the zone. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `vpc` - (Optional) Configuration block(s) specifying VPC(s) to associate with a private hosted zone. Conflicts with the `delegation_set_id` argument in this resource and any [`aws_route53_zone_association` resource](/docs/providers/aws/r/route53_zone_association.html) specifying the same zone ID. Detailed below.
 
 ### vpc Argument Reference
@@ -87,6 +87,7 @@ In addition to all arguments above, the following attributes are exported:
 * `zone_id` - The Hosted Zone ID. This can be referenced by zone records.
 * `name_servers` - A list of name servers in associated (or default) delegation set.
   Find more about delegation sets in [AWS docs](https://docs.aws.amazon.com/Route53/latest/APIReference/actions-on-reusable-delegation-sets.html).
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

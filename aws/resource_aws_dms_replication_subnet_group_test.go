@@ -18,6 +18,7 @@ func TestAccAWSDmsReplicationSubnetGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, dms.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: dmsReplicationSubnetGroupDestroy,
 		Steps: []resource.TestStep{

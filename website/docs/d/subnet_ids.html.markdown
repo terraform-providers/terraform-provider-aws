@@ -16,7 +16,7 @@ This resource can be useful for getting back a set of subnet ids for a vpc.
 
 The following shows outputing all cidr blocks for every subnet id in a vpc.
 
-```hcl
+```terraform
 data "aws_subnet_ids" "example" {
   vpc_id = var.vpc_id
 }
@@ -35,7 +35,7 @@ The following example retrieves a set of all subnets in a VPC with a custom
 tag of `Tier` set to a value of "Private" so that the `aws_instance` resource
 can loop through the subnets, putting instances across availability zones.
 
-```hcl
+```terraform
 data "aws_subnet_ids" "private" {
   vpc_id = var.vpc_id
 
@@ -68,7 +68,7 @@ which take the following arguments:
   [the underlying AWS API](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSubnets.html).
   For example, if matching against tag `Name`, use:
 
-```hcl
+```terraform
 data "aws_subnet_ids" "selected" {
   filter {
     name   = "tag:Name"

@@ -16,7 +16,7 @@ Manages a CloudFormation StackSet Instance. Instances are managed in the account
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudformation_stack_set_instance" "example" {
   account_id     = "123456789012"
   region         = "us-east-1"
@@ -26,7 +26,7 @@ resource "aws_cloudformation_stack_set_instance" "example" {
 
 ### Example IAM Setup in Target Account
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "AWSCloudFormationStackSetExecutionRole_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]

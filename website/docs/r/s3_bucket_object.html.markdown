@@ -14,7 +14,7 @@ Provides a S3 bucket object resource.
 
 ### Uploading a file to a bucket
 
-```hcl
+```terraform
 resource "aws_s3_bucket_object" "object" {
   bucket = "your_bucket_name"
   key    = "new_object_key"
@@ -29,7 +29,7 @@ resource "aws_s3_bucket_object" "object" {
 
 ### Encrypting with KMS Key
 
-```hcl
+```terraform
 resource "aws_kms_key" "examplekms" {
   description             = "KMS key 1"
   deletion_window_in_days = 7
@@ -50,7 +50,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ### Server Side Encryption with S3 Default Master Key
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "examplebucket" {
   bucket = "examplebuckettftest"
   acl    = "private"
@@ -66,7 +66,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ### Server Side Encryption with AWS-Managed Key
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "examplebucket" {
   bucket = "examplebuckettftest"
   acl    = "private"
@@ -82,7 +82,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ### S3 Object Lock
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "examplebucket" {
   bucket = "examplebuckettftest"
   acl    = "private"
@@ -135,8 +135,9 @@ This attribute is not compatible with KMS encryption, `kms_key_id` or `server_si
 * `kms_key_id` - (Optional) Amazon Resource Name (ARN) of the KMS Key to use for object encryption. If the S3 Bucket has server-side encryption enabled, that value will automatically be used. If referencing the
 `aws_kms_key` resource, use the `arn` attribute. If referencing the `aws_kms_alias` data source or resource, use the `target_key_arn` attribute. Terraform will only perform drift detection if a configuration value
 is provided.
+* `bucket_key_enabled` - (Optional) Whether or not to use [Amazon S3 Bucket Keys](https://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-key.html) for SSE-KMS.
 * `metadata` - (Optional) A map of keys/values to provision metadata (will be automatically prefixed by `x-amz-meta-`, note that only lowercase label are currently supported by the AWS Go API).
-* `tags` - (Optional) A map of tags to assign to the object.
+* `tags` - (Optional) A map of tags to assign to the object. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `force_destroy` - (Optional) Allow the object to be deleted by removing any legal hold on any object version.
 Default is `false`. This value should be set to `true` only if the bucket has S3 object lock enabled.
 * `object_lock_legal_hold_status` - (Optional) The [legal hold](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock-overview.html#object-lock-legal-holds) status that you want to apply to the specified object. Valid values are `ON` and `OFF`.
@@ -153,5 +154,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - the `key` of the resource supplied above
 * `etag` - the ETag generated for the object (an MD5 sum of the object content). For plaintext objects or objects encrypted with an AWS-managed key, the hash is an MD5 digest of the object data. For objects encrypted with a KMS key or objects created by either the Multipart Upload or Part Copy operation, the hash is not an MD5 digest, regardless of the method of encryption. More information on possible values can be found on [Common Response Headers](https://docs.aws.amazon.com/AmazonS3/latest/API/RESTCommonResponseHeaders.html).
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `version_id` - A unique version ID value for the object, if bucket versioning
 is enabled.

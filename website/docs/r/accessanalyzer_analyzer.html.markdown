@@ -14,7 +14,7 @@ Manages an Access Analyzer Analyzer. More information can be found in the [Acces
 
 ### Account Analyzer
 
-```hcl
+```terraform
 resource "aws_accessanalyzer_analyzer" "example" {
   analyzer_name = "example"
 }
@@ -22,7 +22,7 @@ resource "aws_accessanalyzer_analyzer" "example" {
 
 ### Organization Analyzer
 
-```hcl
+```terraform
 resource "aws_organizations_organization" "example" {
   aws_service_access_principals = ["access-analyzer.amazonaws.com"]
 }
@@ -43,7 +43,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `tags` - (Optional) Key-value map of resource tags.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `type` - (Optional) Type of Analyzer. Valid values are `ACCOUNT` or `ORGANIZATION`. Defaults to `ACCOUNT`.
 
 ## Attributes Reference
@@ -51,6 +51,7 @@ The following arguments are optional:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Analyzer name.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

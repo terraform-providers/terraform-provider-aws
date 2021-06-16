@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_sfn_state_machine: Add `tracing_configuration` attribute
+```
+
+```release-note:bug
+resource/aws_sfn_state_machine: Handle eventual consistency of state machine updates
+```

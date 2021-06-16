@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_lambda_event_source_mapping: Add `topics` attribute to support Amazon MSK as an event source
+```

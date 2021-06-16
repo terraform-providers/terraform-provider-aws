@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_batch_job_definition: Suppress differences for empty `linuxParameters.devices` and `linuxParameters.tmpfs` arrays in the `container_properties` argument
+```

@@ -71,7 +71,7 @@ func dataSourceAwsCodeArtifactAuthorizationTokenRead(d *schema.ResourceData, met
 	log.Printf("[DEBUG] CodeArtifact authorization token: %#v", out)
 
 	d.SetId(fmt.Sprintf("%s:%s", domainOwner, domain))
-	d.Set("authorization_token", aws.StringValue(out.AuthorizationToken))
+	d.Set("authorization_token", out.AuthorizationToken)
 	d.Set("expiration", aws.TimeValue(out.Expiration).Format(time.RFC3339))
 	d.Set("domain_owner", domainOwner)
 

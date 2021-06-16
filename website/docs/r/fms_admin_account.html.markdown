@@ -12,7 +12,7 @@ Provides a resource to associate/disassociate an AWS Firewall Manager administra
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_fms_admin_account" "example" {}
 ```
 

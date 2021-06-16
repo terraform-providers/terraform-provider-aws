@@ -16,7 +16,7 @@ Provides a resource to manage AWS Certificate Manager Private Certificate Author
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_acmpca_certificate_authority" "example" {
   certificate_authority_configuration {
     key_algorithm     = "RSA_4096"
@@ -33,7 +33,7 @@ resource "aws_acmpca_certificate_authority" "example" {
 
 ### Enable Certificate Revocation List
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example"
 }
@@ -94,7 +94,7 @@ The following arguments are supported:
 * `certificate_authority_configuration` - (Required) Nested argument containing algorithms and certificate subject information. Defined below.
 * `enabled` - (Optional) Whether the certificate authority is enabled or disabled. Defaults to `true`.
 * `revocation_configuration` - (Optional) Nested argument containing revocation configuration. Defined below.
-* `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the certificate authority.
+* `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the certificate authority. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `type` - (Optional) The type of the certificate authority. Defaults to `SUBORDINATE`. Valid values: `ROOT` and `SUBORDINATE`.
 * `permanent_deletion_time_in_days` - (Optional) The number of days to make a CA restorable after it has been deleted, must be between 7 to 30 days, with default to 30 days.
 
@@ -132,6 +132,7 @@ Contains information about the certificate subject. Identifies the entity that o
 * `enabled` - (Optional) Boolean value that specifies whether certificate revocation lists (CRLs) are enabled. Defaults to `false`.
 * `expiration_in_days` - (Required) Number of days until a certificate expires. Must be between 1 and 5000.
 * `s3_bucket_name` - (Optional) Name of the S3 bucket that contains the CRL. If you do not provide a value for the `custom_cname` argument, the name of your S3 bucket is placed into the CRL Distribution Points extension of the issued certificate. You must specify a bucket policy that allows ACM PCA to write the CRL to your bucket. Must be less than or equal to 255 characters in length.
+* `s3_object_acl` - (Optional) Determines whether the CRL will be publicly readable or privately held in the CRL Amazon S3 bucket. Defaults to `PUBLIC_READ`.
 
 ## Attributes Reference
 
@@ -146,6 +147,7 @@ In addition to all arguments above, the following attributes are exported:
 * `not_before` - Date and time before which the certificate authority is not valid. Only available after the certificate authority certificate has been imported.
 * `serial` - Serial number of the certificate authority. Only available after the certificate authority certificate has been imported.
 * `status` - Status of the certificate authority.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

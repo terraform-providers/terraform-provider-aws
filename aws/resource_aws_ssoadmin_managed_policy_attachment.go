@@ -64,6 +64,7 @@ func resourceAwsSsoAdminManagedPolicyAttachmentCreate(d *schema.ResourceData, me
 	}
 
 	_, err := conn.AttachManagedPolicyToPermissionSet(input)
+
 	if err != nil {
 		return fmt.Errorf("error attaching Managed Policy to SSO Permission Set (%s): %w", permissionSetArn, err)
 	}

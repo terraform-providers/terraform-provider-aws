@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -27,7 +28,7 @@ func resourceAwsNatGateway() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"allocation_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 
@@ -35,6 +36,14 @@ func resourceAwsNatGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"connectivity_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.ConnectivityTypePublic,
+				ValidateFunc: validation.StringInSlice(ec2.ConnectivityType_Values(), false),
 			},
 
 			"network_interface_id": {
@@ -52,19 +61,34 @@ func resourceAwsNatGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// Create the NAT Gateway
 	createOpts := &ec2.CreateNatGatewayInput{
-		AllocationId:      aws.String(d.Get("allocation_id").(string)),
-		SubnetId:          aws.String(d.Get("subnet_id").(string)),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeNatgateway),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeNatgateway),
+	}
+
+	if v, ok := d.GetOk("allocation_id"); ok {
+		createOpts.AllocationId = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("connectivity_type"); ok {
+		createOpts.ConnectivityType = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("subnet_id"); ok {
+		createOpts.SubnetId = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Create NAT Gateway: %s", *createOpts)
@@ -96,6 +120,7 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	// Refresh the NAT Gateway state
@@ -118,6 +143,7 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Set NAT Gateway attributes
 	ng := ngRaw.(*ec2.NatGateway)
+	d.Set("connectivity_type", ng.ConnectivityType)
 	d.Set("subnet_id", ng.SubnetId)
 
 	// Address
@@ -127,8 +153,15 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("private_ip", address.PrivateIp)
 	d.Set("public_ip", address.PublicIp)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(ng.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(ng.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -137,8 +170,8 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 NAT Gateway (%s) tags: %s", d.Id(), err)

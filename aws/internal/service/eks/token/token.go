@@ -9,6 +9,8 @@ With the following modifications:
  - Use *sts.STS instead of stsiface.STSAPI in Generator interface and GetWithSTS implementation
  - Hard copy and use local Canonicalize implementation instead of "sigs.k8s.io/aws-iam-authenticator/pkg/arn"
  - Fix staticcheck reports
+ - Ignore errorlint reports
+ - Refactor deprecated io/ioutil in Go 1.16
 */
 
 /*
@@ -33,7 +35,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -308,14 +310,14 @@ func (v tokenVerifier) Verify(token string) (*Identity, error) {
 	response, err := v.client.Do(req)
 	if err != nil {
 		// special case to avoid printing the full URL if possible
-		if urlErr, ok := err.(*url.Error); ok {
+		if urlErr, ok := err.(*url.Error); ok { // nolint:errorlint
 			return nil, NewSTSError(fmt.Sprintf("error during GET: %v", urlErr.Err))
 		}
 		return nil, NewSTSError(fmt.Sprintf("error during GET: %v", err))
 	}
 	defer response.Body.Close()
 
-	responseBody, err := ioutil.ReadAll(response.Body)
+	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, NewSTSError(fmt.Sprintf("error reading HTTP result: %v", err))
 	}

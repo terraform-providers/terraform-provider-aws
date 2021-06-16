@@ -1,0 +1,7 @@
+```release-note:note
+data-source/aws_vpc_endpoint_service: The `service_type` argument filtering has been switched from client-side to new EC2 API functionality
+```
+
+```release-note:bug
+data-source/aws_vpc_endpoint_service: Prevent panic with incorrect `service_type` argument values
+```

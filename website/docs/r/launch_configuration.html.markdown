@@ -1,5 +1,5 @@
 ---
-subcategory: "EC2"
+subcategory: "Autoscaling"
 layout: "aws"
 page_title: "AWS: aws_launch_configuration"
 description: |-
@@ -12,7 +12,7 @@ Provides a resource to create a new launch configuration, used for autoscaling g
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -46,7 +46,7 @@ it's recommended to specify `create_before_destroy` in a [lifecycle][2] block.
 Either omit the Launch Configuration `name` attribute, or specify a partial name
 with `name_prefix`.  Example:
 
-```hcl
+```terraform
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -98,7 +98,7 @@ reserve your instances at this price.  See the [AWS Spot Instance
 documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
 for more information or how to launch [Spot Instances][3] with Terraform.
 
-```hcl
+```terraform
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -136,7 +136,7 @@ resource "aws_autoscaling_group" "bar" {
 The following arguments are supported:
 
 * `name` - (Optional) The name of the launch configuration. If you leave
-  this blank, Terraform will auto-generate a unique name.
+  this blank, Terraform will auto-generate a unique name. Conflicts with `name_prefix`.
 * `name_prefix` - (Optional) Creates a unique name beginning with the specified
   prefix. Conflicts with `name`.
 * `image_id` - (Required) The EC2 image ID to launch.
@@ -176,12 +176,13 @@ to understand the implications of using these attributes.
 
 The `root_block_device` mapping supports the following:
 
-* `volume_type` - (Optional) The type of volume. Can be `"standard"`, `"gp2"`,
+* `volume_type` - (Optional) The type of volume. Can be `"standard"`, `"gp2"`, `"gp3"`, `"st1"`, `"sc1"`
   or `"io1"`. (Default: `"standard"`).
 * `volume_size` - (Optional) The size of the volume in gigabytes.
 * `iops` - (Optional) The amount of provisioned
   [IOPS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-io-characteristics.html).
   This must be set with a `volume_type` of `"io1"`.
+* `throughput` - (Optional) The throughput (MiBps) to provision for a `gp3` volume.
 * `delete_on_termination` - (Optional) Whether the volume should be destroyed
   on instance termination (Default: `true`).
 * `encrypted` - (Optional) Whether the volume should be encrypted or not. (Default: `false`).
@@ -193,12 +194,13 @@ Each `ebs_block_device` supports the following:
 
 * `device_name` - (Required) The name of the device to mount.
 * `snapshot_id` - (Optional) The Snapshot ID to mount.
-* `volume_type` - (Optional) The type of volume. Can be `"standard"`, `"gp2"`,
+* `volume_type` - (Optional) The type of volume. Can be `"standard"`, `"gp2"`, `"gp3"`, `"st1"`, `"sc1"`
   or `"io1"`. (Default: `"standard"`).
 * `volume_size` - (Optional) The size of the volume in gigabytes.
 * `iops` - (Optional) The amount of provisioned
   [IOPS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-io-characteristics.html).
   This must be set with a `volume_type` of `"io1"`.
+* `throughput` - (Optional) The throughput (MiBps) to provision for a `gp3` volume.
 * `delete_on_termination` - (Optional) Whether the volume should be destroyed
   on instance termination (Default: `true`).
 * `encrypted` - (Optional) Whether the volume should be encrypted or not. Do not use this option if you are using `snapshot_id` as the encrypted flag will be determined by the snapshot. (Default: `false`).

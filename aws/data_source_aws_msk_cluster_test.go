@@ -2,9 +2,9 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -16,21 +16,22 @@ func TestAccAWSMskClusterDataSource_Name(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMsk(t) },
+		ErrorCheck:   testAccErrorCheck(t, kafka.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMskClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMskClusterDataSourceConfigName(rName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(resourceName, "arn", dataSourceName, "arn"),
-					resource.TestCheckResourceAttr(resourceName, "bootstrap_brokers", ""),
-					resource.TestCheckResourceAttrPair(resourceName, "bootstrap_brokers_sasl_scram", dataSourceName, "bootstrap_brokers_sasl_scram"),
-					resource.TestMatchResourceAttr(resourceName, "bootstrap_brokers_tls", regexp.MustCompile(`^(([-\w]+\.){1,}[\w]+:\d+,){2,}([-\w]+\.){1,}[\w]+:\d+$`)), // Hostname ordering not guaranteed between resource and data source reads
-					resource.TestCheckResourceAttrPair(resourceName, "cluster_name", dataSourceName, "cluster_name"),
-					resource.TestCheckResourceAttrPair(resourceName, "kafka_version", dataSourceName, "kafka_version"),
-					resource.TestCheckResourceAttrPair(resourceName, "number_of_broker_nodes", dataSourceName, "number_of_broker_nodes"),
-					resource.TestCheckResourceAttrPair(resourceName, "tags.%", dataSourceName, "tags.%"),
-					resource.TestCheckResourceAttrPair(resourceName, "zookeeper_connect_string", dataSourceName, "zookeeper_connect_string"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "bootstrap_brokers", resourceName, "bootstrap_brokers"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "bootstrap_brokers_sasl_scram", resourceName, "bootstrap_brokers_sasl_scram"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "bootstrap_brokers_tls", resourceName, "bootstrap_brokers_tls"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "cluster_name", resourceName, "cluster_name"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "kafka_version", resourceName, "kafka_version"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "number_of_broker_nodes", resourceName, "number_of_broker_nodes"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags.%", resourceName, "tags.%"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "zookeeper_connect_string", resourceName, "zookeeper_connect_string"),
 				),
 			},
 		},
@@ -38,7 +39,7 @@ func TestAccAWSMskClusterDataSource_Name(t *testing.T) {
 }
 
 func testAccMskClusterDataSourceConfigName(rName string) string {
-	return testAccMskClusterBaseConfig() + fmt.Sprintf(`
+	return composeConfig(testAccMskClusterBaseConfig(rName), fmt.Sprintf(`
 resource "aws_msk_cluster" "test" {
   cluster_name           = %[1]q
   kafka_version          = "2.2.1"
@@ -59,5 +60,5 @@ resource "aws_msk_cluster" "test" {
 data "aws_msk_cluster" "test" {
   cluster_name = aws_msk_cluster.test.cluster_name
 }
-`, rName)
+`, rName))
 }

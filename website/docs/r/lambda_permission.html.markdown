@@ -12,7 +12,7 @@ Gives an external source (like a CloudWatch Event Rule, SNS, or S3) permission t
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
@@ -40,27 +40,27 @@ resource "aws_lambda_function" "test_lambda" {
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
       },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
+    ]
+  })
 }
 ```
 
 ## Usage with SNS
 
-```hcl
+```terraform
 resource "aws_lambda_permission" "with_sns" {
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
@@ -90,6 +90,77 @@ resource "aws_lambda_function" "func" {
 resource "aws_iam_role" "default" {
   name = "iam_for_lambda_with_sns"
 
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+```
+
+## Specify Lambda permissions for API Gateway REST API
+
+```terraform
+resource "aws_api_gateway_rest_api" "MyDemoAPI" {
+  name        = "MyDemoAPI"
+  description = "This is my API for demonstration purposes"
+}
+
+resource "aws_lambda_permission" "lambda_permission" {
+  statement_id  = "AllowMyDemoAPIInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = "MyDemoFunction"
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/*/* part allows invocation from any stage, method and resource path
+  # within API Gateway REST API.
+  source_arn = "${aws_api_gateway_rest_api.MyDemoAPI.execution_arn}/*/*/*"
+}
+```
+
+## Usage with CloudWatch log group
+
+```terraform
+resource "aws_lambda_permission" "logging" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.logging.function_name
+  principal     = "logs.eu-west-1.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_log_group.default.arn}:*"
+}
+
+resource "aws_cloudwatch_log_group" "default" {
+  name = "/default"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "logging" {
+  depends_on      = [aws_lambda_permission.logging]
+  destination_arn = aws_lambda_function.logging.arn
+  filter_pattern  = ""
+  log_group_name  = aws_cloudwatch_log_group.default.name
+  name            = "logging_default"
+}
+
+resource "aws_lambda_function" "logging" {
+  filename      = "lamba_logging.zip"
+  function_name = "lambda_called_from_cloudwatch_logs"
+  handler       = "exports.handler"
+  role          = aws_iam_role.default.arn
+  runtime       = "python2.7"
+}
+
+resource "aws_iam_role" "default" {
+  name = "iam_for_lambda_called_from_cloudwatch_logs"
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -105,26 +176,6 @@ resource "aws_iam_role" "default" {
   ]
 }
 EOF
-}
-```
-
-## Specify Lambda permissions for API Gateway REST API
-
-```hcl
-resource "aws_api_gateway_rest_api" "MyDemoAPI" {
-  name        = "MyDemoAPI"
-  description = "This is my API for demonstration purposes"
-}
-
-resource "aws_lambda_permission" "lambda_permission" {
-  statement_id  = "AllowMyDemoAPIInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = "MyDemoFunction"
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/*/* part allows invocation from any stage, method and resource path
-  # within API Gateway REST API.
-  source_arn = "${aws_api_gateway_rest_api.MyDemoAPI.execution_arn}/*/*/*"
 }
 ```
 
@@ -146,6 +197,10 @@ resource "aws_lambda_permission" "lambda_permission" {
 
 [1]: https://developer.amazon.com/docs/custom-skills/host-a-custom-skill-as-an-aws-lambda-function.html#use-aws-cli
 [2]: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

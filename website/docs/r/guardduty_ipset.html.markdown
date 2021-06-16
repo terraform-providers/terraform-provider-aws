@@ -13,7 +13,7 @@ Provides a resource to manage a GuardDuty IPSet.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_ipset" "example" {
   activate    = true
   detector_id = aws_guardduty_detector.primary.id
@@ -47,7 +47,7 @@ The following arguments are supported:
 * `format` - (Required) The format of the file that contains the IPSet. Valid values: `TXT` | `STIX` | `OTX_CSV` | `ALIEN_VAULT` | `PROOF_POINT` | `FIRE_EYE`
 * `location` - (Required) The URI of the file that contains the IPSet.
 * `name` - (Required) The friendly name to identify the IPSet.
-* `tags` - (Optional) Key-value map of resource tags.
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -55,6 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of the GuardDuty IPSet.
 * `id` - The ID of the GuardDuty IPSet.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

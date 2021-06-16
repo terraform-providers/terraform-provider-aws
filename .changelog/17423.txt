@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_ssoadmin_permission_set: Properly update resource with `relay_state` argument
+```

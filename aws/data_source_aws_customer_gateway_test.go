@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -16,9 +17,8 @@ func TestAccAWSCustomerGatewayDataSource_Filter(t *testing.T) {
 	hostOctet := acctest.RandIntRange(1, 254)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -44,9 +44,8 @@ func TestAccAWSCustomerGatewayDataSource_ID(t *testing.T) {
 	hostOctet := acctest.RandIntRange(1, 254)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -57,6 +56,7 @@ func TestAccAWSCustomerGatewayDataSource_ID(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "ip_address", dataSourceName, "ip_address"),
 					resource.TestCheckResourceAttrPair(resourceName, "tags.%", dataSourceName, "tags.%"),
 					resource.TestCheckResourceAttrPair(resourceName, "type", dataSourceName, "type"),
+					resource.TestCheckResourceAttrPair(resourceName, "device_name", dataSourceName, "device_name"),
 				),
 			},
 		},
@@ -88,9 +88,10 @@ data "aws_customer_gateway" "test" {
 func testAccAWSCustomerGatewayDataSourceConfigID(asn, hostOctet int) string {
 	return fmt.Sprintf(`
 resource "aws_customer_gateway" "test" {
-  bgp_asn    = %d
-  ip_address = "50.0.0.%d"
-  type       = "ipsec.1"
+  bgp_asn     = %d
+  ip_address  = "50.0.0.%d"
+  device_name = "test"
+  type        = "ipsec.1"
 }
 
 data "aws_customer_gateway" "test" {

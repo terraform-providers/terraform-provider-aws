@@ -24,6 +24,7 @@ func TestAccAWSRDSClusterEndpoint_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSClusterEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -64,6 +65,7 @@ func TestAccAWSRDSClusterEndpoint_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSClusterEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -170,6 +172,7 @@ func testAccCheckAWSClusterEndpointDestroyWithProvider(s *terraform.State, provi
 
 	return nil
 }
+
 func testAccCheckAWSRDSClusterEndpointExists(resourceName string, endpoint *rds.DBClusterEndpoint) resource.TestCheckFunc {
 	return testAccCheckAWSRDSClusterEndpointExistsWithProvider(resourceName, endpoint, testAccProvider)
 }

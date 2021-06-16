@@ -7,12 +7,11 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/waf/lister"
 )
@@ -45,6 +44,10 @@ func testSweepWafRules(region string) error {
 		}
 
 		for _, rule := range page.Rules {
+			if rule == nil {
+				continue
+			}
+
 			id := aws.StringValue(rule.RuleId)
 
 			r := resourceAwsWafRule()
@@ -97,6 +100,7 @@ func TestAccAWSWafRule_basic(t *testing.T) {
 	resourceName := "aws_waf_rule.wafrule"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRuleDestroy,
 		Steps: []resource.TestStep{
@@ -127,6 +131,7 @@ func TestAccAWSWafRule_changeNameForceNew(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafIPSetDestroy,
 		Steps: []resource.TestStep{
@@ -159,6 +164,7 @@ func TestAccAWSWafRule_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRuleDestroy,
 		Steps: []resource.TestStep{
@@ -166,7 +172,7 @@ func TestAccAWSWafRule_disappears(t *testing.T) {
 				Config: testAccAWSWafRuleConfig(wafRuleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRuleExists(resourceName, &v),
-					testAccCheckAWSWafRuleDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsWafRule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -179,12 +185,12 @@ func TestAccAWSWafRule_changePredicates(t *testing.T) {
 	var byteMatchSet waf.ByteMatchSet
 
 	var before, after waf.Rule
-	var idx int
 	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resourceName := "aws_waf_rule.wafrule"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRuleDestroy,
 		Steps: []resource.TestStep{
@@ -195,7 +201,6 @@ func TestAccAWSWafRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRuleExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicates.#", "1"),
-					computeWafRulePredicateWithIpSet(&ipset, false, "IPMatch", &idx),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicates.*", map[string]string{
 						"negated": "false",
 						"type":    "IPMatch",
@@ -209,7 +214,6 @@ func TestAccAWSWafRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRuleExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicates.#", "1"),
-					computeWafRulePredicateWithByteMatchSet(&byteMatchSet, true, "ByteMatch", &idx),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicates.*", map[string]string{
 						"negated": "true",
 						"type":    "ByteMatch",
@@ -224,12 +228,12 @@ func TestAccAWSWafRule_geoMatchSetPredicate(t *testing.T) {
 	var geoMatchSet waf.GeoMatchSet
 
 	var v waf.Rule
-	var idx int
 	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
 	resourceName := "aws_waf_rule.wafrule"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRuleDestroy,
 		Steps: []resource.TestStep{
@@ -240,7 +244,6 @@ func TestAccAWSWafRule_geoMatchSetPredicate(t *testing.T) {
 					testAccCheckAWSWafRuleExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicates.#", "1"),
-					computeWafRulePredicateWithGeoMatchSet(&geoMatchSet, true, "GeoMatch", &idx),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicates.*", map[string]string{
 						"negated": "true",
 						"type":    "GeoMatch",
@@ -251,61 +254,30 @@ func TestAccAWSWafRule_geoMatchSetPredicate(t *testing.T) {
 	})
 }
 
-// computeWafRulePredicateWithIpSet calculates index
-// which isn't static because dataId is generated as part of the test
-func computeWafRulePredicateWithIpSet(ipSet *waf.IPSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		predicateResource := resourceAwsWafRule().Schema["predicates"].Elem.(*schema.Resource)
+// TestAccAWSWafRule_webACL validates the resource's
+// retry behavior when removed from a WebACL
+func TestAccAWSWafRule_webACL(t *testing.T) {
+	var rule waf.Rule
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_waf_rule.test"
 
-		m := map[string]interface{}{
-			"data_id": *ipSet.IPSetId,
-			"negated": negated,
-			"type":    pType,
-		}
-
-		f := schema.HashResource(predicateResource)
-		*idx = f(m)
-
-		return nil
-	}
-}
-
-// computeWafRulePredicateWithByteMatchSet calculates index
-// which isn't static because dataId is generated as part of the test
-func computeWafRulePredicateWithByteMatchSet(set *waf.ByteMatchSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		predicateResource := resourceAwsWafRule().Schema["predicates"].Elem.(*schema.Resource)
-
-		m := map[string]interface{}{
-			"data_id": *set.ByteMatchSetId,
-			"negated": negated,
-			"type":    pType,
-		}
-
-		f := schema.HashResource(predicateResource)
-		*idx = f(m)
-
-		return nil
-	}
-}
-
-// computeWafRulePredicateWithGeoMatchSet calculates index
-// which isn't static because dataId is generated as part of the test
-func computeWafRulePredicateWithGeoMatchSet(set *waf.GeoMatchSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		predicateResource := resourceAwsWafRule().Schema["predicates"].Elem.(*schema.Resource)
-
-		m := map[string]interface{}{
-			"data_id": *set.GeoMatchSetId,
-			"negated": negated,
-			"type":    pType,
-		}
-
-		f := schema.HashResource(predicateResource)
-		*idx = f(m)
-
-		return nil
-	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSWafRuleConfig_referencedByWebACL(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRuleExists(resourceName, &rule),
+				),
+			},
+			{
+				Config: testAccAWSWafWebAclConfig_noRules(rName),
+			},
+		},
+	})
 }
 
 func TestAccAWSWafRule_noPredicates(t *testing.T) {
@@ -315,6 +287,7 @@ func TestAccAWSWafRule_noPredicates(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRuleDestroy,
 		Steps: []resource.TestStep{
@@ -337,6 +310,7 @@ func TestAccAWSWafRule_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		ErrorCheck:   testAccErrorCheck(t, waf.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafWebAclDestroy,
 		Steps: []resource.TestStep{
@@ -383,49 +357,6 @@ func TestAccAWSWafRule_Tags(t *testing.T) {
 	})
 }
 
-func testAccCheckAWSWafRuleDisappears(v *waf.Rule) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).wafconn
-
-		wr := newWafRetryer(conn)
-		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
-			req := &waf.UpdateRuleInput{
-				ChangeToken: token,
-				RuleId:      v.RuleId,
-			}
-
-			for _, Predicate := range v.Predicates {
-				Predicate := &waf.RuleUpdate{
-					Action: aws.String("DELETE"),
-					Predicate: &waf.Predicate{
-						Negated: Predicate.Negated,
-						Type:    Predicate.Type,
-						DataId:  Predicate.DataId,
-					},
-				}
-				req.Updates = append(req.Updates, Predicate)
-			}
-
-			return conn.UpdateRule(req)
-		})
-		if err != nil {
-			return fmt.Errorf("Error Updating WAF Rule: %s", err)
-		}
-
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
-			opts := &waf.DeleteRuleInput{
-				ChangeToken: token,
-				RuleId:      v.RuleId,
-			}
-			return conn.DeleteRule(opts)
-		})
-		if err != nil {
-			return fmt.Errorf("Error Deleting WAF Rule: %s", err)
-		}
-		return nil
-	}
-}
-
 func testAccCheckAWSWafRuleDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_waf_rule" {
@@ -438,20 +369,17 @@ func testAccCheckAWSWafRuleDestroy(s *terraform.State) error {
 				RuleId: aws.String(rs.Primary.ID),
 			})
 
-		if err == nil {
-			if *resp.Rule.RuleId == rs.Primary.ID {
-				return fmt.Errorf("WAF Rule %s still exists", rs.Primary.ID)
-			}
+		if tfawserr.ErrCodeEquals(err, waf.ErrCodeNonexistentItemException) {
+			continue
 		}
 
-		// Return nil if the Rule is already destroyed
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == waf.ErrCodeNonexistentItemException {
-				return nil
-			}
+		if err != nil {
+			return fmt.Errorf("error reading WAF Rule (%s): %w", rs.Primary.ID, err)
 		}
 
-		return err
+		if resp != nil && resp.Rule != nil {
+			return fmt.Errorf("WAF Rule (%s) still exists", rs.Primary.ID)
+		}
 	}
 
 	return nil
@@ -505,7 +433,7 @@ func testAccPreCheckAWSWaf(t *testing.T) {
 func testAccAWSWafRuleConfig(name string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptors {
     type  = "IPV4"
@@ -515,8 +443,8 @@ resource "aws_waf_ipset" "ipset" {
 
 resource "aws_waf_rule" "wafrule" {
   depends_on  = [aws_waf_ipset.ipset]
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   predicates {
     data_id = aws_waf_ipset.ipset.id
@@ -524,13 +452,13 @@ resource "aws_waf_rule" "wafrule" {
     type    = "IPMatch"
   }
 }
-`, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRuleConfigChangeName(name string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptors {
     type  = "IPV4"
@@ -540,8 +468,8 @@ resource "aws_waf_ipset" "ipset" {
 
 resource "aws_waf_rule" "wafrule" {
   depends_on  = [aws_waf_ipset.ipset]
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   predicates {
     data_id = aws_waf_ipset.ipset.id
@@ -549,13 +477,13 @@ resource "aws_waf_rule" "wafrule" {
     type    = "IPMatch"
   }
 }
-`, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRuleConfig_changePredicates(name string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptors {
     type  = "IPV4"
@@ -564,7 +492,7 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_byte_match_set" "set" {
-  name = "%s"
+  name = %[1]q
 
   byte_match_tuples {
     text_transformation   = "NONE"
@@ -579,8 +507,8 @@ resource "aws_waf_byte_match_set" "set" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   predicates {
     data_id = aws_waf_byte_match_set.set.id
@@ -588,22 +516,22 @@ resource "aws_waf_rule" "wafrule" {
     type    = "ByteMatch"
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRuleConfig_noPredicates(name string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 }
-`, name, name)
+`, name)
 }
 
 func testAccAWSWafRuleConfig_geoMatchSetPredicate(name string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_geo_match_set" "geo_match_set" {
-  name = "%s"
+  name = %[1]q
 
   geo_match_constraint {
     type  = "Country"
@@ -612,8 +540,8 @@ resource "aws_waf_geo_match_set" "geo_match_set" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   predicates {
     data_id = aws_waf_geo_match_set.geo_match_set.id
@@ -621,13 +549,13 @@ resource "aws_waf_rule" "wafrule" {
     type    = "GeoMatch"
   }
 }
-`, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRuleConfigTags1(rName, tag1Key, tag1Value string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptors {
     type  = "IPV4"
@@ -637,8 +565,8 @@ resource "aws_waf_ipset" "ipset" {
 
 resource "aws_waf_rule" "wafrule" {
   depends_on  = [aws_waf_ipset.ipset]
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   predicates {
     data_id = aws_waf_ipset.ipset.id
@@ -650,13 +578,13 @@ resource "aws_waf_rule" "wafrule" {
     %q = %q
   }
 }
-`, rName, rName, rName, tag1Key, tag1Value)
+`, rName, tag1Key, tag1Value)
 }
 
 func testAccAWSWafRuleConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptors {
     type  = "IPV4"
@@ -666,8 +594,8 @@ resource "aws_waf_ipset" "ipset" {
 
 resource "aws_waf_rule" "wafrule" {
   depends_on  = [aws_waf_ipset.ipset]
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   predicates {
     data_id = aws_waf_ipset.ipset.id
@@ -680,5 +608,60 @@ resource "aws_waf_rule" "wafrule" {
     %q = %q
   }
 }
-`, rName, rName, rName, tag1Key, tag1Value, tag2Key, tag2Value)
+`, rName, tag1Key, tag1Value, tag2Key, tag2Value)
+}
+
+func testAccAWSWafRuleConfig_referencedByWebACL(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_waf_ipset" "test" {
+  name = %[1]q
+
+  ip_set_descriptors {
+    type  = "IPV4"
+    value = "192.0.7.0/24"
+  }
+}
+
+resource "aws_waf_rule" "test" {
+  metric_name = "testrulemetric"
+  name        = %[1]q
+
+  predicates {
+    data_id = aws_waf_ipset.test.id
+    negated = false
+    type    = "IPMatch"
+  }
+}
+
+resource "aws_waf_web_acl" "test" {
+  metric_name = "testwebaclmetric"
+  name        = %[1]q
+
+  default_action {
+    type = "ALLOW"
+  }
+
+  rules {
+    priority = 1
+    rule_id  = aws_waf_rule.test.id
+
+    action {
+      type = "BLOCK"
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAWSWafWebAclConfig_noRules(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_waf_web_acl" "test" {
+  metric_name = "testwebaclmetric"
+  name        = %[1]q
+
+  default_action {
+    type = "ALLOW"
+  }
+}
+`, rName)
 }

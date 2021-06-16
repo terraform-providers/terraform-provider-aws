@@ -14,7 +14,7 @@ Provides an ElastiCache parameter group resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_elasticache_parameter_group" "default" {
   name   = "cache-params"
   family = "redis2.8"
@@ -39,6 +39,7 @@ The following arguments are supported:
 * `family` - (Required) The family of the ElastiCache parameter group.
 * `description` - (Optional) The description of the ElastiCache parameter group. Defaults to "Managed by Terraform".
 * `parameter` - (Optional) A list of ElastiCache parameters to apply.
+* `tags` - (Optional) Key-value mapping of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Parameter blocks support the following:
 
@@ -50,6 +51,8 @@ Parameter blocks support the following:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ElastiCache parameter group name.
+* `arn` - The AWS ARN associated with the parameter group.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 
 ## Import

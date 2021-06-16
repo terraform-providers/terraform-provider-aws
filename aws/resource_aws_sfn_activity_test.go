@@ -19,6 +19,7 @@ func TestAccAWSSfnActivity_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sfn.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSfnActivityDestroy,
 		Steps: []resource.TestStep{
@@ -45,6 +46,7 @@ func TestAccAWSSfnActivity_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sfn.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSfnActivityDestroy,
 		Steps: []resource.TestStep{

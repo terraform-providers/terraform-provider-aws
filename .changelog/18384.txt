@@ -1,0 +1,4 @@
+```release-note:bug
+resource/aws_wafv2_web_acl_logging_configuration: Remove deprecation warning for `redacted_fields` `single_header` argument
+```
+

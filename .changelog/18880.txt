@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_instance: Make `instance_initiated_shutdown_behavior` also computed, allowing value to be read
+```

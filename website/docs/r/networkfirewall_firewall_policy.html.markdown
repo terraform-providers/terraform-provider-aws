@@ -12,7 +12,7 @@ Provides an AWS Network Firewall Firewall Policy Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_networkfirewall_firewall_policy" "example" {
   name = "example"
 
@@ -34,7 +34,7 @@ resource "aws_networkfirewall_firewall_policy" "example" {
 
 ## Policy with a Custom Action for Stateless Inspection
 
-```hcl
+```terraform
 resource "aws_networkfirewall_firewall_policy" "test" {
   name = "example"
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource) A friendly name of the firewall policy.
 
-* `tags` - (Optional) An array of key:value pairs to associate with the resource.
+* `tags` - (Optional) Map of resource tags to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Firewall Policy
 
@@ -131,6 +131,8 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Amazon Resource Name (ARN) that identifies the firewall policy.
 
 * `arn` - The Amazon Resource Name (ARN) that identifies the firewall policy.
+
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 * `update_token` - A string token used when updating a firewall policy.
 

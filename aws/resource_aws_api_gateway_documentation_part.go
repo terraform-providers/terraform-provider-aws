@@ -200,18 +200,25 @@ func flattenApiGatewayDocumentationPartLocation(l *apigateway.DocumentationPartL
 	}
 
 	m := make(map[string]interface{})
-	m["type"] = *l.Type
-	if l.Method != nil {
-		m["method"] = *l.Method
+
+	if v := l.Method; v != nil {
+		m["method"] = aws.StringValue(v)
 	}
-	if l.Name != nil {
-		m["name"] = *l.Name
+
+	if v := l.Name; v != nil {
+		m["name"] = aws.StringValue(v)
 	}
-	if l.Path != nil {
-		m["path"] = *l.Path
+
+	if v := l.Path; v != nil {
+		m["path"] = aws.StringValue(v)
 	}
-	if l.StatusCode != nil {
-		m["status_code"] = *l.StatusCode
+
+	if v := l.StatusCode; v != nil {
+		m["status_code"] = aws.StringValue(v)
+	}
+
+	if v := l.Type; v != nil {
+		m["type"] = aws.StringValue(v)
 	}
 
 	return []interface{}{m}

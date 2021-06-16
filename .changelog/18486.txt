@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_docdb_cluster_parameter_group: Read all user parameters and parameters specified in the configuration.
+```

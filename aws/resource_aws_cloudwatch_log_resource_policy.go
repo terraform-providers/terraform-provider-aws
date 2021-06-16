@@ -104,7 +104,7 @@ func lookupCloudWatchLogResourcePolicy(conn *cloudwatchlogs.CloudWatchLogs,
 	}
 
 	for _, resourcePolicy := range resp.ResourcePolicies {
-		if *resourcePolicy.PolicyName == name {
+		if aws.StringValue(resourcePolicy.PolicyName) == name {
 			return resourcePolicy, true, nil
 		}
 	}

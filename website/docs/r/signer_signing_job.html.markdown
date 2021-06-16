@@ -12,7 +12,7 @@ Creates a Signer Signing Job.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_signer_signing_profile" "test_sp" {
   platform_id = "AWSLambda-SHA384-ECDSA"
 }

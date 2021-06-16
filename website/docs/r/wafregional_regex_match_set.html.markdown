@@ -12,7 +12,7 @@ Provides a WAF Regional Regex Match Set Resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_regex_match_set" "example" {
   name = "example"
 

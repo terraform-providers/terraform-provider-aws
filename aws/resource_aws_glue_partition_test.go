@@ -2,15 +2,13 @@ package aws
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	tfglue "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/finder"
 )
 
 func TestAccAWSGluePartition_basic(t *testing.T) {
@@ -20,6 +18,7 @@ func TestAccAWSGluePartition_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGluePartitionDestroy,
 		Steps: []resource.TestStep{
@@ -30,7 +29,7 @@ func TestAccAWSGluePartition_basic(t *testing.T) {
 					testAccCheckResourceAttrAccountID(resourceName, "catalog_id"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "partition_values.#", "1"),
-					resource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue),
+					resource.TestCheckResourceAttr(resourceName, "partition_values.0", parValue),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
 					resource.TestCheckResourceAttrSet(resourceName, "creation_time"),
 				),
@@ -52,6 +51,7 @@ func TestAccAWSGluePartition_multipleValues(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGluePartitionDestroy,
 		Steps: []resource.TestStep{
@@ -60,8 +60,8 @@ func TestAccAWSGluePartition_multipleValues(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGluePartitionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "partition_values.#", "2"),
-					resource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue),
-					resource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue2),
+					resource.TestCheckResourceAttr(resourceName, "partition_values.0", parValue),
+					resource.TestCheckResourceAttr(resourceName, "partition_values.1", parValue2),
 				),
 			},
 			{
@@ -80,6 +80,7 @@ func TestAccAWSGluePartition_parameters(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGluePartitionDestroy,
 		Steps: []resource.TestStep{
@@ -124,6 +125,7 @@ func TestAccAWSGluePartition_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGluePartitionDestroy,
 		Steps: []resource.TestStep{
@@ -139,6 +141,29 @@ func TestAccAWSGluePartition_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSGluePartition_disappears_table(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	parValue := acctest.RandString(10)
+	resourceName := "aws_glue_partition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGluePartitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGluePartitionBasicConfig(rName, parValue),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGluePartitionExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsGlueCatalogTable(), "aws_glue_catalog_table.test"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckGluePartitionDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).glueconn
 
@@ -147,18 +172,7 @@ func testAccCheckGluePartitionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		catalogID, dbName, tableName, values, err := tfglue.ReadAwsGluePartitionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		input := &glue.GetPartitionInput{
-			DatabaseName:    aws.String(dbName),
-			CatalogId:       aws.String(catalogID),
-			TableName:       aws.String(tableName),
-			PartitionValues: aws.StringSlice(values),
-		}
-		if _, err := conn.GetPartition(input); err != nil {
+		if _, err := finder.PartitionByValues(conn, rs.Primary.ID); err != nil {
 			if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
 				continue
 			}
@@ -181,29 +195,14 @@ func testAccCheckGluePartitionExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("No ID is set")
 		}
 
-		catalogID, dbName, tableName, values, err := tfglue.ReadAwsGluePartitionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
 		conn := testAccProvider.Meta().(*AWSClient).glueconn
-		out, err := conn.GetPartition(&glue.GetPartitionInput{
-			DatabaseName:    aws.String(dbName),
-			CatalogId:       aws.String(catalogID),
-			TableName:       aws.String(tableName),
-			PartitionValues: aws.StringSlice(values),
-		})
-
+		out, err := finder.PartitionByValues(conn, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if out.Partition == nil {
+		if out == nil {
 			return fmt.Errorf("No Glue Partition Found")
-		}
-
-		if !reflect.DeepEqual(aws.StringValueSlice(out.Partition.Values), values) {
-			return fmt.Errorf("Glue Partition Mismatch")
 		}
 
 		return nil

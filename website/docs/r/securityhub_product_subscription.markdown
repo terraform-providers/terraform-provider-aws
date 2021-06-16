@@ -12,7 +12,7 @@ Subscribes to a Security Hub product.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_securityhub_account" "example" {}
 
 data "aws_region" "current" {}

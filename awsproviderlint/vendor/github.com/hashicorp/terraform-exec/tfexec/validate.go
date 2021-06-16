@@ -22,14 +22,15 @@ func (tf *Terraform) Validate(ctx context.Context) (*tfjson.ValidateOutput, erro
 	var outbuf = bytes.Buffer{}
 	cmd.Stdout = &outbuf
 
-	err = tf.runTerraformCmd(cmd)
+	err = tf.runTerraformCmd(ctx, cmd)
 	// TODO: this command should not exit 1 if you pass -json as its hard to differentiate other errors
 	if err != nil && cmd.ProcessState.ExitCode() != 1 {
 		return nil, err
 	}
 
-	var out tfjson.ValidateOutput
-	jsonErr := json.Unmarshal(outbuf.Bytes(), &out)
+	var ret tfjson.ValidateOutput
+	// TODO: ret.UseJSONNumber(true) validate output should support JSON numbers
+	jsonErr := json.Unmarshal(outbuf.Bytes(), &ret)
 	if jsonErr != nil {
 		// the original call was possibly bad, if it has an error, actually just return that
 		if err != nil {
@@ -39,5 +40,5 @@ func (tf *Terraform) Validate(ctx context.Context) (*tfjson.ValidateOutput, erro
 		return nil, jsonErr
 	}
 
-	return &out, nil
+	return &ret, nil
 }

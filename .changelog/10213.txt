@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_acmpca_certificate
+```
+
+```release-note:new-data-source
+aws_acmpca_certificate
+```

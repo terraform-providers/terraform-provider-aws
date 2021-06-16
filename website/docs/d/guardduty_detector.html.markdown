@@ -12,7 +12,7 @@ Retrieve information about a GuardDuty detector.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_guardduty_detector" "example" {}
 ```
 

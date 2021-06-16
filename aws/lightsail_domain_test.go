@@ -39,15 +39,15 @@ func init() {
 func testAccPreCheckLightsailDomain(t *testing.T) {
 	testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
 
+	region := testAccGetLightsailDomainRegion()
+
+	if region == "" {
+		t.Skip("Lightsail Domains not available in this AWS Partition")
+	}
+
 	// Since we are outside the scope of the Terraform configuration we must
 	// call Configure() to properly initialize the provider configuration.
 	testAccProviderLightsailDomainConfigure.Do(func() {
-		region := testAccGetLightsailDomainRegion()
-
-		if region == "" {
-			t.Skip("Lightsail Domains not available in this AWS Partition")
-		}
-
 		config := map[string]interface{}{
 			"region": region,
 		}

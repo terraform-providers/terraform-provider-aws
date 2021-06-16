@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_elasticsearch_domain: Add `domain_endpoint_options` configuration block `custom_endpoint`, `custom_endpoint_certificate_arn`, and `custom_endpoint_enabled` arguments
+```

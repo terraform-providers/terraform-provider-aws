@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_codestarconnections_connection: Add `host_arn` argument
+```
+
+```release-note:enhancement
+data-source/aws_codestarconnections_connection: Add `host_arn` attribute
+```

@@ -86,6 +86,7 @@ func TestAccAWSDataSyncLocationEfs_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationEfsDestroy,
 		Steps: []resource.TestStep{
@@ -119,6 +120,7 @@ func TestAccAWSDataSyncLocationEfs_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationEfsDestroy,
 		Steps: []resource.TestStep{
@@ -140,6 +142,7 @@ func TestAccAWSDataSyncLocationEfs_Subdirectory(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationEfsDestroy,
 		Steps: []resource.TestStep{
@@ -166,6 +169,7 @@ func TestAccAWSDataSyncLocationEfs_Tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationEfsDestroy,
 		Steps: []resource.TestStep{
@@ -276,7 +280,7 @@ func testAccCheckAWSDataSyncLocationEfsDisappears(location *datasync.DescribeLoc
 
 func testAccCheckAWSDataSyncLocationEfsNotRecreated(i, j *datasync.DescribeLocationEfsOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if aws.TimeValue(i.CreationTime) != aws.TimeValue(j.CreationTime) {
+		if !aws.TimeValue(i.CreationTime).Equal(aws.TimeValue(j.CreationTime)) {
 			return errors.New("DataSync Location EFS was recreated")
 		}
 

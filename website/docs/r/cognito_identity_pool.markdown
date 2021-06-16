@@ -12,7 +12,7 @@ Provides an AWS Cognito Identity Pool.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_saml_provider" "default" {
   name                   = "my-saml-provider"
   saml_metadata_document = file("saml-metadata.xml")
@@ -21,6 +21,7 @@ resource "aws_iam_saml_provider" "default" {
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "identity pool"
   allow_unauthenticated_identities = false
+  allow_classic_flow               = false
 
   cognito_identity_providers {
     client_id               = "6lhlkkfbfb4q5kpp90urffae"
@@ -50,13 +51,14 @@ The Cognito Identity Pool argument layout is a structure composed of several sub
 
 * `identity_pool_name` (Required) - The Cognito Identity Pool name.
 * `allow_unauthenticated_identities` (Required) - Whether the identity pool supports unauthenticated logins or not.
+* `allow_classic_flow` (Optional) - Enables or disables the classic / basic authentication flow. Default is `false`.
 * `developer_provider_name` (Optional) - The "domain" by which Cognito will refer to your users. This name acts as a placeholder that allows your
 backend and the Cognito service to communicate about the developer provider.
 * `cognito_identity_providers` (Optional) - An array of [Amazon Cognito Identity user pools](#cognito-identity-providers) and their client IDs.
 * `openid_connect_provider_arns` (Optional) - Set of OpendID Connect provider ARNs.
 * `saml_provider_arns` (Optional) - An array of Amazon Resource Names (ARNs) of the SAML provider for your identity.
 * `supported_login_providers` (Optional) - Key-Value pairs mapping provider names to provider app IDs.
-* `tags` - (Optional) A map of tags to assign to the Identity Pool.
+* `tags` - (Optional) A map of tags to assign to the Identity Pool. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 #### Cognito Identity Providers
 
@@ -70,6 +72,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - An identity pool ID in the format REGION:GUID.
 * `arn` - The ARN of the identity pool.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -131,13 +131,18 @@ func resourceAwsImageBuilderDistributionConfiguration() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 126),
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsImageBuilderDistributionConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &imagebuilder.CreateDistributionConfigurationInput{
 		ClientToken: aws.String(resource.UniqueId()),
@@ -155,8 +160,8 @@ func resourceAwsImageBuilderDistributionConfigurationCreate(d *schema.ResourceDa
 		input.Name = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ImagebuilderTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().ImagebuilderTags()
 	}
 
 	output, err := conn.CreateDistributionConfiguration(input)
@@ -176,6 +181,7 @@ func resourceAwsImageBuilderDistributionConfigurationCreate(d *schema.ResourceDa
 
 func resourceAwsImageBuilderDistributionConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).imagebuilderconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &imagebuilder.GetDistributionConfigurationInput{
@@ -206,7 +212,16 @@ func resourceAwsImageBuilderDistributionConfigurationRead(d *schema.ResourceData
 	d.Set("description", distributionConfiguration.Description)
 	d.Set("distribution", flattenImageBuilderDistributions(distributionConfiguration.Distributions))
 	d.Set("name", distributionConfiguration.Name)
-	d.Set("tags", keyvaluetags.ImagebuilderKeyValueTags(distributionConfiguration.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
+	tags := keyvaluetags.ImagebuilderKeyValueTags(distributionConfiguration.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 
 	return nil
 }
@@ -235,8 +250,8 @@ func resourceAwsImageBuilderDistributionConfigurationUpdate(d *schema.ResourceDa
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.ImagebuilderUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Image Builder Distribution Configuration (%s): %w", d.Id(), err)
@@ -274,7 +289,7 @@ func expandImageBuilderAmiDistributionConfiguration(tfMap map[string]interface{}
 	apiObject := &imagebuilder.AmiDistributionConfiguration{}
 
 	if v, ok := tfMap["ami_tags"].(map[string]interface{}); ok && len(v) > 0 {
-		apiObject.AmiTags = stringMapToPointers(v)
+		apiObject.AmiTags = expandStringMap(v)
 	}
 
 	if v, ok := tfMap["description"].(string); ok && v != "" {

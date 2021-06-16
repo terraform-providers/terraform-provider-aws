@@ -10,18 +10,79 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
+const (
+	ApplicationDeletedTimeout = 5 * time.Minute
+	ApplicationStartedTimeout = 5 * time.Minute
+	ApplicationStoppedTimeout = 5 * time.Minute
+	ApplicationUpdatedTimeout = 5 * time.Minute
+)
+
 // ApplicationDeleted waits for an Application to return Deleted
-func ApplicationDeleted(conn *kinesisanalytics.KinesisAnalytics, name string, timeout time.Duration) (*kinesisanalytics.ApplicationSummary, error) {
+func ApplicationDeleted(conn *kinesisanalytics.KinesisAnalytics, name string) (*kinesisanalytics.ApplicationDetail, error) {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{kinesisanalytics.ApplicationStatusRunning, kinesisanalytics.ApplicationStatusDeleting},
+		Pending: []string{kinesisanalytics.ApplicationStatusDeleting},
 		Target:  []string{},
 		Refresh: ApplicationStatus(conn, name),
-		Timeout: timeout,
+		Timeout: ApplicationDeletedTimeout,
 	}
 
 	outputRaw, err := stateConf.WaitForState()
 
-	if v, ok := outputRaw.(*kinesisanalytics.ApplicationSummary); ok {
+	if v, ok := outputRaw.(*kinesisanalytics.ApplicationDetail); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// ApplicationStarted waits for an Application to start
+func ApplicationStarted(conn *kinesisanalytics.KinesisAnalytics, name string) (*kinesisanalytics.ApplicationDetail, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalytics.ApplicationStatusStarting},
+		Target:  []string{kinesisanalytics.ApplicationStatusRunning},
+		Refresh: ApplicationStatus(conn, name),
+		Timeout: ApplicationStartedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalytics.ApplicationDetail); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// ApplicationStopped waits for an Application to stop
+func ApplicationStopped(conn *kinesisanalytics.KinesisAnalytics, name string) (*kinesisanalytics.ApplicationDetail, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalytics.ApplicationStatusStopping},
+		Target:  []string{kinesisanalytics.ApplicationStatusReady},
+		Refresh: ApplicationStatus(conn, name),
+		Timeout: ApplicationStoppedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalytics.ApplicationDetail); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// ApplicationUpdated waits for an Application to update
+func ApplicationUpdated(conn *kinesisanalytics.KinesisAnalytics, name string) (*kinesisanalytics.ApplicationDetail, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalytics.ApplicationStatusUpdating},
+		Target:  []string{kinesisanalytics.ApplicationStatusReady, kinesisanalytics.ApplicationStatusRunning},
+		Refresh: ApplicationStatus(conn, name),
+		Timeout: ApplicationUpdatedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalytics.ApplicationDetail); ok {
 		return v, err
 	}
 

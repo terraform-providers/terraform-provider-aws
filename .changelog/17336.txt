@@ -1,0 +1,11 @@
+```release-note:new-data-source
+aws_cloudfront_cache_policy
+```
+
+```release-note:new-resource
+aws_cloudfront_cache_policy
+```
+
+```release-note:enhancement
+resource/aws_cloudfront_distribution: Add `cache_policy_id` attribute
+```

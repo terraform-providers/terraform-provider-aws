@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsSesActiveReceiptRuleSet() *schema.Resource {
@@ -17,9 +19,14 @@ func resourceAwsSesActiveReceiptRuleSet() *schema.Resource {
 		Delete: resourceAwsSesActiveReceiptRuleSetDelete,
 
 		Schema: map[string]*schema.Schema{
-			"rule_set_name": {
+			"arn": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
+			},
+			"rule_set_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 		},
 	}
@@ -59,12 +66,22 @@ func resourceAwsSesActiveReceiptRuleSetRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	if response.Metadata != nil {
-		d.Set("rule_set_name", response.Metadata.Name)
-	} else {
+	if response.Metadata == nil {
 		log.Print("[WARN] No active Receipt Rule Set found")
 		d.SetId("")
+		return nil
 	}
+
+	d.Set("rule_set_name", response.Metadata.Name)
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ses",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("receipt-rule-set/%s", d.Id()),
+	}.String()
+	d.Set("arn", arn)
 
 	return nil
 }

@@ -3,14 +3,21 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	awspolicy "github.com/jen20/awspolicyequivalence"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sqs/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sqs/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
+)
+
+var (
+	sqsQueueEmptyPolicyAttributes = map[string]string{
+		sqs.QueueAttributeNamePolicy: "",
+	}
 )
 
 func resourceAwsSqsQueuePolicy() *schema.Resource {
@@ -27,17 +34,17 @@ func resourceAwsSqsQueuePolicy() *schema.Resource {
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
-			"queue_url": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
 			"policy": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
+			},
+
+			"queue_url": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -45,72 +52,30 @@ func resourceAwsSqsQueuePolicy() *schema.Resource {
 
 func resourceAwsSqsQueuePolicyUpsert(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sqsconn
-	policy := d.Get("policy").(string)
+
+	policyAttributes := map[string]string{
+		sqs.QueueAttributeNamePolicy: d.Get("policy").(string),
+	}
 	url := d.Get("queue_url").(string)
-
-	sqaInput := &sqs.SetQueueAttributesInput{
-		QueueUrl: aws.String(url),
-		Attributes: aws.StringMap(map[string]string{
-			sqs.QueueAttributeNamePolicy: policy,
-		}),
+	input := &sqs.SetQueueAttributesInput{
+		Attributes: aws.StringMap(policyAttributes),
+		QueueUrl:   aws.String(url),
 	}
-	log.Printf("[DEBUG] Updating SQS attributes: %s", sqaInput)
-	_, err := conn.SetQueueAttributes(sqaInput)
+
+	log.Printf("[DEBUG] Setting SQS Queue Policy: %s", input)
+	_, err := conn.SetQueueAttributes(input)
+
 	if err != nil {
-		return fmt.Errorf("Error updating SQS attributes: %s", err)
-	}
-
-	// https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html
-	// When you change a queue's attributes, the change can take up to 60 seconds
-	// for most of the attributes to propagate throughout the Amazon SQS system.
-	gqaInput := &sqs.GetQueueAttributesInput{
-		QueueUrl:       aws.String(url),
-		AttributeNames: []*string{aws.String(sqs.QueueAttributeNamePolicy)},
-	}
-	notUpdatedError := fmt.Errorf("SQS attribute %s not updated", sqs.QueueAttributeNamePolicy)
-	var out *sqs.GetQueueAttributesOutput
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		log.Printf("[DEBUG] Reading SQS attributes: %s", gqaInput)
-		var err error
-		out, err = conn.GetQueueAttributes(gqaInput)
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-		queuePolicy, ok := out.Attributes[sqs.QueueAttributeNamePolicy]
-		if !ok {
-			log.Printf("[DEBUG] SQS attribute %s not found - retrying", sqs.QueueAttributeNamePolicy)
-			return resource.RetryableError(notUpdatedError)
-		}
-		equivalent, err := awspolicy.PoliciesAreEquivalent(aws.StringValue(queuePolicy), policy)
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-		if !equivalent {
-			log.Printf("[DEBUG] SQS attribute %s not updated - retrying", sqs.QueueAttributeNamePolicy)
-			return resource.RetryableError(notUpdatedError)
-		}
-		return nil
-	})
-	if isResourceTimeoutError(err) {
-		out, err = conn.GetQueueAttributes(gqaInput)
-		if err == nil {
-			queuePolicy, ok := out.Attributes[sqs.QueueAttributeNamePolicy]
-			if !ok {
-				return notUpdatedError
-			}
-
-			var equivalent bool
-			equivalent, err = awspolicy.PoliciesAreEquivalent(aws.StringValue(queuePolicy), policy)
-			if !equivalent {
-				return notUpdatedError
-			}
-		}
-	}
-	if err != nil {
-		return fmt.Errorf("Error updating SQS queue attributes: %s", err)
+		return fmt.Errorf("error setting SQS Queue Policy (%s): %w", url, err)
 	}
 
 	d.SetId(url)
+
+	err = waiter.QueueAttributesPropagated(conn, d.Id(), policyAttributes)
+
+	if err != nil {
+		return fmt.Errorf("error waiting for SQS Queue Policy (%s) to be set: %w", d.Id(), err)
+	}
 
 	return resourceAwsSqsQueuePolicyRead(d, meta)
 }
@@ -118,29 +83,19 @@ func resourceAwsSqsQueuePolicyUpsert(d *schema.ResourceData, meta interface{}) e
 func resourceAwsSqsQueuePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sqsconn
 
-	out, err := conn.GetQueueAttributes(&sqs.GetQueueAttributesInput{
-		QueueUrl:       aws.String(d.Id()),
-		AttributeNames: []*string{aws.String(sqs.QueueAttributeNamePolicy)},
-	})
+	policy, err := finder.QueuePolicyByURL(conn, d.Id())
+
+	if !d.IsNewResource() && tfresource.NotFound(err) {
+		log.Printf("[WARN] SQS Queue Policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, sqs.ErrCodeQueueDoesNotExist, "") {
-			log.Printf("[WARN] SQS Queue (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return err
-	}
-	if out == nil {
-		return fmt.Errorf("Received empty response for SQS queue %s", d.Id())
+		return fmt.Errorf("error reading SQS Queue Policy (%s): %w", d.Id(), err)
 	}
 
-	policy, ok := out.Attributes[sqs.QueueAttributeNamePolicy]
-	if ok {
-		d.Set("policy", policy)
-	} else {
-		d.Set("policy", "")
-	}
-
+	d.Set("policy", policy)
 	d.Set("queue_url", d.Id())
 
 	return nil
@@ -149,15 +104,25 @@ func resourceAwsSqsQueuePolicyRead(d *schema.ResourceData, meta interface{}) err
 func resourceAwsSqsQueuePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sqsconn
 
-	log.Printf("[DEBUG] Deleting SQS Queue Policy of %s", d.Id())
+	log.Printf("[DEBUG] Deleting SQS Queue Policy: %s", d.Id())
 	_, err := conn.SetQueueAttributes(&sqs.SetQueueAttributesInput{
-		QueueUrl: aws.String(d.Id()),
-		Attributes: aws.StringMap(map[string]string{
-			sqs.QueueAttributeNamePolicy: "",
-		}),
+		Attributes: aws.StringMap(sqsQueueEmptyPolicyAttributes),
+		QueueUrl:   aws.String(d.Id()),
 	})
-	if err != nil {
-		return fmt.Errorf("Error deleting SQS Queue policy: %s", err)
+
+	if tfawserr.ErrCodeEquals(err, sqs.ErrCodeQueueDoesNotExist) {
+		return nil
 	}
+
+	if err != nil {
+		return fmt.Errorf("error deleting SQS Queue Policy (%s): %w", d.Id(), err)
+	}
+
+	err = waiter.QueueAttributesPropagated(conn, d.Id(), sqsQueueEmptyPolicyAttributes)
+
+	if err != nil {
+		return fmt.Errorf("error waiting for SQS Queue Policy (%s) to delete: %w", d.Id(), err)
+	}
+
 	return nil
 }

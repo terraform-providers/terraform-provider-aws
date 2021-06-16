@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ecs_task_definition: Add plan time validation for `family` and `requires_compatibilities`.
+```
+
+```release-note:enhancement
+resource/aws_ecs_task_definition: Add support for `fsx_windows_file_server_volume_configuration`.
+```

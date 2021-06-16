@@ -16,7 +16,7 @@ The following adds a route for a particular cidr block to every (private
 kops) route table in a specified vpc to use a particular vpc peering
 connection.
 
-```hcl
+```terraform
 data "aws_route_tables" "rts" {
   vpc_id = var.vpc_id
 
@@ -28,8 +28,8 @@ data "aws_route_tables" "rts" {
 
 resource "aws_route" "r" {
   count                     = length(data.aws_route_tables.rts.ids)
-  route_table_id            = data.aws_route_tables.rts.ids[count.index]
-  destination_cidr_block    = "10.0.1.0/22"
+  route_table_id            = tolist(data.aws_route_tables.rts.ids)[count.index]
+  destination_cidr_block    = "10.0.0.0/22"
   vpc_peering_connection_id = "pcx-0e9a7a9ecd137dc54"
 }
 ```

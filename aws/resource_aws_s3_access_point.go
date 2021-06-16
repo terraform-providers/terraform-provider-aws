@@ -8,8 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/s3control"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfs3control "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/s3control"
 )
 
 func resourceAwsS3AccessPoint() *schema.Resource {
@@ -185,14 +187,18 @@ func resourceAwsS3AccessPointRead(d *schema.ResourceData, meta interface{}) erro
 		Name:      aws.String(name),
 	})
 
-	if isAWSErr(err, "NoSuchAccessPoint", "") {
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfs3control.ErrCodeNoSuchAccessPoint) {
 		log.Printf("[WARN] S3 Access Point (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading S3 Access Point (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading S3 Access Point (%s): %w", d.Id(), err)
+	}
+
+	if output == nil {
+		return fmt.Errorf("error reading S3 Access Point (%s): empty response", d.Id())
 	}
 
 	if strings.HasPrefix(name, "arn:") {

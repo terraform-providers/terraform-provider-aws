@@ -12,7 +12,7 @@ Provides an AWS Elemental MediaConvert Queue.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_media_convert_queue" "test" {
   name = "tf-test-queue"
 }
@@ -27,7 +27,7 @@ The following arguments are supported:
 * `pricing_plan` - (Optional) Specifies whether the pricing plan for the queue is on-demand or reserved. Valid values are `ON_DEMAND` or `RESERVED`. Default to `ON_DEMAND`.
 * `reservation_plan_settings` - (Optional) A detail pricing plan of the  reserved queue. See below.
 * `status` - (Optional) A status of the queue. Valid values are `ACTIVE` or `RESERVED`. Default to `PAUSED`.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Nested Fields
 
@@ -43,6 +43,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The same as `name`
 * `arn` - The Arn of the queue
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

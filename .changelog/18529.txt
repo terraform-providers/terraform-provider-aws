@@ -1,0 +1,27 @@
+```release-note:bug
+resource/aws_appmesh_gateway_route: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_appmesh_mesh: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_appmesh_route: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_appmesh_virtual_gateway: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_appmesh_virtual_router: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_appmesh_virtual_service: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_appmesh_virtual_node: Handle read-after-create eventual consistency
+```

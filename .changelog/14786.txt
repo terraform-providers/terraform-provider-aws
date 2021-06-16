@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_customer_gateway: Add `device_name` attribute
+```
+
+```release-note:enhancement
+resource/aws_customer_gateway: Add `device_name` argument
+```

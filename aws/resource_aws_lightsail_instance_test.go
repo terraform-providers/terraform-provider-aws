@@ -82,9 +82,9 @@ func TestAccAWSLightsailInstance_basic(t *testing.T) {
 			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
 			testAccPreCheckAWSLightsail(t)
 		},
-		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLightsailInstanceDestroy,
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLightsailInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLightsailInstanceConfig_basic(lightsailName),
@@ -117,9 +117,9 @@ func TestAccAWSLightsailInstance_Name(t *testing.T) {
 			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
 			testAccPreCheckAWSLightsail(t)
 		},
-		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLightsailInstanceDestroy,
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLightsailInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSLightsailInstanceConfig_basic(lightsailNameWithSpaces),
@@ -163,9 +163,9 @@ func TestAccAWSLightsailInstance_Tags(t *testing.T) {
 			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
 			testAccPreCheckAWSLightsail(t)
 		},
-		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckAWSLightsailInstanceDestroy,
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLightsailInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLightsailInstanceConfig_tags1(lightsailName),
@@ -220,6 +220,7 @@ func TestAccAWSLightsailInstance_disapear(t *testing.T) {
 			testAccPartitionHasServicePreCheck(lightsail.EndpointsID, t)
 			testAccPreCheckAWSLightsail(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, lightsail.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailInstanceDestroy,
 		Steps: []resource.TestStep{

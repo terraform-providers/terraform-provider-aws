@@ -5,6 +5,6 @@ import (
 )
 
 const (
-	// Maximum amount of time to wait for Secrets Manager deletions to propagate
-	DeletionPropagationTimeout = 2 * time.Minute
+	// Maximum amount of time to wait for Secrets Manager changes to propagate
+	PropagationTimeout = 2 * time.Minute
 )

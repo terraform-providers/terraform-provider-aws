@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ram_resource_share" "example" {
   name           = "example"
   resource_owner = "SELF"
@@ -21,7 +21,7 @@ data "aws_ram_resource_share" "example" {
 
 ## Search by filters
 
-```hcl
+```terraform
 data "aws_ram_resource_share" "tag_filter" {
   name           = "MyResourceName"
   resource_owner = "SELF"

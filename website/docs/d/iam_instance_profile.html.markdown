@@ -14,7 +14,7 @@ instance profile properties without having to hard code ARNs as input.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iam_instance_profile" "example" {
   name = "an_example_instance_profile_name"
 }

@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_waf_rate_based_rule" "example" {
   name = "tfWAFRateBasedRule"
 }

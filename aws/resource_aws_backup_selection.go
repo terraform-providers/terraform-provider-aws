@@ -5,13 +5,16 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/backup/waiter"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsBackupSelection() *schema.Resource {
@@ -98,7 +101,7 @@ func resourceAwsBackupSelectionCreate(d *schema.ResourceData, meta interface{}) 
 
 	// Retry for IAM eventual consistency
 	var output *backup.CreateBackupSelectionOutput
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		output, err = conn.CreateBackupSelection(input)
 
@@ -144,16 +147,50 @@ func resourceAwsBackupSelectionRead(d *schema.ResourceData, meta interface{}) er
 		SelectionId:  aws.String(d.Id()),
 	}
 
-	resp, err := conn.GetBackupSelection(input)
-	if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") ||
-		isAWSErr(err, backup.ErrCodeInvalidParameterValueException, "Cannot find Backup plan") {
+	var resp *backup.GetBackupSelectionOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		resp, err = conn.GetBackupSelection(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, backup.ErrCodeResourceNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if d.IsNewResource() && tfawserr.ErrMessageContains(err, backup.ErrCodeInvalidParameterValueException, "Cannot find Backup plan") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		resp, err = conn.GetBackupSelection(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, backup.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] Backup Selection (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrMessageContains(err, backup.ErrCodeInvalidParameterValueException, "Cannot find Backup plan") {
 		log.Printf("[WARN] Backup Selection (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading Backup Selection: %s", err)
+		return fmt.Errorf("error reading Backup Selection (%s): %w", d.Id(), err)
+	}
+
+	if resp == nil {
+		return fmt.Errorf("error reading Backup Selection (%s): empty response", d.Id())
 	}
 
 	d.Set("plan_id", resp.BackupPlanId)

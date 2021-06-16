@@ -13,7 +13,7 @@ Provides a Cognito User Identity Provider resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cognito_user_pool" "example" {
   name                     = "example-pool"
   auto_verified_attributes = ["email"]
@@ -47,6 +47,10 @@ The following arguments are supported:
 * `attribute_mapping` (Optional) - The map of attribute mapping of user pool attributes. [AttributeMapping in AWS API documentation](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateIdentityProvider.html#CognitoUserPools-CreateIdentityProvider-request-AttributeMapping)
 * `idp_identifiers` (Optional) - The list of identity providers.
 * `provider_details` (Optional) - The map of identity details, such as access token
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

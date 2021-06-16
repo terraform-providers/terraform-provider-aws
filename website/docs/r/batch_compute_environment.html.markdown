@@ -18,7 +18,9 @@ otherwise, the policy may be destroyed too soon and the compute environment will
 
 ## Example Usage
 
-```hcl
+### EC2 Type
+
+```terraform
 resource "aws_iam_role" "ecs_instance_role" {
   name = "ecs_instance_role"
 
@@ -30,7 +32,7 @@ resource "aws_iam_role" "ecs_instance_role" {
 	    "Action": "sts:AssumeRole",
 	    "Effect": "Allow",
 	    "Principal": {
-		"Service": "ec2.amazonaws.com"
+	        "Service": "ec2.amazonaws.com"
 	    }
 	}
     ]
@@ -122,6 +124,32 @@ resource "aws_batch_compute_environment" "sample" {
 }
 ```
 
+### Fargate Type
+
+```hcl
+resource "aws_batch_compute_environment" "sample" {
+  compute_environment_name = "sample"
+
+  compute_resources {
+    max_vcpus = 16
+
+    security_group_ids = [
+      aws_security_group.sample.id
+    ]
+
+    subnets = [
+      aws_subnet.sample.id
+    ]
+
+    type = "FARGATE"
+  }
+
+  service_role = aws_iam_role.aws_batch_service_role.arn
+  type         = "MANAGED"
+  depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
+}
+```
+
 ## Argument Reference
 
 * `compute_environment_name` - (Optional, Forces new resource) The name for your compute environment. Up to 128 letters (uppercase and lowercase), numbers, and underscores are allowed. If omitted, Terraform will assign a random, unique name.
@@ -129,26 +157,26 @@ resource "aws_batch_compute_environment" "sample" {
 * `compute_resources` - (Optional) Details of the compute resources managed by the compute environment. This parameter is required for managed compute environments. See details below.
 * `service_role` - (Required) The full Amazon Resource Name (ARN) of the IAM role that allows AWS Batch to make calls to other AWS services on your behalf.
 * `state` - (Optional) The state of the compute environment. If the state is `ENABLED`, then the compute environment accepts jobs from a queue and can scale out automatically based on queues. Valid items are `ENABLED` or `DISABLED`. Defaults to `ENABLED`.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `type` - (Required) The type of the compute environment. Valid items are `MANAGED` or `UNMANAGED`.
 
 **compute_resources** is a child block with a single argument:
 
-* `allocation_strategy` - (Optional) The allocation strategy to use for the compute resource in case not enough instances of the best fitting instance type can be allocated. Valid items are `BEST_FIT_PROGRESSIVE`, `SPOT_CAPACITY_OPTIMIZED` or `BEST_FIT`. Defaults to `BEST_FIT`. See [AWS docs](https://docs.aws.amazon.com/batch/latest/userguide/allocation-strategies.html) for details.
-* `bid_percentage` - (Optional) Integer of minimum percentage that a Spot Instance price must be when compared with the On-Demand price for that instance type before instances are launched. For example, if your bid percentage is 20% (`20`), then the Spot price must be below 20% of the current On-Demand price for that EC2 instance. This parameter is required for SPOT compute environments.
-* `desired_vcpus` - (Optional) The desired number of EC2 vCPUS in the compute environment.
-* `ec2_key_pair` - (Optional) The EC2 key pair that is used for instances launched in the compute environment.
-* `image_id` - (Optional) The Amazon Machine Image (AMI) ID used for instances launched in the compute environment.
-* `instance_role` - (Required) The Amazon ECS instance role applied to Amazon EC2 instances in a compute environment.
-* `instance_type` - (Required) A list of instance types that may be launched.
-* `launch_template` - (Optional) The launch template to use for your compute resources. See details below.
+* `allocation_strategy` - (Optional) The allocation strategy to use for the compute resource in case not enough instances of the best fitting instance type can be allocated. Valid items are `BEST_FIT_PROGRESSIVE`, `SPOT_CAPACITY_OPTIMIZED` or `BEST_FIT`. Defaults to `BEST_FIT`. See [AWS docs](https://docs.aws.amazon.com/batch/latest/userguide/allocation-strategies.html) for details. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `bid_percentage` - (Optional) Integer of minimum percentage that a Spot Instance price must be when compared with the On-Demand price for that instance type before instances are launched. For example, if your bid percentage is 20% (`20`), then the Spot price must be below 20% of the current On-Demand price for that EC2 instance. This parameter is required for SPOT compute environments. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `desired_vcpus` - (Optional) The desired number of EC2 vCPUS in the compute environment. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `ec2_key_pair` - (Optional) The EC2 key pair that is used for instances launched in the compute environment. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `image_id` - (Optional) The Amazon Machine Image (AMI) ID used for instances launched in the compute environment. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `instance_role` - (Optional) The Amazon ECS instance role applied to Amazon EC2 instances in a compute environment. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `instance_type` - (Optional) A list of instance types that may be launched. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `launch_template` - (Optional) The launch template to use for your compute resources. See details below. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
 * `max_vcpus` - (Required) The maximum number of EC2 vCPUs that an environment can reach.
-* `min_vcpus` - (Required) The minimum number of EC2 vCPUs that an environment should maintain.
+* `min_vcpus` - (Optional) The minimum number of EC2 vCPUs that an environment should maintain. For `EC2` or `SPOT` compute environments, if the parameter is not explicitly defined, a `0` default value will be set. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
 * `security_group_ids` - (Required) A list of EC2 security group that are associated with instances launched in the compute environment.
-* `spot_iam_fleet_role` - (Optional) The Amazon Resource Name (ARN) of the Amazon EC2 Spot Fleet IAM role applied to a SPOT compute environment. This parameter is required for SPOT compute environments.
+* `spot_iam_fleet_role` - (Optional) The Amazon Resource Name (ARN) of the Amazon EC2 Spot Fleet IAM role applied to a SPOT compute environment. This parameter is required for SPOT compute environments. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
 * `subnets` - (Required) A list of VPC subnets into which the compute resources are launched.
-* `tags` - (Optional) Key-value pair tags to be applied to resources that are launched in the compute environment.
-* `type` - (Required) The type of compute environment. Valid items are `EC2` or `SPOT`.
+* `tags` - (Optional) Key-value pair tags to be applied to resources that are launched in the compute environment. This parameter isn't applicable to jobs running on Fargate resources, and shouldn't be specified.
+* `type` - (Required) The type of compute environment. Valid items are `EC2`, `SPOT`, `FARGATE` or `FARGATE_SPOT`.
 
 ### launch_template
 
@@ -166,6 +194,7 @@ In addition to all arguments above, the following attributes are exported:
 * `ecs_cluster_arn` - The Amazon Resource Name (ARN) of the underlying Amazon ECS cluster used by the compute environment.
 * `status` - The current status of the compute environment (for example, CREATING or VALID).
 * `status_reason` - A short, human-readable string to provide additional details about the current status of the compute environment.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

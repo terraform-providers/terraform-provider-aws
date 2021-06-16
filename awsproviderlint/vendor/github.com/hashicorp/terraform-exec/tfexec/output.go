@@ -37,7 +37,7 @@ func (tf *Terraform) Output(ctx context.Context, opts ...OutputOption) (map[stri
 	outputCmd := tf.outputCmd(ctx, opts...)
 
 	outputs := map[string]OutputMeta{}
-	err := tf.runTerraformCmdJSON(outputCmd, &outputs)
+	err := tf.runTerraformCmdJSON(ctx, outputCmd, &outputs)
 	if err != nil {
 		return nil, err
 	}

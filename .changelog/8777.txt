@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_appautoscaling_scheduled_action: No longer re-creates when changes can be updated in-place.
+```
+
+```release-note:enhancement
+resource/aws_appautoscaling_scheduled_action: Allows setting leaving `min_capacity` or `max_capacity` unset.
+```

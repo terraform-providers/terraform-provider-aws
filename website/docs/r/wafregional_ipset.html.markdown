@@ -12,7 +12,7 @@ Provides a WAF Regional IPSet Resource for use with Application Load Balancer.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_wafregional_ipset" "ipset" {
   name = "tfIPSet"
 

@@ -14,7 +14,7 @@ description: |-
 
 ### Search By Allocation ID (VPC only)
 
-```hcl
+```terraform
 data "aws_eip" "by_allocation_id" {
   id = "eipalloc-12345678"
 }
@@ -22,7 +22,7 @@ data "aws_eip" "by_allocation_id" {
 
 ### Search By Filters (EC2-Classic or VPC)
 
-```hcl
+```terraform
 data "aws_eip" "by_filter" {
   filter {
     name   = "tag:Name"
@@ -33,7 +33,7 @@ data "aws_eip" "by_filter" {
 
 ### Search By Public IP (EC2-Classic or VPC)
 
-```hcl
+```terraform
 data "aws_eip" "by_public_ip" {
   public_ip = "1.2.3.4"
 }
@@ -41,7 +41,7 @@ data "aws_eip" "by_public_ip" {
 
 ### Search By Tags (EC2-Classic or VPC)
 
-```hcl
+```terraform
 data "aws_eip" "by_tags" {
   tags = {
     Name = "exampleNameTagValue"

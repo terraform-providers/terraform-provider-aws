@@ -1,0 +1,23 @@
+```release-note:enhancement
+data/source_aws_eks_addon: added validation for `cluster_name`
+```
+
+```release-note:enhancement
+data/source_aws_eks_cluster: added validation for `cluster_name`
+```
+
+```release-note:enhancement
+resource/aws_eks_addon: added validation for `cluster_name`
+```
+
+```release-note:enhancement
+resource/aws_eks_cluster: added validation for `name`
+```
+
+```release-note:enhancement
+resource/aws_eks_fargate_profile: added validation for `cluster_name`
+```
+
+```release-note:enhancement
+resource/aws_eks_node_group: added validation for `cluster_name`
+```

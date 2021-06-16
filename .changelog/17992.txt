@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_servicequotas_service_quota: Add plan time validation to `quota_code` and `service_code`
+```

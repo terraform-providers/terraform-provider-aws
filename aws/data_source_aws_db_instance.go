@@ -230,14 +230,14 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if len(resp.DBInstances) < 1 {
+	if resp == nil || len(resp.DBInstances) < 1 || resp.DBInstances[0] == nil {
 		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
 	}
 	if len(resp.DBInstances) > 1 {
 		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria.")
 	}
 
-	dbInstance := *resp.DBInstances[0]
+	dbInstance := resp.DBInstances[0]
 
 	d.SetId(d.Get("db_instance_identifier").(string))
 
@@ -256,7 +256,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 		parameterGroups = append(parameterGroups, *v.DBParameterGroupName)
 	}
 	if err := d.Set("db_parameter_groups", parameterGroups); err != nil {
-		return fmt.Errorf("Error setting db_parameter_groups attribute: %#v, error: %#v", parameterGroups, err)
+		return fmt.Errorf("Error setting db_parameter_groups attribute: %#v, error: %w", parameterGroups, err)
 	}
 
 	var dbSecurityGroups []string
@@ -264,7 +264,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 		dbSecurityGroups = append(dbSecurityGroups, *v.DBSecurityGroupName)
 	}
 	if err := d.Set("db_security_groups", dbSecurityGroups); err != nil {
-		return fmt.Errorf("Error setting db_security_groups attribute: %#v, error: %#v", dbSecurityGroups, err)
+		return fmt.Errorf("Error setting db_security_groups attribute: %#v, error: %w", dbSecurityGroups, err)
 	}
 
 	if dbInstance.DBSubnetGroup != nil {
@@ -289,7 +289,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("endpoint", fmt.Sprintf("%s:%d", *dbInstance.Endpoint.Address, *dbInstance.Endpoint.Port))
 
 	if err := d.Set("enabled_cloudwatch_logs_exports", aws.StringValueSlice(dbInstance.EnabledCloudwatchLogsExports)); err != nil {
-		return fmt.Errorf("error setting enabled_cloudwatch_logs_exports: %#v", err)
+		return fmt.Errorf("error setting enabled_cloudwatch_logs_exports: %w", err)
 	}
 
 	var optionGroups []string
@@ -297,7 +297,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 		optionGroups = append(optionGroups, *v.OptionGroupName)
 	}
 	if err := d.Set("option_group_memberships", optionGroups); err != nil {
-		return fmt.Errorf("Error setting option_group_memberships attribute: %#v, error: %#v", optionGroups, err)
+		return fmt.Errorf("Error setting option_group_memberships attribute: %#v, error: %w", optionGroups, err)
 	}
 
 	d.Set("preferred_backup_window", dbInstance.PreferredBackupWindow)
@@ -314,17 +314,17 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 		vpcSecurityGroups = append(vpcSecurityGroups, *v.VpcSecurityGroupId)
 	}
 	if err := d.Set("vpc_security_groups", vpcSecurityGroups); err != nil {
-		return fmt.Errorf("Error setting vpc_security_groups attribute: %#v, error: %#v", vpcSecurityGroups, err)
+		return fmt.Errorf("Error setting vpc_security_groups attribute: %#v, error: %w", vpcSecurityGroups, err)
 	}
 
 	tags, err := keyvaluetags.RdsListTags(conn, d.Get("db_instance_arn").(string))
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for RDS DB Instance (%s): %s", d.Get("db_instance_arn").(string), err)
+		return fmt.Errorf("error listing tags for RDS DB Instance (%s): %w", d.Get("db_instance_arn").(string), err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

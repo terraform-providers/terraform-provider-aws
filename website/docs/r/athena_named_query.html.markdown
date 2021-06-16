@@ -12,7 +12,7 @@ Provides an Athena Named Query resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "hoge" {
   bucket = "tf-test"
 }

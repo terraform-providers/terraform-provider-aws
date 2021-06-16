@@ -23,7 +23,7 @@ To initialize cluster, you have to add an HSM instance to the cluster, then sign
 
 The following example below creates a CloudHSM cluster.
 
-```hcl
+```terraform
 provider "aws" {
   region = var.aws_region
 }
@@ -67,7 +67,7 @@ The following arguments are supported:
 * `source_backup_identifier` - (Optional) The id of Cloud HSM v2 cluster backup to be restored.
 * `hsm_type` - (Required) The type of HSM module in the cluster. Currently, only `hsm1.medium` is supported.
 * `subnet_ids` - (Required) The IDs of subnets in which cluster will operate.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -83,6 +83,7 @@ In addition to all arguments above, the following attributes are exported:
     * `cluster_certificates.0.aws_hardware_certificate` - The HSM hardware certificate issued (signed) by AWS CloudHSM.
     * `cluster_certificates.0.hsm_certificate` - The HSM certificate issued (signed) by the HSM hardware.
     * `cluster_certificates.0.manufacturer_hardware_certificate` - The HSM hardware certificate issued (signed) by the hardware manufacturer.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 [1]: https://docs.aws.amazon.com/cloudhsm/latest/userguide/introduction.html
 [2]: https://docs.aws.amazon.com/cloudhsm/latest/APIReference/Welcome.html

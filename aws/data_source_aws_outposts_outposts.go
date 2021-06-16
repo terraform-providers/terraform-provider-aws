@@ -38,6 +38,11 @@ func dataSourceAwsOutpostsOutposts() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -68,6 +73,10 @@ func dataSourceAwsOutpostsOutpostsRead(d *schema.ResourceData, meta interface{})
 			}
 
 			if v, ok := d.GetOk("site_id"); ok && v.(string) != aws.StringValue(outpost.SiteId) {
+				continue
+			}
+
+			if v, ok := d.GetOk("owner_id"); ok && v.(string) != aws.StringValue(outpost.OwnerId) {
 				continue
 			}
 

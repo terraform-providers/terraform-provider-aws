@@ -14,14 +14,17 @@ import (
 
 func TestAccAWSLBCookieStickinessPolicy_basic(t *testing.T) {
 	lbName := fmt.Sprintf("tf-test-lb-%s", acctest.RandString(5))
+	resourceName := "aws_lb_cookie_stickiness_policy.foo"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBCookieStickinessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLBCookieStickinessPolicyConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "cookie_expiration_period", "300"),
 					testAccCheckLBCookieStickinessPolicy(
 						"aws_elb.lb",
 						"aws_lb_cookie_stickiness_policy.foo",
@@ -31,6 +34,7 @@ func TestAccAWSLBCookieStickinessPolicy_basic(t *testing.T) {
 			{
 				Config: testAccLBCookieStickinessPolicyConfigUpdate(lbName),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "cookie_expiration_period", "0"),
 					testAccCheckLBCookieStickinessPolicy(
 						"aws_elb.lb",
 						"aws_lb_cookie_stickiness_policy.foo",
@@ -104,6 +108,7 @@ func TestAccAWSLBCookieStickinessPolicy_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBCookieStickinessPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -126,6 +131,7 @@ func TestAccAWSLBCookieStickinessPolicy_disappears_ELB(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBCookieStickinessPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -156,14 +162,15 @@ resource "aws_elb" "lb" {
 }
 
 resource "aws_lb_cookie_stickiness_policy" "foo" {
-  name          = "foo-policy"
-  load_balancer = aws_elb.lb.id
-  lb_port       = 80
+  name                     = "foo-policy"
+  load_balancer            = aws_elb.lb.id
+  lb_port                  = 80
+  cookie_expiration_period = 300
 }
 `, rName))
 }
 
-// Sets the cookie_expiration_period to 300s.
+// Sets the cookie_expiration_period to 0s.
 func testAccLBCookieStickinessPolicyConfigUpdate(rName string) string {
 	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_elb" "lb" {
@@ -182,7 +189,7 @@ resource "aws_lb_cookie_stickiness_policy" "foo" {
   name                     = "foo-policy"
   load_balancer            = aws_elb.lb.id
   lb_port                  = 80
-  cookie_expiration_period = 300
+  cookie_expiration_period = 0
 }
 `, rName))
 }

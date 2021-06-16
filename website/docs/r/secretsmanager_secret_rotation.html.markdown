@@ -14,7 +14,7 @@ Provides a resource to manage AWS Secrets Manager secret rotation. To manage a s
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_secretsmanager_secret_rotation" "example" {
   secret_id           = aws_secretsmanager_secret.example.id
   rotation_lambda_arn = aws_lambda_function.example.arn

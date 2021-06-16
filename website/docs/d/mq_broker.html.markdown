@@ -12,7 +12,7 @@ Provides information about a MQ Broker.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "broker_id" {
   type    = string
   default = ""

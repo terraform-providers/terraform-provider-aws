@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -82,8 +83,11 @@ func resourceAwsCloudWatchCompositeAlarm() *schema.Resource {
 					ValidateFunc: validateArn,
 				},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
@@ -91,7 +95,7 @@ func resourceAwsCloudWatchCompositeAlarmCreate(ctx context.Context, d *schema.Re
 	conn := meta.(*AWSClient).cloudwatchconn
 	name := d.Get("alarm_name").(string)
 
-	input := expandAwsCloudWatchPutCompositeAlarmInput(d)
+	input := expandAwsCloudWatchPutCompositeAlarmInput(d, meta)
 
 	_, err := conn.PutCompositeAlarmWithContext(ctx, &input)
 	if err != nil {
@@ -105,6 +109,7 @@ func resourceAwsCloudWatchCompositeAlarmCreate(ctx context.Context, d *schema.Re
 
 func resourceAwsCloudWatchCompositeAlarmRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).cloudwatchconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 	name := d.Id()
 
@@ -153,8 +158,15 @@ func resourceAwsCloudWatchCompositeAlarmRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("error listing tags of alarm: %s", err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return diag.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags: %w", err))
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting tags_all: %w", err))
 	}
 
 	return nil
@@ -164,7 +176,7 @@ func resourceAwsCloudWatchCompositeAlarmUpdate(ctx context.Context, d *schema.Re
 	conn := meta.(*AWSClient).cloudwatchconn
 	name := d.Id()
 
-	input := expandAwsCloudWatchPutCompositeAlarmInput(d)
+	input := expandAwsCloudWatchPutCompositeAlarmInput(d, meta)
 
 	_, err := conn.PutCompositeAlarmWithContext(ctx, &input)
 	if err != nil {
@@ -172,8 +184,8 @@ func resourceAwsCloudWatchCompositeAlarmUpdate(ctx context.Context, d *schema.Re
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.CloudwatchUpdateTags(conn, arn, o, n); err != nil {
 			return diag.Errorf("error updating tags: %s", err)
@@ -202,7 +214,10 @@ func resourceAwsCloudWatchCompositeAlarmDelete(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func expandAwsCloudWatchPutCompositeAlarmInput(d *schema.ResourceData) cloudwatch.PutCompositeAlarmInput {
+func expandAwsCloudWatchPutCompositeAlarmInput(d *schema.ResourceData, meta interface{}) cloudwatch.PutCompositeAlarmInput {
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 	out := cloudwatch.PutCompositeAlarmInput{
 		ActionsEnabled: aws.Bool(d.Get("actions_enabled").(bool)),
 	}
@@ -231,8 +246,8 @@ func expandAwsCloudWatchPutCompositeAlarmInput(d *schema.ResourceData) cloudwatc
 		out.OKActions = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		out.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CloudwatchTags()
+	if len(tags) > 0 {
+		out.Tags = tags.IgnoreAws().CloudwatchTags()
 	}
 
 	return out

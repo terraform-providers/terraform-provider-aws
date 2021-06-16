@@ -1,0 +1,7 @@
+```release-note:bug
+aws_batch_compute_environment: `service_role` argument is optional 
+```
+
+```release-note:bug
+aws_batch_compute_environment: Allow update of just `service_role` for managed compute environments
+```

@@ -12,7 +12,7 @@ Provides a CloudWatch Dashboard resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_dashboard" "main" {
   dashboard_name = "my-dashboard"
 

@@ -36,6 +36,23 @@ func DeploymentDeployed(conn *apigatewayv2.ApiGatewayV2, apiId, deploymentId str
 	return nil, err
 }
 
+func DomainNameAvailable(conn *apigatewayv2.ApiGatewayV2, name string, timeout time.Duration) (*apigatewayv2.GetDomainNameOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{apigatewayv2.DomainNameStatusUpdating},
+		Target:  []string{apigatewayv2.DomainNameStatusAvailable},
+		Refresh: DomainNameStatus(conn, name),
+		Timeout: timeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*apigatewayv2.GetDomainNameOutput); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
 // VpcLinkAvailable waits for a VPC Link to return Available
 func VpcLinkAvailable(conn *apigatewayv2.ApiGatewayV2, vpcLinkId string) (*apigatewayv2.GetVpcLinkOutput, error) {
 	stateConf := &resource.StateChangeConf{

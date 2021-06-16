@@ -12,7 +12,7 @@ Provides an Gamelift Game Session Queue resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_gamelift_game_session_queue" "test" {
   name = "example-session-queue"
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 * `timeout_in_seconds` - (Required) Maximum time a game session request can remain in the queue.
 * `destinations` - (Optional) List of fleet/alias ARNs used by session queue for placing game sessions.
 * `player_latency_policy` - (Optional) One or more policies used to choose fleet based on player latency. See below.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Nested Fields
 
@@ -56,6 +56,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Game Session Queue ARN.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -24,6 +25,7 @@ func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
@@ -34,30 +36,39 @@ func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "owner_id", snResourceName, "owner_id"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "availability_zone", snResourceName, "availability_zone"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "availability_zone_id", snResourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrSet(ds1ResourceName, "available_ip_address_count"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "vpc_id", vpcResourceName, "id"),
 					resource.TestCheckResourceAttr(ds1ResourceName, "cidr_block", cidr),
 					resource.TestCheckResourceAttr(ds1ResourceName, "tags.Name", tag),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "arn", snResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "customer_owned_ipv4_pool", snResourceName, "customer_owned_ipv4_pool"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "map_customer_owned_ip_on_launch", snResourceName, "map_customer_owned_ip_on_launch"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "outpost_arn", snResourceName, "outpost_arn"),
 
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "id", snResourceName, "id"),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "owner_id", snResourceName, "owner_id"),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "availability_zone", snResourceName, "availability_zone"),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "availability_zone_id", snResourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrSet(ds2ResourceName, "available_ip_address_count"),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "vpc_id", vpcResourceName, "id"),
 					resource.TestCheckResourceAttr(ds2ResourceName, "cidr_block", cidr),
 					resource.TestCheckResourceAttr(ds2ResourceName, "tags.Name", tag),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "arn", snResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds2ResourceName, "customer_owned_ipv4_pool", snResourceName, "customer_owned_ipv4_pool"),
+					resource.TestCheckResourceAttrPair(ds2ResourceName, "map_customer_owned_ip_on_launch", snResourceName, "map_customer_owned_ip_on_launch"),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "outpost_arn", snResourceName, "outpost_arn"),
 
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "id", snResourceName, "id"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "owner_id", snResourceName, "owner_id"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "availability_zone", snResourceName, "availability_zone"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "availability_zone_id", snResourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrSet(ds3ResourceName, "available_ip_address_count"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "vpc_id", vpcResourceName, "id"),
 					resource.TestCheckResourceAttr(ds3ResourceName, "cidr_block", cidr),
 					resource.TestCheckResourceAttr(ds3ResourceName, "tags.Name", tag),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "arn", snResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds3ResourceName, "customer_owned_ipv4_pool", snResourceName, "customer_owned_ipv4_pool"),
+					resource.TestCheckResourceAttrPair(ds3ResourceName, "map_customer_owned_ip_on_launch", snResourceName, "map_customer_owned_ip_on_launch"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "outpost_arn", snResourceName, "outpost_arn"),
 
 					resource.TestCheckResourceAttrPair(ds4ResourceName, "id", snResourceName, "id"),
@@ -68,6 +79,8 @@ func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(ds4ResourceName, "cidr_block", cidr),
 					resource.TestCheckResourceAttr(ds4ResourceName, "tags.Name", tag),
 					resource.TestCheckResourceAttrPair(ds4ResourceName, "arn", snResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds4ResourceName, "customer_owned_ipv4_pool", snResourceName, "customer_owned_ipv4_pool"),
+					resource.TestCheckResourceAttrPair(ds4ResourceName, "map_customer_owned_ip_on_launch", snResourceName, "map_customer_owned_ip_on_launch"),
 					resource.TestCheckResourceAttrPair(ds4ResourceName, "outpost_arn", snResourceName, "outpost_arn"),
 
 					resource.TestCheckResourceAttrPair(ds5ResourceName, "id", snResourceName, "id"),
@@ -78,6 +91,8 @@ func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(ds5ResourceName, "cidr_block", cidr),
 					resource.TestCheckResourceAttr(ds5ResourceName, "tags.Name", tag),
 					resource.TestCheckResourceAttrPair(ds5ResourceName, "arn", snResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds5ResourceName, "customer_owned_ipv4_pool", snResourceName, "customer_owned_ipv4_pool"),
+					resource.TestCheckResourceAttrPair(ds5ResourceName, "map_customer_owned_ip_on_launch", snResourceName, "map_customer_owned_ip_on_launch"),
 					resource.TestCheckResourceAttrPair(ds5ResourceName, "outpost_arn", snResourceName, "outpost_arn"),
 
 					resource.TestCheckResourceAttrPair(ds6ResourceName, "id", snResourceName, "id"),
@@ -88,6 +103,8 @@ func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(ds6ResourceName, "cidr_block", cidr),
 					resource.TestCheckResourceAttr(ds6ResourceName, "tags.Name", tag),
 					resource.TestCheckResourceAttrPair(ds6ResourceName, "arn", snResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds6ResourceName, "customer_owned_ipv4_pool", snResourceName, "customer_owned_ipv4_pool"),
+					resource.TestCheckResourceAttrPair(ds6ResourceName, "map_customer_owned_ip_on_launch", snResourceName, "map_customer_owned_ip_on_launch"),
 					resource.TestCheckResourceAttrPair(ds6ResourceName, "outpost_arn", snResourceName, "outpost_arn"),
 				),
 			},
@@ -98,8 +115,9 @@ func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
 func TestAccDataSourceAwsSubnet_ipv6ByIpv6Filter(t *testing.T) {
 	rInt := acctest.RandIntRange(0, 256)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSubnetConfigIpv6(rInt),
@@ -118,8 +136,9 @@ func TestAccDataSourceAwsSubnet_ipv6ByIpv6Filter(t *testing.T) {
 func TestAccDataSourceAwsSubnet_ipv6ByIpv6CidrBlock(t *testing.T) {
 	rInt := acctest.RandIntRange(0, 256)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsSubnetConfigIpv6(rInt),

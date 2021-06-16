@@ -22,12 +22,14 @@ func resourceAwsXraySamplingRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"rule_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 128),
+				ValidateFunc: validation.StringLenBetween(1, 32),
 			},
 			"resource_arn": {
 				Type:     schema.TypeString,
@@ -90,13 +92,17 @@ func resourceAwsXraySamplingRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsXraySamplingRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).xrayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
+
 	samplingRule := &xray.SamplingRule{
 		RuleName:      aws.String(d.Get("rule_name").(string)),
 		ResourceARN:   aws.String(d.Get("resource_arn").(string)),
@@ -112,12 +118,12 @@ func resourceAwsXraySamplingRuleCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("attributes"); ok {
-		samplingRule.Attributes = stringMapToPointers(v.(map[string]interface{}))
+		samplingRule.Attributes = expandStringMap(v.(map[string]interface{}))
 	}
 
 	params := &xray.CreateSamplingRuleInput{
 		SamplingRule: samplingRule,
-		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().XrayTags(),
+		Tags:         tags.IgnoreAws().XrayTags(),
 	}
 
 	out, err := conn.CreateSamplingRule(params)
@@ -132,6 +138,7 @@ func resourceAwsXraySamplingRuleCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsXraySamplingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).xrayconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	samplingRule, err := getXraySamplingRule(conn, d.Id())
@@ -166,8 +173,15 @@ func resourceAwsXraySamplingRuleRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error listing tags for Xray Sampling group (%q): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -176,8 +190,8 @@ func resourceAwsXraySamplingRuleRead(d *schema.ResourceData, meta interface{}) e
 func resourceAwsXraySamplingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).xrayconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.XrayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}
@@ -202,7 +216,7 @@ func resourceAwsXraySamplingRuleUpdate(d *schema.ResourceData, meta interface{})
 			attributes := map[string]*string{}
 			if v, ok := d.GetOk("attributes"); ok {
 				if m, ok := v.(map[string]interface{}); ok {
-					attributes = stringMapToPointers(m)
+					attributes = expandStringMap(m)
 				}
 			}
 			samplingRuleUpdate.Attributes = attributes

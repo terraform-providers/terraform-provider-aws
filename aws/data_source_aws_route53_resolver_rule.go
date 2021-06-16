@@ -86,7 +86,7 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	if v, ok := d.GetOk("resolver_rule_id"); ok {
 		ruleRaw, state, err := route53ResolverRuleRefresh(conn, v.(string))()
 		if err != nil {
-			return fmt.Errorf("error getting Route53 Resolver rule (%s): %s", v, err)
+			return fmt.Errorf("error getting Route53 Resolver rule (%s): %w", v, err)
 		}
 
 		if state == route53ResolverRuleStatusDeleted {
@@ -107,7 +107,7 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 		log.Printf("[DEBUG] Listing Route53 Resolver rules: %s", req)
 		resp, err := conn.ListResolverRules(req)
 		if err != nil {
-			return fmt.Errorf("error getting Route53 Resolver rules: %s", err)
+			return fmt.Errorf("error getting Route53 Resolver rules: %w", err)
 		}
 
 		if n := len(resp.ResolverRules); n == 0 {
@@ -120,8 +120,7 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(aws.StringValue(rule.Id))
-	arn := *rule.Arn
-	d.Set("arn", arn)
+	d.Set("arn", rule.Arn)
 	// To be consistent with other AWS services that do not accept a trailing period,
 	// we remove the suffix from the Domain Name returned from the API
 	d.Set("domain_name", trimTrailingPeriod(aws.StringValue(rule.DomainName)))
@@ -134,14 +133,15 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	d.Set("share_status", shareStatus)
 	// https://github.com/hashicorp/terraform-provider-aws/issues/10211
 	if shareStatus != route53resolver.ShareStatusSharedWithMe {
+		arn := aws.StringValue(rule.Arn)
 		tags, err := keyvaluetags.Route53resolverListTags(conn, arn)
 
 		if err != nil {
-			return fmt.Errorf("error listing tags for Route 53 Resolver rule (%s): %s", arn, err)
+			return fmt.Errorf("error listing tags for Route 53 Resolver rule (%s): %w", arn, err)
 		}
 
 		if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-			return fmt.Errorf("error setting tags: %s", err)
+			return fmt.Errorf("error setting tags: %w", err)
 		}
 	}
 

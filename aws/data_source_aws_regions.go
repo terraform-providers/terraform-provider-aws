@@ -44,7 +44,7 @@ func dataSourceAwsRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Reading regions for request: %s", request)
 	response, err := connection.DescribeRegions(request)
 	if err != nil {
-		return fmt.Errorf("Error fetching Regions: %s", err)
+		return fmt.Errorf("Error fetching Regions: %w", err)
 	}
 
 	names := []string{}
@@ -54,7 +54,7 @@ func dataSourceAwsRegionsRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(meta.(*AWSClient).partition)
 	if err := d.Set("names", names); err != nil {
-		return fmt.Errorf("error setting names: %s", err)
+		return fmt.Errorf("error setting names: %w", err)
 	}
 
 	return nil

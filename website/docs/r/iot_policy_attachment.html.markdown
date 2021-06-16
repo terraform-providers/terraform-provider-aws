@@ -12,7 +12,7 @@ Provides an IoT policy attachment.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iot_policy" "pubsub" {
   name = "PubSubToAnyTopic"
 
@@ -49,3 +49,7 @@ The following arguments are supported:
 
 * `policy` - (Required) The name of the policy to attach.
 * `target` - (Required) The identity to which the policy is attached.
+
+## Attributes Reference
+
+No additional attributes are exported.

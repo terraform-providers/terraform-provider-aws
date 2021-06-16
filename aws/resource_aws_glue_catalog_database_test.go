@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,12 +12,62 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_glue_catalog_database", &resource.Sweeper{
+		Name: "aws_glue_catalog_database",
+		F:    testSweepGlueCatalogDatabases,
+	})
+}
+
+func testSweepGlueCatalogDatabases(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).glueconn
+
+	input := &glue.GetDatabasesInput{}
+	err = conn.GetDatabasesPages(input, func(page *glue.GetDatabasesOutput, lastPage bool) bool {
+		if len(page.DatabaseList) == 0 {
+			log.Printf("[INFO] No Glue Catalog Databases to sweep")
+			return false
+		}
+		for _, database := range page.DatabaseList {
+			name := aws.StringValue(database.Name)
+
+			log.Printf("[INFO] Deleting Glue Catalog Database: %s", name)
+
+			r := resourceAwsGlueCatalogDatabase()
+			d := r.Data(nil)
+			d.SetId("???")
+			d.Set("name", name)
+			d.Set("catalog_id", database.CatalogId)
+
+			err := r.Delete(d, client)
+			if err != nil {
+				log.Printf("[ERROR] Failed to delete Glue Catalog Database %s: %s", name, err)
+			}
+		}
+		return !lastPage
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Glue Catalog Database sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Glue Catalog Databases: %s", err)
+	}
+
+	return nil
+}
+
 func TestAccAWSGlueCatalogDatabase_full(t *testing.T) {
 	resourceName := "aws_glue_catalog_database.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlueDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -27,8 +78,10 @@ func TestAccAWSGlueCatalogDatabase_full(t *testing.T) {
 					testAccCheckGlueCatalogDatabaseExists(resourceName),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "glue", fmt.Sprintf("database/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "description", ""), resource.TestCheckResourceAttr(resourceName, "location_uri", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "location_uri", ""),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "target_database.#", "0"),
 				),
 			},
 			{
@@ -63,12 +116,42 @@ func TestAccAWSGlueCatalogDatabase_full(t *testing.T) {
 	})
 }
 
+func TestAccAWSGlueCatalogDatabase_targetDatabase(t *testing.T) {
+	resourceName := "aws_glue_catalog_database.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogDatabaseConfigTargetDatabase(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "target_database.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_database.0.catalog_id", "aws_glue_catalog_database.test2", "catalog_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_database.0.database_name", "aws_glue_catalog_database.test2", "name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSGlueCatalogDatabase_disappears(t *testing.T) {
 	resourceName := "aws_glue_catalog_database.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlueDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -136,6 +219,23 @@ resource "aws_glue_catalog_database" "test" {
   }
 }
 `, rName, desc)
+}
+
+func testAccGlueCatalogDatabaseConfigTargetDatabase(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+
+  target_database {
+    catalog_id    = aws_glue_catalog_database.test2.catalog_id
+    database_name = aws_glue_catalog_database.test2.name
+  }
+}
+
+resource "aws_glue_catalog_database" "test2" {
+  name = "%[1]s-2"
+}
+`, rName)
 }
 
 func testAccCheckGlueCatalogDatabaseExists(name string) resource.TestCheckFunc {

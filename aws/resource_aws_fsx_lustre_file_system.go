@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fsx"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -89,7 +91,6 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 			"storage_capacity": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(1200),
 			},
 			"subnet_ids": {
@@ -100,7 +101,8 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 				MaxItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -180,12 +182,39 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 				ForceNew: true,
 				Default:  false,
 			},
+			"data_compression_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(fsx.DataCompressionType_Values(), false),
+				Default:      fsx.DataCompressionTypeNone,
+			},
 		},
+
+		CustomizeDiff: customdiff.Sequence(
+			SetTagsDiff,
+			resourceFsxLustreFileSystemSchemaCustomizeDiff,
+		),
 	}
+}
+
+func resourceFsxLustreFileSystemSchemaCustomizeDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	// we want to force a new resource if the new storage capacity is less than the old one
+	if d.HasChange("storage_capacity") {
+		o, n := d.GetChange("storage_capacity")
+		if n.(int) < o.(int) || d.Get("deployment_type").(string) == fsx.LustreDeploymentTypeScratch1 {
+			if err := d.ForceNew("storage_capacity"); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).fsxconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &fsx.CreateFileSystemInput{
 		ClientRequestToken: aws.String(resource.UniqueId()),
@@ -227,8 +256,8 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 		input.SecurityGroupIds = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().FsxTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().FsxTags()
 	}
 
 	if v, ok := d.GetOk("weekly_maintenance_start_time"); ok {
@@ -251,6 +280,10 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 		input.LustreConfiguration.CopyTagsToBackups = aws.Bool(v.(bool))
 	}
 
+	if v, ok := d.GetOk("data_compression_type"); ok {
+		input.LustreConfiguration.DataCompressionType = aws.String(v.(string))
+	}
+
 	result, err := conn.CreateFileSystem(input)
 	if err != nil {
 		return fmt.Errorf("Error creating FSx Lustre filesystem: %w", err)
@@ -270,42 +303,45 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 func resourceAwsFsxLustreFileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).fsxconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.FsxUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating FSx Lustre File System (%s) tags: %w", d.Get("arn").(string), err)
 		}
 	}
 
-	requestUpdate := false
-	input := &fsx.UpdateFileSystemInput{
-		ClientRequestToken:  aws.String(resource.UniqueId()),
-		FileSystemId:        aws.String(d.Id()),
-		LustreConfiguration: &fsx.UpdateFileSystemLustreConfiguration{},
-	}
+	if d.HasChangesExcept("tags_all", "tags") {
+		input := &fsx.UpdateFileSystemInput{
+			ClientRequestToken:  aws.String(resource.UniqueId()),
+			FileSystemId:        aws.String(d.Id()),
+			LustreConfiguration: &fsx.UpdateFileSystemLustreConfiguration{},
+		}
 
-	if d.HasChange("weekly_maintenance_start_time") {
-		input.LustreConfiguration.WeeklyMaintenanceStartTime = aws.String(d.Get("weekly_maintenance_start_time").(string))
-		requestUpdate = true
-	}
+		if d.HasChange("weekly_maintenance_start_time") {
+			input.LustreConfiguration.WeeklyMaintenanceStartTime = aws.String(d.Get("weekly_maintenance_start_time").(string))
+		}
 
-	if d.HasChange("automatic_backup_retention_days") {
-		input.LustreConfiguration.AutomaticBackupRetentionDays = aws.Int64(int64(d.Get("automatic_backup_retention_days").(int)))
-		requestUpdate = true
-	}
+		if d.HasChange("automatic_backup_retention_days") {
+			input.LustreConfiguration.AutomaticBackupRetentionDays = aws.Int64(int64(d.Get("automatic_backup_retention_days").(int)))
+		}
 
-	if d.HasChange("daily_automatic_backup_start_time") {
-		input.LustreConfiguration.DailyAutomaticBackupStartTime = aws.String(d.Get("daily_automatic_backup_start_time").(string))
-		requestUpdate = true
-	}
+		if d.HasChange("daily_automatic_backup_start_time") {
+			input.LustreConfiguration.DailyAutomaticBackupStartTime = aws.String(d.Get("daily_automatic_backup_start_time").(string))
+		}
 
-	if d.HasChange("auto_import_policy") {
-		input.LustreConfiguration.AutoImportPolicy = aws.String(d.Get("auto_import_policy").(string))
-		requestUpdate = true
-	}
+		if d.HasChange("auto_import_policy") {
+			input.LustreConfiguration.AutoImportPolicy = aws.String(d.Get("auto_import_policy").(string))
+		}
 
-	if requestUpdate {
+		if d.HasChange("storage_capacity") {
+			input.StorageCapacity = aws.Int64(int64(d.Get("storage_capacity").(int)))
+		}
+
+		if v, ok := d.GetOk("data_compression_type"); ok {
+			input.LustreConfiguration.DataCompressionType = aws.String(v.(string))
+		}
+
 		_, err := conn.UpdateFileSystem(input)
 		if err != nil {
 			return fmt.Errorf("error updating FSX Lustre File System (%s): %w", d.Id(), err)
@@ -323,6 +359,7 @@ func resourceAwsFsxLustreFileSystemUpdate(d *schema.ResourceData, meta interface
 
 func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).fsxconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	filesystem, err := describeFsxFileSystem(conn, d.Id())
@@ -368,10 +405,10 @@ func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}
 	if lustreConfig.PerUnitStorageThroughput != nil {
 		d.Set("per_unit_storage_throughput", lustreConfig.PerUnitStorageThroughput)
 	}
-	d.Set("mount_name", filesystem.LustreConfiguration.MountName)
+	d.Set("mount_name", lustreConfig.MountName)
 	d.Set("storage_type", filesystem.StorageType)
-	if filesystem.LustreConfiguration.DriveCacheType != nil {
-		d.Set("drive_cache_type", filesystem.LustreConfiguration.DriveCacheType)
+	if lustreConfig.DriveCacheType != nil {
+		d.Set("drive_cache_type", lustreConfig.DriveCacheType)
 	}
 
 	if filesystem.KmsKeyId != nil {
@@ -389,15 +426,23 @@ func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting subnet_ids: %w", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.FsxKeyValueTags(filesystem.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %w", err)
+	tags := keyvaluetags.FsxKeyValueTags(filesystem.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %s", err)
 	}
 
 	d.Set("vpc_id", filesystem.VpcId)
 	d.Set("weekly_maintenance_start_time", lustreConfig.WeeklyMaintenanceStartTime)
 	d.Set("automatic_backup_retention_days", lustreConfig.AutomaticBackupRetentionDays)
 	d.Set("daily_automatic_backup_start_time", lustreConfig.DailyAutomaticBackupStartTime)
-	d.Set("copy_tags_to_backups", filesystem.LustreConfiguration.CopyTagsToBackups)
+	d.Set("copy_tags_to_backups", lustreConfig.CopyTagsToBackups)
+	d.Set("data_compression_type", lustreConfig.DataCompressionType)
 
 	return nil
 }

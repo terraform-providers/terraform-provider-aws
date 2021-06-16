@@ -181,7 +181,6 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 				if fi, err := f.Stat(); err == nil {
 					if _, err = f.Seek(0, io.SeekEnd); err == nil {
 						currentFileSize = fi.Size()
-						req.Header.Set("Range", fmt.Sprintf("bytes=%d-", currentFileSize))
 						if currentFileSize >= headResp.ContentLength {
 							// file already present
 							return nil
@@ -191,7 +190,17 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 			}
 		}
 	}
-	req.Method = "GET"
+
+	req, err = http.NewRequest("GET", src.String(), nil)
+	if err != nil {
+		return err
+	}
+	if g.Header != nil {
+		req.Header = g.Header.Clone()
+	}
+	if currentFileSize > 0 {
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", currentFileSize))
+	}
 
 	resp, err := g.Client.Do(req)
 	if err != nil {

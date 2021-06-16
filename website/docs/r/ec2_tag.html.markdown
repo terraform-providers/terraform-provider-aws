@@ -16,7 +16,7 @@ Manages an individual EC2 resource tag. This resource should only be used in cas
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_transit_gateway" "example" {}
 
 resource "aws_customer_gateway" "example" {
