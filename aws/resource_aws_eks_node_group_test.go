@@ -772,6 +772,63 @@ func TestAccAWSEksNodeGroup_ScalingConfig_MinSize(t *testing.T) {
 	})
 }
 
+func TestAccAWSEksNodeGroup_ScalingConfig_OmitDesiredSize(t *testing.T) {
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		ErrorCheck:   testAccErrorCheck(t, eks.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigScalingConfigNoDesiredSize(rName, 1, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.desired_size", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.max_size", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.min_size", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigScalingConfigNoDesiredSize(rName, 2, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.desired_size", "2"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.max_size", "2"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.min_size", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigScalingConfigNoDesiredSize(rName, 1, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.desired_size", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.max_size", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.min_size", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSEksNodeGroup_Tags(t *testing.T) {
 	var nodeGroup1, nodeGroup2, nodeGroup3 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -1907,6 +1964,28 @@ resource "aws_eks_node_group" "test" {
   ]
 }
 `, rName, desiredSize, maxSize, minSize))
+}
+
+func testAccAWSEksNodeGroupConfigScalingConfigNoDesiredSize(rName string, maxSize, minSize int) string {
+	return testAccAWSEksNodeGroupConfigBase(rName) + fmt.Sprintf(`
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  scaling_config {
+    max_size = %[2]d
+    min_size = %[3]d
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName, maxSize, minSize)
 }
 
 func testAccAWSEksNodeGroupConfigTags1(rName, tagKey1, tagValue1 string) string {

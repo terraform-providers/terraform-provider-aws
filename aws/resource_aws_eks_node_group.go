@@ -191,7 +191,8 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"desired_size": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 						"max_size": {
@@ -454,7 +455,7 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if v := d.Get("scaling_config").([]interface{}); len(v) > 0 {
-			input.ScalingConfig = expandEksNodegroupScalingConfig(v)
+			input.ScalingConfig = expandEksUpdateScalingConfig(v)
 		}
 
 		oldTaintsRaw, newTaintsRaw := d.GetChange("taint")
@@ -606,9 +607,31 @@ func expandEksNodegroupScalingConfig(l []interface{}) *eks.NodegroupScalingConfi
 
 	config := &eks.NodegroupScalingConfig{}
 
+	if v, ok := m["max_size"].(int); ok && v != 0 {
+		config.MaxSize = aws.Int64(int64(v))
+	}
+
+	if v, ok := m["min_size"].(int); ok && v != 0 {
+		config.MinSize = aws.Int64(int64(v))
+	}
+
 	if v, ok := m["desired_size"].(int); ok && v != 0 {
 		config.DesiredSize = aws.Int64(int64(v))
+	} else {
+		config.DesiredSize = config.MinSize
 	}
+
+	return config
+}
+
+func expandEksUpdateScalingConfig(l []interface{}) *eks.NodegroupScalingConfig {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	config := &eks.NodegroupScalingConfig{}
 
 	if v, ok := m["max_size"].(int); ok && v != 0 {
 		config.MaxSize = aws.Int64(int64(v))
@@ -616,6 +639,16 @@ func expandEksNodegroupScalingConfig(l []interface{}) *eks.NodegroupScalingConfi
 
 	if v, ok := m["min_size"].(int); ok && v != 0 {
 		config.MinSize = aws.Int64(int64(v))
+	}
+
+	if v, ok := m["desired_size"].(int); ok && v != 0 {
+		config.DesiredSize = aws.Int64(int64(v))
+		if *config.DesiredSize < *config.MinSize {
+			config.DesiredSize = config.MinSize
+		}
+		if *config.DesiredSize > *config.MaxSize {
+			config.DesiredSize = config.MaxSize
+		}
 	}
 
 	return config
