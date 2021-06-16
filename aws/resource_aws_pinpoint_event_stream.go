@@ -6,7 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsPinpointEventStream() *schema.Resource {
@@ -26,12 +30,14 @@ func resourceAwsPinpointEventStream() *schema.Resource {
 				ForceNew: true,
 			},
 			"destination_stream_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"role_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 		},
 	}
@@ -42,19 +48,37 @@ func resourceAwsPinpointEventStreamUpsert(d *schema.ResourceData, meta interface
 
 	applicationId := d.Get("application_id").(string)
 
-	params := &pinpoint.WriteEventStream{}
-
-	params.DestinationStreamArn = aws.String(d.Get("destination_stream_arn").(string))
-	params.RoleArn = aws.String(d.Get("role_arn").(string))
+	params := &pinpoint.WriteEventStream{
+		DestinationStreamArn: aws.String(d.Get("destination_stream_arn").(string)),
+		RoleArn:              aws.String(d.Get("role_arn").(string)),
+	}
 
 	req := pinpoint.PutEventStreamInput{
 		ApplicationId:    aws.String(applicationId),
 		WriteEventStream: params,
 	}
 
-	_, err := conn.PutEventStream(&req)
+	// Retry for IAM eventual consistency
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+		_, err := conn.PutEventStream(&req)
+
+		if tfawserr.ErrMessageContains(err, pinpoint.ErrCodeBadRequestException, "make sure the IAM Role is configured correctly") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.PutEventStream(&req)
+	}
+
 	if err != nil {
-		return fmt.Errorf("error putting Pinpoint Event Stream for application %s: %s", applicationId, err)
+		return fmt.Errorf("error putting Pinpoint Event Stream for application %s: %w", applicationId, err)
 	}
 
 	d.SetId(applicationId)
@@ -77,12 +101,13 @@ func resourceAwsPinpointEventStreamRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("error getting Pinpoint Event Stream for application %s: %s", d.Id(), err)
+		return fmt.Errorf("error getting Pinpoint Event Stream for application %s: %w", d.Id(), err)
 	}
 
-	d.Set("application_id", output.EventStream.ApplicationId)
-	d.Set("destination_stream_arn", output.EventStream.DestinationStreamArn)
-	d.Set("role_arn", output.EventStream.RoleArn)
+	res := output.EventStream
+	d.Set("application_id", res.ApplicationId)
+	d.Set("destination_stream_arn", res.DestinationStreamArn)
+	d.Set("role_arn", res.RoleArn)
 
 	return nil
 }
@@ -100,7 +125,7 @@ func resourceAwsPinpointEventStreamDelete(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Pinpoint Event Stream for application %s: %s", d.Id(), err)
+		return fmt.Errorf("error deleting Pinpoint Event Stream for application %s: %w", d.Id(), err)
 	}
 	return nil
 }

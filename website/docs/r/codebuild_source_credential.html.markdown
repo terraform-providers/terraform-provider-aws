@@ -10,9 +10,12 @@ description: |-
 
 Provides a CodeBuild Source Credentials Resource.
 
+~> **NOTE:**
+[Codebuild only allows a single credential per given server type in a given region](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_codebuild.GitHubSourceCredentials.html). Therefore, when you define `aws_codebuild_source_credential`, [`aws_codebuild_project` resource](/docs/providers/aws/r/codebuild_project.html) defined in the same module will use it.
+
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_codebuild_source_credential" "example" {
   auth_type   = "PERSONAL_ACCESS_TOKEN"
   server_type = "GITHUB"
@@ -22,7 +25,7 @@ resource "aws_codebuild_source_credential" "example" {
 
 ### Bitbucket Server Usage
 
-```hcl
+```terraform
 resource "aws_codebuild_source_credential" "example" {
   auth_type   = "BASIC_AUTH"
   server_type = "BITBUCKET"

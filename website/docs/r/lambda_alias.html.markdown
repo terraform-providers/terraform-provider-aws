@@ -15,7 +15,7 @@ For information about function aliases, see [CreateAlias][2] and [AliasRoutingCo
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lambda_alias" "test_lambda_alias" {
   name             = "my_alias"
   description      = "a sample description"

@@ -3,13 +3,13 @@ name: Dependency Checks
 on:
   push:
     branches:
-      - master
+      - main
       - 'release/**'
   pull_request_target:
 
 jobs:
   changes:
-    if: github.event_name == 'pull_request_target' && !contains(fromJSON('["anGie44", "bflad", "breathingdust", "dependabot[bot]", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
+    if: github.event_name == 'pull_request_target' && !contains(fromJSON('["anGie44", "bflad", "bill-rich", "breathingdust", "dependabot[bot]", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
     name: Filter Changes
     runs-on: ubuntu-latest
     outputs:
@@ -54,7 +54,7 @@ jobs:
             * Check [open pull requests with the `dependencies` label](https://github.com/hashicorp/terraform-provider-aws/pulls?q=is%3Aopen+is%3Apr+label%3Adependencies) to view other dependency updates.
             * If this pull request includes an update the AWS Go SDK (or any other dependency) version, only updates submitted via dependabot will be merged. This pull request will need to remove these changes and will need to be rebased after the existing dependency update via dependabot has been merged for this pull request to be reviewed.
             * If this pull request is for supporting a new AWS service:
-              * Ensure the new AWS service changes are following the [Contributing Guide section on new services](https://github.com/hashicorp/terraform-provider-aws/blob/master/docs/contributing/contribution-checklists.md#new-service), in particular that the dependency addition and initial provider support are in a separate pull request from other changes (e.g. new resources). Contributions not following this item will not be reviewed until the changes are split.
+              * Ensure the new AWS service changes are following the [Contributing Guide section on new services](https://github.com/hashicorp/terraform-provider-aws/blob/main/docs/contributing/contribution-checklists.md#new-service), in particular that the dependency addition and initial provider support are in a separate pull request from other changes (e.g. new resources). Contributions not following this item will not be reviewed until the changes are split.
               * If this pull request is already a separate pull request from the above item, you can ignore this message.
   go_mod:
     name: go mod

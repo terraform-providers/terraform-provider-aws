@@ -7,9 +7,10 @@ require (
 	github.com/cheggaaa/pb v1.0.27
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.0
+	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-safetemp v1.0.0
 	github.com/hashicorp/go-version v1.1.0
+	github.com/klauspost/compress v1.11.2
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect

@@ -23,6 +23,7 @@ func testAccAwsGuardDutyInviteAccepter_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
+		ErrorCheck:        testAccErrorCheck(t, guardduty.EndpointsID),
 		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsGuardDutyInviteAccepterDestroy,
 		Steps: []resource.TestStep{

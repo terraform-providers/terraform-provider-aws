@@ -16,7 +16,7 @@ Manages an AWS Storage Gateway file, tape, or volume gateway in the provider reg
 
 ### File Gateway
 
-```hcl
+```terraform
 resource "aws_storagegateway_gateway" "example" {
   gateway_ip_address = "1.2.3.4"
   gateway_name       = "example"
@@ -27,7 +27,7 @@ resource "aws_storagegateway_gateway" "example" {
 
 ### Tape Gateway
 
-```hcl
+```terraform
 resource "aws_storagegateway_gateway" "example" {
   gateway_ip_address  = "1.2.3.4"
   gateway_name        = "example"
@@ -40,7 +40,7 @@ resource "aws_storagegateway_gateway" "example" {
 
 ### Volume Gateway (Cached)
 
-```hcl
+```terraform
 resource "aws_storagegateway_gateway" "example" {
   gateway_ip_address = "1.2.3.4"
   gateway_name       = "example"
@@ -51,7 +51,7 @@ resource "aws_storagegateway_gateway" "example" {
 
 ### Volume Gateway (Stored)
 
-```hcl
+```terraform
 resource "aws_storagegateway_gateway" "example" {
   gateway_ip_address = "1.2.3.4"
   gateway_name       = "example"
@@ -79,8 +79,9 @@ The following arguments are supported:
 * `smb_active_directory_settings` - (Optional) Nested argument with Active Directory domain join information for Server Message Block (SMB) file shares. Only valid for `FILE_S3` gateway type. Must be set before creating `ActiveDirectory` authentication SMB file shares. More details below.
 * `smb_guest_password` - (Optional) Guest password for Server Message Block (SMB) file shares. Only valid for `FILE_S3` gateway type. Must be set before creating `GuestAccess` authentication SMB file shares. Terraform can only detect drift of the existence of a guest password, not its actual value from the gateway. Terraform can however update the password with changing the argument.
 * `smb_security_strategy` - (Optional) Specifies the type of security strategy. Valid values are: `ClientSpecified`, `MandatorySigning`, and `MandatoryEncryption`. See [Setting a Security Level for Your Gateway](https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-gateway-file.html#security-strategy) for more information.
+* `smb_file_share_visibility` - (Optional) Specifies whether the shares on this gateway appear when listing shares.
 * `tape_drive_type` - (Optional) Type of tape drive to use for tape gateway. Terraform cannot detect drift of this argument. Valid values: `IBM-ULT3580-TD5`.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### smb_active_directory_settings
 
@@ -108,6 +109,7 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_type` - The type of endpoint for your gateway.
 * `host_environment` - The type of hypervisor environment used by the host.
 * `gateway_network_interface` - An array that contains descriptions of the gateway network interfaces. See [Gateway Network Interface](#gateway-network-interface).
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ### Gateway Network Interface
 
@@ -130,7 +132,7 @@ $ terraform import aws_storagegateway_gateway.example arn:aws:storagegateway:us-
 Certain resource arguments, like `gateway_ip_address` do not have a Storage Gateway API method for reading the information after creation, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
 
-```hcl
+```terraform
 resource "aws_storagegateway_gateway" "example" {
   # ... other configuration ...
 

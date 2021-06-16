@@ -53,13 +53,18 @@ func resourceAwsRoute53ResolverQueryLogConfig() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRoute53ResolverQueryLogConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &route53resolver.CreateResolverQueryLogConfigInput{
 		CreatorRequestId: aws.String(resource.PrefixedUniqueId("tf-r53-resolver-query-log-config-")),
@@ -67,7 +72,7 @@ func resourceAwsRoute53ResolverQueryLogConfigCreate(d *schema.ResourceData, meta
 		Name:             aws.String(d.Get("name").(string)),
 	}
 	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		input.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Route53resolverTags()
+		input.Tags = tags.IgnoreAws().Route53resolverTags()
 	}
 
 	log.Printf("[DEBUG] Creating Route53 Resolver Query Log Config: %s", input)
@@ -90,6 +95,7 @@ func resourceAwsRoute53ResolverQueryLogConfigCreate(d *schema.ResourceData, meta
 
 func resourceAwsRoute53ResolverQueryLogConfigRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	queryLogConfig, err := finder.ResolverQueryLogConfigByID(conn, d.Id())
@@ -122,8 +128,15 @@ func resourceAwsRoute53ResolverQueryLogConfigRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("error listing tags for Route53 Resolver Query Log Config (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -132,8 +145,8 @@ func resourceAwsRoute53ResolverQueryLogConfigRead(d *schema.ResourceData, meta i
 func resourceAwsRoute53ResolverQueryLogConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Route53resolverUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Route53 Resolver Query Log Config (%s) tags: %s", d.Get("arn").(string), err)
 		}

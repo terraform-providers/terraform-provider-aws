@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_ssm_parameter: Allow `tags` to be applied to resource when `overwrite` is configured
+```

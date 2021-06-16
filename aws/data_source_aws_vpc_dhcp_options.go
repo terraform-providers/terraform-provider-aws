@@ -84,7 +84,7 @@ func dataSourceAwsVpcDhcpOptionsRead(d *schema.ResourceData, meta interface{}) e
 		if isNoSuchDhcpOptionIDErr(err) {
 			return errors.New("No matching EC2 DHCP Options found")
 		}
-		return fmt.Errorf("error reading EC2 DHCP Options: %s", err)
+		return fmt.Errorf("error reading EC2 DHCP Options: %w", err)
 	}
 
 	if len(output.DhcpOptions) == 0 {
@@ -111,34 +111,34 @@ func dataSourceAwsVpcDhcpOptionsRead(d *schema.ResourceData, meta interface{}) e
 
 		switch key {
 		case "domain-name":
-			d.Set(tfKey, aws.StringValue(dhcpConfiguration.Values[0].Value))
+			d.Set(tfKey, dhcpConfiguration.Values[0].Value)
 		case "domain-name-servers":
 			if err := d.Set(tfKey, flattenEc2AttributeValues(dhcpConfiguration.Values)); err != nil {
-				return fmt.Errorf("error setting %s: %s", tfKey, err)
+				return fmt.Errorf("error setting %s: %w", tfKey, err)
 			}
 		case "netbios-name-servers":
 			if err := d.Set(tfKey, flattenEc2AttributeValues(dhcpConfiguration.Values)); err != nil {
-				return fmt.Errorf("error setting %s: %s", tfKey, err)
+				return fmt.Errorf("error setting %s: %w", tfKey, err)
 			}
 		case "netbios-node-type":
-			d.Set(tfKey, aws.StringValue(dhcpConfiguration.Values[0].Value))
+			d.Set(tfKey, dhcpConfiguration.Values[0].Value)
 		case "ntp-servers":
 			if err := d.Set(tfKey, flattenEc2AttributeValues(dhcpConfiguration.Values)); err != nil {
-				return fmt.Errorf("error setting %s: %s", tfKey, err)
+				return fmt.Errorf("error setting %s: %w", tfKey, err)
 			}
 		}
 	}
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(output.DhcpOptions[0].Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 	d.Set("owner_id", output.DhcpOptions[0].OwnerId)
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
+		AccountID: aws.StringValue(output.DhcpOptions[0].OwnerId),
 		Resource:  fmt.Sprintf("dhcp-options/%s", d.Id()),
 	}.String()
 

@@ -48,7 +48,83 @@ rules:
           metavariable: '$Y'
           regex: '^"github.com/aws/aws-sdk-go/service/[^/]+"$'
     severity: WARNING
-  
+
+  - id: prefer-aws-go-sdk-pointer-conversion-assignment
+    languages: [go]
+    message: Prefer AWS Go SDK pointer conversion functions for dereferencing during assignment, e.g. aws.StringValue()
+    paths:
+      exclude:
+        - aws/cloudfront_distribution_configuration_structure.go
+        - aws/data_source_aws_route_table.go
+        - aws/opsworks_layers.go
+        - aws/resource_aws_d*
+        - aws/resource_aws_e*
+        - aws/resource_aws_g*
+        - aws/resource_aws_i*
+        - aws/resource_aws_k*
+        - aws/resource_aws_l*
+        - aws/resource_aws_mq_broker.go
+        - aws/resource_aws_o*
+        - aws/resource_aws_r*
+        - aws/resource_aws_s*
+        - aws/structure.go
+        - aws/waf_helpers.go
+        - aws/internal/generators/
+        - aws/internal/keyvaluetags/
+        - awsproviderlint/vendor/
+      include:
+        - aws/
+    patterns:
+      - pattern: '$LHS = *$RHS'
+      - pattern-not: '*$LHS2 = *$RHS'
+    severity: WARNING
+
+  - id: prefer-aws-go-sdk-pointer-conversion-conditional
+    languages: [go]
+    message: Prefer AWS Go SDK pointer conversion functions for dereferencing during conditionals, e.g. aws.StringValue()
+    paths:
+      exclude:
+        - aws/cloudfront_distribution_configuration_structure.go
+        - aws/cloudfront_distribution_configuration_structure_test.go
+        - aws/config.go
+        - aws/data_source_aws_route*
+        - aws/ecs_task_definition_equivalency.go
+        - aws/opsworks_layers.go
+        - aws/resource_aws_d*.go
+        - aws/resource_aws_e*.go
+        - aws/resource_aws_g*.go
+        - aws/resource_aws_i*.go
+        - aws/resource_aws_k*.go
+        - aws/resource_aws_l*.go
+        - aws/resource_aws_main_route_table_association.go
+        - aws/resource_aws_n*.go
+        - aws/resource_aws_o*.go
+        - aws/resource_aws_r*.go
+        - aws/resource_aws_s*.go
+        - aws/resource*_test.go
+        - aws/structure.go
+        - aws/internal/generators/
+        - aws/internal/keyvaluetags/
+        - aws/internal/naming/
+        - awsproviderlint/vendor/
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: '$LHS == *$RHS'
+        - pattern: '$LHS != *$RHS'
+        - pattern: '$LHS > *$RHS'
+        - pattern: '$LHS < *$RHS'
+        - pattern: '$LHS >= *$RHS'
+        - pattern: '$LHS <= *$RHS'
+        - pattern: '*$LHS == $RHS'
+        - pattern: '*$LHS != $RHS'
+        - pattern: '*$LHS > $RHS'
+        - pattern: '*$LHS < $RHS'
+        - pattern: '*$LHS >= $RHS'
+        - pattern: '*$LHS <= $RHS'
+    severity: WARNING
+
   - id: aws-go-sdk-pointer-conversion-ResourceData-SetId
     fix: d.SetId(aws.StringValue($VALUE))
     languages: [go]
@@ -59,17 +135,85 @@ rules:
     pattern: 'd.SetId(*$VALUE)'
     severity: WARNING
 
+  - id: aws-go-sdk-pointer-conversion-immediate-dereference
+    fix: $VALUE
+    languages: [go]
+    message: Using AWS Go SDK pointer conversion, e.g. aws.String(), with immediate dereferencing is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: '*aws.Bool($VALUE)'
+        - pattern: '*aws.Float64($VALUE)'
+        - pattern: '*aws.Int64($VALUE)'
+        - pattern: '*aws.String($VALUE)'
+        - pattern: '*aws.Time($VALUE)'
+    severity: WARNING
+
+  - id: data-source-with-resource-read
+    languages: [go]
+    message: Calling a resource's Read method from within a data-source is discouraged
+    paths:
+      include:
+        - aws/data_source_aws_*.go
+    patterns:
+      - pattern-regex: '(resource.+Read|flatten.+Resource)'
+      - pattern-inside: func $FUNCNAME(...) $RETURNTYPE { ... }
+      - pattern-not-inside: |
+          d.Set(..., []interface{}{ ... })
+      - pattern-not-inside: |
+          d.Set($ATTRIBUTE, $FUNC($APIOBJECT))
+      - metavariable-regex:
+          metavariable: "$FUNCNAME"
+          regex: "dataSource.+Read"
+    severity: WARNING
+
+  - id: helper-acctest-RandInt-compiled
+    languages: [go]
+    message: Using `acctest.RandInt()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: const $CONST = fmt.Sprintf(..., <... acctest.RandInt() ...>, ...)
+        - pattern: var $VAR = fmt.Sprintf(..., <... acctest.RandInt() ...>, ...)
+    severity: WARNING
+
+  - id: helper-acctest-RandString-compiled
+    languages: [go]
+    message: Using `acctest.RandString()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: const $CONST = fmt.Sprintf(..., <... acctest.RandString(...) ...>, ...)
+        - pattern: var $VAR = fmt.Sprintf(..., <... acctest.RandString(...) ...>, ...)
+    severity: WARNING
+
+  - id: helper-acctest-RandomWithPrefix-compiled
+    languages: [go]
+    message: Using `acctest.RandomWithPrefix()` in constant or variable declaration will execute during compilation and not randomize, pass into string generating function instead
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: const $CONST = fmt.Sprintf(..., <... acctest.RandomWithPrefix(...) ...>, ...)
+        - pattern: var $VAR = fmt.Sprintf(..., <... acctest.RandomWithPrefix(...) ...>, ...)
+    severity: WARNING
+
   - id: helper-schema-Set-extraneous-NewSet-with-flattenStringList
     languages: [go]
     message: Prefer `flattenStringSet()` function for casting a list of string pointers to a set
     paths:
       include:
         - aws/
-    patterns:
-      - pattern: schema.NewSet(schema.HashString, flattenStringList($APIOBJECT))
-      - pattern-not-inside: func flattenStringSet(list []*string) *schema.Set { ... }
+    pattern: schema.NewSet(schema.HashString, flattenStringList($APIOBJECT))
     severity: WARNING
-    
+
   - id: helper-schema-Set-extraneous-expandStringList-with-List
     languages: [go]
     message: Prefer `expandStringSet()` function for casting a set to a list of string pointers
@@ -83,9 +227,7 @@ rules:
             $LIST := $SET.List()
             ...
             expandStringList($LIST)
-      - pattern-not-inside: func expandStringSet(configured *schema.Set) []*string { ... }
     severity: WARNING
-
 
   - id: helper-schema-ResourceData-GetOk-with-extraneous-conditional
     languages: [go]
@@ -102,6 +244,112 @@ rules:
         - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && len($VALUE.(string)) > 0 { $BODY }
     severity: WARNING
 
+  - id: helper-schema-ResourceData-Set-extraneous-value-pointer-conversion
+    fix: d.Set($ATTRIBUTE, $APIOBJECT)
+    languages: [go]
+    message: AWS Go SDK pointer conversion function for `d.Set()` value is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+          - pattern: d.Set($ATTRIBUTE, aws.BoolValue($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, aws.Float64Value($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, aws.IntValue($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, aws.Int64Value($APIOBJECT))
+          - pattern: d.Set($ATTRIBUTE, int(aws.Int64Value($APIOBJECT)))
+          - pattern: d.Set($ATTRIBUTE, aws.StringValue($APIOBJECT))
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-DataSource-Set-tags
+    languages: [go]
+    message: (schema.ResourceData).Set() call with the tags key should include IgnoreConfig in the value
+    paths:
+      include:
+        - aws/data_source*.go
+      exclude:
+        - aws/resource*.go
+    patterns:
+      - pattern-inside: func $READMETHOD(...) $ERRORTYPE { ... }
+      - pattern: if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+      - pattern-not: if err := d.Set("tags", $KEYVALUETAGS.IgnoreAws().IgnoreConfig($CONFIG).Map()); err != nil { ... }
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-Resource-Set-tags
+    languages: [go]
+    message: (schema.ResourceData).Set() call with the tags key should be preceded by a call to IgnoreConfig or include IgnoreConfig in the value in the case of ASG
+    paths:
+      include:
+        - aws/resource*.go
+      exclude:
+        - aws/data_source*.go
+    patterns:
+      - pattern-inside: func $READMETHOD(...) $ERRORTYPE { ... }
+      - pattern-either:
+          - pattern: |
+              tags := $TAGS
+              ...
+              if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+          - pattern: |
+              tags = $TAGS
+              ...
+              if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+          - pattern: |
+              $ASGTAGS := keyvaluetags.AutoscalingKeyValueTags(...)
+              ...
+              if err := d.Set("tags", $TAGSMAP); err != nil { ... }
+      - pattern-not-regex: 'keyvaluetags.AutoscalingKeyValueTags\(.+\).IgnoreAws\(\).IgnoreConfig'
+      - pattern-not: |
+          tags = $KEYVALUETAGS.IgnoreAws().IgnoreConfig($CONFIG)
+          ...
+      - pattern-not: |
+          tags = $KEYVALUETAGS.$IGNORESERVICE().IgnoreConfig($CONFIG)
+          ...
+      - pattern-not: |
+          tags := keyvaluetags.$VALUETAGS($RESOURCETAGS).IgnoreAws().IgnoreConfig($CONFIG)
+          ...
+      - pattern-not: |
+          tags = keyvaluetags.$VALUETAGS($RESOURCETAGS).IgnoreAws().IgnoreConfig($CONFIG)
+          ...
+    severity: WARNING
+
+  - id: helper-schema-ResourceData-SetId-empty-without-IsNewResource-check
+    languages: [go]
+    message: Calling `d.SetId("")` should ensure `!d.IsNewResource()` is checked first
+    paths:
+      exclude:
+        - aws/resource_aws_api_gateway_*.go
+        - aws/resource_aws_apigatewayv2_*.go
+        - aws/resource_aws_app_cookie_stickiness_policy.go
+        - aws/resource_aws_appautoscaling_*.go
+        - aws/resource_aws_appsync_*.go
+        - aws/resource_aws_athena_*.go
+        - aws/resource_aws_autoscaling_*.go
+        - aws/resource_aws_autoscalingplans_scaling_plan.go
+        - aws/resource_aws_[b-g]*.go
+        - aws/resource_aws_i*.go
+        - aws/resource_aws_[k-t]*.go
+        - aws/resource_aws_[v-x]*.go
+      include:
+        - aws/resource*.go
+    patterns:
+      - pattern-either:
+        - pattern: |
+            d.SetId("")
+            ...
+            return nil
+      - pattern-not-inside: |
+          if ... {
+            if <... d.IsNewResource() ...> { ... }
+            ...
+            d.SetId("")
+            ...
+            return nil
+          }
+      - pattern-not-inside: |
+          if <... d.IsNewResource() ...> { ... }
+    severity: WARNING
+
   - id: helper-schema-resource-Retry-without-TimeoutError-check
     languages: [go]
     message: Check resource.Retry() errors with tfresource.TimedOut()
@@ -112,38 +360,74 @@ rules:
         - aws/
     patterns:
       - pattern-either:
-        - pattern: |
-            $ERR := resource.Retry(...)
-            ...
-            return ...
-        - pattern: |
-            $ERR = resource.Retry(...)
-            ...
-            return ...
-      - pattern-not: |
-          $ERR := resource.Retry(...)
-          ...
-          if isResourceTimeoutError($ERR) { ... }
-          ...
-          return ...
-      - pattern-not: |
-          $ERR = resource.Retry(...)
-          ...
-          if isResourceTimeoutError($ERR) { ... }
-          ...
-          return ...
-      - pattern-not: |
-          $ERR := resource.Retry(...)
-          ...
-          if tfresource.TimedOut($ERR) { ... }
-          ...
-          return ...
-      - pattern-not: |
-          $ERR = resource.Retry(...)
-          ...
-          if tfresource.TimedOut($ERR) { ... }
-          ...
-          return ...
+        - patterns:
+          - pattern-either:
+            - pattern: |
+                $ERR := resource.Retry(...)
+                ...
+                return ...
+            - pattern: |
+                $ERR = resource.Retry(...)
+                ...
+                return ...
+          - pattern-not: |
+              $ERR := resource.Retry(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.Retry(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR := resource.Retry(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.Retry(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
+        - patterns:
+          - pattern-either:
+            - pattern: |
+                $ERR := resource.RetryContext(...)
+                ...
+                return ...
+            - pattern: |
+                $ERR = resource.RetryContext(...)
+                ...
+                return ...
+          - pattern-not: |
+              $ERR := resource.RetryContext(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.RetryContext(...)
+              ...
+              if isResourceTimeoutError($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR := resource.RetryContext(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
+          - pattern-not: |
+              $ERR = resource.RetryContext(...)
+              ...
+              if tfresource.TimedOut($ERR) { ... }
+              ...
+              return ...
     severity: WARNING
 
   - id: is-not-found-error
@@ -159,9 +443,81 @@ rules:
               var $CAST *resource.NotFoundError
               ...
               errors.As($ERR, &$CAST)
-          - pattern-not-inside: func NotFound(err error) bool { ... }
+          - pattern-not-inside: |
+              var $CAST *resource.NotFoundError
+              ...
+              errors.As($ERR, &$CAST)
+              ...
+              $CAST.$FIELD
         - patterns:
           - pattern: |
               $X, $Y := $ERR.(*resource.NotFoundError)
-          - pattern-not-inside: func isResourceNotFoundError(err error) bool { ... }
+    severity: WARNING
+
+  - id: time-equality
+    languages: [go]
+    message: Use time.Equal() instead of ==
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            aws.TimeValue($X) == $Y
+        - pattern: |
+            aws.TimeValue($X) != $Y
+        - pattern: |
+            ($X : time.Time) == $Y
+        - pattern: |
+            ($X : time.Time) != $Y
+        - pattern: |
+            $X == aws.TimeValue($Y)
+        - pattern: |
+            $X != aws.TimeValue($Y)
+        - pattern: |
+            $X == ($Y : time.Time)
+        - pattern: |
+            $X != ($Y : time.Time)
+    severity: WARNING
+
+  - id: prefer-pagination-bool-var-last-page
+    languages: [go]
+    message: Use lastPage for bool variable in pagination functions
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern: |
+          $X.$Z(..., func(..., $Y bool) {
+            ...
+          })
+      - pattern-not: |
+          $X.$Z(..., func(..., lastPage bool) {
+            ...
+          })
+      - pattern-not: |
+          $X.$Z(..., func(..., _ bool) {
+            ...
+          })
+      - metavariable-regex:
+          metavariable: '$Z'
+          regex: '.*Pages$'
+    severity: WARNING
+
+  - id: calling-fmt.Print-and-variants
+    languages: [go]
+    message: Do not call `fmt.Print` and variant
+    paths:
+      exclude:
+        - awsproviderlint/vendor/
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            fmt.Print(...)
+        - pattern: |
+            fmt.Printf(...)
+        - pattern: |
+            fmt.Println(...)
     severity: WARNING

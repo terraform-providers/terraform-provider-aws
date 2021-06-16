@@ -57,6 +57,11 @@ func resourceAwsBackupPlan() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"enable_continuous_backup": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"start_window": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -126,12 +131,12 @@ func resourceAwsBackupPlan() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"backup_options": {
 							Type:     schema.TypeMap,
-							Optional: true,
+							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"resource_type": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"EC2",
 							}, false),
@@ -147,13 +152,18 @@ func resourceAwsBackupPlan() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &backup.CreateBackupPlanInput{
 		BackupPlan: &backup.PlanInput{
@@ -161,7 +171,7 @@ func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error
 			Rules:                  expandBackupPlanRules(d.Get("rule").(*schema.Set)),
 			AdvancedBackupSettings: expandBackupPlanAdvancedBackupSettings(d.Get("advanced_backup_setting").(*schema.Set)),
 		},
-		BackupPlanTags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().BackupTags(),
+		BackupPlanTags: tags.IgnoreAws().BackupTags(),
 	}
 
 	log.Printf("[DEBUG] Creating Backup Plan: %#v", input)
@@ -177,6 +187,7 @@ func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetBackupPlan(&backup.GetBackupPlanInput{
@@ -209,8 +220,15 @@ func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error listing tags for Backup Plan (%s): %w", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -236,8 +254,8 @@ func resourceAwsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.BackupUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags for Backup Plan (%s): %w", d.Id(), err)
 		}
@@ -301,6 +319,9 @@ func expandBackupPlanRules(vRules *schema.Set) []*backup.RuleInput {
 		if vSchedule, ok := mRule["schedule"].(string); ok && vSchedule != "" {
 			rule.ScheduleExpression = aws.String(vSchedule)
 		}
+		if vEnableContinuousBackup, ok := mRule["enable_continuous_backup"].(bool); ok {
+			rule.EnableContinuousBackup = aws.Bool(vEnableContinuousBackup)
+		}
 		if vStartWindow, ok := mRule["start_window"].(int); ok {
 			rule.StartWindowMinutes = aws.Int64(int64(vStartWindow))
 		}
@@ -335,10 +356,16 @@ func expandBackupPlanAdvancedBackupSettings(vAdvancedBackupSettings *schema.Set)
 		mAdvancedBackupSetting := vAdvancedBackupSetting.(map[string]interface{})
 
 		if v, ok := mAdvancedBackupSetting["backup_options"].(map[string]interface{}); ok && v != nil {
-			advancedBackupSetting.BackupOptions = stringMapToPointers(v)
+			advancedBackupSetting.BackupOptions = expandStringMap(v)
 		}
 		if v, ok := mAdvancedBackupSetting["resource_type"].(string); ok && v != "" {
 			advancedBackupSetting.ResourceType = aws.String(v)
+		}
+
+		// https://github.com/hashicorp/terraform-plugin-sdk/issues/588
+		// Map in Set may add empty element. Ignore it.
+		if advancedBackupSetting.ResourceType == nil {
+			continue
 		}
 
 		advancedBackupSettings = append(advancedBackupSettings, advancedBackupSetting)
@@ -387,12 +414,13 @@ func flattenBackupPlanRules(rules []*backup.Rule) *schema.Set {
 
 	for _, rule := range rules {
 		mRule := map[string]interface{}{
-			"rule_name":           aws.StringValue(rule.RuleName),
-			"target_vault_name":   aws.StringValue(rule.TargetBackupVaultName),
-			"schedule":            aws.StringValue(rule.ScheduleExpression),
-			"start_window":        int(aws.Int64Value(rule.StartWindowMinutes)),
-			"completion_window":   int(aws.Int64Value(rule.CompletionWindowMinutes)),
-			"recovery_point_tags": keyvaluetags.BackupKeyValueTags(rule.RecoveryPointTags).IgnoreAws().Map(),
+			"rule_name":                aws.StringValue(rule.RuleName),
+			"target_vault_name":        aws.StringValue(rule.TargetBackupVaultName),
+			"schedule":                 aws.StringValue(rule.ScheduleExpression),
+			"enable_continuous_backup": aws.BoolValue(rule.EnableContinuousBackup),
+			"start_window":             int(aws.Int64Value(rule.StartWindowMinutes)),
+			"completion_window":        int(aws.Int64Value(rule.CompletionWindowMinutes)),
+			"recovery_point_tags":      keyvaluetags.BackupKeyValueTags(rule.RecoveryPointTags).IgnoreAws().Map(),
 		}
 
 		if lifecycle := rule.Lifecycle; lifecycle != nil {
@@ -474,6 +502,9 @@ func backupBackupPlanHash(vRule interface{}) int {
 	}
 	if v, ok := mRule["schedule"].(string); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+	if v, ok := mRule["enable_continuous_backup"].(bool); ok {
+		buf.WriteString(fmt.Sprintf("%t-", v))
 	}
 	if v, ok := mRule["start_window"].(int); ok {
 		buf.WriteString(fmt.Sprintf("%d-", v))

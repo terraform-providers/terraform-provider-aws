@@ -12,7 +12,7 @@ Provides a Route53 Resolver rule association.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route53_resolver_rule_association" "example" {
   resolver_rule_id = aws_route53_resolver_rule.sys.id
   vpc_id           = aws_vpc.foo.id

@@ -78,7 +78,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Reading CloudFormation Stack: %s", input)
 	out, err := conn.DescribeStacks(input)
 	if err != nil {
-		return fmt.Errorf("Failed describing CloudFormation stack (%s): %s", name, err)
+		return fmt.Errorf("Failed describing CloudFormation stack (%s): %w", name, err)
 	}
 	if l := len(out.Stacks); l != 1 {
 		return fmt.Errorf("Expected 1 CloudFormation stack (%s), found %d", name, l)
@@ -97,7 +97,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 
 	d.Set("parameters", flattenAllCloudFormationParameters(stack.Parameters))
 	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 	d.Set("outputs", flattenCloudFormationOutputs(stack.Outputs))
 
@@ -115,7 +115,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 
 	template, err := normalizeJsonOrYamlString(*tOut.TemplateBody)
 	if err != nil {
-		return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
+		return fmt.Errorf("template body contains an invalid JSON or YAML: %w", err)
 	}
 	d.Set("template_body", template)
 

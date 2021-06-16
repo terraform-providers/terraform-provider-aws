@@ -56,12 +56,17 @@ func resourceAwsVpcPeeringConnectionAccepter() *schema.Resource {
 			"accepter":  vpcPeeringConnectionOptionsSchema(),
 			"requester": vpcPeeringConnectionOptionsSchema(),
 			"tags":      tagsSchema(),
+			"tags_all":  tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsVPCPeeringAccepterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	id := d.Get("vpc_peering_connection_id").(string)
 
@@ -85,8 +90,8 @@ func resourceAwsVPCPeeringAccepterCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(id)
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
+	if len(tags) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), tags.Map()); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}

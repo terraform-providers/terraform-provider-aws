@@ -132,13 +132,13 @@ func resourceAwsAppsyncFunctionRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("api_id", apiID)
 	d.Set("function_id", functionID)
-	d.Set("data_source", aws.StringValue(resp.FunctionConfiguration.DataSourceName))
-	d.Set("description", aws.StringValue(resp.FunctionConfiguration.Description))
-	d.Set("arn", aws.StringValue(resp.FunctionConfiguration.FunctionArn))
-	d.Set("function_version", aws.StringValue(resp.FunctionConfiguration.FunctionVersion))
-	d.Set("name", aws.StringValue(resp.FunctionConfiguration.Name))
-	d.Set("request_mapping_template", aws.StringValue(resp.FunctionConfiguration.RequestMappingTemplate))
-	d.Set("response_mapping_template", aws.StringValue(resp.FunctionConfiguration.ResponseMappingTemplate))
+	d.Set("data_source", resp.FunctionConfiguration.DataSourceName)
+	d.Set("description", resp.FunctionConfiguration.Description)
+	d.Set("arn", resp.FunctionConfiguration.FunctionArn)
+	d.Set("function_version", resp.FunctionConfiguration.FunctionVersion)
+	d.Set("name", resp.FunctionConfiguration.Name)
+	d.Set("request_mapping_template", resp.FunctionConfiguration.RequestMappingTemplate)
+	d.Set("response_mapping_template", resp.FunctionConfiguration.ResponseMappingTemplate)
 
 	return nil
 }

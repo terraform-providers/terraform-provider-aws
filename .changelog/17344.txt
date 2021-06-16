@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_glue_partition: Fix `partition_values` to preserve order.
+```

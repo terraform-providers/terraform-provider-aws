@@ -15,7 +15,7 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_stage" "example" {
   api_id = aws_apigatewayv2_api.example.id
   name   = "example-stage"
@@ -38,7 +38,7 @@ Supported only for WebSocket APIs.
 * `description` - (Optional) The description for the stage. Must be less than or equal to 1024 characters in length.
 * `route_settings` - (Optional) Route settings for the stage.
 * `stage_variables` - (Optional) A map that defines the stage variables for the stage.
-* `tags` - (Optional) A map of tags to assign to the stage.
+* `tags` - (Optional) A map of tags to assign to the stage. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `access_log_settings` object supports the following:
 
@@ -77,6 +77,7 @@ For WebSocket APIs this attribute can additionally be used in an [`aws_iam_polic
 See the [Amazon API Gateway Developer Guide](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-control-access-iam.html) for details.
 * `invoke_url` - The URL to invoke the API pointing to the stage,
   e.g. `wss://z4675bid1j.execute-api.eu-west-2.amazonaws.com/example-stage`, or `https://z4675bid1j.execute-api.eu-west-2.amazonaws.com/`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

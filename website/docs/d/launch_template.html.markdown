@@ -12,7 +12,7 @@ Provides information about a Launch Template.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_launch_template" "default" {
   name = "my-launch-template"
 }
@@ -20,7 +20,7 @@ data "aws_launch_template" "default" {
 
 ### Filter
 
-```hcl
+```terraform
 data "aws_launch_template" "test" {
   filter {
     name   = "launch-template-name"

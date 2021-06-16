@@ -1,6 +1,6 @@
 # terraform-json
 
-[![CircleCI](https://circleci.com/gh/hashicorp/terraform-json/tree/master.svg?style=svg)](https://circleci.com/gh/hashicorp/terraform-json/tree/master)
+[![CircleCI](https://circleci.com/gh/hashicorp/terraform-json/tree/main.svg?style=svg)](https://circleci.com/gh/hashicorp/terraform-json/tree/main)
 [![GoDoc](https://godoc.org/github.com/hashicorp/terraform-json?status.svg)](https://godoc.org/github.com/hashicorp/terraform-json)
 
 This repository houses data types designed to help parse the data produced by

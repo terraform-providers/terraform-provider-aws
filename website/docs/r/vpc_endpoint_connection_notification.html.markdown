@@ -13,7 +13,7 @@ Connection notifications notify subscribers of VPC Endpoint events.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_topic" "topic" {
   name = "vpce-notification-topic"
 

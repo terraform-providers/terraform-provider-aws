@@ -12,7 +12,7 @@ Provides details about an Image Builder Image Pipeline.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_imagebuilder_image_pipeline" "example" {
   arn = "arn:aws:imagebuilder:us-west-2:aws:image-pipeline/example"
 }

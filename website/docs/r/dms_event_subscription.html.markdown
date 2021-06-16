@@ -12,7 +12,7 @@ Provides a DMS (Data Migration Service) event subscription resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dms_event_subscription" "example" {
   enabled          = true
   event_categories = ["creation", "failure"]
@@ -37,6 +37,14 @@ The following arguments are supported:
 * `source_type` - (Optional, Default: all events) Type of source for events. Valid values: `replication-instance` or `replication-task`
 * `source_ids` - (Required) Ids of sources to listen to.
 * `sns_topic_arn` - (Required) SNS topic arn to send events on.
+* `tags` - (Optional) Map of resource tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `arn` - Amazon Resource Name (ARN) of the DMS Event Subscription.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Timeouts
 

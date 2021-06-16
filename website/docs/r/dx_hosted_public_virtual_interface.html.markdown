@@ -13,7 +13,7 @@ A hosted virtual interface is a virtual interface that is owned by another AWS a
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_dx_hosted_public_virtual_interface" "foo" {
   connection_id = "dxcon-zzzzzzzz"
 

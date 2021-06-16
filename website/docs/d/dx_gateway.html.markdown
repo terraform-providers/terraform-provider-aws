@@ -12,7 +12,7 @@ Retrieve information about a Direct Connect Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_dx_gateway" "example" {
   name = "example"
 }

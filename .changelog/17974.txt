@@ -1,0 +1,15 @@
+```release-note:note
+provider: New `default_tags` argument as a public preview for applying tags across all resources under a provider. Support for the functionality must be added to individual resources in the codebase and is only implemented for the `aws_subnet` and `aws_vpc` resources at this time. Until a general availability announcement, no compatibility promises are made with these provider arguments and their functionality.
+```
+
+```release-note:enhancement
+provider: Add `default_tags` argument (in public preview, see note above)
+```
+
+```release-note:enhancement
+resource/aws_subnet: Support provider-wide default tags (in public preview, see note above)
+```
+
+```release-note:enhancement
+resource/aws_vpc: Support provider-wide default tags (in public preview, see note above)
+```

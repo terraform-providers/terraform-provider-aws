@@ -1,0 +1,3 @@
+```release-note:enhancement
+data-source/aws_iam_policy_document: Support merging policy documents by adding `source_policy_documents` and `override_policy_documents` arguments
+```

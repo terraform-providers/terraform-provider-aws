@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_route53_record: Support `DS` value for `type` argument
+```

@@ -12,7 +12,7 @@ Provides information about a Launch Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_launch_configuration" "ubuntu" {
   name = "test-launch-config"
 }
@@ -57,6 +57,7 @@ In addition to all arguments above, the following attributes are exported:
 * `delete_on_termination` - Whether the EBS Volume will be deleted on instance termination.
 * `encrypted` - Whether the volume is Encrypted.
 * `iops` - The provisioned IOPs of the volume.
+* `throughput` - The Throughput of the volume.
 * `volume_size` - The Size of the volume.
 * `volume_type` - The Type of the volume.
 
@@ -64,12 +65,13 @@ In addition to all arguments above, the following attributes are exported:
 
 * `delete_on_termination` - Whether the EBS Volume will be deleted on instance termination.
 * `device_name` - The Name of the device.
-* `no_device` - Whether the device in the block device mapping of the AMI is suppressed.
+* `encrypted` - Whether the volume is Encrypted.
 * `iops` - The provisioned IOPs of the volume.
+* `no_device` - Whether the device in the block device mapping of the AMI is suppressed.
 * `snapshot_id` - The Snapshot ID of the mount.
+* `throughput` - The Throughput of the volume.
 * `volume_size` - The Size of the volume.
 * `volume_type` - The Type of the volume.
-* `encrypted` - Whether the volume is Encrypted.
 
 `ephemeral_block_device` is exported with the following attributes:
 

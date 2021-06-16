@@ -12,7 +12,7 @@ Provides details about a specific Nat Gateway.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "subnet_id" {}
 
 data "aws_nat_gateway" "default" {
@@ -22,7 +22,7 @@ data "aws_nat_gateway" "default" {
 
 Usage with tags:
 
-```hcl
+```terraform
 data "aws_nat_gateway" "default" {
   subnet_id = aws_subnet.public.id
 
@@ -65,6 +65,7 @@ the selected Nat Gateway.
 Each attachment supports the following:
 
 * `allocation_id` - The Id of the EIP allocated to the selected Nat Gateway.
+* `connectivity_type` - The connectivity type of the NAT Gateway.
 * `network_interface_id` - The Id of the ENI allocated to the selected Nat Gateway.
 * `private_ip` - The private Ip address of the selected Nat Gateway.
 * `public_ip` - The public Ip (EIP) address of the selected Nat Gateway.

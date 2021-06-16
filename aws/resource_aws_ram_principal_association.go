@@ -5,13 +5,15 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ram"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ram/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ram/waiter"
 )
 
 func resourceAwsRamPrincipalAssociation() *schema.Resource {
@@ -60,7 +62,7 @@ func resourceAwsRamPrincipalAssociationCreate(d *schema.ResourceData, meta inter
 	log.Println("[DEBUG] Create RAM principal association request:", request)
 	_, err := conn.AssociateResourceShare(request)
 	if err != nil {
-		return fmt.Errorf("Error associating principal with RAM resource share: %s", err)
+		return fmt.Errorf("error associating principal with RAM resource share: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s,%s", resourceShareArn, principal))
@@ -70,8 +72,8 @@ func resourceAwsRamPrincipalAssociationCreate(d *schema.ResourceData, meta inter
 		return resourceAwsRamPrincipalAssociationRead(d, meta)
 	}
 
-	if err := waitForRamResourceSharePrincipalAssociation(conn, resourceShareArn, principal); err != nil {
-		return fmt.Errorf("Error waiting for RAM principal association (%s) to become ready: %s", d.Id(), err)
+	if _, err := waiter.ResourceSharePrincipalAssociated(conn, resourceShareArn, principal); err != nil {
+		return fmt.Errorf("error waiting for RAM principal association (%s) to become ready: %w", d.Id(), err)
 	}
 
 	return resourceAwsRamPrincipalAssociationRead(d, meta)
@@ -82,25 +84,36 @@ func resourceAwsRamPrincipalAssociationRead(d *schema.ResourceData, meta interfa
 
 	resourceShareArn, principal, err := resourceAwsRamPrincipalAssociationParseId(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading RAM Principal Association, parsing ID (%s): %w", d.Id(), err)
 	}
 
-	resourceShareAssociation, err := getRamResourceSharePrincipalAssociation(conn, resourceShareArn, principal)
+	var association *ram.ResourceShareAssociation
+
+	if ok, _ := regexp.MatchString(`^\d{12}$`, principal); ok {
+		// AWS Account ID Principals need to be accepted to become ASSOCIATED
+		association, err = finder.ResourceSharePrincipalAssociationByShareARNPrincipal(conn, resourceShareArn, principal)
+	} else {
+		association, err = waiter.ResourceSharePrincipalAssociated(conn, resourceShareArn, principal)
+	}
+
+	if !d.IsNewResource() && (tfawserr.ErrCodeEquals(err, ram.ErrCodeResourceArnNotFoundException) || tfawserr.ErrCodeEquals(err, ram.ErrCodeUnknownResourceException)) {
+		log.Printf("[WARN] No RAM resource share principal association with ARN (%s) found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 
 	if err != nil {
 		return fmt.Errorf("error reading RAM Resource Share (%s) Principal Association (%s): %s", resourceShareArn, principal, err)
 	}
 
-	if resourceShareAssociation == nil {
-		log.Printf("[WARN] RAM Resource Share (%s) Principal Association (%s) not found, removing from state", resourceShareArn, principal)
+	if association == nil || aws.StringValue(association.Status) == ram.ResourceShareAssociationStatusDisassociated {
+		log.Printf("[WARN] RAM resource share principal association with ARN (%s) found, but empty or disassociated - removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	if aws.StringValue(resourceShareAssociation.Status) != ram.ResourceShareAssociationStatusAssociated && aws.StringValue(resourceShareAssociation.Status) != ram.ResourceShareAssociationStatusAssociating {
-		log.Printf("[WARN] RAM Resource Share (%s) Principal Association (%s) not associating or associated, removing from state", resourceShareArn, principal)
-		d.SetId("")
-		return nil
+	if aws.StringValue(association.Status) != ram.ResourceShareAssociationStatusAssociated && aws.StringValue(association.Status) != ram.ResourceShareAssociationStatusAssociating {
+		return fmt.Errorf("error reading RAM Resource Share (%s) Principal Association (%s), status not associating or associated: %s", resourceShareArn, principal, aws.StringValue(association.Status))
 	}
 
 	d.Set("resource_share_arn", resourceShareArn)
@@ -125,7 +138,7 @@ func resourceAwsRamPrincipalAssociationDelete(d *schema.ResourceData, meta inter
 	log.Println("[DEBUG] Delete RAM principal association request:", request)
 	_, err = conn.DisassociateResourceShare(request)
 
-	if isAWSErr(err, ram.ErrCodeUnknownResourceException, "") {
+	if tfawserr.ErrCodeEquals(err, ram.ErrCodeUnknownResourceException) {
 		return nil
 	}
 
@@ -133,7 +146,7 @@ func resourceAwsRamPrincipalAssociationDelete(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error disassociating RAM Resource Share (%s) Principal Association (%s): %s", resourceShareArn, principal, err)
 	}
 
-	if err := waitForRamResourceSharePrincipalDisassociation(conn, resourceShareArn, principal); err != nil {
+	if _, err := waiter.ResourceSharePrincipalDisassociated(conn, resourceShareArn, principal); err != nil {
 		return fmt.Errorf("error waiting for RAM Resource Share (%s) Principal Association (%s) disassociation: %s", resourceShareArn, principal, err)
 	}
 
@@ -149,75 +162,4 @@ func resourceAwsRamPrincipalAssociationParseId(id string) (string, string, error
 	}
 
 	return parts[0], parts[1], nil
-}
-
-func getRamResourceSharePrincipalAssociation(conn *ram.RAM, resourceShareARN, principal string) (*ram.ResourceShareAssociation, error) {
-	input := &ram.GetResourceShareAssociationsInput{
-		AssociationType:   aws.String(ram.ResourceShareAssociationTypePrincipal),
-		Principal:         aws.String(principal),
-		ResourceShareArns: aws.StringSlice([]string{resourceShareARN}),
-	}
-
-	output, err := conn.GetResourceShareAssociations(input)
-
-	if isAWSErr(err, ram.ErrCodeUnknownResourceException, "") {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	if output == nil || len(output.ResourceShareAssociations) == 0 || output.ResourceShareAssociations[0] == nil {
-		return nil, nil
-	}
-
-	return output.ResourceShareAssociations[0], nil
-}
-
-func resourceAwsRamPrincipalAssociationStateRefreshFunc(conn *ram.RAM, resourceShareArn, principal string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		association, err := getRamResourceSharePrincipalAssociation(conn, resourceShareArn, principal)
-
-		if err != nil {
-			return nil, ram.ResourceShareAssociationStatusFailed, err
-		}
-
-		if association == nil {
-			return nil, ram.ResourceShareAssociationStatusDisassociated, nil
-		}
-
-		if aws.StringValue(association.Status) == ram.ResourceShareAssociationStatusFailed {
-			extendedErr := fmt.Errorf("association status message: %s", aws.StringValue(association.StatusMessage))
-			return association, aws.StringValue(association.Status), extendedErr
-		}
-
-		return association, aws.StringValue(association.Status), nil
-	}
-}
-
-func waitForRamResourceSharePrincipalAssociation(conn *ram.RAM, resourceShareARN, principal string) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{ram.ResourceShareAssociationStatusAssociating},
-		Target:  []string{ram.ResourceShareAssociationStatusAssociated},
-		Refresh: resourceAwsRamPrincipalAssociationStateRefreshFunc(conn, resourceShareARN, principal),
-		Timeout: 5 * time.Minute,
-	}
-
-	_, err := stateConf.WaitForState()
-
-	return err
-}
-
-func waitForRamResourceSharePrincipalDisassociation(conn *ram.RAM, resourceShareARN, principal string) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{ram.ResourceShareAssociationStatusAssociated, ram.ResourceShareAssociationStatusDisassociating},
-		Target:  []string{ram.ResourceShareAssociationStatusDisassociated},
-		Refresh: resourceAwsRamPrincipalAssociationStateRefreshFunc(conn, resourceShareARN, principal),
-		Timeout: 5 * time.Minute,
-	}
-
-	_, err := stateConf.WaitForState()
-
-	return err
 }

@@ -1,7 +1,11 @@
 package aws
 
 import (
+	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/costandusagereportservice/finder"
 )
 
 func dataSourceAwsCurReportDefinition() *schema.Resource {
@@ -62,6 +66,32 @@ func dataSourceAwsCurReportDefinition() *schema.Resource {
 }
 
 func dataSourceAwsCurReportDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	d.SetId(d.Get("report_name").(string))
-	return resourceAwsCurReportDefinitionRead(d, meta)
+	conn := meta.(*AWSClient).costandusagereportconn
+
+	reportName := d.Get("report_name").(string)
+
+	reportDefinition, err := finder.ReportDefinitionByName(conn, reportName)
+
+	if err != nil {
+		return fmt.Errorf("error reading Report Definition (%s): %w", reportName, err)
+	}
+
+	if reportDefinition == nil {
+		return fmt.Errorf("error reading Report Definition (%s): not found", reportName)
+	}
+
+	d.SetId(aws.StringValue(reportDefinition.ReportName))
+	d.Set("report_name", reportDefinition.ReportName)
+	d.Set("time_unit", reportDefinition.TimeUnit)
+	d.Set("format", reportDefinition.Format)
+	d.Set("compression", reportDefinition.Compression)
+	d.Set("additional_schema_elements", aws.StringValueSlice(reportDefinition.AdditionalSchemaElements))
+	d.Set("s3_bucket", reportDefinition.S3Bucket)
+	d.Set("s3_prefix", reportDefinition.S3Prefix)
+	d.Set("s3_region", reportDefinition.S3Region)
+	d.Set("additional_artifacts", aws.StringValueSlice(reportDefinition.AdditionalArtifacts))
+	d.Set("refresh_closed_reports", reportDefinition.RefreshClosedReports)
+	d.Set("report_versioning", reportDefinition.ReportVersioning)
+
+	return nil
 }

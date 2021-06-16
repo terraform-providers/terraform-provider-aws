@@ -16,7 +16,7 @@ Manages a Config Organization Custom Rule. More information about these rules ca
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lambda_permission" "example" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.example.arn

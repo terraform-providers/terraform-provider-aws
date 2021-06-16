@@ -12,7 +12,7 @@ Use this data source to get information on an existing backup vault.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_backup_vault" "example" {
   name = "example_backup_vault"
 }

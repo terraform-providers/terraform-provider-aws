@@ -31,7 +31,7 @@ func dataSourceAwsWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 	for {
 		output, err := conn.ListRules(input)
 		if err != nil {
-			return fmt.Errorf("error reading WAF Rules: %s", err)
+			return fmt.Errorf("error reading WAF Rules: %w", err)
 		}
 		for _, rule := range output.Rules {
 			if aws.StringValue(rule.Name) == name {

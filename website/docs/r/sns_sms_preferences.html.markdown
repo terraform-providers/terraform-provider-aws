@@ -12,7 +12,7 @@ Provides a way to set SNS SMS preferences.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sns_sms_preferences" "update_sms_prefs" {}
 ```
 
@@ -26,3 +26,7 @@ The following arguments are supported:
 * `default_sender_id` - (Optional) A string, such as your business brand, that is displayed as the sender on the receiving device.
 * `default_sms_type` - (Optional) The type of SMS message that you will send by default. Possible values are: Promotional, Transactional
 * `usage_report_s3_bucket` - (Optional) The name of the Amazon S3 bucket to receive daily SMS usage reports from Amazon SNS.
+
+## Attributes Reference
+
+No additional attributes are exported.

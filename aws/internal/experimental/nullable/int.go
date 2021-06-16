@@ -76,3 +76,31 @@ func ValidateTypeStringNullableIntAtLeast(min int) schema.SchemaValidateFunc {
 		return
 	}
 }
+
+// ValidateTypeStringNullableIntBetween provides custom error messaging for TypeString ints
+// Some arguments require an int value or unspecified, empty field.
+func ValidateTypeStringNullableIntBetween(min int, max int) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (ws []string, es []error) {
+		value, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		if value == "" {
+			return
+		}
+
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			es = append(es, fmt.Errorf("%s: cannot parse '%s' as int: %w", k, value, err))
+			return
+		}
+
+		if v < int64(min) || v > int64(max) {
+			es = append(es, fmt.Errorf("expected %s to be at between (%d) and (%d), got %d", k, min, max, v))
+		}
+
+		return
+	}
+}

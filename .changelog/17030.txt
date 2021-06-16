@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_cloudwatch_event_rule: Prevent perpetual differences with `name_prefix` argument values beginning with `terraform-`
+```
+
+```release-note:bug
+resource/aws_security_group: Prevent perpetual differences with `name_prefix` argument values beginning with `terraform-`
+```

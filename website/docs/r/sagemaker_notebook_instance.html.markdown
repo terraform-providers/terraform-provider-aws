@@ -14,7 +14,7 @@ Provides a Sagemaker Notebook Instance resource.
 
 ### Basic usage
 
-```hcl
+```terraform
 resource "aws_sagemaker_notebook_instance" "ni" {
   name          = "my-notebook-instance"
   role_arn      = aws_iam_role.role.arn
@@ -28,7 +28,7 @@ resource "aws_sagemaker_notebook_instance" "ni" {
 
 ### Code repository usage
 
-```hcl
+```terraform
 resource "aws_sagemaker_code_repository" "example" {
   code_repository_name = "my-notebook-instance-code-repo"
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 * `additional_code_repositories` - (Optional) An array of up to three Git repositories to associate with the notebook instance.
  These can be either the names of Git repositories stored as resources in your account, or the URL of Git repositories in [AWS CodeCommit](https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html) or in any other Git repository. These repositories are cloned at the same level as the default repository of your notebook instance.
 * `default_code_repository` - (Optional) The Git repository associated with the notebook instance as its default code repository. This can be either the name of a Git repository stored as a resource in your account, or the URL of a Git repository in [AWS CodeCommit](https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html) or in any other Git repository.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -76,6 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS to this notebook instance.
 * `url` - The URL that you use to connect to the Jupyter notebook that is running in your notebook instance.
 * `network_interface_id` - The network interface ID that Amazon SageMaker created at the time of creating the instance. Only available when setting `subnet_id`.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

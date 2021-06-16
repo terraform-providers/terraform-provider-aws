@@ -12,7 +12,7 @@ description: |-
 
 Basic usage:
 
-```hcl
+```terraform
 resource "aws_worklink_fleet" "example" {
   name = "terraform-example"
 }
@@ -20,7 +20,7 @@ resource "aws_worklink_fleet" "example" {
 
 Network Configuration Usage:
 
-```hcl
+```terraform
 resource "aws_worklink_fleet" "example" {
   name = "terraform-example"
 
@@ -34,7 +34,7 @@ resource "aws_worklink_fleet" "example" {
 
 Identity Provider Configuration Usage:
 
-```hcl
+```terraform
 resource "aws_worklink_fleet" "test" {
   name = "tf-worklink-fleet"
 

@@ -12,7 +12,7 @@ Provides a Step Function Activity resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_sfn_activity" "sfn_activity" {
   name = "my-activity"
 }
@@ -23,7 +23,7 @@ resource "aws_sfn_activity" "sfn_activity" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the activity to create.
-* `tags` - (Optional) Key-value map of resource tags
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -32,6 +32,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Amazon Resource Name (ARN) that identifies the created activity.
 * `name` - The name of the activity.
 * `creation_date` - The date the activity was created.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

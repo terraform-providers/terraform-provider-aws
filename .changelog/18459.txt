@@ -1,0 +1,15 @@
+```release-note:bug
+resource/aws_iam_group: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_group_membership: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_group_policy: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_group_policy_attachment: Handle read-after-create eventual consistency
+```

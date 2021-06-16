@@ -14,7 +14,7 @@ var elbAccountIdPerRegionMap = map[string]string{
 	endpoints.ApEast1RegionID:      "754344448648",
 	endpoints.ApNortheast1RegionID: "582318560864",
 	endpoints.ApNortheast2RegionID: "600734575887",
-	"ap-northeast-3":               "383597477331", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApNortheast3RegionID: "383597477331",
 	endpoints.ApSouth1RegionID:     "718504428378",
 	endpoints.ApSoutheast1RegionID: "114774131450",
 	endpoints.ApSoutheast2RegionID: "783225319266",

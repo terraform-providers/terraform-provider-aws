@@ -1,0 +1,7 @@
+```release-note:new-data-source
+aws_glue_connection
+```
+
+```release-note:new-data-source
+aws_glue_data_catalog_encryption_settings
+```

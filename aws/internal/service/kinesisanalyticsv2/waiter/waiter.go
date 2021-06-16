@@ -10,13 +10,77 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
+const (
+	ApplicationDeletedTimeout = 5 * time.Minute
+	ApplicationStartedTimeout = 5 * time.Minute
+	ApplicationStoppedTimeout = 5 * time.Minute
+	ApplicationUpdatedTimeout = 5 * time.Minute
+
+	SnapshotCreatedTimeout = 5 * time.Minute
+	SnapshotDeletedTimeout = 5 * time.Minute
+)
+
 // ApplicationDeleted waits for an Application to return Deleted
-func ApplicationDeleted(conn *kinesisanalyticsv2.KinesisAnalyticsV2, name string, timeout time.Duration) (*kinesisanalyticsv2.ApplicationDetail, error) {
+func ApplicationDeleted(conn *kinesisanalyticsv2.KinesisAnalyticsV2, name string) (*kinesisanalyticsv2.ApplicationDetail, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{kinesisanalyticsv2.ApplicationStatusDeleting},
 		Target:  []string{},
 		Refresh: ApplicationStatus(conn, name),
-		Timeout: timeout,
+		Timeout: ApplicationDeletedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalyticsv2.ApplicationDetail); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// ApplicationStarted waits for an Application to start
+func ApplicationStarted(conn *kinesisanalyticsv2.KinesisAnalyticsV2, name string) (*kinesisanalyticsv2.ApplicationDetail, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalyticsv2.ApplicationStatusStarting},
+		Target:  []string{kinesisanalyticsv2.ApplicationStatusRunning},
+		Refresh: ApplicationStatus(conn, name),
+		Timeout: ApplicationStartedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalyticsv2.ApplicationDetail); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// ApplicationStopped waits for an Application to stop
+func ApplicationStopped(conn *kinesisanalyticsv2.KinesisAnalyticsV2, name string) (*kinesisanalyticsv2.ApplicationDetail, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalyticsv2.ApplicationStatusForceStopping, kinesisanalyticsv2.ApplicationStatusStopping},
+		Target:  []string{kinesisanalyticsv2.ApplicationStatusReady},
+		Refresh: ApplicationStatus(conn, name),
+		Timeout: ApplicationStoppedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalyticsv2.ApplicationDetail); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// ApplicationUpdated waits for an Application to return Deleted
+func ApplicationUpdated(conn *kinesisanalyticsv2.KinesisAnalyticsV2, name string) (*kinesisanalyticsv2.ApplicationDetail, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalyticsv2.ApplicationStatusUpdating},
+		Target:  []string{kinesisanalyticsv2.ApplicationStatusReady, kinesisanalyticsv2.ApplicationStatusRunning},
+		Refresh: ApplicationStatus(conn, name),
+		Timeout: ApplicationUpdatedTimeout,
 	}
 
 	outputRaw, err := stateConf.WaitForState()
@@ -74,4 +138,40 @@ func IAMPropagation(f func() (interface{}, error)) (interface{}, error) {
 	}
 
 	return output, nil
+}
+
+// SnapshotCreated waits for a Snapshot to return Created
+func SnapshotCreated(conn *kinesisanalyticsv2.KinesisAnalyticsV2, applicationName, snapshotName string) (*kinesisanalyticsv2.SnapshotDetails, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalyticsv2.SnapshotStatusCreating},
+		Target:  []string{kinesisanalyticsv2.SnapshotStatusReady},
+		Refresh: SnapshotDetailsStatus(conn, applicationName, snapshotName),
+		Timeout: SnapshotCreatedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalyticsv2.SnapshotDetails); ok {
+		return v, err
+	}
+
+	return nil, err
+}
+
+// SnapshotDeleted waits for a Snapshot to return Deleted
+func SnapshotDeleted(conn *kinesisanalyticsv2.KinesisAnalyticsV2, applicationName, snapshotName string) (*kinesisanalyticsv2.SnapshotDetails, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{kinesisanalyticsv2.SnapshotStatusDeleting},
+		Target:  []string{},
+		Refresh: SnapshotDetailsStatus(conn, applicationName, snapshotName),
+		Timeout: SnapshotDeletedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if v, ok := outputRaw.(*kinesisanalyticsv2.SnapshotDetails); ok {
+		return v, err
+	}
+
+	return nil, err
 }

@@ -12,7 +12,7 @@ Provides details about an Image Builder Infrastructure Configuration.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_imagebuilder_infrastructure_configuration" "example" {
   arn = "arn:aws:imagebuilder:us-west-2:aws:infrastructure-configuration/example"
 }

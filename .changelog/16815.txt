@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_cloudwatch_event_permission: Fix error in Event Bridge/CloudWatch Events bus name validation
+```
+
+```release-note:bug
+resource/aws_cloudwatch_event_rule: Fix error in Event Bridge/CloudWatch Events bus name validation
+```
+
+```release-note:bug
+resource/aws_cloudwatch_event_target: Fix error in Event Bridge/CloudWatch Events bus name validation
+```

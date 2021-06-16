@@ -14,7 +14,7 @@ Creates and manages an AWS IoT certificate.
 
 ### With CSR
 
-```hcl
+```terraform
 resource "aws_iot_certificate" "cert" {
   csr    = file("/my/csr.pem")
   active = true
@@ -23,7 +23,7 @@ resource "aws_iot_certificate" "cert" {
 
 ### Without CSR
 
-```hcl
+```terraform
 resource "aws_iot_certificate" "cert" {
   active = true
 }

@@ -19,8 +19,8 @@ origin access identities, see
 
 The following example below creates a CloudFront origin access identity.
 
-```hcl
-resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
+```terraform
+resource "aws_cloudfront_origin_access_identity" "example" {
   comment = "Some comment"
 }
 ```
@@ -55,7 +55,7 @@ The `cloudfront_access_identity_path` allows this to be circumvented.
 The below snippet demonstrates use with the `s3_origin_config` structure for the
 [`aws_cloudfront_distribution`][3] resource:
 
-```hcl
+```terraform
 resource "aws_cloudfront_distribution" "example" {
   # ... other configuration ...
 
@@ -74,7 +74,7 @@ principal into an `AWS` IAM ARN principal when supplied in an
 [`aws_s3_bucket`][4] bucket policy, causing spurious diffs in Terraform. If
 you see this behaviour, use the `iam_arn` instead:
 
-```hcl
+```terraform
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "s3_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn]
+      identifiers = [aws_cloudfront_origin_access_identity.example.iam_arn]
     }
   }
 }

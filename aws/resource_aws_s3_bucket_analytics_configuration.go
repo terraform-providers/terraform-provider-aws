@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfs3 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/s3"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
@@ -147,19 +148,23 @@ func resourceAwsS3BucketAnalyticsConfigurationPut(d *schema.ResourceData, meta i
 
 	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := s3conn.PutBucketAnalyticsConfiguration(input)
+
+		if tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
-	if isResourceTimeoutError(err) {
+
+	if tfresource.TimedOut(err) {
 		_, err = s3conn.PutBucketAnalyticsConfiguration(input)
 	}
+
 	if err != nil {
-		return fmt.Errorf("Error adding S3 analytics configuration: %w", err)
+		return fmt.Errorf("error adding S3 Bucket Analytics Configuration: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s:%s", bucket, name))
@@ -185,13 +190,25 @@ func resourceAwsS3BucketAnalyticsConfigurationRead(d *schema.ResourceData, meta 
 
 	log.Printf("[DEBUG] Reading S3 bucket analytics configuration: %s", input)
 	output, err := conn.GetBucketAnalyticsConfiguration(input)
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) {
+		log.Printf("[WARN] S3 Bucket Analytics Configuration (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, tfs3.ErrCodeNoSuchConfiguration) {
+		log.Printf("[WARN] S3 Bucket Analytics Configuration (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") || isAWSErr(err, "NoSuchConfiguration", "The specified configuration does not exist.") {
-			log.Printf("[WARN] %s S3 bucket analytics configuration not found, removing from state.", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("error getting S3 Bucket Analytics Configuration %q: %w", d.Id(), err)
+		return fmt.Errorf("error getting S3 Bucket Analytics Configuration (%s): %w", d.Id(), err)
+	}
+
+	if output == nil {
+		return fmt.Errorf("error getting S3 Bucket Analytics Configuration (%s): empty response", d.Id())
 	}
 
 	if err := d.Set("filter", flattenS3AnalyticsFilter(output.AnalyticsConfiguration.Filter)); err != nil {

@@ -14,7 +14,7 @@ The `aws_db_proxy_default_target_group` behaves differently from normal resource
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_proxy" "example" {
   name                   = "example"
   debug_logging          = false

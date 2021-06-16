@@ -82,13 +82,14 @@ func dataSourceAwsAmiIdsRead(d *schema.ResourceData, meta interface{}) error {
 			// Check for a very rare case where the response would include no
 			// image name. No name means nothing to attempt a match against,
 			// therefore we are skipping such image.
-			if image.Name == nil || *image.Name == "" {
+			name := aws.StringValue(image.Name)
+			if name == "" {
 				log.Printf("[WARN] Unable to find AMI name to match against "+
 					"for image ID %q owned by %q, nothing to do.",
-					*image.ImageId, *image.OwnerId)
+					aws.StringValue(image.ImageId), aws.StringValue(image.OwnerId))
 				continue
 			}
-			if r.MatchString(*image.Name) {
+			if r.MatchString(name) {
 				filteredImages = append(filteredImages, image)
 			}
 		}

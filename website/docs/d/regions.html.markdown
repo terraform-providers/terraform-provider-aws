@@ -14,13 +14,13 @@ Provides information about AWS Regions. Can be used to filter regions i.e. by Op
 
 Enabled AWS Regions:
 
-```hcl
+```terraform
 data "aws_regions" "current" {}
 ```
 
 All the regions regardless of the availability
 
-```hcl
+```terraform
 data "aws_regions" "current" {
   all_regions = true
 }
@@ -28,7 +28,7 @@ data "aws_regions" "current" {
 
 To see regions that are filtered by `"not-opted-in"`, the `all_regions` argument needs to be set to `true` or no results will be returned.
 
-```hcl
+```terraform
 data "aws_regions" "current" {
   all_regions = true
 

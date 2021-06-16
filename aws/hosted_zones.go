@@ -17,7 +17,7 @@ var hostedZoneIDsMap = map[string]string{
 	endpoints.ApEast1RegionID:      "ZNB98KWMFR0R6",
 	endpoints.ApNortheast1RegionID: "Z2M4EHUR26P7ZW",
 	endpoints.ApNortheast2RegionID: "Z3W03O7B5YMIYP",
-	"ap-northeast-3":               "Z2YQB5RD63NC85", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApNortheast3RegionID: "Z2YQB5RD63NC85",
 	endpoints.ApSouth1RegionID:     "Z11RGJOFQNVJUP",
 	endpoints.ApSoutheast1RegionID: "Z3O0J2DXBE1FTB",
 	endpoints.ApSoutheast2RegionID: "Z1WCIGYICN2BYD",

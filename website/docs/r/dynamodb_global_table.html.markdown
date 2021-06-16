@@ -16,7 +16,7 @@ Manages [DynamoDB Global Tables V1 (version 2017.11.29)](https://docs.aws.amazon
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   alias  = "us-east-1"
   region = "us-east-1"

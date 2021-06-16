@@ -19,7 +19,7 @@ See the [AWS documentation](https://docs.aws.amazon.com/autoscaling/plans/usergu
 
 ### Basic Dynamic Scaling
 
-```hcl
+```terraform
 data "aws_availability_zones" "available" {}
 
 resource "aws_autoscaling_group" "example" {
@@ -70,7 +70,7 @@ resource "aws_autoscalingplans_scaling_plan" "example" {
 
 ### Basic Predictive Scaling
 
-```hcl
+```terraform
 data "aws_availability_zones" "available" {}
 
 resource "aws_autoscaling_group" "example" {

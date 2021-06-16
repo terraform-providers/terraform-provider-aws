@@ -1,0 +1,3 @@
+```release-note:note
+provider: `default_tags` support generally available to all provider resources that support `tags` with the exception of `aws_autoscaling_group`
+```

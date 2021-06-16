@@ -15,7 +15,7 @@ The `aws_vpc_ipv4_cidr_block_association` resource allows further IPv4 CIDR bloc
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }

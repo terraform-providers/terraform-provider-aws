@@ -12,7 +12,7 @@ Use this data source to get a list of cognito user pools.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_api_gateway_rest_api" "selected" {
   name = var.api_gateway_name
 }

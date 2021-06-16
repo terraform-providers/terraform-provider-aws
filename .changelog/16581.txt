@@ -1,0 +1,11 @@
+```release-note:enhancement
+data-source/aws_s3_bucket_object: Add `bucket_key_enabled` attribute (Support S3 Bucket Keys)
+```
+
+```release-note:enhancement
+resource/aws_s3_bucket: Add `bucket_key_enabled` argument to `server_side_encryption_configuration` `rule` configuration block (Support S3 Bucket Keys)
+```
+
+```release-note:enhancement
+resource/aws_s3_bucket_object: Add `bucket_key_enabled` attribute (Support S3 Bucket Keys)
+```

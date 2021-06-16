@@ -32,6 +32,8 @@ func resourceAwsEip() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Timeouts: &schema.ResourceTimeout{
 			Read:   schema.DefaultTimeout(15 * time.Minute),
 			Update: schema.DefaultTimeout(5 * time.Minute),
@@ -39,36 +41,64 @@ func resourceAwsEip() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"vpc": {
-				Type:     schema.TypeBool,
+			"address": {
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+			"allocation_id": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
-
+			"associate_with_private_ip": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"association_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"carrier_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"customer_owned_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"customer_owned_ipv4_pool": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"instance": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
+			"network_border_group": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"network_interface": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
-			"allocation_id": {
+			"private_dns": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"association_id": {
+			"private_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"domain": {
+			"public_dns": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -77,63 +107,28 @@ func resourceAwsEip() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"public_dns": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"private_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"private_dns": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"associate_with_private_ip": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"carrier_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"customer_owned_ipv4_pool": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"customer_owned_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"public_ipv4_pool": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Computed: true,
 			},
-
-			"network_border_group": {
-				Type:     schema.TypeString,
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
+			"vpc": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
+				Computed: true,
 			},
-
-			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 	ec2conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	// By default, we're not in a VPC
 	domainOpt := ""
@@ -143,6 +138,22 @@ func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 
 	allocOpts := &ec2.AllocateAddressInput{
 		Domain: aws.String(domainOpt),
+	}
+
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		supportedPlatforms := meta.(*AWSClient).supportedplatforms
+		if domainOpt != ec2.DomainTypeVpc && len(supportedPlatforms) > 0 && hasEc2Classic(supportedPlatforms) {
+			return fmt.Errorf("tags cannot be set for a standard-domain EIP - must be a VPC-domain EIP")
+		}
+		allocOpts.TagSpecifications = ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeElasticIp)
+	}
+
+	if v, ok := d.GetOk("address"); ok {
+		supportedPlatforms := meta.(*AWSClient).supportedplatforms
+		if domainOpt != ec2.DomainTypeVpc && len(supportedPlatforms) > 0 && hasEc2Classic(supportedPlatforms) {
+			return fmt.Errorf("error, address to recover cannot be set for a standard-domain EIP - must be a VPC-domain EIP")
+		}
+		allocOpts.Address = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("public_ipv4_pool"); ok {
@@ -179,20 +190,12 @@ func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] EIP ID: %s (domain: %v)", d.Id(), *allocResp.Domain)
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if d.Get("domain").(string) == ec2.DomainTypeStandard {
-			return fmt.Errorf("tags can not be set for an EIP in EC2 Classic")
-		}
-		if err := keyvaluetags.Ec2CreateTags(ec2conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding tags: %s", err)
-		}
-	}
-
 	return resourceAwsEipUpdate(d, meta)
 }
 
 func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 	ec2conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	domain := resourceAwsEipDomain(d)
@@ -308,8 +311,15 @@ func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 		d.SetId(aws.StringValue(address.AllocationId))
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(address.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(address.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -399,11 +409,11 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") && !d.IsNewResource() {
+	if d.HasChange("tags_all") && !d.IsNewResource() {
 		if d.Get("domain").(string) == ec2.DomainTypeStandard {
-			return fmt.Errorf("tags can not be set for an EIP in EC2 Classic")
+			return fmt.Errorf("tags cannot be set for a standard-domain EIP - must be a VPC-domain EIP")
 		}
-		o, n := d.GetChange("tags")
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(ec2conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EIP (%s) tags: %s", d.Id(), err)
 		}

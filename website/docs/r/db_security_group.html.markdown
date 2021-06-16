@@ -15,7 +15,7 @@ attribute instead.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_db_security_group" "default" {
   name = "rds_sg"
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the DB security group.
 * `description` - (Optional) The description of the DB security group. Defaults to "Managed by Terraform".
 * `ingress` - (Required) A list of ingress rules.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Ingress blocks support the following:
 
@@ -48,7 +48,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The db security group ID.
 * `arn` - The arn of the DB security group.
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

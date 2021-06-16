@@ -64,7 +64,7 @@ func dataSourceAwsApiGatewayVpcLinkRead(d *schema.ResourceData, meta interface{}
 		return !lastPage
 	})
 	if err != nil {
-		return fmt.Errorf("error describing API Gateway VPC links: %s", err)
+		return fmt.Errorf("error describing API Gateway VPC links: %w", err)
 	}
 
 	if len(matchedVpcLinks) == 0 {
@@ -84,7 +84,7 @@ func dataSourceAwsApiGatewayVpcLinkRead(d *schema.ResourceData, meta interface{}
 	d.Set("target_arns", flattenStringList(match.TargetArns))
 
 	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(match.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

@@ -18,6 +18,7 @@ func TestAccAwsBackupGlobalSettings_basic(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckAWSBackup(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{

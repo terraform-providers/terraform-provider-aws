@@ -12,7 +12,7 @@ Provides a resource to manage S3 Bucket Ownership Controls. For more information
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example"
 }

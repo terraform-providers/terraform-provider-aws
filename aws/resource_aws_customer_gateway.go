@@ -33,6 +33,13 @@ func resourceAwsCustomerGateway() *schema.Resource {
 				ValidateFunc: validate4ByteAsn,
 			},
 
+			"device_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 255),
+			},
+
 			"ip_address": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -52,23 +59,30 @@ func resourceAwsCustomerGateway() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
+
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsCustomerGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	ipAddress := d.Get("ip_address").(string)
 	vpnType := d.Get("type").(string)
 	bgpAsn := d.Get("bgp_asn").(string)
+	deviceName := d.Get("device_name").(string)
 
-	alreadyExists, err := resourceAwsCustomerGatewayExists(vpnType, ipAddress, bgpAsn, conn)
+	alreadyExists, err := resourceAwsCustomerGatewayExists(vpnType, ipAddress, bgpAsn, deviceName, conn)
 	if err != nil {
 		return err
 	}
@@ -86,7 +100,11 @@ func resourceAwsCustomerGatewayCreate(d *schema.ResourceData, meta interface{}) 
 		BgpAsn:            aws.Int64(i64BgpAsn),
 		PublicIp:          aws.String(ipAddress),
 		Type:              aws.String(vpnType),
-		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeCustomerGateway),
+		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeCustomerGateway),
+	}
+
+	if len(deviceName) != 0 {
+		createOpts.DeviceName = aws.String(deviceName)
 	}
 
 	// Create the Customer Gateway.
@@ -113,6 +131,7 @@ func resourceAwsCustomerGatewayCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	_, stateErr := stateConf.WaitForState()
+
 	if stateErr != nil {
 		return fmt.Errorf(
 			"Error waiting for customer gateway (%s) to become ready: %s", cgId, err)
@@ -150,24 +169,31 @@ func customerGatewayRefreshFunc(conn *ec2.EC2, gatewayId string) resource.StateR
 	}
 }
 
-func resourceAwsCustomerGatewayExists(vpnType, ipAddress, bgpAsn string, conn *ec2.EC2) (bool, error) {
-	ipAddressFilter := &ec2.Filter{
-		Name:   aws.String("ip-address"),
-		Values: []*string{aws.String(ipAddress)},
+func resourceAwsCustomerGatewayExists(vpnType, ipAddress, bgpAsn, deviceName string, conn *ec2.EC2) (bool, error) {
+	filters := []*ec2.Filter{
+		{
+			Name:   aws.String("ip-address"),
+			Values: []*string{aws.String(ipAddress)},
+		},
+		{
+			Name:   aws.String("type"),
+			Values: []*string{aws.String(vpnType)},
+		},
+		{
+			Name:   aws.String("bgp-asn"),
+			Values: []*string{aws.String(bgpAsn)},
+		},
 	}
 
-	typeFilter := &ec2.Filter{
-		Name:   aws.String("type"),
-		Values: []*string{aws.String(vpnType)},
-	}
-
-	bgpAsnFilter := &ec2.Filter{
-		Name:   aws.String("bgp-asn"),
-		Values: []*string{aws.String(bgpAsn)},
+	if len(deviceName) != 0 {
+		filters = append(filters, &ec2.Filter{
+			Name:   aws.String("device-name"),
+			Values: []*string{aws.String(deviceName)},
+		})
 	}
 
 	resp, err := conn.DescribeCustomerGateways(&ec2.DescribeCustomerGatewaysInput{
-		Filters: []*ec2.Filter{ipAddressFilter, typeFilter, bgpAsnFilter},
+		Filters: filters,
 	})
 	if err != nil {
 		return false, err
@@ -182,6 +208,7 @@ func resourceAwsCustomerGatewayExists(vpnType, ipAddress, bgpAsn string, conn *e
 
 func resourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	gatewayFilter := &ec2.Filter{
@@ -217,14 +244,22 @@ func resourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("bgp_asn", customerGateway.BgpAsn)
 	d.Set("ip_address", customerGateway.IpAddress)
 	d.Set("type", customerGateway.Type)
+	d.Set("device_name", customerGateway.DeviceName)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(customerGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.Ec2KeyValueTags(customerGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("customer-gateway/%s", d.Id()),
@@ -238,8 +273,8 @@ func resourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) er
 func resourceAwsCustomerGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Customer Gateway (%s) tags: %s", d.Id(), err)

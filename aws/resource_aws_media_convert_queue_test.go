@@ -19,6 +19,7 @@ func TestAccAWSMediaConvertQueue_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaConvert(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediaconvert.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaConvertQueueDestroy,
 		Steps: []resource.TestStep{
@@ -50,6 +51,7 @@ func TestAccAWSMediaConvertQueue_ReservationPlanSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaConvert(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediaconvert.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaConvertQueueDestroy,
 		Steps: []resource.TestStep{
@@ -91,6 +93,7 @@ func TestAccAWSMediaConvertQueue_withStatus(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaConvert(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediaconvert.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaConvertQueueDestroy,
 		Steps: []resource.TestStep{
@@ -124,6 +127,7 @@ func TestAccAWSMediaConvertQueue_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaConvert(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediaconvert.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaConvertQueueDestroy,
 		Steps: []resource.TestStep{
@@ -168,6 +172,7 @@ func TestAccAWSMediaConvertQueue_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaConvert(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediaconvert.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaConvertQueueDestroy,
 		Steps: []resource.TestStep{
@@ -192,6 +197,7 @@ func TestAccAWSMediaConvertQueue_withDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMediaConvert(t) },
+		ErrorCheck:   testAccErrorCheck(t, mediaconvert.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaConvertQueueDestroy,
 		Steps: []resource.TestStep{

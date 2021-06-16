@@ -1,0 +1,11 @@
+```release-note:enhancement
+data-source/aws_msk_cluster: Add `bootstrap_brokers_sasl_iam` attribute
+```
+
+```release-note:enhancement
+resource/aws_msk_cluster: Add `bootstrap_brokers_sasl_iam` attribute
+```
+
+```release-note:enhancement
+resource/aws_msk_cluster: Add `iam` argument to `client_authentication.sasl` configuration block
+```

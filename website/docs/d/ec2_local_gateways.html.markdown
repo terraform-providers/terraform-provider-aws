@@ -14,7 +14,7 @@ Provides information for multiple EC2 Local Gateways, such as their identifiers.
 
 The following example retrieves Local Gateways with a resource tag of `service` set to `production`.
 
-```hcl
+```terraform
 data "aws_ec2_local_gateways" "foo" {
   tags = {
     service = "production"

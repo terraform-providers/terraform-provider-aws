@@ -14,7 +14,7 @@ Provides a S3 bucket [analytics configuration](https://docs.aws.amazon.com/Amazo
 
 ### Add analytics configuration for entire S3 bucket and export results to a second S3 bucket
 
-```hcl
+```terraform
 resource "aws_s3_bucket_analytics_configuration" "example-entire-bucket" {
   bucket = aws_s3_bucket.example.bucket
   name   = "EntireBucket"
@@ -41,7 +41,7 @@ resource "aws_s3_bucket" "analytics" {
 
 ### Add analytics configuration with S3 bucket object filter
 
-```hcl
+```terraform
 resource "aws_s3_bucket_analytics_configuration" "example-filtered" {
   bucket = aws_s3_bucket.example.bucket
   name   = "ImportantBlueDocuments"
@@ -94,6 +94,10 @@ The `s3_bucket_destination` configuration supports the following:
 * `bucket_account_id` - (Optional) The account ID that owns the destination bucket.
 * `format` - (Optional) The output format of exported analytics data. Allowed values: `CSV`. Default value: `CSV`.
 * `prefix` - (Optional) The prefix to append to exported analytics data.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

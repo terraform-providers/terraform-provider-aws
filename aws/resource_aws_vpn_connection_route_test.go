@@ -16,6 +16,7 @@ func TestAccAWSVpnConnectionRoute_basic(t *testing.T) {
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccAwsVpnConnectionRouteDestroy,
 		Steps: []resource.TestStep{

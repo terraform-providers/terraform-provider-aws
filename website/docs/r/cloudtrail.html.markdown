@@ -10,9 +10,9 @@ description: |-
 
 Provides a CloudTrail resource.
 
-~> *NOTE:* For a multi-region trail, this resource must be in the home region of the trail.
+-> **Tip:** For a multi-region trail, this resource must be in the home region of the trail.
 
-~> *NOTE:* For an organization trail, this resource must be in the master account of the organization.
+-> **Tip:** For an organization trail, this resource must be in the master account of the organization.
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ Provides a CloudTrail resource.
 Enable CloudTrail to capture all compatible management events in region.
 For capturing events from services like IAM, `include_global_service_events` must be enabled.
 
-```hcl
+```terraform
 data "aws_caller_identity" "current" {}
 
 resource "aws_cloudtrail" "foobar" {
@@ -74,7 +74,7 @@ CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/lates
 
 #### Logging All Lambda Function Invocations
 
-```hcl
+```terraform
 resource "aws_cloudtrail" "example" {
   # ... other configuration ...
 
@@ -92,7 +92,7 @@ resource "aws_cloudtrail" "example" {
 
 #### Logging All S3 Bucket Object Events
 
-```hcl
+```terraform
 resource "aws_cloudtrail" "example" {
   # ... other configuration ...
 
@@ -110,7 +110,7 @@ resource "aws_cloudtrail" "example" {
 
 #### Logging Individual S3 Bucket Events
 
-```hcl
+```terraform
 data "aws_s3_bucket" "important-bucket" {
   bucket = "important-bucket"
 }
@@ -135,7 +135,7 @@ resource "aws_cloudtrail" "example" {
 
 #### Sending Events to CloudWatch Logs
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_group" "example" {
   name = "Example"
 }
@@ -149,59 +149,57 @@ resource "aws_cloudtrail" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are required:
 
-* `name` - (Required) Specifies the name of the trail.
-* `s3_bucket_name` - (Required) Specifies the name of the S3 bucket designated for publishing log files.
-* `s3_key_prefix` - (Optional) Specifies the S3 key prefix that follows
-    the name of the bucket you have designated for log file delivery.
-* `cloud_watch_logs_role_arn` - (Optional) Specifies the role for the CloudWatch Logs
-    endpoint to assume to write to a user’s log group.
-* `cloud_watch_logs_group_arn` - (Optional) Specifies a log group name using an Amazon Resource Name (ARN),
-    that represents the log group to which CloudTrail logs will be delivered. Note that CloudTrail requires the Log Stream wildcard.
-* `enable_logging` - (Optional) Enables logging for the trail. Defaults to `true`.
-    Setting this to `false` will pause logging.
-* `include_global_service_events` - (Optional) Specifies whether the trail is publishing events
-    from global services such as IAM to the log files. Defaults to `true`.
-* `is_multi_region_trail` - (Optional) Specifies whether the trail is created in the current
-    region or in all regions. Defaults to `false`.
-* `is_organization_trail` - (Optional) Specifies whether the trail is an AWS Organizations trail. Organization trails log events for the master account and all member accounts. Can only be created in the organization master account. Defaults to `false`.
-* `sns_topic_name` - (Optional) Specifies the name of the Amazon SNS topic
-    defined for notification of log file delivery.
-* `enable_log_file_validation` - (Optional) Specifies whether log file integrity validation is enabled.
-    Defaults to `false`.
-* `kms_key_id` - (Optional) Specifies the KMS key ARN to use to encrypt the logs delivered by CloudTrail.
-* `event_selector` - (Optional) Specifies an event selector for enabling data event logging. Fields documented below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these.
-* `insight_selector` - (Optional) Specifies an insight selector for identifying unusual operational activity. Fields documented below.
-* `tags` - (Optional) A map of tags to assign to the trail
+* `name` - (Required) Name of the trail.
+* `s3_bucket_name` - (Required) Name of the S3 bucket designated for publishing log files.
 
-### Event Selector Arguments
-For **event_selector** the following attributes are supported.
+The following arguments are optional:
 
-* `read_write_type` (Optional) - Specify if you want your trail to log read-only events, write-only events, or all. By default, the value is All. You can specify only the following value: "ReadOnly", "WriteOnly", "All". Defaults to `All`.
-* `include_management_events` (Optional) - Specify if you want your event selector to include management events for your trail.
-* `data_resource` (Optional) - Specifies logging data events. Fields documented below.
+* `cloud_watch_logs_group_arn` - (Optional) Log group name using an ARN that represents the log group to which CloudTrail logs will be delivered. Note that CloudTrail requires the Log Stream wildcard.
+* `cloud_watch_logs_role_arn` - (Optional) Role for the CloudWatch Logs endpoint to assume to write to a user’s log group.
+* `enable_log_file_validation` - (Optional) Whether log file integrity validation is enabled. Defaults to `false`.
+* `enable_logging` - (Optional) Enables logging for the trail. Defaults to `true`. Setting this to `false` will pause logging.
+* `event_selector` - (Optional) Configuration block of an event selector for enabling data event logging. See details below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these.
+* `include_global_service_events` - (Optional) Whether the trail is publishing events from global services such as IAM to the log files. Defaults to `true`.
+* `insight_selector` - (Optional) Configuration block for identifying unusual operational activity. See details below.
+* `is_multi_region_trail` - (Optional) Whether the trail is created in the current region or in all regions. Defaults to `false`.
+* `is_organization_trail` - (Optional) Whether the trail is an AWS Organizations trail. Organization trails log events for the master account and all member accounts. Can only be created in the organization master account. Defaults to `false`.
+* `kms_key_id` - (Optional) KMS key ARN to use to encrypt the logs delivered by CloudTrail.
+* `s3_key_prefix` - (Optional) S3 key prefix that follows the name of the bucket you have designated for log file delivery.
+* `sns_topic_name` - (Optional) Name of the Amazon SNS topic defined for notification of log file delivery.
+* `tags` - (Optional) Map of tags to assign to the trail. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
-#### Data Resource Arguments
-For **data_resource** the following attributes are supported.
+### event_selector
 
-* `type` (Required) - The resource type in which you want to log data events. You can specify only the following value: "AWS::S3::Object", "AWS::Lambda::Function"
-* `values` (Required) - A list of ARN for the specified S3 buckets and object prefixes..
+This configuration block supports the following attributes:
 
-### Insight Selector Arguments
+* `data_resource` - (Optional) Configuration block for data events. See details below.
+* `include_management_events` - (Optional) Whether to include management events for your trail.
+* `read_write_type` - (Optional) Type of events to log. Valid values are `ReadOnly`, `WriteOnly`, `All`. Default value is `All`.
 
-For **insight_selector** the following attributes are supported.
+#### data_resource
 
-* `insight_type` (Optional) - The type of insights to log on a trail. In this release, only `ApiCallRateInsight` is supported as an insight type.
+This configuration block supports the following attributes:
+
+* `type` - (Required) Resource type in which you want to log data events. You can specify only the following value: "AWS::S3::Object", "AWS::Lambda::Function" and "AWS::DynamoDB::Table".
+* `values` - (Required) List of ARN strings or partial ARN strings to specify selectors for data audit events over data resources. ARN list is specific to single-valued `type`. For example, `arn:aws:s3:::<bucket name>/` for all objects in a bucket, `arn:aws:s3:::<bucket name>/key` for specific objects, `arn:aws:lambda` for all lambda events within an account, `arn:aws:lambda:<region>:<account number>:function:<function name>` for a specific Lambda function, `arn:aws:dynamodb` for all DDB events for all tables within an account, or `arn:aws:dynamodb:<region>:<account number>:table/<table name>` for a specific DynamoDB table.
+
+
+### insight_selector
+
+This configuration block supports the following attributes:
+
+* `insight_type` - (Optional) Type of insights to log on a trail. The valid value is `ApiCallRateInsight`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The name of the trail.
-* `home_region` - The region in which the trail was created.
-* `arn` - The Amazon Resource Name of the trail.
-
+* `arn` - ARN of the trail.
+* `home_region` - Region in which the trail was created.
+* `id` - Name of the trail.
+* `tags_all` - Map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

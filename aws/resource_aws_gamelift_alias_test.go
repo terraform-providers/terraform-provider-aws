@@ -97,6 +97,7 @@ func TestAccAWSGameliftAlias_basic(t *testing.T) {
 			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
 			testAccPreCheckAWSGamelift(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{
@@ -147,6 +148,7 @@ func TestAccAWSGameliftAlias_tags(t *testing.T) {
 			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
 			testAccPreCheckAWSGamelift(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{
@@ -220,6 +222,7 @@ func TestAccAWSGameliftAlias_fleetRouting(t *testing.T) {
 			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
 			testAccPreCheckAWSGamelift(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{
@@ -261,6 +264,7 @@ func TestAccAWSGameliftAlias_disappears(t *testing.T) {
 			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
 			testAccPreCheckAWSGamelift(t)
 		},
+		ErrorCheck:   testAccErrorCheck(t, gamelift.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{

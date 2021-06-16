@@ -1,0 +1,7 @@
+```release-note:bug
+resource/aws_wafv2_web_acl_logging_configuration: Ensure `redacted_fields` are applied to the resource
+```
+
+```release-note:note
+resource/aws_wafv2_web_acl_logging_configuration: The `redacted_fields` configuration block `all_query_arguments`, `body`, and `single_query_argument` arguments have been deprecated to match the WAF API documentation
+```

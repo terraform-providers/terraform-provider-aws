@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -19,8 +21,7 @@ func init() {
 		Name: "aws_sagemaker_user_profile",
 		F:    testSweepSagemakerUserProfiles,
 		Dependencies: []string{
-			"aws_efs_mount_target",
-			"aws_efs_file_system",
+			"aws_sagemaker_app",
 		},
 	})
 }
@@ -31,18 +32,21 @@ func testSweepSagemakerUserProfiles(region string) error {
 		return fmt.Errorf("error getting client: %s", err)
 	}
 	conn := client.(*AWSClient).sagemakerconn
+	var sweeperErrs *multierror.Error
 
 	err = conn.ListUserProfilesPages(&sagemaker.ListUserProfilesInput{}, func(page *sagemaker.ListUserProfilesOutput, lastPage bool) bool {
-		for _, instance := range page.UserProfiles {
-			input := &sagemaker.DeleteUserProfileInput{
-				UserProfileName: instance.UserProfileName,
-				DomainId:        instance.DomainId,
-			}
+		for _, userProfile := range page.UserProfiles {
 
-			userProfile := aws.StringValue(instance.UserProfileName)
-			log.Printf("[INFO] Deleting SageMaker User Profile: %s", userProfile)
-			if _, err := conn.DeleteUserProfile(input); err != nil {
-				log.Printf("[ERROR] Error deleting SageMaker User Profile (%s): %s", userProfile, err)
+			r := resourceAwsSagemakerUserProfile()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(userProfile.UserProfileName))
+			d.Set("user_profile_name", userProfile.UserProfileName)
+			d.Set("domain_id", userProfile.DomainId)
+			err := r.Delete(d, client)
+
+			if err != nil {
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
 				continue
 			}
 		}
@@ -52,23 +56,24 @@ func testSweepSagemakerUserProfiles(region string) error {
 
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping SageMaker domain sweep for %s: %s", region, err)
-		return nil
+		return sweeperErrs.ErrorOrNil()
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving SageMaker domains: %w", err)
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Sagemaker User Profiles: %w", err))
 	}
 
-	return nil
+	return sweeperErrs.ErrorOrNil()
 }
 
-func TestAccAWSSagemakerUserProfile_basic(t *testing.T) {
+func testAccAWSSagemakerUserProfile_basic(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -93,13 +98,14 @@ func TestAccAWSSagemakerUserProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSSagemakerUserProfile_tags(t *testing.T) {
+func testAccAWSSagemakerUserProfile_tags(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -137,13 +143,14 @@ func TestAccAWSSagemakerUserProfile_tags(t *testing.T) {
 	})
 }
 
-func TestAccAWSSagemakerUserProfile_tensorboardAppSettings(t *testing.T) {
+func testAccAWSSagemakerUserProfile_tensorboardAppSettings(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -166,13 +173,14 @@ func TestAccAWSSagemakerUserProfile_tensorboardAppSettings(t *testing.T) {
 	})
 }
 
-func TestAccAWSSagemakerUserProfile_tensorboardAppSettingsWithImage(t *testing.T) {
+func testAccAWSSagemakerUserProfile_tensorboardAppSettingsWithImage(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -196,13 +204,14 @@ func TestAccAWSSagemakerUserProfile_tensorboardAppSettingsWithImage(t *testing.T
 	})
 }
 
-func TestAccAWSSagemakerUserProfile_kernelGatewayAppSettings(t *testing.T) {
+func testAccAWSSagemakerUserProfile_kernelGatewayAppSettings(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -225,13 +234,14 @@ func TestAccAWSSagemakerUserProfile_kernelGatewayAppSettings(t *testing.T) {
 	})
 }
 
-func TestAccAWSSagemakerUserProfile_jupyterServerAppSettings(t *testing.T) {
+func testAccAWSSagemakerUserProfile_jupyterServerAppSettings(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -254,13 +264,14 @@ func TestAccAWSSagemakerUserProfile_jupyterServerAppSettings(t *testing.T) {
 	})
 }
 
-func TestAccAWSSagemakerUserProfile_disappears(t *testing.T) {
+func testAccAWSSagemakerUserProfile_disappears(t *testing.T) {
 	var domain sagemaker.DescribeUserProfileOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_user_profile.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSagemakerUserProfileDestroy,
 		Steps: []resource.TestStep{
@@ -280,7 +291,7 @@ func testAccCheckAWSSagemakerUserProfileDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).sagemakerconn
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_sagemaker_user_settings" {
+		if rs.Type != "aws_sagemaker_user_profile" {
 			continue
 		}
 
@@ -288,8 +299,13 @@ func testAccCheckAWSSagemakerUserProfileDestroy(s *terraform.State) error {
 		userProfileName := rs.Primary.Attributes["user_profile_name"]
 
 		userProfile, err := finder.UserProfileByName(conn, domainID, userProfileName)
+
+		if tfawserr.ErrCodeEquals(err, sagemaker.ErrCodeResourceNotFound) {
+			continue
+		}
+
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker User Profile (%s): %w", rs.Primary.ID, err)
 		}
 
 		userProfileArn := aws.StringValue(userProfile.UserProfileArn)

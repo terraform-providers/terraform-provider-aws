@@ -12,7 +12,7 @@ Retrieve information about an AWS WorkSpaces directory.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_workspaces_directory" "example" {
   directory_id = "d-9067783251"
 }

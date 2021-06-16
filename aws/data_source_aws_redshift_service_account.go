@@ -16,7 +16,7 @@ var redshiftServiceAccountPerRegionMap = map[string]string{
 	endpoints.ApEast1RegionID:      "313564881002",
 	endpoints.ApNortheast1RegionID: "404641285394",
 	endpoints.ApNortheast2RegionID: "760740231472",
-	"ap-northeast-3":               "090321488786", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApNortheast3RegionID: "090321488786",
 	endpoints.ApSouth1RegionID:     "865932855811",
 	endpoints.ApSoutheast1RegionID: "361669875840",
 	endpoints.ApSoutheast2RegionID: "762762565011",

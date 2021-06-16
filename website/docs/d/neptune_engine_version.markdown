@@ -12,7 +12,7 @@ Information about a Neptune engine version.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_neptune_engine_version" "test" {
   preferred_versions = ["1.0.3.0", "1.0.2.2", "1.0.2.1"]
 }

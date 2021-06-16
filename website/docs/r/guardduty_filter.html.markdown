@@ -12,7 +12,7 @@ Provides a resource to manage a GuardDuty filter.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_guardduty_filter" "MyFilter" {
   name        = "MyFilter"
   action      = "ARCHIVE"
@@ -53,7 +53,7 @@ The following arguments are supported:
 * `description` - (Optional) Description of the filter.
 * `rank` - (Required) Specifies the position of the filter in the list of current filters. Also specifies the order in which this filter is applied to the findings.
 * `action` - (Required) Specifies the action that is to be applied to the findings that match the filter. Can be one of `ARCHIVE` or `NOOP`.
-* `tags` (Optional) - The tags that you want to add to the Filter resource. A tag consists of a key and a value.
+* `tags` (Optional) - The tags that you want to add to the Filter resource. A tag consists of a key and a value. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `finding_criteria` (Required) - Represents the criteria to be used in the filter for querying findings. Contains one or more `criterion` blocks, documented [below](#criterion).
 
 ### criterion
@@ -74,6 +74,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the GuardDuty filter.
 * `id` - A compound field, consisting of the ID of the GuardDuty detector and the name of the filter.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

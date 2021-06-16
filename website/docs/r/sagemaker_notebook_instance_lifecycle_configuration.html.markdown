@@ -14,7 +14,7 @@ Provides a lifecycle configuration for SageMaker Notebook Instances.
 
 Usage:
 
-```hcl
+```terraform
 resource "aws_sagemaker_notebook_instance_lifecycle_configuration" "lc" {
   name      = "foo"
   on_create = base64encode("echo foo")

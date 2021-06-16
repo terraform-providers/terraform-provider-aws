@@ -92,7 +92,7 @@ func (tf *Terraform) Destroy(ctx context.Context, opts ...DestroyOption) error {
 	if err != nil {
 		return err
 	}
-	return tf.runTerraformCmd(cmd)
+	return tf.runTerraformCmd(ctx, cmd)
 }
 
 func (tf *Terraform) destroyCmd(ctx context.Context, opts ...DestroyOption) (*exec.Cmd, error) {

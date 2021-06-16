@@ -14,7 +14,7 @@ Note that currently only one policy may be applied to a repository.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name = "bar"
 }

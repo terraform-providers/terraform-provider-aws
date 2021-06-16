@@ -3,48 +3,50 @@ package aws
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsEc2InstanceType_basic(t *testing.T) {
 	resourceBasic := "data.aws_ec2_instance_type.basic"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceEc2InstanceTypeBasic,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceBasic, "auto_recovery_supported", "true"),
 					resource.TestCheckResourceAttr(resourceBasic, "bare_metal", "false"),
-					resource.TestCheckResourceAttr(resourceBasic, "burstable_performance_supported", "true"),
+					resource.TestCheckResourceAttr(resourceBasic, "burstable_performance_supported", "false"),
 					resource.TestCheckResourceAttr(resourceBasic, "current_generation", "true"),
-					resource.TestCheckResourceAttr(resourceBasic, "dedicated_hosts_supported", "false"),
+					resource.TestCheckResourceAttr(resourceBasic, "dedicated_hosts_supported", "true"),
 					resource.TestCheckResourceAttr(resourceBasic, "default_cores", "1"),
-					resource.TestCheckResourceAttr(resourceBasic, "default_threads_per_core", "1"),
-					resource.TestCheckResourceAttr(resourceBasic, "default_vcpus", "1"),
+					resource.TestCheckResourceAttr(resourceBasic, "default_threads_per_core", "2"),
+					resource.TestCheckResourceAttr(resourceBasic, "default_vcpus", "2"),
 					resource.TestCheckResourceAttr(resourceBasic, "ebs_encryption_support", "supported"),
 					resource.TestCheckResourceAttr(resourceBasic, "ebs_nvme_support", "unsupported"),
-					resource.TestCheckResourceAttr(resourceBasic, "ebs_optimized_support", "unsupported"),
+					resource.TestCheckResourceAttr(resourceBasic, "ebs_optimized_support", "default"),
 					resource.TestCheckResourceAttr(resourceBasic, "efa_supported", "false"),
-					resource.TestCheckResourceAttr(resourceBasic, "ena_support", "unsupported"),
-					resource.TestCheckResourceAttr(resourceBasic, "free_tier_eligible", "true"),
+					resource.TestCheckResourceAttr(resourceBasic, "ena_support", "required"),
+					resource.TestCheckResourceAttr(resourceBasic, "free_tier_eligible", "false"),
 					resource.TestCheckResourceAttr(resourceBasic, "hibernation_supported", "true"),
-					resource.TestCheckResourceAttr(resourceBasic, "hypervisor", "xen"),
+					resource.TestCheckResourceAttr(resourceBasic, "hypervisor", "nitro"),
 					resource.TestCheckResourceAttr(resourceBasic, "instance_storage_supported", "false"),
-					resource.TestCheckResourceAttr(resourceBasic, "instance_type", "t2.micro"),
+					resource.TestCheckResourceAttr(resourceBasic, "instance_type", "m5.large"),
 					resource.TestCheckResourceAttr(resourceBasic, "ipv6_supported", "true"),
-					resource.TestCheckResourceAttr(resourceBasic, "maximum_ipv4_addresses_per_interface", "2"),
-					resource.TestCheckResourceAttr(resourceBasic, "maximum_ipv6_addresses_per_interface", "2"),
-					resource.TestCheckResourceAttr(resourceBasic, "maximum_network_interfaces", "2"),
-					resource.TestCheckResourceAttr(resourceBasic, "memory_size", "1024"),
-					resource.TestCheckResourceAttr(resourceBasic, "network_performance", "Low to Moderate"),
-					resource.TestCheckResourceAttr(resourceBasic, "supported_architectures.#", "2"),
-					resource.TestCheckResourceAttr(resourceBasic, "supported_architectures.0", "i386"),
-					resource.TestCheckResourceAttr(resourceBasic, "supported_architectures.1", "x86_64"),
-					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.#", "2"),
-					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.0", "partition"),
-					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.1", "spread"),
+					resource.TestCheckResourceAttr(resourceBasic, "maximum_ipv4_addresses_per_interface", "10"),
+					resource.TestCheckResourceAttr(resourceBasic, "maximum_ipv6_addresses_per_interface", "10"),
+					resource.TestCheckResourceAttr(resourceBasic, "maximum_network_interfaces", "3"),
+					resource.TestCheckResourceAttr(resourceBasic, "memory_size", "8192"),
+					resource.TestCheckResourceAttr(resourceBasic, "network_performance", "Up to 10 Gigabit"),
+					resource.TestCheckResourceAttr(resourceBasic, "supported_architectures.#", "1"),
+					resource.TestCheckResourceAttr(resourceBasic, "supported_architectures.0", "x86_64"),
+					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.#", "3"),
+					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.0", "cluster"),
+					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.1", "partition"),
+					resource.TestCheckResourceAttr(resourceBasic, "supported_placement_strategies.2", "spread"),
 					resource.TestCheckResourceAttr(resourceBasic, "supported_root_device_types.#", "1"),
 					resource.TestCheckResourceAttr(resourceBasic, "supported_root_device_types.0", "ebs"),
 					resource.TestCheckResourceAttr(resourceBasic, "supported_usages_classes.#", "2"),
@@ -52,11 +54,12 @@ func TestAccDataSourceAwsEc2InstanceType_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceBasic, "supported_usages_classes.1", "spot"),
 					resource.TestCheckResourceAttr(resourceBasic, "supported_virtualization_types.#", "1"),
 					resource.TestCheckResourceAttr(resourceBasic, "supported_virtualization_types.0", "hvm"),
-					resource.TestCheckResourceAttr(resourceBasic, "sustained_clock_speed", "2.5"),
+					resource.TestCheckResourceAttr(resourceBasic, "sustained_clock_speed", "3.1"),
 					resource.TestCheckResourceAttr(resourceBasic, "valid_cores.#", "1"),
-					resource.TestCheckResourceAttr(resourceBasic, "valid_cores.#", "1"),
-					resource.TestCheckResourceAttr(resourceBasic, "valid_threads_per_core.#", "1"),
+					resource.TestCheckResourceAttr(resourceBasic, "valid_cores.0", "1"),
+					resource.TestCheckResourceAttr(resourceBasic, "valid_threads_per_core.#", "2"),
 					resource.TestCheckResourceAttr(resourceBasic, "valid_threads_per_core.0", "1"),
+					resource.TestCheckResourceAttr(resourceBasic, "valid_threads_per_core.1", "2"),
 				),
 			},
 		},
@@ -66,8 +69,9 @@ func TestAccDataSourceAwsEc2InstanceType_basic(t *testing.T) {
 func TestAccDataSourceAwsEc2InstanceType_metal(t *testing.T) {
 	resourceMetal := "data.aws_ec2_instance_type.metal"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceEc2InstanceTypeMetal,
@@ -92,8 +96,9 @@ func TestAccDataSourceAwsEc2InstanceType_metal(t *testing.T) {
 func TestAccDataSourceAwsEc2InstanceType_gpu(t *testing.T) {
 	resourceGpu := "data.aws_ec2_instance_type.gpu"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceEc2InstanceTypeGpu,
@@ -112,8 +117,9 @@ func TestAccDataSourceAwsEc2InstanceType_gpu(t *testing.T) {
 func TestAccDataSourceAwsEc2InstanceType_fpga(t *testing.T) {
 	resourceFpga := "data.aws_ec2_instance_type.fpga"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:   func() { testAccPreCheck(t) },
+		ErrorCheck: testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceEc2InstanceTypeFgpa,
@@ -132,7 +138,7 @@ func TestAccDataSourceAwsEc2InstanceType_fpga(t *testing.T) {
 
 const testAccDataSourceEc2InstanceTypeBasic = `
 data "aws_ec2_instance_type" "basic" {
-  instance_type = "t2.micro"
+  instance_type = "m5.large"
 }
 `
 

@@ -14,7 +14,7 @@ Provides a CodeDeploy deployment config for an application
 
 ### Server Usage
 
-```hcl
+```terraform
 resource "aws_codedeploy_deployment_config" "foo" {
   deployment_config_name = "test-deployment-config"
 
@@ -56,7 +56,7 @@ resource "aws_codedeploy_deployment_group" "foo" {
 
 ### Lambda Usage
 
-```hcl
+```terraform
 resource "aws_codedeploy_deployment_config" "foo" {
   deployment_config_name = "test-deployment-config"
   compute_platform       = "Lambda"

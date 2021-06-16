@@ -84,8 +84,15 @@ func resourceAwsDxGatewayAssociation() *schema.Resource {
 			"proposal_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				ConflictsWith: []string{"associated_gateway_id", "vpn_gateway_id"},
+			},
+
+			"vpn_gateway_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"associated_gateway_id"},
+				ConflictsWith: []string{"associated_gateway_id", "associated_gateway_owner_account_id", "proposal_id"},
+				Deprecated:    "use 'associated_gateway_id' argument instead",
 			},
 		},
 

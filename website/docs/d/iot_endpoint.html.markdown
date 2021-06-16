@@ -12,7 +12,7 @@ Returns a unique endpoint specific to the AWS account making the call.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_iot_endpoint" "example" {}
 
 resource "kubernetes_pod" "agent" {

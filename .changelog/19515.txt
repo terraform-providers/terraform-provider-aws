@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_synthetics_canary: Change minimum `timeout_in_seconds` in `run_config` from `60` to `3`
+```

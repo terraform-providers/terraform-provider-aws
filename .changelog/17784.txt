@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_kinesis_analytics_application: Add `start_application` attribute
+```
+
+```release-note:enhancement
+resource/aws_kinesis_analytics_application: `starting_position_configuration` can be specified when starting an application
+```

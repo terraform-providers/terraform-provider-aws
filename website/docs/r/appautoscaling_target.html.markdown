@@ -16,7 +16,7 @@ Provides an Application AutoScaling ScalableTarget resource. To manage policies 
 
 ### DynamoDB Table Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
   max_capacity       = 100
   min_capacity       = 5
@@ -28,7 +28,7 @@ resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
 
 ### DynamoDB Index Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "dynamodb_index_read_target" {
   max_capacity       = 100
   min_capacity       = 5
@@ -40,7 +40,7 @@ resource "aws_appautoscaling_target" "dynamodb_index_read_target" {
 
 ### ECS Service Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "ecs_target" {
   max_capacity       = 4
   min_capacity       = 1
@@ -52,7 +52,7 @@ resource "aws_appautoscaling_target" "ecs_target" {
 
 ### Aurora Read Replica Autoscaling
 
-```hcl
+```terraform
 resource "aws_appautoscaling_target" "replicas" {
   service_namespace  = "rds"
   scalable_dimension = "rds:cluster:ReadReplicaCount"
@@ -72,6 +72,10 @@ The following arguments are supported:
 * `role_arn` - (Optional) The ARN of the IAM role that allows Application AutoScaling to modify your scalable target on your behalf. This defaults to an IAM Service-Linked Role for most services and custom IAM Roles are ignored by the API for those namespaces. See the [AWS Application Auto Scaling documentation](https://docs.aws.amazon.com/autoscaling/application/userguide/security_iam_service-with-iam.html#security_iam_service-with-iam-roles) for more information about how this service interacts with IAM.
 * `scalable_dimension` - (Required) The scalable dimension of the scalable target. Documentation can be found in the `ScalableDimension` parameter at: [AWS Application Auto Scaling API Reference](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
 * `service_namespace` - (Required) The AWS service namespace of the scalable target. Documentation can be found in the `ServiceNamespace` parameter at: [AWS Application Auto Scaling API Reference](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_cloudwatch_event_target: Support partner event bus names
+```
+
+```release-note:enhancement
+resource/aws_cloudwatch_event_rule: Support partner event bus names
+```

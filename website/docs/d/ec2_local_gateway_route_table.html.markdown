@@ -17,7 +17,7 @@ an input variable and needs to, for example, find the associated Outpost or Loca
 
 The following example returns a specific local gateway route table ID
 
-```hcl
+```terraform
 variable "aws_ec2_local_gateway_route_table" {}
 
 data "aws_ec2_local_gateway_route_table" "selected" {

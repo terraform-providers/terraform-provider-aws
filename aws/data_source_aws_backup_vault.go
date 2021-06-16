@@ -46,7 +46,7 @@ func dataSourceAwsBackupVaultRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := conn.DescribeBackupVault(input)
 	if err != nil {
-		return fmt.Errorf("Error getting Backup Vault: %v", err)
+		return fmt.Errorf("Error getting Backup Vault: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.BackupVaultName))
@@ -57,10 +57,10 @@ func dataSourceAwsBackupVaultRead(d *schema.ResourceData, meta interface{}) erro
 
 	tags, err := keyvaluetags.BackupListTags(conn, aws.StringValue(resp.BackupVaultArn))
 	if err != nil {
-		return fmt.Errorf("error listing tags for Backup Vault (%s): %s", name, err)
+		return fmt.Errorf("error listing tags for Backup Vault (%s): %w", name, err)
 	}
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

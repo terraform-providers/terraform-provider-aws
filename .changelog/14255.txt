@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_sns_topic_subscription: Fix to avoid `delivery_policy` always showing diff.
+```

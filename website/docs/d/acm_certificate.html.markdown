@@ -14,7 +14,7 @@ it by domain without having to hard code the ARNs as input.
 
 ## Example Usage
 
-```hcl
+```terraform
 # Find a certificate that is issued
 data "aws_acm_certificate" "issued" {
   domain   = "tf.example.com"

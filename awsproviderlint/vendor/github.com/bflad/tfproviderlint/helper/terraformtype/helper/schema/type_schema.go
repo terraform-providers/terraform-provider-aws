@@ -208,7 +208,7 @@ func NewSchemaInfo(cl *ast.CompositeLit, info *types.Info) *SchemaInfo {
 
 	if kvExpr := result.Fields[SchemaFieldElem]; kvExpr != nil && astutils.ExprValue(kvExpr.Value) != nil {
 		if uexpr, ok := kvExpr.Value.(*ast.UnaryExpr); ok {
-			if cl := uexpr.X.(*ast.CompositeLit); ok {
+			if cl, ok := uexpr.X.(*ast.CompositeLit); ok {
 				switch {
 				case IsTypeResource(info.TypeOf(cl.Type)):
 					resourceInfo := NewResourceInfo(cl, info)

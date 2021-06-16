@@ -1,0 +1,7 @@
+```release-note:bug
+data-source/aws_servicequotas_service_quota: Correctly handle errors embedded in API struct
+```
+
+```release-note:bug
+resource/aws_servicequotas_service_quota: Correctly handle errors embedded in API struct
+```

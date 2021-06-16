@@ -12,7 +12,7 @@ Manages S3 bucket-level Public Access Block configuration. For more information 
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_s3_bucket" "example" {
   bucket = "example"
 }

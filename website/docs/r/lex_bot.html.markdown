@@ -13,7 +13,7 @@ Provides an Amazon Lex Bot resource. For more information see
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_lex_bot" "order_flowers_bot" {
   abort_statement {
     message {

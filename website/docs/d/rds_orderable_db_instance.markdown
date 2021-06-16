@@ -12,7 +12,7 @@ Information about RDS orderable DB instances and valid parameter combinations.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_rds_orderable_db_instance" "test" {
   engine         = "mysql"
   engine_version = "5.7.22"
@@ -25,7 +25,7 @@ data "aws_rds_orderable_db_instance" "test" {
 
 Valid parameter combinations can also be found with `preferred_engine_versions` and/or `preferred_instance_classes`.
 
-```hcl
+```terraform
 data "aws_rds_orderable_db_instance" "test" {
   engine        = "mysql"
   license_model = "general-public-license"

@@ -38,20 +38,25 @@ func resourceAwsMediaStoreContainer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsMediaStoreContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mediastoreconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &mediastore.CreateContainerInput{
 		ContainerName: aws.String(d.Get("name").(string)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		input.Tags = keyvaluetags.New(v).IgnoreAws().MediastoreTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().MediastoreTags()
 	}
 
 	resp, err := conn.CreateContainer(input)
@@ -80,6 +85,7 @@ func resourceAwsMediaStoreContainerCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mediastoreconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &mediastore.DescribeContainerInput{
@@ -106,8 +112,15 @@ func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for media store container (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -117,8 +130,8 @@ func resourceAwsMediaStoreContainerUpdate(d *schema.ResourceData, meta interface
 	conn := meta.(*AWSClient).mediastoreconn
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.MediastoreUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating media store container (%s) tags: %s", arn, err)

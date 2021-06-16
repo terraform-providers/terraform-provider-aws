@@ -1,0 +1,11 @@
+```release-note:new-resource
+aws_organizations_delegated_administrator
+```
+
+```release-note:new-data-source
+aws_organizations_delegated_administrators
+```
+
+```release-note:new-data-source
+aws_organizations_delegated_services
+```

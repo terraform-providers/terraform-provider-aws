@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,6 +23,7 @@ func TestAccAWSLBSSLNegotiationPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBSSLNegotiationPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -47,6 +49,7 @@ func TestAccAWSLBSSLNegotiationPolicy_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elb.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBSSLNegotiationPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -143,7 +146,7 @@ func testAccCheckLBSSLNegotiationPolicy(elbResource string, policyResource strin
 		})
 
 		if err != nil {
-			fmt.Printf("[ERROR] Problem describing load balancer policy '%s': %s", policyName, err)
+			log.Printf("[ERROR] Problem describing load balancer policy '%s': %s", policyName, err)
 			return err
 		}
 

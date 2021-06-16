@@ -4,23 +4,20 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sfn/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
-// StateMachineStatus fetches the Operation and its Status
 func StateMachineStatus(conn *sfn.SFN, stateMachineArn string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		input := &sfn.DescribeStateMachineInput{
-			StateMachineArn: aws.String(stateMachineArn),
-		}
+		output, err := finder.StateMachineByARN(conn, stateMachineArn)
 
-		output, err := conn.DescribeStateMachine(input)
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
 
 		if err != nil {
 			return nil, "", err
-		}
-
-		if output == nil {
-			return nil, "", nil
 		}
 
 		return output, aws.StringValue(output.Status), nil

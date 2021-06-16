@@ -1,4 +1,4 @@
-<!--- See what makes a good Pull Request at : https://github.com/hashicorp/terraform-provider-aws/blob/master/docs/CONTRIBUTING.md --->
+<!--- See what makes a good Pull Request at : https://github.com/hashicorp/terraform-provider-aws/blob/main/docs/CONTRIBUTING.md --->
 
 <!--- Please keep this note for the community --->
 

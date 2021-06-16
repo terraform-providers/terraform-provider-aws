@@ -12,7 +12,7 @@ Provides a Route 53 Resolver query logging configuration resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route53_resolver_query_log_config" "example" {
   name            = "example"
   destination_arn = aws_s3_bucket.example.arn
@@ -30,7 +30,7 @@ The following arguments are supported:
 * `destination_arn` - (Required) The ARN of the resource that you want Route 53 Resolver to send query logs.
 You can send query logs to an [S3 bucket](s3_bucket.html), a [CloudWatch Logs log group](cloudwatch_log_group.html), or a [Kinesis Data Firehose delivery stream](kinesis_firehose_delivery_stream.html).
 * `name` - (Required) The name of the Route 53 Resolver query logging configuration.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -42,6 +42,7 @@ In addition to all arguments above, the following attributes are exported:
 * `share_status` - An indication of whether the query logging configuration is shared with other AWS accounts, or was shared with the current account by another AWS account.
 Sharing is configured through AWS Resource Access Manager (AWS RAM).
 Values are `NOT_SHARED`, `SHARED_BY_ME` or `SHARED_WITH_ME`
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

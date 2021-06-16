@@ -52,7 +52,7 @@ func dataSourceAwsApiGatewayResourceRead(d *schema.ResourceData, meta interface{
 		return !lastPage
 	})
 	if err != nil {
-		return fmt.Errorf("error describing API Gateway Resources: %s", err)
+		return fmt.Errorf("error describing API Gateway Resources: %w", err)
 	}
 
 	if match == nil {

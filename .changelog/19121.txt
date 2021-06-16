@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_batch_job_queue: Recreate batch job queue if the `name` changes 
+```

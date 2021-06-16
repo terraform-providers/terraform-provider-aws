@@ -12,7 +12,7 @@ Provides a CloudWatch Logs destination policy resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_cloudwatch_log_destination" "test_destination" {
   name       = "test_destination"
   role_arn   = aws_iam_role.iam_for_cloudwatch.arn
@@ -53,6 +53,10 @@ The following arguments are supported:
 
 * `destination_name` - (Required) A name for the subscription filter
 * `access_policy` - (Required) The policy document. This is a JSON formatted string.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

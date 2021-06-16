@@ -3,14 +3,18 @@ package aws
 import (
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	tfevents "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudwatchevents"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudwatchevents/lister"
 )
 
 func init() {
@@ -20,6 +24,7 @@ func init() {
 		Dependencies: []string{
 			"aws_cloudwatch_event_rule",
 			"aws_cloudwatch_event_target",
+			"aws_schemas_discoverer",
 		},
 	})
 }
@@ -30,46 +35,45 @@ func testSweepCloudWatchEventBuses(region string) error {
 		return fmt.Errorf("Error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).cloudwatcheventsconn
-
 	input := &events.ListEventBusesInput{}
+	var sweeperErrs *multierror.Error
 
-	for {
-		output, err := conn.ListEventBuses(input)
-		if err != nil {
-			if testSweepSkipSweepError(err) {
-				log.Printf("[WARN] Skipping CloudWatch Events event bus sweep for %s: %s", region, err)
-				return nil
-			}
-			return fmt.Errorf("Error retrieving CloudWatch Events event bus: %w", err)
+	err = lister.ListEventBusesPages(conn, input, func(page *events.ListEventBusesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if len(output.EventBuses) == 0 {
-			log.Print("[DEBUG] No CloudWatch Events event buses to sweep")
-			return nil
-		}
-
-		for _, eventBus := range output.EventBuses {
+		for _, eventBus := range page.EventBuses {
 			name := aws.StringValue(eventBus.Name)
-			if name == "default" {
+			if name == tfevents.DefaultEventBusName {
 				continue
 			}
 
-			log.Printf("[INFO] Deleting CloudWatch Events event bus (%s)", name)
-			_, err := conn.DeleteEventBus(&events.DeleteEventBusInput{
-				Name: aws.String(name),
-			})
+			r := resourceAwsCloudWatchEventBus()
+			d := r.Data(nil)
+			d.SetId(name)
+			err = r.Delete(d, client)
+
 			if err != nil {
-				return fmt.Errorf("Error deleting CloudWatch Events event bus (%s): %w", name, err)
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
+				continue
 			}
 		}
 
-		if output.NextToken == nil {
-			break
-		}
-		input.NextToken = output.NextToken
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping CloudWatch Events event bus sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
 	}
 
-	return nil
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing CloudWatch Events event buses: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSCloudWatchEventBus_basic(t *testing.T) {
@@ -81,6 +85,7 @@ func TestAccAWSCloudWatchEventBus_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventBusDestroy,
 		Steps: []resource.TestStep{
@@ -88,8 +93,9 @@ func TestAccAWSCloudWatchEventBus_basic(t *testing.T) {
 				Config: testAccAWSCloudWatchEventBusConfig(busName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudWatchEventBusExists(resourceName, &v1),
-					resource.TestCheckResourceAttr(resourceName, "name", busName),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "events", fmt.Sprintf("event-bus/%s", busName)),
+					resource.TestCheckNoResourceAttr(resourceName, "event_source_name"),
+					resource.TestCheckResourceAttr(resourceName, "name", busName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -102,9 +108,10 @@ func TestAccAWSCloudWatchEventBus_basic(t *testing.T) {
 				Config: testAccAWSCloudWatchEventBusConfig(busNameModified),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudWatchEventBusExists(resourceName, &v2),
-					resource.TestCheckResourceAttr(resourceName, "name", busNameModified),
-					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "events", fmt.Sprintf("event-bus/%s", busNameModified)),
 					testAccCheckCloudWatchEventBusRecreated(&v1, &v2),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "events", fmt.Sprintf("event-bus/%s", busNameModified)),
+					resource.TestCheckNoResourceAttr(resourceName, "event_source_name"),
+					resource.TestCheckResourceAttr(resourceName, "name", busNameModified),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -129,6 +136,7 @@ func TestAccAWSCloudWatchEventBus_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventBusDestroy,
 		Steps: []resource.TestStep{
@@ -179,6 +187,7 @@ func TestAccAWSCloudWatchEventBus_tags(t *testing.T) {
 func TestAccAWSCloudWatchEventBus_default(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventBusDestroy,
 		Steps: []resource.TestStep{
@@ -198,6 +207,7 @@ func TestAccAWSCloudWatchEventBus_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventBusDestroy,
 		Steps: []resource.TestStep{
@@ -208,6 +218,36 @@ func TestAccAWSCloudWatchEventBus_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudWatchEventBus(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudWatchEventBus_PartnerEventSource(t *testing.T) {
+	key := "EVENT_BRIDGE_PARTNER_EVENT_SOURCE_NAME"
+	busName := os.Getenv(key)
+	if busName == "" {
+		t.Skipf("Environment variable %s is not set", key)
+	}
+
+	var busOutput events.DescribeEventBusOutput
+	resourceName := "aws_cloudwatch_event_bus.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchEventBusDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudWatchEventBusPartnerEventSourceConfig(busName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchEventBusExists(resourceName, &busOutput),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "events", fmt.Sprintf("event-bus/%s", busName)),
+					resource.TestCheckResourceAttr(resourceName, "event_source_name", busName),
+					resource.TestCheckResourceAttr(resourceName, "name", busName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
 			},
 		},
 	})
@@ -309,4 +349,13 @@ resource "aws_cloudwatch_event_bus" "test" {
   }
 }
 `, name, key1, value1, key2, value2)
+}
+
+func testAccAWSCloudWatchEventBusPartnerEventSourceConfig(name string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudwatch_event_bus" "test" {
+  name              = %[1]q
+  event_source_name = %[1]q
+}
+`, name)
 }

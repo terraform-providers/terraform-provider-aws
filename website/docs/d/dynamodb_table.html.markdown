@@ -12,7 +12,7 @@ Provides information about a DynamoDB table.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_dynamodb_table" "tableName" {
   name = "tableName"
 }

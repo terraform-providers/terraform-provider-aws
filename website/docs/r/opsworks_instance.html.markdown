@@ -12,7 +12,7 @@ Provides an OpsWorks instance resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_opsworks_instance" "my-instance" {
   stack_id = aws_opsworks_stack.main.id
 

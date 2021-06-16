@@ -15,7 +15,7 @@ can be specified when creating a VPC endpoint within the region configured in th
 
 ### AWS Service
 
-```hcl
+```terraform
 # Declare the data source
 data "aws_vpc_endpoint_service" "s3" {
   service      = "s3"
@@ -36,7 +36,7 @@ resource "aws_vpc_endpoint" "ep" {
 
 ### Non-AWS Service
 
-```hcl
+```terraform
 data "aws_vpc_endpoint_service" "custome" {
   service_name = "com.amazonaws.vpce.us-west-2.vpce-svc-0e87519c997c63cd8"
 }
@@ -44,7 +44,7 @@ data "aws_vpc_endpoint_service" "custome" {
 
 ### Filter
 
-```hcl
+```terraform
 data "aws_vpc_endpoint_service" "test" {
   filter {
     name   = "service-name"

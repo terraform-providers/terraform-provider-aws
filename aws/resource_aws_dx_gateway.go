@@ -98,9 +98,9 @@ func resourceAwsDxGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	dxGw := dxGwRaw.(*directconnect.Gateway)
-	d.Set("name", aws.StringValue(dxGw.DirectConnectGatewayName))
+	d.Set("name", dxGw.DirectConnectGatewayName)
 	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(dxGw.AmazonSideAsn), 10))
-	d.Set("owner_account_id", aws.StringValue(dxGw.OwnerAccount))
+	d.Set("owner_account_id", dxGw.OwnerAccount)
 
 	return nil
 }

@@ -23,7 +23,7 @@ and you'd need to re-run `apply` every time an instance comes up or dies.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_instances" "test" {
   instance_tags = {
     Role = "HardWorker"

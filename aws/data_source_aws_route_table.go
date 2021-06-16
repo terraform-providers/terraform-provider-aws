@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
@@ -43,12 +44,28 @@ func dataSourceAwsRouteTable() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						///
+						// Destinations.
+						///
 						"cidr_block": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"ipv6_cidr_block": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"destination_prefix_list_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						///
+						// Targets.
+						///
+						"carrier_gateway_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -68,12 +85,17 @@ func dataSourceAwsRouteTable() *schema.Resource {
 							Computed: true,
 						},
 
+						"local_gateway_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"nat_gateway_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"local_gateway_id": {
+						"network_interface_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -92,14 +114,10 @@ func dataSourceAwsRouteTable() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-
-						"network_interface_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
+
 			"associations": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -132,6 +150,12 @@ func dataSourceAwsRouteTable() *schema.Resource {
 					},
 				},
 			},
+
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"owner_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -153,7 +177,7 @@ func dataSourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error
 	filter, filterOk := d.GetOk("filter")
 
 	if !rtbOk && !vpcIdOk && !subnetIdOk && !gatewayIdOk && !filterOk && !tagsOk {
-		return fmt.Errorf("One of route_table_id, vpc_id, subnet_id, gateway_id, filters, or tags must be assigned")
+		return fmt.Errorf("one of route_table_id, vpc_id, subnet_id, gateway_id, filters, or tags must be assigned")
 	}
 	req.Filters = buildEC2AttributeFilterList(
 		map[string]string{
@@ -176,23 +200,34 @@ func dataSourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	if resp == nil || len(resp.RouteTables) == 0 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("query returned no results. Please change your search criteria and try again")
 	}
 	if len(resp.RouteTables) > 1 {
-		return fmt.Errorf("Multiple Route Table matched; use additional constraints to reduce matches to a single Route Table")
+		return fmt.Errorf("multiple Route Tables matched; use additional constraints to reduce matches to a single Route Table")
 	}
 
 	rt := resp.RouteTables[0]
 
 	d.SetId(aws.StringValue(rt.RouteTableId))
+
+	ownerID := aws.StringValue(rt.OwnerId)
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   ec2.ServiceName,
+		Region:    meta.(*AWSClient).region,
+		AccountID: ownerID,
+		Resource:  fmt.Sprintf("route-table/%s", d.Id()),
+	}.String()
+	d.Set("arn", arn)
+	d.Set("owner_id", ownerID)
+
 	d.Set("route_table_id", rt.RouteTableId)
 	d.Set("vpc_id", rt.VpcId)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(rt.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
-	d.Set("owner_id", rt.OwnerId)
 	if err := d.Set("routes", dataSourceRoutesRead(rt.Routes)); err != nil {
 		return err
 	}
@@ -216,7 +251,7 @@ func dataSourceRoutesRead(ec2Routes []*ec2.Route) []map[string]interface{} {
 			continue
 		}
 
-		if r.DestinationPrefixListId != nil {
+		if r.DestinationPrefixListId != nil && strings.HasPrefix(aws.StringValue(r.GatewayId), "vpce-") {
 			// Skipping because VPC endpoint routes are handled separately
 			// See aws_vpc_endpoint
 			continue
@@ -229,6 +264,12 @@ func dataSourceRoutesRead(ec2Routes []*ec2.Route) []map[string]interface{} {
 		}
 		if r.DestinationIpv6CidrBlock != nil {
 			m["ipv6_cidr_block"] = *r.DestinationIpv6CidrBlock
+		}
+		if r.DestinationPrefixListId != nil {
+			m["destination_prefix_list_id"] = *r.DestinationPrefixListId
+		}
+		if r.CarrierGatewayId != nil {
+			m["carrier_gateway_id"] = *r.CarrierGatewayId
 		}
 		if r.EgressOnlyInternetGatewayId != nil {
 			m["egress_only_gateway_id"] = *r.EgressOnlyInternetGatewayId

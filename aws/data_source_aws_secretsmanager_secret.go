@@ -101,7 +101,7 @@ func dataSourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interfac
 		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
 			return fmt.Errorf("Secrets Manager Secret %q not found", secretID)
 		}
-		return fmt.Errorf("error reading Secrets Manager Secret: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret: %w", err)
 	}
 
 	if output.ARN == nil {
@@ -123,23 +123,23 @@ func dataSourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interfac
 	log.Printf("[DEBUG] Reading Secrets Manager Secret policy: %s", pIn)
 	pOut, err := conn.GetResourcePolicy(pIn)
 	if err != nil {
-		return fmt.Errorf("error reading Secrets Manager Secret policy: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret policy: %w", err)
 	}
 
 	if pOut != nil && pOut.ResourcePolicy != nil {
 		policy, err := structure.NormalizeJsonString(aws.StringValue(pOut.ResourcePolicy))
 		if err != nil {
-			return fmt.Errorf("policy contains an invalid JSON: %s", err)
+			return fmt.Errorf("policy contains an invalid JSON: %w", err)
 		}
 		d.Set("policy", policy)
 	}
 
 	if err := d.Set("rotation_rules", flattenSecretsManagerRotationRules(output.RotationRules)); err != nil {
-		return fmt.Errorf("error setting rotation_rules: %s", err)
+		return fmt.Errorf("error setting rotation_rules: %w", err)
 	}
 
 	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

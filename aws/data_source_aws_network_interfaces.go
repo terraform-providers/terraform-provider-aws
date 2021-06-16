@@ -73,7 +73,7 @@ func dataSourceAwsNetworkInterfacesRead(d *schema.ResourceData, meta interface{}
 	d.SetId(meta.(*AWSClient).region)
 
 	if err := d.Set("ids", networkInterfaces); err != nil {
-		return fmt.Errorf("Error setting network interfaces ids: %s", err)
+		return fmt.Errorf("Error setting network interfaces ids: %w", err)
 	}
 
 	return nil

@@ -146,7 +146,7 @@ func dataSourceAwsOrganizationsOrganizationRead(d *schema.ResourceData, meta int
 
 	org, err := conn.DescribeOrganization(&organizations.DescribeOrganizationInput{})
 	if err != nil {
-		return fmt.Errorf("Error describing organization: %s", err)
+		return fmt.Errorf("Error describing organization: %w", err)
 	}
 
 	d.SetId(aws.StringValue(org.Organization.Id))
@@ -171,7 +171,7 @@ func dataSourceAwsOrganizationsOrganizationRead(d *schema.ResourceData, meta int
 			return !lastPage
 		})
 		if err != nil {
-			return fmt.Errorf("error listing AWS Organization (%s) accounts: %s", d.Id(), err)
+			return fmt.Errorf("error listing AWS Organization (%s) accounts: %w", d.Id(), err)
 		}
 
 		var roots []*organizations.Root
@@ -180,7 +180,7 @@ func dataSourceAwsOrganizationsOrganizationRead(d *schema.ResourceData, meta int
 			return !lastPage
 		})
 		if err != nil {
-			return fmt.Errorf("error listing AWS Organization (%s) roots: %s", d.Id(), err)
+			return fmt.Errorf("error listing AWS Organization (%s) roots: %w", d.Id(), err)
 		}
 
 		awsServiceAccessPrincipals := make([]string, 0)
@@ -194,7 +194,7 @@ func dataSourceAwsOrganizationsOrganizationRead(d *schema.ResourceData, meta int
 			})
 
 			if err != nil {
-				return fmt.Errorf("error listing AWS Service Access for Organization (%s): %s", d.Id(), err)
+				return fmt.Errorf("error listing AWS Service Access for Organization (%s): %w", d.Id(), err)
 			}
 		}
 
@@ -206,23 +206,23 @@ func dataSourceAwsOrganizationsOrganizationRead(d *schema.ResourceData, meta int
 		}
 
 		if err := d.Set("accounts", flattenOrganizationsAccounts(accounts)); err != nil {
-			return fmt.Errorf("error setting accounts: %s", err)
+			return fmt.Errorf("error setting accounts: %w", err)
 		}
 
 		if err := d.Set("aws_service_access_principals", awsServiceAccessPrincipals); err != nil {
-			return fmt.Errorf("error setting aws_service_access_principals: %s", err)
+			return fmt.Errorf("error setting aws_service_access_principals: %w", err)
 		}
 
 		if err := d.Set("enabled_policy_types", enabledPolicyTypes); err != nil {
-			return fmt.Errorf("error setting enabled_policy_types: %s", err)
+			return fmt.Errorf("error setting enabled_policy_types: %w", err)
 		}
 
 		if err := d.Set("non_master_accounts", flattenOrganizationsAccounts(nonMasterAccounts)); err != nil {
-			return fmt.Errorf("error setting non_master_accounts: %s", err)
+			return fmt.Errorf("error setting non_master_accounts: %w", err)
 		}
 
 		if err := d.Set("roots", flattenOrganizationsRoots(roots)); err != nil {
-			return fmt.Errorf("error setting roots: %s", err)
+			return fmt.Errorf("error setting roots: %w", err)
 		}
 
 	}

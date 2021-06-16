@@ -12,7 +12,7 @@ Information about most recent Spot Price for a given EC2 instance.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ec2_spot_price" "example" {
   instance_type     = "t3.medium"
   availability_zone = "us-west-2a"

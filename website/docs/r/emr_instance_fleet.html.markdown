@@ -6,7 +6,7 @@ description: |-
   Provides an Elastic MapReduce Cluster Instance Fleet
 ---
 
-# aws_emr_instance_fleet
+# Resource: aws_emr_instance_fleet
 
 Provides an Elastic MapReduce Cluster Instance Fleet configuration.
 See [Amazon Elastic MapReduce Documentation](https://aws.amazon.com/documentation/emr/) for more information.
@@ -17,7 +17,7 @@ Terraform will resize any Instance Fleet to zero when destroying the resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_emr_instance_fleet" "task" {
   cluster_id = aws_emr_cluster.cluster.id
   instance_type_configs {

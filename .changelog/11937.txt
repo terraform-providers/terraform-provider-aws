@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_amplify_branch
+```
+
+```release-note:bug
+resource/aws_amplify_app: Mark the `enable_performance_mode` argument in the `auto_branch_creation_config` configuration block as `ForceNew`
+```

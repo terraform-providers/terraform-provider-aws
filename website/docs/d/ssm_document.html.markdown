@@ -14,7 +14,7 @@ Gets the contents of the specified Systems Manager document.
 
 To get the contents of the document owned by AWS.
 
-```hcl
+```terraform
 data "aws_ssm_document" "foo" {
   name            = "AWS-GatherSoftwareInventory"
   document_format = "YAML"
@@ -27,7 +27,7 @@ output "content" {
 
 To get the contents of the custom document.
 
-```hcl
+```terraform
 data "aws_ssm_document" "test" {
   name            = aws_ssm_document.test.name
   document_format = "JSON"

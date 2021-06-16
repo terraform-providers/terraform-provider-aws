@@ -1,0 +1,3 @@
+```release-note:new-resource
+aws_cognito_user_pool_ui_customization
+```

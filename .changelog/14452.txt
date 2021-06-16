@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_datasync_task: Add plan time validation to `cloudwatch_log_group_arn`, `destination_location_arn` and `source_location_arn`
+```
+
+```release-note:enhancement
+resource/aws_datasync_task: Add `schedule` argument
+```

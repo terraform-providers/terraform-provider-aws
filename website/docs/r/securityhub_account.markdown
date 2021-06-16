@@ -14,7 +14,7 @@ Enables Security Hub for this AWS account.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_securityhub_account" "example" {}
 ```
 

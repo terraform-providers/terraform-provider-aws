@@ -17,6 +17,7 @@ func TestAccAwsEmrManagedScalingPolicy_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 
@@ -41,6 +42,7 @@ func TestAccAwsEmrManagedScalingPolicy_ComputeLimits_MaximumCoreCapacityUnits(t 
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 
@@ -65,6 +67,7 @@ func TestAccAwsEmrManagedScalingPolicy_ComputeLimits_MaximumOndemandCapacityUnit
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 
@@ -89,6 +92,7 @@ func TestAccAwsEmrManagedScalingPolicy_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEmrManagedScalingPolicy(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -102,6 +106,13 @@ func TestAccAwsEmrManagedScalingPolicy_disappears(t *testing.T) {
 			},
 		},
 	})
+}
+
+// testAccErrorCheckSkipEmrManagedScalingPolicy skips tests that have error messages indicating unsupported features
+func testAccErrorCheckSkipEmrManagedScalingPolicy(t *testing.T) resource.ErrorCheckFunc {
+	return testAccErrorCheckSkipMessagesContaining(t,
+		"Managed scaling is not available",
+	)
 }
 
 func testAccAWSEmrManagedScalingPolicy_basic(r string) string {
@@ -191,11 +202,11 @@ func testAccCheckAWSEmrManagedScalingPolicyDestroy(s *terraform.State) error {
 		}
 
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading EMR Managed Scaling Policy (%s): %w", rs.Primary.ID, err)
 		}
 
-		if resp != nil {
-			return fmt.Errorf("Error: EMR Managed Scaling Policy still exists")
+		if resp != nil && resp.ManagedScalingPolicy != nil {
+			return fmt.Errorf("EMR Managed Scaling Policy (%s) still exists", rs.Primary.ID)
 		}
 	}
 

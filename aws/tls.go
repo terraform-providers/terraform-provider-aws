@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	pemBlockTypeCertificate   = `CERTIFICATE`
-	pemBlockTypeRsaPrivateKey = `RSA PRIVATE KEY`
-	pemBlockTypePublicKey     = `PUBLIC KEY`
+	pemBlockTypeCertificate        = `CERTIFICATE`
+	pemBlockTypeRsaPrivateKey      = `RSA PRIVATE KEY`
+	pemBlockTypePublicKey          = `PUBLIC KEY`
+	pemBlockTypeCertificateRequest = `CERTIFICATE REQUEST`
 )
 
 var tlsX509CertificateSerialNumberLimit = new(big.Int).Lsh(big.NewInt(1), 128)
@@ -238,6 +239,44 @@ func tlsRsaX509SelfSignedCertificatePem(keyPem, commonName string) string {
 	}
 
 	return string(pem.EncodeToMemory(certificateBlock))
+}
+
+// tlsRsaX509CertificateRequestPem generates a x509 certificate request PEM string
+// and a RSA private key PEM string.
+// Wrap with tlsPemEscapeNewlines() to allow simple fmt.Sprintf()
+// configurations such as: certificate_signing_request_pem = "%[1]s" private_key_pem = "%[2]s"
+func tlsRsaX509CertificateRequestPem(keyBits int, commonName string) (string, string) {
+	keyBytes, err := rsa.GenerateKey(rand.Reader, keyBits)
+	if err != nil {
+		//lintignore:R009
+		panic(err)
+	}
+
+	csr := x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   commonName,
+			Organization: []string{"ACME Examples, Inc"},
+		},
+		SignatureAlgorithm: x509.SHA256WithRSA,
+	}
+
+	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, &csr, keyBytes)
+	if err != nil {
+		//lintignore:R009
+		panic(err)
+	}
+
+	csrBlock := &pem.Block{
+		Bytes: csrBytes,
+		Type:  pemBlockTypeCertificateRequest,
+	}
+
+	keyBlock := &pem.Block{
+		Bytes: x509.MarshalPKCS1PrivateKey(keyBytes),
+		Type:  pemBlockTypeRsaPrivateKey,
+	}
+
+	return string(pem.EncodeToMemory(csrBlock)), string(pem.EncodeToMemory(keyBlock))
 }
 
 func tlsPemEscapeNewlines(pem string) string {

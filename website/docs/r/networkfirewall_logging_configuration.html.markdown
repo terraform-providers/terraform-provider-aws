@@ -14,7 +14,7 @@ Provides an AWS Network Firewall Logging Configuration Resource
 
 ### Logging to S3
 
-```hcl
+```terraform
 resource "aws_networkfirewall_logging_configuration" "example" {
   firewall_arn = aws_networkfirewall_firewall.example.arn
   logging_configuration {
@@ -32,7 +32,7 @@ resource "aws_networkfirewall_logging_configuration" "example" {
 
 ### Logging to CloudWatch
 
-```hcl
+```terraform
 resource "aws_networkfirewall_logging_configuration" "example" {
   firewall_arn = aws_networkfirewall_firewall.example.arn
   logging_configuration {
@@ -49,7 +49,7 @@ resource "aws_networkfirewall_logging_configuration" "example" {
 
 ### Logging to Kinesis Data Firehose
 
-```hcl
+```terraform
 resource "aws_networkfirewall_logging_configuration" "example" {
   firewall_arn = aws_networkfirewall_firewall.example.arn
   logging_configuration {

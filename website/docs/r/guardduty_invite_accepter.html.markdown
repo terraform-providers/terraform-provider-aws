@@ -12,7 +12,7 @@ Provides a resource to accept a pending GuardDuty invite on creation, ensure the
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "aws" {
   alias = "primary"
 }

@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_apigatewayv2_domain_name: Allow update of mutual TLS S3 object version
+```

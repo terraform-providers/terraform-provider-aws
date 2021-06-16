@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -12,6 +13,7 @@ import (
 func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckPricing(t) },
+		ErrorCheck:        testAccErrorCheck(t, pricing.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -28,6 +30,7 @@ func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
 func TestAccDataSourceAwsPricingProduct_redshift(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckPricing(t) },
+		ErrorCheck:        testAccErrorCheck(t, pricing.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -113,6 +116,11 @@ data "aws_pricing_product" "test" {
   filters {
     field = "location"
     value = data.aws_region.current.description
+  }
+
+  filters {
+    field = "productFamily"
+    value = "Compute Instance"
   }
 }
 `)

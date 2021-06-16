@@ -176,8 +176,8 @@ func volumeAttachmentStateRefreshFunc(conn *ec2.EC2, name, volumeID, instanceID 
 		if len(resp.Volumes) > 0 {
 			v := resp.Volumes[0]
 			for _, a := range v.Attachments {
-				if a.InstanceId != nil && *a.InstanceId == instanceID {
-					return a, *a.State, nil
+				if aws.StringValue(a.InstanceId) == instanceID {
+					return a, aws.StringValue(a.State), nil
 				}
 			}
 		}
@@ -212,7 +212,7 @@ func resourceAwsVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error reading EC2 volume %s for instance: %s: %#v", d.Get("volume_id").(string), d.Get("instance_id").(string), err)
 	}
 
-	if len(vols.Volumes) == 0 || *vols.Volumes[0].State == ec2.VolumeStateAvailable {
+	if len(vols.Volumes) == 0 || aws.StringValue(vols.Volumes[0].State) == ec2.VolumeStateAvailable {
 		log.Printf("[DEBUG] Volume Attachment (%s) not found, removing from state", d.Id())
 		d.SetId("")
 	}

@@ -59,8 +59,8 @@ func resourceAwsWafv2WebACL() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"allow": wafv2EmptySchema(),
-						"block": wafv2EmptySchema(),
+						"allow": wafv2AllowConfigSchema(),
+						"block": wafv2BlockConfigSchema(),
 					},
 				},
 			},
@@ -102,9 +102,9 @@ func resourceAwsWafv2WebACL() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"allow": wafv2EmptySchema(),
-									"block": wafv2EmptySchema(),
-									"count": wafv2EmptySchema(),
+									"allow": wafv2AllowConfigSchema(),
+									"block": wafv2BlockConfigSchema(),
+									"count": wafv2CountConfigSchema(),
 								},
 							},
 						},
@@ -134,13 +134,18 @@ func resourceAwsWafv2WebACL() *schema.Resource {
 				},
 			},
 			"tags":              tagsSchema(),
+			"tags_all":          tagsSchemaComputed(),
 			"visibility_config": wafv2VisibilityConfigSchema(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsWafv2WebACLCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 	var resp *wafv2.CreateWebACLOutput
 
 	params := &wafv2.CreateWebACLInput{
@@ -155,8 +160,8 @@ func resourceAwsWafv2WebACLCreate(d *schema.ResourceData, meta interface{}) erro
 		params.Description = aws.String(v.(string))
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		params.Tags = keyvaluetags.New(v).IgnoreAws().Wafv2Tags()
+	if len(tags) > 0 {
+		params.Tags = tags.IgnoreAws().Wafv2Tags()
 	}
 
 	err := resource.Retry(Wafv2WebACLCreateTimeout, func() *resource.RetryError {
@@ -190,6 +195,7 @@ func resourceAwsWafv2WebACLCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &wafv2.GetWebACLInput{
@@ -212,11 +218,11 @@ func resourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error getting WAFv2 WebACL")
 	}
 
-	d.Set("name", aws.StringValue(resp.WebACL.Name))
-	d.Set("capacity", aws.Int64Value(resp.WebACL.Capacity))
-	d.Set("description", aws.StringValue(resp.WebACL.Description))
-	d.Set("arn", aws.StringValue(resp.WebACL.ARN))
-	d.Set("lock_token", aws.StringValue(resp.LockToken))
+	d.Set("name", resp.WebACL.Name)
+	d.Set("capacity", resp.WebACL.Capacity)
+	d.Set("description", resp.WebACL.Description)
+	d.Set("arn", resp.WebACL.ARN)
+	d.Set("lock_token", resp.LockToken)
 
 	if err := d.Set("default_action", flattenWafv2DefaultAction(resp.WebACL.DefaultAction)); err != nil {
 		return fmt.Errorf("Error setting default_action: %w", err)
@@ -236,8 +242,15 @@ func resourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error listing tags for WAFv2 WebACL (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("Error setting tags: %w", err)
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -284,8 +297,8 @@ func resourceAwsWafv2WebACLUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Wafv2UpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}
@@ -525,11 +538,11 @@ func expandWafv2DefaultAction(l []interface{}) *wafv2.DefaultAction {
 	action := &wafv2.DefaultAction{}
 
 	if v, ok := m["allow"]; ok && len(v.([]interface{})) > 0 {
-		action.Allow = &wafv2.AllowAction{}
+		action.Allow = expandWafv2AllowAction(v.([]interface{}))
 	}
 
 	if v, ok := m["block"]; ok && len(v.([]interface{})) > 0 {
-		action.Block = &wafv2.BlockAction{}
+		action.Block = expandWafv2BlockAction(v.([]interface{}))
 	}
 
 	return action
@@ -795,11 +808,11 @@ func flattenWafv2DefaultAction(a *wafv2.DefaultAction) interface{} {
 	m := map[string]interface{}{}
 
 	if a.Allow != nil {
-		m["allow"] = make([]map[string]interface{}, 1)
+		m["allow"] = flattenWafv2Allow(a.Allow)
 	}
 
 	if a.Block != nil {
-		m["block"] = make([]map[string]interface{}, 1)
+		m["block"] = flattenWafv2Block(a.Block)
 	}
 
 	return []interface{}{m}

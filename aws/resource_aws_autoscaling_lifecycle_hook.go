@@ -195,7 +195,11 @@ func getAwsAutoscalingLifecycleHook(d *schema.ResourceData, meta interface{}) (*
 	// find lifecycle hooks
 	name := d.Get("name")
 	for idx, sp := range resp.LifecycleHooks {
-		if *sp.LifecycleHookName == name {
+		if sp == nil {
+			continue
+		}
+
+		if aws.StringValue(sp.LifecycleHookName) == name {
 			return resp.LifecycleHooks[idx], nil
 		}
 	}

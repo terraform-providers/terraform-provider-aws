@@ -12,7 +12,7 @@ Provides information about a Lambda Function.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "function_name" {
   type = string
 }

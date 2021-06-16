@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_dynamodb_table: Add plan-time validation for indexes on undefined attributes
+```

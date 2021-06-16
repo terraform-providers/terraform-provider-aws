@@ -18,6 +18,8 @@ ability to merge PRs and respond to issues.
 
 This documentation also contains reference material specific to certain functionality:
 
+- [Provider Design](contributing/provider-design.md)
 - [Running and Writing Acceptance Tests](contributing/running-and-writing-acceptance-tests.md)
 - [Data Handling and Conversion](contributing/data-handling-and-conversion.md)
 - [Error Handling](contributing/error-handling.md)
+- [Retries and Waiters](contributing/retries-and-waiters.md)

@@ -18,7 +18,7 @@ Manages an ECR repository lifecycle policy.
 
 ### Policy on untagged image
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name = "bar"
 }
@@ -50,7 +50,7 @@ EOF
 
 ### Policy on tagged image
 
-```hcl
+```terraform
 resource "aws_ecr_repository" "foo" {
   name = "bar"
 }

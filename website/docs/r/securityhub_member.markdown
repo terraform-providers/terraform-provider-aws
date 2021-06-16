@@ -12,7 +12,7 @@ Provides a Security Hub member resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_member" "example" {

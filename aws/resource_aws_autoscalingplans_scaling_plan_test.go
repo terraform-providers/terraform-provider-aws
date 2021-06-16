@@ -78,6 +78,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicDynamicScaling(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, autoscalingplans.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAutoScalingPlansScalingPlanDestroy,
 		Steps: []resource.TestStep{
@@ -129,6 +130,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicPredictiveScaling(t *testing.T) 
 			testAccPreCheck(t)
 			testAccPreCheckIamServiceLinkedRole(t, "/aws-service-role/autoscaling-plans")
 		},
+		ErrorCheck:   testAccErrorCheck(t, autoscalingplans.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAutoScalingPlansScalingPlanDestroy,
 		Steps: []resource.TestStep{
@@ -184,6 +186,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicUpdate(t *testing.T) {
 			testAccPreCheck(t)
 			testAccPreCheckIamServiceLinkedRole(t, "/aws-service-role/autoscaling-plans")
 		},
+		ErrorCheck:   testAccErrorCheck(t, autoscalingplans.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAutoScalingPlansScalingPlanDestroy,
 		Steps: []resource.TestStep{
@@ -261,6 +264,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, autoscalingplans.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAutoScalingPlansScalingPlanDestroy,
 		Steps: []resource.TestStep{

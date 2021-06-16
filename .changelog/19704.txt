@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_cognito_user_pool: Suppress diff for empty `account_recovery_setting`.
+```

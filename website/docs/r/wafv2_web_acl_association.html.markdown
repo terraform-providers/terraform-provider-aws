@@ -17,40 +17,47 @@ Creates a WAFv2 Web ACL Association.
 
 ## Example Usage
 
-```hcl
-resource "aws_api_gateway_stage" "example" {
-  stage_name    = "test"
-  rest_api_id   = aws_api_gateway_rest_api.example.id
-  deployment_id = aws_api_gateway_deployment.example.id
-}
-
+```terraform
 resource "aws_api_gateway_rest_api" "example" {
-  name = "web-acl-association-example"
+  body = jsonencode({
+    openapi = "3.0.1"
+    info = {
+      title   = "example"
+      version = "1.0"
+    }
+    paths = {
+      "/path1" = {
+        get = {
+          x-amazon-apigateway-integration = {
+            httpMethod           = "GET"
+            payloadFormatVersion = "1.0"
+            type                 = "HTTP_PROXY"
+            uri                  = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+          }
+        }
+      }
+    }
+  })
+
+  name = "example"
 }
 
 resource "aws_api_gateway_deployment" "example" {
   rest_api_id = aws_api_gateway_rest_api.example.id
-  depends_on  = [aws_api_gateway_integration.example]
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.example.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-resource "aws_api_gateway_integration" "example" {
-  rest_api_id = aws_api_gateway_rest_api.example.id
-  resource_id = aws_api_gateway_resource.example.id
-  http_method = aws_api_gateway_method.example.http_method
-  type        = "MOCK"
-}
-
-resource "aws_api_gateway_resource" "example" {
-  rest_api_id = aws_api_gateway_rest_api.example.id
-  parent_id   = aws_api_gateway_rest_api.example.root_resource_id
-  path_part   = "mytestresource"
-}
-
-resource "aws_api_gateway_method" "example" {
+resource "aws_api_gateway_stage" "example" {
+  deployment_id = aws_api_gateway_deployment.example.id
   rest_api_id   = aws_api_gateway_rest_api.example.id
-  resource_id   = aws_api_gateway_resource.example.id
-  http_method   = "GET"
-  authorization = "NONE"
+  stage_name    = "example"
 }
 
 resource "aws_wafv2_web_acl" "example" {
@@ -81,6 +88,10 @@ The following arguments are supported:
 
 * `resource_arn` - (Required) The Amazon Resource Name (ARN) of the resource to associate with the web ACL. This must be an ARN of an Application Load Balancer or an Amazon API Gateway stage.
 * `web_acl_arn` - (Required) The Amazon Resource Name (ARN) of the Web ACL that you want to associate with the resource.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

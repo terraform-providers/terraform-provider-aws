@@ -16,7 +16,7 @@ The bucket-objects data source returns keys (i.e., file names) and other metadat
 
 The following example retrieves a list of all object keys in an S3 bucket and creates corresponding Terraform object data sources:
 
-```hcl
+```terraform
 data "aws_s3_bucket_objects" "my_objects" {
   bucket = "ourcorp"
 }

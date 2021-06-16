@@ -16,11 +16,13 @@ For a detailed example of setting up Lambda and API Gateway, see [Serverless App
 
 ~> **NOTE:** Due to [AWS Lambda improved VPC networking changes that began deploying in September 2019](https://aws.amazon.com/blogs/compute/announcing-improved-vpc-networking-for-aws-lambda-functions/), EC2 subnets and security groups associated with Lambda Functions can take up to 45 minutes to successfully delete. Terraform AWS Provider version 2.31.0 and later automatically handles this increased timeout, however prior versions require setting the customizable deletion timeouts of those Terraform resources to 45 minutes (`delete = "45m"`). AWS and HashiCorp are working together to reduce the amount of time required for resource deletion and updates can be tracked in this [GitHub issue](https://github.com/hashicorp/terraform-provider-aws/issues/10329).
 
+-> To give an external source (like a CloudWatch Event Rule, SNS, or S3) permission to access the Lambda function, use the [`aws_lambda_permission`](lambda_permission.html) resource. See [Lambda Permission Model][4] for more details. On the other hand, the `role` argument of this resource is the function's execution role for identity and access to AWS services and resources.
+
 ## Example Usage
 
 ### Basic Example
 
-```hcl
+```terraform
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
@@ -66,7 +68,7 @@ resource "aws_lambda_function" "test_lambda" {
 
 ~> **NOTE:** The `aws_lambda_layer_version` attribute values for `arn` and `layer_arn` were swapped in version 2.0.0 of the Terraform AWS Provider. For version 1.x, use `layer_arn` references. For version 2.x, use `arn` references.
 
-```hcl
+```terraform
 resource "aws_lambda_layer_version" "example" {
   # ... other configuration ...
 }
@@ -81,7 +83,7 @@ resource "aws_lambda_function" "example" {
 
 Lambda File Systems allow you to connect an Amazon Elastic File System (EFS) file system to a Lambda function to share data across function invocations, access existing data including large files, and save function state.
 
-```hcl
+```terraform
 # A lambda function connected to an EFS file system
 resource "aws_lambda_function" "example" {
   # ... other configuration ...
@@ -143,7 +145,7 @@ resource "aws_efs_access_point" "access_point_for_lambda" {
 
 For more information about CloudWatch Logs for Lambda, see the [Lambda User Guide](https://docs.aws.amazon.com/lambda/latest/dg/monitoring-functions-logs.html).
 
-```hcl
+```terraform
 variable "lambda_function_name" {
   default = "lambda_function_name"
 }
@@ -197,97 +199,98 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 ## Specifying the Deployment Package
 
-AWS Lambda expects source code to be provided as a deployment package whose structure varies depending on which `runtime` is in use.
-See [Runtimes][6] for the valid values of `runtime`. The expected structure of the deployment package can be found in
-[the AWS Lambda documentation for each runtime][8].
+AWS Lambda expects source code to be provided as a deployment package whose structure varies depending on which `runtime` is in use. See [Runtimes][6] for the valid values of `runtime`. The expected structure of the deployment package can be found in [the AWS Lambda documentation for each runtime][8].
 
-Once you have created your deployment package you can specify it either directly as a local file (using the `filename` argument) or
-indirectly via Amazon S3 (using the `s3_bucket`, `s3_key` and `s3_object_version` arguments). When providing the deployment
-package via S3 it may be useful to use [the `aws_s3_bucket_object` resource](s3_bucket_object.html) to upload it.
+Once you have created your deployment package you can specify it either directly as a local file (using the `filename` argument) or indirectly via Amazon S3 (using the `s3_bucket`, `s3_key` and `s3_object_version` arguments). When providing the deployment package via S3 it may be useful to use [the `aws_s3_bucket_object` resource](s3_bucket_object.html) to upload it.
 
-For larger deployment packages it is recommended by Amazon to upload via S3, since the S3 API has better support for uploading
-large files efficiently.
+For larger deployment packages it is recommended by Amazon to upload via S3, since the S3 API has better support for uploading large files efficiently.
 
 ## Argument Reference
 
-* `filename` - (Optional) The path to the function's deployment package within the local filesystem. If defined, The `s3_`-prefixed options and `image_uri` cannot be used.
-* `s3_bucket` - (Optional) The S3 bucket location containing the function's deployment package. Conflicts with `filename` and `image_uri`. This bucket must reside in the same AWS region where you are creating the Lambda function.
-* `s3_key` - (Optional) The S3 key of an object containing the function's deployment package. Conflicts with `filename` and `image_uri`.
-* `s3_object_version` - (Optional) The object version containing the function's deployment package. Conflicts with `filename` and `image_uri`.
-* `image_uri` - (Optional) The ECR image URI containing the function's deployment package. Conflicts with `filename`, `s3_bucket`, `s3_key`, and `s3_object_version`.
-* `package_type` - (Optional) The Lambda deployment package type. Valid values are `Zip` and `Image`. Defaults to `Zip`.
-* `function_name` - (Required) A unique name for your Lambda Function.
-* `dead_letter_config` - (Optional) Nested block to configure the function's *dead letter queue*. See details below.
-* `handler` - (Required) The function [entrypoint][3] in your code.
-* `role` - (Required) IAM role attached to the Lambda Function. This governs both who / what can invoke your Lambda Function, as well as what resources our Lambda Function has access to. See [Lambda Permission Model][4] for more details.
+The following arguments are required:
+
+* `function_name` - (Required) Unique name for your Lambda Function.
+* `role` - (Required) Amazon Resource Name (ARN) of the function's execution role. The role provides the function's identity and access to AWS services and resources.
+
+The following arguments are optional:
+
+* `code_signing_config_arn` - (Optional) To enable code signing for this function, specify the ARN of a code-signing configuration. A code-signing configuration includes a set of signing profiles, which define the trusted publishers for this function.
+* `dead_letter_config` - (Optional) Configuration block. Detailed below.
 * `description` - (Optional) Description of what your Lambda Function does.
+* `environment` - (Optional) Configuration block. Detailed below.
+* `file_system_config` - (Optional) Configuration block. Detailed below.
+* `filename` - (Optional) Path to the function's deployment package within the local filesystem. Conflicts with `image_uri`, `s3_bucket`, `s3_key`, and `s3_object_version`.
+* `handler` - (Optional) Function [entrypoint][3] in your code.
+* `image_config` - (Optional) Configuration block. Detailed below.
+* `image_uri` - (Optional) ECR image URI containing the function's deployment package. Conflicts with `filename`, `s3_bucket`, `s3_key`, and `s3_object_version`.
+* `kms_key_arn` - (Optional) Amazon Resource Name (ARN) of the AWS Key Management Service (KMS) key that is used to encrypt environment variables. If this configuration is not provided when environment variables are in use, AWS Lambda uses a default service key. If this configuration is provided when environment variables are not in use, the AWS Lambda API does not save this configuration and Terraform will show a perpetual difference of adding the key. To fix the perpetual difference, remove this configuration.
 * `layers` - (Optional) List of Lambda Layer Version ARNs (maximum of 5) to attach to your Lambda Function. See [Lambda Layers][10]
 * `memory_size` - (Optional) Amount of memory in MB your Lambda Function can use at runtime. Defaults to `128`. See [Limits][5]
-* `runtime` - (Optional) See [Runtimes][6] for valid values.
-* `timeout` - (Optional) The amount of time your Lambda Function has to run in seconds. Defaults to `3`. See [Limits][5]
-* `reserved_concurrent_executions` - (Optional) The amount of reserved concurrent executions for this lambda function. A value of `0` disables lambda from being triggered and `-1` removes any concurrency limitations. Defaults to Unreserved Concurrency Limits `-1`. See [Managing Concurrency][9]
+* `package_type` - (Optional) Lambda deployment package type. Valid values are `Zip` and `Image`. Defaults to `Zip`.
 * `publish` - (Optional) Whether to publish creation/change as new Lambda Function Version. Defaults to `false`.
-* `vpc_config` - (Optional) Provide this to allow your function to access your VPC. Fields documented below. See [Lambda in VPC][7]
-* `environment` - (Optional) The Lambda environment's configuration settings. Fields documented below.
-* `kms_key_arn` - (Optional) Amazon Resource Name (ARN) of the AWS Key Management Service (KMS) key that is used to encrypt environment variables. If this configuration is not provided when environment variables are in use, AWS Lambda uses a default service key. If this configuration is provided when environment variables are not in use, the AWS Lambda API does not save this configuration and Terraform will show a perpetual difference of adding the key. To fix the perpetual difference, remove this configuration.
+* `reserved_concurrent_executions` - (Optional) Amount of reserved concurrent executions for this lambda function. A value of `0` disables lambda from being triggered and `-1` removes any concurrency limitations. Defaults to Unreserved Concurrency Limits `-1`. See [Managing Concurrency][9]
+* `runtime` - (Optional) Identifier of the function's runtime. See [Runtimes][6] for valid values.
+* `s3_bucket` - (Optional) S3 bucket location containing the function's deployment package. Conflicts with `filename` and `image_uri`. This bucket must reside in the same AWS region where you are creating the Lambda function.
+* `s3_key` - (Optional) S3 key of an object containing the function's deployment package. Conflicts with `filename` and `image_uri`.
+* `s3_object_version` - (Optional) Object version containing the function's deployment package. Conflicts with `filename` and `image_uri`.
 * `source_code_hash` - (Optional) Used to trigger updates. Must be set to a base64-encoded SHA256 hash of the package file specified with either `filename` or `s3_key`. The usual way to set this is `filebase64sha256("file.zip")` (Terraform 0.11.12 and later) or `base64sha256(file("file.zip"))` (Terraform 0.11.11 and earlier), where "file.zip" is the local filename of the lambda function source archive.
-* `tags` - (Optional) A map of tags to assign to the object.
-* `file_system_config` - (Optional) The connection settings for an EFS file system. Fields documented below. Before creating or updating Lambda functions with `file_system_config`, EFS mount targets much be in available lifecycle state. Use `depends_on` to explicitly declare this dependency. See [Using Amazon EFS with Lambda][12].
-* `code_signing_config_arn` - (Optional) Amazon Resource Name (ARN) for a Code Signing Configuration.
-* `image_config` - (Optional) The Lambda OCI image configurations. Fields documented below. See [Using container images with Lambda][13]
+* `tags` - (Optional) Map of tags to assign to the object. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
+* `timeout` - (Optional) Amount of time your Lambda Function has to run in seconds. Defaults to `3`. See [Limits][5].
+* `tracing_config` - (Optional) Configuration block. Detailed below.
+* `vpc_config` - (Optional) Configuration block. Detailed below.
 
-**dead_letter_config** is a child block with a single argument:
+### dead_letter_config
 
-* `target_arn` - (Required) The ARN of an SNS topic or SQS queue to notify when an invocation fails. If this
-  option is used, the function's IAM role must be granted suitable access to write to the target object,
-  which means allowing either the `sns:Publish` or `sqs:SendMessage` action on this ARN, depending on
-  which service is targeted.
+Dead letter queue configuration that specifies the queue or topic where Lambda sends asynchronous events when they fail processing. For more information, see [Dead Letter Queues](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#dlq).
 
-**tracing_config** is a child block with a single argument:
+* `target_arn` - (Required) ARN of an SNS topic or SQS queue to notify when an invocation fails. If this option is used, the function's IAM role must be granted suitable access to write to the target object, which means allowing either the `sns:Publish` or `sqs:SendMessage` action on this ARN, depending on which service is targeted.
 
-* `mode` - (Required) Can be either `PassThrough` or `Active`. If PassThrough, Lambda will only trace
-  the request from an upstream service if it contains a tracing header with
-  "sampled=1". If Active, Lambda will respect any tracing header it receives
-  from an upstream service. If no tracing header is received, Lambda will call
-  X-Ray for a tracing decision.
+### environment
 
-**vpc_config** requires the following:
+* `variables` - (Optional) Map of environment variables that are accessible from the function code during execution.
 
-* `subnet_ids` - (Required) A list of subnet IDs associated with the Lambda function.
-* `security_group_ids` - (Required) A list of security group IDs associated with the Lambda function.
+### file_system_config
 
-~> **NOTE:** if both `subnet_ids` and `security_group_ids` are empty then vpc_config is considered to be empty or unset.
+Connection settings for an EFS file system. Before creating or updating Lambda functions with `file_system_config`, EFS mount targets much be in available lifecycle state. Use `depends_on` to explicitly declare this dependency. See [Using Amazon EFS with Lambda][12].
 
-For **environment** the following attributes are supported:
+* `arn` - (Required) Amazon Resource Name (ARN) of the Amazon EFS Access Point that provides access to the file system.
+* `local_mount_path` - (Required) Path where the function can access the file system, starting with /mnt/.
 
-* `variables` - (Optional) A map that defines environment variables for the Lambda function.
+### image_config
 
-**file_system_config** is a child block with two arguments:
+Container image configuration values that override the values in the container image Dockerfile.
 
-* `arn` - (Required) The Amazon Resource Name (ARN) of the Amazon EFS Access Point that provides access to the file system.
-* `local_mount_path` - (Required) The path where the function can access the file system, starting with /mnt/.
+* `command` - (Optional) Parameters that you want to pass in with `entry_point`.
+* `entry_point` - (Optional) Entry point to your application, which is typically the location of the runtime executable.
+* `working_directory` - (Optional) Working directory.
 
-**image_config** is a child block with three arguments:
+### tracing_config
 
-* `entry_point` - (Optional) The ENTRYPOINT for the docker image.
-* `command` - (Optional) The CMD for the docker image.
-* `working_directory` - (Optional) The working directory for the docker image.
+* `mode` - (Required) Whether to to sample and trace a subset of incoming requests with AWS X-Ray. Valid values are `PassThrough` and `Active`. If `PassThrough`, Lambda will only trace the request from an upstream service if it contains a tracing header with "sampled=1". If `Active`, Lambda will respect any tracing header it receives from an upstream service. If no tracing header is received, Lambda will call X-Ray for a tracing decision.
+
+### vpc_config
+
+For network connectivity to AWS resources in a VPC, specify a list of security groups and subnets in the VPC. When you connect a function to a VPC, it can only access resources and the internet through that VPC. See [VPC Settings][7].
+
+~> **NOTE:** If both `subnet_ids` and `security_group_ids` are empty then `vpc_config` is considered to be empty or unset.
+
+* `security_group_ids` - (Required) List of security group IDs associated with the Lambda function.
+* `subnet_ids` - (Required) List of subnet IDs associated with the Lambda function.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `arn` - The Amazon Resource Name (ARN) identifying your Lambda Function.
-* `qualified_arn` - The Amazon Resource Name (ARN) identifying your Lambda Function Version
-  (if versioning is enabled via `publish = true`).
-* `invoke_arn` - The ARN to be used for invoking Lambda Function from API Gateway - to be used in [`aws_api_gateway_integration`](/docs/providers/aws/r/api_gateway_integration.html)'s `uri`
+* `arn` - Amazon Resource Name (ARN) identifying your Lambda Function.
+* `invoke_arn` - ARN to be used for invoking Lambda Function from API Gateway - to be used in [`aws_api_gateway_integration`](/docs/providers/aws/r/api_gateway_integration.html)'s `uri`.
+* `last_modified` - Date this resource was last modified.
+* `qualified_arn` - ARN identifying your Lambda Function Version (if versioning is enabled via `publish = true`).
+* `signing_job_arn` - ARN of the signing job.
+* `signing_profile_version_arn` - ARN of the signing profile version.
+* `source_code_size` - Size in bytes of the function .zip file.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `version` - Latest published version of your Lambda Function.
-* `last_modified` - The date this resource was last modified.
-* `kms_key_arn` - (Optional) The ARN for the KMS encryption key.
-* `signing_job_arn` - The Amazon Resource Name (ARN) of a signing job.
-* `signing_profile_version_arn` - The Amazon Resource Name (ARN) for a signing profile version.
-* `source_code_hash` - Base64-encoded representation of raw SHA-256 sum of the zip file, provided either via `filename` or `s3_*` parameters.
-* `source_code_size` - The size in bytes of the function .zip file.
+* `vpc_config.vpc_id` - ID of the VPC.
 
 [1]: https://docs.aws.amazon.com/lambda/latest/dg/welcome.html
 [2]: https://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-create-test-function-create-function.html
@@ -295,7 +298,7 @@ In addition to all arguments above, the following attributes are exported:
 [4]: https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html
 [5]: https://docs.aws.amazon.com/lambda/latest/dg/limits.html
 [6]: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
-[7]: http://docs.aws.amazon.com/lambda/latest/dg/vpc.html
+[7]: https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html
 [8]: https://docs.aws.amazon.com/lambda/latest/dg/deployment-package-v2.html
 [9]: https://docs.aws.amazon.com/lambda/latest/dg/concurrent-executions.html
 [10]: https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html

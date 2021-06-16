@@ -18,7 +18,7 @@ with it, etc.
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "lb_arn" {
   type    = string
   default = ""

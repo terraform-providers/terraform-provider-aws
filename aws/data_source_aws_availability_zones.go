@@ -94,7 +94,7 @@ func dataSourceAwsAvailabilityZonesRead(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Reading Availability Zones: %s", request)
 	resp, err := conn.DescribeAvailabilityZones(request)
 	if err != nil {
-		return fmt.Errorf("Error fetching Availability Zones: %s", err)
+		return fmt.Errorf("Error fetching Availability Zones: %w", err)
 	}
 
 	sort.Slice(resp.AvailabilityZones, func(i, j int) bool {
@@ -131,13 +131,13 @@ func dataSourceAwsAvailabilityZonesRead(d *schema.ResourceData, meta interface{}
 	d.SetId(meta.(*AWSClient).region)
 
 	if err := d.Set("group_names", groupNames); err != nil {
-		return fmt.Errorf("error setting group_names: %s", err)
+		return fmt.Errorf("error setting group_names: %w", err)
 	}
 	if err := d.Set("names", names); err != nil {
-		return fmt.Errorf("Error setting Availability Zone names: %s", err)
+		return fmt.Errorf("Error setting Availability Zone names: %w", err)
 	}
 	if err := d.Set("zone_ids", zoneIds); err != nil {
-		return fmt.Errorf("Error setting Availability Zone IDs: %s", err)
+		return fmt.Errorf("Error setting Availability Zone IDs: %w", err)
 	}
 
 	return nil

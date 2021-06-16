@@ -4,15 +4,21 @@ ACM
 API Gateway (REST APIs)
 API Gateway v2 (WebSocket and HTTP APIs)
 Access Analyzer
+Amplify Console
+AppConfig
 AppMesh
+App Runner
 AppSync
 Application Autoscaling
 Athena
+Audit Manager
 Autoscaling
 Autoscaling Plans
+Amazon Managed Service for Prometheus (AMP)
 Backup
 Batch
 Budgets
+Chime
 Cloud9
 CloudFormation
 CloudFront
@@ -34,6 +40,7 @@ Data Lifecycle Manager (DLM)
 DataPipeline
 DataSync
 Database Migration Service (DMS)
+Detective
 Device Farm
 Direct Connect
 Directory Service
@@ -51,9 +58,11 @@ Elastic Beanstalk
 Elastic Load Balancing (ELB Classic)
 Elastic Load Balancing v2 (ALB/NLB)
 Elastic Map Reduce (EMR)
+Elastic Map Reduce Containers
 Elastic Transcoder
 ElasticSearch
 EventBridge (CloudWatch Events)
+EventBridge Schemas
 File System (FSx)
 Firewall Manager (FMS)
 Gamelift
@@ -77,6 +86,7 @@ Lambda
 Lex
 License Manager
 Lightsail
+Location Service
 MQ
 Macie
 Macie Classic

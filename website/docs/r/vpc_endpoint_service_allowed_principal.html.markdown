@@ -20,7 +20,7 @@ and will overwrite the association.
 
 Basic usage:
 
-```hcl
+```terraform
 data "aws_caller_identity" "current" {}
 
 resource "aws_vpc_endpoint_service_allowed_principal" "allow_me_to_foo" {

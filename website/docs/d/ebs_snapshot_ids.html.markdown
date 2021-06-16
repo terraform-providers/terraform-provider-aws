@@ -13,7 +13,7 @@ criteria.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_ebs_snapshot_ids" "ebs_volumes" {
   owners = ["self"]
 

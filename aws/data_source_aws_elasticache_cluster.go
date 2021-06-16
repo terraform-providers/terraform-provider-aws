@@ -187,7 +187,7 @@ func dataSourceAwsElastiCacheClusterRead(d *schema.ResourceData, meta interface{
 	d.Set("availability_zone", cluster.PreferredAvailabilityZone)
 
 	if cluster.NotificationConfiguration != nil {
-		if *cluster.NotificationConfiguration.TopicStatus == "active" {
+		if aws.StringValue(cluster.NotificationConfiguration.TopicStatus) == "active" {
 			d.Set("notification_topic_arn", cluster.NotificationConfiguration.TopicArn)
 		}
 	}

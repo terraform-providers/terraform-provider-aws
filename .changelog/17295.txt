@@ -1,0 +1,3 @@
+```release-notes:enhancement
+data-source/aws_route: Add `destination_prefix_list_id` attribute
+```

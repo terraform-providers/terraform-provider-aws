@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_iam_openid_connect_provider: Add tagging support
+```
+
+```release-note:enhancement
+resource/aws_iam_openid_connect_provider: Add plan time validation for `client_id_list` and `thumbprint_list`
+```

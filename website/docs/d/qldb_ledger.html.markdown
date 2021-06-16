@@ -12,7 +12,7 @@ Use this data source to fetch information about a Quantum Ledger Database.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_qldb_ledger" "example" {
   name = "an_example_ledger"
 }

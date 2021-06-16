@@ -12,7 +12,7 @@ Provides a Glue Data Catalog Encryption Settings resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_glue_data_catalog_encryption_settings" "example" {
   data_catalog_encryption_settings {
     connection_password_encryption {

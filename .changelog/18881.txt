@@ -1,0 +1,3 @@
+```release-note:new-resource
+aws_rds_proxy_endpoint
+```

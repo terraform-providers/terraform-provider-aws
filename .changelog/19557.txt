@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_ecs_service: Add support for ECS Anywhere with the `launch_type` `EXTERNAL`
+```

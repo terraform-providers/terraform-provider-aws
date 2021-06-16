@@ -16,7 +16,7 @@ Manages a Route53 Hosted Zone VPC association. VPC associations can only be made
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_vpc" "primary" {
   cidr_block           = "10.6.0.0/16"
   enable_dns_hostnames = true

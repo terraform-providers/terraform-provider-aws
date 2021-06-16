@@ -15,7 +15,7 @@ Provides an RDS DB cluster parameter group resource. Documentation of the availa
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_rds_cluster_parameter_group" "default" {
   name        = "rds-cluster-pg"
   family      = "aurora5.6"
@@ -42,7 +42,7 @@ The following arguments are supported:
 * `family` - (Required) The family of the DB cluster parameter group.
 * `description` - (Optional) The description of the DB cluster parameter group. Defaults to "Managed by Terraform".
 * `parameter` - (Optional) A list of DB parameters to apply. Note that parameters may differ from a family to an other. Full list of all parameters can be discovered via [`aws rds describe-db-cluster-parameters`](https://docs.aws.amazon.com/cli/latest/reference/rds/describe-db-cluster-parameters.html) after initial creation of the group.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Parameter blocks support the following:
 
@@ -58,7 +58,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The db cluster parameter group name.
 * `arn` - The ARN of the db cluster parameter group.
-
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

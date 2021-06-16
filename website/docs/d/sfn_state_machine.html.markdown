@@ -14,7 +14,7 @@ state machine without having to hard code the ARNs as input.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_sfn_state_machine" "example" {
   name = "an_example_sfn_name"
 }

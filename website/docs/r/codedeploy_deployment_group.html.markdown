@@ -14,7 +14,7 @@ Provides a CodeDeploy Deployment Group for a CodeDeploy Application
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_role" "example" {
   name = "example-role"
 
@@ -87,7 +87,7 @@ resource "aws_codedeploy_deployment_group" "example" {
 
 ### Blue Green Deployments with ECS
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   compute_platform = "ECS"
   name             = "example"
@@ -145,7 +145,7 @@ resource "aws_codedeploy_deployment_group" "example" {
 
 ### Blue Green Deployments with Servers and Classic ELB
 
-```hcl
+```terraform
 resource "aws_codedeploy_app" "example" {
   name = "example-app"
 }
@@ -202,6 +202,7 @@ The following arguments are supported:
 * `load_balancer_info` - (Optional) Single configuration block of the load balancer to use in a blue/green deployment (documented below).
 * `on_premises_instance_tag_filter` - (Optional) On premise tag filters associated with the group. See the AWS docs for details.
 * `trigger_configuration` - (Optional) Configuration block(s) of the triggers for the deployment group (documented below).
+* `tags` - (Optional) Key-value map of resource tags. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### alarm_configuration Argument Reference
 
@@ -330,9 +331,9 @@ The `test_traffic_route` configuration block supports the following:
 
 * `listener_arns` - (Required) List of Amazon Resource Names (ARNs) of the load balancer listeners.
 
-### on_premises_tag_filter Argument Reference
+### on_premises_instance_tag_filter Argument Reference
 
-The `on_premises_tag_filter` configuration block supports the following:
+The `on_premises_instance_tag_filter` configuration block supports the following:
 
 * `key` - (Optional) The key of the tag filter.
 * `type` - (Optional) The type of the tag filter, either `KEY_ONLY`, `VALUE_ONLY`, or `KEY_AND_VALUE`.
@@ -350,7 +351,11 @@ Add triggers to a Deployment Group to receive notifications about events related
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the CodeDeploy deployment group.
 * `id` - Application name and deployment group name.
+* `compute_platform` - The destination platform type for the deployment.
+* `deployment_group_id` - The ID of the CodeDeploy deployment group.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

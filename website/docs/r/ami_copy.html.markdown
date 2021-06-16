@@ -22,7 +22,7 @@ block until the new AMI is available for use on new instances.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ami_copy" "example" {
   name              = "terraform-example"
   description       = "A copy of ami-xxxxxxxx"
@@ -44,9 +44,11 @@ The following arguments are supported:
   given by `source_ami_region`.
 * `source_ami_region` - (Required) The region from which the AMI will be copied. This may be the
   same as the AWS provider region in order to create a copy within the same region.
+* `destination_outpost_arn` - (Optional) The ARN of the Outpost to which to copy the AMI.
+  Only specify this parameter when copying an AMI from an AWS Region to an Outpost. The AMI must be in the Region of the destination Outpost.  
 * `encrypted` - (Optional) Specifies whether the destination snapshots of the copied image should be encrypted. Defaults to `false`
 * `kms_key_id` - (Optional) The full ARN of the KMS Key to use when encrypting the snapshots of an image during a copy operation. If not specified, then the default AWS KMS Key will be used
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 This resource also exposes the full set of arguments from the [`aws_ami`](ami.html) resource.
 
@@ -66,5 +68,5 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the created AMI.
 
 This resource also exports a full set of attributes corresponding to the arguments of the
-[`aws_ami`](ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
+[`aws_ami`](/docs/providers/aws/r/ami.html) resource, allowing the properties of the created AMI to be used elsewhere in the
 configuration.

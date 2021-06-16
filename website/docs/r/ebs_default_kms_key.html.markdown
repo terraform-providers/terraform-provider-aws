@@ -19,7 +19,7 @@ By using the `aws_ebs_default_kms_key` resource, you can specify a customer-mana
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ebs_default_kms_key" "example" {
   key_arn = aws_kms_key.example.arn
 }
@@ -30,6 +30,10 @@ resource "aws_ebs_default_kms_key" "example" {
 The following arguments are supported:
 
 * `key_arn` - (Required, ForceNew) The ARN of the AWS Key Management Service (AWS KMS) customer master key (CMK) to use to encrypt the EBS volume.
+
+## Attributes Reference
+
+No additional attributes are exported.
 
 ## Import
 

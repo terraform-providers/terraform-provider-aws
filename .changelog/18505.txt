@@ -1,0 +1,3 @@
+```release-note:bug
+ resource/aws_lakeformation_permissions: Fix issues related to permissions not being revoked and attempts to revoke non-existent permissions
+ ```

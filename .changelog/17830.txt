@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_ssm_parameter: Add plan time validation to `name`, `description` and `allowed_pattern`
+```
+
+```release-note:enhancement
+resource/aws_ssm_parameter: Tag on create
+```

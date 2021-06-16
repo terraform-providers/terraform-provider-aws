@@ -80,13 +80,18 @@ func resourceAwsSsoAdminPermissionSet() *schema.Resource {
 				Default:      "PT1H",
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSsoAdminPermissionSetCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssoadminconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	instanceArn := d.Get("instance_arn").(string)
 	name := d.Get("name").(string)
@@ -108,8 +113,8 @@ func resourceAwsSsoAdminPermissionSetCreate(d *schema.ResourceData, meta interfa
 		input.SessionDuration = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsoadminTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SsoadminTags()
 	}
 
 	output, err := conn.CreatePermissionSet(input)
@@ -128,6 +133,7 @@ func resourceAwsSsoAdminPermissionSetCreate(d *schema.ResourceData, meta interfa
 
 func resourceAwsSsoAdminPermissionSetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ssoadminconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	arn, instanceArn, err := parseSsoAdminResourceID(d.Id())
@@ -169,8 +175,15 @@ func resourceAwsSsoAdminPermissionSetRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error listing tags for SSO Permission Set (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -190,16 +203,21 @@ func resourceAwsSsoAdminPermissionSetUpdate(d *schema.ResourceData, meta interfa
 			PermissionSetArn: aws.String(arn),
 		}
 
-		if d.HasChange("description") {
-			input.Description = aws.String(d.Get("description").(string))
+		// The AWS SSO API requires we send the RelayState value regardless if it's unchanged
+		// else the existing Permission Set's RelayState value will be cleared;
+		// for consistency, we'll check for the "presence of" instead of "if changed" for all input fields
+		// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/17411
+
+		if v, ok := d.GetOk("description"); ok {
+			input.Description = aws.String(v.(string))
 		}
 
-		if d.HasChange("relay_state") {
-			input.RelayState = aws.String(d.Get("relay_state").(string))
+		if v, ok := d.GetOk("relay_state"); ok {
+			input.RelayState = aws.String(v.(string))
 		}
 
-		if d.HasChange("session_duration") {
-			input.SessionDuration = aws.String(d.Get("session_duration").(string))
+		if v, ok := d.GetOk("session_duration"); ok {
+			input.SessionDuration = aws.String(v.(string))
 		}
 
 		_, err := conn.UpdatePermissionSet(input)
@@ -208,8 +226,8 @@ func resourceAwsSsoAdminPermissionSetUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.SsoadminUpdateTags(conn, arn, instanceArn, o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

@@ -12,7 +12,7 @@ Provides an IAM instance profile.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_instance_profile" "test_profile" {
   name = "test_profile"
   role = aws_iam_role.role.name
@@ -42,24 +42,23 @@ EOF
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are optional:
 
-* `name` - (Optional, Forces new resource) The profile's name. If omitted, Terraform will assign a random, unique name.
+* `name` - (Optional, Forces new resource) Name of the instance profile. If omitted, Terraform will assign a random, unique name. Conflicts with `name_prefix`. Can be a string of characters consisting of upper and lowercase alphanumeric characters and these special characters: `_`, `+`, `=`, `,`, `.`, `@`, `-`. Spaces are not allowed.
 * `name_prefix` - (Optional, Forces new resource) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
-* `path` - (Optional, default "/") Path in which to create the profile.
-* `role` - (Optional) The role name to include in the profile.
+* `path` - (Optional, default "/") Path to the instance profile. For more information about paths, see [IAM Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html) in the IAM User Guide. Can be a string of characters consisting of either a forward slash (`/`) by itself or a string that must begin and end with forward slashes. Can include any ASCII character from the ! (\u0021) through the DEL character (\u007F), including most punctuation characters, digits, and upper and lowercase letters.
+* `role` - (Optional) Name of the role to add to the profile.
+* `tags` - (Optional) Map of resource tags for the IAM Instance Profile. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The instance profile's ID.
-* `arn` - The ARN assigned by AWS to the instance profile.
-* `create_date` - The creation timestamp of the instance profile.
-* `name` - The instance profile's name.
-* `path` - The path of the instance profile in IAM.
-* `role` - The role assigned to the instance profile.
-* `unique_id` - The [unique ID][1] assigned by AWS.
+* `arn` - ARN assigned by AWS to the instance profile.
+* `create_date` - Creation timestamp of the instance profile.
+* `id` - Instance profile's ID.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
+* `unique_id` - [Unique ID][1] assigned by AWS.
 
   [1]: https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html#GUIDs
 

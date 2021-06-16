@@ -15,85 +15,82 @@ func dataSourceAwsSubnet() *schema.Resource {
 		Read: dataSourceAwsSubnetRead,
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"assign_ipv6_address_on_creation": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
 			"availability_zone_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
+			"available_ip_address_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"cidr_block": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
-			"ipv6_cidr_block": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"outpost_arn": {
+			"customer_owned_ipv4_pool": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"default_for_az": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
-
 			"filter": ec2CustomFiltersSchema(),
-
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
+			"ipv6_cidr_block": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"ipv6_cidr_block_association_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"map_customer_owned_ip_on_launch": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"map_public_ip_on_launch": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"outpost_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"state": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
 			"tags": tagsSchemaComputed(),
-
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
-			},
-
-			"assign_ipv6_address_on_creation": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"map_public_ip_on_launch": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"ipv6_cidr_block_association_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"owner_id": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -167,30 +164,34 @@ func dataSourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	subnet := resp.Subnets[0]
 
 	d.SetId(aws.StringValue(subnet.SubnetId))
-	d.Set("vpc_id", subnet.VpcId)
-	d.Set("availability_zone", subnet.AvailabilityZone)
-	d.Set("availability_zone_id", subnet.AvailabilityZoneId)
-	d.Set("cidr_block", subnet.CidrBlock)
-	d.Set("default_for_az", subnet.DefaultForAz)
-	d.Set("state", subnet.State)
-	d.Set("outpost_arn", subnet.OutpostArn)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(subnet.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
-
+	d.Set("arn", subnet.SubnetArn)
 	d.Set("assign_ipv6_address_on_creation", subnet.AssignIpv6AddressOnCreation)
-	d.Set("map_public_ip_on_launch", subnet.MapPublicIpOnLaunch)
+	d.Set("availability_zone_id", subnet.AvailabilityZoneId)
+	d.Set("availability_zone", subnet.AvailabilityZone)
+	d.Set("available_ip_address_count", subnet.AvailableIpAddressCount)
+	d.Set("cidr_block", subnet.CidrBlock)
+	d.Set("customer_owned_ipv4_pool", subnet.CustomerOwnedIpv4Pool)
+	d.Set("default_for_az", subnet.DefaultForAz)
 
 	for _, a := range subnet.Ipv6CidrBlockAssociationSet {
-		if *a.Ipv6CidrBlockState.State == "associated" { //we can only ever have 1 IPv6 block associated at once
+		if a.Ipv6CidrBlockState != nil && aws.StringValue(a.Ipv6CidrBlockState.State) == ec2.VpcCidrBlockStateCodeAssociated { //we can only ever have 1 IPv6 block associated at once
 			d.Set("ipv6_cidr_block_association_id", a.AssociationId)
 			d.Set("ipv6_cidr_block", a.Ipv6CidrBlock)
 		}
 	}
 
-	d.Set("arn", subnet.SubnetArn)
+	d.Set("map_customer_owned_ip_on_launch", subnet.MapCustomerOwnedIpOnLaunch)
+	d.Set("map_public_ip_on_launch", subnet.MapPublicIpOnLaunch)
+	d.Set("outpost_arn", subnet.OutpostArn)
 	d.Set("owner_id", subnet.OwnerId)
+	d.Set("state", subnet.State)
+
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(subnet.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	d.Set("vpc_id", subnet.VpcId)
 
 	return nil
 }

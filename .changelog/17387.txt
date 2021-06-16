@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_ecs_service: Re-create service when `service_registries` changes
+```

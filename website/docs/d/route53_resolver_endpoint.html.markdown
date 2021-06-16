@@ -14,13 +14,13 @@ This data source allows to find a list of IPaddresses associated with a specific
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_route53_resolver_endpoint" "example" {
   resolver_endpoint_id = "rslvr-in-1abc2345ef678g91h"
 }
 ```
 
-```hcl
+```terraform
 data "aws_route53_resolver_endpoint" "example" {
   filter {
     name   = "NAME"

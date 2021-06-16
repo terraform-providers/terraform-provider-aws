@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ram"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ram/waiter"
 )
 
 func resourceAwsRamResourceShare() *schema.Resource {
@@ -45,21 +45,26 @@ func resourceAwsRamResourceShare() *schema.Resource {
 				Default:  false,
 			},
 
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsRamResourceShareCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ramconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	request := &ram.CreateResourceShareInput{
 		Name:                    aws.String(d.Get("name").(string)),
 		AllowExternalPrincipals: aws.Bool(d.Get("allow_external_principals").(bool)),
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		request.Tags = keyvaluetags.New(v).IgnoreAws().RamTags()
+	if len(tags) > 0 {
+		request.Tags = tags.IgnoreAws().RamTags()
 	}
 
 	log.Println("[DEBUG] Create RAM resource share request:", request)
@@ -70,14 +75,7 @@ func resourceAwsRamResourceShareCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(aws.StringValue(createResp.ResourceShare.ResourceShareArn))
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{ram.ResourceShareStatusPending},
-		Target:  []string{ram.ResourceShareStatusActive},
-		Refresh: resourceAwsRamResourceShareStateRefreshFunc(conn, d.Id()),
-		Timeout: d.Timeout(schema.TimeoutCreate),
-	}
-
-	_, err = stateConf.WaitForState()
+	_, err = waiter.ResourceShareOwnedBySelfActive(conn, d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("Error waiting for RAM resource share (%s) to become ready: %s", d.Id(), err)
 	}
@@ -87,6 +85,7 @@ func resourceAwsRamResourceShareCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ramconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	request := &ram.GetResourceSharesInput{
@@ -122,8 +121,15 @@ func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resourceShare.Name)
 	d.Set("allow_external_principals", resourceShare.AllowExternalPrincipals)
 
-	if err := d.Set("tags", keyvaluetags.RamKeyValueTags(resourceShare.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags := keyvaluetags.RamKeyValueTags(resourceShare.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -151,8 +157,8 @@ func resourceAwsRamResourceShareUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.RamUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating RAM resource share (%s) tags: %s", d.Id(), err)
@@ -178,40 +184,11 @@ func resourceAwsRamResourceShareDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error deleting RAM resource share %s: %s", d.Id(), err)
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{ram.ResourceShareStatusDeleting},
-		Target:  []string{ram.ResourceShareStatusDeleted},
-		Refresh: resourceAwsRamResourceShareStateRefreshFunc(conn, d.Id()),
-		Timeout: d.Timeout(schema.TimeoutDelete),
-	}
+	_, err = waiter.ResourceShareOwnedBySelfDeleted(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
 
-	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("Error waiting for RAM resource share (%s) to become ready: %s", d.Id(), err)
 	}
 
 	return nil
-}
-
-func resourceAwsRamResourceShareStateRefreshFunc(conn *ram.RAM, resourceShareArn string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		request := &ram.GetResourceSharesInput{
-			ResourceShareArns: []*string{aws.String(resourceShareArn)},
-			ResourceOwner:     aws.String(ram.ResourceOwnerSelf),
-		}
-
-		output, err := conn.GetResourceShares(request)
-
-		if err != nil {
-			return nil, ram.ResourceShareStatusFailed, err
-		}
-
-		if len(output.ResourceShares) == 0 {
-			return nil, ram.ResourceShareStatusDeleted, nil
-		}
-
-		resourceShare := output.ResourceShares[0]
-
-		return resourceShare, aws.StringValue(resourceShare.Status), nil
-	}
 }

@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_neptune_cluster_parameter_group: Correctly update resource by `id`
+```

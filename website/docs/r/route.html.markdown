@@ -10,15 +10,13 @@ description: |-
 
 Provides a resource to create a routing table entry (a route) in a VPC routing table.
 
-~> **NOTE on Route Tables and Routes:** Terraform currently
-provides both a standalone Route resource and a [Route Table](route_table.html) resource with routes
-defined in-line. At this time you cannot use a Route Table with in-line routes
-in conjunction with any Route resources. Doing so will cause
-a conflict of rule settings and will overwrite rules.
+~> **NOTE on Route Tables and Routes:** Terraform currently provides both a standalone Route resource and a [Route Table](route_table.html) resource with routes defined in-line. At this time you cannot use a Route Table with in-line routes in conjunction with any Route resources. Doing so will cause a conflict of rule settings and will overwrite rules.
+
+~> **NOTE on `gateway_id` attribute:** The AWS API is very forgiving with the resource ID passed in the `gateway_id` attribute. For example an `aws_route` resource can be created with an [`aws_nat_gateway`](nat_gateway.html) or [`aws_egress_only_internet_gateway`](egress_only_internet_gateway.html) ID specified for the `gateway_id` attribute. Specifying anything other than an [`aws_internet_gateway`](internet_gateway.html) or [`aws_vpn_gateway`](vpn_gateway.html) ID will lead to Terraform reporting a permanent diff between your configuration and recorded state, as the AWS API returns the more-specific attribute. If you are experiencing constant diffs with an `aws_route` resource, the first thing to check is that the correct attribute is being specified.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_route" "r" {
   route_table_id            = "rtb-4fbb3ac4"
   destination_cidr_block    = "10.0.1.0/22"
@@ -29,7 +27,7 @@ resource "aws_route" "r" {
 
 ## Example IPv6 Usage
 
-```hcl
+```terraform
 resource "aws_vpc" "vpc" {
   cidr_block                       = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
@@ -56,9 +54,11 @@ One of the following destination arguments must be supplied:
 
 * `destination_cidr_block` - (Optional) The destination CIDR block.
 * `destination_ipv6_cidr_block` - (Optional) The destination IPv6 CIDR block.
+* `destination_prefix_list_id` - (Optional) The ID of a [managed prefix list](ec2_managed_prefix_list.html) destination.
 
 One of the following target arguments must be supplied:
 
+* `carrier_gateway_id` - (Optional) Identifier of a carrier gateway. This attribute can only be used when the VPC contains a subnet which is associated with a Wavelength Zone.
 * `egress_only_gateway_id` - (Optional) Identifier of a VPC Egress Only Internet Gateway.
 * `gateway_id` - (Optional) Identifier of a VPC internet gateway or a virtual private gateway.
 * `instance_id` - (Optional) Identifier of an EC2 instance.
@@ -69,22 +69,22 @@ One of the following target arguments must be supplied:
 * `vpc_endpoint_id` - (Optional) Identifier of a VPC Endpoint.
 * `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.
 
-Note that the default route, mapping the VPC's CIDR block to "local", is
-created implicitly and cannot be specified.
+Note that the default route, mapping the VPC's CIDR block to "local", is created implicitly and cannot be specified.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-~> **NOTE:** Only the arguments that are configured (one of the above)
-will be exported as an attribute once the resource is created.
+~> **NOTE:** Only the arguments that are configured (one of the above) will be exported as an attribute once the resource is created.
 
-* `id` - Route Table identifier and destination
+* `id` - Route identifier computed from the routing table identifier and route destination.
+* `instance_owner_id` - The AWS account ID of the owner of the EC2 instance.
+* `origin` - How the route was created - `CreateRouteTable`, `CreateRoute` or `EnableVgwRoutePropagation`.
+* `state` - The state of the route - `active` or `blackhole`.
 
 ## Timeouts
 
-`aws_route` provides the following
-[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+`aws_route` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `2 minutes`) Used for route creation
 - `delete` - (Default `5 minutes`) Used for route deletion
@@ -103,4 +103,10 @@ Import a route in route table `rtb-656C65616E6F72` with an IPv6 destination CIDR
 
 ```console
 $ terraform import aws_route.my_route rtb-656C65616E6F72_2620:0:2d0:200::8/125
+```
+
+Import a route in route table `rtb-656C65616E6F72` with a managed prefix list destination of `pl-0570a1d2d725c16be` similarly:
+
+```console
+$ terraform import aws_route.my_route rtb-656C65616E6F72_pl-0570a1d2d725c16be
 ```

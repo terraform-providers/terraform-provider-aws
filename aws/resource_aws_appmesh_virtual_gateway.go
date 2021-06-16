@@ -8,10 +8,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/appmesh/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsAppmeshVirtualGateway() *schema.Resource {
@@ -75,6 +79,61 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
+															"certificate": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"file": {
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 0,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"certificate_chain": {
+																						Type:         schema.TypeString,
+																						Required:     true,
+																						ValidateFunc: validation.StringLenBetween(1, 255),
+																					},
+
+																					"private_key": {
+																						Type:         schema.TypeString,
+																						Required:     true,
+																						ValidateFunc: validation.StringLenBetween(1, 255),
+																					},
+																				},
+																			},
+																			ExactlyOneOf: []string{
+																				"spec.0.backend_defaults.0.client_policy.0.tls.0.certificate.0.file",
+																				"spec.0.backend_defaults.0.client_policy.0.tls.0.certificate.0.sds",
+																			},
+																		},
+
+																		"sds": {
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 0,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"secret_name": {
+																						Type:     schema.TypeString,
+																						Required: true,
+																					},
+																				},
+																			},
+																			ExactlyOneOf: []string{
+																				"spec.0.backend_defaults.0.client_policy.0.tls.0.certificate.0.file",
+																				"spec.0.backend_defaults.0.client_policy.0.tls.0.certificate.0.sds",
+																			},
+																		},
+																	},
+																},
+															},
+
 															"enforce": {
 																Type:     schema.TypeBool,
 																Optional: true,
@@ -98,6 +157,33 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
+																		"subject_alternative_names": {
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 0,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"match": {
+																						Type:     schema.TypeList,
+																						Required: true,
+																						MinItems: 1,
+																						MaxItems: 1,
+																						Elem: &schema.Resource{
+																							Schema: map[string]*schema.Schema{
+																								"exact": {
+																									Type:     schema.TypeSet,
+																									Required: true,
+																									Elem:     &schema.Schema{Type: schema.TypeString},
+																									Set:      schema.HashString,
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+
 																		"trust": {
 																			Type:     schema.TypeList,
 																			Required: true,
@@ -126,6 +212,7 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 																						ExactlyOneOf: []string{
 																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.acm",
 																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.file",
+																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.sds",
 																						},
 																					},
 
@@ -146,6 +233,28 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 																						ExactlyOneOf: []string{
 																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.acm",
 																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.file",
+																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.sds",
+																						},
+																					},
+
+																					"sds": {
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 0,
+																						MaxItems: 1,
+																						Elem: &schema.Resource{
+																							Schema: map[string]*schema.Schema{
+																								"secret_name": {
+																									Type:         schema.TypeString,
+																									Required:     true,
+																									ValidateFunc: validation.StringLenBetween(1, 255),
+																								},
+																							},
+																						},
+																						ExactlyOneOf: []string{
+																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.acm",
+																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.file",
+																							"spec.0.backend_defaults.0.client_policy.0.tls.0.validation.0.trust.0.sds",
 																						},
 																					},
 																				},
@@ -355,6 +464,7 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 																ExactlyOneOf: []string{
 																	"spec.0.listener.0.tls.0.certificate.0.acm",
 																	"spec.0.listener.0.tls.0.certificate.0.file",
+																	"spec.0.listener.0.tls.0.certificate.0.sds",
 																},
 															},
 
@@ -381,6 +491,27 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 																ExactlyOneOf: []string{
 																	"spec.0.listener.0.tls.0.certificate.0.acm",
 																	"spec.0.listener.0.tls.0.certificate.0.file",
+																	"spec.0.listener.0.tls.0.certificate.0.sds",
+																},
+															},
+
+															"sds": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"secret_name": {
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																	},
+																},
+																ExactlyOneOf: []string{
+																	"spec.0.listener.0.tls.0.certificate.0.acm",
+																	"spec.0.listener.0.tls.0.certificate.0.file",
+																	"spec.0.listener.0.tls.0.certificate.0.sds",
 																},
 															},
 														},
@@ -391,6 +522,93 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 													Type:         schema.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringInSlice(appmesh.VirtualGatewayListenerTlsMode_Values(), false),
+												},
+
+												"validation": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"subject_alternative_names": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"match": {
+																			Type:     schema.TypeList,
+																			Required: true,
+																			MinItems: 1,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"exact": {
+																						Type:     schema.TypeSet,
+																						Required: true,
+																						Elem:     &schema.Schema{Type: schema.TypeString},
+																						Set:      schema.HashString,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+
+															"trust": {
+																Type:     schema.TypeList,
+																Required: true,
+																MinItems: 1,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"file": {
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 0,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"certificate_chain": {
+																						Type:         schema.TypeString,
+																						Required:     true,
+																						ValidateFunc: validation.StringLenBetween(1, 255),
+																					},
+																				},
+																			},
+																			ExactlyOneOf: []string{
+																				"spec.0.listener.0.tls.0.validation.0.trust.0.file",
+																				"spec.0.listener.0.tls.0.validation.0.trust.0.sds",
+																			},
+																		},
+
+																		"sds": {
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 0,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"secret_name": {
+																						Type:         schema.TypeString,
+																						Required:     true,
+																						ValidateFunc: validation.StringLenBetween(1, 255),
+																					},
+																				},
+																			},
+																			ExactlyOneOf: []string{
+																				"spec.0.listener.0.tls.0.validation.0.trust.0.file",
+																				"spec.0.listener.0.tls.0.validation.0.trust.0.sds",
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
 												},
 											},
 										},
@@ -459,17 +677,23 @@ func resourceAwsAppmeshVirtualGateway() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsAppmeshVirtualGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &appmesh.CreateVirtualGatewayInput{
 		MeshName:           aws.String(d.Get("mesh_name").(string)),
 		Spec:               expandAppmeshVirtualGatewaySpec(d.Get("spec").([]interface{})),
-		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+		Tags:               tags.IgnoreAws().AppmeshTags(),
 		VirtualGatewayName: aws.String(d.Get("name").(string)),
 	}
 	if v, ok := d.GetOk("mesh_owner"); ok {
@@ -490,22 +714,57 @@ func resourceAwsAppmeshVirtualGatewayCreate(d *schema.ResourceData, meta interfa
 
 func resourceAwsAppmeshVirtualGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	virtualGateway, err := finder.VirtualGateway(conn, d.Get("mesh_name").(string), d.Get("name").(string), d.Get("mesh_owner").(string))
+	var virtualGateway *appmesh.VirtualGatewayData
 
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh virtual gateway (%s) not found, removing from state", d.Id())
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		virtualGateway, err = finder.VirtualGateway(conn, d.Get("mesh_name").(string), d.Get("name").(string), d.Get("mesh_owner").(string))
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		virtualGateway, err = finder.VirtualGateway(conn, d.Get("mesh_name").(string), d.Get("name").(string), d.Get("mesh_owner").(string))
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, appmesh.ErrCodeNotFoundException) {
+		log.Printf("[WARN] App Mesh Virtual Gateway (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading App Mesh virtual gateway (%s): %w", d.Id(), err)
+		return fmt.Errorf("error reading App Mesh Virtual Gateway: %w", err)
 	}
 
-	if virtualGateway == nil || aws.StringValue(virtualGateway.Status.Status) == appmesh.VirtualGatewayStatusCodeDeleted {
-		log.Printf("[WARN] App Mesh virtual gateway (%s) not found, removing from state", d.Id())
+	if virtualGateway == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Virtual Gateway: not found after creation")
+		}
+
+		log.Printf("[WARN] App Mesh Virtual Gateway (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if aws.StringValue(virtualGateway.Status.Status) == appmesh.VirtualGatewayStatusCodeDeleted {
+		if d.IsNewResource() {
+			return fmt.Errorf("error reading App Mesh Virtual Gateway: %s after creation", aws.StringValue(virtualGateway.Status.Status))
+		}
+
+		log.Printf("[WARN] App Mesh Virtual Gateway (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -529,8 +788,15 @@ func resourceAwsAppmeshVirtualGatewayRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error listing tags for App Mesh virtual gateway (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -558,8 +824,8 @@ func resourceAwsAppmeshVirtualGatewayUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	arn := d.Get("arn").(string)
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.AppmeshUpdateTags(conn, arn, o, n); err != nil {
 			return fmt.Errorf("error updating App Mesh virtual gateway (%s) tags: %w", arn, err)
@@ -776,7 +1042,79 @@ func expandAppmeshVirtualGatewaySpec(vSpec []interface{}) *appmesh.VirtualGatewa
 						certificate.File = file
 					}
 
+					if vSds, ok := mCertificate["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+						sds := &appmesh.VirtualGatewayListenerTlsSdsCertificate{}
+
+						mSds := vSds[0].(map[string]interface{})
+
+						if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+							sds.SecretName = aws.String(vSecretName)
+						}
+
+						certificate.Sds = sds
+					}
+
 					tls.Certificate = certificate
+				}
+
+				if vValidation, ok := mTls["validation"].([]interface{}); ok && len(vValidation) > 0 && vValidation[0] != nil {
+					validation := &appmesh.VirtualGatewayListenerTlsValidationContext{}
+
+					mValidation := vValidation[0].(map[string]interface{})
+
+					if vSubjectAlternativeNames, ok := mValidation["subject_alternative_names"].([]interface{}); ok && len(vSubjectAlternativeNames) > 0 && vSubjectAlternativeNames[0] != nil {
+						subjectAlternativeNames := &appmesh.SubjectAlternativeNames{}
+
+						mSubjectAlternativeNames := vSubjectAlternativeNames[0].(map[string]interface{})
+
+						if vMatch, ok := mSubjectAlternativeNames["match"].([]interface{}); ok && len(vMatch) > 0 && vMatch[0] != nil {
+							match := &appmesh.SubjectAlternativeNameMatchers{}
+
+							mMatch := vMatch[0].(map[string]interface{})
+
+							if vExact, ok := mMatch["exact"].(*schema.Set); ok && vExact.Len() > 0 {
+								match.Exact = expandStringSet(vExact)
+							}
+
+							subjectAlternativeNames.Match = match
+						}
+
+						validation.SubjectAlternativeNames = subjectAlternativeNames
+					}
+
+					if vTrust, ok := mValidation["trust"].([]interface{}); ok && len(vTrust) > 0 && vTrust[0] != nil {
+						trust := &appmesh.VirtualGatewayListenerTlsValidationContextTrust{}
+
+						mTrust := vTrust[0].(map[string]interface{})
+
+						if vFile, ok := mTrust["file"].([]interface{}); ok && len(vFile) > 0 && vFile[0] != nil {
+							file := &appmesh.VirtualGatewayTlsValidationContextFileTrust{}
+
+							mFile := vFile[0].(map[string]interface{})
+
+							if vCertificateChain, ok := mFile["certificate_chain"].(string); ok && vCertificateChain != "" {
+								file.CertificateChain = aws.String(vCertificateChain)
+							}
+
+							trust.File = file
+						}
+
+						if vSds, ok := mTrust["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+							sds := &appmesh.VirtualGatewayTlsValidationContextSdsTrust{}
+
+							mSds := vSds[0].(map[string]interface{})
+
+							if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+								sds.SecretName = aws.String(vSecretName)
+							}
+
+							trust.Sds = sds
+						}
+
+						validation.Trust = trust
+					}
+
+					tls.Validation = validation
 				}
 
 				listener.Tls = tls
@@ -833,6 +1171,41 @@ func expandAppmeshVirtualGatewayClientPolicy(vClientPolicy []interface{}) *appme
 
 		mTls := vTls[0].(map[string]interface{})
 
+		if vCertificate, ok := mTls["certificate"].([]interface{}); ok && len(vCertificate) > 0 && vCertificate[0] != nil {
+			certificate := &appmesh.VirtualGatewayClientTlsCertificate{}
+
+			mCertificate := vCertificate[0].(map[string]interface{})
+
+			if vFile, ok := mCertificate["file"].([]interface{}); ok && len(vFile) > 0 && vFile[0] != nil {
+				file := &appmesh.VirtualGatewayListenerTlsFileCertificate{}
+
+				mFile := vFile[0].(map[string]interface{})
+
+				if vCertificateChain, ok := mFile["certificate_chain"].(string); ok && vCertificateChain != "" {
+					file.CertificateChain = aws.String(vCertificateChain)
+				}
+				if vPrivateKey, ok := mFile["private_key"].(string); ok && vPrivateKey != "" {
+					file.PrivateKey = aws.String(vPrivateKey)
+				}
+
+				certificate.File = file
+			}
+
+			if vSds, ok := mCertificate["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+				sds := &appmesh.VirtualGatewayListenerTlsSdsCertificate{}
+
+				mSds := vSds[0].(map[string]interface{})
+
+				if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+					sds.SecretName = aws.String(vSecretName)
+				}
+
+				certificate.Sds = sds
+			}
+
+			tls.Certificate = certificate
+		}
+
 		if vEnforce, ok := mTls["enforce"].(bool); ok {
 			tls.Enforce = aws.Bool(vEnforce)
 		}
@@ -845,6 +1218,26 @@ func expandAppmeshVirtualGatewayClientPolicy(vClientPolicy []interface{}) *appme
 			validation := &appmesh.VirtualGatewayTlsValidationContext{}
 
 			mValidation := vValidation[0].(map[string]interface{})
+
+			if vSubjectAlternativeNames, ok := mValidation["subject_alternative_names"].([]interface{}); ok && len(vSubjectAlternativeNames) > 0 && vSubjectAlternativeNames[0] != nil {
+				subjectAlternativeNames := &appmesh.SubjectAlternativeNames{}
+
+				mSubjectAlternativeNames := vSubjectAlternativeNames[0].(map[string]interface{})
+
+				if vMatch, ok := mSubjectAlternativeNames["match"].([]interface{}); ok && len(vMatch) > 0 && vMatch[0] != nil {
+					match := &appmesh.SubjectAlternativeNameMatchers{}
+
+					mMatch := vMatch[0].(map[string]interface{})
+
+					if vExact, ok := mMatch["exact"].(*schema.Set); ok && vExact.Len() > 0 {
+						match.Exact = expandStringSet(vExact)
+					}
+
+					subjectAlternativeNames.Match = match
+				}
+
+				validation.SubjectAlternativeNames = subjectAlternativeNames
+			}
 
 			if vTrust, ok := mValidation["trust"].([]interface{}); ok && len(vTrust) > 0 && vTrust[0] != nil {
 				trust := &appmesh.VirtualGatewayTlsValidationContextTrust{}
@@ -873,6 +1266,18 @@ func expandAppmeshVirtualGatewayClientPolicy(vClientPolicy []interface{}) *appme
 					}
 
 					trust.File = file
+				}
+
+				if vSds, ok := mTrust["sds"].([]interface{}); ok && len(vSds) > 0 && vSds[0] != nil {
+					sds := &appmesh.VirtualGatewayTlsValidationContextSdsTrust{}
+
+					mSds := vSds[0].(map[string]interface{})
+
+					if vSecretName, ok := mSds["secret_name"].(string); ok && vSecretName != "" {
+						sds.SecretName = aws.String(vSecretName)
+					}
+
+					trust.Sds = sds
 				}
 
 				validation.Trust = trust
@@ -981,7 +1386,57 @@ func flattenAppmeshVirtualGatewaySpec(spec *appmesh.VirtualGatewaySpec) []interf
 					mCertificate["file"] = []interface{}{mFile}
 				}
 
+				if sds := certificate.Sds; sds != nil {
+					mSds := map[string]interface{}{
+						"secret_name": aws.StringValue(sds.SecretName),
+					}
+
+					mCertificate["sds"] = []interface{}{mSds}
+				}
+
 				mTls["certificate"] = []interface{}{mCertificate}
+			}
+
+			if validation := tls.Validation; validation != nil {
+				mValidation := map[string]interface{}{}
+
+				if subjectAlternativeNames := validation.SubjectAlternativeNames; subjectAlternativeNames != nil {
+					mSubjectAlternativeNames := map[string]interface{}{}
+
+					if match := subjectAlternativeNames.Match; match != nil {
+						mMatch := map[string]interface{}{
+							"exact": flattenStringSet(match.Exact),
+						}
+
+						mSubjectAlternativeNames["match"] = []interface{}{mMatch}
+					}
+
+					mValidation["subject_alternative_names"] = []interface{}{mSubjectAlternativeNames}
+				}
+
+				if trust := validation.Trust; trust != nil {
+					mTrust := map[string]interface{}{}
+
+					if file := trust.File; file != nil {
+						mFile := map[string]interface{}{
+							"certificate_chain": aws.StringValue(file.CertificateChain),
+						}
+
+						mTrust["file"] = []interface{}{mFile}
+					}
+
+					if sds := trust.Sds; sds != nil {
+						mSds := map[string]interface{}{
+							"secret_name": aws.StringValue(sds.SecretName),
+						}
+
+						mTrust["sds"] = []interface{}{mSds}
+					}
+
+					mValidation["trust"] = []interface{}{mTrust}
+				}
+
+				mTls["validation"] = []interface{}{mValidation}
 			}
 
 			mListener["tls"] = []interface{}{mTls}
@@ -1026,8 +1481,45 @@ func flattenAppmeshVirtualGatewayClientPolicy(clientPolicy *appmesh.VirtualGatew
 			"ports":   flattenInt64Set(tls.Ports),
 		}
 
+		if certificate := tls.Certificate; certificate != nil {
+			mCertificate := map[string]interface{}{}
+
+			if file := certificate.File; file != nil {
+				mFile := map[string]interface{}{
+					"certificate_chain": aws.StringValue(file.CertificateChain),
+					"private_key":       aws.StringValue(file.PrivateKey),
+				}
+
+				mCertificate["file"] = []interface{}{mFile}
+			}
+
+			if sds := certificate.Sds; sds != nil {
+				mSds := map[string]interface{}{
+					"secret_name": aws.StringValue(sds.SecretName),
+				}
+
+				mCertificate["sds"] = []interface{}{mSds}
+			}
+
+			mTls["certificate"] = []interface{}{mCertificate}
+		}
+
 		if validation := tls.Validation; validation != nil {
 			mValidation := map[string]interface{}{}
+
+			if subjectAlternativeNames := validation.SubjectAlternativeNames; subjectAlternativeNames != nil {
+				mSubjectAlternativeNames := map[string]interface{}{}
+
+				if match := subjectAlternativeNames.Match; match != nil {
+					mMatch := map[string]interface{}{
+						"exact": flattenStringSet(match.Exact),
+					}
+
+					mSubjectAlternativeNames["match"] = []interface{}{mMatch}
+				}
+
+				mValidation["subject_alternative_names"] = []interface{}{mSubjectAlternativeNames}
+			}
 
 			if trust := validation.Trust; trust != nil {
 				mTrust := map[string]interface{}{}
@@ -1046,6 +1538,14 @@ func flattenAppmeshVirtualGatewayClientPolicy(clientPolicy *appmesh.VirtualGatew
 					}
 
 					mTrust["file"] = []interface{}{mFile}
+				}
+
+				if sds := trust.Sds; sds != nil {
+					mSds := map[string]interface{}{
+						"secret_name": aws.StringValue(sds.SecretName),
+					}
+
+					mTrust["sds"] = []interface{}{mSds}
 				}
 
 				mValidation["trust"] = []interface{}{mTrust}

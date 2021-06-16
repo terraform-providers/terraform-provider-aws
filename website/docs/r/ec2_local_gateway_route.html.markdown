@@ -12,7 +12,7 @@ Manages an EC2 Local Gateway Route. More information can be found in the [Outpos
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ec2_local_gateway_route" "example" {
   destination_cidr_block                   = "172.16.0.0/16"
   local_gateway_route_table_id             = data.aws_ec2_local_gateway_route_table.example.id

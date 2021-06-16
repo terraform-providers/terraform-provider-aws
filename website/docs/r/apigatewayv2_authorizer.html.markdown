@@ -15,7 +15,7 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ### Basic WebSocket API
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_authorizer" "example" {
   api_id           = aws_apigatewayv2_api.example.id
   authorizer_type  = "REQUEST"
@@ -27,7 +27,7 @@ resource "aws_apigatewayv2_authorizer" "example" {
 
 ### Basic HTTP API
 
-```hcl
+```terraform
 resource "aws_apigatewayv2_authorizer" "example" {
   api_id           = aws_apigatewayv2_api.example.id
   authorizer_type  = "JWT"

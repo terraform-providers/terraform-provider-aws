@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_sns_topic_subscription: Add plan time validation for `subscription_role_arn` and `topic_arn`
+```
+
+```release-note:bug
+resource/aws_sns_topic_subscription: recreate subscription if topic is deleted
+```

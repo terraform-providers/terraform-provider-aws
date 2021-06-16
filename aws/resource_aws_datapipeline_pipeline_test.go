@@ -19,6 +19,7 @@ func TestAccAWSDataPipelinePipeline_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataPipeline(t) },
+		ErrorCheck:   testAccErrorCheck(t, datapipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataPipelinePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -53,6 +54,7 @@ func TestAccAWSDataPipelinePipeline_description(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataPipeline(t) },
+		ErrorCheck:   testAccErrorCheck(t, datapipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataPipelinePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -87,6 +89,7 @@ func TestAccAWSDataPipelinePipeline_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataPipeline(t) },
+		ErrorCheck:   testAccErrorCheck(t, datapipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataPipelinePipelineDestroy,
 		Steps: []resource.TestStep{
@@ -109,6 +112,7 @@ func TestAccAWSDataPipelinePipeline_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataPipeline(t) },
+		ErrorCheck:   testAccErrorCheck(t, datapipeline.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataPipelinePipelineDestroy,
 		Steps: []resource.TestStep{

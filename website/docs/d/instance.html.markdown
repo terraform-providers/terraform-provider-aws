@@ -13,7 +13,7 @@ resources.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_instance" "foo" {
   instance_id = "i-instanceid"
 

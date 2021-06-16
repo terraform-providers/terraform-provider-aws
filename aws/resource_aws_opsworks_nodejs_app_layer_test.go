@@ -19,6 +19,7 @@ func TestAccAWSOpsworksNodejsAppLayer_basic(t *testing.T) {
 	resourceName := "aws_opsworks_nodejs_app_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksNodejsAppLayerDestroy,
 		Steps: []resource.TestStep{
@@ -38,6 +39,7 @@ func TestAccAWSOpsworksNodejsAppLayer_tags(t *testing.T) {
 	resourceName := "aws_opsworks_nodejs_app_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, opsworks.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksNodejsAppLayerDestroy,
 		Steps: []resource.TestStep{

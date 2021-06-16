@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_cognito_identity_pool: Add allow_classic_flow argument
+```

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfiam "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam"
 )
 
 func dataSourceAwsInstance() *schema.Resource {
@@ -387,7 +388,7 @@ func dataSourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// loop through reservations, and remove terminated instances, populate instance slice
 	for _, res := range resp.Reservations {
 		for _, instance := range res.Instances {
-			if instance.State != nil && *instance.State.Name != "terminated" {
+			if instance.State != nil && aws.StringValue(instance.State.Name) != ec2.InstanceStateNameTerminated {
 				filteredInstances = append(filteredInstances, instance)
 			}
 		}
@@ -407,13 +408,13 @@ func dataSourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		instance = filteredInstances[0]
 	}
 
-	log.Printf("[DEBUG] aws_instance - Single Instance ID found: %s", *instance.InstanceId)
+	log.Printf("[DEBUG] aws_instance - Single Instance ID found: %s", aws.StringValue(instance.InstanceId))
 	if err := instanceDescriptionAttributes(d, instance, conn, ignoreTagsConfig); err != nil {
 		return err
 	}
 
 	if d.Get("get_password_data").(bool) {
-		passwordData, err := getAwsEc2InstancePasswordData(*instance.InstanceId, conn)
+		passwordData, err := getAwsEc2InstancePasswordData(aws.StringValue(instance.InstanceId), conn)
 		if err != nil {
 			return err
 		}
@@ -424,7 +425,7 @@ func dataSourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
-		Service:   "ec2",
+		Service:   ec2.ServiceName,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("instance/%s", d.Id()),
 	}
@@ -458,12 +459,23 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 	d.Set("private_dns", instance.PrivateDnsName)
 	d.Set("private_ip", instance.PrivateIpAddress)
 	d.Set("outpost_arn", instance.OutpostArn)
-	d.Set("iam_instance_profile", iamInstanceProfileArnToName(instance.IamInstanceProfile))
+
+	if instance.IamInstanceProfile != nil && instance.IamInstanceProfile.Arn != nil {
+		name, err := tfiam.InstanceProfileARNToName(aws.StringValue(instance.IamInstanceProfile.Arn))
+
+		if err != nil {
+			return fmt.Errorf("error setting iam_instance_profile: %w", err)
+		}
+
+		d.Set("iam_instance_profile", name)
+	} else {
+		d.Set("iam_instance_profile", nil)
+	}
 
 	// iterate through network interfaces, and set subnet, network_interface, public_addr
 	if len(instance.NetworkInterfaces) > 0 {
 		for _, ni := range instance.NetworkInterfaces {
-			if *ni.Attachment.DeviceIndex == 0 {
+			if aws.Int64Value(ni.Attachment.DeviceIndex) == 0 {
 				d.Set("subnet_id", ni.SubnetId)
 				d.Set("network_interface_id", ni.NetworkInterfaceId)
 				d.Set("associate_public_ip_address", ni.Association != nil)
@@ -485,17 +497,17 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 	}
 
 	d.Set("ebs_optimized", instance.EbsOptimized)
-	if instance.SubnetId != nil && *instance.SubnetId != "" {
+	if aws.StringValue(instance.SubnetId) != "" {
 		d.Set("source_dest_check", instance.SourceDestCheck)
 	}
 
-	if instance.Monitoring != nil && instance.Monitoring.State != nil {
-		monitoringState := *instance.Monitoring.State
+	if instance.Monitoring != nil {
+		monitoringState := aws.StringValue(instance.Monitoring.State)
 		d.Set("monitoring", monitoringState == "enabled" || monitoringState == "pending")
 	}
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(instance.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	// Security Groups
@@ -533,7 +545,7 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 		if attr != nil && attr.UserData != nil && attr.UserData.Value != nil {
 			d.Set("user_data", userDataHashSum(aws.StringValue(attr.UserData.Value)))
 			if d.Get("get_user_data").(bool) {
-				d.Set("user_data_base64", aws.StringValue(attr.UserData.Value))
+				d.Set("user_data_base64", attr.UserData.Value)
 			}
 		}
 	}
@@ -549,20 +561,20 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 		// Ignore UnsupportedOperation errors for AWS China and GovCloud (US)
 		// Reference: https://github.com/hashicorp/terraform-provider-aws/pull/4362
 		if err != nil && !isAWSErr(err, "UnsupportedOperation", "") {
-			return fmt.Errorf("error getting EC2 Instance (%s) Credit Specifications: %s", d.Id(), err)
+			return fmt.Errorf("error getting EC2 Instance (%s) Credit Specifications: %w", d.Id(), err)
 		}
 	}
 
 	if err := d.Set("credit_specification", creditSpecifications); err != nil {
-		return fmt.Errorf("error setting credit_specification: %s", err)
+		return fmt.Errorf("error setting credit_specification: %w", err)
 	}
 
 	if err := d.Set("metadata_options", flattenEc2InstanceMetadataOptions(instance.MetadataOptions)); err != nil {
-		return fmt.Errorf("error setting metadata_options: %s", err)
+		return fmt.Errorf("error setting metadata_options: %w", err)
 	}
 
 	if err := d.Set("enclave_options", flattenEc2EnclaveOptions(instance.EnclaveOptions)); err != nil {
-		return fmt.Errorf("error setting enclave_options: %s", err)
+		return fmt.Errorf("error setting enclave_options: %w", err)
 	}
 
 	return nil

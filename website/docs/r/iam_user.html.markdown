@@ -14,7 +14,7 @@ Provides an IAM user.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_user" "lb" {
   name = "loadbalancer"
   path = "/system/"
@@ -59,7 +59,7 @@ The following arguments are supported:
 * `force_destroy` - (Optional, default false) When destroying this user, destroy even if it
   has non-Terraform-managed IAM access keys, login profile or MFA devices. Without `force_destroy`
   a user with non-Terraform-managed access keys and login profile will fail to be destroyed.
-* `tags` - Key-value map of tags for the IAM user
+* `tags` - Key-value map of tags for the IAM user. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
 
@@ -67,6 +67,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN assigned by AWS for this user.
 * `name` - The user's name.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 * `unique_id` - The [unique ID][1] assigned by AWS.
 
   [1]: https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html#GUIDs

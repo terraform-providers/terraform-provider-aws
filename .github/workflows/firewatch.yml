@@ -1,0 +1,26 @@
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+name: Firewatch
+jobs:
+  FirewatchJob:
+    if: github.repository_owner == 'hashicorp'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Firewatch
+      uses: breathingdust/firewatch@v2
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        alert_threshold: 10
+        issue_age_months: 3
+        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
+        slack_channel: ${{ secrets.SLACK_CHANNEL }}
+    - name: UploadArtifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: firewatch
+        path: firewatch.data
+        if-no-files-found: error
+        retention-days: 1

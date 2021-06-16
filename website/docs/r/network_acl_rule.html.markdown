@@ -18,7 +18,7 @@ a conflict of rule settings and will overwrite rules.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_network_acl" "bar" {
   vpc_id = aws_vpc.foo.id
 }

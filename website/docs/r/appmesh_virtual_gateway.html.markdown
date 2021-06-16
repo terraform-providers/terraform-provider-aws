@@ -14,7 +14,7 @@ Provides an AWS App Mesh virtual gateway resource.
 
 ### Basic
 
-```hcl
+```terraform
 resource "aws_appmesh_virtual_gateway" "example" {
   name      = "example-virtual-gateway"
   mesh_name = "example-service-mesh"
@@ -36,7 +36,7 @@ resource "aws_appmesh_virtual_gateway" "example" {
 
 ### Access Logs and TLS
 
-```hcl
+```terraform
 resource "aws_appmesh_virtual_gateway" "example" {
   name      = "example-virtual-gateway"
   mesh_name = "example-service-mesh"
@@ -78,7 +78,7 @@ The following arguments are supported:
 * `mesh_name` - (Required) The name of the service mesh in which to create the virtual gateway. Must be between 1 and 255 characters in length.
 * `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
 * `spec` - (Required) The virtual gateway specification to apply.
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 The `spec` object supports the following:
 
@@ -96,18 +96,43 @@ The `client_policy` object supports the following:
 
 The `tls` object supports the following:
 
-* `enforced` - (Optional) Whether the policy is enforced. Default is `true`.
+* `certificate` (Optional) The virtual gateway's client's Transport Layer Security (TLS) certificate.
+* `enforce` - (Optional) Whether the policy is enforced. Default is `true`.
 * `ports` - (Optional) One or more ports that the policy is enforced for.
 * `validation` - (Required) The TLS validation context.
 
+The `certificate` object supports the following:
+
+* `file` - (Optional) A local file certificate.
+* `sds` - (Optional) A [Secret Discovery Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/security/secret#secret-discovery-service-sds) certificate.
+
+The `file` object supports the following:
+
+* `certificate_chain` - (Required) The certificate chain for the certificate.
+* `private_key` - (Required) The private key for a certificate stored on the file system of the mesh endpoint that the proxy is running on.
+
+The `sds` object supports the following:
+
+* `secret_name` - (Required) The name of the secret secret requested from the Secret Discovery Service provider representing Transport Layer Security (TLS) materials like a certificate or certificate chain.
+
 The `validation` object supports the following:
 
+* `subject_alternative_names` - (Optional) The SANs for a virtual gateway's listener's Transport Layer Security (TLS) validation context.
 * `trust` - (Required) The TLS validation context trust.
+
+The `subject_alternative_names` object supports the following:
+
+* `match` - (Required) The criteria for determining a SAN's match.
+
+The `match` object supports the following:
+
+* `exact` - (Required) The values sent must match the specified values exactly.
 
 The `trust` object supports the following:
 
 * `acm` - (Optional) The TLS validation context trust for an AWS Certificate Manager (ACM) certificate.
-* `file` - (Optional) The TLS validation context trust for a local file.
+* `file` - (Optional) The TLS validation context trust for a local file certificate.
+* `sds` - (Optional) The TLS validation context trust for a [Secret Discovery Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/security/secret#secret-discovery-service-sds) certificate.
 
 The `acm` object supports the following:
 
@@ -116,6 +141,10 @@ The `acm` object supports the following:
 The `file` object supports the following:
 
 * `certificate_chain` - (Required) The certificate trust chain for a certificate stored on the file system of the mesh endpoint that the proxy is running on. Must be between 1 and 255 characters in length.
+
+The `sds` object supports the following:
+
+* `secret_name` - (Required) The name of the secret for a virtual gateway's Transport Layer Security (TLS) Secret Discovery Service validation context trust.
 
 The `listener` object supports the following:
 
@@ -174,11 +203,13 @@ The `tls` object supports the following:
 
 * `certificate` - (Required) The listener's TLS certificate.
 * `mode`- (Required) The listener's TLS mode. Valid values: `DISABLED`, `PERMISSIVE`, `STRICT`.
+* `validation`- (Optional) The listener's Transport Layer Security (TLS) validation context.
 
 The `certificate` object supports the following:
 
 * `acm` - (Optional) An AWS Certificate Manager (ACM) certificate.
 * `file` - (optional) A local file certificate.
+* `sds` - (Optional) A [Secret Discovery Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/security/secret#secret-discovery-service-sds) certificate.
 
 The `acm` object supports the following:
 
@@ -189,6 +220,36 @@ The `file` object supports the following:
 * `certificate_chain` - (Required) The certificate chain for the certificate. Must be between 1 and 255 characters in length.
 * `private_key` - (Required) The private key for a certificate stored on the file system of the mesh endpoint that the proxy is running on. Must be between 1 and 255 characters in length.
 
+The `sds` object supports the following:
+
+* `secret_name` - (Required) The name of the secret secret requested from the Secret Discovery Service provider representing Transport Layer Security (TLS) materials like a certificate or certificate chain.
+
+The `validation` object supports the following:
+
+* `subject_alternative_names` - (Optional) The SANs for a virtual gateway's listener's Transport Layer Security (TLS) validation context.
+* `trust` - (Required) The TLS validation context trust.
+
+The `subject_alternative_names` object supports the following:
+
+* `match` - (Required) The criteria for determining a SAN's match.
+
+The `match` object supports the following:
+
+* `exact` - (Required) The values sent must match the specified values exactly.
+
+The `trust` object supports the following:
+
+* `file` - (Optional) The TLS validation context trust for a local file certificate.
+* `sds` - (Optional) The TLS validation context trust for a [Secret Discovery Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/security/secret#secret-discovery-service-sds) certificate.
+
+The `file` object supports the following:
+
+* `certificate_chain` - (Required) The certificate trust chain for a certificate stored on the file system of the mesh endpoint that the proxy is running on. Must be between 1 and 255 characters in length.
+
+The `sds` object supports the following:
+
+* `secret_name` - (Required) The name of the secret for a virtual gateway's Transport Layer Security (TLS) Secret Discovery Service validation context trust.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -198,6 +259,7 @@ In addition to all arguments above, the following attributes are exported:
 * `created_date` - The creation date of the virtual gateway.
 * `last_updated_date` - The last update date of the virtual gateway.
 * `resource_owner` - The resource owner's AWS account ID.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 

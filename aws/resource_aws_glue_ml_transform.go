@@ -23,6 +23,8 @@ func resourceAwsGlueMLTransform() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: SetTagsDiff,
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -126,7 +128,8 @@ func resourceAwsGlueMLTransform() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateArn,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -172,11 +175,13 @@ func resourceAwsGlueMLTransform() *schema.Resource {
 
 func resourceAwsGlueMLTransformCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	input := &glue.CreateMLTransformInput{
 		Name:              aws.String(d.Get("name").(string)),
 		Role:              aws.String(d.Get("role_arn").(string)),
-		Tags:              keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
+		Tags:              tags.IgnoreAws().GlueTags(),
 		Timeout:           aws.Int64(int64(d.Get("timeout").(int))),
 		InputRecordTables: expandGlueMLTransformInputRecordTables(d.Get("input_record_tables").([]interface{})),
 		Parameters:        expandGlueMLTransformParameters(d.Get("parameters").([]interface{})),
@@ -219,6 +224,7 @@ func resourceAwsGlueMLTransformCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsGlueMLTransformRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetMLTransformInput{
@@ -255,14 +261,14 @@ func resourceAwsGlueMLTransformRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("description", output.Description)
 	d.Set("glue_version", output.GlueVersion)
-	d.Set("max_capacity", aws.Float64Value(output.MaxCapacity))
-	d.Set("max_retries", int(aws.Int64Value(output.MaxRetries)))
+	d.Set("max_capacity", output.MaxCapacity)
+	d.Set("max_retries", output.MaxRetries)
 	d.Set("name", output.Name)
 	d.Set("role_arn", output.Role)
-	d.Set("timeout", int(aws.Int64Value(output.Timeout)))
+	d.Set("timeout", output.Timeout)
 	d.Set("worker_type", output.WorkerType)
-	d.Set("number_of_workers", int(aws.Int64Value(output.NumberOfWorkers)))
-	d.Set("label_count", int(aws.Int64Value(output.LabelCount)))
+	d.Set("number_of_workers", output.NumberOfWorkers)
+	d.Set("label_count", output.LabelCount)
 
 	if err := d.Set("input_record_tables", flattenGlueMLTransformInputRecordTables(output.InputRecordTables)); err != nil {
 		return fmt.Errorf("error setting input_record_tables: %w", err)
@@ -282,8 +288,15 @@ func resourceAwsGlueMLTransformRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for Glue ML Transform (%s): %w", mlTransformArn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -336,8 +349,8 @@ func resourceAwsGlueMLTransformUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.GlueUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %w", err)
 		}

@@ -74,7 +74,7 @@ func dataSourceAwsRouteTablesRead(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(meta.(*AWSClient).region)
 
 	if err = d.Set("ids", routeTables); err != nil {
-		return fmt.Errorf("error setting ids: %s", err)
+		return fmt.Errorf("error setting ids: %w", err)
 	}
 
 	return nil

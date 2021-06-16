@@ -15,6 +15,7 @@ func TestAccAWSLicenseManagerAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, licensemanager.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLicenseManagerAssociationDestroy,
 		Steps: []resource.TestStep{

@@ -12,7 +12,7 @@ Information about Redshift Orderable Clusters and valid parameter combinations.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_redshift_orderable_cluster" "test" {
   cluster_type         = "multi-node"
   preferred_node_types = ["dc2.large", "ds2.xlarge"]

@@ -7,8 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsSecretsManagerSecretRotation() *schema.Resource {
@@ -99,15 +102,40 @@ func resourceAwsSecretsManagerSecretRotationRead(d *schema.ResourceData, meta in
 		SecretId: aws.String(d.Id()),
 	}
 
-	log.Printf("[DEBUG] Reading Secrets Manager Secret Rotation: %s", input)
-	output, err := conn.DescribeSecret(input)
-	if err != nil {
-		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Secrets Manager Secret Rotation %q not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
+	var output *secretsmanager.DescribeSecretOutput
+
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+
+		output, err = conn.DescribeSecret(input)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+			return resource.RetryableError(err)
 		}
-		return fmt.Errorf("error reading Secrets Manager Secret Rotation: %s", err)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = conn.DescribeSecret(input)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, secretsmanager.ErrCodeResourceNotFoundException) {
+		log.Printf("[WARN] Secrets Manager Secret Rotation (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading Secrets Manager Secret Rotation (%s): %w", d.Id(), err)
+	}
+
+	if output == nil {
+		return fmt.Errorf("error reading Secrets Manager Secret Rotation (%s): empty response", d.Id())
 	}
 
 	d.Set("secret_id", d.Id())

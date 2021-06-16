@@ -19,7 +19,7 @@ server configured.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_eks_cluster" "example" {
   name = "example"
 }

@@ -1,0 +1,3 @@
+```release-note:bug
+provider: Only validate AWS shared configuration profile SSO configuration when attempting to use SSO cached credentials
+```

@@ -1,0 +1,3 @@
+```release-note:bug
+ resource/aws_xray_sampling_rule: Change the maximum length of `rule_name` from 128 to 32
+```

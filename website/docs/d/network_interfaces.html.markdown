@@ -12,7 +12,7 @@ description: |-
 
 The following shows outputing all network interface ids in a region.
 
-```hcl
+```terraform
 data "aws_network_interfaces" "example" {}
 
 output "example" {
@@ -22,7 +22,7 @@ output "example" {
 
 The following example retrieves a list of all network interface ids with a custom tag of `Name` set to a value of `test`.
 
-```hcl
+```terraform
 data "aws_network_interfaces" "example" {
   tags = {
     Name = "test"
@@ -37,7 +37,7 @@ output "example1" {
 The following example retrieves a network interface ids which associated
 with specific subnet.
 
-```hcl
+```terraform
 data "aws_network_interfaces" "example" {
   filter {
     name   = "subnet-id"

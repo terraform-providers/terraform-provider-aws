@@ -5,13 +5,16 @@ import (
 	"log"
 	"net/url"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsIamPolicy() *schema.Resource {
@@ -67,12 +70,22 @@ func resourceAwsIamPolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"policy_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
+
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsIamPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -88,11 +101,12 @@ func resourceAwsIamPolicyCreate(d *schema.ResourceData, meta interface{}) error 
 		Path:           aws.String(d.Get("path").(string)),
 		PolicyDocument: aws.String(d.Get("policy").(string)),
 		PolicyName:     aws.String(name),
+		Tags:           tags.IgnoreAws().IamTags(),
 	}
 
-	response, err := iamconn.CreatePolicy(request)
+	response, err := conn.CreatePolicy(request)
 	if err != nil {
-		return fmt.Errorf("Error creating IAM policy %s: %s", name, err)
+		return fmt.Errorf("error creating IAM policy %s: %w", name, err)
 	}
 
 	d.SetId(aws.StringValue(response.Policy.Arn))
@@ -101,20 +115,21 @@ func resourceAwsIamPolicyCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceAwsIamPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	getPolicyRequest := &iam.GetPolicyInput{
+	input := &iam.GetPolicyInput{
 		PolicyArn: aws.String(d.Id()),
 	}
-	log.Printf("[DEBUG] Getting IAM Policy: %s", getPolicyRequest)
 
 	// Handle IAM eventual consistency
 	var getPolicyResponse *iam.GetPolicyOutput
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
-		getPolicyResponse, err = iamconn.GetPolicy(getPolicyRequest)
+		getPolicyResponse, err = conn.GetPolicy(input)
 
-		if d.IsNewResource() && isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 			return resource.RetryableError(err)
 		}
 
@@ -124,17 +139,19 @@ func resourceAwsIamPolicyRead(d *schema.ResourceData, meta interface{}) error {
 
 		return nil
 	})
-	if isResourceTimeoutError(err) {
-		getPolicyResponse, err = iamconn.GetPolicy(getPolicyRequest)
+
+	if tfresource.TimedOut(err) {
+		getPolicyResponse, err = conn.GetPolicy(input)
 	}
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 		log.Printf("[WARN] IAM Policy (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error reading IAM policy %s: %s", d.Id(), err)
+		return fmt.Errorf("error reading IAM policy %s: %w", d.Id(), err)
 	}
 
 	if getPolicyResponse == nil || getPolicyResponse.Policy == nil {
@@ -143,26 +160,39 @@ func resourceAwsIamPolicyRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	d.Set("arn", getPolicyResponse.Policy.Arn)
-	d.Set("description", getPolicyResponse.Policy.Description)
-	d.Set("name", getPolicyResponse.Policy.PolicyName)
-	d.Set("path", getPolicyResponse.Policy.Path)
+	policy := getPolicyResponse.Policy
+
+	d.Set("arn", policy.Arn)
+	d.Set("description", policy.Description)
+	d.Set("name", policy.PolicyName)
+	d.Set("path", policy.Path)
+	d.Set("policy_id", policy.PolicyId)
+
+	tags := keyvaluetags.IamKeyValueTags(policy.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
 
 	// Retrieve policy
 
 	getPolicyVersionRequest := &iam.GetPolicyVersionInput{
 		PolicyArn: aws.String(d.Id()),
-		VersionId: getPolicyResponse.Policy.DefaultVersionId,
+		VersionId: policy.DefaultVersionId,
 	}
-	log.Printf("[DEBUG] Getting IAM Policy Version: %s", getPolicyVersionRequest)
 
 	// Handle IAM eventual consistency
 	var getPolicyVersionResponse *iam.GetPolicyVersionOutput
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
-		getPolicyVersionResponse, err = iamconn.GetPolicyVersion(getPolicyVersionRequest)
+		getPolicyVersionResponse, err = conn.GetPolicyVersion(getPolicyVersionRequest)
 
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 			return resource.RetryableError(err)
 		}
 
@@ -172,57 +202,70 @@ func resourceAwsIamPolicyRead(d *schema.ResourceData, meta interface{}) error {
 
 		return nil
 	})
-	if isResourceTimeoutError(err) {
-		getPolicyVersionResponse, err = iamconn.GetPolicyVersion(getPolicyVersionRequest)
+
+	if tfresource.TimedOut(err) {
+		getPolicyVersionResponse, err = conn.GetPolicyVersion(getPolicyVersionRequest)
 	}
-	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
 		log.Printf("[WARN] IAM Policy (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error reading IAM policy version %s: %s", d.Id(), err)
+		return fmt.Errorf("error reading IAM policy version %s: %w", d.Id(), err)
 	}
 
-	policy := ""
+	var policyDocument string
 	if getPolicyVersionResponse != nil && getPolicyVersionResponse.PolicyVersion != nil {
 		var err error
-		policy, err = url.QueryUnescape(aws.StringValue(getPolicyVersionResponse.PolicyVersion.Document))
+		policyDocument, err = url.QueryUnescape(aws.StringValue(getPolicyVersionResponse.PolicyVersion.Document))
 		if err != nil {
-			return fmt.Errorf("error parsing policy: %s", err)
+			return fmt.Errorf("error parsing IAM policy (%s) document: %w", d.Id(), err)
 		}
 	}
 
-	d.Set("policy", policy)
+	d.Set("policy", policyDocument)
 
 	return nil
 }
 
 func resourceAwsIamPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
-	if err := iamPolicyPruneVersions(d.Id(), iamconn); err != nil {
-		return err
+	if d.HasChangesExcept("tags", "tags_all") {
+
+		if err := iamPolicyPruneVersions(d.Id(), conn); err != nil {
+			return err
+		}
+
+		request := &iam.CreatePolicyVersionInput{
+			PolicyArn:      aws.String(d.Id()),
+			PolicyDocument: aws.String(d.Get("policy").(string)),
+			SetAsDefault:   aws.Bool(true),
+		}
+
+		if _, err := conn.CreatePolicyVersion(request); err != nil {
+			return fmt.Errorf("error updating IAM policy %s: %w", d.Id(), err)
+		}
 	}
 
-	request := &iam.CreatePolicyVersionInput{
-		PolicyArn:      aws.String(d.Id()),
-		PolicyDocument: aws.String(d.Get("policy").(string)),
-		SetAsDefault:   aws.Bool(true),
-	}
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
-	if _, err := iamconn.CreatePolicyVersion(request); err != nil {
-		return fmt.Errorf("Error updating IAM policy %s: %s", d.Id(), err)
+		if err := keyvaluetags.IamPolicyUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating tags for IAM Policy (%s): %w", d.Id(), err)
+		}
 	}
 
 	return resourceAwsIamPolicyRead(d, meta)
 }
 
 func resourceAwsIamPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
-	if err := iamPolicyDeleteNondefaultVersions(d.Id(), iamconn); err != nil {
+	if err := iamPolicyDeleteNondefaultVersions(d.Id(), conn); err != nil {
 		return err
 	}
 
@@ -230,11 +273,14 @@ func resourceAwsIamPolicyDelete(d *schema.ResourceData, meta interface{}) error 
 		PolicyArn: aws.String(d.Id()),
 	}
 
-	if _, err := iamconn.DeletePolicy(request); err != nil {
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			return nil
-		}
-		return fmt.Errorf("Error deleting IAM policy %s: %s", d.Id(), err)
+	_, err := conn.DeletePolicy(request)
+
+	if tfawserr.ErrCodeEquals(err, iam.ErrCodeNoSuchEntityException) {
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error deleting IAM policy %s: %w", d.Id(), err)
 	}
 
 	return nil
@@ -247,8 +293,8 @@ func resourceAwsIamPolicyDelete(d *schema.ResourceData, meta interface{}) error 
 //
 // The default version is never deleted.
 
-func iamPolicyPruneVersions(arn string, iamconn *iam.IAM) error {
-	versions, err := iamPolicyListVersions(arn, iamconn)
+func iamPolicyPruneVersions(arn string, conn *iam.IAM) error {
+	versions, err := iamPolicyListVersions(arn, conn)
 	if err != nil {
 		return err
 	}
@@ -268,12 +314,12 @@ func iamPolicyPruneVersions(arn string, iamconn *iam.IAM) error {
 		}
 	}
 
-	err1 := iamPolicyDeleteVersion(arn, *oldestVersion.VersionId, iamconn)
+	err1 := iamPolicyDeleteVersion(arn, aws.StringValue(oldestVersion.VersionId), conn)
 	return err1
 }
 
-func iamPolicyDeleteNondefaultVersions(arn string, iamconn *iam.IAM) error {
-	versions, err := iamPolicyListVersions(arn, iamconn)
+func iamPolicyDeleteNondefaultVersions(arn string, conn *iam.IAM) error {
+	versions, err := iamPolicyListVersions(arn, conn)
 	if err != nil {
 		return err
 	}
@@ -282,7 +328,7 @@ func iamPolicyDeleteNondefaultVersions(arn string, iamconn *iam.IAM) error {
 		if *version.IsDefaultVersion {
 			continue
 		}
-		if err := iamPolicyDeleteVersion(arn, *version.VersionId, iamconn); err != nil {
+		if err := iamPolicyDeleteVersion(arn, aws.StringValue(version.VersionId), conn); err != nil {
 			return err
 		}
 	}
@@ -290,27 +336,27 @@ func iamPolicyDeleteNondefaultVersions(arn string, iamconn *iam.IAM) error {
 	return nil
 }
 
-func iamPolicyDeleteVersion(arn, versionID string, iamconn *iam.IAM) error {
+func iamPolicyDeleteVersion(arn, versionID string, conn *iam.IAM) error {
 	request := &iam.DeletePolicyVersionInput{
 		PolicyArn: aws.String(arn),
 		VersionId: aws.String(versionID),
 	}
 
-	_, err := iamconn.DeletePolicyVersion(request)
+	_, err := conn.DeletePolicyVersion(request)
 	if err != nil {
-		return fmt.Errorf("Error deleting version %s from IAM policy %s: %s", versionID, arn, err)
+		return fmt.Errorf("Error deleting version %s from IAM policy %s: %w", versionID, arn, err)
 	}
 	return nil
 }
 
-func iamPolicyListVersions(arn string, iamconn *iam.IAM) ([]*iam.PolicyVersion, error) {
+func iamPolicyListVersions(arn string, conn *iam.IAM) ([]*iam.PolicyVersion, error) {
 	request := &iam.ListPolicyVersionsInput{
 		PolicyArn: aws.String(arn),
 	}
 
-	response, err := iamconn.ListPolicyVersions(request)
+	response, err := conn.ListPolicyVersions(request)
 	if err != nil {
-		return nil, fmt.Errorf("Error listing versions for IAM policy %s: %s", arn, err)
+		return nil, fmt.Errorf("Error listing versions for IAM policy %s: %w", arn, err)
 	}
 	return response.Versions, nil
 }

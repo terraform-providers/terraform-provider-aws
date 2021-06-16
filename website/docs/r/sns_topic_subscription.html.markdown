@@ -8,24 +8,23 @@ description: |-
 
 # Resource: aws_sns_topic_subscription
 
-  Provides a resource for subscribing to SNS topics. Requires that an SNS topic exist for the subscription to attach to.
-This resource allows you to automatically place messages sent to SNS topics in SQS queues, send them as HTTP(S) POST requests
-to a given endpoint, send SMS messages, or notify devices / applications. The most likely use case for Terraform users will
-probably be SQS queues.
+Provides a resource for subscribing to SNS topics. Requires that an SNS topic exist for the subscription to attach to. This resource allows you to automatically place messages sent to SNS topics in SQS queues, send them as HTTP(S) POST requests to a given endpoint, send SMS messages, or notify devices / applications. The most likely use case for Terraform users will probably be SQS queues.
 
-~> **NOTE:** If the SNS topic and SQS queue are in different AWS regions, it is important for the "aws_sns_topic_subscription" to use an AWS provider that is in the same region of the SNS topic. If the "aws_sns_topic_subscription" is using a provider with a different region than the SNS topic, terraform will fail to create the subscription.
+~> **NOTE:** If the SNS topic and SQS queue are in different AWS regions, the `aws_sns_topic_subscription` must use an AWS provider that is in the same region as the SNS topic. If the `aws_sns_topic_subscription` uses a provider with a different region than the SNS topic, Terraform will fail to create the subscription.
 
 ~> **NOTE:** Setup of cross-account subscriptions from SNS topics to SQS queues requires Terraform to have access to BOTH accounts.
 
-~> **NOTE:** If SNS topic and SQS queue are in different AWS accounts but the same region it is important for the "aws_sns_topic_subscription" to use the AWS provider of the account with the SQS queue. If "aws_sns_topic_subscription" is using a Provider with a different account than the SQS queue, terraform creates the subscriptions but does not keep state and tries to re-create the subscription at every apply.
+~> **NOTE:** If an SNS topic and SQS queue are in different AWS accounts but the same region, the `aws_sns_topic_subscription` must use the AWS provider for the account with the SQS queue. If `aws_sns_topic_subscription` uses a Provider with a different account than the SQS queue, Terraform creates the subscription but does not keep state and tries to re-create the subscription at every `apply`.
 
-~> **NOTE:** If SNS topic and SQS queue are in different AWS accounts and different AWS regions it is important to recognize that the subscription needs to be initiated from the account with the SQS queue but in the region of the SNS topic.
+~> **NOTE:** If an SNS topic and SQS queue are in different AWS accounts and different AWS regions, the subscription needs to be initiated from the account with the SQS queue but in the region of the SNS topic.
+
+~> **NOTE:** You cannot unsubscribe to a subscription that is pending confirmation. If you use `email`, `email-json`, or `http`/`https` (without auto-confirmation enabled), until the subscription is confirmed (e.g., outside of Terraform), AWS does not allow Terraform to delete / unsubscribe the subscription. If you `destroy` an unconfirmed subscription, Terraform will remove the subscription from its state but the subscription will still exist in AWS. However, if you delete an SNS topic, SNS [deletes all the subscriptions](https://docs.aws.amazon.com/sns/latest/dg/sns-delete-subscription-topic.html) associated with the topic. Also, you can import a subscription after confirmation and then have the capability to delete it.
 
 ## Example Usage
 
 You can directly supply a topic and ARN by hand in the `topic_arn` property along with the queue ARN:
 
-```hcl
+```terraform
 resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
   topic_arn = "arn:aws:sns:us-west-2:432981146916:user-updates-topic"
   protocol  = "sqs"
@@ -35,7 +34,7 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
 
 Alternatively you can use the ARN properties of a managed SNS topic and SQS queue:
 
-```hcl
+```terraform
 resource "aws_sns_topic" "user_updates" {
   name = "user-updates-topic"
 }
@@ -53,7 +52,7 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
 
 You can subscribe SNS topics to SQS queues in different Amazon accounts and regions:
 
-```hcl
+```terraform
 variable "sns" {
   default = {
     account-id   = "111111111111"
@@ -81,7 +80,6 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       "SNS:Subscribe",
       "SNS:SetTopicAttributes",
       "SNS:RemovePermission",
-      "SNS:Receive",
       "SNS:Publish",
       "SNS:ListSubscriptionsByTopic",
       "SNS:GetTopicAttributes",
@@ -229,56 +227,51 @@ resource "aws_sns_topic_subscription" "sns-topic" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are required:
 
-* `topic_arn` - (Required) The ARN of the SNS topic to subscribe to
-* `protocol` - (Required) The protocol to use. The possible values for this are: `sqs`, `sms`, `lambda`, `application`. (`http` or `https` are partially supported, see below) (`email` is an option but is unsupported, see below).
-* `endpoint` - (Required) The endpoint to send data to, the contents will vary with the protocol. (see below for more information)
-* `endpoint_auto_confirms` - (Optional) Boolean indicating whether the end point is capable of [auto confirming subscription](http://docs.aws.amazon.com/sns/latest/dg/SendMessageToHttp.html#SendMessageToHttp.prepare) e.g., PagerDuty (default is false)
-* `confirmation_timeout_in_minutes` - (Optional) Integer indicating number of minutes to wait in retying mode for fetching subscription arn before marking it as failure. Only applicable for http and https protocols (default is 1 minute).
-* `raw_message_delivery` - (Optional) Boolean indicating whether or not to enable raw message delivery (the original message is directly passed, not wrapped in JSON with the original message in the message property) (default is false).
-* `filter_policy` - (Optional) JSON String with the filter policy that will be used in the subscription to filter messages seen by the target resource. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/message-filtering.html) for more details.
+* `endpoint` - (Required) Endpoint to send data to. The contents vary with the protocol. See details below.
+* `protocol` - (Required) Protocol to use. Valid values are: `sqs`, `sms`, `lambda`, `firehose`, and `application`. Protocols `email`, `email-json`, `http` and `https` are also valid but partially supported. See details below.
+* `subscription_role_arn` - (Required if `protocol` is `firehose`) ARN of the IAM role to publish to Kinesis Data Firehose delivery stream. Refer to [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/sns-firehose-as-subscriber.html).
+* `topic_arn` - (Required) ARN of the SNS topic to subscribe to.
+
+The following arguments are optional:
+
+* `confirmation_timeout_in_minutes` - (Optional) Integer indicating number of minutes to wait in retrying mode for fetching subscription arn before marking it as failure. Only applicable for http and https protocols. Default is `1`.
 * `delivery_policy` - (Optional) JSON String with the delivery policy (retries, backoff, etc.) that will be used in the subscription - this only applies to HTTP/S subscriptions. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/DeliveryPolicies.html) for more details.
+* `endpoint_auto_confirms` - (Optional) Whether the endpoint is capable of [auto confirming subscription](http://docs.aws.amazon.com/sns/latest/dg/SendMessageToHttp.html#SendMessageToHttp.prepare) (e.g., PagerDuty). Default is `false`.
+* `filter_policy` - (Optional) JSON String with the filter policy that will be used in the subscription to filter messages seen by the target resource. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/message-filtering.html) for more details.
+* `raw_message_delivery` - (Optional) Whether to enable raw message delivery (the original message is directly passed, not wrapped in JSON with the original message in the message property). Default is `false`.
+* `redrive_policy` - (Optional) JSON String with the redrive policy that will be used in the subscription. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/sns-dead-letter-queues.html#how-messages-moved-into-dead-letter-queue) for more details.
 
-### Protocols supported
+### Protocol support
 
-Supported SNS protocols include:
+Supported values for `protocol` include:
 
-* `lambda` -- delivery of JSON-encoded message to a lambda function
-* `sqs` -- delivery of JSON-encoded message to an Amazon SQS queue
-* `application` -- delivery of JSON-encoded message to an EndpointArn for a mobile app and device
-* `sms` -- delivery text message
+* `application` - Delivers JSON-encoded messages. `endpoint` is the endpoint ARN of a mobile app and device.
+* `firehose` - Delivers JSON-encoded messages. `endpoint` is the ARN of an Amazon Kinesis Data Firehose delivery stream (e.g.,
+`arn:aws:firehose:us-east-1:123456789012:deliverystream/ticketUploadStream`).
+* `lambda` - Delivers JSON-encoded messages. `endpoint` is the ARN of an AWS Lambda function.
+* `sms` - Delivers text messages via SMS. `endpoint` is the phone number of an SMS-enabled device.
+* `sqs` - Delivers JSON-encoded messages. `endpoint` is the ARN of an Amazon SQS queue (e.g., `arn:aws:sqs:us-west-2:123456789012:terraform-queue-too`).
 
-Partially supported SNS protocols include:
+Partially supported values for `protocol` include:
 
-* `http` -- delivery of JSON-encoded messages via HTTP. Supported only for the end points that auto confirms the subscription.
-* `https` -- delivery of JSON-encoded messages via HTTPS. Supported only for the end points that auto confirms the subscription.
+~> **NOTE:** If an `aws_sns_topic_subscription` uses a partially-supported protocol and the subscription is not confirmed, either through automatic confirmation or means outside of Terraform (e.g., clicking on a "Confirm Subscription" link in an email), Terraform cannot delete / unsubscribe the subscription. Attempting to `destroy` an unconfirmed subscription will remove the `aws_sns_topic_subscription` from Terraform's state but **_will not_** remove the subscription from AWS. The `pending_confirmation` attribute provides confirmation status.
 
-Unsupported protocols include the following:
-
-* `email` -- delivery of message via SMTP
-* `email-json` -- delivery of JSON-encoded message via SMTP
-
-These are unsupported because the endpoint needs to be authorized and does not
-generate an ARN until the target email address has been validated. This breaks
-the Terraform model and as a result are not currently supported.
-
-### Specifying endpoints
-
-Endpoints have different format requirements according to the protocol that is chosen.
-
-* SQS endpoints come in the form of the SQS queue's ARN (not the URL of the queue) e.g: `arn:aws:sqs:us-west-2:432981146916:terraform-queue-too`
-* Application endpoints are also the endpoint ARN for the mobile app and device.
+* `email` - Delivers messages via SMTP. `endpoint` is an email address.
+* `email-json` - Delivers JSON-encoded messages via SMTP. `endpoint` is an email address.
+* `http` -- Delivers JSON-encoded messages via HTTP POST. `endpoint` is a URL beginning with `http://`.
+* `https` -- Delivers JSON-encoded messages via HTTPS POST. `endpoint` is a URL beginning with `https://`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ARN of the subscription
-* `topic_arn` - The ARN of the topic the subscription belongs to
-* `protocol` - The protocol being used
-* `endpoint` - The full endpoint to send data to (SQS ARN, HTTP(S) URL, Application ARN, SMS number, etc.)
-* `arn` - The ARN of the subscription stored as a more user-friendly property
+* `arn` - ARN of the subscription.
+* `confirmation_was_authenticated` - Whether the subscription confirmation request was authenticated.
+* `id` - ARN of the subscription.
+* `owner_id` - AWS account ID of the subscription's owner.
+* `pending_confirmation` - Whether the subscription has not been confirmed.
 
 ## Import
 

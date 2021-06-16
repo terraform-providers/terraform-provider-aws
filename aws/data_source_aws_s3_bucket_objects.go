@@ -128,21 +128,21 @@ func dataSourceAwsS3BucketObjectsRead(d *schema.ResourceData, meta interface{}) 
 	})
 
 	if err != nil {
-		return fmt.Errorf("error listing S3 Bucket (%s) Objects: %s", bucket, err)
+		return fmt.Errorf("error listing S3 Bucket (%s) Objects: %w", bucket, err)
 	}
 
 	d.SetId(bucket)
 
 	if err := d.Set("common_prefixes", commonPrefixes); err != nil {
-		return fmt.Errorf("error setting common_prefixes: %s", err)
+		return fmt.Errorf("error setting common_prefixes: %w", err)
 	}
 
 	if err := d.Set("keys", keys); err != nil {
-		return fmt.Errorf("error setting keys: %s", err)
+		return fmt.Errorf("error setting keys: %w", err)
 	}
 
 	if err := d.Set("owners", owners); err != nil {
-		return fmt.Errorf("error setting owners: %s", err)
+		return fmt.Errorf("error setting owners: %w", err)
 	}
 
 	return nil

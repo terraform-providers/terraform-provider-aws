@@ -1,0 +1,11 @@
+```release-note:bug
+resource/aws_iam_role: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_role_policy: Handle read-after-create eventual consistency
+```
+
+```release-note:bug
+resource/aws_iam_role_policy_attachment: Handle read-after-create eventual consistency
+```
