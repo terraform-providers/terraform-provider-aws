@@ -840,6 +840,7 @@ func Provider() *schema.Provider {
 			"aws_kms_ciphertext":                                      resourceAwsKmsCiphertext(),
 			"aws_lakeformation_data_lake_settings":                    resourceAwsLakeFormationDataLakeSettings(),
 			"aws_lakeformation_permissions":                           resourceAwsLakeFormationPermissions(),
+			"aws_lakeformation_policy_tag":                            resourceAwsLakeFormationPolicyTag(),
 			"aws_lakeformation_resource":                              resourceAwsLakeFormationResource(),
 			"aws_lambda_alias":                                        resourceAwsLambdaAlias(),
 			"aws_lambda_code_signing_config":                          resourceAwsLambdaCodeSigningConfig(),

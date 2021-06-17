@@ -87,6 +87,36 @@ func testAccAWSLakeFormationPermissionsDataSource_database(t *testing.T) {
 	})
 }
 
+func testAccAWSLakeFormationPermissionsDataSource_policy_tag(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_lakeformation_permissions.test"
+	dataSourceName := "data.aws_lakeformation_permissions.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lakeformation.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lakeformation.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLakeFormationPermissionsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLakeFormationPermissionsDataSourceConfig_policy_tag(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(resourceName, "principal", dataSourceName, "principal"),
+					resource.TestCheckResourceAttrPair(resourceName, "policy_tag.#", dataSourceName, "policy_tag.#"),
+					resource.TestCheckResourceAttrPair(resourceName, "policy_tag.0.key", dataSourceName, "policy_tag.0.key"),
+					resource.TestCheckResourceAttrPair(resourceName, "policy_tag.0.values", dataSourceName, "policy_tag.0.values"),
+					resource.TestCheckResourceAttrPair(resourceName, "permissions.#", dataSourceName, "permissions.#"),
+					resource.TestCheckResourceAttrPair(resourceName, "permissions.0", dataSourceName, "permissions.0"),
+					resource.TestCheckResourceAttrPair(resourceName, "permissions.1", dataSourceName, "permissions.1"),
+					resource.TestCheckResourceAttrPair(resourceName, "permissions_with_grant_option.#", dataSourceName, "permissions_with_grant_option.#"),
+					resource.TestCheckResourceAttrPair(resourceName, "permissions_with_grant_option.0", dataSourceName, "permissions_with_grant_option.0"),
+					resource.TestCheckResourceAttrPair(resourceName, "permissions_with_grant_option.1", dataSourceName, "permissions_with_grant_option.1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAWSLakeFormationPermissionsDataSource_table(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_lakeformation_permissions.test"
@@ -308,6 +338,70 @@ data "aws_lakeformation_permissions" "test" {
 
   database {
     name = aws_glue_catalog_database.test.name
+  }
+}
+`, rName)
+}
+
+func testAccAWSLakeFormationPermissionsDataSourceConfig_policy_tag(rName string) string {
+	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+resource "aws_iam_role" "test" {
+  name = %[1]q
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "glue.${data.aws_partition.current.dns_suffix}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_lakeformation_data_lake_settings" "test" {
+  admins = [data.aws_caller_identity.current.arn]
+ }
+
+resource "aws_lakeformation_policy_tag" "test" {
+  key    = %[1]q
+  values = ["value1", "value2"]
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
+}
+
+resource "aws_lakeformation_permissions" "test" {
+  permissions                   = ["ASSOCIATE", "DESCRIBE"]
+  permissions_with_grant_option = ["ASSOCIATE", "DESCRIBE"]
+  principal                     = aws_iam_role.test.arn
+
+  policy_tag {
+    key    = aws_lakeformation_policy_tag.test.key
+    values = aws_lakeformation_policy_tag.test.values
+  }
+
+  # for consistency, ensure that admins are setup before testing
+  depends_on = [aws_lakeformation_data_lake_settings.test]
+}
+
+data "aws_lakeformation_permissions" "test" {
+  principal = aws_lakeformation_permissions.test.principal
+
+  policy_tag {
+    key    = aws_lakeformation_policy_tag.test.key
+    values = aws_lakeformation_policy_tag.test.values
   }
 }
 `, rName)

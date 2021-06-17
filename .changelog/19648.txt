@@ -1,0 +1,4 @@
+```release-note:note:enhancement
+resource/aws_lakeformation_permissions: Add policy tag support
+datasource/aws_lakeformation_permissions: Add policy tag support
+```
