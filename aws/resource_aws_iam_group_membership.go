@@ -20,12 +20,25 @@ func resourceAwsIamGroupMembership() *schema.Resource {
 		Read:   resourceAwsIamGroupMembershipRead,
 		Update: resourceAwsIamGroupMembershipUpdate,
 		Delete: resourceAwsIamGroupMembershipDelete,
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceAwsIamGroupMembershipV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceAwsIamGroupMembershipStateUpgradeV0,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Optional: true,
+				ForceNew: false,
+				// https://github.com/hashicorp/terraform-provider-aws/issues/2882
+				Deprecated: "don't set this attribute",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return true
+				},
 			},
 
 			"users": {
@@ -54,13 +67,13 @@ func resourceAwsIamGroupMembershipCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	d.SetId(d.Get("name").(string))
+	d.SetId(d.Get("group").(string))
 	return resourceAwsIamGroupMembershipRead(d, meta)
 }
 
 func resourceAwsIamGroupMembershipRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
-	group := d.Get("group").(string)
+	group := d.Id()
 
 	input := &iam.GetGroupInput{
 		GroupName: aws.String(group),
@@ -114,6 +127,10 @@ func resourceAwsIamGroupMembershipRead(d *schema.ResourceData, meta interface{})
 
 	if err != nil {
 		return fmt.Errorf("error reading IAM Group Membership (%s): %w", group, err)
+	}
+
+	if err := d.Set("group", group); err != nil {
+		return fmt.Errorf("Error setting group from IAM Group Membership (%s), error: %s", group, err)
 	}
 
 	if err := d.Set("users", ul); err != nil {
