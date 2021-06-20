@@ -35,11 +35,10 @@ func resourceAwsIamGroupMembership() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: false,
-				// https://github.com/hashicorp/terraform-provider-aws/issues/2882
-				Deprecated: "don't set this attribute",
+				Type:       schema.TypeString,
+				Optional:   true,
+				ForceNew:   false,
+				Deprecated: "don't set this attribute. Please see https://github.com/hashicorp/terraform-provider-aws/issues/19900",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return true
 				},
