@@ -20,6 +20,10 @@ func resourceAwsIamGroupMembership() *schema.Resource {
 		Read:   resourceAwsIamGroupMembershipRead,
 		Update: resourceAwsIamGroupMembershipUpdate,
 		Delete: resourceAwsIamGroupMembershipDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
