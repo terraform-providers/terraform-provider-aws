@@ -18,22 +18,96 @@ import (
 
 func TestAccAWSEBSSnapshotImport_basic(t *testing.T) {
 	var v ec2.Snapshot
-	rName := fmt.Sprintf("tf-acc-ebs-snapshot-import-basic-%s", acctest.RandString(7))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ebs_snapshot_import.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEbsSnapshotImportDestroy,
+		CheckDestroy: testAccCheckAwsEbsSnapshotImportDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEbsSnapshotImportConfigBasic(rName, t),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSnapshotImportExists(resourceName, &v),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSSnapshotImport_tags(t *testing.T) {
+	var v ec2.Snapshot
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ebs_snapshot_import.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsEbsSnapshotImportDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsSnapshotImportConfigTags(rName, t),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotImportExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSSnapshotImport_disappears(t *testing.T) {
+	var v ec2.Snapshot
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ebs_snapshot_import.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsEbsSnapshotImportDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsSnapshotImportConfigBasic(rName, t),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotImportExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEbsSnapshotImport(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSSnapshotImport_disappears_S3BucketObject(t *testing.T) {
+	var v ec2.Snapshot
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	parentResourceName := "aws_s3_bucket_object.image"
+	resourceName := "aws_ebs_snapshot_import.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsEbsSnapshotImportDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsSnapshotImportConfigBasic(rName, t),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotImportExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsS3BucketObject(), parentResourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -67,7 +141,7 @@ func testAccCheckSnapshotImportExists(n string, v *ec2.Snapshot) resource.TestCh
 	}
 }
 
-func testAccCheckAWSEbsSnapshotImportDestroy(s *terraform.State) error {
+func testAccCheckAwsEbsSnapshotImportDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
 	for _, rs := range s.RootModule().Resources {
@@ -181,6 +255,98 @@ resource "aws_ebs_snapshot_import" "test" {
     create = "10m"
     delete = "10m"
   }
+}
+`, testAccAwsEbsSnapshotDisk(t), rName)
+}
+
+func testAccAwsEbsSnapshotImportConfigTags(rName string, t *testing.T) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "images" {
+  bucket_prefix = "images-"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_object" "image" {
+  bucket         = aws_s3_bucket.images.id
+  key            = "diskimage.vhd"
+  content_base64 = %[1]q
+}
+
+# The following resources are for the *vmimport service user*
+# See: https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role
+resource "aws_iam_role" "vmimport" {
+  assume_role_policy = data.aws_iam_policy_document.vmimport-trust.json
+}
+
+resource "aws_iam_role_policy" "vmimport-access" {
+  role   = aws_iam_role.vmimport.id
+  policy = data.aws_iam_policy_document.vmimport-access.json
+}
+
+data "aws_iam_policy_document" "vmimport-access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:GetObject",
+      "s3:ListBucket",
+    ]
+    resources = [
+      aws_s3_bucket.images.arn,
+      "${aws_s3_bucket.images.arn}/*"
+    ]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:ModifySnapshotAttribute",
+      "ec2:CopySnapshot",
+      "ec2:RegisterImage",
+      "ec2:Describe*"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+
+data "aws_iam_policy_document" "vmimport-trust" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["vmie.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "sts:ExternalId"
+      values   = ["vmimport"]
+    }
+  }
+}
+
+resource "aws_ebs_snapshot_import" "test" {
+  disk_container {
+    description = %[2]q
+    format      = "VHD"
+    user_bucket {
+      s3_bucket = aws_s3_bucket.images.id
+      s3_key    = aws_s3_bucket_object.image.key
+    }
+  }
+
+  role_name = aws_iam_role.vmimport.name
+
+  timeouts {
+    create = "10m"
+    delete = "10m"
+  }
 
   tags = {
     foo = "bar"
@@ -188,6 +354,7 @@ resource "aws_ebs_snapshot_import" "test" {
 }
 `, testAccAwsEbsSnapshotDisk(t), rName)
 }
+
 func testAccAwsEbsSnapshotDisk(t *testing.T) string {
 	// Take a compressed then base64'd disk image,
 	// base64 decode, then decompress, then re-base64

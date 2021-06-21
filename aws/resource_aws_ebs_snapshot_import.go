@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ebs/waiter"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
@@ -84,13 +84,10 @@ func resourceAwsEbsSnapshotImport() *schema.Resource {
 							ForceNew: true,
 						},
 						"format": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.DiskImageFormatVmdk,
-								ec2.DiskImageFormatVhd,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(ec2.DiskImageFormat_Values(), false),
 						},
 						"url": {
 							Type:         schema.TypeString,
@@ -148,6 +145,7 @@ func resourceAwsEbsSnapshotImport() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  "vmimport",
 			},
 			"data_encryption_key_id": {
 				Type:     schema.TypeString,
@@ -156,6 +154,63 @@ func resourceAwsEbsSnapshotImport() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 	}
+}
+
+func expandAwsEbsSnapshotClientData(tfMap map[string]interface{}) (*ec2.ClientData, error) {
+	clientData := &ec2.ClientData{}
+
+	if v, ok := tfMap["comment"].(string); ok {
+		clientData.Comment = aws.String(v)
+	}
+
+	if v, ok := tfMap["upload_end"].(string); ok {
+		upload_end, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing upload_end to timestamp: %s", err)
+		}
+		clientData.UploadEnd = aws.Time(upload_end)
+	}
+
+	if v, ok := tfMap["upload_size"].(float64); ok {
+		clientData.UploadSize = aws.Float64(v)
+	}
+
+	if v, ok := tfMap["upload_start"].(string); ok {
+		upload_start, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing upload_start to timestamp: %s", err)
+		}
+		clientData.UploadStart = aws.Time(upload_start)
+	}
+
+	return clientData, nil
+}
+
+func expandAwsEbsSnapshotDiskContainer(tfMap map[string]interface{}) *ec2.SnapshotDiskContainer {
+	diskContainer := &ec2.SnapshotDiskContainer{
+		Format: aws.String(tfMap["format"].(string)),
+	}
+
+	if v, ok := tfMap["description"].(string); ok {
+		diskContainer.Description = aws.String(v)
+	}
+
+	if v, ok := tfMap["url"].(string); ok && v != "" {
+		diskContainer.Url = aws.String(v)
+	}
+
+	if v, ok := tfMap["user_bucket"]; ok {
+		vL := v.([]interface{})
+		for _, v := range vL {
+			ub := v.(map[string]interface{})
+			diskContainer.UserBucket = &ec2.UserBucket{
+				S3Bucket: aws.String(ub["s3_bucket"].(string)),
+				S3Key:    aws.String(ub["s3_key"].(string)),
+			}
+		}
+	}
+
+	return diskContainer
 }
 
 func resourceAwsEbsSnapshotImportCreate(d *schema.ResourceData, meta interface{}) error {
@@ -168,34 +223,23 @@ func resourceAwsEbsSnapshotImportCreate(d *schema.ResourceData, meta interface{}
 	if v, ok := d.GetOk("client_data"); ok {
 		vL := v.([]interface{})
 		for _, v := range vL {
-			cdv := v.(map[string]interface{})
-			client_data := &ec2.ClientData{}
+			cdv, ok := v.(map[string]interface{})
 
-			if v, ok := cdv["comment"].(string); ok {
-				client_data.Comment = aws.String(v)
+			if !ok {
+				continue
 			}
 
-			if v, ok := cdv["upload_end"].(string); ok {
-				upload_end, err := time.Parse(time.RFC3339, v)
-				if err != nil {
-					return fmt.Errorf("error parsing upload_end to timestamp: %s", err)
-				}
-				client_data.UploadEnd = aws.Time(upload_end)
+			clientData, err := expandAwsEbsSnapshotClientData(cdv)
+
+			if err != nil {
+				return err
 			}
 
-			if v, ok := cdv["upload_size"].(float64); ok {
-				client_data.UploadSize = aws.Float64(v)
+			if clientData == nil {
+				continue
 			}
 
-			if v, ok := cdv["upload_start"].(string); ok {
-				upload_start, err := time.Parse(time.RFC3339, v)
-				if err != nil {
-					return fmt.Errorf("error parsing upload_start to timestamp: %s", err)
-				}
-				client_data.UploadStart = aws.Time(upload_start)
-			}
-
-			request.ClientData = client_data
+			request.ClientData = clientData
 		}
 	}
 
@@ -208,31 +252,19 @@ func resourceAwsEbsSnapshotImportCreate(d *schema.ResourceData, meta interface{}
 	v := d.Get("disk_container")
 	vL := v.([]interface{})
 	for _, v := range vL {
-		dcv := v.(map[string]interface{})
-		disk_container := &ec2.SnapshotDiskContainer{
-			Format: aws.String(dcv["format"].(string)),
+		dcv, ok := v.(map[string]interface{})
+
+		if !ok {
+			continue
 		}
 
-		if v, ok := dcv["description"].(string); ok {
-			disk_container.Description = aws.String(v)
+		diskContainer := expandAwsEbsSnapshotDiskContainer(dcv)
+
+		if diskContainer == nil {
+			continue
 		}
 
-		if v, ok := dcv["url"].(string); ok && v != "" {
-			disk_container.Url = aws.String(v)
-		}
-
-		if v, ok := dcv["user_bucket"]; ok {
-			vL := v.([]interface{})
-			for _, v := range vL {
-				ub := v.(map[string]interface{})
-				disk_container.UserBucket = &ec2.UserBucket{
-					S3Bucket: aws.String(ub["s3_bucket"].(string)),
-					S3Key:    aws.String(ub["s3_key"].(string)),
-				}
-			}
-		}
-
-		request.DiskContainer = disk_container
+		request.DiskContainer = diskContainer
 	}
 
 	if v, ok := d.GetOk("encrypted"); ok {
@@ -263,15 +295,18 @@ func resourceAwsEbsSnapshotImportCreate(d *schema.ResourceData, meta interface{}
 
 		importTaskId := aws.StringValue(resp.ImportTaskId)
 
-		res, err := importAwsEbsSnapshotWaiter(conn, importTaskId)
+		res, err := waiter.EbsSnapshotImportCompleted(conn, importTaskId)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("Error waiting for snapshot (%s) to be imported: %s", d.Id(), err))
 		}
 
 		d.SetId(aws.StringValue(res.SnapshotId))
 
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), d.Get("tags").(map[string]interface{})); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error setting tags: %s", err))
+		tags := d.Get("tags").(map[string]interface{})
+		if len(tags) > 0 {
+			if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), tags); err != nil {
+				return resource.NonRetryableError(fmt.Errorf("error setting tags: %s", err))
+			}
 		}
 
 		err = resourceAwsEbsSnapshotImportRead(d, meta)
@@ -376,56 +411,4 @@ func resourceAwsEbsSnapshotImportDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error deleting EBS snapshot: %s", err)
 	}
 	return nil
-}
-
-func importAwsEbsSnapshotWaiter(conn *ec2.EC2, importTaskID string) (*ec2.SnapshotTaskDetail, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{tfec2.EbsSnapshotImportActive,
-			tfec2.EbsSnapshotImportUpdating,
-			tfec2.EbsSnapshotImportValidating,
-			tfec2.EbsSnapshotImportValidated,
-			tfec2.EbsSnapshotImportConverting,
-		},
-		Target:  []string{tfec2.EbsSnapshotImportCompleted},
-		Refresh: importAwsEbsSnapshotRefreshFunc(conn, importTaskID),
-		Timeout: 60 * time.Minute,
-		Delay:   10 * time.Second,
-	}
-
-	detail, err := stateConf.WaitForState()
-	if err != nil {
-		return nil, err
-	} else {
-		return detail.(*ec2.SnapshotTaskDetail), nil
-	}
-}
-
-func importAwsEbsSnapshotRefreshFunc(conn *ec2.EC2, importTaskId string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		params := &ec2.DescribeImportSnapshotTasksInput{
-			ImportTaskIds: []*string{aws.String(importTaskId)},
-		}
-
-		resp, err := conn.DescribeImportSnapshotTasks(params)
-		if err != nil {
-			return nil, "", err
-		}
-
-		if task := resp.ImportSnapshotTasks[0]; task != nil {
-			detail := task.SnapshotTaskDetail
-			if detail.Status != nil && *detail.Status == "deleting" {
-				if detail.StatusMessage != nil {
-					err = fmt.Errorf("Snapshot import task is deleting: %s", *detail.StatusMessage)
-				} else {
-					err = fmt.Errorf("Snapshot import task is deleting: (no status message provided)")
-				}
-
-			}
-
-			return detail, aws.StringValue(detail.Status), err
-		} else {
-			return nil, "", fmt.Errorf("AWS doesn't know about our import task ID (%s)", importTaskId)
-		}
-
-	}
 }
