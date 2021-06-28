@@ -175,6 +175,7 @@ data "aws_availability_zones" "available" {
 }
 
 data "aws_partition" "current" {}
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "cluster" {
   name = "%[1]s-cluster"
@@ -323,6 +324,107 @@ resource "aws_eks_node_group" "test" {
     "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
   ]
 }
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = aws_eks_cluster.test.id
+}
+
+provider "kubernetes" {
+  host                   =  aws_eks_cluster.test.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.test.certificate_authority.0.data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1alpha1"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.test.id]
+    command     = "aws"
+  }
+}
+
+resource "kubernetes_role" "emrcontainers_role" {
+  metadata {
+    name = "emr-containers"
+    namespace = "default"
+  }
+
+  rule {
+    api_groups     = [""]
+    resources      = ["namespaces"]
+    verbs          = ["get"]
+  }
+
+  rule {
+    api_groups = [""]
+    resources = ["serviceaccounts", "services", "configmaps", "events", "pods", "pods/log"]
+    verbs = ["get", "list", "watch", "describe", "create", "edit", "delete", "deletecollection", "annotate", "patch", "label"]
+  }
+
+  rule {
+    api_groups = [""]
+    resources = ["secrets"]
+    verbs = ["create", "patch", "delete", "watch"]
+  }
+
+  rule {
+    api_groups = ["apps"]
+    resources = ["statefulsets", "deployments"]
+    verbs = ["get", "list", "watch", "describe", "create", "edit", "delete", "annotate", "patch", "label"]
+  }
+
+  rule {
+    api_groups = ["batch"]
+    resources = ["jobs"]
+    verbs = ["get", "list", "watch", "describe", "create", "edit", "delete", "annotate", "patch", "label"]
+  }
+
+  rule {
+    api_groups = ["extensions"]
+    resources = ["ingresses"]
+    verbs = ["get", "list", "watch", "describe", "create", "edit", "delete", "annotate", "patch", "label"]
+  }
+
+  rule {
+    api_groups = ["rbac.authorization.k8s.io"]
+    resources = ["roles", "rolebindings"]
+    verbs = ["get", "list", "watch", "describe", "create", "edit", "delete", "deletecollection", "annotate", "patch", "label"]
+  }
+}
+
+resource "kubernetes_role_binding" "emrcontainers_rolemapping" {
+  metadata {
+    name = "emr-containers"
+    namespace = "default"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = kubernetes_role.emrcontainers_role.metadata[0].name
+  }
+  subject {
+    kind      = "User"
+    name      = "emr-containers"
+    api_group = "rbac.authorization.k8s.io"
+  }
+}
+
+resource "kubernetes_config_map" "aws_auth" {
+  metadata {
+    name = "aws-cm-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+mapRoles = <<EOF
+- rolearn: ${aws_iam_role.node.arn}
+  username: system:node:{{EC2PrivateDNSName}}
+  groups:
+  - system:bootstrappers
+  - system:nodes
+- rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AWSServiceRoleForAmazonEMRContainers
+  username: emr-containers
+EOF
+	}
+}
+
 `, rName)
 }
 
@@ -339,7 +441,7 @@ resource "aws_emrcontainers_virtual_cluster" "test" {
       }
     }
   }
-  
+
   name = %[1]q
 }
 `, rName)
