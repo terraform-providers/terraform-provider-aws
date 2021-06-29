@@ -62,16 +62,22 @@ func TestAccAwsEMRContainersVirtualCluster_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_emrcontainers_virtual_cluster.test"
 
+	testExternalProviders := map[string]resource.ExternalProvider{
+		"kubernetes": {
+			Source:            "hashicorp/kubernetes",
+			VersionConstraint: "~> 2.3",
+		},
+	}
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsEMRContainersVirtualClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:         testAccProviders,
+		ExternalProviders: testExternalProviders,
+		CheckDestroy:      testAccCheckAwsEMRContainersVirtualClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEMRContainersVirtualClusterBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsEMRContainersVirtualClusterExists(resourceName, &vc),
-					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "airflow", "environment/"+rName),
 					resource.TestCheckResourceAttr(resourceName, "container_provider.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container_provider.0.id.#", rName),
 					resource.TestCheckResourceAttr(resourceName, "container_provider.0.info.#", "0"),
@@ -175,6 +181,7 @@ data "aws_availability_zones" "available" {
 }
 
 data "aws_partition" "current" {}
+
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "cluster" {
@@ -319,14 +326,19 @@ resource "aws_eks_node_group" "test" {
   }
 
   depends_on = [
-    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
-    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
-    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+    kubernetes_config_map.aws_auth,
+    aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly,
   ]
 }
 
 data "aws_eks_cluster_auth" "cluster" {
   name = aws_eks_cluster.test.id
+}
+
+resource "aws_iam_service_linked_role" "emrcontainers" {
+  aws_service_name = "emr-containers.amazonaws.com"
 }
 
 provider "kubernetes" {
@@ -408,7 +420,7 @@ resource "kubernetes_role_binding" "emrcontainers_rolemapping" {
 
 resource "kubernetes_config_map" "aws_auth" {
   metadata {
-    name = "aws-cm-auth"
+    name = "aws-auth"
     namespace = "kube-system"
   }
 
@@ -419,8 +431,8 @@ mapRoles = <<EOF
   groups:
   - system:bootstrappers
   - system:nodes
-- rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AWSServiceRoleForAmazonEMRContainers
-  username: emr-containers
+- rolearn: arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/AWSServiceRoleForAmazonEMRContainers
+  username: ${kubernetes_role_binding.emrcontainers_rolemapping.subject[0].name}
 EOF
   }
 }
@@ -443,6 +455,11 @@ resource "aws_emrcontainers_virtual_cluster" "test" {
   }
 
   name = %[1]q
+
+  depends_on = [
+    kubernetes_config_map.aws_auth,
+    aws_iam_service_linked_role.emrcontainers
+  ]
 }
 `, rName)
 }

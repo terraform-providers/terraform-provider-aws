@@ -41,8 +41,8 @@ func VirtualClusterCreated(conn *emrcontainers.EMRContainers, id string) (*emrco
 // VirtualClusterDeleted waits for a virtual cluster to be deleted
 func VirtualClusterDeleted(conn *emrcontainers.EMRContainers, id string) (*emrcontainers.VirtualCluster, error) {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{emrcontainers.VirtualClusterStateRunning},
-		Target:  []string{},
+		Pending: []string{emrcontainers.VirtualClusterStateTerminating},
+		Target:  []string{emrcontainers.VirtualClusterStateTerminated},
 		Refresh: VirtualClusterStatus(conn, id),
 		Timeout: VirtualClusterDeletedTimeout,
 		Delay:   VirtualClusterDeletedDelay,
