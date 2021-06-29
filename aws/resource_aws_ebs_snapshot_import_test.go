@@ -32,6 +32,7 @@ func TestAccAWSEBSSnapshotImport_basic(t *testing.T) {
 					testAccCheckSnapshotImportExists(resourceName, &v),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags_all.%", "0"),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
 			},
@@ -50,11 +51,33 @@ func TestAccAWSEBSSnapshotImport_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAwsEbsSnapshotImportDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEbsSnapshotImportConfigTags(rName, t),
+				Config: testAccAwsEbsSnapshotImportConfigTags1(rName, t, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSnapshotImportExists(resourceName, &v),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+				),
+			},
+			{
+				Config: testAccAwsEbsSnapshotImportConfigTags2(rName, t, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotImportExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+				),
+			},
+			{
+				Config: testAccAwsEbsSnapshotImportConfigTags1(rName, t, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotImportExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`snapshot/snap-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
 			},
@@ -263,7 +286,7 @@ resource "aws_ebs_snapshot_import" "test" {
 `, rName)
 }
 
-func testAccAwsEbsSnapshotImportConfigTags(rName string, t *testing.T) string {
+func testAccAwsEbsSnapshotImportConfigTags1(rName string, t *testing.T, tagKey1 string, tagValue1 string) string {
 	return testAccAwsEbsSnapshotImportConfig_Base(t) + fmt.Sprintf(`
 resource "aws_ebs_snapshot_import" "test" {
   disk_container {
@@ -283,10 +306,37 @@ resource "aws_ebs_snapshot_import" "test" {
   }
 
   tags = {
-    foo = "bar"
+    %[2]q = %[3]q
   }
 }
-`, rName)
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAwsEbsSnapshotImportConfigTags2(rName string, t *testing.T, tagKey1 string, tagValue1 string, tagKey2 string, tagValue2 string) string {
+	return testAccAwsEbsSnapshotImportConfig_Base(t) + fmt.Sprintf(`
+resource "aws_ebs_snapshot_import" "test" {
+  disk_container {
+    description = %[1]q
+    format      = "VHD"
+    user_bucket {
+      s3_bucket = aws_s3_bucket.images.id
+      s3_key    = aws_s3_bucket_object.image.key
+    }
+  }
+
+  role_name = aws_iam_role.vmimport.name
+
+  timeouts {
+    create = "10m"
+    delete = "10m"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAwsEbsSnapshotDisk(t *testing.T) string {
