@@ -167,7 +167,7 @@ func testAccCheckAwsEbsSnapshotImportDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAwsEbsSnapshotImportConfigBasic(rName string, t *testing.T) string {
+func testAccAwsEbsSnapshotImportConfig_Base(t *testing.T) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "images" {
   bucket_prefix = "images-"
@@ -238,10 +238,14 @@ data "aws_iam_policy_document" "vmimport-trust" {
     }
   }
 }
+`, testAccAwsEbsSnapshotDisk(t))
+}
 
+func testAccAwsEbsSnapshotImportConfigBasic(rName string, t *testing.T) string {
+	return testAccAwsEbsSnapshotImportConfig_Base(t) + fmt.Sprintf(`
 resource "aws_ebs_snapshot_import" "test" {
   disk_container {
-    description = %[2]q
+    description = %[1]q
     format      = "VHD"
     user_bucket {
       s3_bucket = aws_s3_bucket.images.id
@@ -256,84 +260,14 @@ resource "aws_ebs_snapshot_import" "test" {
     delete = "10m"
   }
 }
-`, testAccAwsEbsSnapshotDisk(t), rName)
+`, rName)
 }
 
 func testAccAwsEbsSnapshotImportConfigTags(rName string, t *testing.T) string {
-	return fmt.Sprintf(`
-resource "aws_s3_bucket" "images" {
-  bucket_prefix = "images-"
-  force_destroy = true
-}
-
-resource "aws_s3_bucket_object" "image" {
-  bucket         = aws_s3_bucket.images.id
-  key            = "diskimage.vhd"
-  content_base64 = %[1]q
-}
-
-# The following resources are for the *vmimport service user*
-# See: https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role
-resource "aws_iam_role" "vmimport" {
-  assume_role_policy = data.aws_iam_policy_document.vmimport-trust.json
-}
-
-resource "aws_iam_role_policy" "vmimport-access" {
-  role   = aws_iam_role.vmimport.id
-  policy = data.aws_iam_policy_document.vmimport-access.json
-}
-
-data "aws_iam_policy_document" "vmimport-access" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetBucketLocation",
-      "s3:GetObject",
-      "s3:ListBucket",
-    ]
-    resources = [
-      aws_s3_bucket.images.arn,
-      "${aws_s3_bucket.images.arn}/*"
-    ]
-  }
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:ModifySnapshotAttribute",
-      "ec2:CopySnapshot",
-      "ec2:RegisterImage",
-      "ec2:Describe*"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-
-data "aws_iam_policy_document" "vmimport-trust" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["vmie.amazonaws.com"]
-    }
-
-    actions = [
-      "sts:AssumeRole"
-    ]
-
-    condition {
-      test     = "StringEquals"
-      variable = "sts:ExternalId"
-      values   = ["vmimport"]
-    }
-  }
-}
-
+	return testAccAwsEbsSnapshotImportConfig_Base(t) + fmt.Sprintf(`
 resource "aws_ebs_snapshot_import" "test" {
   disk_container {
-    description = %[2]q
+    description = %[1]q
     format      = "VHD"
     user_bucket {
       s3_bucket = aws_s3_bucket.images.id
@@ -352,7 +286,7 @@ resource "aws_ebs_snapshot_import" "test" {
     foo = "bar"
   }
 }
-`, testAccAwsEbsSnapshotDisk(t), rName)
+`, rName)
 }
 
 func testAccAwsEbsSnapshotDisk(t *testing.T) string {
