@@ -12,7 +12,7 @@ Imports a disk image from S3 as a Snapshot.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_ebs_snapshot_import" "example" {
   disk_container {
     format = "VHD"
