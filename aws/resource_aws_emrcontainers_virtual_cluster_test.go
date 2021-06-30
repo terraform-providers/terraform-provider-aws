@@ -79,12 +79,14 @@ func TestAccAwsEMRContainersVirtualCluster_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsEMRContainersVirtualClusterExists(resourceName, &vc),
 					resource.TestCheckResourceAttr(resourceName, "container_provider.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container_provider.0.id.#", rName),
-					resource.TestCheckResourceAttr(resourceName, "container_provider.0.info.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "container_provider.0.id", rName),
+					resource.TestCheckResourceAttr(resourceName, "container_provider.0.info.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container_provider.0.info.0.eks_info.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container_provider.0.info.0.eks_info.0.namespace", "default"),
 					resource.TestCheckResourceAttr(resourceName, "container_provider.0.type", "EKS"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "state", rName),
+					resource.TestCheckResourceAttr(resourceName, "state", "RUNNING"),
 				),
 			},
 			{
