@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_launch_template: Set credit specification even if launch template have no instance type
+```
