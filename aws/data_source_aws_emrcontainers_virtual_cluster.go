@@ -61,8 +61,7 @@ func dataSourceAwsEMRContainersVirtualCluster() *schema.Resource {
 			},
 			"id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
