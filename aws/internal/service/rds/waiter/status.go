@@ -1,8 +1,12 @@
 package waiter
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/rds/finder"
 )
@@ -56,5 +60,37 @@ func DBProxyEndpointStatus(conn *rds.RDS, id string) resource.StateRefreshFunc {
 		}
 
 		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+// ActivityStreamStatus fetches the RDS Cluster Activity Stream Status
+func ActivityStreamStatus(conn *rds.RDS, dbClusterIdentifier string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		emptyResp := &rds.DescribeDBClustersInput{}
+
+		resp, err := conn.DescribeDBClusters(&rds.DescribeDBClustersInput{
+			DBClusterIdentifier: aws.String(dbClusterIdentifier),
+		})
+
+		if err != nil {
+			log.Printf("[DEBUG] Refreshing RDS Cluster Activity Stream State. Occur error: %s", err)
+			if tfawserr.ErrCodeContains(err, rds.ErrCodeDBClusterNotFoundFault) {
+				return emptyResp, rds.ActivityStreamStatusStopped, nil
+			} else if resp != nil && len(resp.DBClusters) == 0 {
+				return emptyResp, rds.ActivityStreamStatusStopped, nil
+			} else {
+				return emptyResp, "", fmt.Errorf("error on refresh: %+v", err)
+			}
+		}
+
+		if resp == nil || resp.DBClusters == nil || len(resp.DBClusters) == 0 {
+			log.Printf("[DEBUG] Refreshing RDS Cluster Activity Stream State. Invalid resp: %s", resp)
+			return emptyResp, rds.ActivityStreamStatusStopped, nil
+		}
+
+		cluster := resp.DBClusters[0]
+		status := aws.StringValue(cluster.ActivityStreamStatus)
+		log.Printf("[DEBUG] Refreshing RDS Cluster Activity Stream State... %s", status)
+		return cluster, status, nil
 	}
 }
