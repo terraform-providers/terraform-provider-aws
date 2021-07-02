@@ -42,6 +42,10 @@ func resourceAwsSagemakerDeviceFleet() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}$`), "Valid characters are a-z, A-Z, 0-9, and - (hyphen)."),
 				),
 			},
+			"enable_iot_role_alias": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"iot_role_alias": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -70,18 +74,22 @@ func resourceAwsSagemakerDeviceFleet() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateArn,
 			},
-			"tags": tagsSchema(),
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 		},
 	}
 }
 
 func resourceAwsSagemakerDeviceFleetCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("device_fleet_name").(string)
 	input := &sagemaker.CreateDeviceFleetInput{
-		DeviceFleetName: aws.String(name),
-		OutputConfig:    expandSagemakerFeatureDeviceFleetOutputConfig(d.Get("output_config").([]interface{})),
+		DeviceFleetName:    aws.String(name),
+		OutputConfig:       expandSagemakerFeatureDeviceFleetOutputConfig(d.Get("output_config").([]interface{})),
+		EnableIotRoleAlias: aws.Bool(d.Get("enable_iot_role_alias").(bool)),
 	}
 
 	if v, ok := d.GetOk("role_arn"); ok {
@@ -92,8 +100,8 @@ func resourceAwsSagemakerDeviceFleetCreate(d *schema.ResourceData, meta interfac
 		input.Description = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	_, err := retryOnAwsCode("ValidationException", func() (interface{}, error) {
@@ -110,6 +118,7 @@ func resourceAwsSagemakerDeviceFleetCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsSagemakerDeviceFleetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	deviceFleet, err := finder.DeviceFleetByName(conn, d.Id())
@@ -124,11 +133,14 @@ func resourceAwsSagemakerDeviceFleetRead(d *schema.ResourceData, meta interface{
 	}
 
 	arn := aws.StringValue(deviceFleet.DeviceFleetArn)
-	d.Set("deviceFleet_name", deviceFleet.DeviceFleetName)
+	d.Set("device_fleet_name", deviceFleet.DeviceFleetName)
 	d.Set("arn", arn)
 	d.Set("role_arn", deviceFleet.RoleArn)
 	d.Set("description", deviceFleet.Description)
-	d.Set("iot_role_alias", deviceFleet.IotRoleAlias)
+
+	iotAlias := aws.StringValue(deviceFleet.IotRoleAlias)
+	d.Set("iot_role_alias", iotAlias)
+	d.Set("enable_iot_role_alias", len(iotAlias) > 0)
 
 	if err := d.Set("output_config", flattenSagemakerFeatureDeviceFleetOutputConfig(deviceFleet.OutputConfig)); err != nil {
 		return fmt.Errorf("error setting output_config for Sagemaker Device Fleet (%s): %w", d.Id(), err)
@@ -140,8 +152,15 @@ func resourceAwsSagemakerDeviceFleetRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for SageMaker DeviceFleet (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
 	}
 
 	return nil
@@ -150,14 +169,17 @@ func resourceAwsSagemakerDeviceFleetRead(d *schema.ResourceData, meta interface{
 func resourceAwsSagemakerDeviceFleetUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
-	if d.HasChangeExcept("tags") {
-
+	if d.HasChangeExcept("tags_all") {
 		input := &sagemaker.UpdateDeviceFleetInput{
 			DeviceFleetName: aws.String(d.Id()),
 		}
 
 		if d.HasChange("description") {
 			input.Description = aws.String(d.Get("description").(string))
+		}
+
+		if d.HasChange("enable_iot_role_alias") {
+			input.EnableIotRoleAlias = aws.Bool(d.Get("enable_iot_role_alias").(bool))
 		}
 
 		if d.HasChange("role_arn") {
@@ -175,11 +197,11 @@ func resourceAwsSagemakerDeviceFleetUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating SageMaker Device Fleet (%s) tags: %s", d.Id(), err)
+			return fmt.Errorf("error updating SageMaker Device Fleet (%s) tags: %w", d.Id(), err)
 		}
 	}
 

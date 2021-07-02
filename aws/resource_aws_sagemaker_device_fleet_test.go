@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -26,18 +27,19 @@ func testSweepSagemakerDeviceFleets(region string) error {
 		return fmt.Errorf("error getting client: %s", err)
 	}
 	conn := client.(*AWSClient).sagemakerconn
+	var sweeperErrs *multierror.Error
 
 	err = conn.ListDeviceFleetsPages(&sagemaker.ListDeviceFleetsInput{}, func(page *sagemaker.ListDeviceFleetsOutput, lastPage bool) bool {
 		for _, deviceFleet := range page.DeviceFleetSummaries {
 			name := aws.StringValue(deviceFleet.DeviceFleetName)
 
-			input := &sagemaker.DeleteDeviceFleetInput{
-				DeviceFleetName: deviceFleet.DeviceFleetName,
-			}
-
-			log.Printf("[INFO] Deleting SageMaker Device Fleet: %s", name)
-			if _, err := conn.DeleteDeviceFleet(input); err != nil {
-				log.Printf("[ERROR] Error deleting SageMaker Device Fleet (%s): %s", name, err)
+			r := resourceAwsSagemakerDeviceFleet()
+			d := r.Data(nil)
+			d.SetId(name)
+			err := r.Delete(d, client)
+			if err != nil {
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
 				continue
 			}
 		}
@@ -47,14 +49,14 @@ func testSweepSagemakerDeviceFleets(region string) error {
 
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping SageMaker Device Fleet sweep for %s: %s", region, err)
-		return nil
+		return sweeperErrs.ErrorOrNil()
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving SageMaker Device Fleets: %w", err)
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Sagemaker Device Fleets: %w", err))
 	}
 
-	return nil
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSSagemakerDeviceFleet_basic(t *testing.T) {

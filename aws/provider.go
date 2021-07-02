@@ -989,6 +989,7 @@ func Provider() *schema.Provider {
 			"aws_sagemaker_app":                                       resourceAwsSagemakerApp(),
 			"aws_sagemaker_app_image_config":                          resourceAwsSagemakerAppImageConfig(),
 			"aws_sagemaker_code_repository":                           resourceAwsSagemakerCodeRepository(),
+			"aws_sagemaker_device_fleet":                              resourceAwsSagemakerDeviceFleet(),
 			"aws_sagemaker_domain":                                    resourceAwsSagemakerDomain(),
 			"aws_sagemaker_endpoint":                                  resourceAwsSagemakerEndpoint(),
 			"aws_sagemaker_endpoint_configuration":                    resourceAwsSagemakerEndpointConfiguration(),
