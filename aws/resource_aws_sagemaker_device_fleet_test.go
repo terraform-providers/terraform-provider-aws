@@ -76,6 +76,7 @@ func TestAccAWSSagemakerDeviceFleet_basic(t *testing.T) {
 					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					resource.TestCheckResourceAttr(resourceName, "device_fleet_name", rName),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "sagemaker", fmt.Sprintf("device-fleet/%s", rName)),
+					resource.TestCheckResourceAttrPair(resourceName, "role_arn", "aws_iam_role.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "output_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "output_config.0.s3_output_location", fmt.Sprintf("s3://%s/prefix/", rName)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -292,9 +293,9 @@ resource "aws_sagemaker_device_fleet" "test" {
 func testAccAWSSagemakerDeviceFleetDescription(rName, desc string) string {
 	return testAccAWSSagemakerDeviceFleetConfigBase(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_device_fleet" "test" {
-  device_fleet_name  = %[1]q
-  role_arn           = aws_iam_role.test.arn
-  description        = %[2]q
+  device_fleet_name = %[1]q
+  role_arn          = aws_iam_role.test.arn
+  description       = %[2]q
 
   output_config {
     s3_output_location = "s3://${aws_s3_bucket.test.bucket}/prefix/"
