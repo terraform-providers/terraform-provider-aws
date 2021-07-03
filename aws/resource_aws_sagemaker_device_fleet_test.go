@@ -60,7 +60,7 @@ func testSweepSagemakerDeviceFleets(region string) error {
 }
 
 func TestAccAWSSagemakerDeviceFleet_basic(t *testing.T) {
-	var device_fleet sagemaker.DescribeDeviceFleetOutput
+	var deviceFleet sagemaker.DescribeDeviceFleetOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_device_fleet.test"
 
@@ -73,7 +73,7 @@ func TestAccAWSSagemakerDeviceFleet_basic(t *testing.T) {
 			{
 				Config: testAccAWSSagemakerDeviceFleetBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					resource.TestCheckResourceAttr(resourceName, "device_fleet_name", rName),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "sagemaker", fmt.Sprintf("device-fleet/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "output_config.#", "1"),
@@ -91,7 +91,7 @@ func TestAccAWSSagemakerDeviceFleet_basic(t *testing.T) {
 }
 
 func TestAccAWSSagemakerDeviceFleet_description(t *testing.T) {
-	var device_fleet sagemaker.DescribeDeviceFleetOutput
+	var deviceFleet sagemaker.DescribeDeviceFleetOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_device_fleet.test"
 
@@ -102,9 +102,9 @@ func TestAccAWSSagemakerDeviceFleet_description(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSagemakerDeviceFleetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSagemakerDeviceFleetDescription(rName),
+				Config: testAccAWSSagemakerDeviceFleetDescription(rName, rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					resource.TestCheckResourceAttr(resourceName, "description", rName),
 				),
 			},
@@ -114,17 +114,10 @@ func TestAccAWSSagemakerDeviceFleet_description(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSagemakerDeviceFleetBasicConfig(rName),
+				Config: testAccAWSSagemakerDeviceFleetDescription(rName, "test"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-				),
-			},
-			{
-				Config: testAccAWSSagemakerDeviceFleetDescription(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
-					resource.TestCheckResourceAttr(resourceName, "description", rName),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
+					resource.TestCheckResourceAttr(resourceName, "description", "test"),
 				),
 			},
 		},
@@ -132,7 +125,7 @@ func TestAccAWSSagemakerDeviceFleet_description(t *testing.T) {
 }
 
 func TestAccAWSSagemakerDeviceFleet_tags(t *testing.T) {
-	var device_fleet sagemaker.DescribeDeviceFleetOutput
+	var deviceFleet sagemaker.DescribeDeviceFleetOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_device_fleet.test"
 
@@ -145,7 +138,7 @@ func TestAccAWSSagemakerDeviceFleet_tags(t *testing.T) {
 			{
 				Config: testAccAWSSagemakerDeviceFleetConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
@@ -158,7 +151,7 @@ func TestAccAWSSagemakerDeviceFleet_tags(t *testing.T) {
 			{
 				Config: testAccAWSSagemakerDeviceFleetConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
@@ -167,7 +160,7 @@ func TestAccAWSSagemakerDeviceFleet_tags(t *testing.T) {
 			{
 				Config: testAccAWSSagemakerDeviceFleetConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
@@ -177,7 +170,7 @@ func TestAccAWSSagemakerDeviceFleet_tags(t *testing.T) {
 }
 
 func TestAccAWSSagemakerDeviceFleet_disappears(t *testing.T) {
-	var device_fleet sagemaker.DescribeDeviceFleetOutput
+	var deviceFleet sagemaker.DescribeDeviceFleetOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_device_fleet.test"
 
@@ -190,7 +183,7 @@ func TestAccAWSSagemakerDeviceFleet_disappears(t *testing.T) {
 			{
 				Config: testAccAWSSagemakerDeviceFleetBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &device_fleet),
+					testAccCheckAWSSagemakerDeviceFleetExists(resourceName, &deviceFleet),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSagemakerDeviceFleet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
@@ -296,18 +289,18 @@ resource "aws_sagemaker_device_fleet" "test" {
 `, rName)
 }
 
-func testAccAWSSagemakerDeviceFleetDescription(rName string) string {
+func testAccAWSSagemakerDeviceFleetDescription(rName, desc string) string {
 	return testAccAWSSagemakerDeviceFleetConfigBase(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_device_fleet" "test" {
   device_fleet_name  = %[1]q
   role_arn           = aws_iam_role.test.arn
-  description        = %[1]q
+  description        = %[2]q
 
   output_config {
     s3_output_location = "s3://${aws_s3_bucket.test.bucket}/prefix/"
   }
 }
-`, rName)
+`, rName, desc)
 }
 
 func testAccAWSSagemakerDeviceFleetConfigTags1(rName, tagKey1, tagValue1 string) string {

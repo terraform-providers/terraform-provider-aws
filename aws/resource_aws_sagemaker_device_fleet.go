@@ -123,12 +123,12 @@ func resourceAwsSagemakerDeviceFleetRead(d *schema.ResourceData, meta interface{
 
 	deviceFleet, err := finder.DeviceFleetByName(conn, d.Id())
 	if err != nil {
-		if isAWSErr(err, sagemaker.ErrCodeResourceNotFound, "does not exist") {
+		if isAWSErr(err, "ValidationException", "No devicefleet with name") {
 			d.SetId("")
-			log.Printf("[WARN] Unable to find SageMaker DeviceFleet (%s); removing from state", d.Id())
+			log.Printf("[WARN] Unable to find SageMaker Device Fleet (%s); removing from state", d.Id())
 			return nil
 		}
-		return fmt.Errorf("error reading SageMaker DeviceFleet (%s): %w", d.Id(), err)
+		return fmt.Errorf("error reading SageMaker Device Fleet (%s): %w", d.Id(), err)
 
 	}
 
@@ -149,7 +149,7 @@ func resourceAwsSagemakerDeviceFleetRead(d *schema.ResourceData, meta interface{
 	tags, err := keyvaluetags.SagemakerListTags(conn, arn)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for SageMaker DeviceFleet (%s): %w", d.Id(), err)
+		return fmt.Errorf("error listing tags for SageMaker Device Fleet (%s): %w", d.Id(), err)
 	}
 
 	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
@@ -171,23 +171,14 @@ func resourceAwsSagemakerDeviceFleetUpdate(d *schema.ResourceData, meta interfac
 
 	if d.HasChangeExcept("tags_all") {
 		input := &sagemaker.UpdateDeviceFleetInput{
-			DeviceFleetName: aws.String(d.Id()),
+			DeviceFleetName:    aws.String(d.Id()),
+			EnableIotRoleAlias: aws.Bool(d.Get("enable_iot_role_alias").(bool)),
+			OutputConfig:       expandSagemakerFeatureDeviceFleetOutputConfig(d.Get("output_config").([]interface{})),
+			RoleArn:            aws.String(d.Get("role_arn").(string)),
 		}
 
 		if d.HasChange("description") {
 			input.Description = aws.String(d.Get("description").(string))
-		}
-
-		if d.HasChange("enable_iot_role_alias") {
-			input.EnableIotRoleAlias = aws.Bool(d.Get("enable_iot_role_alias").(bool))
-		}
-
-		if d.HasChange("role_arn") {
-			input.RoleArn = aws.String(d.Get("role_arn").(string))
-		}
-
-		if d.HasChange("output_config") {
-			input.OutputConfig = expandSagemakerFeatureDeviceFleetOutputConfig(d.Get("output_config").([]interface{}))
 		}
 
 		log.Printf("[DEBUG] sagemaker DeviceFleet update config: %#v", *input)
@@ -216,7 +207,7 @@ func resourceAwsSagemakerDeviceFleetDelete(d *schema.ResourceData, meta interfac
 	}
 
 	if _, err := conn.DeleteDeviceFleet(input); err != nil {
-		if isAWSErr(err, sagemaker.ErrCodeResourceNotFound, "No Device Fleet with the name") {
+		if isAWSErr(err, "ValidationException", "DeviceFleet with name") {
 			return nil
 		}
 		return fmt.Errorf("error deleting SageMaker Device Fleet (%s): %w", d.Id(), err)
