@@ -203,7 +203,7 @@ func testAccCheckAWSSagemakerDeviceFleetDestroy(s *terraform.State) error {
 
 		deviceFleet, err := finder.DeviceFleetByName(conn, rs.Primary.ID)
 		if err != nil {
-			return nil
+			return fmt.Errorf("error reading Sagemaker Device Fleet (%s): %w", rs.Primary.ID, err)
 		}
 
 		if aws.StringValue(deviceFleet.DeviceFleetName) == rs.Primary.ID {
