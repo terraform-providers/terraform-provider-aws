@@ -81,6 +81,8 @@ func TestAccAWSSagemakerDeviceFleet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "output_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "output_config.0.s3_output_location", fmt.Sprintf("s3://%s/prefix/", rName)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "enable_iot_role_alias", "false"),
+					resource.TestCheckResourceAttr(resourceName, "iot_role_alias", ""),
 				),
 			},
 			{
@@ -267,14 +269,40 @@ data "aws_iam_policy_document" "test" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "test" {
-  role       = aws_iam_role.test.name
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSageMakerFullAccess"
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.test.arn}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+EOF
 }
 
-resource "aws_iam_role_policy_attachment" "test2" {
+resource "aws_iam_role_policy_attachment" "test" {
   role       = aws_iam_role.test.name
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSIoTFullAccess"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonSageMakerEdgeDeviceFleetPolicy"
 }
 `, rName)
 }
@@ -288,8 +316,6 @@ resource "aws_sagemaker_device_fleet" "test" {
   output_config {
     s3_output_location = "s3://${aws_s3_bucket.test.bucket}/prefix/"
   }
-
-  depends_on = [aws_iam_role_policy_attachment.test, aws_iam_role_policy_attachment.test2]
 }
 `, rName)
 }
