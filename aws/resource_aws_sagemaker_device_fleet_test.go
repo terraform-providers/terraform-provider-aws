@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -203,6 +204,9 @@ func testAccCheckAWSSagemakerDeviceFleetDestroy(s *terraform.State) error {
 
 		deviceFleet, err := finder.DeviceFleetByName(conn, rs.Primary.ID)
 		if err != nil {
+			if tfawserr.ErrMessageContains(err, "ValidationException", "No devicefleet with name") {
+				continue
+			}
 			return fmt.Errorf("error reading Sagemaker Device Fleet (%s): %w", rs.Primary.ID, err)
 		}
 

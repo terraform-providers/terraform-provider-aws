@@ -77,6 +77,7 @@ func resourceAwsSagemakerDeviceFleet() *schema.Resource {
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
 		},
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
