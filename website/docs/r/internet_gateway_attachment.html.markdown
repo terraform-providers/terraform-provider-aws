@@ -12,7 +12,7 @@ Provides a resource to create a VPC Internet Gateway Attachment.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_internet_gateway_attachment" "example" {
   vpc_id              = aws_vpc.example.id
   internet_gateway_id = aws_internet_gateway.example.id
