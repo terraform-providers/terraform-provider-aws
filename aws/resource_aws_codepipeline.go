@@ -580,7 +580,7 @@ func resourceAwsCodePipelineRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsCodePipelineUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
 
-	if d.HasChangeExcept("tags") {
+	if d.HasChangeExcept("tags_all") {
 		pipeline, err := expandAwsCodePipeline(d)
 		if err != nil {
 			return err
