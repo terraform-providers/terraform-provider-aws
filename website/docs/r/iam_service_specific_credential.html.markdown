@@ -12,7 +12,7 @@ Provides an IAM Service Specific Credential.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "aws_iam_user" "example" {
   name = "example"
 }
