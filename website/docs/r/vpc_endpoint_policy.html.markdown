@@ -12,7 +12,7 @@ Provides a VPC Endpoint Policy resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "aws_vpc_endpoint_service" "example" {
   service = "dynamodb"
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsVpcEndpointPolicy() *schema.Resource {
@@ -43,25 +45,33 @@ func resourceAwsVpcEndpointPolicy() *schema.Resource {
 func resourceAwsVpcEndpointPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	vpceRaw, state, err := vpcEndpointStateRefresh(conn, d.Id())()
-	if err != nil && state != "failed" {
-		return fmt.Errorf("error reading VPC Endpoint Policy (%s): %w", d.Id(), err)
-	}
+	// vpceRaw, state, err := vpcEndpointStateRefresh(conn, d.Id())()
+	// if err != nil && state != "failed" {
+	// 	return fmt.Errorf("error reading VPC Endpoint Policy (%s): %w", d.Id(), err)
+	// }
 
-	terminalStates := map[string]bool{
-		"deleted":  true,
-		"deleting": true,
-		"failed":   true,
-		"expired":  true,
-		"rejected": true,
-	}
-	if _, ok := terminalStates[state]; ok {
-		log.Printf("[WARN] VPC Endpoint Policy (%s) in state (%s), removing from state", d.Id(), state)
+	// terminalStates := map[string]bool{
+	// 	"deleted":  true,
+	// 	"deleting": true,
+	// 	"failed":   true,
+	// 	"expired":  true,
+	// 	"rejected": true,
+	// }
+	// if _, ok := terminalStates[state]; ok {
+	// 	log.Printf("[WARN] VPC Endpoint Policy (%s) in state (%s), removing from state", d.Id(), state)
+	// 	d.SetId("")
+	// 	return nil
+	// }
+
+	// vpce := vpceRaw.(*ec2.VpcEndpoint)
+
+	vpce, err := finder.VpcEndpointByID(conn, d.Id())
+	if !d.IsNewResource() && tfresource.NotFound(err) {
+		log.Printf("[WARN] VPC Endpoint (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	vpce := vpceRaw.(*ec2.VpcEndpoint)
 	policy, err := structure.NormalizeJsonString(aws.StringValue(vpce.PolicyDocument))
 	if err != nil {
 		return fmt.Errorf("policy contains an invalid JSON: %w", err)
