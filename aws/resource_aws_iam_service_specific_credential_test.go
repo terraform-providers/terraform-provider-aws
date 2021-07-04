@@ -93,6 +93,7 @@ func TestAccAWSIAMServiceSpecificCredential_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iam.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMServiceSpecificCredentialDestroy,
 		Steps: []resource.TestStep{
