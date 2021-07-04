@@ -74,7 +74,7 @@ func resourceAwsIamServiceSpecificCredentialCreate(d *schema.ResourceData, meta 
 	d.SetId(fmt.Sprintf("%s:%s", aws.StringValue(cred.ServiceName), aws.StringValue(cred.UserName)))
 	d.Set("service_password", cred.ServicePassword)
 
-	if v, ok := d.GetOk("status"); ok && v.(string) == iam.StatusTypeInactive {
+	if v, ok := d.GetOk("status"); ok && v.(string) != iam.StatusTypeActive {
 		updateInput := &iam.UpdateServiceSpecificCredentialInput{
 			ServiceSpecificCredentialId: cred.ServiceSpecificCredentialId,
 			UserName:                    cred.UserName,
