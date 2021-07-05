@@ -202,6 +202,19 @@ func resourceAwsAcmCertificate() *schema.Resource {
 					}
 				}
 
+				// ACM automatically adds the domain_name value to the list of SANs. Mimic ACM's behavior
+				// so that the user doesn't need to explicitly set it themselves.
+				if diff.HasChange("domain_name") || diff.HasChange("subject_alternative_names") {
+					domain_name := diff.Get("domain_name").(string)
+
+					if sanSet, ok := diff.Get("subject_alternative_names").(*schema.Set); ok {
+						sanSet.Add(domain_name)
+						if err := diff.SetNew("subject_alternative_names", sanSet); err != nil {
+							return fmt.Errorf("error setting new subject_alternative_names diff: %w", err)
+						}
+					}
+				}
+
 				return nil
 			},
 			SetTagsDiff,
@@ -336,7 +349,7 @@ func resourceAwsAcmCertificateRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("arn", resp.Certificate.CertificateArn)
 		d.Set("certificate_authority_arn", resp.Certificate.CertificateAuthorityArn)
 
-		if err := d.Set("subject_alternative_names", cleanUpSubjectAlternativeNames(resp.Certificate)); err != nil {
+		if err := d.Set("subject_alternative_names", flattenSubjectAlternativeNames(resp.Certificate)); err != nil {
 			return resource.NonRetryableError(err)
 		}
 
@@ -432,16 +445,13 @@ func resourceAwsAcmCertificateUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceAwsAcmCertificateRead(d, meta)
 }
 
-func cleanUpSubjectAlternativeNames(cert *acm.CertificateDetail) []string {
+func flattenSubjectAlternativeNames(cert *acm.CertificateDetail) []string {
 	sans := cert.SubjectAlternativeNames
 	vs := make([]string, 0)
 	for _, v := range sans {
-		if aws.StringValue(v) != aws.StringValue(cert.DomainName) {
-			vs = append(vs, aws.StringValue(v))
-		}
+		vs = append(vs, aws.StringValue(v))
 	}
 	return vs
-
 }
 
 func convertValidationOptions(certificate *acm.CertificateDetail) ([]map[string]interface{}, []string, error) {
