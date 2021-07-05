@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acmpca"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -89,7 +88,7 @@ func resourceAwsAcmpcaPermissionCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error creating ACMPCA Permission: %s", err)
 	}
 
-	d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-%s-", ca_arn, principal)))
+	d.SetId(fmt.Sprintf("%s-%s", ca_arn, principal))
 
 	return resourceAwsAcmpcaPermissionRead(d, meta)
 }

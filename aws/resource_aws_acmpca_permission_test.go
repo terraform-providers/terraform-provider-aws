@@ -17,6 +17,7 @@ func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, acmpca.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -35,6 +36,7 @@ func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
 func TestAccAwsAcmpcaPermission_InvalidPrincipal(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, acmpca.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -49,6 +51,7 @@ func TestAccAwsAcmpcaPermission_InvalidPrincipal(t *testing.T) {
 func TestAccAwsAcmpcaPermission_InvalidActionsEntry(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, acmpca.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{

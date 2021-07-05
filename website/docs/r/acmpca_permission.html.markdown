@@ -15,7 +15,7 @@ Currently, this is only required in order to allow the ACM service to automatica
 
 ```hcl
 resource "aws_acmpca_permission" "example" {
-  certificate_authority_arn = "${aws_acmpca_certificate_authority.example.arn}"
+  certificate_authority_arn = aws_acmpca_certificate_authority.example.arn
   actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
   principal                 = "acm.amazonaws.com"
 }
