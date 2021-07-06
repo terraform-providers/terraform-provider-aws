@@ -2,14 +2,96 @@ package aws
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_iam_service_specific_credential", &resource.Sweeper{
+		Name: "aws_iam_service_specific_credential",
+		F:    testSweepIamServiceSpecificCredentials,
+	})
+}
+
+func testSweepIamServiceSpecificCredentials(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).iamconn
+
+	var sweeperErrs *multierror.Error
+
+	prefixes := []string{
+		"test-user",
+		"test_user",
+		"tf-acc",
+		"tf_acc",
+	}
+	users := make([]*iam.User, 0)
+
+	err = conn.ListUsersPages(&iam.ListUsersInput{}, func(page *iam.ListUsersOutput, lastPage bool) bool {
+		for _, user := range page.Users {
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(aws.StringValue(user.UserName), prefix) {
+					users = append(users, user)
+					break
+				}
+			}
+		}
+
+		return !lastPage
+	})
+
+	for _, user := range users {
+		userName := aws.StringValue(user.UserName)
+		input := &iam.ListServiceSpecificCredentialsInput{
+			UserName: aws.String(userName),
+		}
+
+		creds, err := conn.ListServiceSpecificCredentials(input)
+		if err != nil {
+			sweeperErr := fmt.Errorf("error listing IAM Service Specific Credentials for IAM user (%s): %w", userName, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
+		}
+
+		for _, cred := range creds.ServiceSpecificCredentials {
+			credId := aws.StringValue(cred.ServiceSpecificCredentialId)
+			r := resourceAwsIamServiceSpecificCredential()
+			d := r.Data(nil)
+			d.Set("service_specific_credential_id", credId)
+			d.Set("user_name", userName)
+			err := r.Delete(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting IAM Service Specific Credential (%s): %w", credId, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+	}
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping IAM SAML Provider sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing IAM SAML Providers: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSIAMServiceSpecificCredential_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
