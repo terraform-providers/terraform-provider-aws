@@ -23,12 +23,16 @@ func init() {
 
 func testSweepCodeDeployApps(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).codedeployconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+
 	input := &codedeploy.ListApplicationsInput{}
-	var sweeperErrs *multierror.Error
 
 	err = conn.ListApplicationsPages(input, func(page *codedeploy.ListApplicationsOutput, lastPage bool) bool {
 		for _, app := range page.Applications {
@@ -40,28 +44,28 @@ func testSweepCodeDeployApps(region string) error {
 			r := resourceAwsCodeDeployApp()
 			d := r.Data(nil)
 			d.SetId(fmt.Sprintf("%s:%s", "xxxx", appName))
-			err = r.Delete(d, client)
+			d.Set("name", appName)
 
-			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting CodeDeploy Application (%s): %w", appName, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping CodeDeploy Application sweep for %s: %s", region, err)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error describing CodeDeploy Applications for %s: %w", region, err))
+	}
+
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping CodeDeploy Applications for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping CodeDeploy Applications sweep for %s: %s", region, errs)
 		return nil
 	}
 
-	if err != nil {
-		return fmt.Errorf("error listing CodeDeploy Applications: %w", err)
-	}
-
-	return sweeperErrs.ErrorOrNil()
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSCodeDeployApp_basic(t *testing.T) {

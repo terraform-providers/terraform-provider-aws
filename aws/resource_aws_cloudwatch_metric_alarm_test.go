@@ -716,7 +716,7 @@ resource "aws_cloudwatch_metric_alarm" "test" {
       metric_name = "CPUUtilization"
       namespace   = "AWS/EC2"
       period      = "120"
-      stat        = "Average"
+      stat        = "p95.45"
       unit        = "Count"
 
       dimensions = {

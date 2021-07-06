@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
@@ -42,7 +43,7 @@ func resourceAwsRoute53Record() *schema.Resource {
 				StateFunc: func(v interface{}) string {
 					// AWS Provider aws_acm_certification.domain_validation_options.resource_record_name
 					// references (and perhaps others) contain a trailing period, requiring a custom StateFunc
-					// to trim the string to prevent Route53 API error
+					// to trim the string to prevent Route53 API error.
 					value := strings.TrimSuffix(v.(string), ".")
 					return strings.ToLower(value)
 				},
@@ -260,8 +261,8 @@ func resourceAwsRoute53RecordUpdate(d *schema.ResourceData, meta interface{}) er
 		return resourceAwsRoute53RecordCreate(d, meta)
 	}
 
-	// Otherwise we delete the existing record and create a new record within
-	// a transactional change
+	// Otherwise, we delete the existing record and create a new record within
+	// a transactional change.
 	conn := meta.(*AWSClient).r53conn
 	zone := cleanZoneID(d.Get("zone_id").(string))
 
@@ -407,7 +408,7 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	// Protect existing DNS records which might be managed in another way
+	// Protect existing DNS records which might be managed in another way.
 	// Use UPSERT only if the overwrite flag is true or if the current action is an update
 	// Else CREATE is used and fail if the same record exists
 	var action string
@@ -488,12 +489,15 @@ func changeRoute53RecordSet(conn *route53.Route53, input *route53.ChangeResource
 }
 
 func waitForRoute53RecordSetToSync(conn *route53.Route53, requestId string) error {
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	wait := resource.StateChangeConf{
-		Delay:      30 * time.Second,
-		Pending:    []string{route53.ChangeStatusPending},
-		Target:     []string{route53.ChangeStatusInsync},
-		Timeout:    30 * time.Minute,
-		MinTimeout: 5 * time.Second,
+		Pending:      []string{route53.ChangeStatusPending},
+		Target:       []string{route53.ChangeStatusInsync},
+		Delay:        time.Duration(rand.Int63n(20)+10) * time.Second,
+		MinTimeout:   5 * time.Second,
+		PollInterval: 20 * time.Second,
+		Timeout:      30 * time.Minute,
 		Refresh: func() (result interface{}, state string, err error) {
 			changeRequest := &route53.GetChangeInput{
 				Id: aws.String(requestId),
@@ -506,11 +510,11 @@ func waitForRoute53RecordSetToSync(conn *route53.Route53, requestId string) erro
 }
 
 func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) error {
-	// If we don't have a zone ID we're doing an import. Parse it from the ID.
+	// If we don't have a zone ID, we're doing an import. Parse it from the ID.
 	if _, ok := d.GetOk("zone_id"); !ok {
 		parts := parseRecordId(d.Id())
-		//we check that we have parsed the id into the correct number of segments
-		//we need at least 3 segments!
+		// We check that we have parsed the id into the correct number of segments.
+		// We need at least 3 segments!
 		if parts[0] == "" || parts[1] == "" || parts[2] == "" {
 			return fmt.Errorf("Error Importing aws_route_53 record. Please make sure the record ID is in the form ZONEID_RECORDNAME_TYPE_SET-IDENTIFIER (e.g. Z4KAPRWWNC7JR_dev.example.com_NS_dev), where SET-IDENTIFIER is optional")
 		}
@@ -604,7 +608,7 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 // findRecord takes a ResourceData struct for aws_resource_route53_record. It
-// uses the referenced zone_id to query Route53 and find information on it's
+// uses the referenced zone_id to query Route53 and find information on its
 // records.
 //
 // If records are found, it returns the matching
@@ -614,9 +618,9 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 // error.
 //
 // If no matching recordset is found, it returns nil and a r53NoRecordsFound
-// error
+// error.
 //
-// If there are other errors, it returns nil a nil recordset and passes on the
+// If there are other errors, it returns a nil recordset and passes on the
 // error.
 func findRecord(d *schema.ResourceData, meta interface{}) (*route53.ResourceRecordSet, error) {
 	conn := meta.(*AWSClient).r53conn
@@ -674,9 +678,9 @@ func findRecord(d *schema.ResourceData, meta interface{}) (*route53.ResourceReco
 	// We need to loop over all records starting from the record we are looking for because
 	// Weighted, Latency, Geo, and Failover resource record sets have a special option
 	// called SetIdentifier which allows multiple entries with the same name and type but
-	// a different SetIdentifier
+	// a different SetIdentifier.
 	// For all other records we are setting the maxItems to 1 so that we don't return extra
-	// unneeded records
+	// unneeded records.
 	err = conn.ListResourceRecordSetsPages(lopts, func(resp *route53.ListResourceRecordSetsOutput, lastPage bool) bool {
 		for _, recordSet := range resp.ResourceRecordSets {
 
@@ -906,9 +910,8 @@ func FQDN(name string) string {
 }
 
 // Route 53 stores certain characters with the octal equivalent in ASCII format.
-// This function converts all of these characters back into the original character
+// This function converts all of these characters back into the original character.
 // E.g. "*" is stored as "\\052" and "@" as "\\100"
-
 func cleanRecordName(name string) string {
 	str := name
 	s, err := strconv.Unquote(`"` + str + `"`)
@@ -946,7 +949,7 @@ func resourceAwsRoute53AliasRecordHash(v interface{}) int {
 
 // nilString takes a string as an argument and returns a string
 // pointer. The returned pointer is nil if the string argument is
-// empty, otherwise it is a pointer to a copy of the string.
+// empty. Otherwise, it is a pointer to a copy of the string.
 func nilString(s string) *string {
 	if s == "" {
 		return nil

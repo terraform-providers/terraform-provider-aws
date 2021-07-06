@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_cloudwatch_event_target: Don't crash if `sqs_target` configuration block is empty.
+```

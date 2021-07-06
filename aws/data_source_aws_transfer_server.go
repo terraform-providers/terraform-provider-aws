@@ -20,6 +20,10 @@ func dataSourceAwsTransferServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -88,6 +92,7 @@ func dataSourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) e
 	d.SetId(aws.StringValue(output.ServerId))
 	d.Set("arn", output.Arn)
 	d.Set("certificate", output.Certificate)
+	d.Set("domain", output.Domain)
 	d.Set("endpoint", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.server.transfer", serverID)))
 	d.Set("endpoint_type", output.EndpointType)
 	d.Set("identity_provider_type", output.IdentityProviderType)

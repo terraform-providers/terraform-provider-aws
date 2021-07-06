@@ -243,5 +243,16 @@ type ErrTFVersionMismatch struct {
 }
 
 func (e *ErrTFVersionMismatch) Error() string {
-	return "terraform core version not supported by configuration"
+	version := "version"
+	if e.TFVersion != "" {
+		version = e.TFVersion
+	}
+
+	requirement := ""
+	if e.Constraint != "" {
+		requirement = fmt.Sprintf(" (%s required)", e.Constraint)
+	}
+
+	return fmt.Sprintf("terraform %s not supported by configuration%s",
+		version, requirement)
 }

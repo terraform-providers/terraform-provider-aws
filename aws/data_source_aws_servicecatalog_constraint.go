@@ -71,7 +71,13 @@ func dataSourceAwsServiceCatalogConstraintRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error getting Service Catalog Constraint: empty response")
 	}
 
-	d.Set("accept_language", d.Get("accept_language").(string))
+	acceptLanguage := d.Get("accept_language").(string)
+
+	if acceptLanguage == "" {
+		acceptLanguage = tfservicecatalog.AcceptLanguageEnglish
+	}
+
+	d.Set("accept_language", acceptLanguage)
 
 	d.Set("parameters", output.ConstraintParameters)
 	d.Set("status", output.Status)

@@ -1,11 +1,13 @@
-package tfresource
+package tfresource_test
 
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestNotFound(t *testing.T) {
@@ -40,7 +42,7 @@ func TestNotFound(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
-			got := NotFound(testCase.Err)
+			got := tfresource.NotFound(testCase.Err)
 
 			if got != testCase.Expected {
 				t.Errorf("got %t, expected %t", got, testCase.Expected)
@@ -88,10 +90,81 @@ func TestTimedOut(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
-			got := TimedOut(testCase.Err)
+			got := tfresource.TimedOut(testCase.Err)
 
 			if got != testCase.Expected {
 				t.Errorf("got %t, expected %t", got, testCase.Expected)
+			}
+		})
+	}
+}
+
+func TestSetLastError(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Err      error
+		LastErr  error
+		Expected bool
+	}{
+		{
+			Name: "nil error",
+		},
+		{
+			Name:    "other error",
+			Err:     errors.New("test"),
+			LastErr: errors.New("last"),
+		},
+		{
+			Name: "timeout error lastErr is nil",
+			Err:  &resource.TimeoutError{},
+		},
+		{
+			Name:     "timeout error",
+			Err:      &resource.TimeoutError{},
+			LastErr:  errors.New("lasttest"),
+			Expected: true,
+		},
+		{
+			Name: "timeout error non-nil last error lastErr is nil",
+			Err:  &resource.TimeoutError{LastError: errors.New("test")},
+		},
+		{
+			Name:    "timeout error non-nil last error no overwrite",
+			Err:     &resource.TimeoutError{LastError: errors.New("test")},
+			LastErr: errors.New("lasttest"),
+		},
+		{
+			Name: "unexpected state error lastErr is nil",
+			Err:  &resource.UnexpectedStateError{},
+		},
+		{
+			Name:     "unexpected state error",
+			Err:      &resource.UnexpectedStateError{},
+			LastErr:  errors.New("lasttest"),
+			Expected: true,
+		},
+		{
+			Name: "unexpected state error non-nil last error lastErr is nil",
+			Err:  &resource.UnexpectedStateError{LastError: errors.New("test")},
+		},
+		{
+			Name:    "unexpected state error non-nil last error no overwrite",
+			Err:     &resource.UnexpectedStateError{LastError: errors.New("test")},
+			LastErr: errors.New("lasttest"),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			tfresource.SetLastError(testCase.Err, testCase.LastErr)
+
+			if testCase.Err != nil {
+				got := testCase.Err.Error()
+				contains := strings.Contains(got, "lasttest")
+
+				if (testCase.Expected && !contains) || (!testCase.Expected && contains) {
+					t.Errorf("got %s", got)
+				}
 			}
 		})
 	}

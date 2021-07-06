@@ -31,9 +31,24 @@ resource "aws_kms_key" "example" {
         ],
         Effect = "Allow"
         Principal = {
-          Service = "api-service.dnssec.route53.aws.internal"
+          Service = "dnssec-route53.amazonaws.com"
         }
-        Sid = "Route 53 DNSSEC Permissions"
+        Sid      = "Allow Route 53 DNSSEC Service",
+        Resource = "*"
+      },
+      {
+        Action = "kms:CreateGrant",
+        Effect = "Allow"
+        Principal = {
+          Service = "dnssec-route53.amazonaws.com"
+        }
+        Sid      = "Allow Route 53 DNSSEC Service to CreateGrant",
+        Resource = "*"
+        Condition = {
+          Bool = {
+            "kms:GrantIsForAWSResource" = "true"
+          }
+        }
       },
       {
         Action = "kms:*"
@@ -54,12 +69,15 @@ resource "aws_route53_zone" "example" {
 }
 
 resource "aws_route53_key_signing_key" "example" {
-  hosted_zone_id             = aws_route53_zone.test.id
-  key_management_service_arn = aws_kms_key.test.arn
+  hosted_zone_id             = aws_route53_zone.example.id
+  key_management_service_arn = aws_kms_key.example.arn
   name                       = "example"
 }
 
 resource "aws_route53_hosted_zone_dnssec" "example" {
+  depends_on = [
+    aws_route53_key_signing_key.example
+  ]
   hosted_zone_id = aws_route53_key_signing_key.example.hosted_zone_id
 }
 ```

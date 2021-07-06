@@ -3,6 +3,7 @@ package finder
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	tfroute53resolver "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/route53resolver"
 )
 
@@ -114,6 +115,39 @@ func FirewallDomainListByID(conn *route53resolver.Route53Resolver, firewallDomai
 	}
 
 	return output.FirewallDomainList, nil
+}
+
+// FirewallConfigByID returns the dnssec configuration corresponding to the specified ID.
+// Returns NotFoundError if no configuration is found.
+func FirewallConfigByID(conn *route53resolver.Route53Resolver, firewallConfigID string) (*route53resolver.FirewallConfig, error) {
+	input := &route53resolver.ListFirewallConfigsInput{}
+
+	var config *route53resolver.FirewallConfig
+	// GetFirewallConfigs does not support query with id
+	err := conn.ListFirewallConfigsPages(input, func(page *route53resolver.ListFirewallConfigsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, c := range page.FirewallConfigs {
+			if aws.StringValue(c.Id) == firewallConfigID {
+				config = c
+				return false
+			}
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if config == nil {
+		return nil, &resource.NotFoundError{}
+	}
+
+	return config, nil
 }
 
 // FirewallRuleByID returns the DNS Firewall rule corresponding to the specified rule group and domain list IDs.

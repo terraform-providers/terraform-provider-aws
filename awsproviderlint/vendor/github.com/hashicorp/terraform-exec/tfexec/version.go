@@ -10,13 +10,14 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-json"
+	tfjson "github.com/hashicorp/terraform-json"
 )
 
 var (
 	tf0_7_7  = version.Must(version.NewVersion("0.7.7"))
 	tf0_12_0 = version.Must(version.NewVersion("0.12.0"))
 	tf0_13_0 = version.Must(version.NewVersion("0.13.0"))
+	tf0_14_0 = version.Must(version.NewVersion("0.14.0"))
 	tf0_15_0 = version.Must(version.NewVersion("0.15.0"))
 )
 

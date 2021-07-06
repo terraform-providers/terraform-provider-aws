@@ -528,11 +528,11 @@ func TestAccAWSIoTTopicRule_Tags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSIoTTopicRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSIoTTopicRuleTags1(rName, "key1", "value1"),
+				Config: testAccAWSIoTTopicRuleTags1(rName, "key1", "user@example"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSIoTTopicRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "user@example"),
 				),
 			},
 			{
@@ -541,11 +541,11 @@ func TestAccAWSIoTTopicRule_Tags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSIoTTopicRuleTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Config: testAccAWSIoTTopicRuleTags2(rName, "key1", "user@example", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSIoTTopicRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "user@example"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},

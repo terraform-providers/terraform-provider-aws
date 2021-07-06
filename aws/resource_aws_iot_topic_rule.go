@@ -1090,7 +1090,7 @@ func resourceAwsIotTopicRuleCreate(d *schema.ResourceData, meta interface{}) err
 
 	input := &iot.CreateTopicRuleInput{
 		RuleName:         aws.String(ruleName),
-		Tags:             aws.String(tags.IgnoreAws().UrlEncode()),
+		Tags:             aws.String(tags.IgnoreAws().UrlQueryString()),
 		TopicRulePayload: expandIotTopicRulePayload(d),
 	}
 

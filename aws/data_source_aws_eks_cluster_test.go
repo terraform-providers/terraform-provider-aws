@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -11,7 +10,7 @@ import (
 )
 
 func TestAccAWSEksClusterDataSource_basic(t *testing.T) {
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	dataSourceResourceName := "data.aws_eks_cluster.test"
 	resourceName := "aws_eks_cluster.test"
 
@@ -57,11 +56,9 @@ func TestAccAWSEksClusterDataSource_basic(t *testing.T) {
 }
 
 func testAccAWSEksClusterDataSourceConfig_Basic(rName string) string {
-	return fmt.Sprintf(`
-%[1]s
-
+	return composeConfig(testAccAWSEksClusterConfig_Logging(rName, []string{"api", "audit"}), `
 data "aws_eks_cluster" "test" {
   name = aws_eks_cluster.test.name
 }
-`, testAccAWSEksClusterConfig_Logging(rName, []string{"api", "audit"}))
+`)
 }

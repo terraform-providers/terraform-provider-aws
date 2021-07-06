@@ -4,13 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestAccAWSMainRouteTableAssociation_basic(t *testing.T) {
+	var rta ec2.RouteTableAssociation
+	resourceName := "aws_main_route_table_association.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
@@ -18,15 +24,15 @@ func TestAccAWSMainRouteTableAssociation_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMainRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMainRouteTableAssociationConfig,
+				Config: testAccMainRouteTableAssociationConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMainRouteTableAssociation("aws_main_route_table_association.foo", "aws_vpc.foo"),
+					testAccCheckMainRouteTableAssociationExists(resourceName, &rta),
 				),
 			},
 			{
-				Config: testAccMainRouteTableAssociationConfigUpdate,
+				Config: testAccMainRouteTableAssociationConfigUpdated(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMainRouteTableAssociation("aws_main_route_table_association.foo", "aws_vpc.foo"),
+					testAccCheckMainRouteTableAssociationExists(resourceName, &rta),
 				),
 			},
 		},
@@ -41,139 +47,132 @@ func testAccCheckMainRouteTableAssociationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		mainAssociation, err := findMainRouteTableAssociation(
-			conn,
-			rs.Primary.Attributes["vpc_id"],
-		)
+		_, err := finder.MainRouteTableAssociationByID(conn, rs.Primary.ID)
+
+		if tfresource.NotFound(err) {
+			continue
+		}
+
 		if err != nil {
-			// Verify the error is what we want
-			if ae, ok := err.(awserr.Error); ok && ae.Code() == "ApplicationDoesNotExistException" {
-				continue
-			}
 			return err
 		}
 
-		if mainAssociation != nil {
-			return fmt.Errorf("still exists")
-		}
+		return fmt.Errorf("Main route table association %s still exists", rs.Primary.ID)
 	}
 
 	return nil
 }
 
-func testAccCheckMainRouteTableAssociation(mainRouteTableAssociationResource string, vpcResource string) resource.TestCheckFunc {
+func testAccCheckMainRouteTableAssociationExists(n string, v *ec2.RouteTableAssociation) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[mainRouteTableAssociationResource]
+		rs, ok := s.RootModule().Resources[n]
 		if !ok {
-			return fmt.Errorf("Not found: %s", mainRouteTableAssociationResource)
+			return fmt.Errorf("Not found: %s", n)
 		}
 
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No ID is set")
 		}
 
-		vpc, ok := s.RootModule().Resources[vpcResource]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vpcResource)
-		}
-
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		mainAssociation, err := findMainRouteTableAssociation(conn, vpc.Primary.ID)
+
+		association, err := finder.MainRouteTableAssociationByID(conn, rs.Primary.ID)
+
 		if err != nil {
 			return err
 		}
 
-		if *mainAssociation.RouteTableAssociationId != rs.Primary.ID {
-			return fmt.Errorf("Found wrong main association: %s",
-				*mainAssociation.RouteTableAssociationId)
-		}
+		*v = *association
 
 		return nil
 	}
 }
 
-const testAccMainRouteTableAssociationConfig = `
-resource "aws_vpc" "foo" {
+func testAccMainRouteTableAssociationConfigBaseVPC(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-main-route-table-association"
+    Name = %[1]q
   }
 }
 
-resource "aws_subnet" "foo" {
-  vpc_id     = aws_vpc.foo.id
+resource "aws_subnet" "test" {
+  vpc_id     = aws_vpc.test.id
   cidr_block = "10.1.1.0/24"
 
   tags = {
-    Name = "tf-acc-main-route-table-association"
+    Name = %[1]q
   }
 }
 
-resource "aws_internet_gateway" "foo" {
-  vpc_id = aws_vpc.foo.id
+resource "aws_internet_gateway" "test" {
+  vpc_id = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName)
 }
 
-resource "aws_route_table" "foo" {
-  vpc_id = aws_vpc.foo.id
+func testAccMainRouteTableAssociationConfig(rName string) string {
+	return composeConfig(testAccMainRouteTableAssociationConfigBaseVPC(rName), fmt.Sprintf(`
+resource "aws_route_table" "test" {
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "10.0.0.0/8"
-    gateway_id = aws_internet_gateway.foo.id
+    gateway_id = aws_internet_gateway.test.id
   }
-}
-
-resource "aws_main_route_table_association" "foo" {
-  vpc_id         = aws_vpc.foo.id
-  route_table_id = aws_route_table.foo.id
-}
-`
-
-const testAccMainRouteTableAssociationConfigUpdate = `
-resource "aws_vpc" "foo" {
-  cidr_block = "10.1.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-main-route-table-association-update"
+    Name = %[1]q
   }
 }
 
-resource "aws_subnet" "foo" {
-  vpc_id     = aws_vpc.foo.id
-  cidr_block = "10.1.1.0/24"
-
-  tags = {
-    Name = "tf-acc-main-route-table-association-update"
-  }
+resource "aws_main_route_table_association" "test" {
+  vpc_id         = aws_vpc.test.id
+  route_table_id = aws_route_table.test.id
+}
+`, rName))
 }
 
-resource "aws_internet_gateway" "foo" {
-  vpc_id = aws_vpc.foo.id
-}
-
+func testAccMainRouteTableAssociationConfigUpdated(rName string) string {
+	return composeConfig(testAccMainRouteTableAssociationConfigBaseVPC(rName), fmt.Sprintf(`
 # Need to keep the old route table around when we update the
 # main_route_table_association, otherwise Terraform will try to destroy the
 # route table too early, and will fail because it's still the main one
-resource "aws_route_table" "foo" {
-  vpc_id = aws_vpc.foo.id
+resource "aws_route_table" "test" {
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "10.0.0.0/8"
-    gateway_id = aws_internet_gateway.foo.id
+    gateway_id = aws_internet_gateway.test.id
+  }
+
+  tags = {
+    Name = %[1]q
   }
 }
 
-resource "aws_route_table" "bar" {
-  vpc_id = aws_vpc.foo.id
+resource "aws_route_table" "test2" {
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "10.0.0.0/8"
-    gateway_id = aws_internet_gateway.foo.id
+    gateway_id = aws_internet_gateway.test.id
+  }
+
+  tags = {
+    Name = %[1]q
   }
 }
 
-resource "aws_main_route_table_association" "foo" {
-  vpc_id         = aws_vpc.foo.id
-  route_table_id = aws_route_table.bar.id
+resource "aws_main_route_table_association" "test" {
+  vpc_id         = aws_vpc.test.id
+  route_table_id = aws_route_table.test2.id
 }
-`
+`, rName))
+}

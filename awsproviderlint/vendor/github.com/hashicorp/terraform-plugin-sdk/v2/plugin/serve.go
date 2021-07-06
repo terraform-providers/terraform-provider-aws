@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	tf5server "github.com/hashicorp/terraform-plugin-go/tfprotov5/server"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -27,6 +29,7 @@ var Handshake = plugin.HandshakeConfig{
 
 type ProviderFunc func() *schema.Provider
 type GRPCProviderFunc func() tfprotov5.ProviderServer
+type GRPCProviderV6Func func() tfprotov6.ProviderServer
 
 // ServeOpts are the configurations to serve a plugin.
 type ServeOpts struct {
@@ -35,6 +38,8 @@ type ServeOpts struct {
 	// Wrapped versions of the above plugins will automatically shimmed and
 	// added to the GRPC functions when possible.
 	GRPCProviderFunc GRPCProviderFunc
+
+	GRPCProviderV6Func GRPCProviderV6Func
 
 	// Logger is the logger that go-plugin will use.
 	Logger hclog.Logger
@@ -78,10 +83,19 @@ func Serve(opts *ServeOpts) {
 		}
 	}
 
-	provider := opts.GRPCProviderFunc()
-	plugin.Serve(&plugin.ServeConfig{
+	serveConfig := plugin.ServeConfig{
 		HandshakeConfig: Handshake,
-		VersionedPlugins: map[int]plugin.PluginSet{
+		GRPCServer: func(opts []grpc.ServerOption) *grpc.Server {
+			return grpc.NewServer(opts...)
+		},
+		Logger: opts.Logger,
+		Test:   opts.TestConfig,
+	}
+
+	// assume we have either a v5 or a v6 provider
+	if opts.GRPCProviderFunc != nil {
+		provider := opts.GRPCProviderFunc()
+		serveConfig.VersionedPlugins = map[int]plugin.PluginSet{
 			5: {
 				ProviderPluginName: &tf5server.GRPCProviderPlugin{
 					GRPCProvider: func() tfprotov5.ProviderServer {
@@ -89,11 +103,21 @@ func Serve(opts *ServeOpts) {
 					},
 				},
 			},
-		},
-		GRPCServer: func(opts []grpc.ServerOption) *grpc.Server {
-			return grpc.NewServer(opts...)
-		},
-		Logger: opts.Logger,
-		Test:   opts.TestConfig,
-	})
+		}
+
+	} else if opts.GRPCProviderV6Func != nil {
+		provider := opts.GRPCProviderV6Func()
+		serveConfig.VersionedPlugins = map[int]plugin.PluginSet{
+			6: {
+				ProviderPluginName: &tf6server.GRPCProviderPlugin{
+					GRPCProvider: func() tfprotov6.ProviderServer {
+						return provider
+					},
+				},
+			},
+		}
+
+	}
+
+	plugin.Serve(&serveConfig)
 }

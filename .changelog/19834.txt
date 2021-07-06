@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_sqs_queue: Correctly handle the default `kms_data_key_reuse_period_seconds` value of `300` for unencrypted queues
+```

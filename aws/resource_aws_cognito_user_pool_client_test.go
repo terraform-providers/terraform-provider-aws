@@ -399,7 +399,7 @@ func TestAccAWSCognitoUserPoolClient_analyticsConfig(t *testing.T) {
 			testAccPreCheckAWSCognitoIdentityProvider(t)
 			testAccPreCheckAWSPinpointApp(t)
 		},
-		ErrorCheck:   testAccErrorCheckSkipCognito(t),
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentityprovider.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoUserPoolClientDestroy,
 		Steps: []resource.TestStep{
@@ -452,7 +452,7 @@ func TestAccAWSCognitoUserPoolClient_analyticsConfigWithArn(t *testing.T) {
 			testAccPreCheckAWSCognitoIdentityProvider(t)
 			testAccPreCheckAWSPinpointApp(t)
 		},
-		ErrorCheck:   testAccErrorCheckSkipCognito(t),
+		ErrorCheck:   testAccErrorCheck(t, cognitoidentityprovider.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoUserPoolClientDestroy,
 		Steps: []resource.TestStep{
@@ -522,12 +522,6 @@ func TestAccAWSCognitoUserPoolClient_disappears_userPool(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccErrorCheckSkipCognito(t *testing.T) resource.ErrorCheckFunc {
-	return testAccErrorCheckSkipMessagesContaining(t,
-		"not supported in this region",
-	)
 }
 
 func testAccAWSCognitoUserPoolClientImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -761,15 +755,15 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 resource "aws_cognito_user_pool" "test" {
-  name = "%[1]s"
+  name = %[1]q
 }
 
 resource "aws_pinpoint_app" "test" {
-  name = "%[2]s"
+  name = %[2]q
 }
 
 resource "aws_iam_role" "test" {
-  name = "%[2]s"
+  name = %[2]q
 
   assume_role_policy = <<EOF
 {
@@ -789,7 +783,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "test" {
-  name = "%[2]s"
+  name = %[2]q
   role = aws_iam_role.test.id
 
   policy = <<-EOF
@@ -814,12 +808,12 @@ EOF
 func testAccAWSCognitoUserPoolClientConfigAnalyticsConfig(userPoolName, clientName string) string {
 	return testAccAWSCognitoUserPoolClientConfigAnalyticsConfigBase(userPoolName, clientName) + fmt.Sprintf(`
 resource "aws_cognito_user_pool_client" "test" {
-  name         = "%[1]s"
+  name         = %[1]q
   user_pool_id = aws_cognito_user_pool.test.id
 
   analytics_configuration {
     application_id = aws_pinpoint_app.test.application_id
-    external_id    = "%[1]s"
+    external_id    = %[1]q
     role_arn       = aws_iam_role.test.arn
   }
 }
@@ -829,12 +823,12 @@ resource "aws_cognito_user_pool_client" "test" {
 func testAccAWSCognitoUserPoolClientConfigAnalyticsConfigShareUserData(userPoolName, clientName string) string {
 	return testAccAWSCognitoUserPoolClientConfigAnalyticsConfigBase(userPoolName, clientName) + fmt.Sprintf(`
 resource "aws_cognito_user_pool_client" "test" {
-  name         = "%[1]s"
+  name         = %[1]q
   user_pool_id = aws_cognito_user_pool.test.id
 
   analytics_configuration {
     application_id   = aws_pinpoint_app.test.application_id
-    external_id      = "%[1]s"
+    external_id      = %[1]q
     role_arn         = aws_iam_role.test.arn
     user_data_shared = true
   }
@@ -845,7 +839,7 @@ resource "aws_cognito_user_pool_client" "test" {
 func testAccAWSCognitoUserPoolClientConfigAnalyticsWithArnConfig(userPoolName, clientName string) string {
 	return testAccAWSCognitoUserPoolClientConfigAnalyticsConfigBase(userPoolName, clientName) + fmt.Sprintf(`
 resource "aws_cognito_user_pool_client" "test" {
-  name         = "%[1]s"
+  name         = %[1]q
   user_pool_id = aws_cognito_user_pool.test.id
 
   analytics_configuration {

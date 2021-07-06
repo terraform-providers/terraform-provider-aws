@@ -87,3 +87,7 @@ func PrincipalPortfolioAssociationParseID(id string) (string, string, string, er
 func PrincipalPortfolioAssociationID(acceptLanguage, principalARN, portfolioID string) string {
 	return strings.Join([]string{acceptLanguage, principalARN, portfolioID}, ",")
 }
+
+func PortfolioConstraintsID(acceptLanguage, portfolioID, productID string) string {
+	return strings.Join([]string{acceptLanguage, portfolioID, productID}, ":")
+}

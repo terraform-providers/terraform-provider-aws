@@ -14,7 +14,7 @@ github.com/agext/levenshtein
 github.com/apparentlymart/go-textseg/v12/textseg
 # github.com/apparentlymart/go-textseg/v13 v13.0.0
 github.com/apparentlymart/go-textseg/v13/textseg
-# github.com/aws/aws-sdk-go v1.38.53
+# github.com/aws/aws-sdk-go v1.39.0
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -70,7 +70,7 @@ github.com/bflad/gopaniccheck/passes/logpaniccallexpr
 github.com/bflad/gopaniccheck/passes/logpanicfcallexpr
 github.com/bflad/gopaniccheck/passes/logpaniclncallexpr
 github.com/bflad/gopaniccheck/passes/paniccallexpr
-# github.com/bflad/tfproviderlint v0.26.0
+# github.com/bflad/tfproviderlint v0.27.0
 ## explicit
 github.com/bflad/tfproviderlint/helper/analysisutils
 github.com/bflad/tfproviderlint/helper/astutils
@@ -259,7 +259,7 @@ github.com/hashicorp/go-getter/helper/url
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-plugin v1.4.0
+# github.com/hashicorp/go-plugin v1.4.1
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
 # github.com/hashicorp/go-safetemp v1.0.0
@@ -274,11 +274,11 @@ github.com/hashicorp/hcl/v2/ext/customdecode
 github.com/hashicorp/hcl/v2/hclsyntax
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform-exec v0.13.3
+# github.com/hashicorp/terraform-exec v0.14.0
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
 github.com/hashicorp/terraform-exec/tfinstall
-# github.com/hashicorp/terraform-json v0.10.0
+# github.com/hashicorp/terraform-json v0.12.0
 github.com/hashicorp/terraform-json
 # github.com/hashicorp/terraform-plugin-go v0.3.0
 github.com/hashicorp/terraform-plugin-go/tfprotov5
@@ -286,8 +286,13 @@ github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/fromproto
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/tfplugin5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/toproto
 github.com/hashicorp/terraform-plugin-go/tfprotov5/server
+github.com/hashicorp/terraform-plugin-go/tfprotov6
+github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/fromproto
+github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6
+github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/toproto
+github.com/hashicorp/terraform-plugin-go/tfprotov6/server
 github.com/hashicorp/terraform-plugin-go/tftypes
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging
@@ -324,7 +329,7 @@ github.com/klauspost/compress/zstd/internal/xxhash
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.10
 github.com/mattn/go-isatty
-# github.com/mitchellh/copystructure v1.0.0
+# github.com/mitchellh/copystructure v1.2.0
 github.com/mitchellh/copystructure
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
@@ -334,7 +339,7 @@ github.com/mitchellh/go-testing-interface
 github.com/mitchellh/go-wordwrap
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/mitchellh/reflectwalk v1.0.1
+# github.com/mitchellh/reflectwalk v1.0.2
 github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
@@ -346,7 +351,7 @@ github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
-# github.com/zclconf/go-cty v1.8.2
+# github.com/zclconf/go-cty v1.8.4
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
 github.com/zclconf/go-cty/cty/function
@@ -371,7 +376,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+# golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
@@ -400,7 +405,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20210324051608-47abb6519492
+# golang.org/x/sys v0.0.0-20210502180810-71e4cd670f79
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.5

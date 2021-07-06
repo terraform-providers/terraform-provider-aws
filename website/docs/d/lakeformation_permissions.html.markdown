@@ -99,8 +99,8 @@ The following arguments are required:
 The following arguments are optional:
 
 * `catalog_id` - (Optional) Identifier for the Data Catalog. By default, it is the account ID of the caller.
-* `column_names` - (Optional) List of column names for the table. At least one of `column_names` or `excluded_column_names` is required.
-* `excluded_column_names` - (Optional) List of column names for the table to exclude. At least one of `column_names` or `excluded_column_names` is required.
+* `column_names` - (Optional) Set of column names for the table. At least one of `column_names` or `excluded_column_names` is required.
+* `excluded_column_names` - (Optional) Set of column names for the table to exclude. At least one of `column_names` or `excluded_column_names` is required.
 
 ## Attributes Reference
 

@@ -112,8 +112,8 @@ func TestAccAwsAppRunnerService_ImageRepository_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.auto_deployments_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.0.image_configuration.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.0.image_configuration.0.port", "8000"),
-					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.0.image_identifier", "public.ecr.aws/jg/hello:latest"),
+					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.0.image_configuration.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.0.image_identifier", "public.ecr.aws/nginx/nginx:latest"),
 					resource.TestCheckResourceAttr(resourceName, "source_configuration.0.image_repository.0.image_repository_type", apprunner.ImageRepositoryTypeEcrPublic),
 					resource.TestCheckResourceAttr(resourceName, "status", apprunner.ServiceStatusRunning),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -483,9 +483,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -501,12 +501,12 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
         runtime_environment_variables = {
           APP_NAME = %[1]q
         }
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -529,9 +529,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -557,9 +557,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -581,9 +581,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -606,9 +606,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -659,9 +659,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -686,9 +686,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -704,9 +704,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
@@ -726,9 +726,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8000"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/jg/hello:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }

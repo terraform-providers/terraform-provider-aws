@@ -38,6 +38,17 @@ resource "aws_sqs_queue" "terraform_queue" {
 }
 ```
 
+## High-throughput FIFO queue
+
+```terraform
+resource "aws_sqs_queue" "terraform_queue" {
+  name                  = "terraform-example-queue.fifo"
+  fifo_queue            = true
+  deduplication_scope   = "messageGroup"
+  fifo_throughput_limit = "perMessageGroupId"
+}
+```
+
 ## Server-side encryption (SSE)
 
 ```terraform
@@ -65,6 +76,8 @@ The following arguments are supported:
 * `content_based_deduplication` - (Optional) Enables content-based deduplication for FIFO queues. For more information, see the [related documentation](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html#FIFO-queues-exactly-once-processing)
 * `kms_master_key_id` - (Optional) The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK. For more information, see [Key Terms](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html#sqs-sse-key-terms).
 * `kms_data_key_reuse_period_seconds` - (Optional) The length of time, in seconds, for which Amazon SQS can reuse a data key to encrypt or decrypt messages before calling AWS KMS again. An integer representing seconds, between 60 seconds (1 minute) and 86,400 seconds (24 hours). The default is 300 (5 minutes).
+* `deduplication_scope` - (Optional) Specifies whether message deduplication occurs at the message group or queue level. Valid values are `messageGroup` and `queue` (default).
+* `fifo_throughput_limit` - (Optional) Specifies whether the FIFO queue throughput quota applies to the entire queue or per message group. Valid values are `perQueue` (default) and `perMessageGroupId`.
 * `tags` - (Optional) A map of tags to assign to the queue. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference
@@ -74,6 +87,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The URL for the created Amazon SQS queue.
 * `arn` - The ARN of the SQS queue
 * `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
+* `url` - Same as `id`: The URL for the created Amazon SQS queue.
 
 ## Import
 

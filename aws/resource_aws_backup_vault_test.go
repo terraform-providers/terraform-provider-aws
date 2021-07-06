@@ -2,14 +2,116 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_backup_vault", &resource.Sweeper{
+		Name: "aws_backup_vault",
+		F:    testSweepBackupVaults,
+		Dependencies: []string{
+			"aws_backup_vault_notifications",
+			"aws_backup_vault_policy",
+		},
+	})
+}
+
+func testSweepBackupVaults(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("Error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).backupconn
+	input := &backup.ListBackupVaultsInput{}
+	var sweeperErrs *multierror.Error
+	sweepResources := make([]*testSweepResource, 0)
+
+	err = conn.ListBackupVaultsPages(input, func(page *backup.ListBackupVaultsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, vault := range page.BackupVaultList {
+			failedToDeleteRecoveryPoint := false
+			name := aws.StringValue(vault.BackupVaultName)
+			input := &backup.ListRecoveryPointsByBackupVaultInput{
+				BackupVaultName: aws.String(name),
+			}
+
+			err := conn.ListRecoveryPointsByBackupVaultPages(input, func(page *backup.ListRecoveryPointsByBackupVaultOutput, lastPage bool) bool {
+				if page == nil {
+					return !lastPage
+				}
+
+				for _, recoveryPoint := range page.RecoveryPoints {
+					arn := aws.StringValue(recoveryPoint.RecoveryPointArn)
+
+					log.Printf("[INFO] Deleting Recovery Point (%s) in Backup Vault (%s)", arn, name)
+					_, err := conn.DeleteRecoveryPoint(&backup.DeleteRecoveryPointInput{
+						BackupVaultName:  aws.String(name),
+						RecoveryPointArn: aws.String(arn),
+					})
+
+					if err != nil {
+						log.Printf("[WARN] Failed to delete Recovery Point (%s) in Backup Vault (%s): %s", arn, name, err)
+						failedToDeleteRecoveryPoint = true
+					}
+				}
+
+				return !lastPage
+			})
+
+			if err != nil {
+				sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing Reovery Points in Backup Vault (%s) for %s: %w", name, region, err))
+			}
+
+			// Ignore Default and Automatic EFS Backup Vaults in region (cannot be deleted)
+			if name == "Default" || name == "aws/efs/automatic-backup-vault" {
+				log.Printf("[INFO] Skipping Backup Vault: %s", name)
+				continue
+			}
+
+			// Backup Vault deletion only supported when empty
+			// Reference: https://docs.aws.amazon.com/aws-backup/latest/devguide/API_DeleteBackupVault.html
+			if failedToDeleteRecoveryPoint {
+				log.Printf("[INFO] Skipping Backup Vault (%s): not empty", name)
+				continue
+			}
+
+			r := resourceAwsBackupVault()
+			d := r.Data(nil)
+			d.SetId(name)
+
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Backup Vaults sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing Backup Vaults for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error sweeping Backup Vaults for %s: %w", region, err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAwsBackupVault_basic(t *testing.T) {
 	var vault backup.DescribeBackupVaultOutput

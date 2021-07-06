@@ -10,7 +10,7 @@ description: |-
 
 Provides a resource to manage a default route table of a VPC. This resource can manage the default route table of the default or a non-default VPC.
 
-~> **NOTE:** This is an advanced resource with special caveats. Please read this document in its entirety before using this resource. The `aws_default_route_table` resource behaves differently from normal resources. Terraform does not _create_ this resource but instead attempts to "adopt" it into management. **Do not** use both `aws_default_route_table` to manage a default route table **and** `aws_main_route_table_association` with the same VPC due to possible route conflicts.
+~> **NOTE:** This is an advanced resource with special caveats. Please read this document in its entirety before using this resource. The `aws_default_route_table` resource behaves differently from normal resources. Terraform does not _create_ this resource but instead attempts to "adopt" it into management. **Do not** use both `aws_default_route_table` to manage a default route table **and** `aws_main_route_table_association` with the same VPC due to possible route conflicts. See [aws_main_route_table_association][tf-main-route-table-association] documentation for more details.
 
 Every VPC has a default route table that can be managed but not destroyed. When Terraform first adopts a default route table, it **immediately removes all defined routes**. It then proceeds to create any routes specified in the configuration. This step is required so that only the routes specified in the configuration exist in the default route table.
 
@@ -107,3 +107,4 @@ $ terraform import aws_default_route_table.example vpc-33cc44dd
 
 [aws-route-tables]: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html#Route_Replacing_Main_Table
 [tf-route-tables]: /docs/providers/aws/r/route_table.html
+[tf-main-route-table-association]: /docs/providers/aws/r/main_route_table_association.html

@@ -9,13 +9,13 @@ jobs:
     - uses: actions/checkout@v2
     - name: Apply Issue needs-triage Label
       if: github.event.action == 'opened' && !contains(fromJSON('["anGie44", "bflad", "bill-rich", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver"]'), github.actor)
-      uses: github/issue-labeler@v2.3
+      uses: github/issue-labeler@v2.4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         configuration-path: .github/labeler-issue-needs-triage.yml
         enable-versioned-regex: 0
     - name: Apply Issue Triage Labels
-      uses: github/issue-labeler@v2.3
+      uses: github/issue-labeler@v2.4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         configuration-path: .github/labeler-issue-triage.yml

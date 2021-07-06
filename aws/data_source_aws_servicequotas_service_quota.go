@@ -105,11 +105,19 @@ func dataSourceAwsServiceQuotasServiceQuotaRead(d *schema.ResourceData, meta int
 			return fmt.Errorf("error getting Service (%s) Quota (%s): %w", serviceCode, quotaCode, err)
 		}
 
-		if output == nil {
+		if output == nil || output.Quota == nil {
 			return fmt.Errorf("error getting Service (%s) Quota (%s): empty result", serviceCode, quotaCode)
 		}
 
 		serviceQuota = output.Quota
+	}
+
+	if serviceQuota.ErrorReason != nil {
+		return fmt.Errorf("error getting Service (%s) Quota (%s): %s: %s", serviceCode, quotaCode, aws.StringValue(serviceQuota.ErrorReason.ErrorCode), aws.StringValue(serviceQuota.ErrorReason.ErrorMessage))
+	}
+
+	if serviceQuota.Value == nil {
+		return fmt.Errorf("error getting Service (%s) Quota (%s): empty value", serviceCode, quotaCode)
 	}
 
 	input := &servicequotas.GetAWSDefaultServiceQuotaInput{

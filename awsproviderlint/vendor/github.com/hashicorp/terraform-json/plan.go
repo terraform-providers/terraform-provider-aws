@@ -6,9 +6,9 @@ import (
 	"fmt"
 )
 
-// PlanFormatVersion is the version of the JSON plan format that is
-// supported by this package.
-const PlanFormatVersion = "0.1"
+// PlanFormatVersions represents versions of the JSON plan format that
+// are supported by this package.
+var PlanFormatVersions = []string{"0.1", "0.2"}
 
 // ResourceMode is a string representation of the resource type found
 // in certain fields in the plan.
@@ -66,11 +66,21 @@ func (p *Plan) Validate() error {
 		return errors.New("unexpected plan input, format version is missing")
 	}
 
-	if PlanFormatVersion != p.FormatVersion {
-		return fmt.Errorf("unsupported plan format version: expected %q, got %q", PlanFormatVersion, p.FormatVersion)
+	if !isStringInSlice(PlanFormatVersions, p.FormatVersion) {
+		return fmt.Errorf("unsupported plan format version: expected %q, got %q",
+			PlanFormatVersions, p.FormatVersion)
 	}
 
 	return nil
+}
+
+func isStringInSlice(slice []string, s string) bool {
+	for _, el := range slice {
+		if el == s {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *Plan) UnmarshalJSON(b []byte) error {

@@ -7,9 +7,9 @@ import (
 	"fmt"
 )
 
-// StateFormatVersion is the version of the JSON state format that is
-// supported by this package.
-const StateFormatVersion = "0.1"
+// StateFormatVersions represents the versions of the JSON state format
+// that are supported by this package.
+var StateFormatVersions = []string{"0.1", "0.2"}
 
 // State is the top-level representation of a Terraform state.
 type State struct {
@@ -50,8 +50,9 @@ func (s *State) Validate() error {
 		return errors.New("unexpected state input, format version is missing")
 	}
 
-	if StateFormatVersion != s.FormatVersion {
-		return fmt.Errorf("unsupported state format version: expected %q, got %q", StateFormatVersion, s.FormatVersion)
+	if !isStringInSlice(StateFormatVersions, s.FormatVersion) {
+		return fmt.Errorf("unsupported state format version: expected %q, got %q",
+			StateFormatVersions, s.FormatVersion)
 	}
 
 	return nil
@@ -127,8 +128,8 @@ type StateResource struct {
 	// provider offering "google_compute_instance".
 	ProviderName string `json:"provider_name,omitempty"`
 
-	//  The version of the resource type schema the "values" property
-	//  conforms to.
+	// The version of the resource type schema the "values" property
+	// conforms to.
 	SchemaVersion uint64 `json:"schema_version,"`
 
 	// The JSON representation of the attribute values of the resource,
@@ -136,6 +137,11 @@ type StateResource struct {
 	// values are omitted or set to null, making them indistinguishable
 	// from absent values.
 	AttributeValues map[string]interface{} `json:"values,omitempty"`
+
+	// The JSON representation of the sensitivity of the resource's
+	// attribute values. Only attributes which are sensitive
+	// are included in this structure.
+	SensitiveValues json.RawMessage `json:"sensitive_values,omitempty"`
 
 	// The addresses of the resources that this resource depends on.
 	DependsOn []string `json:"depends_on,omitempty"`

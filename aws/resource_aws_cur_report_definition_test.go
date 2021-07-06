@@ -2,17 +2,69 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/service/costandusagereportservice"
+	"github.com/aws/aws-sdk-go/aws"
+	cur "github.com/aws/aws-sdk-go/service/costandusagereportservice"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/costandusagereportservice/finder"
 )
 
-func TestAccAwsCurReportDefinition_basic(t *testing.T) {
+func init() {
+	resource.AddTestSweepers("aws_cur_report_definition", &resource.Sweeper{
+		Name: "aws_cur_report_definition",
+		F:    testSweepCurReportDefinitions,
+	})
+}
+
+func testSweepCurReportDefinitions(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).costandusagereportconn
+	input := &cur.DescribeReportDefinitionsInput{}
+	var sweeperErrs *multierror.Error
+
+	err = conn.DescribeReportDefinitionsPages(input, func(page *cur.DescribeReportDefinitionsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, reportDefinition := range page.ReportDefinitions {
+			r := resourceAwsCurReportDefinition()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(reportDefinition.ReportName))
+			err = r.Delete(d, client)
+
+			if err != nil {
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Cost And Usage Report Definitions sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing Cost And Usage Report Definitions: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
+
+func testAccAwsCurReportDefinition_basic(t *testing.T) {
 	resourceName := "aws_cur_report_definition.test"
 	s3BucketResourceName := "aws_s3_bucket.test"
 	reportName := acctest.RandomWithPrefix("tf_acc_test")
@@ -20,14 +72,16 @@ func TestAccAwsCurReportDefinition_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
-		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsCurReportDefinitionConfig_basic(reportName, bucketName),
+				Config: testAccAwsCurReportDefinitionConfig_basic(reportName, bucketName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsCurReportDefinitionExists(resourceName),
+					//workaround for region being based on s3 bucket region
+					testAccCheckResourceAttrRegionalARNIgnoreRegionAndAccount(resourceName, "arn", "cur", fmt.Sprintf("definition/%s", reportName)),
 					resource.TestCheckResourceAttr(resourceName, "report_name", reportName),
 					resource.TestCheckResourceAttr(resourceName, "time_unit", "DAILY"),
 					resource.TestCheckResourceAttr(resourceName, "compression", "GZIP"),
@@ -38,11 +92,32 @@ func TestAccAwsCurReportDefinition_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "additional_artifacts.#", "2"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsCurReportDefinitionConfig_basic(reportName, bucketName, "test"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsCurReportDefinitionExists(resourceName),
+					//workaround for region being based on s3 bucket region
+					testAccCheckResourceAttrRegionalARNIgnoreRegionAndAccount(resourceName, "arn", "cur", fmt.Sprintf("definition/%s", reportName)),
+					resource.TestCheckResourceAttr(resourceName, "report_name", reportName),
+					resource.TestCheckResourceAttr(resourceName, "time_unit", "DAILY"),
+					resource.TestCheckResourceAttr(resourceName, "compression", "GZIP"),
+					resource.TestCheckResourceAttr(resourceName, "additional_schema_elements.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "s3_bucket", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "s3_prefix", "test"),
+					resource.TestCheckResourceAttrPair(resourceName, "s3_region", s3BucketResourceName, "region"),
+					resource.TestCheckResourceAttr(resourceName, "additional_artifacts.#", "2"),
+				),
+			},
 		},
 	})
 }
 
-func TestAccAwsCurReportDefinition_textOrCsv(t *testing.T) {
+func testAccAwsCurReportDefinition_textOrCsv(t *testing.T) {
 	resourceName := "aws_cur_report_definition.test"
 	s3BucketResourceName := "aws_s3_bucket.test"
 	reportName := acctest.RandomWithPrefix("tf_acc_test")
@@ -56,7 +131,7 @@ func TestAccAwsCurReportDefinition_textOrCsv(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
-		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -77,11 +152,16 @@ func TestAccAwsCurReportDefinition_textOrCsv(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "report_versioning", reportVersioning),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func TestAccAwsCurReportDefinition_parquet(t *testing.T) {
+func testAccAwsCurReportDefinition_parquet(t *testing.T) {
 	resourceName := "aws_cur_report_definition.test"
 	s3BucketResourceName := "aws_s3_bucket.test"
 	reportName := acctest.RandomWithPrefix("tf_acc_test")
@@ -95,7 +175,7 @@ func TestAccAwsCurReportDefinition_parquet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
-		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -115,11 +195,16 @@ func TestAccAwsCurReportDefinition_parquet(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "report_versioning", reportVersioning),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func TestAccAwsCurReportDefinition_athena(t *testing.T) {
+func testAccAwsCurReportDefinition_athena(t *testing.T) {
 	resourceName := "aws_cur_report_definition.test"
 	s3BucketResourceName := "aws_s3_bucket.test"
 	reportName := acctest.RandomWithPrefix("tf_acc_test")
@@ -133,7 +218,7 @@ func TestAccAwsCurReportDefinition_athena(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
-		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -154,11 +239,16 @@ func TestAccAwsCurReportDefinition_athena(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "report_versioning", reportVersioning),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func TestAccAwsCurReportDefinition_refresh(t *testing.T) {
+func testAccAwsCurReportDefinition_refresh(t *testing.T) {
 	resourceName := "aws_cur_report_definition.test"
 	s3BucketResourceName := "aws_s3_bucket.test"
 	reportName := acctest.RandomWithPrefix("tf_acc_test")
@@ -172,7 +262,7 @@ func TestAccAwsCurReportDefinition_refresh(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
-		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -193,11 +283,16 @@ func TestAccAwsCurReportDefinition_refresh(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "report_versioning", reportVersioning),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func TestAccAwsCurReportDefinition_overwrite(t *testing.T) {
+func testAccAwsCurReportDefinition_overwrite(t *testing.T) {
 	resourceName := "aws_cur_report_definition.test"
 	s3BucketResourceName := "aws_s3_bucket.test"
 	reportName := acctest.RandomWithPrefix("tf_acc_test")
@@ -211,7 +306,7 @@ func TestAccAwsCurReportDefinition_overwrite(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
-		ErrorCheck:        testAccErrorCheck(t, costandusagereportservice.EndpointsID),
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -231,6 +326,34 @@ func TestAccAwsCurReportDefinition_overwrite(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "refresh_closed_reports", "false"),
 					resource.TestCheckResourceAttr(resourceName, "report_versioning", reportVersioning),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAwsCurReportDefinition_disappears(t *testing.T) {
+	resourceName := "aws_cur_report_definition.test"
+	reportName := acctest.RandomWithPrefix("tf_acc_test")
+	bucketName := fmt.Sprintf("tf-test-bucket-%d", acctest.RandInt())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckCur(t) },
+		ErrorCheck:        testAccErrorCheck(t, cur.EndpointsID),
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAwsCurReportDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsCurReportDefinitionConfig_basic(reportName, bucketName, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsCurReportDefinitionExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCurReportDefinition(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -281,12 +404,12 @@ func testAccCheckAwsCurReportDefinitionExists(resourceName string) resource.Test
 	}
 }
 
-func testAccAwsCurReportDefinitionConfig_basic(reportName string, bucketName string) string {
+func testAccAwsCurReportDefinitionConfig_basic(reportName, bucketName, prefix string) string {
 	return composeConfig(
 		testAccCurRegionProviderConfig(),
 		fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket        = "%[2]s"
+  bucket        = %[2]q
   acl           = "private"
   force_destroy = true
 }
@@ -330,17 +453,17 @@ POLICY
 resource "aws_cur_report_definition" "test" {
   depends_on = [aws_s3_bucket_policy.test] # needed to avoid "ValidationException: Failed to verify customer bucket permission."
 
-  report_name                = "%[1]s"
+  report_name                = %[1]q
   time_unit                  = "DAILY"
   format                     = "textORcsv"
   compression                = "GZIP"
   additional_schema_elements = ["RESOURCES"]
   s3_bucket                  = aws_s3_bucket.test.id
-  s3_prefix                  = ""
+  s3_prefix                  = %[3]q
   s3_region                  = aws_s3_bucket.test.region
   additional_artifacts       = ["REDSHIFT", "QUICKSIGHT"]
 }
-`, reportName, bucketName))
+`, reportName, bucketName, prefix))
 }
 
 func testAccAwsCurReportDefinitionConfig_additional(reportName string, bucketName string, bucketPrefix string, format string, compression string, additionalArtifacts []string, refreshClosedReports bool, reportVersioning string) string {
@@ -428,184 +551,184 @@ func TestCheckAwsCurReportDefinitionPropertyCombination(t *testing.T) {
 	testCases := map[string]propertyCombinationTestCase{
 		"TestAthenaAndAdditionalArtifacts": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
-				costandusagereportservice.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactAthena,
+				cur.AdditionalArtifactRedshift,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestAthenaAndEmptyPrefix": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
+				cur.AdditionalArtifactAthena,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestAthenaAndOverrideReport": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
+				cur.AdditionalArtifactAthena,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestAthenaWithNonParquetFormat": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
+				cur.AdditionalArtifactAthena,
 			},
-			compression:      costandusagereportservice.CompressionFormatParquet,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatParquet,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestParquetFormatWithoutParquetCompression": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
+				cur.AdditionalArtifactAthena,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatParquet,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatParquet,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestCSVFormatWithParquetCompression": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
+				cur.AdditionalArtifactAthena,
 			},
-			compression:      costandusagereportservice.CompressionFormatParquet,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatParquet,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestRedshiftWithParquetformat": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactRedshift,
 			},
-			compression:      costandusagereportservice.CompressionFormatParquet,
-			format:           costandusagereportservice.ReportFormatParquet,
+			compression:      cur.CompressionFormatParquet,
+			format:           cur.ReportFormatParquet,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestQuicksightWithParquetformat": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactQuicksight,
+				cur.AdditionalArtifactQuicksight,
 			},
-			compression:      costandusagereportservice.CompressionFormatParquet,
-			format:           costandusagereportservice.ReportFormatParquet,
+			compression:      cur.CompressionFormatParquet,
+			format:           cur.ReportFormatParquet,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      true,
 		},
 		"TestAthenaValidCombination": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactAthena,
+				cur.AdditionalArtifactAthena,
 			},
-			compression:      costandusagereportservice.CompressionFormatParquet,
-			format:           costandusagereportservice.ReportFormatParquet,
+			compression:      cur.CompressionFormatParquet,
+			format:           cur.ReportFormatParquet,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningOverwriteReport,
+			reportVersioning: cur.ReportVersioningOverwriteReport,
 			shouldError:      false,
 		},
 		"TestRedshiftWithGzipedOverwrite": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactRedshift,
 			},
-			compression:      costandusagereportservice.CompressionFormatGzip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatGzip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningOverwriteReport,
+			reportVersioning: cur.ReportVersioningOverwriteReport,
 			shouldError:      false,
 		},
 		"TestRedshiftWithZippedOverwrite": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactRedshift,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningOverwriteReport,
+			reportVersioning: cur.ReportVersioningOverwriteReport,
 			shouldError:      false,
 		},
 		"TestRedshiftWithGzipedCreateNew": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactRedshift,
 			},
-			compression:      costandusagereportservice.CompressionFormatGzip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatGzip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      false,
 		},
 		"TestRedshiftWithZippedCreateNew": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactRedshift,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      false,
 		},
 		"TestQuicksightWithGzipedOverwrite": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactQuicksight,
+				cur.AdditionalArtifactQuicksight,
 			},
-			compression:      costandusagereportservice.CompressionFormatGzip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatGzip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningOverwriteReport,
+			reportVersioning: cur.ReportVersioningOverwriteReport,
 			shouldError:      false,
 		},
 		"TestQuicksightWithZippedOverwrite": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactQuicksight,
+				cur.AdditionalArtifactQuicksight,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningOverwriteReport,
+			reportVersioning: cur.ReportVersioningOverwriteReport,
 			shouldError:      false,
 		},
 		"TestQuicksightWithGzipedCreateNew": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactQuicksight,
+				cur.AdditionalArtifactQuicksight,
 			},
-			compression:      costandusagereportservice.CompressionFormatGzip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatGzip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      false,
 		},
 		"TestQuicksightWithZippedCreateNew": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactQuicksight,
+				cur.AdditionalArtifactQuicksight,
 			},
-			compression:      costandusagereportservice.CompressionFormatZip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatZip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "",
-			reportVersioning: costandusagereportservice.ReportVersioningCreateNewReport,
+			reportVersioning: cur.ReportVersioningCreateNewReport,
 			shouldError:      false,
 		},
 		"TestMultipleArtifacts": {
 			additionalArtifacts: []string{
-				costandusagereportservice.AdditionalArtifactRedshift,
-				costandusagereportservice.AdditionalArtifactQuicksight,
+				cur.AdditionalArtifactRedshift,
+				cur.AdditionalArtifactQuicksight,
 			},
-			compression:      costandusagereportservice.CompressionFormatGzip,
-			format:           costandusagereportservice.ReportFormatTextOrcsv,
+			compression:      cur.CompressionFormatGzip,
+			format:           cur.ReportFormatTextOrcsv,
 			prefix:           "prefix/",
-			reportVersioning: costandusagereportservice.ReportVersioningOverwriteReport,
+			reportVersioning: cur.ReportVersioningOverwriteReport,
 			shouldError:      false,
 		},
 	}

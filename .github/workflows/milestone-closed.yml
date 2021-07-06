@@ -1,0 +1,20 @@
+name: Closed Milestones
+
+on:
+  milestone:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  Comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bflad/action-milestone-comment@v1
+        with:
+          body: |
+            This functionality has been released in [${{ github.event.milestone.title }} of the Terraform AWS Provider](https://github.com/${{ github.repository }}/blob/${{ github.event.milestone.title }}/CHANGELOG.md).  Please see the [Terraform documentation on provider versioning](https://www.terraform.io/docs/configuration/providers.html#provider-versions) or reach out if you need any assistance upgrading.
+
+            For further feature requests or bug reports with this functionality, please create a [new GitHub issue](https://github.com/${{ github.repository }}/issues/new/choose) following the template. Thank you!

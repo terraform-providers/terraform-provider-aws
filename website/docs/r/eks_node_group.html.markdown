@@ -169,10 +169,10 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - Amazon Resource Name (ARN) of the EKS Node Group.
 * `id` - EKS Cluster name and EKS Node Group name separated by a colon (`:`).
 * `resources` - List of objects containing information about underlying resources.
-* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
     * `autoscaling_groups` - List of objects containing information about AutoScaling Groups.
         * `name` - Name of the AutoScaling Group.
     * `remote_access_security_group_id` - Identifier of the remote access EC2 Security Group.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block).
 * `status` - Status of the EKS Node Group.
 
 ## Timeouts

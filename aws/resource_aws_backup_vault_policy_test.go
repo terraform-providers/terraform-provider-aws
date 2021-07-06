@@ -8,10 +8,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/backup/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func init() {
@@ -27,45 +29,37 @@ func testSweepBackupVaultPolicies(region string) error {
 		return fmt.Errorf("Error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).backupconn
-	var sweeperErrs *multierror.Error
-
 	input := &backup.ListBackupVaultsInput{}
+	var sweeperErrs *multierror.Error
+	sweepResources := make([]*testSweepResource, 0)
 
-	for {
-		output, err := conn.ListBackupVaults(input)
-		if err != nil {
-			if testSweepSkipSweepError(err) {
-				log.Printf("[WARN] Skipping Backup Vault Policies sweep for %s: %s", region, err)
-				return nil
-			}
-			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Backup Vault Policies: %w", err))
-			return sweeperErrs.ErrorOrNil()
+	err = conn.ListBackupVaultsPages(input, func(page *backup.ListBackupVaultsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if len(output.BackupVaultList) == 0 {
-			log.Print("[DEBUG] No Backup Vault Policies to sweep")
-			return nil
+		for _, vault := range page.BackupVaultList {
+			r := resourceAwsBackupVaultPolicy()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(vault.BackupVaultName))
+
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		for _, rule := range output.BackupVaultList {
-			name := aws.StringValue(rule.BackupVaultName)
+		return !lastPage
+	})
 
-			log.Printf("[INFO] Deleting Backup Vault Policies %s", name)
-			_, err := conn.DeleteBackupVaultAccessPolicy(&backup.DeleteBackupVaultAccessPolicyInput{
-				BackupVaultName: aws.String(name),
-			})
-			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting Backup Vault Policies %s: %w", name, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
-			}
-		}
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Backup Vault Policies sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
+	}
 
-		if output.NextToken == nil {
-			break
-		}
-		input.NextToken = output.NextToken
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing Backup Vaults for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error sweeping Backup Vault Policies for %s: %w", region, err))
 	}
 
 	return sweeperErrs.ErrorOrNil()
@@ -73,9 +67,9 @@ func testSweepBackupVaultPolicies(region string) error {
 
 func TestAccAwsBackupVaultPolicy_basic(t *testing.T) {
 	var vault backup.GetBackupVaultAccessPolicyOutput
-
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_backup_vault_policy.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
 		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
@@ -107,9 +101,9 @@ func TestAccAwsBackupVaultPolicy_basic(t *testing.T) {
 
 func TestAccAwsBackupVaultPolicy_disappears(t *testing.T) {
 	var vault backup.GetBackupVaultAccessPolicyOutput
-
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_backup_vault_policy.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
 		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
@@ -128,24 +122,49 @@ func TestAccAwsBackupVaultPolicy_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAwsBackupVaultPolicy_disappears_vault(t *testing.T) {
+	var vault backup.GetBackupVaultAccessPolicyOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_backup_vault_policy.test"
+	vaultResourceName := "aws_backup_vault.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
+		ErrorCheck:   testAccErrorCheck(t, backup.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsBackupVaultPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBackupVaultPolicyConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBackupVaultPolicyExists(resourceName, &vault),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsBackupVault(), vaultResourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAwsBackupVaultPolicyDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).backupconn
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_backup_vault_policy" {
 			continue
 		}
 
-		input := &backup.GetBackupVaultAccessPolicyInput{
-			BackupVaultName: aws.String(rs.Primary.ID),
+		_, err := finder.BackupVaultAccessPolicyByName(conn, rs.Primary.ID)
+
+		if tfresource.NotFound(err) {
+			continue
 		}
 
-		resp, err := conn.GetBackupVaultAccessPolicy(input)
-
-		if err == nil {
-			if aws.StringValue(resp.BackupVaultName) == rs.Primary.ID {
-				return fmt.Errorf("Backup Plan Policies '%s' was not deleted properly", rs.Primary.ID)
-			}
+		if err != nil {
+			return err
 		}
+
+		return fmt.Errorf("Backup Vault Policy %s still exists", rs.Primary.ID)
 	}
 
 	return nil
@@ -158,16 +177,19 @@ func testAccCheckAwsBackupVaultPolicyExists(name string, vault *backup.GetBackup
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).backupconn
-		params := &backup.GetBackupVaultAccessPolicyInput{
-			BackupVaultName: aws.String(rs.Primary.ID),
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Backup Vault Policy ID is set")
 		}
-		resp, err := conn.GetBackupVaultAccessPolicy(params)
+
+		conn := testAccProvider.Meta().(*AWSClient).backupconn
+
+		output, err := finder.BackupVaultAccessPolicyByName(conn, rs.Primary.ID)
+
 		if err != nil {
 			return err
 		}
 
-		*vault = *resp
+		*vault = *output
 
 		return nil
 	}

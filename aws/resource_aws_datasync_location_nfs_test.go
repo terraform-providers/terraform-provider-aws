@@ -34,38 +34,37 @@ func testSweepDataSyncLocationNfss(region string) error {
 		output, err := conn.ListLocations(input)
 
 		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping DataSync Location EFS sweep for %s: %s", region, err)
+			log.Printf("[WARN] Skipping DataSync Location Nfs sweep for %s: %s", region, err)
 			return nil
 		}
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving DataSync Location EFSs: %s", err)
+			return fmt.Errorf("Error retrieving DataSync Location Nfss: %s", err)
 		}
 
 		if len(output.Locations) == 0 {
-			log.Print("[DEBUG] No DataSync Location EFSs to sweep")
+			log.Print("[DEBUG] No DataSync Location Nfss to sweep")
 			return nil
 		}
 
 		for _, location := range output.Locations {
 			uri := aws.StringValue(location.LocationUri)
 			if !strings.HasPrefix(uri, "nfs://") {
-				log.Printf("[INFO] Skipping DataSync Location EFS: %s", uri)
+				log.Printf("[INFO] Skipping DataSync Location Nfs: %s", uri)
 				continue
 			}
-			log.Printf("[INFO] Deleting DataSync Location EFS: %s", uri)
-			input := &datasync.DeleteLocationInput{
-				LocationArn: location.LocationArn,
-			}
+			log.Printf("[INFO] Deleting DataSync Location Nfs: %s", uri)
 
-			_, err := conn.DeleteLocation(input)
-
+			r := resourceAwsDataSyncLocationNfs()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(location.LocationArn))
+			err = r.Delete(d, client)
 			if isAWSErr(err, "InvalidRequestException", "not found") {
 				continue
 			}
 
 			if err != nil {
-				log.Printf("[ERROR] Failed to delete DataSync Location EFS (%s): %s", uri, err)
+				log.Printf("[ERROR] Failed to delete DataSync Location Nfs (%s): %s", uri, err)
 			}
 		}
 
@@ -97,6 +96,8 @@ func TestAccAWSDataSyncLocationNfs_basic(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "datasync", regexp.MustCompile(`location/loc-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "on_prem_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "on_prem_config.0.agent_arns.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mount_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mount_options.0.version", "AUTOMATIC"),
 					resource.TestCheckResourceAttr(resourceName, "server_hostname", "example.com"),
 					resource.TestCheckResourceAttr(resourceName, "subdirectory", "/"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -108,6 +109,41 @@ func TestAccAWSDataSyncLocationNfs_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"server_hostname"},
+			},
+		},
+	})
+}
+
+func TestAccAWSDataSyncLocationNfs_mountOptions(t *testing.T) {
+	var locationNfs1 datasync.DescribeLocationNfsOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_datasync_location_nfs.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		ErrorCheck:   testAccErrorCheck(t, datasync.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDataSyncLocationNfsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDataSyncLocationNfsConfigMountOptions(rName, "NFS4_0"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDataSyncLocationNfsExists(resourceName, &locationNfs1),
+					resource.TestCheckResourceAttr(resourceName, "mount_options.0.version", "NFS4_0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"server_hostname"},
+			},
+			{
+				Config: testAccAWSDataSyncLocationNfsConfigMountOptions(rName, "NFS4_1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDataSyncLocationNfsExists(resourceName, &locationNfs1),
+					resource.TestCheckResourceAttr(resourceName, "mount_options.0.version", "NFS4_1"),
+				),
 			},
 		},
 	})
@@ -188,6 +224,13 @@ func TestAccAWSDataSyncLocationNfs_Subdirectory(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"server_hostname"},
+			},
+			{
+				Config: testAccAWSDataSyncLocationNfsConfigSubdirectory(rName, "/subdirectory2/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDataSyncLocationNfsExists(resourceName, &locationNfs1),
+					resource.TestCheckResourceAttr(resourceName, "subdirectory", "/subdirectory2/"),
+				),
 			},
 		},
 	})
@@ -312,7 +355,7 @@ func testAccCheckAWSDataSyncLocationNfsDisappears(location *datasync.DescribeLoc
 func testAccCheckAWSDataSyncLocationNfsNotRecreated(i, j *datasync.DescribeLocationNfsOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if !aws.TimeValue(i.CreationTime).Equal(aws.TimeValue(j.CreationTime)) {
-			return errors.New("DataSync Location EFS was recreated")
+			return errors.New("DataSync Location Nfs was recreated")
 		}
 
 		return nil
@@ -430,6 +473,23 @@ resource "aws_datasync_location_nfs" "test" {
   }
 }
 `
+}
+
+func testAccAWSDataSyncLocationNfsConfigMountOptions(rName, option string) string {
+	return testAccAWSDataSyncLocationNfsConfigBase(rName) + fmt.Sprintf(`
+resource "aws_datasync_location_nfs" "test" {
+  server_hostname = "example.com"
+  subdirectory    = "/"
+
+  on_prem_config {
+    agent_arns = [aws_datasync_agent.test.arn]
+  }
+
+  mount_options {
+    version = %[1]q
+  }
+}
+`, option)
 }
 
 func testAccAWSDataSyncLocationNfsConfigAgentArnsMultiple(rName string) string {

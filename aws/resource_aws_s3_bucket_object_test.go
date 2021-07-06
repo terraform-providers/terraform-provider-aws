@@ -677,7 +677,7 @@ func TestAccAWSS3BucketObject_tags(t *testing.T) {
 					testAccCheckAWSS3BucketObjectExists(resourceName, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj1, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -690,7 +690,7 @@ func TestAccAWSS3BucketObject_tags(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdEquals(&obj2, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj2, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "B@BB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "X X"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "E:/"),
@@ -714,7 +714,7 @@ func TestAccAWSS3BucketObject_tags(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdDiffers(&obj4, &obj3),
 					testAccCheckAWSS3BucketObjectBody(&obj4, "changed stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -742,7 +742,7 @@ func TestAccAWSS3BucketObject_tagsLeadingSingleSlash(t *testing.T) {
 					testAccCheckAWSS3BucketObjectExists(resourceName, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj1, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -755,7 +755,7 @@ func TestAccAWSS3BucketObject_tagsLeadingSingleSlash(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdEquals(&obj2, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj2, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "B@BB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "X X"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "E:/"),
@@ -779,7 +779,7 @@ func TestAccAWSS3BucketObject_tagsLeadingSingleSlash(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdDiffers(&obj4, &obj3),
 					testAccCheckAWSS3BucketObjectBody(&obj4, "changed stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -807,7 +807,7 @@ func TestAccAWSS3BucketObject_tagsLeadingMultipleSlashes(t *testing.T) {
 					testAccCheckAWSS3BucketObjectExists(resourceName, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj1, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -820,7 +820,7 @@ func TestAccAWSS3BucketObject_tagsLeadingMultipleSlashes(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdEquals(&obj2, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj2, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "B@BB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "X X"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "E:/"),
@@ -844,7 +844,7 @@ func TestAccAWSS3BucketObject_tagsLeadingMultipleSlashes(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdDiffers(&obj4, &obj3),
 					testAccCheckAWSS3BucketObjectBody(&obj4, "changed stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -872,7 +872,7 @@ func TestAccAWSS3BucketObject_tagsMultipleSlashes(t *testing.T) {
 					testAccCheckAWSS3BucketObjectExists(resourceName, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj1, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -885,7 +885,7 @@ func TestAccAWSS3BucketObject_tagsMultipleSlashes(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdEquals(&obj2, &obj1),
 					testAccCheckAWSS3BucketObjectBody(&obj2, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "B@BB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "X X"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "E:/"),
@@ -909,7 +909,7 @@ func TestAccAWSS3BucketObject_tagsMultipleSlashes(t *testing.T) {
 					testAccCheckAWSS3BucketObjectVersionIdDiffers(&obj4, &obj3),
 					testAccCheckAWSS3BucketObjectBody(&obj4, "changed stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "AAA"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "A@AA"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "CCC"),
 				),
@@ -1707,7 +1707,7 @@ resource "aws_s3_bucket_object" "object" {
   content = %[3]q
 
   tags = {
-    Key1 = "AAA"
+    Key1 = "A@AA"
     Key2 = "BBB"
     Key3 = "CCC"
   }
@@ -1731,7 +1731,7 @@ resource "aws_s3_bucket_object" "object" {
   content = %[3]q
 
   tags = {
-    Key2 = "BBB"
+    Key2 = "B@BB"
     Key3 = "X X"
     Key4 = "DDD"
     Key5 = "E:/"

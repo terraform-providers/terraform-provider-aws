@@ -1,0 +1,15 @@
+```release-note:enhancement
+resource/aws_sqs_queue: Add `deduplication_scope` and `fifo_throughput_limit` arguments
+```
+
+```release-note:enhancement
+resource/aws_sqs_queue: Add `url` attribute
+```
+
+```release-note:bug
+resource/aws_sqs_queue: Allow `visibility_timeout_seconds` to be `0` when creating queue
+```
+
+```release-note:bug
+resource/aws_sqs_queue: Ensure that queue attributes propagate completely during Create and Update
+```

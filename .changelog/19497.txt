@@ -1,0 +1,3 @@
+```release-note:new-resource
+aws_elasticsearch_domain_saml_options
+```

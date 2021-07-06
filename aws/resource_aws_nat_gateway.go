@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -27,7 +28,7 @@ func resourceAwsNatGateway() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"allocation_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 
@@ -35,6 +36,14 @@ func resourceAwsNatGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"connectivity_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.ConnectivityTypePublic,
+				ValidateFunc: validation.StringInSlice(ec2.ConnectivityType_Values(), false),
 			},
 
 			"network_interface_id": {
@@ -67,9 +76,19 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Create the NAT Gateway
 	createOpts := &ec2.CreateNatGatewayInput{
-		AllocationId:      aws.String(d.Get("allocation_id").(string)),
-		SubnetId:          aws.String(d.Get("subnet_id").(string)),
 		TagSpecifications: ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeNatgateway),
+	}
+
+	if v, ok := d.GetOk("allocation_id"); ok {
+		createOpts.AllocationId = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("connectivity_type"); ok {
+		createOpts.ConnectivityType = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("subnet_id"); ok {
+		createOpts.SubnetId = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Create NAT Gateway: %s", *createOpts)
@@ -124,6 +143,7 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Set NAT Gateway attributes
 	ng := ngRaw.(*ec2.NatGateway)
+	d.Set("connectivity_type", ng.ConnectivityType)
 	d.Set("subnet_id", ng.SubnetId)
 
 	// Address

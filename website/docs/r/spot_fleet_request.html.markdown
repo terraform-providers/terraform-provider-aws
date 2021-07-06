@@ -201,6 +201,9 @@ across different markets and instance types. Conflicts with `launch_template_con
 * `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
 * `load_balancers` (Optional) A list of elastic load balancer names to add to the Spot fleet.
 * `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with Application Load Balancing.
+* `on_demand_allocation_strategy` - The order of the launch template overrides to use in fulfilling On-Demand capacity. the possible values are: `lowestPrice` and `prioritized`. the default is `lowestPrice`.
+* `on_demand_max_total_price` - The maximum amount per hour for On-Demand Instances that you're willing to pay. When the maximum amount you're willing to pay is reached, the fleet stops launching instances even if it hasn’t met the target capacity.
+* `on_demand_target_capacity` - The number of On-Demand units to request. If the request type is `maintain`, you can specify a target capacity of 0 and add capacity later.
 * `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Launch Template Configs

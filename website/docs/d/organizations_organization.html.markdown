@@ -91,6 +91,7 @@ If the account is the master account for the organization, the following attribu
     * `email` - Email of the account
     * `id` - Identifier of the account
     * `name` - Name of the account
+    * `status` - Status of the account
 * `aws_service_access_principals` - A list of AWS service principal names that have integration enabled with your organization. Organization must have `feature_set` set to `ALL`. For additional information, see the [AWS Organizations User Guide](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html).
 * `enabled_policy_types` - A list of Organizations policy types that are enabled in the Organization Root. Organization must have `feature_set` set to `ALL`. For additional information about valid policy types (e.g. `SERVICE_CONTROL_POLICY`), see the [AWS Organizations API Reference](https://docs.aws.amazon.com/organizations/latest/APIReference/API_EnablePolicyType.html).
 * `non_master_accounts` - List of organization accounts excluding the master account. For a list including the master account, see the `accounts` attribute. All elements have these attributes:
@@ -98,6 +99,7 @@ If the account is the master account for the organization, the following attribu
     * `email` - Email of the account
     * `id` - Identifier of the account
     * `name` - Name of the account
+    * `status` - Status of the account
 * `roots` - List of organization roots. All elements have these attributes:
     * `arn` - ARN of the root
     * `id` - Identifier of the root

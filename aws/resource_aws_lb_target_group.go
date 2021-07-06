@@ -229,6 +229,10 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 								return false
 							},
 						},
+						"cookie_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -238,8 +242,9 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"lb_cookie", // Only for ALBs
-								"source_ip", // Only for NLBs
+								"lb_cookie",  // Only for ALBs
+								"app_cookie", // Only for ALBs
+								"source_ip",  // Only for NLBs
 							}, false),
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								switch d.Get("protocol").(string) {
@@ -256,15 +261,11 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 				},
 			},
 			"target_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  elbv2.TargetTypeEnumInstance,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					elbv2.TargetTypeEnumInstance,
-					elbv2.TargetTypeEnumIp,
-					elbv2.TargetTypeEnumLambda,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      elbv2.TargetTypeEnumInstance,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(elbv2.TargetTypeEnum_Values(), false),
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
@@ -542,7 +543,7 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			if len(stickinessBlocks) == 1 {
 				stickiness := stickinessBlocks[0].(map[string]interface{})
 
-				if !stickiness["enabled"].(bool) && stickiness["type"].(string) == "lb_cookie" && d.Get("protocol").(string) != elbv2.ProtocolEnumHttp && d.Get("protocol").(string) != elbv2.ProtocolEnumHttps {
+				if !stickiness["enabled"].(bool) && (stickiness["type"].(string) == "lb_cookie" || stickiness["type"].(string) == "app_cookie") && d.Get("protocol").(string) != elbv2.ProtocolEnumHttp && d.Get("protocol").(string) != elbv2.ProtocolEnumHttps {
 					log.Printf("[WARN] invalid configuration, this will fail in a future version: stickiness enabled %v, protocol %s, type %s", stickiness["enabled"].(bool), d.Get("protocol").(string), stickiness["type"].(string))
 				} else {
 					attrs = append(attrs,
@@ -557,11 +558,26 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 
 					switch d.Get("protocol").(string) {
 					case elbv2.ProtocolEnumHttp, elbv2.ProtocolEnumHttps:
-						attrs = append(attrs,
-							&elbv2.TargetGroupAttribute{
-								Key:   aws.String("stickiness.lb_cookie.duration_seconds"),
-								Value: aws.String(fmt.Sprintf("%d", stickiness["cookie_duration"].(int))),
-							})
+						switch stickiness["type"].(string) {
+						case "lb_cookie":
+							attrs = append(attrs,
+								&elbv2.TargetGroupAttribute{
+									Key:   aws.String("stickiness.lb_cookie.duration_seconds"),
+									Value: aws.String(fmt.Sprintf("%d", stickiness["cookie_duration"].(int))),
+								})
+						case "app_cookie":
+							attrs = append(attrs,
+								&elbv2.TargetGroupAttribute{
+									Key:   aws.String("stickiness.app_cookie.duration_seconds"),
+									Value: aws.String(fmt.Sprintf("%d", stickiness["cookie_duration"].(int))),
+								},
+								&elbv2.TargetGroupAttribute{
+									Key:   aws.String("stickiness.app_cookie.cookie_name"),
+									Value: aws.String(stickiness["cookie_name"].(string)),
+								})
+						default:
+							log.Printf("[WARN] Unexpected stickiness type. Expected lb_cookie or app_cookie, got %s", stickiness["type"].(string))
+						}
 					}
 				}
 			} else if len(stickinessBlocks) == 0 {
@@ -812,11 +828,23 @@ func flattenAwsLbTargetGroupStickiness(attributes []*elbv2.TargetGroupAttribute)
 		case "stickiness.type":
 			m["type"] = aws.StringValue(attr.Value)
 		case "stickiness.lb_cookie.duration_seconds":
-			duration, err := strconv.Atoi(aws.StringValue(attr.Value))
-			if err != nil {
-				return nil, fmt.Errorf("error converting stickiness.lb_cookie.duration_seconds to int: %s", aws.StringValue(attr.Value))
+			if sType, ok := m["type"].(string); !ok || sType == "lb_cookie" {
+				duration, err := strconv.Atoi(aws.StringValue(attr.Value))
+				if err != nil {
+					return nil, fmt.Errorf("error converting stickiness.lb_cookie.duration_seconds to int: %s", aws.StringValue(attr.Value))
+				}
+				m["cookie_duration"] = duration
 			}
-			m["cookie_duration"] = duration
+		case "stickiness.app_cookie.cookie_name":
+			m["cookie_name"] = aws.StringValue(attr.Value)
+		case "stickiness.app_cookie.duration_seconds":
+			if sType, ok := m["type"].(string); !ok || sType == "app_cookie" {
+				duration, err := strconv.Atoi(aws.StringValue(attr.Value))
+				if err != nil {
+					return nil, fmt.Errorf("Error converting stickiness.app_cookie.duration_seconds to int: %s", aws.StringValue(attr.Value))
+				}
+				m["cookie_duration"] = duration
+			}
 		}
 	}
 

@@ -31,31 +31,49 @@ func testSweepIamInstanceProfile(region string) error {
 
 	var sweeperErrs *multierror.Error
 
-	out, err := conn.ListInstanceProfiles(&iam.ListInstanceProfilesInput{})
-
-	for _, instanceProfile := range out.InstanceProfiles {
-		name := aws.StringValue(instanceProfile.InstanceProfileName)
-
-		r := resourceAwsIamInstanceProfile()
-		d := r.Data(nil)
-		d.SetId(name)
-		err := r.Delete(d, client)
-
-		if err != nil {
-			sweeperErr := fmt.Errorf("error deleting IAM Instance Profile (%s): %w", name, err)
-			log.Printf("[ERROR] %s", sweeperErr)
-			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-			continue
+	err = conn.ListInstanceProfilesPages(&iam.ListInstanceProfilesInput{}, func(page *iam.ListInstanceProfilesOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
-	}
+
+		for _, instanceProfile := range page.InstanceProfiles {
+			name := aws.StringValue(instanceProfile.InstanceProfileName)
+
+			if !iamRoleNameFilter(name) {
+				log.Printf("[INFO] Skipping IAM Instance Profile (%s): no match on allow-list", name)
+				continue
+			}
+
+			r := resourceAwsIamInstanceProfile()
+			d := r.Data(nil)
+			d.SetId(name)
+
+			roles := instanceProfile.Roles
+			if r := len(roles); r > 1 {
+				sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("unexpected number of roles for IAM Instance Profile (%s): %d", name, r))
+			} else if r == 1 {
+				d.Set("role", roles[0].RoleName)
+			}
+
+			log.Printf("[INFO] Sweeping IAM Instance Profile %q", name)
+			err := r.Delete(d, client)
+
+			if err != nil {
+				sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error deleting IAM Instance Profile (%s): %w", name, err))
+				continue
+			}
+		}
+
+		return !lastPage
+	})
 
 	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping IAM Instance Profile sweep for %s: %s", region, err)
+		log.Printf("[WARN] Skipping IAM Instance Profile sweep for %q: %s", region, err)
 		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
 	}
 
 	if err != nil {
-		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing IAM Instance Profiles: %w", err))
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing IAM Instance Profiles: %w", err))
 	}
 
 	return sweeperErrs.ErrorOrNil()

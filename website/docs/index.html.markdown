@@ -126,7 +126,7 @@ provider "aws" {
 }
 ```
 
-Please note that the [AWS Go SDK](https://aws.amazon.com/sdk-for-go/), the underlying authentication handler used by the Terraform AWS Provider, does not support all AWS CLI features, such as Single Sign On (SSO) configuration or credentials.
+Please note that the [AWS Go SDK](https://aws.amazon.com/sdk-for-go/), the underlying authentication handler used by the Terraform AWS Provider, does not support all AWS CLI features.
 
 ### CodeBuild, ECS, and EKS Roles
 

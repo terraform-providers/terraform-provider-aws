@@ -2,19 +2,24 @@ package aws
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/route53/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsRoute53Zone() *schema.Resource {
@@ -312,7 +317,11 @@ func resourceAwsRoute53ZoneDelete(d *schema.ResourceData, meta interface{}) erro
 
 	if d.Get("force_destroy").(bool) {
 		if err := deleteAllRecordsInHostedZoneId(d.Id(), d.Get("name").(string), conn); err != nil {
-			return fmt.Errorf("error deleting records in Route53 Hosted Zone (%s): %s", d.Id(), err)
+			return fmt.Errorf("error while force deleting Route53 Hosted Zone (%s), deleting records: %w", d.Id(), err)
+		}
+
+		if err := disableDNSSECForZone(conn, d.Id()); err != nil {
+			return fmt.Errorf("error while force deleting Route53 Hosted Zone (%s), disabling DNSSEC: %w", d.Id(), err)
 		}
 	}
 
@@ -348,7 +357,7 @@ func deleteAllRecordsInHostedZoneId(hostedZoneId, hostedZoneName string, conn *r
 		changes := make([]*route53.Change, 0)
 		// 100 items per page returned by default
 		for _, set := range sets {
-			if strings.TrimSuffix(*set.Name, ".") == strings.TrimSuffix(hostedZoneName, ".") && (*set.Type == "NS" || *set.Type == "SOA") {
+			if strings.TrimSuffix(aws.StringValue(set.Name), ".") == strings.TrimSuffix(hostedZoneName, ".") && (aws.StringValue(set.Type) == "NS" || aws.StringValue(set.Type) == "SOA") {
 				// Zone NS & SOA records cannot be deleted
 				continue
 			}
@@ -357,8 +366,12 @@ func deleteAllRecordsInHostedZoneId(hostedZoneId, hostedZoneName string, conn *r
 				ResourceRecordSet: set,
 			})
 		}
-		log.Printf("[DEBUG] Deleting %d records (page %d) from %s",
-			len(changes), pageNum, hostedZoneId)
+
+		if len(changes) == 0 {
+			return !lastPage
+		}
+
+		log.Printf("[DEBUG] Deleting %d records (page %d) from %s", len(changes), pageNum, hostedZoneId)
 
 		req := &route53.ChangeResourceRecordSetsInput{
 			HostedZoneId: aws.String(hostedZoneId),
@@ -373,7 +386,7 @@ func deleteAllRecordsInHostedZoneId(hostedZoneId, hostedZoneName string, conn *r
 		if out, ok := resp.(*route53.ChangeResourceRecordSetsOutput); ok {
 			log.Printf("[DEBUG] Waiting for change batch to become INSYNC: %#v", out)
 			if out.ChangeInfo != nil && out.ChangeInfo.Id != nil {
-				lastErrorFromWaiter = waitForRoute53RecordSetToSync(conn, cleanChangeID(*out.ChangeInfo.Id))
+				lastErrorFromWaiter = waitForRoute53RecordSetToSync(conn, cleanChangeID(aws.StringValue(out.ChangeInfo.Id)))
 			} else {
 				log.Printf("[DEBUG] Change info was empty")
 			}
@@ -383,9 +396,118 @@ func deleteAllRecordsInHostedZoneId(hostedZoneId, hostedZoneName string, conn *r
 
 		return !lastPage
 	})
+
 	if err != nil {
 		return fmt.Errorf("Failed listing/deleting record sets: %s\nLast error from deletion: %s\nLast error from waiter: %s",
 			err, lastDeleteErr, lastErrorFromWaiter)
+	}
+
+	return nil
+}
+
+func dnsSECStatus(conn *route53.Route53, hostedZoneID string) (string, error) {
+	input := &route53.GetDNSSECInput{
+		HostedZoneId: aws.String(hostedZoneID),
+	}
+
+	var output *route53.GetDNSSECOutput
+	err := tfresource.RetryConfigContext(context.Background(), 0*time.Millisecond, 1*time.Minute, 0*time.Millisecond, 30*time.Second, 3*time.Minute, func() *resource.RetryError {
+		var err error
+
+		output, err = conn.GetDNSSEC(input)
+
+		if err != nil {
+			if strings.Contains(err.Error(), "Throttling") {
+				log.Printf("[DEBUG] Retrying to get DNS SEC for zone %s: %s", hostedZoneID, err)
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = conn.GetDNSSEC(input)
+	}
+
+	if tfawserr.ErrMessageContains(err, route53.ErrCodeInvalidArgument, "Operation is unsupported for private") {
+		return "NOT_SIGNING", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	if output == nil || output.Status == nil {
+		return "", fmt.Errorf("getting DNS SEC for hosted zone (%s): empty response (%v)", hostedZoneID, output)
+	}
+
+	return aws.StringValue(output.Status.ServeSignature), nil
+}
+
+func disableDNSSECForZone(conn *route53.Route53, hostedZoneId string) error {
+	// hosted zones cannot be deleted if DNSSEC Key Signing Keys exist
+	log.Printf("[DEBUG] Disabling DNS SEC for zone %s", hostedZoneId)
+
+	status, err := dnsSECStatus(conn, hostedZoneId)
+
+	if err != nil {
+		return fmt.Errorf("could not get DNS SEC status for hosted zone (%s): %w", hostedZoneId, err)
+	}
+
+	if status != "SIGNING" {
+		log.Printf("[DEBUG] Not necessary to disable DNS SEC for hosted zone (%s): %s (status)", hostedZoneId, status)
+		return nil
+	}
+
+	input := &route53.DisableHostedZoneDNSSECInput{
+		HostedZoneId: aws.String(hostedZoneId),
+	}
+
+	var output *route53.DisableHostedZoneDNSSECOutput
+	err = tfresource.RetryConfigContext(context.Background(), 0*time.Millisecond, 1*time.Minute, 0*time.Millisecond, 20*time.Second, 5*time.Minute, func() *resource.RetryError {
+		var err error
+
+		output, err = conn.DisableHostedZoneDNSSEC(input)
+
+		if err != nil {
+			if tfawserr.ErrCodeEquals(err, route53.ErrCodeKeySigningKeyInParentDSRecord) {
+				log.Printf("[DEBUG] Unable to disable DNS SEC for zone %s because key-signing key in parent DS record. Retrying... (%s)", hostedZoneId, err)
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		output, err = conn.DisableHostedZoneDNSSEC(input)
+	}
+
+	if tfawserr.ErrCodeEquals(err, route53.ErrCodeDNSSECNotFound) {
+		return nil
+	}
+
+	if tfawserr.ErrCodeEquals(err, route53.ErrCodeNoSuchHostedZone) {
+		return nil
+	}
+
+	if tfawserr.ErrMessageContains(err, "InvalidArgument", "Operation is unsupported for private") {
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("disabling Route 53 Hosted Zone DNSSEC (%s): %w", hostedZoneId, err)
+	}
+
+	if output != nil && output.ChangeInfo != nil {
+		if _, err := waiter.ChangeInfoStatusInsync(conn, aws.StringValue(output.ChangeInfo.Id)); err != nil {
+			return fmt.Errorf("waiting for Route 53 Hosted Zone DNSSEC (%s) disable: %w", hostedZoneId, err)
+		}
 	}
 
 	return nil
@@ -397,7 +519,7 @@ func resourceAwsGoRoute53Wait(r53 *route53.Route53, ref *route53.GetChangeInput)
 	if err != nil {
 		return nil, "UNKNOWN", err
 	}
-	return true, *status.ChangeInfo.Status, nil
+	return true, aws.StringValue(status.ChangeInfo.Status), nil
 }
 
 // cleanChangeID is used to remove the leading /change/
@@ -446,7 +568,7 @@ func getNameServers(zoneId string, zoneName string, r53 *route53.Route53) ([]str
 	}
 	ns := make([]string, len(resp.ResourceRecordSets[0].ResourceRecords))
 	for i := range resp.ResourceRecordSets[0].ResourceRecords {
-		ns[i] = *resp.ResourceRecordSets[0].ResourceRecords[i].Value
+		ns[i] = aws.StringValue(resp.ResourceRecordSets[0].ResourceRecords[i].Value)
 	}
 	sort.Strings(ns)
 	return ns, nil
@@ -547,12 +669,15 @@ func route53HostedZoneVPCHash(v interface{}) int {
 }
 
 func route53WaitForChangeSynchronization(conn *route53.Route53, changeID string) error {
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	conf := resource.StateChangeConf{
-		Delay:      30 * time.Second,
-		Pending:    []string{route53.ChangeStatusPending},
-		Target:     []string{route53.ChangeStatusInsync},
-		Timeout:    15 * time.Minute,
-		MinTimeout: 2 * time.Second,
+		Pending:      []string{route53.ChangeStatusPending},
+		Target:       []string{route53.ChangeStatusInsync},
+		Delay:        time.Duration(rand.Int63n(20)+10) * time.Second,
+		MinTimeout:   5 * time.Second,
+		PollInterval: time.Duration(rand.Int63n(15)+15) * time.Second,
+		Timeout:      15 * time.Minute,
 		Refresh: func() (result interface{}, state string, err error) {
 			input := &route53.GetChangeInput{
 				Id: aws.String(changeID),

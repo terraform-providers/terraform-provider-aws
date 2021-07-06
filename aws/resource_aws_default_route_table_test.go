@@ -5,11 +5,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestAccAWSDefaultRouteTable_basic(t *testing.T) {
@@ -323,7 +324,7 @@ func TestAccAWSDefaultRouteTable_VpcEndpointAssociation(t *testing.T) {
 	})
 }
 
-func TestAccAWSDefaultRouteTable_tags(t *testing.T) {
+func TestAccAWSDefaultRouteTable_Tags(t *testing.T) {
 	var routeTable ec2.RouteTable
 	resourceName := "aws_default_route_table.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -511,22 +512,17 @@ func testAccCheckDefaultRouteTableDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the resource
-		resp, err := conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-			RouteTableIds: []*string{aws.String(rs.Primary.ID)},
-		})
-		if err == nil {
-			if len(resp.RouteTables) > 0 {
-				return fmt.Errorf("still exist.")
-			}
+		_, err := finder.RouteTableByID(conn, rs.Primary.ID)
 
-			return nil
+		if tfresource.NotFound(err) {
+			continue
 		}
 
-		// Verify the error is what we want
-		if !isAWSErr(err, "InvalidRouteTableID.NotFound", "") {
+		if err != nil {
 			return err
 		}
+
+		return fmt.Errorf("Route table %s still exists", rs.Primary.ID)
 	}
 
 	return nil

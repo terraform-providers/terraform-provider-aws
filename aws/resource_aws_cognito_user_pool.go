@@ -3,11 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -29,9 +32,10 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 		// https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html
 		Schema: map[string]*schema.Schema{
 			"account_recovery_setting": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"recovery_mechanism": {
@@ -107,6 +111,19 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"custom_domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"estimated_number_of_users": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"auto_verified_attributes": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -249,6 +266,53 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateArn,
 						},
+						"kms_key_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateArn,
+						},
+						"custom_email_sender": {
+							Type:         schema.TypeList,
+							Optional:     true,
+							Computed:     true,
+							MaxItems:     1,
+							RequiredWith: []string{"lambda_config.0.kms_key_id"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"lambda_arn": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validateArn,
+									},
+									"lambda_version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(cognitoidentityprovider.CustomEmailSenderLambdaVersionType_Values(), false),
+									},
+								},
+							},
+						},
+						"custom_sms_sender": {
+							Type:         schema.TypeList,
+							Optional:     true,
+							Computed:     true,
+							MaxItems:     1,
+							RequiredWith: []string{"lambda_config.0.kms_key_id"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"lambda_arn": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validateArn,
+									},
+									"lambda_version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(cognitoidentityprovider.CustomSMSSenderLambdaVersionType_Values(), false),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -266,6 +330,11 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.Any(
+					validation.StringLenBetween(1, 128),
+					validation.StringMatch(regexp.MustCompile(`[\w\s+=,.@-]+`),
+						`must satisfy regular expression pattern: [\w\s+=,.@-]+`),
+				),
 			},
 			"password_policy": {
 				Type:     schema.TypeList,
@@ -417,7 +486,7 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
 			"username_attributes": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
@@ -544,35 +613,8 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 		params.AutoVerifiedAttributes = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("email_configuration"); ok {
-		configs := v.([]interface{})
-		config, ok := configs[0].(map[string]interface{})
-
-		if ok && config != nil {
-			emailConfigurationType := &cognitoidentityprovider.EmailConfigurationType{}
-
-			if v, ok := config["reply_to_email_address"]; ok && v.(string) != "" {
-				emailConfigurationType.ReplyToEmailAddress = aws.String(v.(string))
-			}
-
-			if v, ok := config["source_arn"]; ok && v.(string) != "" {
-				emailConfigurationType.SourceArn = aws.String(v.(string))
-			}
-
-			if v, ok := config["from_email_address"]; ok && v.(string) != "" {
-				emailConfigurationType.From = aws.String(v.(string))
-			}
-
-			if v, ok := config["email_sending_account"]; ok && v.(string) != "" {
-				emailConfigurationType.EmailSendingAccount = aws.String(v.(string))
-			}
-
-			if v, ok := config["configuration_set"]; ok && v.(string) != "" {
-				emailConfigurationType.ConfigurationSet = aws.String(v.(string))
-			}
-
-			params.EmailConfiguration = emailConfigurationType
-		}
+	if v, ok := d.GetOk("email_configuration"); ok && len(v.([]interface{})) > 0 {
+		params.EmailConfiguration = expandCognitoUserPoolEmailConfig(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("admin_create_user_config"); ok {
@@ -622,8 +664,7 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("schema"); ok {
-		configs := v.(*schema.Set).List()
-		params.Schema = expandCognitoUserPoolSchema(configs)
+		params.Schema = expandCognitoUserPoolSchema(v.(*schema.Set).List())
 	}
 
 	// For backwards compatibility, include this outside of MFA configuration
@@ -639,7 +680,7 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("username_attributes"); ok {
-		params.UsernameAttributes = expandStringList(v.([]interface{}))
+		params.UsernameAttributes = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("username_configuration"); ok {
@@ -780,49 +821,54 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error describing Cognito User Pool (%s): %w", d.Id(), err)
 	}
 
-	if err := d.Set("admin_create_user_config", flattenCognitoUserPoolAdminCreateUserConfig(resp.UserPool.AdminCreateUserConfig)); err != nil {
+	userPool := resp.UserPool
+
+	if err := d.Set("admin_create_user_config", flattenCognitoUserPoolAdminCreateUserConfig(userPool.AdminCreateUserConfig)); err != nil {
 		return fmt.Errorf("failed setting admin_create_user_config: %w", err)
 	}
-	if resp.UserPool.AliasAttributes != nil {
-		d.Set("alias_attributes", flattenStringSet(resp.UserPool.AliasAttributes))
+	if userPool.AliasAttributes != nil {
+		d.Set("alias_attributes", flattenStringSet(userPool.AliasAttributes))
 	}
 
-	d.Set("arn", resp.UserPool.Arn)
+	d.Set("arn", userPool.Arn)
+	d.Set("custom_domain", userPool.CustomDomain)
+	d.Set("domain", userPool.Domain)
+	d.Set("estimated_number_of_users", userPool.EstimatedNumberOfUsers)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", meta.(*AWSClient).RegionalHostname("cognito-idp"), d.Id()))
-	d.Set("auto_verified_attributes", flattenStringSet(resp.UserPool.AutoVerifiedAttributes))
+	d.Set("auto_verified_attributes", flattenStringSet(userPool.AutoVerifiedAttributes))
 
-	if resp.UserPool.EmailVerificationSubject != nil {
-		d.Set("email_verification_subject", resp.UserPool.EmailVerificationSubject)
+	if userPool.EmailVerificationSubject != nil {
+		d.Set("email_verification_subject", userPool.EmailVerificationSubject)
 	}
-	if resp.UserPool.EmailVerificationMessage != nil {
-		d.Set("email_verification_message", resp.UserPool.EmailVerificationMessage)
+	if userPool.EmailVerificationMessage != nil {
+		d.Set("email_verification_message", userPool.EmailVerificationMessage)
 	}
-	if err := d.Set("lambda_config", flattenCognitoUserPoolLambdaConfig(resp.UserPool.LambdaConfig)); err != nil {
+	if err := d.Set("lambda_config", flattenCognitoUserPoolLambdaConfig(userPool.LambdaConfig)); err != nil {
 		return fmt.Errorf("failed setting lambda_config: %w", err)
 	}
-	if resp.UserPool.SmsVerificationMessage != nil {
-		d.Set("sms_verification_message", resp.UserPool.SmsVerificationMessage)
+	if userPool.SmsVerificationMessage != nil {
+		d.Set("sms_verification_message", userPool.SmsVerificationMessage)
 	}
-	if resp.UserPool.SmsAuthenticationMessage != nil {
-		d.Set("sms_authentication_message", resp.UserPool.SmsAuthenticationMessage)
+	if userPool.SmsAuthenticationMessage != nil {
+		d.Set("sms_authentication_message", userPool.SmsAuthenticationMessage)
 	}
 
-	if err := d.Set("device_configuration", flattenCognitoUserPoolDeviceConfiguration(resp.UserPool.DeviceConfiguration)); err != nil {
+	if err := d.Set("device_configuration", flattenCognitoUserPoolDeviceConfiguration(userPool.DeviceConfiguration)); err != nil {
 		return fmt.Errorf("failed setting device_configuration: %w", err)
 	}
 
-	if err := d.Set("account_recovery_setting", flattenCognitoUserPoolAccountRecoverySettingConfig(resp.UserPool.AccountRecoverySetting)); err != nil {
+	if err := d.Set("account_recovery_setting", flattenCognitoUserPoolAccountRecoverySettingConfig(userPool.AccountRecoverySetting)); err != nil {
 		return fmt.Errorf("failed setting account_recovery_setting: %w", err)
 	}
 
-	if resp.UserPool.EmailConfiguration != nil {
-		if err := d.Set("email_configuration", flattenCognitoUserPoolEmailConfiguration(resp.UserPool.EmailConfiguration)); err != nil {
+	if userPool.EmailConfiguration != nil {
+		if err := d.Set("email_configuration", flattenCognitoUserPoolEmailConfiguration(userPool.EmailConfiguration)); err != nil {
 			return fmt.Errorf("failed setting email_configuration: %w", err)
 		}
 	}
 
-	if resp.UserPool.Policies != nil && resp.UserPool.Policies.PasswordPolicy != nil {
-		if err := d.Set("password_policy", flattenCognitoUserPoolPasswordPolicy(resp.UserPool.Policies.PasswordPolicy)); err != nil {
+	if userPool.Policies != nil && userPool.Policies.PasswordPolicy != nil {
+		if err := d.Set("password_policy", flattenCognitoUserPoolPasswordPolicy(userPool.Policies.PasswordPolicy)); err != nil {
 			return fmt.Errorf("failed setting password_policy: %w", err)
 		}
 	}
@@ -831,34 +877,34 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("schema"); ok {
 		configuredSchema = v.(*schema.Set).List()
 	}
-	if err := d.Set("schema", flattenCognitoUserPoolSchema(expandCognitoUserPoolSchema(configuredSchema), resp.UserPool.SchemaAttributes)); err != nil {
+	if err := d.Set("schema", flattenCognitoUserPoolSchema(expandCognitoUserPoolSchema(configuredSchema), userPool.SchemaAttributes)); err != nil {
 		return fmt.Errorf("failed setting schema: %w", err)
 	}
 
-	if err := d.Set("sms_configuration", flattenCognitoSmsConfiguration(resp.UserPool.SmsConfiguration)); err != nil {
+	if err := d.Set("sms_configuration", flattenCognitoSmsConfiguration(userPool.SmsConfiguration)); err != nil {
 		return fmt.Errorf("failed setting sms_configuration: %w", err)
 	}
 
-	if resp.UserPool.UsernameAttributes != nil {
-		d.Set("username_attributes", flattenStringList(resp.UserPool.UsernameAttributes))
+	if userPool.UsernameAttributes != nil {
+		d.Set("username_attributes", flattenStringSet(userPool.UsernameAttributes))
 	}
 
-	if err := d.Set("username_configuration", flattenCognitoUserPoolUsernameConfiguration(resp.UserPool.UsernameConfiguration)); err != nil {
+	if err := d.Set("username_configuration", flattenCognitoUserPoolUsernameConfiguration(userPool.UsernameConfiguration)); err != nil {
 		return fmt.Errorf("failed setting username_configuration: %w", err)
 	}
 
-	if err := d.Set("user_pool_add_ons", flattenCognitoUserPoolUserPoolAddOns(resp.UserPool.UserPoolAddOns)); err != nil {
+	if err := d.Set("user_pool_add_ons", flattenCognitoUserPoolUserPoolAddOns(userPool.UserPoolAddOns)); err != nil {
 		return fmt.Errorf("failed setting user_pool_add_ons: %w", err)
 	}
 
-	if err := d.Set("verification_message_template", flattenCognitoUserPoolVerificationMessageTemplate(resp.UserPool.VerificationMessageTemplate)); err != nil {
+	if err := d.Set("verification_message_template", flattenCognitoUserPoolVerificationMessageTemplate(userPool.VerificationMessageTemplate)); err != nil {
 		return fmt.Errorf("failed setting verification_message_template: %w", err)
 	}
 
-	d.Set("creation_date", resp.UserPool.CreationDate.Format(time.RFC3339))
-	d.Set("last_modified_date", resp.UserPool.LastModifiedDate.Format(time.RFC3339))
-	d.Set("name", resp.UserPool.Name)
-	tags := keyvaluetags.CognitoidentityKeyValueTags(resp.UserPool.UserPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+	d.Set("creation_date", userPool.CreationDate.Format(time.RFC3339))
+	d.Set("last_modified_date", userPool.LastModifiedDate.Format(time.RFC3339))
+	d.Set("name", userPool.Name)
+	tags := keyvaluetags.CognitoidentityKeyValueTags(userPool.UserPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 
 	//lintignore:AWSR002
 	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
@@ -1011,37 +1057,8 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		if v, ok := d.GetOk("email_configuration"); ok {
-
-			configs := v.([]interface{})
-			config, ok := configs[0].(map[string]interface{})
-
-			if ok && config != nil {
-				log.Printf("[DEBUG] Set Values to update from configs")
-				emailConfigurationType := &cognitoidentityprovider.EmailConfigurationType{}
-
-				if v, ok := config["reply_to_email_address"]; ok && v.(string) != "" {
-					emailConfigurationType.ReplyToEmailAddress = aws.String(v.(string))
-				}
-
-				if v, ok := config["source_arn"]; ok && v.(string) != "" {
-					emailConfigurationType.SourceArn = aws.String(v.(string))
-				}
-
-				if v, ok := config["email_sending_account"]; ok && v.(string) != "" {
-					emailConfigurationType.EmailSendingAccount = aws.String(v.(string))
-				}
-
-				if v, ok := config["from_email_address"]; ok && v.(string) != "" {
-					emailConfigurationType.From = aws.String(v.(string))
-				}
-
-				if v, ok := config["configuration_set"]; ok && v.(string) != "" {
-					emailConfigurationType.ConfigurationSet = aws.String(v.(string))
-				}
-
-				params.EmailConfiguration = emailConfigurationType
-			}
+		if v, ok := d.GetOk("email_configuration"); ok && len(v.([]interface{})) > 0 {
+			params.EmailConfiguration = expandCognitoUserPoolEmailConfig(v.([]interface{}))
 		}
 
 		if v, ok := d.GetOk("email_verification_subject"); ok {
@@ -1188,6 +1205,10 @@ func resourceAwsCognitoUserPoolDelete(d *schema.ResourceData, meta interface{}) 
 
 	_, err := conn.DeleteUserPool(params)
 
+	if tfawserr.ErrCodeEquals(err, cognitoidentityprovider.ErrCodeResourceNotFoundException) {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("error deleting Cognito user pool (%s): %w", d.Id(), err)
 	}
@@ -1312,4 +1333,890 @@ func flattenCognitoUserPoolAccountRecoverySettingConfig(config *cognitoidentityp
 	settings["recovery_mechanism"] = mechanisms
 
 	return []interface{}{settings}
+}
+
+func flattenCognitoUserPoolEmailConfiguration(s *cognitoidentityprovider.EmailConfigurationType) []map[string]interface{} {
+	m := make(map[string]interface{})
+
+	if s == nil {
+		return nil
+	}
+
+	if s.ReplyToEmailAddress != nil {
+		m["reply_to_email_address"] = aws.StringValue(s.ReplyToEmailAddress)
+	}
+
+	if s.From != nil {
+		m["from_email_address"] = aws.StringValue(s.From)
+	}
+
+	if s.SourceArn != nil {
+		m["source_arn"] = aws.StringValue(s.SourceArn)
+	}
+
+	if s.EmailSendingAccount != nil {
+		m["email_sending_account"] = aws.StringValue(s.EmailSendingAccount)
+	}
+
+	if len(m) > 0 {
+		return []map[string]interface{}{m}
+	}
+
+	return []map[string]interface{}{}
+}
+
+func expandCognitoUserPoolAdminCreateUserConfig(config map[string]interface{}) *cognitoidentityprovider.AdminCreateUserConfigType {
+	configs := &cognitoidentityprovider.AdminCreateUserConfigType{}
+
+	if v, ok := config["allow_admin_create_user_only"]; ok {
+		configs.AllowAdminCreateUserOnly = aws.Bool(v.(bool))
+	}
+
+	if v, ok := config["invite_message_template"]; ok {
+		data := v.([]interface{})
+
+		if len(data) > 0 {
+			m, ok := data[0].(map[string]interface{})
+
+			if ok {
+				imt := &cognitoidentityprovider.MessageTemplateType{}
+
+				if v, ok := m["email_message"]; ok {
+					imt.EmailMessage = aws.String(v.(string))
+				}
+
+				if v, ok := m["email_subject"]; ok {
+					imt.EmailSubject = aws.String(v.(string))
+				}
+
+				if v, ok := m["sms_message"]; ok {
+					imt.SMSMessage = aws.String(v.(string))
+				}
+
+				configs.InviteMessageTemplate = imt
+			}
+		}
+	}
+
+	return configs
+}
+
+func flattenCognitoUserPoolAdminCreateUserConfig(s *cognitoidentityprovider.AdminCreateUserConfigType) []map[string]interface{} {
+	config := map[string]interface{}{}
+
+	if s == nil {
+		return nil
+	}
+
+	if s.AllowAdminCreateUserOnly != nil {
+		config["allow_admin_create_user_only"] = aws.BoolValue(s.AllowAdminCreateUserOnly)
+	}
+
+	if s.InviteMessageTemplate != nil {
+		subconfig := map[string]interface{}{}
+
+		if s.InviteMessageTemplate.EmailMessage != nil {
+			subconfig["email_message"] = aws.StringValue(s.InviteMessageTemplate.EmailMessage)
+		}
+
+		if s.InviteMessageTemplate.EmailSubject != nil {
+			subconfig["email_subject"] = aws.StringValue(s.InviteMessageTemplate.EmailSubject)
+		}
+
+		if s.InviteMessageTemplate.SMSMessage != nil {
+			subconfig["sms_message"] = aws.StringValue(s.InviteMessageTemplate.SMSMessage)
+		}
+
+		if len(subconfig) > 0 {
+			config["invite_message_template"] = []map[string]interface{}{subconfig}
+		}
+	}
+
+	return []map[string]interface{}{config}
+}
+
+func expandCognitoUserPoolDeviceConfiguration(config map[string]interface{}) *cognitoidentityprovider.DeviceConfigurationType {
+	configs := &cognitoidentityprovider.DeviceConfigurationType{}
+
+	if v, ok := config["challenge_required_on_new_device"]; ok {
+		configs.ChallengeRequiredOnNewDevice = aws.Bool(v.(bool))
+	}
+
+	if v, ok := config["device_only_remembered_on_user_prompt"]; ok {
+		configs.DeviceOnlyRememberedOnUserPrompt = aws.Bool(v.(bool))
+	}
+
+	return configs
+}
+
+func expandCognitoUserPoolLambdaConfig(config map[string]interface{}) *cognitoidentityprovider.LambdaConfigType {
+	configs := &cognitoidentityprovider.LambdaConfigType{}
+
+	if v, ok := config["create_auth_challenge"]; ok && v.(string) != "" {
+		configs.CreateAuthChallenge = aws.String(v.(string))
+	}
+
+	if v, ok := config["custom_message"]; ok && v.(string) != "" {
+		configs.CustomMessage = aws.String(v.(string))
+	}
+
+	if v, ok := config["define_auth_challenge"]; ok && v.(string) != "" {
+		configs.DefineAuthChallenge = aws.String(v.(string))
+	}
+
+	if v, ok := config["post_authentication"]; ok && v.(string) != "" {
+		configs.PostAuthentication = aws.String(v.(string))
+	}
+
+	if v, ok := config["post_confirmation"]; ok && v.(string) != "" {
+		configs.PostConfirmation = aws.String(v.(string))
+	}
+
+	if v, ok := config["pre_authentication"]; ok && v.(string) != "" {
+		configs.PreAuthentication = aws.String(v.(string))
+	}
+
+	if v, ok := config["pre_sign_up"]; ok && v.(string) != "" {
+		configs.PreSignUp = aws.String(v.(string))
+	}
+
+	if v, ok := config["pre_token_generation"]; ok && v.(string) != "" {
+		configs.PreTokenGeneration = aws.String(v.(string))
+	}
+
+	if v, ok := config["user_migration"]; ok && v.(string) != "" {
+		configs.UserMigration = aws.String(v.(string))
+	}
+
+	if v, ok := config["verify_auth_challenge_response"]; ok && v.(string) != "" {
+		configs.VerifyAuthChallengeResponse = aws.String(v.(string))
+	}
+
+	if v, ok := config["kms_key_id"]; ok && v.(string) != "" {
+		configs.KMSKeyID = aws.String(v.(string))
+	}
+
+	if v, ok := config["custom_sms_sender"].([]interface{}); ok && len(v) > 0 {
+		s, sok := v[0].(map[string]interface{})
+		if sok && s != nil {
+			configs.CustomSMSSender = expandCognitoUserPoolCustomSMSSender(s)
+		}
+	}
+
+	if v, ok := config["custom_email_sender"].([]interface{}); ok && len(v) > 0 {
+		s, sok := v[0].(map[string]interface{})
+		if sok && s != nil {
+			configs.CustomEmailSender = expandCognitoUserPoolCustomEmailSender(s)
+		}
+	}
+
+	return configs
+}
+
+func flattenCognitoUserPoolLambdaConfig(s *cognitoidentityprovider.LambdaConfigType) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if s == nil {
+		return nil
+	}
+
+	if s.CreateAuthChallenge != nil {
+		m["create_auth_challenge"] = aws.StringValue(s.CreateAuthChallenge)
+	}
+
+	if s.CustomMessage != nil {
+		m["custom_message"] = aws.StringValue(s.CustomMessage)
+	}
+
+	if s.DefineAuthChallenge != nil {
+		m["define_auth_challenge"] = aws.StringValue(s.DefineAuthChallenge)
+	}
+
+	if s.PostAuthentication != nil {
+		m["post_authentication"] = aws.StringValue(s.PostAuthentication)
+	}
+
+	if s.PostConfirmation != nil {
+		m["post_confirmation"] = aws.StringValue(s.PostConfirmation)
+	}
+
+	if s.PreAuthentication != nil {
+		m["pre_authentication"] = aws.StringValue(s.PreAuthentication)
+	}
+
+	if s.PreSignUp != nil {
+		m["pre_sign_up"] = aws.StringValue(s.PreSignUp)
+	}
+
+	if s.PreTokenGeneration != nil {
+		m["pre_token_generation"] = aws.StringValue(s.PreTokenGeneration)
+	}
+
+	if s.UserMigration != nil {
+		m["user_migration"] = aws.StringValue(s.UserMigration)
+	}
+
+	if s.VerifyAuthChallengeResponse != nil {
+		m["verify_auth_challenge_response"] = aws.StringValue(s.VerifyAuthChallengeResponse)
+	}
+
+	if s.KMSKeyID != nil {
+		m["kms_key_id"] = aws.StringValue(s.KMSKeyID)
+	}
+
+	if s.CustomSMSSender != nil {
+		m["custom_sms_sender"] = flattenCognitoUserPoolCustomSMSSender(s.CustomSMSSender)
+	}
+
+	if s.CustomEmailSender != nil {
+		m["custom_email_sender"] = flattenCognitoUserPoolCustomEmailSender(s.CustomEmailSender)
+	}
+
+	if len(m) > 0 {
+		return []map[string]interface{}{m}
+	}
+
+	return []map[string]interface{}{}
+}
+
+func expandCognitoUserPoolPasswordPolicy(config map[string]interface{}) *cognitoidentityprovider.PasswordPolicyType {
+	configs := &cognitoidentityprovider.PasswordPolicyType{}
+
+	if v, ok := config["minimum_length"]; ok {
+		configs.MinimumLength = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := config["require_lowercase"]; ok {
+		configs.RequireLowercase = aws.Bool(v.(bool))
+	}
+
+	if v, ok := config["require_numbers"]; ok {
+		configs.RequireNumbers = aws.Bool(v.(bool))
+	}
+
+	if v, ok := config["require_symbols"]; ok {
+		configs.RequireSymbols = aws.Bool(v.(bool))
+	}
+
+	if v, ok := config["require_uppercase"]; ok {
+		configs.RequireUppercase = aws.Bool(v.(bool))
+	}
+
+	if v, ok := config["temporary_password_validity_days"]; ok {
+		configs.TemporaryPasswordValidityDays = aws.Int64(int64(v.(int)))
+	}
+
+	return configs
+}
+
+func flattenCognitoUserPoolUserPoolAddOns(s *cognitoidentityprovider.UserPoolAddOnsType) []map[string]interface{} {
+	config := make(map[string]interface{})
+
+	if s == nil {
+		return []map[string]interface{}{}
+	}
+
+	if s.AdvancedSecurityMode != nil {
+		config["advanced_security_mode"] = aws.StringValue(s.AdvancedSecurityMode)
+	}
+
+	return []map[string]interface{}{config}
+}
+
+func expandCognitoUserPoolSchema(inputs []interface{}) []*cognitoidentityprovider.SchemaAttributeType {
+	configs := make([]*cognitoidentityprovider.SchemaAttributeType, len(inputs))
+
+	for i, input := range inputs {
+		param := input.(map[string]interface{})
+		config := &cognitoidentityprovider.SchemaAttributeType{}
+
+		if v, ok := param["attribute_data_type"]; ok {
+			config.AttributeDataType = aws.String(v.(string))
+		}
+
+		if v, ok := param["developer_only_attribute"]; ok {
+			config.DeveloperOnlyAttribute = aws.Bool(v.(bool))
+		}
+
+		if v, ok := param["mutable"]; ok {
+			config.Mutable = aws.Bool(v.(bool))
+		}
+
+		if v, ok := param["name"]; ok {
+			config.Name = aws.String(v.(string))
+		}
+
+		if v, ok := param["required"]; ok {
+			config.Required = aws.Bool(v.(bool))
+		}
+
+		if v, ok := param["number_attribute_constraints"]; ok {
+			data := v.([]interface{})
+
+			if len(data) > 0 {
+				m, ok := data[0].(map[string]interface{})
+				if ok {
+					numberAttributeConstraintsType := &cognitoidentityprovider.NumberAttributeConstraintsType{}
+
+					if v, ok := m["min_value"]; ok && v.(string) != "" {
+						numberAttributeConstraintsType.MinValue = aws.String(v.(string))
+					}
+
+					if v, ok := m["max_value"]; ok && v.(string) != "" {
+						numberAttributeConstraintsType.MaxValue = aws.String(v.(string))
+					}
+
+					config.NumberAttributeConstraints = numberAttributeConstraintsType
+				}
+			}
+		}
+
+		if v, ok := param["string_attribute_constraints"]; ok {
+			data := v.([]interface{})
+
+			if len(data) > 0 {
+				m, _ := data[0].(map[string]interface{})
+				if ok {
+					stringAttributeConstraintsType := &cognitoidentityprovider.StringAttributeConstraintsType{}
+
+					if l, ok := m["min_length"]; ok && l.(string) != "" {
+						stringAttributeConstraintsType.MinLength = aws.String(l.(string))
+					}
+
+					if l, ok := m["max_length"]; ok && l.(string) != "" {
+						stringAttributeConstraintsType.MaxLength = aws.String(l.(string))
+					}
+
+					config.StringAttributeConstraints = stringAttributeConstraintsType
+				}
+			}
+		}
+
+		configs[i] = config
+	}
+
+	return configs
+}
+
+func flattenCognitoUserPoolSchema(configuredAttributes, inputs []*cognitoidentityprovider.SchemaAttributeType) []map[string]interface{} {
+	values := make([]map[string]interface{}, 0)
+
+	for _, input := range inputs {
+		if input == nil {
+			continue
+		}
+
+		// The API returns all standard attributes
+		// https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html#cognito-user-pools-standard-attributes
+		// Ignore setting them in state if they are unconfigured to prevent a huge and unexpected diff
+		configured := false
+
+		for _, configuredAttribute := range configuredAttributes {
+			if reflect.DeepEqual(input, configuredAttribute) {
+				configured = true
+			}
+		}
+
+		if !configured {
+			if cognitoUserPoolSchemaAttributeMatchesStandardAttribute(input) {
+				continue
+			}
+			// When adding a Cognito Identity Provider, the API will automatically add an "identities" attribute
+			identitiesAttribute := cognitoidentityprovider.SchemaAttributeType{
+				AttributeDataType:          aws.String(cognitoidentityprovider.AttributeDataTypeString),
+				DeveloperOnlyAttribute:     aws.Bool(false),
+				Mutable:                    aws.Bool(true),
+				Name:                       aws.String("identities"),
+				Required:                   aws.Bool(false),
+				StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{},
+			}
+			if reflect.DeepEqual(*input, identitiesAttribute) {
+				continue
+			}
+		}
+
+		var value = map[string]interface{}{
+			"attribute_data_type":      aws.StringValue(input.AttributeDataType),
+			"developer_only_attribute": aws.BoolValue(input.DeveloperOnlyAttribute),
+			"mutable":                  aws.BoolValue(input.Mutable),
+			"name":                     strings.TrimPrefix(strings.TrimPrefix(aws.StringValue(input.Name), "dev:"), "custom:"),
+			"required":                 aws.BoolValue(input.Required),
+		}
+
+		if input.NumberAttributeConstraints != nil {
+			subvalue := make(map[string]interface{})
+
+			if input.NumberAttributeConstraints.MinValue != nil {
+				subvalue["min_value"] = aws.StringValue(input.NumberAttributeConstraints.MinValue)
+			}
+
+			if input.NumberAttributeConstraints.MaxValue != nil {
+				subvalue["max_value"] = aws.StringValue(input.NumberAttributeConstraints.MaxValue)
+			}
+
+			value["number_attribute_constraints"] = []map[string]interface{}{subvalue}
+		}
+
+		if input.StringAttributeConstraints != nil {
+			subvalue := make(map[string]interface{})
+
+			if input.StringAttributeConstraints.MinLength != nil {
+				subvalue["min_length"] = aws.StringValue(input.StringAttributeConstraints.MinLength)
+			}
+
+			if input.StringAttributeConstraints.MaxLength != nil {
+				subvalue["max_length"] = aws.StringValue(input.StringAttributeConstraints.MaxLength)
+			}
+
+			value["string_attribute_constraints"] = []map[string]interface{}{subvalue}
+		}
+
+		values = append(values, value)
+	}
+
+	return values
+}
+
+func expandCognitoUserPoolUsernameConfiguration(config map[string]interface{}) *cognitoidentityprovider.UsernameConfigurationType {
+	usernameConfigurationType := &cognitoidentityprovider.UsernameConfigurationType{
+		CaseSensitive: aws.Bool(config["case_sensitive"].(bool)),
+	}
+
+	return usernameConfigurationType
+}
+
+func flattenCognitoUserPoolUsernameConfiguration(u *cognitoidentityprovider.UsernameConfigurationType) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if u == nil {
+		return nil
+	}
+
+	m["case_sensitive"] = aws.BoolValue(u.CaseSensitive)
+
+	return []map[string]interface{}{m}
+}
+
+func expandCognitoUserPoolVerificationMessageTemplate(config map[string]interface{}) *cognitoidentityprovider.VerificationMessageTemplateType {
+	verificationMessageTemplateType := &cognitoidentityprovider.VerificationMessageTemplateType{}
+
+	if v, ok := config["default_email_option"]; ok && v.(string) != "" {
+		verificationMessageTemplateType.DefaultEmailOption = aws.String(v.(string))
+	}
+
+	if v, ok := config["email_message"]; ok && v.(string) != "" {
+		verificationMessageTemplateType.EmailMessage = aws.String(v.(string))
+	}
+
+	if v, ok := config["email_message_by_link"]; ok && v.(string) != "" {
+		verificationMessageTemplateType.EmailMessageByLink = aws.String(v.(string))
+	}
+
+	if v, ok := config["email_subject"]; ok && v.(string) != "" {
+		verificationMessageTemplateType.EmailSubject = aws.String(v.(string))
+	}
+
+	if v, ok := config["email_subject_by_link"]; ok && v.(string) != "" {
+		verificationMessageTemplateType.EmailSubjectByLink = aws.String(v.(string))
+	}
+
+	if v, ok := config["sms_message"]; ok && v.(string) != "" {
+		verificationMessageTemplateType.SmsMessage = aws.String(v.(string))
+	}
+
+	return verificationMessageTemplateType
+}
+
+func flattenCognitoUserPoolVerificationMessageTemplate(s *cognitoidentityprovider.VerificationMessageTemplateType) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if s == nil {
+		return nil
+	}
+
+	if s.DefaultEmailOption != nil {
+		m["default_email_option"] = aws.StringValue(s.DefaultEmailOption)
+	}
+
+	if s.EmailMessage != nil {
+		m["email_message"] = aws.StringValue(s.EmailMessage)
+	}
+
+	if s.EmailMessageByLink != nil {
+		m["email_message_by_link"] = aws.StringValue(s.EmailMessageByLink)
+	}
+
+	if s.EmailSubject != nil {
+		m["email_subject"] = aws.StringValue(s.EmailSubject)
+	}
+
+	if s.EmailSubjectByLink != nil {
+		m["email_subject_by_link"] = aws.StringValue(s.EmailSubjectByLink)
+	}
+
+	if s.SmsMessage != nil {
+		m["sms_message"] = aws.StringValue(s.SmsMessage)
+	}
+
+	if len(m) > 0 {
+		return []map[string]interface{}{m}
+	}
+
+	return []map[string]interface{}{}
+}
+
+func flattenCognitoUserPoolDeviceConfiguration(s *cognitoidentityprovider.DeviceConfigurationType) []map[string]interface{} {
+	config := map[string]interface{}{}
+
+	if s == nil {
+		return nil
+	}
+
+	if s.ChallengeRequiredOnNewDevice != nil {
+		config["challenge_required_on_new_device"] = aws.BoolValue(s.ChallengeRequiredOnNewDevice)
+	}
+
+	if s.DeviceOnlyRememberedOnUserPrompt != nil {
+		config["device_only_remembered_on_user_prompt"] = aws.BoolValue(s.DeviceOnlyRememberedOnUserPrompt)
+	}
+
+	return []map[string]interface{}{config}
+}
+
+func flattenCognitoUserPoolPasswordPolicy(s *cognitoidentityprovider.PasswordPolicyType) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if s == nil {
+		return nil
+	}
+
+	if s.MinimumLength != nil {
+		m["minimum_length"] = aws.Int64Value(s.MinimumLength)
+	}
+
+	if s.RequireLowercase != nil {
+		m["require_lowercase"] = aws.BoolValue(s.RequireLowercase)
+	}
+
+	if s.RequireNumbers != nil {
+		m["require_numbers"] = aws.BoolValue(s.RequireNumbers)
+	}
+
+	if s.RequireSymbols != nil {
+		m["require_symbols"] = aws.BoolValue(s.RequireSymbols)
+	}
+
+	if s.RequireUppercase != nil {
+		m["require_uppercase"] = aws.BoolValue(s.RequireUppercase)
+	}
+
+	if s.TemporaryPasswordValidityDays != nil {
+		m["temporary_password_validity_days"] = aws.Int64Value(s.TemporaryPasswordValidityDays)
+	}
+
+	if len(m) > 0 {
+		return []map[string]interface{}{m}
+	}
+
+	return []map[string]interface{}{}
+}
+
+func cognitoUserPoolSchemaAttributeMatchesStandardAttribute(input *cognitoidentityprovider.SchemaAttributeType) bool {
+	if input == nil {
+		return false
+	}
+
+	// All standard attributes always returned by API
+	// https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html#cognito-user-pools-standard-attributes
+	var standardAttributes = []cognitoidentityprovider.SchemaAttributeType{
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("address"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("birthdate"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("10"),
+				MinLength: aws.String("10"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("email"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeBoolean),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("email_verified"),
+			Required:               aws.Bool(false),
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("gender"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("given_name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("family_name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("locale"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("middle_name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("nickname"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("phone_number"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeBoolean),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("phone_number_verified"),
+			Required:               aws.Bool(false),
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("picture"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("preferred_username"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("profile"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(false),
+			Name:                   aws.String("sub"),
+			Required:               aws.Bool(true),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("1"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeNumber),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("updated_at"),
+			NumberAttributeConstraints: &cognitoidentityprovider.NumberAttributeConstraintsType{
+				MinValue: aws.String("0"),
+			},
+			Required: aws.Bool(false),
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("website"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("zoneinfo"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+	}
+	for _, standardAttribute := range standardAttributes {
+		if reflect.DeepEqual(*input, standardAttribute) {
+			return true
+		}
+	}
+	return false
+}
+
+func expandCognitoUserPoolCustomSMSSender(config map[string]interface{}) *cognitoidentityprovider.CustomSMSLambdaVersionConfigType {
+	usernameConfigurationType := &cognitoidentityprovider.CustomSMSLambdaVersionConfigType{
+		LambdaArn:     aws.String(config["lambda_arn"].(string)),
+		LambdaVersion: aws.String(config["lambda_version"].(string)),
+	}
+
+	return usernameConfigurationType
+}
+
+func flattenCognitoUserPoolCustomSMSSender(u *cognitoidentityprovider.CustomSMSLambdaVersionConfigType) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if u == nil {
+		return nil
+	}
+
+	m["lambda_arn"] = aws.StringValue(u.LambdaArn)
+	m["lambda_version"] = aws.StringValue(u.LambdaVersion)
+
+	return []map[string]interface{}{m}
+}
+
+func expandCognitoUserPoolCustomEmailSender(config map[string]interface{}) *cognitoidentityprovider.CustomEmailLambdaVersionConfigType {
+	usernameConfigurationType := &cognitoidentityprovider.CustomEmailLambdaVersionConfigType{
+		LambdaArn:     aws.String(config["lambda_arn"].(string)),
+		LambdaVersion: aws.String(config["lambda_version"].(string)),
+	}
+
+	return usernameConfigurationType
+}
+
+func flattenCognitoUserPoolCustomEmailSender(u *cognitoidentityprovider.CustomEmailLambdaVersionConfigType) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if u == nil {
+		return nil
+	}
+
+	m["lambda_arn"] = aws.StringValue(u.LambdaArn)
+	m["lambda_version"] = aws.StringValue(u.LambdaVersion)
+
+	return []map[string]interface{}{m}
+}
+
+func expandCognitoUserPoolEmailConfig(emailConfig []interface{}) *cognitoidentityprovider.EmailConfigurationType {
+	config := emailConfig[0].(map[string]interface{})
+
+	emailConfigurationType := &cognitoidentityprovider.EmailConfigurationType{}
+
+	if v, ok := config["reply_to_email_address"]; ok && v.(string) != "" {
+		emailConfigurationType.ReplyToEmailAddress = aws.String(v.(string))
+	}
+
+	if v, ok := config["source_arn"]; ok && v.(string) != "" {
+		emailConfigurationType.SourceArn = aws.String(v.(string))
+	}
+
+	if v, ok := config["from_email_address"]; ok && v.(string) != "" {
+		emailConfigurationType.From = aws.String(v.(string))
+	}
+
+	if v, ok := config["email_sending_account"]; ok && v.(string) != "" {
+		emailConfigurationType.EmailSendingAccount = aws.String(v.(string))
+	}
+
+	if v, ok := config["configuration_set"]; ok && v.(string) != "" {
+		emailConfigurationType.ConfigurationSet = aws.String(v.(string))
+	}
+
+	return emailConfigurationType
 }

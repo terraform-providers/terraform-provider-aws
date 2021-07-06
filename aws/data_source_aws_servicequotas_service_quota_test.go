@@ -35,6 +35,21 @@ func TestAccAwsServiceQuotasServiceQuotaDataSource_QuotaCode(t *testing.T) {
 	})
 }
 
+func TestAccAwsServiceQuotasServiceQuotaDataSource_PermissionError_QuotaCode(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceQuotas(t); testAccAssumeRoleARNPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, servicequotas.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAwsServiceQuotasServiceQuotaDataSourceConfig_PermissionError_QuotaCode("elasticloadbalancing", "L-53DA6B97"),
+				ExpectError: regexp.MustCompile(`DEPENDENCY_ACCESS_DENIED_ERROR`),
+			},
+		},
+	})
+}
+
 func TestAccAwsServiceQuotasServiceQuotaDataSource_QuotaName(t *testing.T) {
 	dataSourceName := "data.aws_servicequotas_service_quota.test"
 
@@ -61,6 +76,21 @@ func TestAccAwsServiceQuotasServiceQuotaDataSource_QuotaName(t *testing.T) {
 	})
 }
 
+func TestAccAwsServiceQuotasServiceQuotaDataSource_PermissionError_QuotaName(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceQuotas(t); testAccAssumeRoleARNPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, servicequotas.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAwsServiceQuotasServiceQuotaDataSourceConfig_PermissionError_QuotaName("elasticloadbalancing", "Application Load Balancers per Region"),
+				ExpectError: regexp.MustCompile(`DEPENDENCY_ACCESS_DENIED_ERROR`),
+			},
+		},
+	})
+}
+
 func testAccAwsServiceQuotasServiceQuotaDataSourceConfigQuotaCode(serviceCode, quotaCode string) string {
 	return fmt.Sprintf(`
 data "aws_servicequotas_service_quota" "test" {
@@ -70,6 +100,37 @@ data "aws_servicequotas_service_quota" "test" {
 `, quotaCode, serviceCode)
 }
 
+func testAccAwsServiceQuotasServiceQuotaDataSourceConfig_PermissionError_QuotaCode(serviceCode, quotaCode string) string {
+	policy := `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+  	  "Effect": "Allow",
+  	  "Action": [
+  	    "servicequotas:GetServiceQuota"
+  	  ],
+  	  "Resource": "*"
+    },
+    {
+  	  "Effect": "Deny",
+  	  "Action": [
+  	    "elasticloadbalancing:*"
+  	  ],
+  	  "Resource": "*"
+    }
+  ]
+}`
+
+	return composeConfig(
+		testAccProviderConfigAssumeRolePolicy(policy),
+		fmt.Sprintf(`
+data "aws_servicequotas_service_quota" "test" {
+  service_code = %[1]q
+  quota_code   = %[2]q
+}
+`, serviceCode, quotaCode))
+}
+
 func testAccAwsServiceQuotasServiceQuotaDataSourceConfigQuotaName(serviceCode, quotaName string) string {
 	return fmt.Sprintf(`
 data "aws_servicequotas_service_quota" "test" {
@@ -77,4 +138,35 @@ data "aws_servicequotas_service_quota" "test" {
   service_code = %[2]q
 }
 `, quotaName, serviceCode)
+}
+
+func testAccAwsServiceQuotasServiceQuotaDataSourceConfig_PermissionError_QuotaName(serviceCode, quotaName string) string {
+	policy := `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+  	  "Effect": "Allow",
+  	  "Action": [
+  	    "servicequotas:ListServiceQuotas"
+  	  ],
+  	  "Resource": "*"
+    },
+    {
+  	  "Effect": "Deny",
+  	  "Action": [
+  	    "elasticloadbalancing:*"
+  	  ],
+  	  "Resource": "*"
+    }
+  ]
+}`
+
+	return composeConfig(
+		testAccProviderConfigAssumeRolePolicy(policy),
+		fmt.Sprintf(`
+data "aws_servicequotas_service_quota" "test" {
+  service_code = %[1]q
+  quota_name   = %[2]q
+}
+`, serviceCode, quotaName))
 }

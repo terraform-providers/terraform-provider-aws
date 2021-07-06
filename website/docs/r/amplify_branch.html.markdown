@@ -162,7 +162,7 @@ The following arguments are supported:
 * `display_name` - (Optional) The display name for a branch. This is used as the default domain prefix.
 * `enable_auto_build` - (Optional) Enables auto building for the branch.
 * `enable_basic_auth` - (Optional) Enables basic authorization for the branch.
-* `enable_notifications` - (Optional) Enables notifications for the branch.
+* `enable_notification` - (Optional) Enables notifications for the branch.
 * `enable_performance_mode` - (Optional) Enables performance mode for the branch.
 * `enable_pull_request_preview` - (Optional) Enables pull request previews for this branch.
 * `environment_variables` - (Optional) The environment variables for the branch.

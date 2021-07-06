@@ -111,10 +111,10 @@ resource "aws_iam_role_policy" "firehose_to_s3" {
                 "s3:ListBucket",
                 "s3:ListBucketMultipartUploads",
                 "s3:PutObject"
-            ],      
-            "Resource": [        
+            ],
+            "Resource": [
                 "${aws_s3_bucket.bucket.arn}",
-                "${aws_s3_bucket.bucket.arn}/*"		    
+                "${aws_s3_bucket.bucket.arn}/*"
             ]
         }
     ]
@@ -139,8 +139,7 @@ The following arguments are required:
 
 * `firehose_arn` - (Required) ARN of the Amazon Kinesis Firehose delivery stream to use for this metric stream.
 * `role_arn` - (Required) ARN of the IAM role that this metric stream will use to access Amazon Kinesis Firehose resources. For more information about role permissions, see [Trust between CloudWatch and Kinesis Data Firehose](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-metric-streams-trustpolicy.html).
-* `output_format` - (Required) Output format for the stream. For more information about output formats, see [Metric streams output formats](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-metric-streams-formats.html).
-* `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
+* `output_format` - (Required) Output format for the stream. Possible values are `json` and `opentelemetry0.7`. For more information about output formats, see [Metric streams output formats](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-metric-streams-formats.html).
 
 The following arguments are optional:
 
@@ -148,6 +147,7 @@ The following arguments are optional:
 * `include_filter` - (Optional) List of inclusive metric filters. If you specify this parameter, the stream sends only the metrics from the metric namespaces that you specify here. Conflicts with `exclude_filter`.
 * `name` - (Optional, Forces new resource) Friendly name of the metric stream. If omitted, Terraform will assign a random, unique name. Conflicts with `name_prefix`.
 * `name_prefix` - (Optional, Forces new resource) Creates a unique friendly name beginning with the specified prefix. Conflicts with `name`.
+* `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### `exclude_filter`
 

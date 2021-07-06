@@ -71,7 +71,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - ARN of the product.
 * `created_time` - Time when the product was created.
 * `has_default_path` - Whether the product has a default path. If the product does not have a default path, call `ListLaunchPaths` to disambiguate between paths.  Otherwise, `ListLaunchPaths` is not required, and the output of ProductViewSummary can be used directly with `DescribeProvisioningParameters`.
-* `id` - Product ID.
+* `id` - Product ID. For example, `prod-dnigbtea24ste`.
 * `status` - Status of the product.
 * `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
@@ -80,5 +80,5 @@ In addition to all arguments above, the following attributes are exported:
 `aws_servicecatalog_product` can be imported using the product ID, e.g.
 
 ```
-$ terraform import aws_servicecatalog_product.example arn:aws:catalog:us-east-1:123456789012:product/prod-dnigbtea24ste
+$ terraform import aws_servicecatalog_product.example prod-dnigbtea24ste
 ```

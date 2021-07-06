@@ -287,7 +287,7 @@ func resourceAwsRoute53KeySigningKeyDelete(d *schema.ResourceData, meta interfac
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Route 53 Key Signing Key (%s): %w", d.Id(), err)
+		return fmt.Errorf("error deleting Route 53 Key Signing Key (%s), status (%s): %w", d.Id(), d.Get("status").(string), err)
 	}
 
 	if output != nil && output.ChangeInfo != nil {

@@ -22,52 +22,51 @@ func init() {
 
 func testSweepBackupVaultNotifications(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("Error getting client: %w", err)
 	}
+
 	conn := client.(*AWSClient).backupconn
-	var sweeperErrs *multierror.Error
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
 	input := &backup.ListBackupVaultsInput{}
 
-	for {
-		output, err := conn.ListBackupVaults(input)
-		if err != nil {
-			if testSweepSkipSweepError(err) {
-				log.Printf("[WARN] Skipping Backup Vault Notifications sweep for %s: %s", region, err)
-				return nil
-			}
-			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Backup Vault Notifications: %w", err))
-			return sweeperErrs.ErrorOrNil()
+	err = conn.ListBackupVaultsPages(input, func(page *backup.ListBackupVaultsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if len(output.BackupVaultList) == 0 {
-			log.Print("[DEBUG] No Backup Vault Notifications to sweep")
-			return nil
-		}
-
-		for _, rule := range output.BackupVaultList {
-			name := aws.StringValue(rule.BackupVaultName)
-
-			log.Printf("[INFO] Deleting Backup Vault Notifications %s", name)
-			_, err := conn.DeleteBackupVaultNotifications(&backup.DeleteBackupVaultNotificationsInput{
-				BackupVaultName: aws.String(name),
-			})
-			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting Backup Vault Notifications %s: %w", name, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+		for _, vault := range page.BackupVaultList {
+			if vault == nil {
 				continue
 			}
+
+			r := resourceAwsBackupVaultNotifications()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(vault.BackupVaultName))
+
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		if output.NextToken == nil {
-			break
-		}
-		input.NextToken = output.NextToken
+		return !lastPage
+	})
+
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error listing Backup Vaults for %s: %w", region, err))
 	}
 
-	return sweeperErrs.ErrorOrNil()
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping Backup Vault Notifications for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping Backup Vault Notifications sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func TestAccAwsBackupVaultNotification_basic(t *testing.T) {

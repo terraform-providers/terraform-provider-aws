@@ -2,46 +2,122 @@ package waiter
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
-func EksAddonStatus(ctx context.Context, conn *eks.EKS, addonName, clusterName string) resource.StateRefreshFunc {
+func AddonStatus(ctx context.Context, conn *eks.EKS, clusterName, addonName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		output, err := conn.DescribeAddonWithContext(ctx, &eks.DescribeAddonInput{
-			ClusterName: aws.String(clusterName),
-			AddonName:   aws.String(addonName),
-		})
-		if tfawserr.ErrCodeEquals(err, eks.ErrCodeResourceNotFoundException) {
+		output, err := finder.AddonByClusterNameAndAddonName(ctx, conn, clusterName, addonName)
+
+		if tfresource.NotFound(err) {
 			return nil, "", nil
 		}
+
 		if err != nil {
-			return output, "", err
+			return nil, "", err
 		}
-		if output == nil || output.Addon == nil {
-			return nil, "", fmt.Errorf("EKS Cluster (%s) add-on (%s) missing", clusterName, addonName)
-		}
-		return output.Addon, aws.StringValue(output.Addon.Status), nil
+
+		return output, aws.StringValue(output.Status), nil
 	}
 }
 
-func EksAddonUpdateStatus(ctx context.Context, conn *eks.EKS, clusterName, addonName, updateID string) resource.StateRefreshFunc {
+func AddonUpdateStatus(ctx context.Context, conn *eks.EKS, clusterName, addonName, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		output, err := conn.DescribeUpdateWithContext(ctx, &eks.DescribeUpdateInput{
-			Name:      aws.String(clusterName),
-			AddonName: aws.String(addonName),
-			UpdateId:  aws.String(updateID),
-		})
+		output, err := finder.AddonUpdateByClusterNameAddonNameAndID(ctx, conn, clusterName, addonName, id)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
 		if err != nil {
-			return output, "", err
+			return nil, "", err
 		}
-		if output == nil || output.Update == nil {
-			return nil, "", fmt.Errorf("EKS Cluster (%s) add-on (%s) update (%s) missing", clusterName, addonName, updateID)
+
+		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+func ClusterStatus(conn *eks.EKS, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.ClusterByName(conn, name)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
 		}
-		return output.Update, aws.StringValue(output.Update.Status), nil
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+func ClusterUpdateStatus(conn *eks.EKS, name, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.ClusterUpdateByNameAndID(conn, name, id)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+func FargateProfileStatus(conn *eks.EKS, clusterName, fargateProfileName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.FargateProfileByClusterNameAndFargateProfileName(conn, clusterName, fargateProfileName)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+func NodegroupStatus(conn *eks.EKS, clusterName, nodeGroupName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.NodegroupByClusterNameAndNodegroupName(conn, clusterName, nodeGroupName)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+func NodegroupUpdateStatus(conn *eks.EKS, clusterName, nodeGroupName, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.NodegroupUpdateByClusterNameNodegroupNameAndID(conn, clusterName, nodeGroupName, id)
+
+		if tfresource.NotFound(err) {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		return output, aws.StringValue(output.Status), nil
 	}
 }

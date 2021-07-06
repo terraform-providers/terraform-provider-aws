@@ -143,10 +143,13 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 							ValidateFunc: validation.StringLenBetween(1, 255),
 						},
 						"launch_type": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      events.LaunchTypeEc2,
-							ValidateFunc: validation.StringInSlice(events.LaunchType_Values(), false),
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  events.LaunchTypeEc2,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validation.StringInSlice(events.LaunchType_Values(), false),
+							),
 						},
 						"network_configuration": {
 							Type:     schema.TypeList,
@@ -261,7 +264,7 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							ValidateFunc: validation.All(
-								MapMaxItems(10),
+								MapMaxItems(100),
 								MapKeysDoNotMatch(regexp.MustCompile(`^AWS.*$`), "input_path must not start with \"AWS\""),
 							),
 						},
@@ -491,11 +494,11 @@ func buildPutTargetInputStruct(d *schema.ResourceData) *events.PutTargetsInput {
 		e.RoleArn = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("run_command_targets"); ok {
+	if v, ok := d.GetOk("run_command_targets"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.RunCommandParameters = expandAwsCloudWatchEventTargetRunParameters(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("ecs_target"); ok {
+	if v, ok := d.GetOk("ecs_target"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.EcsParameters = expandAwsCloudWatchEventTargetEcsParameters(v.([]interface{}))
 	}
 
@@ -503,27 +506,27 @@ func buildPutTargetInputStruct(d *schema.ResourceData) *events.PutTargetsInput {
 		e.HttpParameters = expandAwsCloudWatchEventTargetHttpParameters(v.([]interface{})[0].(map[string]interface{}))
 	}
 
-	if v, ok := d.GetOk("batch_target"); ok {
+	if v, ok := d.GetOk("batch_target"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.BatchParameters = expandAwsCloudWatchEventTargetBatchParameters(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("kinesis_target"); ok {
+	if v, ok := d.GetOk("kinesis_target"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.KinesisParameters = expandAwsCloudWatchEventTargetKinesisParameters(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("sqs_target"); ok {
+	if v, ok := d.GetOk("sqs_target"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.SqsParameters = expandAwsCloudWatchEventTargetSqsParameters(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("input_transformer"); ok {
+	if v, ok := d.GetOk("input_transformer"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.InputTransformer = expandAwsCloudWatchEventTransformerParameters(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("retry_policy"); ok {
+	if v, ok := d.GetOk("retry_policy"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.RetryPolicy = expandAwsCloudWatchEventRetryPolicyParameters(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("dead_letter_config"); ok {
+	if v, ok := d.GetOk("dead_letter_config"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		e.DeadLetterConfig = expandAwsCloudWatchEventDeadLetterConfigParameters(v.([]interface{}))
 	}
 

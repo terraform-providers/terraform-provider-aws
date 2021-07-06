@@ -61,6 +61,7 @@ func resourceAwsMwaaEnvironment() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateArn,
+				ForceNew:     true,
 			},
 			"last_updated": {
 				Type:     schema.TypeList,

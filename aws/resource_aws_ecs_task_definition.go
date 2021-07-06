@@ -2,12 +2,14 @@ package aws
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
@@ -61,9 +63,10 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			},
 
 			"family": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 
 			"revision": {
@@ -93,7 +96,22 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				},
 				ValidateFunc: validateAwsEcsTaskDefinitionContainerDefinitions,
 			},
-
+			"ephemeral_storage": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"size_in_gib": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IntBetween(21, 200),
+						},
+					},
+				},
+			},
 			"task_role_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -115,16 +133,11 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			},
 
 			"network_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ecs.NetworkModeBridge,
-					ecs.NetworkModeHost,
-					ecs.NetworkModeAwsvpc,
-					ecs.NetworkModeNone,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ecs.NetworkMode_Values(), false),
 			},
 
 			"volume": {
@@ -153,14 +166,11 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"scope": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											ecs.ScopeShared,
-											ecs.ScopeTask,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(ecs.Scope_Values(), false),
 									},
 									"autoprovision": {
 										Type:     schema.TypeBool,
@@ -207,13 +217,10 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 										Default:  "/",
 									},
 									"transit_encryption": {
-										Type:     schema.TypeString,
-										ForceNew: true,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											ecs.EFSTransitEncryptionEnabled,
-											ecs.EFSTransitEncryptionDisabled,
-										}, false),
+										Type:         schema.TypeString,
+										ForceNew:     true,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(ecs.EFSTransitEncryption_Values(), false),
 									},
 									"transit_encryption_port": {
 										Type:         schema.TypeInt,
@@ -234,13 +241,51 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 													Optional: true,
 												},
 												"iam": {
+													Type:         schema.TypeString,
+													ForceNew:     true,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(ecs.EFSAuthorizationConfigIAM_Values(), false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"fsx_windows_file_server_volume_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"file_system_id": {
+										Type:     schema.TypeString,
+										ForceNew: true,
+										Required: true,
+									},
+									"root_directory": {
+										Type:     schema.TypeString,
+										ForceNew: true,
+										Required: true,
+									},
+									"authorization_config": {
+										Type:     schema.TypeList,
+										Required: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"credentials_parameter": {
+													Type:         schema.TypeString,
+													ForceNew:     true,
+													Required:     true,
+													ValidateFunc: validateArn,
+												},
+												"domain": {
 													Type:     schema.TypeString,
 													ForceNew: true,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														ecs.EFSAuthorizationConfigIAMEnabled,
-														ecs.EFSAuthorizationConfigIAMDisabled,
-													}, false),
+													Required: true,
 												},
 											},
 										},
@@ -261,12 +306,10 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							ForceNew: true,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ecs.TaskDefinitionPlacementConstraintTypeMemberOf,
-							}, false),
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ecs.TaskDefinitionPlacementConstraintType_Values(), false),
 						},
 						"expression": {
 							Type:     schema.TypeString,
@@ -281,28 +324,28 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"EC2",
+						"FARGATE",
+						"EXTERNAL",
+					}, false),
+				},
 			},
 
 			"ipc_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ecs.IpcModeHost,
-					ecs.IpcModeNone,
-					ecs.IpcModeTask,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ecs.IpcMode_Values(), false),
 			},
 
 			"pid_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ecs.PidModeHost,
-					ecs.PidModeTask,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ecs.PidMode_Values(), false),
 			},
 
 			"proxy_configuration": {
@@ -324,13 +367,11 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 							ForceNew: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Default:  ecs.ProxyConfigurationTypeAppmesh,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ecs.ProxyConfigurationTypeAppmesh,
-							}, false),
+							Type:         schema.TypeString,
+							Default:      ecs.ProxyConfigurationTypeAppmesh,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(ecs.ProxyConfigurationType_Values(), false),
 						},
 					},
 				},
@@ -430,20 +471,11 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 
 	constraints := d.Get("placement_constraints").(*schema.Set).List()
 	if len(constraints) > 0 {
-		var pc []*ecs.TaskDefinitionPlacementConstraint
-		for _, raw := range constraints {
-			p := raw.(map[string]interface{})
-			t := p["type"].(string)
-			e := p["expression"].(string)
-			if err := validateAwsEcsPlacementConstraint(t, e); err != nil {
-				return err
-			}
-			pc = append(pc, &ecs.TaskDefinitionPlacementConstraint{
-				Type:       aws.String(t),
-				Expression: aws.String(e),
-			})
+		cons, err := expandEcsTaskDefinitionPlacementConstraints(constraints)
+		if err != nil {
+			return err
 		}
-		input.PlacementConstraints = pc
+		input.PlacementConstraints = cons
 	}
 
 	if v, ok := d.GetOk("requires_compatibilities"); ok && v.(*schema.Set).Len() > 0 {
@@ -452,30 +484,11 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 
 	proxyConfigs := d.Get("proxy_configuration").([]interface{})
 	if len(proxyConfigs) > 0 {
-		proxyConfig := proxyConfigs[0]
-		configMap := proxyConfig.(map[string]interface{})
+		input.ProxyConfiguration = expandEcsTaskDefinitionProxyConfiguration(proxyConfigs)
+	}
 
-		containerName := configMap["container_name"].(string)
-		proxyType := configMap["type"].(string)
-
-		rawProperties := configMap["properties"].(map[string]interface{})
-
-		properties := make([]*ecs.KeyValuePair, len(rawProperties))
-		i := 0
-		for name, value := range rawProperties {
-			properties[i] = &ecs.KeyValuePair{
-				Name:  aws.String(name),
-				Value: aws.String(value.(string)),
-			}
-			i++
-		}
-
-		var ecsProxyConfig ecs.ProxyConfiguration
-		ecsProxyConfig.ContainerName = aws.String(containerName)
-		ecsProxyConfig.Type = aws.String(proxyType)
-		ecsProxyConfig.Properties = properties
-
-		input.ProxyConfiguration = &ecsProxyConfig
+	if v, ok := d.GetOk("ephemeral_storage"); ok && len(v.([]interface{})) > 0 {
+		input.EphemeralStorage = expandEcsTaskDefinitionEphemeralStorage(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] Registering ECS task definition: %s", input)
@@ -558,25 +571,28 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if err := d.Set("volume", flattenEcsVolumes(taskDefinition.Volumes)); err != nil {
-		return fmt.Errorf("error setting volume: %s", err)
+		return fmt.Errorf("error setting volume: %w", err)
 	}
 
 	if err := d.Set("inference_accelerator", flattenEcsInferenceAccelerators(taskDefinition.InferenceAccelerators)); err != nil {
-		return fmt.Errorf("error setting inference accelerators: %s", err)
+		return fmt.Errorf("error setting inference accelerators: %w", err)
 	}
 
 	if err := d.Set("placement_constraints", flattenPlacementConstraints(taskDefinition.PlacementConstraints)); err != nil {
-		log.Printf("[ERR] Error setting placement_constraints for (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting placement_constraints: %w", err)
 	}
 
 	if err := d.Set("requires_compatibilities", flattenStringList(taskDefinition.RequiresCompatibilities)); err != nil {
-		return fmt.Errorf("error setting requires_compatibilities: %s", err)
+		return fmt.Errorf("error setting requires_compatibilities: %w", err)
 	}
 
 	if err := d.Set("proxy_configuration", flattenProxyConfiguration(taskDefinition.ProxyConfiguration)); err != nil {
-		return fmt.Errorf("error setting proxy_configuration: %s", err)
+		return fmt.Errorf("error setting proxy_configuration: %w", err)
 	}
 
+	if err := d.Set("ephemeral_storage", flattenEcsTaskDefinitionEphemeralStorage(taskDefinition.EphemeralStorage)); err != nil {
+		return fmt.Errorf("error setting ephemeral_storage: %w", err)
+	}
 	return nil
 }
 
@@ -587,8 +603,8 @@ func flattenPlacementConstraints(pcs []*ecs.TaskDefinitionPlacementConstraint) [
 	results := make([]map[string]interface{}, 0)
 	for _, pc := range pcs {
 		c := make(map[string]interface{})
-		c["type"] = *pc.Type
-		c["expression"] = *pc.Expression
+		c["type"] = aws.StringValue(pc.Type)
+		c["expression"] = aws.StringValue(pc.Expression)
 		results = append(results, c)
 	}
 	return results
@@ -677,7 +693,28 @@ func resourceAwsEcsTaskDefinitionVolumeHash(v interface{}) int {
 				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 			}
 		}
+	}
 
+	if v, ok := m["fsx_windows_file_server_volume_configuration"]; ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		m := v.([]interface{})[0].(map[string]interface{})
+
+		if v, ok := m["file_system_id"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+
+		if v, ok := m["root_directory"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+
+		if v, ok := m["authorization_config"]; ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+			m := v.([]interface{})[0].(map[string]interface{})
+			if v, ok := m["credentials_parameter"]; ok && v.(string) != "" {
+				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			}
+			if v, ok := m["domain"]; ok && v.(string) != "" {
+				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -687,8 +724,8 @@ func flattenEcsInferenceAccelerators(list []*ecs.InferenceAccelerator) []map[str
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, iAcc := range list {
 		l := map[string]interface{}{
-			"device_name": *iAcc.DeviceName,
-			"device_type": *iAcc.DeviceType,
+			"device_name": aws.StringValue(iAcc.DeviceName),
+			"device_type": aws.StringValue(iAcc.DeviceType),
 		}
 
 		result = append(result, l)
@@ -708,4 +745,367 @@ func expandEcsInferenceAccelerators(configured []interface{}) []*ecs.InferenceAc
 	}
 
 	return iAccs
+}
+
+func expandEcsTaskDefinitionPlacementConstraints(constraints []interface{}) ([]*ecs.TaskDefinitionPlacementConstraint, error) {
+	var pc []*ecs.TaskDefinitionPlacementConstraint
+	for _, raw := range constraints {
+		p := raw.(map[string]interface{})
+		t := p["type"].(string)
+		e := p["expression"].(string)
+		if err := validateAwsEcsPlacementConstraint(t, e); err != nil {
+			return nil, err
+		}
+		pc = append(pc, &ecs.TaskDefinitionPlacementConstraint{
+			Type:       aws.String(t),
+			Expression: aws.String(e),
+		})
+	}
+
+	return pc, nil
+}
+
+func expandEcsTaskDefinitionProxyConfiguration(proxyConfigs []interface{}) *ecs.ProxyConfiguration {
+	proxyConfig := proxyConfigs[0]
+	configMap := proxyConfig.(map[string]interface{})
+
+	rawProperties := configMap["properties"].(map[string]interface{})
+
+	properties := make([]*ecs.KeyValuePair, len(rawProperties))
+	i := 0
+	for name, value := range rawProperties {
+		properties[i] = &ecs.KeyValuePair{
+			Name:  aws.String(name),
+			Value: aws.String(value.(string)),
+		}
+		i++
+	}
+
+	ecsProxyConfig := &ecs.ProxyConfiguration{
+		ContainerName: aws.String(configMap["container_name"].(string)),
+		Type:          aws.String(configMap["type"].(string)),
+		Properties:    properties,
+	}
+
+	return ecsProxyConfig
+}
+
+func expandEcsVolumes(configured []interface{}) []*ecs.Volume {
+	volumes := make([]*ecs.Volume, 0, len(configured))
+
+	// Loop over our configured volumes and create
+	// an array of aws-sdk-go compatible objects
+	for _, lRaw := range configured {
+		data := lRaw.(map[string]interface{})
+
+		l := &ecs.Volume{
+			Name: aws.String(data["name"].(string)),
+		}
+
+		hostPath := data["host_path"].(string)
+		if hostPath != "" {
+			l.Host = &ecs.HostVolumeProperties{
+				SourcePath: aws.String(hostPath),
+			}
+		}
+
+		if v, ok := data["docker_volume_configuration"].([]interface{}); ok && len(v) > 0 {
+			l.DockerVolumeConfiguration = expandEcsVolumesDockerVolume(v)
+		}
+
+		if v, ok := data["efs_volume_configuration"].([]interface{}); ok && len(v) > 0 {
+			l.EfsVolumeConfiguration = expandEcsVolumesEFSVolume(v)
+		}
+
+		if v, ok := data["fsx_windows_file_server_volume_configuration"].([]interface{}); ok && len(v) > 0 {
+			l.FsxWindowsFileServerVolumeConfiguration = expandEcsVolumesFsxWinVolume(v)
+		}
+
+		volumes = append(volumes, l)
+	}
+
+	return volumes
+}
+
+func expandEcsVolumesDockerVolume(configList []interface{}) *ecs.DockerVolumeConfiguration {
+	config := configList[0].(map[string]interface{})
+	dockerVol := &ecs.DockerVolumeConfiguration{}
+
+	if v, ok := config["scope"].(string); ok && v != "" {
+		dockerVol.Scope = aws.String(v)
+	}
+
+	if v, ok := config["autoprovision"]; ok && v != "" {
+		scope := dockerVol.Scope
+		if scope == nil || *scope != ecs.ScopeTask || v.(bool) {
+			dockerVol.Autoprovision = aws.Bool(v.(bool))
+		}
+	}
+
+	if v, ok := config["driver"].(string); ok && v != "" {
+		dockerVol.Driver = aws.String(v)
+	}
+
+	if v, ok := config["driver_opts"].(map[string]interface{}); ok && len(v) > 0 {
+		dockerVol.DriverOpts = expandStringMap(v)
+	}
+
+	if v, ok := config["labels"].(map[string]interface{}); ok && len(v) > 0 {
+		dockerVol.Labels = expandStringMap(v)
+	}
+
+	return dockerVol
+}
+
+func expandEcsVolumesEFSVolume(efsConfig []interface{}) *ecs.EFSVolumeConfiguration {
+	config := efsConfig[0].(map[string]interface{})
+	efsVol := &ecs.EFSVolumeConfiguration{}
+
+	if v, ok := config["file_system_id"].(string); ok && v != "" {
+		efsVol.FileSystemId = aws.String(v)
+	}
+
+	if v, ok := config["root_directory"].(string); ok && v != "" {
+		efsVol.RootDirectory = aws.String(v)
+	}
+	if v, ok := config["transit_encryption"].(string); ok && v != "" {
+		efsVol.TransitEncryption = aws.String(v)
+	}
+
+	if v, ok := config["transit_encryption_port"].(int); ok && v > 0 {
+		efsVol.TransitEncryptionPort = aws.Int64(int64(v))
+	}
+	if v, ok := config["authorization_config"].([]interface{}); ok && len(v) > 0 {
+		efsVol.RootDirectory = nil
+		efsVol.AuthorizationConfig = expandEcsVolumesEFSVolumeAuthorizationConfig(v)
+	}
+
+	return efsVol
+}
+
+func expandEcsVolumesEFSVolumeAuthorizationConfig(efsConfig []interface{}) *ecs.EFSAuthorizationConfig {
+	authconfig := efsConfig[0].(map[string]interface{})
+	auth := &ecs.EFSAuthorizationConfig{}
+
+	if v, ok := authconfig["access_point_id"].(string); ok && v != "" {
+		auth.AccessPointId = aws.String(v)
+	}
+
+	if v, ok := authconfig["iam"].(string); ok && v != "" {
+		auth.Iam = aws.String(v)
+	}
+
+	return auth
+}
+
+func expandEcsVolumesFsxWinVolume(fsxWinConfig []interface{}) *ecs.FSxWindowsFileServerVolumeConfiguration {
+	config := fsxWinConfig[0].(map[string]interface{})
+	fsxVol := &ecs.FSxWindowsFileServerVolumeConfiguration{}
+
+	if v, ok := config["file_system_id"].(string); ok && v != "" {
+		fsxVol.FileSystemId = aws.String(v)
+	}
+
+	if v, ok := config["root_directory"].(string); ok && v != "" {
+		fsxVol.RootDirectory = aws.String(v)
+	}
+
+	if v, ok := config["authorization_config"].([]interface{}); ok && len(v) > 0 {
+		fsxVol.AuthorizationConfig = expandEcsVolumesFsxWinVolumeAuthorizationConfig(v)
+	}
+
+	return fsxVol
+}
+
+func expandEcsVolumesFsxWinVolumeAuthorizationConfig(config []interface{}) *ecs.FSxWindowsFileServerAuthorizationConfig {
+	authconfig := config[0].(map[string]interface{})
+	auth := &ecs.FSxWindowsFileServerAuthorizationConfig{}
+
+	if v, ok := authconfig["credentials_parameter"].(string); ok && v != "" {
+		auth.CredentialsParameter = aws.String(v)
+	}
+
+	if v, ok := authconfig["domain"].(string); ok && v != "" {
+		auth.Domain = aws.String(v)
+	}
+
+	return auth
+}
+
+func flattenEcsVolumes(list []*ecs.Volume) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(list))
+	for _, volume := range list {
+		l := map[string]interface{}{
+			"name": aws.StringValue(volume.Name),
+		}
+
+		if volume.Host != nil && volume.Host.SourcePath != nil {
+			l["host_path"] = aws.StringValue(volume.Host.SourcePath)
+		}
+
+		if volume.DockerVolumeConfiguration != nil {
+			l["docker_volume_configuration"] = flattenDockerVolumeConfiguration(volume.DockerVolumeConfiguration)
+		}
+
+		if volume.EfsVolumeConfiguration != nil {
+			l["efs_volume_configuration"] = flattenEFSVolumeConfiguration(volume.EfsVolumeConfiguration)
+		}
+
+		if volume.FsxWindowsFileServerVolumeConfiguration != nil {
+			l["fsx_windows_file_server_volume_configuration"] = flattenFsxWinVolumeConfiguration(volume.FsxWindowsFileServerVolumeConfiguration)
+		}
+
+		result = append(result, l)
+	}
+	return result
+}
+
+func flattenDockerVolumeConfiguration(config *ecs.DockerVolumeConfiguration) []interface{} {
+	var items []interface{}
+	m := make(map[string]interface{})
+
+	if v := config.Scope; v != nil {
+		m["scope"] = aws.StringValue(v)
+	}
+
+	if v := config.Autoprovision; v != nil {
+		m["autoprovision"] = aws.BoolValue(v)
+	}
+
+	if v := config.Driver; v != nil {
+		m["driver"] = aws.StringValue(v)
+	}
+
+	if config.DriverOpts != nil {
+		m["driver_opts"] = pointersMapToStringList(config.DriverOpts)
+	}
+
+	if v := config.Labels; v != nil {
+		m["labels"] = pointersMapToStringList(v)
+	}
+
+	items = append(items, m)
+	return items
+}
+
+func flattenEFSVolumeConfiguration(config *ecs.EFSVolumeConfiguration) []interface{} {
+	var items []interface{}
+	m := make(map[string]interface{})
+	if config != nil {
+		if v := config.FileSystemId; v != nil {
+			m["file_system_id"] = aws.StringValue(v)
+		}
+
+		if v := config.RootDirectory; v != nil {
+			m["root_directory"] = aws.StringValue(v)
+		}
+		if v := config.TransitEncryption; v != nil {
+			m["transit_encryption"] = aws.StringValue(v)
+		}
+
+		if v := config.TransitEncryptionPort; v != nil {
+			m["transit_encryption_port"] = int(aws.Int64Value(v))
+		}
+
+		if v := config.AuthorizationConfig; v != nil {
+			m["authorization_config"] = flattenEFSVolumeAuthorizationConfig(v)
+		}
+	}
+
+	items = append(items, m)
+	return items
+}
+
+func flattenEFSVolumeAuthorizationConfig(config *ecs.EFSAuthorizationConfig) []interface{} {
+	var items []interface{}
+	m := make(map[string]interface{})
+	if config != nil {
+		if v := config.AccessPointId; v != nil {
+			m["access_point_id"] = aws.StringValue(v)
+		}
+		if v := config.Iam; v != nil {
+			m["iam"] = aws.StringValue(v)
+		}
+	}
+
+	items = append(items, m)
+	return items
+}
+
+func flattenFsxWinVolumeConfiguration(config *ecs.FSxWindowsFileServerVolumeConfiguration) []interface{} {
+	var items []interface{}
+	m := make(map[string]interface{})
+	if config != nil {
+		if v := config.FileSystemId; v != nil {
+			m["file_system_id"] = aws.StringValue(v)
+		}
+
+		if v := config.RootDirectory; v != nil {
+			m["root_directory"] = aws.StringValue(v)
+		}
+
+		if v := config.AuthorizationConfig; v != nil {
+			m["authorization_config"] = flattenFsxWinVolumeAuthorizationConfig(v)
+		}
+	}
+
+	items = append(items, m)
+	return items
+}
+
+func flattenFsxWinVolumeAuthorizationConfig(config *ecs.FSxWindowsFileServerAuthorizationConfig) []interface{} {
+	var items []interface{}
+	m := make(map[string]interface{})
+	if config != nil {
+		if v := config.CredentialsParameter; v != nil {
+			m["credentials_parameter"] = aws.StringValue(v)
+		}
+		if v := config.Domain; v != nil {
+			m["domain"] = aws.StringValue(v)
+		}
+	}
+
+	items = append(items, m)
+	return items
+}
+
+func flattenEcsContainerDefinitions(definitions []*ecs.ContainerDefinition) (string, error) {
+	b, err := jsonutil.BuildJSON(definitions)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
+func expandEcsContainerDefinitions(rawDefinitions string) ([]*ecs.ContainerDefinition, error) {
+	var definitions []*ecs.ContainerDefinition
+
+	err := json.Unmarshal([]byte(rawDefinitions), &definitions)
+	if err != nil {
+		return nil, fmt.Errorf("Error decoding JSON: %s", err)
+	}
+
+	return definitions, nil
+}
+
+func expandEcsTaskDefinitionEphemeralStorage(config []interface{}) *ecs.EphemeralStorage {
+	configMap := config[0].(map[string]interface{})
+
+	es := &ecs.EphemeralStorage{
+		SizeInGiB: aws.Int64(int64(configMap["size_in_gib"].(int))),
+	}
+
+	return es
+}
+
+func flattenEcsTaskDefinitionEphemeralStorage(pc *ecs.EphemeralStorage) []map[string]interface{} {
+	if pc == nil {
+		return nil
+	}
+
+	m := make(map[string]interface{})
+	m["size_in_gib"] = aws.Int64Value(pc.SizeInGiB)
+
+	return []map[string]interface{}{m}
 }

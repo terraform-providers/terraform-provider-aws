@@ -25,6 +25,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/experimental/nullable"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/autoscaling/waiter"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
@@ -56,24 +57,26 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 				ConflictsWith: []string{"name_prefix"},
 				ValidateFunc:  validation.StringLenBetween(0, 255),
 			},
+
 			"name_prefix": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(0, 255-resource.UniqueIDSuffixLength),
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"name"},
+				ValidateFunc:  validation.StringLenBetween(0, 255-resource.UniqueIDSuffixLength),
 			},
 
 			"launch_configuration": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"launch_template"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"launch_configuration", "launch_template", "mixed_instances_policy"},
 			},
 
 			"launch_template": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"launch_configuration"},
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -97,6 +100,7 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 						},
 					},
 				},
+				ExactlyOneOf: []string{"launch_configuration", "launch_template", "mixed_instances_policy"},
 			},
 
 			"mixed_instances_policy": {
@@ -233,6 +237,7 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 						},
 					},
 				},
+				ExactlyOneOf: []string{"launch_configuration", "launch_template", "mixed_instances_policy"},
 			},
 
 			"capacity_rebalance": {
@@ -641,17 +646,7 @@ func generatePutLifecycleHookInputs(asgName string, cfgs []interface{}) []autosc
 func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).autoscalingconn
 
-	var asgName string
-	if v, ok := d.GetOk("name"); ok {
-		asgName = v.(string)
-	} else {
-		if v, ok := d.GetOk("name_prefix"); ok {
-			asgName = resource.PrefixedUniqueId(v.(string))
-		} else {
-			asgName = resource.PrefixedUniqueId("tf-asg-")
-		}
-		d.Set("name", asgName)
-	}
+	asgName := naming.Generate(d.Get("name").(string), d.Get("name_prefix").(string))
 
 	createOpts := autoscaling.CreateAutoScalingGroupInput{
 		AutoScalingGroupName:             aws.String(asgName),
@@ -687,20 +682,13 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	launchConfigurationValue, launchConfigurationOk := d.GetOk("launch_configuration")
-	launchTemplateValue, launchTemplateOk := d.GetOk("launch_template")
-
-	if createOpts.MixedInstancesPolicy == nil && !launchConfigurationOk && !launchTemplateOk {
-		return fmt.Errorf("One of `launch_configuration`, `launch_template`, or `mixed_instances_policy` must be set for an Auto Scaling Group")
+	if v, ok := d.GetOk("launch_configuration"); ok {
+		createOpts.LaunchConfigurationName = aws.String(v.(string))
 	}
 
-	if launchConfigurationOk {
-		createOpts.LaunchConfigurationName = aws.String(launchConfigurationValue.(string))
-	}
-
-	if launchTemplateOk {
+	if v, ok := d.GetOk("launch_template"); ok {
 		var err error
-		createOpts.LaunchTemplate, err = expandLaunchTemplateSpecification(launchTemplateValue.([]interface{}))
+		createOpts.LaunchTemplate, err = expandLaunchTemplateSpecification(v.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -711,14 +699,12 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 		createOpts.AvailabilityZones = expandStringSet(v.(*schema.Set))
 	}
 
-	resourceID := d.Get("name").(string)
-
 	if v, ok := d.GetOk("tag"); ok {
-		createOpts.Tags = keyvaluetags.AutoscalingKeyValueTags(v, resourceID, autoscalingTagResourceTypeAutoScalingGroup).IgnoreAws().AutoscalingTags()
+		createOpts.Tags = keyvaluetags.AutoscalingKeyValueTags(v, asgName, autoscalingTagResourceTypeAutoScalingGroup).IgnoreAws().AutoscalingTags()
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = keyvaluetags.AutoscalingKeyValueTags(v, resourceID, autoscalingTagResourceTypeAutoScalingGroup).IgnoreAws().AutoscalingTags()
+		createOpts.Tags = keyvaluetags.AutoscalingKeyValueTags(v, asgName, autoscalingTagResourceTypeAutoScalingGroup).IgnoreAws().AutoscalingTags()
 	}
 
 	if v, ok := d.GetOk("capacity_rebalance"); ok {
@@ -789,7 +775,7 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating Auto Scaling Group: %s", err)
 	}
 
-	d.SetId(d.Get("name").(string))
+	d.SetId(asgName)
 	log.Printf("[INFO] Auto Scaling Group ID: %s", d.Id())
 
 	if twoPhases {
@@ -891,6 +877,7 @@ func resourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", g.AutoScalingGroupName)
+	d.Set("name_prefix", naming.NamePrefixFromName(aws.StringValue(g.AutoScalingGroupName)))
 	d.Set("placement_group", g.PlacementGroup)
 	d.Set("protect_from_scale_in", g.NewInstancesProtectedFromScaleIn)
 	d.Set("service_linked_role_arn", g.ServiceLinkedRoleARN)

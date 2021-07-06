@@ -141,7 +141,7 @@ service/docdb:
 service/dynamodb:
   - '((\*|-) ?`?|(data|resource) "?)aws_dynamodb_'
 service/ec2:
-  - '((\*|-) ?`?|(data|resource) "?)aws_(ami|availability_zone|customer_gateway|(default_)?(network_acl|route_table|security_group|subnet|vpc)|ebs_|ec2_|egress_only_internet_gateway|eip|flow_log|instance|internet_gateway|key_pair|launch_template|main_route_table_association|network_interface|placement_group|prefix_list|spot|route(\"|`|$)|vpn_|volume_attachment)'
+  - '((\*|-) ?`?|(data|resource) "?)aws_(ami|availability_zone|customer_gateway|(default_)?(network_acl|route_table|security_group|subnet|vpc)|ebs_|ec2_|egress_only_internet_gateway|eip|flow_log|instance|internet_gateway|key_pair|launch_template|main_route_table_association|nat_gateway|network_interface|placement_group|prefix_list|route(\"|`|$)|snapshot_create_volume_permission|spot|volume_attachment|vpn_)'
 service/ecr:
   - '((\*|-) ?`?|(data|resource) "?)aws_ecr_'
 service/ecrpublic:

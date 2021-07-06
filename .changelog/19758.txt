@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/aws_nat_gateway: Add `connectivity_type` attribute
+```
+
+```release-note:enhancement
+resource/aws_nat_gateway: Add `connectivity_type` argument
+```

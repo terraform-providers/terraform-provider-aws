@@ -1,0 +1,23 @@
+```release-note:enhancement
+resource/aws_route_table: Add retries when creating, deleting and replacing routes
+```
+
+```release-note:enhancement
+resource/aws_route: Add retries when creating, deleting and replacing routes
+```
+
+```release-note:enhancement
+resource/aws_default_route_table: Add retries when creating, deleting and replacing routes
+```
+
+```release-note:enhancement
+resource/aws_default_route_table: Add retries when creating, deleting and replacing routes
+```
+
+```release-note:enhancement
+resource/aws_main_route_table_association: Wait for association to reach the required state
+```
+
+```release-note:enhancement
+resource/aws_route_table_association: Wait for association to reach the required state
+```

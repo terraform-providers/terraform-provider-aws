@@ -333,7 +333,7 @@ The following arguments are supported:
 * `arn` - (Required) The Amazon Resource Name (ARN) of the target.
 * `input` - (Optional) Valid JSON text passed to the target. Conflicts with `input_path` and `input_transformer`.
 * `input_path` - (Optional) The value of the [JSONPath](http://goessner.net/articles/JsonPath/) that is used for extracting part of the matched event when passing it to the target. Conflicts with `input` and `input_transformer`.
-* `role_arn` - (Optional) The Amazon Resource Name (ARN) of the IAM role to be used for this target when the rule is triggered. Required if `ecs_target` is used.
+* `role_arn` - (Optional) The Amazon Resource Name (ARN) of the IAM role to be used for this target when the rule is triggered. Required if `ecs_target` is used or target in `arn` is EC2 instance, Kinesis data stream or Step Functions state machine.
 * `run_command_targets` - (Optional) Parameters used when you are using the rule to invoke Amazon EC2 Run Command. Documented below. A maximum of 5 are allowed.
 * `ecs_target` - (Optional) Parameters used when you are using the rule to invoke Amazon ECS Task. Documented below. A maximum of 1 are allowed.
 * `batch_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Batch Job. Documented below. A maximum of 1 are allowed.
@@ -352,7 +352,7 @@ The following arguments are supported:
 `ecs_target` support the following:
 
 * `group` - (Optional) Specifies an ECS task group for the task. The maximum length is 255 characters.
-* `launch_type` - (Optional) Specifies the launch type on which your task is running. The launch type that you specify here must match one of the launch type (compatibilities) of the target task. Valid values are `EC2` or `FARGATE`.
+* `launch_type` - (Optional) Specifies the launch type on which your task is running. The launch type that you specify here must match one of the launch type (compatibilities) of the target task. Valid values include: an empty string `""` (to specify no launch type), `EC2`, or `FARGATE`.
 * `network_configuration` - (Optional) Use this if the ECS task uses the awsvpc network mode. This specifies the VPC subnets and security groups associated with the task, and whether a public IP address is to be used. Required if launch_type is FARGATE because the awsvpc mode is required for Fargate tasks.
 * `platform_version` - (Optional) Specifies the platform version for the task. Specify only the numeric portion of the platform version, such as 1.1.0. This is used only if LaunchType is FARGATE. For more information about valid platform versions, see [AWS Fargate Platform Versions](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/platform_versions.html).
 * `task_count` - (Optional) The number of tasks to create based on the TaskDefinition. The default is 1.
@@ -390,7 +390,7 @@ For more information, see [Task Networking](https://docs.aws.amazon.com/AmazonEC
 `input_transformer` support the following:
 
 * `input_paths` - (Optional) Key value pairs specified in the form of JSONPath (for example, time = $.time)
-    * You can have as many as 10 key-value pairs.
+    * You can have as many as 100 key-value pairs.
     * You must use JSON dot notation, not bracket notation.
     * The keys can't start with "AWS".
 

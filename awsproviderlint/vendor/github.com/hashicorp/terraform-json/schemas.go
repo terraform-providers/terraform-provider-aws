@@ -8,15 +8,15 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// ProviderSchemasFormatVersion is the version of the JSON provider
-// schema format that is supported by this package.
-const ProviderSchemasFormatVersion = "0.2"
+// ProviderSchemasFormatVersions represents the versions of
+// the JSON provider schema format that are supported by this package.
+var ProviderSchemasFormatVersions = []string{"0.1", "0.2"}
 
 // ProviderSchemas represents the schemas of all providers and
 // resources in use by the configuration.
 type ProviderSchemas struct {
-	// The version of the plan format. This should always match the
-	// ProviderSchemasFormatVersion constant in this package, or else
+	// The version of the plan format. This should always match one of
+	// ProviderSchemasFormatVersions in this package, or else
 	// an unmarshal will be unstable.
 	FormatVersion string `json:"format_version,omitempty"`
 
@@ -38,10 +38,9 @@ func (p *ProviderSchemas) Validate() error {
 		return errors.New("unexpected provider schema data, format version is missing")
 	}
 
-	oldVersion := "0.1"
-	if p.FormatVersion != ProviderSchemasFormatVersion && p.FormatVersion != oldVersion {
-		return fmt.Errorf("unsupported provider schema data format version: expected %q or %q, got %q",
-			PlanFormatVersion, oldVersion, p.FormatVersion)
+	if !isStringInSlice(ProviderSchemasFormatVersions, p.FormatVersion) {
+		return fmt.Errorf("unsupported provider schema data format version: expected %q, got %q",
+			ProviderSchemasFormatVersions, p.FormatVersion)
 	}
 
 	return nil

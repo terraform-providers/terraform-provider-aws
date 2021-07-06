@@ -1319,6 +1319,90 @@ func TestAccAWSLambdaFunction_VPC_withInvocation(t *testing.T) {
 	})
 }
 
+// See https://github.com/hashicorp/terraform-provider-aws/issues/17385
+// When the vpc config doesn't change the version shouldn't change
+func TestAccAWSLambdaFunction_VPC_publish_No_Changes(t *testing.T) {
+	var conf lambda.GetFunctionOutput
+
+	rString := acctest.RandString(8)
+	funcName := fmt.Sprintf("tf_acc_lambda_func_vpc_w_invc_%s", rString)
+	policyName := fmt.Sprintf("tf_acc_policy_lambda_func_vpc_w_invc_%s", rString)
+	roleName := fmt.Sprintf("tf_acc_role_lambda_func_vpc_w_invc_%s", rString)
+	sgName := fmt.Sprintf("tf_acc_sg_lambda_func_vpc_w_invc_%s", rString)
+	resourceName := "aws_lambda_function.test"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaFunctionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaConfigWithVPCPublish(funcName, policyName, roleName, sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "version", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"filename", "publish"},
+			},
+			{
+				Config: testAccAWSLambdaConfigWithVPCPublish(funcName, policyName, roleName, sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "version", "1"),
+				),
+			},
+		},
+	})
+}
+
+// See https://github.com/hashicorp/terraform-provider-aws/issues/17385
+// When the vpc config changes the version should change
+func TestAccAWSLambdaFunction_VPC_publish_Has_Changes(t *testing.T) {
+	var conf lambda.GetFunctionOutput
+
+	rString := acctest.RandString(8)
+	funcName := fmt.Sprintf("tf_acc_lambda_func_vpc_w_invc_%s", rString)
+	policyName := fmt.Sprintf("tf_acc_policy_lambda_func_vpc_w_invc_%s", rString)
+	roleName := fmt.Sprintf("tf_acc_role_lambda_func_vpc_w_invc_%s", rString)
+	sgName := fmt.Sprintf("tf_acc_sg_lambda_func_vpc_w_invc_%s", rString)
+	resourceName := "aws_lambda_function.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, lambda.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaFunctionDestroy,
+
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaConfigWithVPCPublish(funcName, policyName, roleName, sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "version", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"filename", "publish"},
+			},
+			{
+				Config: testAccAWSLambdaConfigWithVPCUpdatedPublish(funcName, policyName, roleName, sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "version", "2"),
+				),
+			},
+		},
+	})
+}
+
 // Reference: https://github.com/hashicorp/terraform-provider-aws/issues/10044
 func TestAccAWSLambdaFunction_VpcConfig_ProperIamDependencies(t *testing.T) {
 	var function lambda.GetFunctionOutput
@@ -2870,6 +2954,40 @@ resource "aws_lambda_function" "test" {
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_for_lambda.id]
     security_group_ids = [aws_security_group.sg_for_lambda.id]
+  }
+}
+`, funcName)
+}
+
+func testAccAWSLambdaConfigWithVPCPublish(funcName, policyName, roleName, sgName string) string {
+	return fmt.Sprintf(baseAccAWSLambdaConfig(policyName, roleName, sgName)+`
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "%s"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.example"
+  runtime       = "nodejs12.x"
+  publish       = true
+  vpc_config {
+    subnet_ids         = [aws_subnet.subnet_for_lambda.id]
+    security_group_ids = [aws_security_group.sg_for_lambda.id]
+  }
+}
+`, funcName)
+}
+
+func testAccAWSLambdaConfigWithVPCUpdatedPublish(funcName, policyName, roleName, sgName string) string {
+	return fmt.Sprintf(baseAccAWSLambdaConfig(policyName, roleName, sgName)+`
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "%s"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.example"
+  runtime       = "nodejs12.x"
+  publish       = true
+  vpc_config {
+    security_group_ids = []
+    subnet_ids         = []
   }
 }
 `, funcName)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	awspolicy "github.com/jen20/awspolicyequivalence"
+	tfnet "github.com/terraform-providers/terraform-provider-aws/aws/internal/net"
 )
 
 func suppressEquivalentAwsPolicyDiffs(k, old, new string, d *schema.ResourceData) bool {
@@ -131,7 +132,7 @@ func suppressEquivalentJsonOrYamlDiffs(k, old, new string, d *schema.ResourceDat
 // suppressEqualCIDRBlockDiffs provides custom difference suppression for CIDR blocks
 // that have different string values but represent the same CIDR.
 func suppressEqualCIDRBlockDiffs(k, old, new string, d *schema.ResourceData) bool {
-	return cidrBlocksEqual(old, new)
+	return tfnet.CIDRBlocksEqual(old, new)
 }
 
 // suppressEquivalentTime suppresses differences for time values that represent the same

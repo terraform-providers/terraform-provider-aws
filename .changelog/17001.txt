@@ -1,7 +1,7 @@
-```release-notes:enhancement
+```release-note:enhancement
 data-source/aws_route_table: Add `arn` attribute
 ```
 
-```release-notes:enhancement
+```release-note:enhancement
 data-source/aws_route_table: Add `carrier_gateway_id` attribute to `routes` list
 ```

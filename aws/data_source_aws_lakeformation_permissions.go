@@ -6,13 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lakeformation"
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
-	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
+	tflakeformation "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/lakeformation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/lakeformation/waiter"
 )
 
 func dataSourceAwsLakeFormationPermissions() *schema.Resource {
@@ -134,8 +132,9 @@ func dataSourceAwsLakeFormationPermissions() *schema.Resource {
 							ValidateFunc: validateAwsAccountId,
 						},
 						"column_names": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
+							Set:      schema.HashString,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.NoZeroValues,
@@ -146,8 +145,9 @@ func dataSourceAwsLakeFormationPermissions() *schema.Resource {
 							Required: true,
 						},
 						"excluded_column_names": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
+							Set:      schema.HashString,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.NoZeroValues,
@@ -198,51 +198,40 @@ func dataSourceAwsLakeFormationPermissionsRead(d *schema.ResourceData, meta inte
 
 	if v, ok := d.GetOk("table"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		input.Resource.Table = expandLakeFormationTableResource(v.([]interface{})[0].(map[string]interface{}))
-		tableType = TableTypeTable
+		tableType = tflakeformation.TableTypeTable
 	}
 
 	if v, ok := d.GetOk("table_with_columns"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		// can't ListPermissions for TableWithColumns, so use Table instead
 		input.Resource.Table = expandLakeFormationTableWithColumnsResourceAsTable(v.([]interface{})[0].(map[string]interface{}))
-		tableType = TableTypeTableWithColumns
+		tableType = tflakeformation.TableTypeTableWithColumns
+	}
+
+	columnNames := make([]*string, 0)
+	excludedColumnNames := make([]*string, 0)
+	columnWildcard := false
+
+	if tableType == tflakeformation.TableTypeTableWithColumns {
+		if v, ok := d.GetOk("table_with_columns.0.wildcard"); ok {
+			columnWildcard = v.(bool)
+		}
+
+		if v, ok := d.GetOk("table_with_columns.0.column_names"); ok {
+			if v, ok := v.(*schema.Set); ok && v.Len() > 0 {
+				columnNames = expandStringSet(v)
+			}
+		}
+
+		if v, ok := d.GetOk("table_with_columns.0.excluded_column_names"); ok {
+			if v, ok := v.(*schema.Set); ok && v.Len() > 0 {
+				excludedColumnNames = expandStringSet(v)
+			}
+		}
 	}
 
 	log.Printf("[DEBUG] Reading Lake Formation permissions: %v", input)
-	var allPermissions []*lakeformation.PrincipalResourcePermissions
 
-	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
-		err := conn.ListPermissionsPages(input, func(resp *lakeformation.ListPermissionsOutput, lastPage bool) bool {
-			for _, permission := range resp.PrincipalResourcePermissions {
-				if permission == nil {
-					continue
-				}
-
-				allPermissions = append(allPermissions, permission)
-			}
-			return !lastPage
-		})
-
-		if err != nil {
-			if tfawserr.ErrMessageContains(err, lakeformation.ErrCodeInvalidInputException, "Invalid principal") {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(fmt.Errorf("error reading Lake Formation Permissions: %w", err))
-		}
-		return nil
-	})
-
-	if tfresource.TimedOut(err) {
-		err = conn.ListPermissionsPages(input, func(resp *lakeformation.ListPermissionsOutput, lastPage bool) bool {
-			for _, permission := range resp.PrincipalResourcePermissions {
-				if permission == nil {
-					continue
-				}
-
-				allPermissions = append(allPermissions, permission)
-			}
-			return !lastPage
-		})
-	}
+	allPermissions, err := waiter.PermissionsReady(conn, input, tableType, columnNames, excludedColumnNames, columnWildcard)
 
 	d.SetId(fmt.Sprintf("%d", hashcode.String(input.String())))
 
@@ -250,37 +239,8 @@ func dataSourceAwsLakeFormationPermissionsRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error reading Lake Formation permissions: %w", err)
 	}
 
-	var cleanPermissions []*lakeformation.PrincipalResourcePermissions
-
-	if input.Resource.Catalog != nil {
-		cleanPermissions = filterLakeFormationCatalogPermissions(allPermissions)
-	}
-
-	if input.Resource.DataLocation != nil {
-		cleanPermissions = filterLakeFormationDataLocationPermissions(allPermissions)
-	}
-
-	if input.Resource.Database != nil {
-		cleanPermissions = filterLakeFormationDatabasePermissions(allPermissions)
-	}
-
-	if tableType == TableTypeTable {
-		cleanPermissions = filterLakeFormationTablePermissions(
-			aws.StringValue(input.Resource.Table.Name),
-			input.Resource.Table.TableWildcard != nil,
-			allPermissions,
-		)
-	}
-
-	if tableType == TableTypeTableWithColumns {
-		cleanPermissions = filterLakeFormationTableWithColumnsPermissions(
-			d.Get("table_with_columns.0.database_name").(string),
-			d.Get("table_with_columns.0.wildcard").(bool),
-			expandStringList(d.Get("table_with_columns.0.column_names").([]interface{})),
-			expandStringList(d.Get("table_with_columns.0.excluded_column_names").([]interface{})),
-			allPermissions,
-		)
-	}
+	// clean permissions = filter out permissions that do not pertain to this specific resource
+	cleanPermissions := tflakeformation.FilterPermissions(input, tableType, columnNames, excludedColumnNames, columnWildcard, allPermissions)
 
 	if len(cleanPermissions) != len(allPermissions) {
 		log.Printf("[INFO] Resource Lake Formation clean permissions (%d) and all permissions (%d) have different lengths (this is not necessarily a problem): %s", len(cleanPermissions), len(allPermissions), d.Id())
@@ -292,6 +252,8 @@ func dataSourceAwsLakeFormationPermissionsRead(d *schema.ResourceData, meta inte
 
 	if cleanPermissions[0].Resource.Catalog != nil {
 		d.Set("catalog_resource", true)
+	} else {
+		d.Set("catalog_resource", false)
 	}
 
 	if cleanPermissions[0].Resource.DataLocation != nil {

@@ -1,0 +1,15 @@
+```release-note:bug
+resource/aws_lakeformation_permissions: Fix bug preventing updates (inconsistent result)
+```
+
+```release-note:bug
+resource/aws_lakeformation_permissions: Fix bug where resource is not properly removed from state
+```
+
+```release-note:bug
+resource/aws_lakeformation_permissions: Fix diffs resulting only from order of column names and exclude column names
+```
+
+```release-note:bug
+data-source/aws_lakeformation_permissions: Fix diffs resulting from order of column names and exclude column names
+```

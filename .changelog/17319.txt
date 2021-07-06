@@ -1,8 +1,8 @@
-```release-notes:enhancement
+```release-note:enhancement
 resource/aws_default_route_table: Add `destination_prefix_list_id` attribute
 ```
 
-```release-notes:enhancement
+```release-note:enhancement
 resource/aws_route_table: Add `destination_prefix_list_id` attribute
 ```
 

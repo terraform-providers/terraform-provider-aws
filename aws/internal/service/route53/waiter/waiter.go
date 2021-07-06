@@ -3,6 +3,7 @@ package waiter
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,9 @@ import (
 )
 
 const (
-	ChangeTimeout = 30 * time.Minute
+	ChangeTimeout      = 30 * time.Minute
+	ChangeMinTimeout   = 5 * time.Second
+	ChangePollInterval = 15 * time.Second
 
 	HostedZoneDnssecStatusTimeout = 5 * time.Minute
 
@@ -19,13 +22,18 @@ const (
 )
 
 func ChangeInfoStatusInsync(conn *route53.Route53, changeID string) (*route53.ChangeInfo, error) {
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	// Route53 is vulnerable to throttling so longer delays, poll intervals helps significantly to avoid
+
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{route53.ChangeStatusPending},
-		Target:     []string{route53.ChangeStatusInsync},
-		Refresh:    ChangeInfoStatus(conn, changeID),
-		Delay:      30 * time.Second,
-		MinTimeout: 5 * time.Second,
-		Timeout:    ChangeTimeout,
+		Pending:      []string{route53.ChangeStatusPending},
+		Target:       []string{route53.ChangeStatusInsync},
+		Delay:        time.Duration(rand.Int63n(20)+10) * time.Second,
+		MinTimeout:   ChangeMinTimeout,
+		PollInterval: ChangePollInterval,
+		Refresh:      ChangeInfoStatus(conn, changeID),
+		Timeout:      ChangeTimeout,
 	}
 
 	outputRaw, err := stateConf.WaitForState()

@@ -141,6 +141,16 @@ func TestAccAWSGlueCatalogDatabase_targetDatabase(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:  testAccGlueCatalogDatabaseConfigTargetDatabaseWithLocation(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "target_database.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_database.0.catalog_id", "aws_glue_catalog_database.test2", "catalog_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_database.0.database_name", "aws_glue_catalog_database.test2", "name"),
+				),
+			},
 		},
 	})
 }
@@ -234,6 +244,24 @@ resource "aws_glue_catalog_database" "test" {
 
 resource "aws_glue_catalog_database" "test2" {
   name = "%[1]s-2"
+}
+`, rName)
+}
+
+func testAccGlueCatalogDatabaseConfigTargetDatabaseWithLocation(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+
+  target_database {
+    catalog_id    = aws_glue_catalog_database.test2.catalog_id
+    database_name = aws_glue_catalog_database.test2.name
+  }
+}
+
+resource "aws_glue_catalog_database" "test2" {
+  name         = "%[1]s-2"
+  location_uri = "my-location"
 }
 `, rName)
 }

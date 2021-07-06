@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_fsx_windows_file_system: Add `audit_log_configuration` argument.
+```

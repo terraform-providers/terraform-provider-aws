@@ -71,6 +71,10 @@ func dataSourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+									"s3_object_acl": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 								},
 							},
 						},

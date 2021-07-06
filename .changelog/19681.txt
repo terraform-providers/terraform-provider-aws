@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/aws_acmpca_certificate_authority: Fix `error setting tags`
+```

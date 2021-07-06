@@ -68,22 +68,22 @@ The following arguments are supported:
 
 ### Cookies Config
 
-`cookie_behavior` - (Required) Determines whether any cookies in viewer requests are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are `none`, `whitelist`, `allExcept`, `all`.
-`cookies` - (Optional) Object that contains a list of cookie names. See [Items](#items) for more information.
+* `cookie_behavior` - (Required) Determines whether any cookies in viewer requests are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are `none`, `whitelist`, `allExcept`, `all`.
+* `cookies` - (Optional) Object that contains a list of cookie names. See [Items](#items) for more information.
 
 ### Headers Config
 
-`header_behavior` - (Required) Determines whether any HTTP headers are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are `none`, `whitelist`.
-`headers` - (Optional) Object that contains a list of header names. See [Items](#items) for more information.
+* `header_behavior` - (Required) Determines whether any HTTP headers are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are `none`, `whitelist`.
+* `headers` - (Optional) Object that contains a list of header names. See [Items](#items) for more information.
 
 ### Query String Config
 
-`query_string_behavior` - (Required) Determines whether any URL query strings in viewer requests are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are `none`, `whitelist`, `allExcept`, `all`.
-`query_strings` - (Optional) Object that contains a list of query string names. See [Items](#items) for more information.
+* `query_string_behavior` - (Required) Determines whether any URL query strings in viewer requests are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are `none`, `whitelist`, `allExcept`, `all`.
+* `query_strings` - (Optional) Object that contains a list of query string names. See [Items](#items) for more information.
 
 ### Items
 
-`items` - (Required) A list of item names (cookies, headers, or query strings).
+* `items` - (Required) A list of item names (cookies, headers, or query strings).
 
 ## Attributes Reference
 

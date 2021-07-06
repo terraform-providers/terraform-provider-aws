@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_cognito_user_pool_client: Add plan time validation for `id_token_validity` and `access_token_validity`.
+```
+
+```release-note:bug
+resource/aws_cognito_user_pool_client: Fix plan time validation for `refresh_token_validity`
+```

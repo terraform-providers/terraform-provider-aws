@@ -107,6 +107,7 @@ func TestAccAWSFsxLustreFileSystem_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "automatic_backup_retention_days", "0"),
 					resource.TestCheckResourceAttr(resourceName, "storage_type", fsx.StorageTypeSsd),
 					resource.TestCheckResourceAttr(resourceName, "copy_tags_to_backups", "false"),
+					resource.TestCheckResourceAttr(resourceName, "data_compression_type", fsx.DataCompressionTypeNone),
 				),
 			},
 			{
@@ -136,6 +137,47 @@ func TestAccAWSFsxLustreFileSystem_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsFsxLustreFileSystem(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSFsxLustreFileSystem_dataCompression(t *testing.T) {
+	var filesystem fsx.FileSystem
+	resourceName := "aws_fsx_lustre_file_system.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(fsx.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, fsx.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckFsxLustreFileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsFsxLustreFileSystemConfigCompression(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckFsxLustreFileSystemExists(resourceName, &filesystem),
+					resource.TestCheckResourceAttr(resourceName, "data_compression_type", fsx.DataCompressionTypeLz4),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"security_group_ids"},
+			},
+			{
+				Config: testAccAwsFsxLustreFileSystemConfigSubnetIds1(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckFsxLustreFileSystemExists(resourceName, &filesystem),
+					resource.TestCheckResourceAttr(resourceName, "data_compression_type", fsx.DataCompressionTypeNone),
+				),
+			},
+			{
+				Config: testAccAwsFsxLustreFileSystemConfigCompression(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckFsxLustreFileSystemExists(resourceName, &filesystem),
+					resource.TestCheckResourceAttr(resourceName, "data_compression_type", fsx.DataCompressionTypeLz4),
+				),
 			},
 		},
 	})
@@ -1148,6 +1190,17 @@ resource "aws_fsx_lustre_file_system" "test" {
   subnet_ids                  = [aws_subnet.test1.id]
   per_unit_storage_throughput = 50
   copy_tags_to_backups        = true
+}
+`)
+}
+
+func testAccAwsFsxLustreFileSystemConfigCompression() string {
+	return composeConfig(testAccAwsFsxLustreFileSystemConfigBase(), `
+resource "aws_fsx_lustre_file_system" "test" {
+  storage_capacity      = 1200
+  subnet_ids            = [aws_subnet.test1.id]
+  deployment_type       = data.aws_partition.current.partition == "aws-us-gov" ? "SCRATCH_2" : null # GovCloud does not support SCRATCH_1
+  data_compression_type = "LZ4"
 }
 `)
 }

@@ -2,12 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks/finder"
 )
 
 func dataSourceAwsEksCluster() *schema.Resource {
@@ -95,6 +94,10 @@ func dataSourceAwsEksCluster() *schema.Resource {
 				Computed: true,
 			},
 			"tags": tagsSchemaComputed(),
+			"version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"vpc_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -112,17 +115,17 @@ func dataSourceAwsEksCluster() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"public_access_cidrs": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 						"security_group_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"subnet_ids": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"public_access_cidrs": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -134,10 +137,6 @@ func dataSourceAwsEksCluster() *schema.Resource {
 					},
 				},
 			},
-			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -147,20 +146,10 @@ func dataSourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	name := d.Get("name").(string)
+	cluster, err := finder.ClusterByName(conn, name)
 
-	input := &eks.DescribeClusterInput{
-		Name: aws.String(name),
-	}
-
-	log.Printf("[DEBUG] Reading EKS Cluster: %s", input)
-	output, err := conn.DescribeCluster(input)
 	if err != nil {
 		return fmt.Errorf("error reading EKS Cluster (%s): %w", name, err)
-	}
-
-	cluster := output.Cluster
-	if cluster == nil {
-		return fmt.Errorf("EKS Cluster (%s) not found", name)
 	}
 
 	d.SetId(name)
@@ -171,13 +160,19 @@ func dataSourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("created_at", aws.TimeValue(cluster.CreatedAt).String())
+
 	if err := d.Set("enabled_cluster_log_types", flattenEksEnabledLogTypes(cluster.Logging)); err != nil {
 		return fmt.Errorf("error setting enabled_cluster_log_types: %w", err)
 	}
+
 	d.Set("endpoint", cluster.Endpoint)
 
 	if err := d.Set("identity", flattenEksIdentity(cluster.Identity)); err != nil {
 		return fmt.Errorf("error setting identity: %w", err)
+	}
+
+	if err := d.Set("kubernetes_network_config", flattenEksNetworkConfig(cluster.KubernetesNetworkConfig)); err != nil {
+		return fmt.Errorf("error setting kubernetes_network_config: %w", err)
 	}
 
 	d.Set("name", cluster.Name)
@@ -185,18 +180,14 @@ func dataSourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("role_arn", cluster.RoleArn)
 	d.Set("status", cluster.Status)
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %w", err)
-	}
-
 	d.Set("version", cluster.Version)
 
 	if err := d.Set("vpc_config", flattenEksVpcConfigResponse(cluster.ResourcesVpcConfig)); err != nil {
 		return fmt.Errorf("error setting vpc_config: %w", err)
 	}
 
-	if err := d.Set("kubernetes_network_config", flattenEksNetworkConfig(cluster.KubernetesNetworkConfig)); err != nil {
-		return fmt.Errorf("error setting kubernetes_network_config: %w", err)
+	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

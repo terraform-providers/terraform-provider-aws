@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_neptune_cluster: Add `copy_snapshot_to_tags` argument
+```

@@ -3,10 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -83,6 +83,12 @@ func resourceAwsCloudWatchLogMetricFilter() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+						"unit": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      cloudwatchlogs.StandardUnitNone,
+							ValidateFunc: validation.StringInSlice(cloudwatchlogs.StandardUnit_Values(), false),
+						},
 					},
 				},
 			},
@@ -115,7 +121,7 @@ func resourceAwsCloudWatchLogMetricFilterUpdate(d *schema.ResourceData, meta int
 	log.Printf("[DEBUG] Creating/Updating CloudWatch Log Metric Filter: %s", input)
 	_, err := conn.PutMetricFilter(&input)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating CloudWatch Log Metric Filter failed: %s", err)
+		return fmt.Errorf("Creating/Updating CloudWatch Log Metric Filter failed: %w", err)
 	}
 
 	d.SetId(d.Get("name").(string))
@@ -137,7 +143,7 @@ func resourceAwsCloudWatchLogMetricFilterRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Failed reading CloudWatch Log Metric Filter: %s", err)
+		return fmt.Errorf("Failed reading CloudWatch Log Metric Filter: %w", err)
 	}
 
 	log.Printf("[DEBUG] Found CloudWatch Log Metric Filter: %s", mf)
@@ -145,7 +151,7 @@ func resourceAwsCloudWatchLogMetricFilterRead(d *schema.ResourceData, meta inter
 	d.Set("name", mf.FilterName)
 	d.Set("pattern", mf.FilterPattern)
 	if err := d.Set("metric_transformation", flattenCloudWatchLogMetricTransformations(mf.MetricTransformations)); err != nil {
-		return fmt.Errorf("error setting metric_transformation: %s", err)
+		return fmt.Errorf("error setting metric_transformation: %w", err)
 	}
 
 	return nil
@@ -162,7 +168,7 @@ func lookupCloudWatchLogMetricFilter(conn *cloudwatchlogs.CloudWatchLogs,
 	log.Printf("[DEBUG] Reading CloudWatch Log Metric Filter: %s", input)
 	resp, err := conn.DescribeMetricFilters(&input)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceNotFoundException" {
+		if isAWSErr(err, cloudwatchlogs.ErrCodeResourceNotFoundException, "") {
 			return nil, &resource.NotFoundError{
 				Message: fmt.Sprintf("CloudWatch Log Metric Filter %q / %q not found via"+
 					" initial DescribeMetricFilters call", name, logGroupName),
@@ -171,7 +177,7 @@ func lookupCloudWatchLogMetricFilter(conn *cloudwatchlogs.CloudWatchLogs,
 			}
 		}
 
-		return nil, fmt.Errorf("Failed describing CloudWatch Log Metric Filter: %s", err)
+		return nil, fmt.Errorf("Failed describing CloudWatch Log Metric Filter: %w", err)
 	}
 
 	for _, mf := range resp.MetricFilters {
@@ -208,7 +214,7 @@ func resourceAwsCloudWatchLogMetricFilterDelete(d *schema.ResourceData, meta int
 	log.Printf("[INFO] Deleting CloudWatch Log Metric Filter: %s", d.Id())
 	_, err := conn.DeleteMetricFilter(&input)
 	if err != nil {
-		return fmt.Errorf("Error deleting CloudWatch Log Metric Filter: %s", err)
+		return fmt.Errorf("Error deleting CloudWatch Log Metric Filter: %w", err)
 	}
 	log.Println("[INFO] CloudWatch Log Metric Filter deleted")
 
@@ -226,4 +232,57 @@ func resourceAwsCloudWatchLogMetricFilterImport(d *schema.ResourceData, meta int
 	d.Set("name", name)
 	d.SetId(name)
 	return []*schema.ResourceData{d}, nil
+}
+
+func expandCloudWatchLogMetricTransformations(m map[string]interface{}) []*cloudwatchlogs.MetricTransformation {
+	transformation := cloudwatchlogs.MetricTransformation{
+		MetricName:      aws.String(m["name"].(string)),
+		MetricNamespace: aws.String(m["namespace"].(string)),
+		MetricValue:     aws.String(m["value"].(string)),
+	}
+
+	if m["default_value"].(string) != "" {
+		value, _ := strconv.ParseFloat(m["default_value"].(string), 64)
+		transformation.DefaultValue = aws.Float64(value)
+	}
+
+	if dims := m["dimensions"].(map[string]interface{}); len(dims) > 0 {
+		transformation.Dimensions = expandStringMap(dims)
+	}
+
+	if v, ok := m["unit"].(string); ok && v != "" {
+		transformation.Unit = aws.String(v)
+	}
+
+	return []*cloudwatchlogs.MetricTransformation{&transformation}
+}
+
+func flattenCloudWatchLogMetricTransformations(ts []*cloudwatchlogs.MetricTransformation) []interface{} {
+	mts := make([]interface{}, 0)
+	m := make(map[string]interface{})
+
+	transform := ts[0]
+	m["name"] = aws.StringValue(transform.MetricName)
+	m["namespace"] = aws.StringValue(transform.MetricNamespace)
+	m["value"] = aws.StringValue(transform.MetricValue)
+
+	if transform.DefaultValue == nil {
+		m["default_value"] = ""
+	} else {
+		m["default_value"] = strconv.FormatFloat(aws.Float64Value(transform.DefaultValue), 'f', -1, 64)
+	}
+
+	if dims := transform.Dimensions; len(dims) > 0 {
+		m["dimensions"] = pointersMapToStringList(dims)
+	} else {
+		m["dimensions"] = nil
+	}
+
+	if transform.Unit != nil {
+		m["unit"] = aws.StringValue(transform.Unit)
+	}
+
+	mts = append(mts, m)
+
+	return mts
 }

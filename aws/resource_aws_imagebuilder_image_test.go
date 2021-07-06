@@ -24,12 +24,14 @@ func init() {
 
 func testSweepImageBuilderImages(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %w", err)
 	}
-	conn := client.(*AWSClient).imagebuilderconn
 
-	var sweeperErrs *multierror.Error
+	conn := client.(*AWSClient).imagebuilderconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
 	input := &imagebuilder.ListImagesInput{
 		Owner: aws.String(imagebuilder.OwnershipSelf),
@@ -45,35 +47,59 @@ func testSweepImageBuilderImages(region string) error {
 				continue
 			}
 
-			arn := aws.StringValue(imageVersion.Arn)
+			// Retrieve the Image's Build Version ARNs required as input
+			// to the resourceAwsImageBuilderImage()'s Delete operation
+			// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/19851
+			imageVersionArn := aws.StringValue(imageVersion.Arn)
 
-			r := resourceAwsImageBuilderImage()
-			d := r.Data(nil)
-			d.SetId(arn)
+			input := &imagebuilder.ListImageBuildVersionsInput{
+				ImageVersionArn: imageVersion.Arn,
+			}
 
-			err := r.Delete(d, client)
+			err := conn.ListImageBuildVersionsPages(input, func(page *imagebuilder.ListImageBuildVersionsOutput, lastPage bool) bool {
+				if page == nil {
+					return !lastPage
+				}
+
+				for _, imageSummary := range page.ImageSummaryList {
+					if imageSummary == nil {
+						continue
+					}
+
+					imageBuildVersionArn := aws.StringValue(imageSummary.Arn)
+
+					r := resourceAwsImageBuilderImage()
+					d := r.Data(nil)
+					d.SetId(imageBuildVersionArn)
+
+					sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
+				}
+
+				return !lastPage
+			})
 
 			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting Image Builder Image (%s): %w", arn, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
+				errs = multierror.Append(errs, fmt.Errorf("error listing Image Builder Image Build Versions for image (%s): %w", imageVersionArn, err))
 			}
 		}
 
 		return !lastPage
 	})
 
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error listing Image Builder Images for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping Image Builder Images for %s: %w", region, err))
+	}
+
 	if testSweepSkipSweepError(err) {
 		log.Printf("[WARN] Skipping Image Builder Image sweep for %s: %s", region, err)
-		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+		return nil
 	}
 
-	if err != nil {
-		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing Image Builder Images: %w", err))
-	}
-
-	return sweeperErrs.ErrorOrNil()
+	return errs.ErrorOrNil()
 }
 
 func TestAccAwsImageBuilderImage_basic(t *testing.T) {

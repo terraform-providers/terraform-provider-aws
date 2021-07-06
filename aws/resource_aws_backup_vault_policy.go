@@ -6,8 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	tfbackup "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/backup"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/backup/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsBackupVaultPolicy() *schema.Resource {
@@ -21,6 +25,10 @@ func resourceAwsBackupVaultPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"backup_vault_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"backup_vault_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -32,10 +40,6 @@ func resourceAwsBackupVaultPolicy() *schema.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
-			"backup_vault_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -43,17 +47,19 @@ func resourceAwsBackupVaultPolicy() *schema.Resource {
 func resourceAwsBackupVaultPolicyPut(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
+	name := d.Get("backup_vault_name").(string)
 	input := &backup.PutBackupVaultAccessPolicyInput{
-		BackupVaultName: aws.String(d.Get("backup_vault_name").(string)),
+		BackupVaultName: aws.String(name),
 		Policy:          aws.String(d.Get("policy").(string)),
 	}
 
 	_, err := conn.PutBackupVaultAccessPolicy(input)
+
 	if err != nil {
-		return fmt.Errorf("error creating Backup Vault Policy (%s): %w", d.Id(), err)
+		return fmt.Errorf("error creating Backup Vault Policy (%s): %w", name, err)
 	}
 
-	d.SetId(d.Get("backup_vault_name").(string))
+	d.SetId(name)
 
 	return resourceAwsBackupVaultPolicyRead(d, meta)
 }
@@ -61,13 +67,10 @@ func resourceAwsBackupVaultPolicyPut(d *schema.ResourceData, meta interface{}) e
 func resourceAwsBackupVaultPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	input := &backup.GetBackupVaultAccessPolicyInput{
-		BackupVaultName: aws.String(d.Id()),
-	}
+	output, err := finder.BackupVaultAccessPolicyByName(conn, d.Id())
 
-	resp, err := conn.GetBackupVaultAccessPolicy(input)
-	if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
-		log.Printf("[WARN] Backup Vault Policy %s not found, removing from state", d.Id())
+	if !d.IsNewResource() && tfresource.NotFound(err) {
+		log.Printf("[WARN] Backup Vault Policy (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -75,9 +78,10 @@ func resourceAwsBackupVaultPolicyRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("error reading Backup Vault Policy (%s): %w", d.Id(), err)
 	}
-	d.Set("backup_vault_name", resp.BackupVaultName)
-	d.Set("policy", resp.Policy)
-	d.Set("backup_vault_arn", resp.BackupVaultArn)
+
+	d.Set("backup_vault_arn", output.BackupVaultArn)
+	d.Set("backup_vault_name", output.BackupVaultName)
+	d.Set("policy", output.Policy)
 
 	return nil
 }
@@ -85,15 +89,16 @@ func resourceAwsBackupVaultPolicyRead(d *schema.ResourceData, meta interface{}) 
 func resourceAwsBackupVaultPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	input := &backup.DeleteBackupVaultAccessPolicyInput{
+	log.Printf("[DEBUG] Deleting Backup Vault Policy (%s)", d.Id())
+	_, err := conn.DeleteBackupVaultAccessPolicy(&backup.DeleteBackupVaultAccessPolicyInput{
 		BackupVaultName: aws.String(d.Id()),
+	})
+
+	if tfawserr.ErrCodeEquals(err, backup.ErrCodeResourceNotFoundException) || tfawserr.ErrCodeEquals(err, tfbackup.ErrCodeAccessDeniedException) {
+		return nil
 	}
 
-	_, err := conn.DeleteBackupVaultAccessPolicy(input)
 	if err != nil {
-		if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
-			return nil
-		}
 		return fmt.Errorf("error deleting Backup Vault Policy (%s): %w", d.Id(), err)
 	}
 

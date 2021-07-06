@@ -117,6 +117,10 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+						"cookie_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,

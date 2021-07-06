@@ -1,6 +1,8 @@
 package finder
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 )
@@ -108,4 +110,23 @@ func Policies(conn *iam.IAM, arn, name, pathPrefix string) ([]*iam.Policy, error
 	})
 
 	return results, err
+}
+
+// Role returns a role's ARN given the role name
+func Role(conn *iam.IAM, name string) (*iam.Role, error) {
+	input := &iam.GetRoleInput{
+		RoleName: aws.String(name),
+	}
+
+	output, err := conn.GetRole(input)
+
+	if err != nil {
+		return nil, fmt.Errorf("getting IAM Role (%s): %w", name, err)
+	}
+
+	if output == nil || output.Role == nil {
+		return nil, fmt.Errorf("getting IAM Role (%s): empty response", name)
+	}
+
+	return output.Role, nil
 }

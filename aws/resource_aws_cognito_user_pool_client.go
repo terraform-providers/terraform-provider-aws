@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -26,8 +27,9 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 		// https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html
 		Schema: map[string]*schema.Schema{
 			"access_token_validity": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 86400),
 			},
 			"allowed_oauth_flows": {
 				Type:     schema.TypeSet,
@@ -133,8 +135,9 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 				ForceNew: true,
 			},
 			"id_token_validity": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 86400),
 			},
 			"logout_urls": {
 				Type:     schema.TypeSet,
@@ -175,7 +178,7 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      30,
-				ValidateFunc: validation.IntBetween(0, 3650),
+				ValidateFunc: validation.IntBetween(0, 315360000),
 			},
 			"supported_identity_providers": {
 				Type:     schema.TypeSet,
@@ -469,6 +472,10 @@ func resourceAwsCognitoUserPoolClientDelete(d *schema.ResourceData, meta interfa
 	log.Printf("[DEBUG] Deleting Cognito User Pool Client: %s", params)
 
 	_, err := conn.DeleteUserPoolClient(params)
+
+	if tfawserr.ErrCodeEquals(err, cognitoidentityprovider.ErrCodeResourceNotFoundException) {
+		return nil
+	}
 
 	if err != nil {
 		return fmt.Errorf("error deleting Cognito User Pool Client (%s): %w", d.Id(), err)

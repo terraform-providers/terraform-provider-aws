@@ -265,14 +265,10 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 							ForceNew: true,
 						},
 						"placement_tenancy": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.TenancyDefault,
-								ec2.TenancyDedicated,
-								ec2.TenancyHost,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(ec2.Tenancy_Values(), false),
 						},
 						"spot_price": {
 							Type:     schema.TypeString,
@@ -409,15 +405,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				ForceNew: false,
 			},
 			"allocation_strategy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.AllocationStrategyLowestPrice,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.AllocationStrategyLowestPrice,
-					ec2.AllocationStrategyDiversified,
-					ec2.AllocationStrategyCapacityOptimized,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.AllocationStrategyLowestPrice,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.AllocationStrategy_Values(), false),
 			},
 			"instance_pools_to_use_count": {
 				Type:     schema.TypeInt,
@@ -437,15 +429,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				}, false),
 			},
 			"instance_interruption_behaviour": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.InstanceInterruptionBehaviorTerminate,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.InstanceInterruptionBehaviorTerminate,
-					ec2.InstanceInterruptionBehaviorStop,
-					ec2.InstanceInterruptionBehaviorHibernate,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.InstanceInterruptionBehaviorTerminate,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.InstanceInterruptionBehavior_Values(), false),
 			},
 			"spot_price": {
 				Type:     schema.TypeString,
@@ -470,15 +458,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"fleet_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.FleetTypeMaintain,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.FleetTypeMaintain,
-					ec2.FleetTypeRequest,
-					ec2.FleetTypeInstant,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.FleetTypeMaintain,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.FleetType_Values(), false),
 			},
 			"spot_maintenance_strategies": {
 				Type:     schema.TypeList,
@@ -505,12 +489,10 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"replacement_strategy": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"launch",
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(ec2.ReplacementStrategy_Values(), false),
 									},
 								},
 							},
@@ -544,6 +526,22 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 					ValidateFunc: validateArn,
 				},
 				Set: schema.HashString,
+			},
+			"on_demand_allocation_strategy": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.OnDemandAllocationStrategyLowestPrice,
+				ValidateFunc: validation.StringInSlice(ec2.OnDemandAllocationStrategy_Values(), false),
+			},
+			"on_demand_max_total_price": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"on_demand_target_capacity": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
@@ -988,6 +986,16 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 		spotFleetConfig.SpotPrice = aws.String(v.(string))
 	}
 
+	spotFleetConfig.OnDemandTargetCapacity = aws.Int64(int64(d.Get("on_demand_target_capacity").(int)))
+
+	if v, ok := d.GetOk("on_demand_allocation_strategy"); ok {
+		spotFleetConfig.OnDemandAllocationStrategy = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("on_demand_max_total_price"); ok {
+		spotFleetConfig.OnDemandMaxTotalPrice = aws.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("valid_from"); ok {
 		validFrom, err := time.Parse(time.RFC3339, v.(string))
 		if err != nil {
@@ -1069,7 +1077,7 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error requesting spot fleet: %s", err)
+		return fmt.Errorf("Error requesting spot fleet: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.SpotFleetRequestId))
@@ -1134,7 +1142,7 @@ func resourceAwsSpotFleetRequestStateRefreshFunc(d *schema.ResourceData, meta in
 
 		spotFleetRequest := resp.SpotFleetRequestConfigs[0]
 
-		return spotFleetRequest, *spotFleetRequest.SpotFleetRequestState, nil
+		return spotFleetRequest, aws.StringValue(spotFleetRequest.SpotFleetRequestState), nil
 	}
 }
 
@@ -1159,7 +1167,7 @@ func resourceAwsSpotFleetRequestFulfillmentRefreshFunc(id string, conn *ec2.EC2)
 		}
 
 		cfg := resp.SpotFleetRequestConfigs[0]
-		status := *cfg.ActivityStatus
+		status := aws.StringValue(cfg.ActivityStatus)
 
 		var fleetError error
 		if status == ec2.ActivityStatusError {
@@ -1286,7 +1294,7 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 
 	launchSpec, err := launchSpecsToSet(config.LaunchSpecifications, conn)
 	if err != nil {
-		return fmt.Errorf("error occurred while reading launch specification: %s", err)
+		return fmt.Errorf("error occurred while reading launch specification: %w", err)
 	}
 
 	d.Set("replace_unhealthy_instances", config.ReplaceUnhealthyInstances)
@@ -1306,9 +1314,13 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 
 	if len(config.LaunchTemplateConfigs) > 0 {
 		if err := d.Set("launch_template_config", flattenFleetLaunchTemplateConfig(config.LaunchTemplateConfigs)); err != nil {
-			return fmt.Errorf("error setting launch_template_config: %s", err)
+			return fmt.Errorf("error setting launch_template_config: %w", err)
 		}
 	}
+
+	d.Set("on_demand_target_capacity", config.OnDemandTargetCapacity)
+	d.Set("on_demand_allocation_strategy", config.OnDemandAllocationStrategy)
+	d.Set("on_demand_max_total_price", config.OnDemandMaxTotalPrice)
 
 	if config.LoadBalancersConfig != nil {
 		lbConf := config.LoadBalancersConfig
@@ -1319,7 +1331,7 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 				flatLbs = append(flatLbs, lb.Name)
 			}
 			if err := d.Set("load_balancers", flattenStringSet(flatLbs)); err != nil {
-				return fmt.Errorf("error setting load_balancers: %s", err)
+				return fmt.Errorf("error setting load_balancers: %w", err)
 			}
 		}
 
@@ -1329,7 +1341,7 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 				flatTgs = append(flatTgs, tg.Arn)
 			}
 			if err := d.Set("target_group_arns", flattenStringSet(flatTgs)); err != nil {
-				return fmt.Errorf("error setting target_group_arns: %s", err)
+				return fmt.Errorf("error setting target_group_arns: %w", err)
 			}
 		}
 	}
@@ -1586,31 +1598,28 @@ func resourceAwsSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{})
 	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifySpotFleetRequest.html
 	conn := meta.(*AWSClient).ec2conn
 
-	req := &ec2.ModifySpotFleetRequestInput{
-		SpotFleetRequestId: aws.String(d.Id()),
-	}
-
-	updateFlag := false
-
-	if d.HasChange("target_capacity") {
-		if val, ok := d.GetOkExists("target_capacity"); ok {
-			req.TargetCapacity = aws.Int64(int64(val.(int)))
-			updateFlag = true
-		}
-	}
-
-	if d.HasChange("excess_capacity_termination_policy") {
-		if val, ok := d.GetOk("excess_capacity_termination_policy"); ok {
-			req.ExcessCapacityTerminationPolicy = aws.String(val.(string))
+	if d.HasChangesExcept("tags", "tags_all") {
+		req := &ec2.ModifySpotFleetRequestInput{
+			SpotFleetRequestId: aws.String(d.Id()),
 		}
 
-		updateFlag = true
-	}
+		if d.HasChange("target_capacity") {
+			req.TargetCapacity = aws.Int64(int64(d.Get("target_capacity").(int)))
+		}
 
-	if updateFlag {
+		if d.HasChange("on_demand_target_capacity") {
+			req.OnDemandTargetCapacity = aws.Int64(int64(d.Get("on_demand_target_capacity").(int)))
+		}
+
+		if d.HasChange("excess_capacity_termination_policy") {
+			if val, ok := d.GetOk("excess_capacity_termination_policy"); ok {
+				req.ExcessCapacityTerminationPolicy = aws.String(val.(string))
+			}
+		}
+
 		log.Printf("[DEBUG] Modifying Spot Fleet Request: %#v", req)
 		if _, err := conn.ModifySpotFleetRequest(req); err != nil {
-			return fmt.Errorf("error updating spot request (%s): %s", d.Id(), err)
+			return fmt.Errorf("error updating spot request (%s): %w", d.Id(), err)
 		}
 
 		log.Println("[INFO] Waiting for Spot Fleet Request to be modified")
@@ -1632,7 +1641,7 @@ func resourceAwsSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("tags_all") {
 		o, n := d.GetChange("tags_all")
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+			return fmt.Errorf("error updating tags: %w", err)
 		}
 	}
 
@@ -1647,7 +1656,7 @@ func resourceAwsSpotFleetRequestDelete(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] Cancelling spot fleet request: %s", d.Id())
 	err := deleteSpotFleetRequest(d.Id(), terminateInstances, d.Timeout(schema.TimeoutDelete), conn)
 	if err != nil {
-		return fmt.Errorf("error deleting spot request (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting spot request (%s): %w", d.Id(), err)
 	}
 
 	return nil
@@ -1673,7 +1682,7 @@ func deleteSpotFleetRequest(spotFleetRequestID string, terminateInstances bool, 
 		})
 
 		if err != nil || resp == nil {
-			return 0, fmt.Errorf("error reading Spot Fleet Instances (%s): %s", spotFleetRequestID, err)
+			return 0, fmt.Errorf("error reading Spot Fleet Instances (%s): %w", spotFleetRequestID, err)
 		}
 
 		return len(resp.ActiveInstances), nil

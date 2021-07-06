@@ -132,6 +132,19 @@ The following arguments are optional:
 * `pre_token_generation` - (Optional) Allow to customize identity token claims before token generation.
 * `user_migration` - (Optional) User migration Lambda config type.
 * `verify_auth_challenge_response` - (Optional) Verifies the authentication challenge response.
+* `kms_key_id` - (Optional) The Amazon Resource Name of Key Management Service Customer master keys. Amazon Cognito uses the key to encrypt codes and temporary passwords sent to CustomEmailSender and CustomSMSSender.
+* `custom_email_sender` - (Optional) A custom email sender AWS Lambda trigger. See [custom_email_sender](#custom_email_sender) Below.
+* `custom_sms_sender` - (Optional) A custom SMS sender AWS Lambda trigger. See [custom_sms_sender](#custom_sms_sender) Below.
+
+#### custom_email_sender
+
+* `lambda_arn` - (Required) The Lambda Amazon Resource Name of the Lambda function that Amazon Cognito triggers to send email notifications to users.
+* `lambda_version` - (Required) The Lambda version represents the signature of the "request" attribute in the "event" information Amazon Cognito passes to your custom email Lambda function. The only supported value is `V1_0`.
+
+#### custom_sms_sender
+
+* `lambda_arn` - (Required) he Lambda Amazon Resource Name of the Lambda function that Amazon Cognito triggers to send SMS notifications to users.
+* `lambda_version` - (Required) The Lambda version represents the signature of the "request" attribute in the "event" information Amazon Cognito passes to your custom SMS Lambda function. The only supported value is `V1_0`.
 
 ### password_policy
 
@@ -221,7 +234,10 @@ In addition to all arguments above, the following attributes are exported:
 
 * `arn` - ARN of the user pool.
 * `creation_date` - Date the user pool was created.
+* `custom_domain` - A custom domain name that you provide to Amazon Cognito. This parameter applies only if you use a custom domain to host the sign-up and sign-in pages for your application. For example: `auth.example.com`.
+* `domain` - Holds the domain prefix if the user pool has a domain associated with it.
 * `endpoint` - Endpoint name of the user pool. Example format: `cognito-idp.REGION.amazonaws.com/xxxx_yyyyy`
+* `estimated_number_of_users` - A number estimating the size of the user pool.
 * `id` - ID of the user pool.
 * `last_modified_date` - Date the user pool was last modified.
 * `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).

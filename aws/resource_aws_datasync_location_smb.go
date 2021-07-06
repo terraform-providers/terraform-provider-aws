@@ -29,52 +29,49 @@ func resourceAwsDataSyncLocationSmb() *schema.Resource {
 			"agent_arns": {
 				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
+				},
 			},
 			"domain": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 253),
 			},
 			"mount_options": {
 				Type:             schema.TypeList,
 				Optional:         true,
-				ForceNew:         true,
 				MaxItems:         1,
 				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"version": {
-							Type:     schema.TypeString,
-							Default:  datasync.SmbVersionAutomatic,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								datasync.SmbVersionAutomatic,
-								datasync.SmbVersionSmb2,
-								datasync.SmbVersionSmb3,
-							}, false),
+							Type:         schema.TypeString,
+							Default:      datasync.SmbVersionAutomatic,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(datasync.SmbVersion_Values(), false),
 						},
 					},
 				},
 			},
 			"password": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
-				ForceNew:  true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringLenBetween(1, 104),
 			},
 			"server_hostname": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 			"subdirectory": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 4096),
 				/*// Ignore missing trailing slash
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					if new == "/" {
@@ -94,9 +91,9 @@ func resourceAwsDataSyncLocationSmb() *schema.Resource {
 				Computed: true,
 			},
 			"user": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 104),
 			},
 		},
 
@@ -126,7 +123,7 @@ func resourceAwsDataSyncLocationSmbCreate(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Creating DataSync Location SMB: %s", input)
 	output, err := conn.CreateLocationSmb(input)
 	if err != nil {
-		return fmt.Errorf("error creating DataSync Location SMB: %s", err)
+		return fmt.Errorf("error creating DataSync Location SMB: %w", err)
 	}
 
 	d.SetId(aws.StringValue(output.LocationArn))
@@ -153,7 +150,7 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading DataSync Location SMB (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading DataSync Location SMB (%s): %w", d.Id(), err)
 	}
 
 	tagsInput := &datasync.ListTagsForResourceInput{
@@ -164,13 +161,13 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 	tagsOutput, err := conn.ListTagsForResource(tagsInput)
 
 	if err != nil {
-		return fmt.Errorf("error reading DataSync Location SMB (%s) tags: %s", d.Id(), err)
+		return fmt.Errorf("error reading DataSync Location SMB (%s) tags: %w", d.Id(), err)
 	}
 
 	subdirectory, err := dataSyncParseLocationURI(aws.StringValue(output.LocationUri))
 
 	if err != nil {
-		return fmt.Errorf("error parsing Location SMB (%s) URI (%s): %s", d.Id(), aws.StringValue(output.LocationUri), err)
+		return fmt.Errorf("error parsing Location SMB (%s) URI (%s): %w", d.Id(), aws.StringValue(output.LocationUri), err)
 	}
 
 	d.Set("agent_arns", flattenStringSet(output.AgentArns))
@@ -180,7 +177,7 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 	d.Set("domain", output.Domain)
 
 	if err := d.Set("mount_options", flattenDataSyncSmbMountOptions(output.MountOptions)); err != nil {
-		return fmt.Errorf("error setting mount_options: %s", err)
+		return fmt.Errorf("error setting mount_options: %w", err)
 	}
 
 	d.Set("subdirectory", subdirectory)
@@ -206,11 +203,31 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 func resourceAwsDataSyncLocationSmbUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
 
+	if d.HasChangesExcept("tags_all", "tags") {
+		input := &datasync.UpdateLocationSmbInput{
+			LocationArn:  aws.String(d.Id()),
+			AgentArns:    expandStringSet(d.Get("agent_arns").(*schema.Set)),
+			MountOptions: expandDataSyncSmbMountOptions(d.Get("mount_options").([]interface{})),
+			Password:     aws.String(d.Get("password").(string)),
+			Subdirectory: aws.String(d.Get("subdirectory").(string)),
+			User:         aws.String(d.Get("user").(string)),
+		}
+
+		if v, ok := d.GetOk("domain"); ok {
+			input.Domain = aws.String(v.(string))
+		}
+
+		_, err := conn.UpdateLocationSmb(input)
+		if err != nil {
+			return fmt.Errorf("error updating DataSync Location SMB (%s): %w", d.Id(), err)
+		}
+	}
+
 	if d.HasChange("tags_all") {
 		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating Datasync SMB location (%s) tags: %s", d.Id(), err)
+			return fmt.Errorf("error updating Datasync SMB location (%s) tags: %w", d.Id(), err)
 		}
 	}
 	return resourceAwsDataSyncLocationSmbRead(d, meta)
@@ -231,7 +248,7 @@ func resourceAwsDataSyncLocationSmbDelete(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting DataSync Location SMB (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting DataSync Location SMB (%s): %w", d.Id(), err)
 	}
 
 	return nil

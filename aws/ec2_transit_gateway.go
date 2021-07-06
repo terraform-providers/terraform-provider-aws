@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	tfnet "github.com/terraform-providers/terraform-provider-aws/aws/internal/net"
 )
 
 func decodeEc2TransitGatewayRouteID(id string) (string, string, error) {
@@ -109,8 +110,8 @@ func ec2DescribeTransitGatewayRoute(conn *ec2.EC2, transitGatewayRouteTableID, d
 		if route == nil {
 			continue
 		}
-		if cidrBlocksEqual(aws.StringValue(route.DestinationCidrBlock), destination) {
-			cidrString := canonicalCidrBlock(aws.StringValue(route.DestinationCidrBlock))
+		if tfnet.CIDRBlocksEqual(aws.StringValue(route.DestinationCidrBlock), destination) {
+			cidrString := tfnet.CanonicalCIDRBlock(aws.StringValue(route.DestinationCidrBlock))
 			route.DestinationCidrBlock = aws.String(cidrString)
 			return route, nil
 		}

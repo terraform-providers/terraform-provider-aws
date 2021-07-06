@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecs/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecs/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecs/lister"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func init() {
@@ -27,71 +29,48 @@ func init() {
 
 func testSweepEcsCapacityProviders(region string) error {
 	client, err := sharedClientForRegion(region)
-
 	if err != nil {
 		return fmt.Errorf("error getting client: %w", err)
 	}
-
 	conn := client.(*AWSClient).ecsconn
 	input := &ecs.DescribeCapacityProvidersInput{}
 	var sweeperErrs *multierror.Error
+	sweepResources := make([]*testSweepResource, 0)
 
-	for {
-		output, err := conn.DescribeCapacityProviders(input)
-
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping ECS Capacity Provider sweep for %s: %s", region, err)
-			return sweeperErrs.ErrorOrNil()
+	err = lister.DescribeCapacityProvidersPages(conn, input, func(page *ecs.DescribeCapacityProvidersOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if err != nil {
-			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving ECS Capacity Provider: %w", err))
-			return sweeperErrs
-		}
-
-		for _, capacityProvider := range output.CapacityProviders {
-			if capacityProvider == nil {
-				continue
-			}
-
+		for _, capacityProvider := range page.CapacityProviders {
 			arn := aws.StringValue(capacityProvider.CapacityProviderArn)
-			input := &ecs.DeleteCapacityProviderInput{
-				CapacityProvider: capacityProvider.CapacityProviderArn,
-			}
 
-			if aws.StringValue(capacityProvider.Name) == "FARGATE" || aws.StringValue(capacityProvider.Name) == "FARGATE_SPOT" {
+			if name := aws.StringValue(capacityProvider.Name); name == "FARGATE" || name == "FARGATE_SPOT" {
 				log.Printf("[INFO] Skipping AWS managed ECS Capacity Provider: %s", arn)
 				continue
 			}
 
-			if aws.StringValue(capacityProvider.Status) == ecs.CapacityProviderStatusInactive {
-				log.Printf("[INFO] Skipping ECS Capacity Provider with INACTIVE status: %s", arn)
-				continue
-			}
+			r := resourceAwsEcsCapacityProvider()
+			d := r.Data(nil)
+			d.SetId(arn)
 
-			log.Printf("[INFO] Deleting ECS Capacity Provider: %s", arn)
-			_, err := conn.DeleteCapacityProvider(input)
-
-			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting ECS Capacity Provider (%s): %w", arn, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
-			}
-
-			if _, err := waiter.CapacityProviderInactive(conn, arn); err != nil {
-				sweeperErr := fmt.Errorf("error waiting for ECS Capacity Provider (%s) to delete: %w", arn, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
-		if aws.StringValue(output.NextToken) == "" {
-			break
-		}
+		return !lastPage
+	})
 
-		input.NextToken = output.NextToken
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping ECS Capacity Providers sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error listing ECS Capacity Providers for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error sweeping ECS Capacity Providers for %s: %w", region, err))
 	}
 
 	return sweeperErrs.ErrorOrNil()
@@ -170,14 +149,14 @@ func TestAccAWSEcsCapacityProvider_ManagedScaling(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEcsCapacityProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEcsCapacityProviderConfigManagedScaling(rName),
+				Config: testAccAWSEcsCapacityProviderConfigManagedScaling(rName, ecs.ManagedScalingStatusEnabled, 300, 10, 1, 50),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcsCapacityProviderExists(resourceName, &provider),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrPair(resourceName, "auto_scaling_group_provider.0.auto_scaling_group_arn", "aws_autoscaling_group.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_termination_protection", "DISABLED"),
-					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.instance_warmup_period", "400"),
-					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.minimum_scaling_step_size", "2"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.instance_warmup_period", "300"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.minimum_scaling_step_size", "1"),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.maximum_scaling_step_size", "10"),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.status", "ENABLED"),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.target_capacity", "50"),
@@ -188,6 +167,20 @@ func TestAccAWSEcsCapacityProvider_ManagedScaling(t *testing.T) {
 				ImportStateId:     rName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEcsCapacityProviderConfigManagedScaling(rName, ecs.ManagedScalingStatusDisabled, 400, 100, 10, 100),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsCapacityProviderExists(resourceName, &provider),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrPair(resourceName, "auto_scaling_group_provider.0.auto_scaling_group_arn", "aws_autoscaling_group.test", "arn"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_termination_protection", "DISABLED"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.instance_warmup_period", "400"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.minimum_scaling_step_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.maximum_scaling_step_size", "100"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.status", "DISABLED"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_group_provider.0.managed_scaling.0.target_capacity", "100"),
+				),
 			},
 		},
 	})
@@ -274,8 +267,6 @@ func TestAccAWSEcsCapacityProvider_Tags(t *testing.T) {
 	})
 }
 
-// TODO add an update test config - Reference: https://github.com/aws/containers-roadmap/issues/633
-
 func testAccCheckAWSEcsCapacityProviderDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ecsconn
 
@@ -284,21 +275,17 @@ func testAccCheckAWSEcsCapacityProviderDestroy(s *terraform.State) error {
 			continue
 		}
 
-		input := &ecs.DescribeCapacityProvidersInput{
-			CapacityProviders: aws.StringSlice([]string{rs.Primary.ID}),
-		}
+		_, err := finder.CapacityProviderByARN(conn, rs.Primary.ID)
 
-		output, err := conn.DescribeCapacityProviders(input)
+		if tfresource.NotFound(err) {
+			continue
+		}
 
 		if err != nil {
 			return err
 		}
 
-		for _, capacityProvider := range output.CapacityProviders {
-			if aws.StringValue(capacityProvider.CapacityProviderArn) == rs.Primary.ID && aws.StringValue(capacityProvider.Status) != ecs.CapacityProviderStatusInactive {
-				return fmt.Errorf("ECS Capacity Provider (%s) still exists", rs.Primary.ID)
-			}
-		}
+		return fmt.Errorf("ECS Capacity Provider ID %s still exists", rs.Primary.ID)
 	}
 
 	return nil
@@ -311,27 +298,21 @@ func testAccCheckAWSEcsCapacityProviderExists(resourceName string, provider *ecs
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No ECS Capacity Provider ID is set")
+		}
+
 		conn := testAccProvider.Meta().(*AWSClient).ecsconn
 
-		input := &ecs.DescribeCapacityProvidersInput{
-			CapacityProviders: []*string{aws.String(rs.Primary.ID)},
-			Include:           []*string{aws.String(ecs.CapacityProviderFieldTags)},
-		}
-
-		output, err := conn.DescribeCapacityProviders(input)
+		output, err := finder.CapacityProviderByARN(conn, rs.Primary.ID)
 
 		if err != nil {
-			return fmt.Errorf("error reading ECS Capacity Provider (%s): %s", rs.Primary.ID, err)
+			return err
 		}
 
-		for _, cp := range output.CapacityProviders {
-			if aws.StringValue(cp.CapacityProviderArn) == rs.Primary.ID {
-				*provider = *cp
-				return nil
-			}
-		}
+		*provider = *output
 
-		return fmt.Errorf("ECS Capacity Provider (%s) not found", rs.Primary.ID)
+		return nil
 	}
 }
 
@@ -396,30 +377,30 @@ resource "aws_ecs_capacity_provider" "test" {
 `, rName)
 }
 
-func testAccAWSEcsCapacityProviderConfigManagedScaling(rName string) string {
+func testAccAWSEcsCapacityProviderConfigManagedScaling(rName, status string, warmup, max, min, cap int) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-  name = %q
+  name = %[1]q
 
   auto_scaling_group_provider {
-    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+    auto_scaling_group_arn         = aws_autoscaling_group.test.arn
 
     managed_scaling {
-      instance_warmup_period    = 400
-      maximum_scaling_step_size = 10
-      minimum_scaling_step_size = 2
-      status                    = "ENABLED"
-      target_capacity           = 50
+      instance_warmup_period    = %[2]d
+      maximum_scaling_step_size = %[3]d
+      minimum_scaling_step_size = %[4]d
+      status                    = %[5]q
+      target_capacity           = %[6]d
     }
   }
 }
-`, rName)
+`, rName, warmup, max, min, status, cap)
 }
 
 func testAccAWSEcsCapacityProviderConfigManagedScalingPartial(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-  name = %q
+  name = %[1]q
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.test.arn
@@ -439,7 +420,7 @@ resource "aws_ecs_capacity_provider" "test" {
   name = %[1]q
 
   tags = {
-    %[2]q = %[3]q,
+    %[2]q = %[3]q
   }
 
   auto_scaling_group_provider {
@@ -452,11 +433,11 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-  name = %q
+  name = %[1]q
 
   tags = {
-    %q = %q,
-    %q = %q,
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 
   auto_scaling_group_provider {

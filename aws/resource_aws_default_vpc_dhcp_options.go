@@ -33,31 +33,48 @@ func resourceAwsDefaultVpcDhcpOptions() *schema.Resource {
 		Computed: true,
 	}
 
+	dvpc.Schema["owner_id"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: true,
+		Optional: true,
+	}
+
 	return dvpc
 }
 
 func resourceAwsDefaultVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	req := &ec2.DescribeDhcpOptionsInput{
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("key"),
-				Values: aws.StringSlice([]string{"domain-name"}),
-			},
-			{
-				Name:   aws.String("value"),
-				Values: aws.StringSlice([]string{resourceAwsEc2RegionalPrivateDnsSuffix(meta.(*AWSClient).region)}),
-			},
-			{
-				Name:   aws.String("key"),
-				Values: aws.StringSlice([]string{"domain-name-servers"}),
-			},
-			{
-				Name:   aws.String("value"),
-				Values: aws.StringSlice([]string{"AmazonProvidedDNS"}),
-			},
+	filters := []*ec2.Filter{
+		{
+			Name:   aws.String("key"),
+			Values: aws.StringSlice([]string{"domain-name"}),
 		},
+		{
+			Name:   aws.String("value"),
+			Values: aws.StringSlice([]string{resourceAwsEc2RegionalPrivateDnsSuffix(meta.(*AWSClient).region)}),
+		},
+		{
+			Name:   aws.String("key"),
+			Values: aws.StringSlice([]string{"domain-name-servers"}),
+		},
+		{
+			Name:   aws.String("value"),
+			Values: aws.StringSlice([]string{"AmazonProvidedDNS"}),
+		},
+	}
+
+	if v, ok := d.GetOk("owner_id"); ok {
+		filter := &ec2.Filter{
+			Name:   aws.String("owner-id"),
+			Values: aws.StringSlice([]string{v.(string)}),
+		}
+
+		filters = append(filters, filter)
+	}
+
+	req := &ec2.DescribeDhcpOptionsInput{
+		Filters: filters,
 	}
 
 	var dhcpOptions []*ec2.DhcpOptions

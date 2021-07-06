@@ -23,3 +23,16 @@ func TimedOut(err error) bool {
 	timeoutErr, ok := err.(*resource.TimeoutError) // nolint:errorlint
 	return ok && timeoutErr.LastError == nil
 }
+
+// SetLastError sets the LastError field on the error if supported.
+// If lastErr is nil it is ignored.
+func SetLastError(err, lastErr error) {
+	var te *resource.TimeoutError
+	var use *resource.UnexpectedStateError
+
+	if ok := errors.As(err, &te); ok && te.LastError == nil {
+		te.LastError = lastErr
+	} else if ok := errors.As(err, &use); ok && use.LastError == nil {
+		use.LastError = lastErr
+	}
+}

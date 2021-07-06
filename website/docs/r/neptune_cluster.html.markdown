@@ -44,6 +44,7 @@ The following arguments are supported:
 * `backup_retention_period` - (Optional) The days to retain backups for. Default `1`
 * `cluster_identifier` - (Optional, Forces new resources) The cluster identifier. If omitted, Terraform will assign a random, unique identifier.
 * `cluster_identifier_prefix` - (Optional, Forces new resource) Creates a unique cluster identifier beginning with the specified prefix. Conflicts with `cluster_identifier`.
+* `copy_tags_to_snapshot` - (Optional) If set to true, tags are copied to any snapshot of the DB cluster that is created.
 * `enable_cloudwatch_logs_exports` - (Optional) A list of the log types this DB cluster is configured to export to Cloudwatch Logs. Currently only supports `audit`.
 * `engine` - (Optional) The name of the database engine to be used for this Neptune cluster. Defaults to `neptune`.
 * `engine_version` - (Optional) The database engine version.

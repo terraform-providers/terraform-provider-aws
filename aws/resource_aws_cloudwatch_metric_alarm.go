@@ -99,9 +99,12 @@ func resourceAwsCloudWatchMetricAlarm() *schema.Resource {
 										Required: true,
 									},
 									"stat": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice(cloudwatch.Statistic_Values(), false),
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.Any(
+											validation.StringInSlice(cloudwatch.Statistic_Values(), false),
+											validation.StringMatch(regexp.MustCompile(`p(\d{1,2}(\.\d{0,2})?|100)`), "must specify a value between p0.0 and p100"),
+										),
 									},
 									"unit": {
 										Type:         schema.TypeString,

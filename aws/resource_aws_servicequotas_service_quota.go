@@ -99,8 +99,16 @@ func resourceAwsServiceQuotasServiceQuotaCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("error getting Service Quotas Service Quota (%s): %s", d.Id(), err)
 	}
 
-	if output == nil {
+	if output == nil || output.Quota == nil {
 		return fmt.Errorf("error getting Service Quotas Service Quota (%s): empty result", d.Id())
+	}
+
+	if output.Quota.ErrorReason != nil {
+		return fmt.Errorf("error getting Service Quotas Service Quota (%s): %s: %s", d.Id(), aws.StringValue(output.Quota.ErrorReason.ErrorCode), aws.StringValue(output.Quota.ErrorReason.ErrorMessage))
+	}
+
+	if output.Quota.Value == nil {
+		return fmt.Errorf("error getting Service Quotas Service Quota (%s): empty value", d.Id())
 	}
 
 	if value > aws.Float64Value(output.Quota.Value) {
@@ -152,8 +160,16 @@ func resourceAwsServiceQuotasServiceQuotaRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error getting Service Quotas Service Quota (%s): %s", d.Id(), err)
 	}
 
-	if output == nil {
+	if output == nil || output.Quota == nil {
 		return fmt.Errorf("error getting Service Quotas Service Quota (%s): empty result", d.Id())
+	}
+
+	if output.Quota.ErrorReason != nil {
+		return fmt.Errorf("error getting Service Quotas Service Quota (%s): %s: %s", d.Id(), aws.StringValue(output.Quota.ErrorReason.ErrorCode), aws.StringValue(output.Quota.ErrorReason.ErrorMessage))
+	}
+
+	if output.Quota.Value == nil {
+		return fmt.Errorf("error getting Service Quotas Service Quota (%s): empty value", d.Id())
 	}
 
 	defaultInput := &servicequotas.GetAWSDefaultServiceQuotaInput{

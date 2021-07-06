@@ -34,3 +34,32 @@ func ServerByID(conn *transfer.Transfer, id string) (*transfer.DescribedServer, 
 
 	return output.Server, nil
 }
+
+func UserByID(conn *transfer.Transfer, serverId, userName string) (*transfer.DescribeUserOutput, error) {
+	input := &transfer.DescribeUserInput{
+		ServerId: aws.String(serverId),
+		UserName: aws.String(userName),
+	}
+
+	output, err := conn.DescribeUser(input)
+
+	if tfawserr.ErrCodeEquals(err, transfer.ErrCodeResourceNotFoundException) {
+		return nil, &resource.NotFoundError{
+			LastError:   err,
+			LastRequest: input,
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || output.User == nil {
+		return nil, &resource.NotFoundError{
+			Message:     "Empty result",
+			LastRequest: input,
+		}
+	}
+
+	return output, nil
+}

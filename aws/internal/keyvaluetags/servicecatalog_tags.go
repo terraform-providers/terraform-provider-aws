@@ -60,3 +60,13 @@ func ServiceCatalogProductUpdateTags(conn *servicecatalog.ServiceCatalog, identi
 
 	return nil
 }
+
+func ServicecatalogRecordKeyValueTags(tags []*servicecatalog.RecordTag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}

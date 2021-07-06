@@ -451,6 +451,62 @@ func TestAccAWSCloudWatchEventTarget_ecs(t *testing.T) {
 	})
 }
 
+func TestAccAWSCloudWatchEventTarget_ecsWithBlankLaunchType(t *testing.T) {
+	resourceName := "aws_cloudwatch_event_target.test"
+	iamRoleResourceName := "aws_iam_role.test"
+	ecsTaskDefinitionResourceName := "aws_ecs_task_definition.task"
+	var v events.Target
+	rName := acctest.RandomWithPrefix("tf_ecs_target")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchEventTargetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudWatchEventTargetConfigEcsWithBlankLaunchType(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchEventTargetExists(resourceName, &v),
+					resource.TestCheckResourceAttrPair(resourceName, "role_arn", iamRoleResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.0.task_count", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "ecs_target.0.task_definition_arn", ecsTaskDefinitionResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.0.launch_type", ""),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.0.network_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.0.network_configuration.0.subnets.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSCloudWatchEventTargetConfigEcs(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchEventTargetExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.0.launch_type", "FARGATE"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSCloudWatchEventTargetConfigEcsWithBlankLaunchType(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchEventTargetExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ecs_target.0.launch_type", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSCloudWatchEventTarget_ecsWithBlankTaskCount(t *testing.T) {
 	resourceName := "aws_cloudwatch_event_target.test"
 	var v events.Target
@@ -573,31 +629,16 @@ func TestAccAWSCloudWatchEventTarget_input_transformer(t *testing.T) {
 	var v events.Target
 	rName := acctest.RandomWithPrefix("tf_input_transformer")
 
-	tooManyInputPaths := []string{
-		"account",
-		"count",
-		"eventFirstSeen",
-		"eventLastSeen",
-		"Finding_ID",
-		"Finding_Type",
-		"instanceId",
-		"port",
-		"region",
-		"severity",
-		"time",
+	tooManyInputPaths := make([]string, 101)
+	for i := range tooManyInputPaths {
+		tooManyInputPaths[i] = fmt.Sprintf("InvalidField_%d", i)
 	}
-	validInputPaths := []string{
-		"account",
-		"count",
-		"eventFirstSeen",
-		"eventLastSeen",
-		"Finding_ID",
-		"Finding_Type",
-		"instanceId",
-		"region",
-		"severity",
-		"time",
+
+	validInputPaths := make([]string, 100)
+	for i := range validInputPaths {
+		validInputPaths[i] = fmt.Sprintf("ValidField_%d", i)
 	}
+
 	var expectedInputTemplate strings.Builder
 	fmt.Fprintf(&expectedInputTemplate, `{
   "detail-type": "Scheduled Event",
@@ -626,7 +667,7 @@ func TestAccAWSCloudWatchEventTarget_input_transformer(t *testing.T) {
 					testAccCheckCloudWatchEventTargetExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "input_transformer.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "input_transformer.0.input_paths.%", strconv.Itoa(len(validInputPaths))),
-					resource.TestCheckResourceAttr(resourceName, "input_transformer.0.input_paths.time", "$.time"),
+					resource.TestCheckResourceAttr(resourceName, "input_transformer.0.input_paths.ValidField_99", "$.ValidField_99"),
 					resource.TestCheckResourceAttr(resourceName, "input_transformer.0.input_template", expectedInputTemplate.String()),
 				),
 			},
@@ -1198,6 +1239,110 @@ resource "aws_cloudwatch_event_target" "test" {
     task_count          = 1
     task_definition_arn = aws_ecs_task_definition.task.arn
     launch_type         = "FARGATE"
+
+    network_configuration {
+      subnets = [aws_subnet.subnet.id]
+    }
+  }
+}
+
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "events.${data.aws_partition.current.dns_suffix}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:RunTask"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_ecs_cluster" "test" {
+  name = %[1]q
+}
+
+resource "aws_ecs_task_definition" "task" {
+  family                   = %[1]q
+  cpu                      = 256
+  memory                   = 512
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+
+  container_definitions = <<EOF
+[
+  {
+    "name": "first",
+    "image": "service-first",
+    "cpu": 10,
+    "memory": 512,
+    "essential": true
+  }
+]
+EOF
+}
+
+data "aws_partition" "current" {}
+`, rName)
+}
+
+func testAccAWSCloudWatchEventTargetConfigEcsWithBlankLaunchType(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudwatch_event_rule" "test" {
+  name        = %[1]q
+  description = "schedule_ecs_test"
+
+  schedule_expression = "rate(5 minutes)"
+}
+
+resource "aws_vpc" "vpc" {
+  cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_subnet" "subnet" {
+  vpc_id     = aws_vpc.vpc.id
+  cidr_block = "10.1.1.0/24"
+}
+
+resource "aws_cloudwatch_event_target" "test" {
+  arn      = aws_ecs_cluster.test.id
+  rule     = aws_cloudwatch_event_rule.test.id
+  role_arn = aws_iam_role.test.arn
+
+  ecs_target {
+    task_count          = 1
+    task_definition_arn = aws_ecs_task_definition.task.arn
+    launch_type         = ""
 
     network_configuration {
       subnets = [aws_subnet.subnet.id]

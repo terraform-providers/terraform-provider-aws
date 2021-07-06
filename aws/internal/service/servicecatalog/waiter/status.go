@@ -319,3 +319,145 @@ func PrincipalPortfolioAssociationStatus(conn *servicecatalog.ServiceCatalog, ac
 		return output, servicecatalog.StatusAvailable, err
 	}
 }
+
+func LaunchPathsStatus(conn *servicecatalog.ServiceCatalog, acceptLanguage, productID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &servicecatalog.ListLaunchPathsInput{
+			AcceptLanguage: aws.String(acceptLanguage),
+			ProductId:      aws.String(productID),
+		}
+
+		var summaries []*servicecatalog.LaunchPathSummary
+
+		err := conn.ListLaunchPathsPages(input, func(page *servicecatalog.ListLaunchPathsOutput, lastPage bool) bool {
+			if page == nil {
+				return !lastPage
+			}
+
+			for _, summary := range page.LaunchPathSummaries {
+				if summary == nil {
+					continue
+				}
+
+				summaries = append(summaries, summary)
+			}
+
+			return !lastPage
+		})
+
+		if tfawserr.ErrCodeEquals(err, servicecatalog.ErrCodeResourceNotFoundException) {
+			return nil, StatusNotFound, nil
+		}
+
+		if err != nil {
+			return nil, servicecatalog.StatusFailed, err
+		}
+
+		return summaries, servicecatalog.StatusAvailable, err
+	}
+}
+
+func ProvisionedProductStatus(conn *servicecatalog.ServiceCatalog, acceptLanguage, id, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &servicecatalog.DescribeProvisionedProductInput{}
+
+		if acceptLanguage != "" {
+			input.AcceptLanguage = aws.String(acceptLanguage)
+		}
+
+		// one or the other but not both
+		if id != "" {
+			input.Id = aws.String(id)
+		} else if name != "" {
+			input.Name = aws.String(name)
+		}
+
+		output, err := conn.DescribeProvisionedProduct(input)
+
+		if tfawserr.ErrCodeEquals(err, servicecatalog.ErrCodeResourceNotFoundException) {
+			return nil, StatusNotFound, err
+		}
+
+		if err != nil {
+			return nil, servicecatalog.StatusFailed, err
+		}
+
+		if output == nil || output.ProvisionedProductDetail == nil {
+			return nil, StatusNotFound, err
+		}
+
+		return output, aws.StringValue(output.ProvisionedProductDetail.Status), err
+	}
+}
+
+func RecordStatus(conn *servicecatalog.ServiceCatalog, acceptLanguage, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &servicecatalog.DescribeRecordInput{
+			Id: aws.String(id),
+		}
+
+		if acceptLanguage != "" {
+			input.AcceptLanguage = aws.String(acceptLanguage)
+		}
+
+		output, err := conn.DescribeRecord(input)
+
+		if tfawserr.ErrCodeEquals(err, servicecatalog.ErrCodeResourceNotFoundException) {
+			return nil, StatusNotFound, err
+		}
+
+		if err != nil {
+			return nil, servicecatalog.StatusFailed, err
+		}
+
+		if output == nil || output.RecordDetail == nil {
+			return nil, StatusNotFound, err
+		}
+
+		return output, aws.StringValue(output.RecordDetail.Status), err
+	}
+}
+
+func PortfolioConstraintsStatus(conn *servicecatalog.ServiceCatalog, acceptLanguage, portfolioID, productID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &servicecatalog.ListConstraintsForPortfolioInput{
+			PortfolioId: aws.String(portfolioID),
+		}
+
+		if acceptLanguage != "" {
+			input.AcceptLanguage = aws.String(acceptLanguage)
+		}
+
+		if productID != "" {
+			input.ProductId = aws.String(productID)
+		}
+
+		var output []*servicecatalog.ConstraintDetail
+
+		err := conn.ListConstraintsForPortfolioPages(input, func(page *servicecatalog.ListConstraintsForPortfolioOutput, lastPage bool) bool {
+			if page == nil {
+				return !lastPage
+			}
+
+			for _, deet := range page.ConstraintDetails {
+				if deet == nil {
+					continue
+				}
+
+				output = append(output, deet)
+			}
+
+			return !lastPage
+		})
+
+		if tfawserr.ErrCodeEquals(err, servicecatalog.ErrCodeResourceNotFoundException) {
+			return nil, StatusNotFound, nil
+		}
+
+		if err != nil {
+			return nil, servicecatalog.StatusFailed, err
+		}
+
+		return output, servicecatalog.StatusAvailable, err
+	}
+}

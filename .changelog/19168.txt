@@ -2,10 +2,10 @@
 resource/aws_shield_protection: Add `tags` argument
 ```
 
-```release-notes:enhancement
+```release-note:enhancement
 resource/aws_shield_protection: Add `arn` attribute
 ```
 
-```release-notes:enhancement
+```release-note:enhancement
 resource/aws_shield_protection: Missing resources are now detected and recreated
 ```

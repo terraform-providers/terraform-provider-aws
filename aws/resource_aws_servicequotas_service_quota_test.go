@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/servicequotas"
@@ -138,6 +139,21 @@ func TestAccAwsServiceQuotasServiceQuota_Value_IncreaseOnUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAwsServiceQuotasServiceQuota_PermissionError(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceQuotas(t); testAccAssumeRoleARNPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, servicequotas.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAwsServiceQuotasServiceQuotaConfig_PermissionError("elasticloadbalancing", "L-53DA6B97"),
+				ExpectError: regexp.MustCompile(`DEPENDENCY_ACCESS_DENIED_ERROR`),
+			},
+		},
+	})
+}
+
 func testAccPreCheckAWSServiceQuotas(t *testing.T) {
 	conn := testAccProvider.Meta().(*AWSClient).servicequotasconn
 
@@ -177,4 +193,36 @@ resource "aws_servicequotas_service_quota" "test" {
   value        = %[3]s
 }
 `, quotaCode, serviceCode, value)
+}
+
+func testAccAwsServiceQuotasServiceQuotaConfig_PermissionError(serviceCode, quotaCode string) string {
+	policy := `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+  	  "Effect": "Allow",
+  	  "Action": [
+  	    "servicequotas:GetServiceQuota"
+  	  ],
+  	  "Resource": "*"
+    },
+    {
+  	  "Effect": "Deny",
+  	  "Action": [
+  	    "elasticloadbalancing:*"
+  	  ],
+  	  "Resource": "*"
+    }
+  ]
+}`
+
+	return composeConfig(
+		testAccProviderConfigAssumeRolePolicy(policy),
+		fmt.Sprintf(`
+resource "aws_servicequotas_service_quota" "test" {
+  service_code = %[1]q
+  quota_code   = %[2]q
+  value        = 1
+}
+`, serviceCode, quotaCode))
 }

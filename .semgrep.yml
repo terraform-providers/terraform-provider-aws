@@ -22,6 +22,7 @@ rules:
         - aws/validators.go
         - aws/*wafregional*.go
         - aws/resource_aws_serverlessapplicationrepository_cloudformation_stack.go
+        - aws/resource_aws_transfer_server.go
         - aws/*_test.go
         - aws/internal/keyvaluetags/
         - aws/internal/service/wafregional/
@@ -356,6 +357,7 @@ rules:
     paths:
       exclude:
         - "*_test.go"
+        - aws/internal/tfresource/*.go
       include:
         - aws/
     patterns:

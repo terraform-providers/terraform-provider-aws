@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
@@ -255,7 +256,8 @@ func updateElasticacheGlobalReplicationGroup(conn *elasticache.ElastiCache, id s
 func resourceAwsElasticacheGlobalReplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
 
-	err := deleteElasticacheGlobalReplicationGroup(conn, d.Id())
+	// Using Update timeout because the Global Replication Group could be in the middle of an update operation
+	err := deleteElasticacheGlobalReplicationGroup(conn, d.Id(), waiter.GlobalReplicationGroupDefaultUpdatedTimeout)
 	if err != nil {
 		return fmt.Errorf("error deleting ElastiCache Global Replication Group: %w", err)
 	}
@@ -263,14 +265,13 @@ func resourceAwsElasticacheGlobalReplicationGroupDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func deleteElasticacheGlobalReplicationGroup(conn *elasticache.ElastiCache, id string) error {
+func deleteElasticacheGlobalReplicationGroup(conn *elasticache.ElastiCache, id string, readyTimeout time.Duration) error {
 	input := &elasticache.DeleteGlobalReplicationGroupInput{
 		GlobalReplicationGroupId:      aws.String(id),
 		RetainPrimaryReplicationGroup: aws.Bool(true),
 	}
 
-	// Using Update timeout because the Global Replication Group could be in the middle of an update operation
-	err := resource.Retry(waiter.GlobalReplicationGroupDefaultUpdatedTimeout, func() *resource.RetryError {
+	err := resource.Retry(readyTimeout, func() *resource.RetryError {
 		_, err := conn.DeleteGlobalReplicationGroup(input)
 		if tfawserr.ErrCodeEquals(err, elasticache.ErrCodeGlobalReplicationGroupNotFoundFault) {
 			return resource.NonRetryableError(&resource.NotFoundError{

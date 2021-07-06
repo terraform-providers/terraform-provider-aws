@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sync"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -30,12 +31,16 @@ func init() {
 
 func testSweepWafSizeConstraintSet(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
-	conn := client.(*AWSClient).wafconn
 
-	var sweeperErrs *multierror.Error
+	conn := client.(*AWSClient).wafconn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
+	var g multierror.Group
+	var mutex = &sync.Mutex{}
 
 	input := &waf.ListSizeConstraintSetsInput{}
 
@@ -45,50 +50,57 @@ func testSweepWafSizeConstraintSet(region string) error {
 		}
 
 		for _, sizeConstraintSet := range page.SizeConstraintSets {
-			id := aws.StringValue(sizeConstraintSet.SizeConstraintSetId)
-
 			r := resourceAwsWafSizeConstraintSet()
 			d := r.Data(nil)
+
+			id := aws.StringValue(sizeConstraintSet.SizeConstraintSetId)
 			d.SetId(id)
 
-			// Need to Read first to fill in size_constraints attribute
-			err := r.Read(d, client)
+			// read concurrently and gather errors
+			g.Go(func() error {
+				// Need to Read first to fill in size_constraints attribute
+				err := r.Read(d, client)
 
-			if err != nil {
-				sweeperErr := fmt.Errorf("error reading WAF Size Constraint Set (%s): %w", id, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
-			}
+				if err != nil {
+					sweeperErr := fmt.Errorf("error reading WAF Size Constraint Set (%s): %w", id, err)
+					log.Printf("[ERROR] %s", sweeperErr)
+					return sweeperErr
+				}
 
-			// In case it was already deleted
-			if d.Id() == "" {
-				continue
-			}
+				// In case it was already deleted
+				if d.Id() == "" {
+					return nil
+				}
 
-			err = r.Delete(d, client)
+				mutex.Lock()
+				defer mutex.Unlock()
+				sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 
-			if err != nil {
-				sweeperErr := fmt.Errorf("error deleting WAF Size Constraint Set (%s): %w", id, err)
-				log.Printf("[ERROR] %s", sweeperErr)
-				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-				continue
-			}
+				return nil
+			})
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping WAF Size Constraint Set sweep for %s: %s", region, err)
-		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
-	}
-
 	if err != nil {
-		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAF Size Constraint Sets: %w", err))
+		errs = multierror.Append(errs, fmt.Errorf("error listing WAF Size Constraint Sets for %s: %w", region, err))
 	}
 
-	return sweeperErrs.ErrorOrNil()
+	if err = g.Wait().ErrorOrNil(); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error concurrently reading WAF Size Constraint Sets: %w", err))
+	}
+
+	if err = testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping WAF Size Constraint Sets for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping WAF Size Constraint Set sweep for %s: %s", region, errs)
+		return nil
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func TestAccAWSWafSizeConstraintSet_basic(t *testing.T) {

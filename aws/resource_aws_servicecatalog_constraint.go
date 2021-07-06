@@ -144,7 +144,7 @@ func resourceAwsServiceCatalogConstraintRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error describing Service Catalog Constraint (%s): %w", d.Id(), err)
 	}
 
-	if output == nil {
+	if output == nil || output.ConstraintDetail == nil {
 		return fmt.Errorf("error getting Service Catalog Constraint (%s): empty response", d.Id())
 	}
 

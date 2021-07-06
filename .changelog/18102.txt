@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_lb_target_group: Add support for `app_cookie` stickiness type and `cookie_name` argument
+```

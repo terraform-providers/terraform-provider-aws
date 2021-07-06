@@ -22,6 +22,7 @@ func TestAccDataSourceAwsTransferServer_basic(t *testing.T) {
 				Config: testAccDataSourceAwsTransferServerConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(datasourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(datasourceName, "domain", resourceName, "domain"),
 					resource.TestCheckResourceAttrPair(datasourceName, "endpoint", resourceName, "endpoint"),
 					resource.TestCheckResourceAttrPair(datasourceName, "identity_provider_type", resourceName, "identity_provider_type"),
 					resource.TestCheckResourceAttrPair(datasourceName, "logging_role", resourceName, "logging_role"),

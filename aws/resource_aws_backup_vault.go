@@ -139,13 +139,13 @@ func resourceAwsBackupVaultUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsBackupVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	input := &backup.DeleteBackupVaultInput{
-		BackupVaultName: aws.String(d.Get("name").(string)),
-	}
+	log.Printf("[DEBUG] Deleting Backup Vault: %s", d.Id())
+	_, err := conn.DeleteBackupVault(&backup.DeleteBackupVaultInput{
+		BackupVaultName: aws.String(d.Id()),
+	})
 
-	_, err := conn.DeleteBackupVault(input)
 	if err != nil {
-		return fmt.Errorf("error deleting Backup Vault (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting Backup Vault (%s): %w", d.Id(), err)
 	}
 
 	return nil

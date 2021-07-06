@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
 	tfeks "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsEksNodeGroup() *schema.Resource {
@@ -23,7 +26,6 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 		Read:   resourceAwsEksNodeGroupRead,
 		Update: resourceAwsEksNodeGroupUpdate,
 		Delete: resourceAwsEksNodeGroupDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -192,7 +194,7 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 						"desired_size": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"max_size": {
 							Type:         schema.TypeInt,
@@ -202,7 +204,7 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 						"min_size": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
@@ -260,6 +262,8 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 
 	clusterName := d.Get("cluster_name").(string)
 	nodeGroupName := naming.Generate(d.Get("node_group_name").(string), d.Get("node_group_name_prefix").(string))
+	id := tfeks.NodeGroupCreateResourceID(clusterName, nodeGroupName)
+
 	input := &eks.CreateNodegroupInput{
 		ClientRequestToken: aws.String(resource.UniqueId()),
 		ClusterName:        aws.String(clusterName),
@@ -304,10 +308,6 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 		input.ScalingConfig = expandEksNodegroupScalingConfig(v)
 	}
 
-	if len(tags) > 0 {
-		input.Tags = tags.IgnoreAws().EksTags()
-	}
-
 	if v, ok := d.GetOk("taint"); ok && v.(*schema.Set).Len() > 0 {
 		input.Taints = expandEksTaints(v.(*schema.Set).List())
 	}
@@ -316,23 +316,22 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 		input.Version = aws.String(v.(string))
 	}
 
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().EksTags()
+	}
+
 	_, err := conn.CreateNodegroup(input)
 
 	if err != nil {
-		return fmt.Errorf("error creating EKS Node Group (%s/%s): %w", clusterName, nodeGroupName, err)
+		return fmt.Errorf("error creating EKS Node Group (%s): %w", id, err)
 	}
 
-	d.SetId(tfeks.NodeGroupCreateResourceID(clusterName, nodeGroupName))
+	d.SetId(id)
 
-	stateConf := resource.StateChangeConf{
-		Pending: []string{eks.NodegroupStatusCreating},
-		Target:  []string{eks.NodegroupStatusActive},
-		Timeout: d.Timeout(schema.TimeoutCreate),
-		Refresh: refreshEksNodeGroupStatus(conn, clusterName, nodeGroupName),
-	}
+	_, err = waiter.NodegroupCreated(conn, clusterName, nodeGroupName, d.Timeout(schema.TimeoutCreate))
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("error waiting for EKS Node Group (%s) creation: %w", d.Id(), err)
+	if err != nil {
+		return fmt.Errorf("error waiting for EKS Node Groupe (%s) to create: %w", d.Id(), err)
 	}
 
 	return resourceAwsEksNodeGroupRead(d, meta)
@@ -349,14 +348,9 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	input := &eks.DescribeNodegroupInput{
-		ClusterName:   aws.String(clusterName),
-		NodegroupName: aws.String(nodeGroupName),
-	}
+	nodeGroup, err := finder.NodegroupByClusterNameAndNodegroupName(conn, clusterName, nodeGroupName)
 
-	output, err := conn.DescribeNodegroup(input)
-
-	if isAWSErr(err, eks.ErrCodeResourceNotFoundException, "") {
+	if !d.IsNewResource() && tfresource.NotFound(err) {
 		log.Printf("[WARN] EKS Node Group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -364,13 +358,6 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 
 	if err != nil {
 		return fmt.Errorf("error reading EKS Node Group (%s): %w", d.Id(), err)
-	}
-
-	nodeGroup := output.Nodegroup
-	if nodeGroup == nil {
-		log.Printf("[WARN] EKS Node Group (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("ami_type", nodeGroup.AmiType)
@@ -414,6 +401,12 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting subnets: %w", err)
 	}
 
+	if err := d.Set("taint", flattenEksTaints(nodeGroup.Taints)); err != nil {
+		return fmt.Errorf("error setting taint: %w", err)
+	}
+
+	d.Set("version", nodeGroup.Version)
+
 	tags := keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 
 	//lintignore:AWSR002
@@ -424,12 +417,6 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("tags_all", tags.Map()); err != nil {
 		return fmt.Errorf("error setting tags_all: %w", err)
 	}
-
-	if err := d.Set("taint", flattenEksTaints(nodeGroup.Taints)); err != nil {
-		return fmt.Errorf("error setting taint: %w", err)
-	}
-
-	d.Set("version", nodeGroup.Version)
 
 	return nil
 }
@@ -443,41 +430,7 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if d.HasChanges("labels", "scaling_config", "taint") {
-		oldLabelsRaw, newLabelsRaw := d.GetChange("labels")
-
-		input := &eks.UpdateNodegroupConfigInput{
-			ClientRequestToken: aws.String(resource.UniqueId()),
-			ClusterName:        aws.String(clusterName),
-			Labels:             expandEksUpdateLabelsPayload(oldLabelsRaw, newLabelsRaw),
-			NodegroupName:      aws.String(nodeGroupName),
-		}
-
-		if v := d.Get("scaling_config").([]interface{}); len(v) > 0 {
-			input.ScalingConfig = expandEksNodegroupScalingConfig(v)
-		}
-
-		oldTaintsRaw, newTaintsRaw := d.GetChange("taint")
-		input.Taints = expandEksUpdateTaintsPayload(oldTaintsRaw.(*schema.Set).List(), newTaintsRaw.(*schema.Set).List())
-
-		output, err := conn.UpdateNodegroupConfig(input)
-
-		if err != nil {
-			return fmt.Errorf("error updating EKS Node Group (%s) config: %w", d.Id(), err)
-		}
-
-		if output == nil || output.Update == nil || output.Update.Id == nil {
-			return fmt.Errorf("error determining EKS Node Group (%s) config update ID: empty response", d.Id())
-		}
-
-		updateID := aws.StringValue(output.Update.Id)
-
-		err = waitForEksNodeGroupUpdate(conn, clusterName, nodeGroupName, updateID, d.Timeout(schema.TimeoutUpdate))
-		if err != nil {
-			return fmt.Errorf("error waiting for EKS Node Group (%s) config update (%s): %w", d.Id(), updateID, err)
-		}
-	}
-
+	// Do any version update first.
 	if d.HasChanges("launch_template", "release_version", "version") {
 		input := &eks.UpdateNodegroupVersionInput{
 			ClientRequestToken: aws.String(resource.UniqueId()),
@@ -520,15 +473,44 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("error updating EKS Node Group (%s) version: %w", d.Id(), err)
 		}
 
-		if output == nil || output.Update == nil || output.Update.Id == nil {
-			return fmt.Errorf("error determining EKS Node Group (%s) version update ID: empty response", d.Id())
+		updateID := aws.StringValue(output.Update.Id)
+
+		_, err = waiter.NodegroupUpdateSuccessful(conn, clusterName, nodeGroupName, updateID, d.Timeout(schema.TimeoutUpdate))
+
+		if err != nil {
+			return fmt.Errorf("error waiting for EKS Node Group (%s) version update (%s): %w", d.Id(), updateID, err)
+		}
+	}
+
+	if d.HasChanges("labels", "scaling_config", "taint") {
+		oldLabelsRaw, newLabelsRaw := d.GetChange("labels")
+
+		input := &eks.UpdateNodegroupConfigInput{
+			ClientRequestToken: aws.String(resource.UniqueId()),
+			ClusterName:        aws.String(clusterName),
+			Labels:             expandEksUpdateLabelsPayload(oldLabelsRaw, newLabelsRaw),
+			NodegroupName:      aws.String(nodeGroupName),
+		}
+
+		if v := d.Get("scaling_config").([]interface{}); len(v) > 0 {
+			input.ScalingConfig = expandEksNodegroupScalingConfig(v)
+		}
+
+		oldTaintsRaw, newTaintsRaw := d.GetChange("taint")
+		input.Taints = expandEksUpdateTaintsPayload(oldTaintsRaw.(*schema.Set).List(), newTaintsRaw.(*schema.Set).List())
+
+		output, err := conn.UpdateNodegroupConfig(input)
+
+		if err != nil {
+			return fmt.Errorf("error updating EKS Node Group (%s) config: %w", d.Id(), err)
 		}
 
 		updateID := aws.StringValue(output.Update.Id)
 
-		err = waitForEksNodeGroupUpdate(conn, clusterName, nodeGroupName, updateID, d.Timeout(schema.TimeoutUpdate))
+		_, err = waiter.NodegroupUpdateSuccessful(conn, clusterName, nodeGroupName, updateID, d.Timeout(schema.TimeoutUpdate))
+
 		if err != nil {
-			return fmt.Errorf("error waiting for EKS Node Group (%s) version update (%s): %w", d.Id(), updateID, err)
+			return fmt.Errorf("error waiting for EKS Node Group (%s) config update (%s): %w", d.Id(), updateID, err)
 		}
 	}
 
@@ -551,14 +533,13 @@ func resourceAwsEksNodeGroupDelete(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	input := &eks.DeleteNodegroupInput{
+	log.Printf("[DEBUG] Deleting EKS Node Group: %s", d.Id())
+	_, err = conn.DeleteNodegroup(&eks.DeleteNodegroupInput{
 		ClusterName:   aws.String(clusterName),
 		NodegroupName: aws.String(nodeGroupName),
-	}
+	})
 
-	_, err = conn.DeleteNodegroup(input)
-
-	if isAWSErr(err, eks.ErrCodeResourceNotFoundException, "") {
+	if tfawserr.ErrCodeEquals(err, eks.ErrCodeResourceNotFoundException) {
 		return nil
 	}
 
@@ -566,8 +547,10 @@ func resourceAwsEksNodeGroupDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error deleting EKS Node Group (%s): %w", d.Id(), err)
 	}
 
-	if err := waitForEksNodeGroupDeletion(conn, clusterName, nodeGroupName, d.Timeout(schema.TimeoutDelete)); err != nil {
-		return fmt.Errorf("error waiting for EKS Node Group (%s) deletion: %w", d.Id(), err)
+	_, err = waiter.NodegroupDeleted(conn, clusterName, nodeGroupName, d.Timeout(schema.TimeoutDelete))
+
+	if err != nil {
+		return fmt.Errorf("error waiting for EKS Node Group (%s) to delete: %w", d.Id(), err)
 	}
 
 	return nil
@@ -606,7 +589,7 @@ func expandEksNodegroupScalingConfig(l []interface{}) *eks.NodegroupScalingConfi
 
 	config := &eks.NodegroupScalingConfig{}
 
-	if v, ok := m["desired_size"].(int); ok && v != 0 {
+	if v, ok := m["desired_size"].(int); ok {
 		config.DesiredSize = aws.Int64(int64(v))
 	}
 
@@ -614,7 +597,7 @@ func expandEksNodegroupScalingConfig(l []interface{}) *eks.NodegroupScalingConfi
 		config.MaxSize = aws.Int64(int64(v))
 	}
 
-	if v, ok := m["min_size"].(int); ok && v != 0 {
+	if v, ok := m["min_size"].(int); ok {
 		config.MinSize = aws.Int64(int64(v))
 	}
 
@@ -868,115 +851,4 @@ func flattenEksTaints(taints []*eks.Taint) []interface{} {
 		results = append(results, t)
 	}
 	return results
-}
-
-func refreshEksNodeGroupStatus(conn *eks.EKS, clusterName string, nodeGroupName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		input := &eks.DescribeNodegroupInput{
-			ClusterName:   aws.String(clusterName),
-			NodegroupName: aws.String(nodeGroupName),
-		}
-
-		output, err := conn.DescribeNodegroup(input)
-
-		if err != nil {
-			return "", "", err
-		}
-
-		nodeGroup := output.Nodegroup
-
-		if nodeGroup == nil {
-			return nodeGroup, "", fmt.Errorf("EKS Node Group (%s) missing", tfeks.NodeGroupCreateResourceID(clusterName, nodeGroupName))
-		}
-
-		status := aws.StringValue(nodeGroup.Status)
-
-		// Return enhanced error messaging if available, instead of:
-		// unexpected state 'CREATE_FAILED', wanted target 'ACTIVE'. last error: %!s(<nil>)
-		if status == eks.NodegroupStatusCreateFailed || status == eks.NodegroupStatusDeleteFailed {
-			if nodeGroup.Health == nil || len(nodeGroup.Health.Issues) == 0 || nodeGroup.Health.Issues[0] == nil {
-				return nodeGroup, status, fmt.Errorf("unable to find additional information about %s status, check EKS Node Group (%s) health", status, tfeks.NodeGroupCreateResourceID(clusterName, nodeGroupName))
-			}
-
-			issue := nodeGroup.Health.Issues[0]
-
-			return nodeGroup, status, fmt.Errorf("%s: %s. Resource IDs: %v", aws.StringValue(issue.Code), aws.StringValue(issue.Message), aws.StringValueSlice(issue.ResourceIds))
-		}
-
-		return nodeGroup, status, nil
-	}
-}
-
-func refreshEksNodeGroupUpdateStatus(conn *eks.EKS, clusterName string, nodeGroupName string, updateID string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		input := &eks.DescribeUpdateInput{
-			Name:          aws.String(clusterName),
-			NodegroupName: aws.String(nodeGroupName),
-			UpdateId:      aws.String(updateID),
-		}
-
-		output, err := conn.DescribeUpdate(input)
-
-		if err != nil {
-			return nil, "", err
-		}
-
-		if output == nil || output.Update == nil {
-			return nil, "", fmt.Errorf("EKS Node Group (%s) update (%s) missing", tfeks.NodeGroupCreateResourceID(clusterName, nodeGroupName), updateID)
-		}
-
-		return output.Update, aws.StringValue(output.Update.Status), nil
-	}
-}
-
-func waitForEksNodeGroupDeletion(conn *eks.EKS, clusterName string, nodeGroupName string, timeout time.Duration) error {
-	stateConf := resource.StateChangeConf{
-		Pending: []string{
-			eks.NodegroupStatusActive,
-			eks.NodegroupStatusDeleting,
-		},
-		Target:  []string{""},
-		Timeout: timeout,
-		Refresh: refreshEksNodeGroupStatus(conn, clusterName, nodeGroupName),
-	}
-
-	_, err := stateConf.WaitForState()
-
-	if isAWSErr(err, eks.ErrCodeResourceNotFoundException, "") {
-		return nil
-	}
-
-	return err
-}
-
-func waitForEksNodeGroupUpdate(conn *eks.EKS, clusterName, nodeGroupName string, updateID string, timeout time.Duration) error {
-	stateConf := resource.StateChangeConf{
-		Pending: []string{eks.UpdateStatusInProgress},
-		Target: []string{
-			eks.UpdateStatusCancelled,
-			eks.UpdateStatusFailed,
-			eks.UpdateStatusSuccessful,
-		},
-		Timeout: timeout,
-		Refresh: refreshEksNodeGroupUpdateStatus(conn, clusterName, nodeGroupName, updateID),
-	}
-
-	updateRaw, err := stateConf.WaitForState()
-
-	if err != nil {
-		return err
-	}
-
-	update := updateRaw.(*eks.Update)
-
-	if aws.StringValue(update.Status) == eks.UpdateStatusSuccessful {
-		return nil
-	}
-
-	var detailedErrors []string
-	for i, updateError := range update.Errors {
-		detailedErrors = append(detailedErrors, fmt.Sprintf("Error %d: Code: %s / Message: %s", i+1, aws.StringValue(updateError.ErrorCode), aws.StringValue(updateError.ErrorMessage)))
-	}
-
-	return fmt.Errorf("EKS Node Group (%s) update (%s) status (%s) not successful: Errors:\n%s", clusterName, updateID, aws.StringValue(update.Status), strings.Join(detailedErrors, "\n"))
 }

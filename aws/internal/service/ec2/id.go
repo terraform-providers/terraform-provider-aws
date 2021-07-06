@@ -95,6 +95,14 @@ func TransitGatewayPrefixListReferenceParseID(id string) (string, string, error)
 	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected transit-gateway-route-table-id%[2]sprefix-list-id", id, transitGatewayPrefixListReferenceSeparator)
 }
 
+func VpcEndpointRouteTableAssociationCreateID(vpcEndpointID, routeTableID string) string {
+	return fmt.Sprintf("a-%s%d", vpcEndpointID, hashcode.String(routeTableID))
+}
+
+func VpcEndpointSubnetAssociationCreateID(vpcEndpointID, subnetID string) string {
+	return fmt.Sprintf("a-%s%d", vpcEndpointID, hashcode.String(subnetID))
+}
+
 func VpnGatewayVpcAttachmentCreateID(vpnGatewayID, vpcID string) string {
 	return fmt.Sprintf("vpn-attachment-%x", hashcode.String(fmt.Sprintf("%s-%s", vpcID, vpnGatewayID)))
 }

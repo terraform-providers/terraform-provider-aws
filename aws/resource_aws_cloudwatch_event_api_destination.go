@@ -148,7 +148,7 @@ func resourceAwsCloudWatchEventApiDestinationUpdate(d *schema.ResourceData, meta
 		input.InvocationEndpoint = aws.String(invocationEndpoint.(string))
 	}
 	if invocationRateLimitPerSecond, ok := d.GetOk("invocation_rate_limit_per_second"); ok {
-		input.InvocationRateLimitPerSecond = aws.Int64(invocationRateLimitPerSecond.(int64))
+		input.InvocationRateLimitPerSecond = aws.Int64(int64(invocationRateLimitPerSecond.(int)))
 	}
 	if httpMethod, ok := d.GetOk("http_method"); ok {
 		input.HttpMethod = aws.String(httpMethod.(string))

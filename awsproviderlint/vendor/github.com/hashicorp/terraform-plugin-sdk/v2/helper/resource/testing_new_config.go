@@ -26,7 +26,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 				return err
 			}
 			return nil
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return err
 		}
@@ -44,7 +47,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 	// failing to do this will result in data sources not being updated
 	err = runProviderCommand(t, func() error {
 		return wd.Refresh()
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return fmt.Errorf("Error running pre-apply refresh: %w", err)
 	}
@@ -59,7 +65,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 				return wd.CreateDestroyPlan()
 			}
 			return wd.CreatePlan()
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return fmt.Errorf("Error running pre-apply plan: %w", err)
 		}
@@ -74,7 +83,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 				return err
 			}
 			return nil
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return fmt.Errorf("Error retrieving pre-apply state: %w", err)
 		}
@@ -82,7 +94,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 		// Apply the diff, creating real resources
 		err = runProviderCommand(t, func() error {
 			return wd.Apply()
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			if step.Destroy {
 				return fmt.Errorf("Error running destroy: %w", err)
@@ -98,7 +113,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 				return err
 			}
 			return nil
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return fmt.Errorf("Error retrieving state after apply: %w", err)
 		}
@@ -126,7 +144,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 			return wd.CreateDestroyPlan()
 		}
 		return wd.CreatePlan()
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return fmt.Errorf("Error running post-apply plan: %w", err)
 	}
@@ -136,7 +157,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 		var err error
 		plan, err = wd.SavedPlan()
 		return err
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return fmt.Errorf("Error retrieving post-apply plan: %w", err)
 	}
@@ -147,7 +171,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 			var err error
 			stdout, err = wd.SavedPlanRawStdout()
 			return err
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return fmt.Errorf("Error retrieving formatted plan output: %w", err)
 		}
@@ -158,7 +185,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 	if !step.Destroy || (step.Destroy && !step.PreventPostDestroyRefresh) {
 		err := runProviderCommand(t, func() error {
 			return wd.Refresh()
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return fmt.Errorf("Error running post-apply refresh: %w", err)
 		}
@@ -170,7 +200,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 			return wd.CreateDestroyPlan()
 		}
 		return wd.CreatePlan()
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return fmt.Errorf("Error running second post-apply plan: %w", err)
 	}
@@ -179,7 +212,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 		var err error
 		plan, err = wd.SavedPlan()
 		return err
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return fmt.Errorf("Error retrieving second post-apply plan: %w", err)
 	}
@@ -191,7 +227,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 			var err error
 			stdout, err = wd.SavedPlanRawStdout()
 			return err
-		}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+		}, wd, providerFactories{
+			legacy:  c.ProviderFactories,
+			protov5: c.ProtoV5ProviderFactories,
+			protov6: c.ProtoV6ProviderFactories})
 		if err != nil {
 			return fmt.Errorf("Error retrieving formatted second plan output: %w", err)
 		}
@@ -210,7 +249,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step 
 			return err
 		}
 		return nil
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return err
 	}

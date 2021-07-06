@@ -251,7 +251,7 @@ Dead letter queue configuration that specifies the queue or topic where Lambda s
 
 ### file_system_config
 
-Connection settings for an EFS file system. Before creating or updating Lambda functions with `file_system_config`, EFS mount targets much be in available lifecycle state. Use `depends_on` to explicitly declare this dependency. See [Using Amazon EFS with Lambda][12].
+Connection settings for an EFS file system. Before creating or updating Lambda functions with `file_system_config`, EFS mount targets must be in available lifecycle state. Use `depends_on` to explicitly declare this dependency. See [Using Amazon EFS with Lambda][12].
 
 * `arn` - (Required) Amazon Resource Name (ARN) of the Amazon EFS Access Point that provides access to the file system.
 * `local_mount_path` - (Required) Path where the function can access the file system, starting with /mnt/.

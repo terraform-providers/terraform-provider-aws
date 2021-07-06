@@ -1,18 +1,23 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/transfer"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	ec2finder "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	ec2waiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 	tftransfer "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/transfer"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/transfer/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/transfer/waiter"
@@ -29,6 +34,18 @@ func resourceAwsTransferServer() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: customdiff.Sequence(
+			SetTagsDiff,
+			customdiff.ForceNewIfChange("endpoint_details.0.vpc_id", func(_ context.Context, old, new, meta interface{}) bool {
+				// "InvalidRequestException: Changing VpcId is not supported".
+				if old, new := old.(string), new.(string); old != "" && new != old {
+					return true
+				}
+
+				return false
+			}),
+		),
+
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
@@ -39,6 +56,14 @@ func resourceAwsTransferServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateArn,
+			},
+
+			"domain": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      transfer.DomainS3,
+				ValidateFunc: validation.StringInSlice(transfer.Domain_Values(), false),
 			},
 
 			"endpoint": {
@@ -56,21 +81,26 @@ func resourceAwsTransferServer() *schema.Resource {
 							Type:          schema.TypeSet,
 							Optional:      true,
 							Elem:          &schema.Schema{Type: schema.TypeString},
-							Set:           schema.HashString,
+							ConflictsWith: []string{"endpoint_details.0.vpc_endpoint_id"},
+						},
+						"security_group_ids": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							Computed:      true,
+							Elem:          &schema.Schema{Type: schema.TypeString},
 							ConflictsWith: []string{"endpoint_details.0.vpc_endpoint_id"},
 						},
 						"subnet_ids": {
 							Type:          schema.TypeSet,
 							Optional:      true,
 							Elem:          &schema.Schema{Type: schema.TypeString},
-							Set:           schema.HashString,
 							ConflictsWith: []string{"endpoint_details.0.vpc_endpoint_id"},
 						},
 						"vpc_endpoint_id": {
 							Type:          schema.TypeString,
 							Optional:      true,
-							ConflictsWith: []string{"endpoint_details.0.address_allocation_ids", "endpoint_details.0.subnet_ids", "endpoint_details.0.vpc_id"},
 							Computed:      true,
+							ConflictsWith: []string{"endpoint_details.0.address_allocation_ids", "endpoint_details.0.security_group_ids", "endpoint_details.0.subnet_ids", "endpoint_details.0.vpc_id"},
 						},
 						"vpc_id": {
 							Type:          schema.TypeString,
@@ -140,14 +170,10 @@ func resourceAwsTransferServer() *schema.Resource {
 			},
 
 			"security_policy_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "TransferSecurityPolicy-2018-11",
-				ValidateFunc: validation.StringInSlice([]string{
-					"TransferSecurityPolicy-2018-11",
-					"TransferSecurityPolicy-2020-06",
-					"TransferSecurityPolicy-FIPS-2020-06",
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      tftransfer.SecurityPolicyName2018_11,
+				ValidateFunc: validation.StringInSlice(tftransfer.SecurityPolicyName_Values(), false),
 			},
 
 			"tags":     tagsSchema(),
@@ -158,13 +184,10 @@ func resourceAwsTransferServer() *schema.Resource {
 				Optional: true,
 			},
 		},
-
-		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsTransferServerCreate(d *schema.ResourceData, meta interface{}) error {
-	updateAfterCreate := false
 	conn := meta.(*AWSClient).transferconn
 	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
@@ -175,15 +198,19 @@ func resourceAwsTransferServerCreate(d *schema.ResourceData, meta interface{}) e
 		input.Certificate = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("domain"); ok {
+		input.Domain = aws.String(v.(string))
+	}
+
+	var addressAllocationIDs []*string
+
 	if v, ok := d.GetOk("endpoint_details"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		input.EndpointDetails = expandTransferEndpointDetails(v.([]interface{})[0].(map[string]interface{}))
 
 		// Prevent the following error: InvalidRequestException: AddressAllocationIds cannot be set in CreateServer
 		// Reference: https://docs.aws.amazon.com/transfer/latest/userguide/API_EndpointDetails.html#TransferFamily-Type-EndpointDetails-AddressAllocationIds
-		if input.EndpointDetails != nil && len(input.EndpointDetails.AddressAllocationIds) > 0 {
-			input.EndpointDetails.AddressAllocationIds = nil
-			updateAfterCreate = true
-		}
+		addressAllocationIDs = input.EndpointDetails.AddressAllocationIds
+		input.EndpointDetails.AddressAllocationIds = nil
 	}
 
 	if v, ok := d.GetOk("endpoint_type"); ok {
@@ -245,14 +272,17 @@ func resourceAwsTransferServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error waiting for Transfer Server (%s) to create: %w", d.Id(), err)
 	}
 
-	if updateAfterCreate {
+	// AddressAllocationIds is only valid in the UpdateServer API.
+	if len(addressAllocationIDs) > 0 {
 		if err := stopTransferServer(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 			return err
 		}
 
 		input := &transfer.UpdateServerInput{
-			ServerId:        aws.String(d.Id()),
-			EndpointDetails: expandTransferEndpointDetails(d.Get("endpoint_details").([]interface{})[0].(map[string]interface{})),
+			ServerId: aws.String(d.Id()),
+			EndpointDetails: &transfer.EndpointDetails{
+				AddressAllocationIds: addressAllocationIDs,
+			},
 		}
 
 		if err := updateTransferServer(conn, input); err != nil {
@@ -286,9 +316,26 @@ func resourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("arn", output.Arn)
 	d.Set("certificate", output.Certificate)
+	d.Set("domain", output.Domain)
 	d.Set("endpoint", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.server.transfer", d.Id())))
 	if output.EndpointDetails != nil {
-		if err := d.Set("endpoint_details", []interface{}{flattenTransferEndpointDetails(output.EndpointDetails)}); err != nil {
+		securityGroupIDs := make([]*string, 0)
+
+		// Security Group IDs are not returned for VPC endpoints.
+		if aws.StringValue(output.EndpointType) == transfer.EndpointTypeVpc && len(output.EndpointDetails.SecurityGroupIds) == 0 {
+			vpcEndpointID := aws.StringValue(output.EndpointDetails.VpcEndpointId)
+			output, err := ec2finder.VpcEndpointByID(meta.(*AWSClient).ec2conn, vpcEndpointID)
+
+			if err != nil {
+				return fmt.Errorf("error reading Transfer Server (%s) VPC Endpoint (%s): %w", d.Id(), vpcEndpointID, err)
+			}
+
+			for _, group := range output.Groups {
+				securityGroupIDs = append(securityGroupIDs, group.GroupId)
+			}
+		}
+
+		if err := d.Set("endpoint_details", []interface{}{flattenTransferEndpointDetails(output.EndpointDetails, securityGroupIDs)}); err != nil {
 			return fmt.Errorf("error setting endpoint_details: %w", err)
 		}
 	} else {
@@ -329,18 +376,119 @@ func resourceAwsTransferServerUpdate(d *schema.ResourceData, meta interface{}) e
 	conn := meta.(*AWSClient).transferconn
 
 	if d.HasChangesExcept("tags", "tags_all") {
-		stopFlag := false
+		var newEndpointTypeVpc bool
+		var oldEndpointTypeVpc bool
+
+		old, new := d.GetChange("endpoint_type")
+
+		if old, new := old.(string), new.(string); new != old && new == transfer.EndpointTypeVpc {
+			newEndpointTypeVpc = true
+		} else if new == old && new == transfer.EndpointTypeVpc {
+			newEndpointTypeVpc = true
+			oldEndpointTypeVpc = true
+		}
+
+		var addressAllocationIDs []*string
+		var offlineUpdate bool
+		var removeAddressAllocationIDs bool
 
 		input := &transfer.UpdateServerInput{
 			ServerId: aws.String(d.Id()),
 		}
 
-		if d.HasChange("logging_role") {
-			input.LoggingRole = aws.String(d.Get("logging_role").(string))
+		if d.HasChange("certificate") {
+			input.Certificate = aws.String(d.Get("certificate").(string))
 		}
 
-		if d.HasChange("security_policy_name") {
-			input.SecurityPolicyName = aws.String(d.Get("security_policy_name").(string))
+		if d.HasChange("endpoint_details") {
+			if v, ok := d.GetOk("endpoint_details"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+				input.EndpointDetails = expandTransferEndpointDetails(v.([]interface{})[0].(map[string]interface{}))
+
+				if newEndpointTypeVpc && !oldEndpointTypeVpc {
+					// Prevent the following error: InvalidRequestException: Cannot specify AddressAllocationids when updating server to EndpointType: VPC
+					addressAllocationIDs = input.EndpointDetails.AddressAllocationIds
+					input.EndpointDetails.AddressAllocationIds = nil
+
+					// Prevent the following error: InvalidRequestException: VPC Endpoint ID unsupported for EndpointType: VPC
+					input.EndpointDetails.VpcEndpointId = nil
+				} else if newEndpointTypeVpc && oldEndpointTypeVpc {
+					// Prevent the following error: InvalidRequestException: Server must be OFFLINE to change AddressAllocationIds
+					if d.HasChange("endpoint_details.0.address_allocation_ids") {
+						offlineUpdate = true
+					}
+
+					// Update to 0 AddressAllocationIds.
+					if input.EndpointDetails.AddressAllocationIds == nil {
+						input.EndpointDetails.AddressAllocationIds = []*string{}
+					}
+
+					// Prevent the following error: InvalidRequestException: AddressAllocationIds must be removed before SubnetIds can be modified
+					if d.HasChange("endpoint_details.0.subnet_ids") {
+						old, _ := d.GetChange("endpoint_details.0.address_allocation_ids")
+
+						if old := old.(*schema.Set); old.Len() > 0 {
+							offlineUpdate = true
+							removeAddressAllocationIDs = true
+
+							addressAllocationIDs = input.EndpointDetails.AddressAllocationIds
+							input.EndpointDetails.AddressAllocationIds = nil
+						}
+					}
+
+					// Prevent the following error: InvalidRequestException: Changing Security Group is not supported
+					input.EndpointDetails.SecurityGroupIds = nil
+
+					// Update to 0 SubnetIds.
+					if input.EndpointDetails.SubnetIds == nil {
+						input.EndpointDetails.SubnetIds = []*string{}
+					}
+				}
+			}
+
+			// You can edit the SecurityGroupIds property in the UpdateServer API only if you are changing the EndpointType from PUBLIC or VPC_ENDPOINT to VPC.
+			// To change security groups associated with your server's VPC endpoint after creation, use the Amazon EC2 ModifyVpcEndpoint API.
+			if d.HasChange("endpoint_details.0.security_group_ids") && newEndpointTypeVpc && oldEndpointTypeVpc {
+				conn := meta.(*AWSClient).ec2conn
+
+				vpcEndpointID := d.Get("endpoint_details.0.vpc_endpoint_id").(string)
+				input := &ec2.ModifyVpcEndpointInput{
+					VpcEndpointId: aws.String(vpcEndpointID),
+				}
+
+				old, new := d.GetChange("endpoint_details.0.security_group_ids")
+
+				if add := expandStringSet(new.(*schema.Set).Difference(old.(*schema.Set))); len(add) > 0 {
+					input.AddSecurityGroupIds = add
+				}
+
+				if del := expandStringSet(old.(*schema.Set).Difference(new.(*schema.Set))); len(del) > 0 {
+					input.RemoveSecurityGroupIds = del
+				}
+
+				log.Printf("[DEBUG] Updating VPC Endpoint: %s", input)
+				if _, err := conn.ModifyVpcEndpoint(input); err != nil {
+					return fmt.Errorf("error updating Transfer Server (%s) VPC Endpoint (%s): %w", d.Id(), vpcEndpointID, err)
+				}
+
+				_, err := ec2waiter.VpcEndpointAvailable(conn, vpcEndpointID, Ec2VpcEndpointCreationTimeout)
+
+				if err != nil {
+					return fmt.Errorf("error waiting for Transfer Server (%s) VPC Endpoint (%s) to become available: %w", d.Id(), vpcEndpointID, err)
+				}
+			}
+		}
+
+		if d.HasChange("endpoint_type") {
+			input.EndpointType = aws.String(d.Get("endpoint_type").(string))
+
+			// Prevent the following error: InvalidRequestException: Server must be OFFLINE to change EndpointType
+			offlineUpdate = true
+		}
+
+		if d.HasChange("host_key") {
+			if attr, ok := d.GetOk("host_key"); ok {
+				input.HostKey = aws.String(attr.(string))
+			}
 		}
 
 		if d.HasChanges("invocation_role", "url") {
@@ -357,37 +505,34 @@ func resourceAwsTransferServerUpdate(d *schema.ResourceData, meta interface{}) e
 			input.IdentityProviderDetails = identityProviderDetails
 		}
 
-		if d.HasChange("endpoint_type") {
-			input.EndpointType = aws.String(d.Get("endpoint_type").(string))
-		}
-
-		if d.HasChange("certificate") {
-			input.Certificate = aws.String(d.Get("certificate").(string))
+		if d.HasChange("logging_role") {
+			input.LoggingRole = aws.String(d.Get("logging_role").(string))
 		}
 
 		if d.HasChange("protocols") {
 			input.Protocols = expandStringSet(d.Get("protocols").(*schema.Set))
 		}
 
-		if d.HasChange("endpoint_details") {
-			if v, ok := d.GetOk("endpoint_details"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
-				input.EndpointDetails = expandTransferEndpointDetails(v.([]interface{})[0].(map[string]interface{}))
-			}
-
-			// Prevent the following error: InvalidRequestException: Server must be OFFLINE to change AddressAllocationIds
-			if d.HasChange("endpoint_details.0.address_allocation_ids") {
-				stopFlag = true
-			}
+		if d.HasChange("security_policy_name") {
+			input.SecurityPolicyName = aws.String(d.Get("security_policy_name").(string))
 		}
 
-		if d.HasChange("host_key") {
-			if attr, ok := d.GetOk("host_key"); ok {
-				input.HostKey = aws.String(attr.(string))
-			}
-		}
-
-		if stopFlag {
+		if offlineUpdate {
 			if err := stopTransferServer(conn, d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
+				return err
+			}
+		}
+
+		if removeAddressAllocationIDs {
+			input := &transfer.UpdateServerInput{
+				ServerId: aws.String(d.Id()),
+				EndpointDetails: &transfer.EndpointDetails{
+					AddressAllocationIds: []*string{},
+				},
+			}
+
+			log.Printf("[DEBUG] Removing Transfer Server Address Allocation IDs: %s", input)
+			if err := updateTransferServer(conn, input); err != nil {
 				return err
 			}
 		}
@@ -397,7 +542,21 @@ func resourceAwsTransferServerUpdate(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		if stopFlag {
+		if len(addressAllocationIDs) > 0 {
+			input := &transfer.UpdateServerInput{
+				ServerId: aws.String(d.Id()),
+				EndpointDetails: &transfer.EndpointDetails{
+					AddressAllocationIds: addressAllocationIDs,
+				},
+			}
+
+			log.Printf("[DEBUG] Adding Transfer Server Address Allocation IDs: %s", input)
+			if err := updateTransferServer(conn, input); err != nil {
+				return err
+			}
+		}
+
+		if offlineUpdate {
 			if err := startTransferServer(conn, d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
 				return err
 			}
@@ -417,7 +576,7 @@ func resourceAwsTransferServerUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceAwsTransferServerDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).transferconn
 
-	if d.Get("force_destroy").(bool) {
+	if d.Get("force_destroy").(bool) && d.Get("identity_provider_type").(string) == transfer.IdentityProviderTypeServiceManaged {
 		input := &transfer.ListUsersInput{
 			ServerId: aws.String(d.Id()),
 		}
@@ -429,15 +588,12 @@ func resourceAwsTransferServerDelete(d *schema.ResourceData, meta interface{}) e
 			}
 
 			for _, user := range page.Users {
-				resourceID := tftransfer.UserCreateResourceID(d.Id(), aws.StringValue(user.UserName))
-
-				r := resourceAwsTransferUser()
-				d := r.Data(nil)
-				d.SetId(resourceID)
-				err := r.Delete(d, meta)
+				err := transferUserDelete(conn, d.Id(), aws.StringValue(user.UserName))
 
 				if err != nil {
-					deletionErrs = multierror.Append(deletionErrs, fmt.Errorf("error deleting Transfer User (%s): %w", resourceID, err))
+					log.Printf("[ERROR] %s", err)
+					deletionErrs = multierror.Append(deletionErrs, err)
+
 					continue
 				}
 			}
@@ -456,7 +612,7 @@ func resourceAwsTransferServerDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	log.Printf("[DEBUG] Deleting Transfer Server (%s)", d.Id())
+	log.Printf("[DEBUG] Deleting Transfer Server: (%s)", d.Id())
 	_, err := conn.DeleteServer(&transfer.DeleteServerInput{
 		ServerId: aws.String(d.Id()),
 	})
@@ -489,6 +645,10 @@ func expandTransferEndpointDetails(tfMap map[string]interface{}) *transfer.Endpo
 		apiObject.AddressAllocationIds = expandStringSet(v)
 	}
 
+	if v, ok := tfMap["security_group_ids"].(*schema.Set); ok && v.Len() > 0 {
+		apiObject.SecurityGroupIds = expandStringSet(v)
+	}
+
 	if v, ok := tfMap["subnet_ids"].(*schema.Set); ok && v.Len() > 0 {
 		apiObject.SubnetIds = expandStringSet(v)
 	}
@@ -504,7 +664,7 @@ func expandTransferEndpointDetails(tfMap map[string]interface{}) *transfer.Endpo
 	return apiObject
 }
 
-func flattenTransferEndpointDetails(apiObject *transfer.EndpointDetails) map[string]interface{} {
+func flattenTransferEndpointDetails(apiObject *transfer.EndpointDetails, securityGroupIDs []*string) map[string]interface{} {
 	if apiObject == nil {
 		return nil
 	}
@@ -513,6 +673,12 @@ func flattenTransferEndpointDetails(apiObject *transfer.EndpointDetails) map[str
 
 	if v := apiObject.AddressAllocationIds; v != nil {
 		tfMap["address_allocation_ids"] = aws.StringValueSlice(v)
+	}
+
+	if v := apiObject.SecurityGroupIds; len(v) > 0 {
+		tfMap["security_group_ids"] = aws.StringValueSlice(v)
+	} else if len(securityGroupIDs) > 0 {
+		tfMap["security_group_ids"] = aws.StringValueSlice(securityGroupIDs)
 	}
 
 	if v := apiObject.SubnetIds; v != nil {

@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_datasync_location_smb: Add support for updating.
+```
+
+```release-note:enhancement
+resource/aws_datasync_location_smb: Add plan time validation for `domain`, `agent_arns`, `password`, `server_hostname`, `subdirectory`, and `user`.
+```

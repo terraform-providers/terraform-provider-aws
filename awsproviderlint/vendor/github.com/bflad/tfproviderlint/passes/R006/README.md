@@ -2,6 +2,10 @@
 
 The R006 analyzer reports when `RetryFunc` declarations are missing retryable errors (e.g. `RetryableError()` calls) and should not be used as `RetryFunc`.
 
+Optional parameters:
+
+- `-package-aliases` Comma-separated list of additional Go import paths to consider as aliases for helper/resource, defaults to none.
+
 ## Flagged Code
 
 ```go

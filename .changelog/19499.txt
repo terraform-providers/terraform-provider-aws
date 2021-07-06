@@ -1,3 +1,3 @@
-```release-notes:new-data-source
+```release-note:new-data-source
 aws_servicecatalog_constraint
 ```

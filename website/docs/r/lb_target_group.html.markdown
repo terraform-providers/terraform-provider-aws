@@ -94,8 +94,9 @@ The following arguments are supported:
 ~> **NOTE:** Currently, an NLB (i.e., protocol of `HTTP` or `HTTPS`) can have an invalid `stickiness` block with `type` set to `lb_cookie` as long as `enabled` is set to `false`. However, please update your configurations to avoid errors in a future version of the provider: either remove the invalid `stickiness` block or set the `type` to `source_ip`.
 
 * `cookie_duration` - (Optional) Only used when the type is `lb_cookie`. The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).
-* `enabled` - (Optional) Whether to enable `stickiness`. Default is `true`.
-* `type` - (Required) Type of sticky sessions. The only current possible values are `lb_cookie` for ALBs and `source_ip` for NLBs.
+* `cookie_name` - (Optional) Name of the application based cookie. AWSALB, AWSALBAPP, and AWSALBTG prefixes are reserved and cannot be used. Only needed when type is `app_cookie`.
+* `enabled` - (Optional) Boolean to enable / disable `stickiness`. Default is `true`.
+* `type` - (Required) The type of sticky sessions. The only current possible values are `lb_cookie`, `app_cookie` for ALBs, and `source_ip` for NLBs.
 
 ## Attributes Reference
 

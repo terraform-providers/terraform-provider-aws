@@ -500,6 +500,30 @@ func (tags KeyValueTags) UrlEncode() string {
 	return values.Encode()
 }
 
+// UrlQueryString returns the KeyValueTags formatted as URL Query parameters without encoding.
+func (tags KeyValueTags) UrlQueryString() string {
+	keys := make([]string, 0, len(tags))
+	for k, v := range tags {
+		if v == nil || v.Value == nil {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var buf strings.Builder
+	for _, k := range keys {
+		if buf.Len() > 0 {
+			buf.WriteByte('&')
+		}
+		buf.WriteString(k)
+		buf.WriteByte('=')
+		buf.WriteString(*tags[k].Value)
+	}
+
+	return buf.String()
+}
+
 // New creates KeyValueTags from common types or returns an empty KeyValueTags.
 //
 // Supports various Terraform Plugin SDK types including map[string]string,

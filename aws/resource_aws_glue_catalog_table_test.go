@@ -471,6 +471,17 @@ func TestAccAWSGlueCatalogTable_StorageDescriptor_schemaReference(t *testing.T) 
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccGlueCatalogTableConfigStorageDescriptorSchemaReferenceArn(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.schema_reference.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.schema_reference.0.schema_version_number", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.schema_reference.0.schema_id.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "storage_descriptor.0.schema_reference.0.schema_id.0.schema_arn", "aws_glue_schema.test", "arn"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.columns.#", "2"),
+				),
+			},
 		},
 	})
 }

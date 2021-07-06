@@ -57,6 +57,53 @@ func TestAccAWSNeptuneCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSNeptuneCluster_copyTagsToSnapshot(t *testing.T) {
+	var dbCluster neptune.DBCluster
+	rName := acctest.RandomWithPrefix("tf-acc")
+	resourceName := "aws_neptune_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, neptune.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSNeptuneClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSNeptuneClusterCopyTagsConfig(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSNeptuneClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "copy_tags_to_snapshot", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"cluster_identifier_prefix",
+					"final_snapshot_identifier",
+					"skip_final_snapshot",
+				},
+			},
+			{
+				Config: testAccAWSNeptuneClusterCopyTagsConfig(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSNeptuneClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "copy_tags_to_snapshot", "false"),
+				),
+			},
+			{
+				Config: testAccAWSNeptuneClusterCopyTagsConfig(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSNeptuneClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "copy_tags_to_snapshot", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSNeptuneCluster_namePrefix(t *testing.T) {
 	var v neptune.DBCluster
 	rName := "tf-test-"
@@ -458,6 +505,29 @@ func TestAccAWSNeptuneCluster_deleteProtection(t *testing.T) {
 	})
 }
 
+func TestAccAWSNeptuneCluster_disappears(t *testing.T) {
+	var dbCluster neptune.DBCluster
+	rName := acctest.RandomWithPrefix("tf-acc")
+	resourceName := "aws_neptune_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, neptune.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSNeptuneClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSNeptuneClusterConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSNeptuneClusterExists(resourceName, &dbCluster),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsNeptuneCluster(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSNeptuneClusterDestroy(s *terraform.State) error {
 	return testAccCheckAWSNeptuneClusterDestroyWithProvider(s, testAccProvider)
 }
@@ -598,6 +668,19 @@ resource "aws_neptune_cluster" "test" {
   skip_final_snapshot                  = true
 }
 `, rName))
+}
+
+func testAccAWSNeptuneClusterCopyTagsConfig(rName string, copy bool) string {
+	return composeConfig(testAccAWSNeptuneClusterConfigBase(), fmt.Sprintf(`
+resource "aws_neptune_cluster" "test" {
+  cluster_identifier                   = %[1]q
+  availability_zones                   = local.availability_zone_names
+  engine                               = "neptune"
+  neptune_cluster_parameter_group_name = "default.neptune1"
+  skip_final_snapshot                  = true
+  copy_tags_to_snapshot                = %[2]t
+}
+`, rName, copy))
 }
 
 func testAccAWSNeptuneClusterConfigDeleteProtection(rName string, isProtected bool) string {

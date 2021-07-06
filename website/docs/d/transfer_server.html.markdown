@@ -27,6 +27,7 @@ data "aws_transfer_server" "example" {
 
 * `arn` - Amazon Resource Name (ARN) of Transfer Server.
 * `certificate` - The ARN of any certificate.
+* `domain` -  The domain of the storage system that is used for file transfers.
 * `endpoint` - The endpoint of the Transfer Server (e.g. `s-12345678.server.transfer.REGION.amazonaws.com`).
 * `endpoint_type` - The type of endpoint that the server is connected to.
 * `identity_provider_type` - The mode of authentication enabled for this service. The default value is `SERVICE_MANAGED`, which allows you to store and access SFTP user credentials within the service. `API_GATEWAY` indicates that user authentication requires a call to an API Gateway endpoint URL provided by you to integrate an identity provider of your choice.

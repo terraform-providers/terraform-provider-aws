@@ -293,6 +293,10 @@ func IsStdlibPackageType(t types.Type, packagePath string, typeName string) bool
 
 func isModulePackagePath(module string, packageSuffix string, path string) bool {
 	// Only check end of path due to vendoring
+	if packageSuffix == "" {
+		return strings.HasSuffix(path, module)
+	}
+
 	r := regexp.MustCompile(fmt.Sprintf("%s(/v[1-9][0-9]*)?/%s$", module, packageSuffix))
 	return r.MatchString(path)
 }

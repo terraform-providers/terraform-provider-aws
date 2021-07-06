@@ -2050,6 +2050,62 @@ func TestKeyValueTagsUrlEncode(t *testing.T) {
 	}
 }
 
+func TestKeyValueTagsUrlQueryString(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		want string
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]string{}),
+			want: "",
+		},
+		{
+			name: "nil value",
+			tags: New(map[string]*string{
+				"key1": nil,
+			}),
+			want: "",
+		},
+		{
+			name: "single",
+			tags: New(map[string]string{
+				"key1": "value1",
+			}),
+			want: "key1=value1",
+		},
+		{
+			name: "multiple",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			want: "key1=value1&key2=value2&key3=value3",
+		},
+		{
+			name: "multiple_with_encoded",
+			tags: New(map[string]string{
+				"key1":  "value 1",
+				"key@2": "value+:2",
+				"key3":  "value3",
+			}),
+			want: "key1=value 1&key3=value3&key@2=value+:2",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.UrlQueryString()
+
+			if got != testCase.want {
+				t.Errorf("unexpected query string value: %q", got)
+			}
+		})
+	}
+}
+
 func TestNew(t *testing.T) {
 	testCases := []struct {
 		name   string

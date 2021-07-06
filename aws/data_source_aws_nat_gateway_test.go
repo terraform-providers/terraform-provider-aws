@@ -21,6 +21,7 @@ func TestAccDataSourceAwsNatGateway_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAwsNatGatewayConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("data.aws_nat_gateway.test_by_id", "connectivity_type", "aws_nat_gateway.test", "connectivity_type"),
 					resource.TestCheckResourceAttrPair(
 						"data.aws_nat_gateway.test_by_id", "id",
 						"aws_nat_gateway.test", "id"),

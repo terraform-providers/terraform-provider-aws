@@ -1,48 +1,50 @@
-# Default owner for all pull requests
-*    @hashicorp/terraform-aws
+# There is no default owner for pull requests as reviews are scheduled based on community popularity.
 
 # Service specific owners
-/aws/*apigatewayv2*    @ewbankkit @hashicorp/terraform-aws
-/website/**/apigatewayv2*    @ewbankkit @hashicorp/terraform-aws
+/aws/*apigatewayv2*          @ewbankkit
+/website/**/apigatewayv2*    @ewbankkit
 
-/aws/*appmesh*    @ewbankkit @hashicorp/terraform-aws
-/website/**/appmesh*    @ewbankkit @hashicorp/terraform-aws
+/aws/*appmesh*          @ewbankkit
+/website/**/appmesh*    @ewbankkit
 
-/aws/*backup*    @ewbankkit @hashicorp/terraform-aws
-/website/**/backup*    @ewbankkit @hashicorp/terraform-aws
+/aws/*backup*          @ewbankkit
+/website/**/backup*    @ewbankkit
 
-/aws/*_aws_codeartifact_*.go     @DrFaust92 @hashicorp/terraform-aws
-/website/**/codeartifact*        @DrFaust92 @hashicorp/terraform-aws
+/aws/*_aws_codeartifact_*.go    @DrFaust92
+/website/**/codeartifact*       @DrFaust92
 
-/aws/*_aws_fsx_*.go     @DrFaust92 @hashicorp/terraform-aws
-/website/**/fsx*        @DrFaust92 @hashicorp/terraform-aws
+/aws/*_aws_fsx_*.go    @DrFaust92
+/website/**/fsx*       @DrFaust92
 
-/aws/*globalaccelerator*    @ewbankkit @hashicorp/terraform-aws
-/website/**/globalaccelerator*    @ewbankkit @hashicorp/terraform-aws
+/aws/*globalaccelerator*          @ewbankkit
+/website/**/globalaccelerator*    @ewbankkit
 
-/aws/*_aws_glue_*.go     @DrFaust92 @hashicorp/terraform-aws
-/website/**/glue*        @DrFaust92 @hashicorp/terraform-aws
+/aws/*_aws_glue_*.go    @DrFaust92
+/website/**/glue*       @DrFaust92
 
-/aws/*kinesis_analytics*    @ewbankkit @hashicorp/terraform-aws
-/website/**/kinesis_analytics*    @ewbankkit @hashicorp/terraform-aws
+/aws/*kinesis_analytics*          @ewbankkit
+/website/**/kinesis_analytics*    @ewbankkit
 
-/aws/*kinesisanalyticsv2*    @ewbankkit @hashicorp/terraform-aws
-/website/**/kinesisanalyticsv2*    @ewbankkit @hashicorp/terraform-aws
+/aws/*kinesisanalyticsv2*          @ewbankkit
+/website/**/kinesisanalyticsv2*    @ewbankkit
 
-/aws/*route53_resolver*    @ewbankkit @hashicorp/terraform-aws
-/website/**/route53_resolver*    @ewbankkit @hashicorp/terraform-aws
+/aws/*route53_resolver*          @ewbankkit
+/website/**/route53_resolver*    @ewbankkit
 
-/aws/*_aws_storagegateway_*.go     @DrFaust92 @hashicorp/terraform-aws
-/website/**/storagegateway*        @DrFaust92 @hashicorp/terraform-aws
+/aws/*_aws_storagegateway_*.go    @DrFaust92
+/website/**/storagegateway*       @DrFaust92
 
-/aws/*_aws_sagemaker_*.go     @DrFaust92 @hashicorp/terraform-aws
-/website/**/sagemaker*        @DrFaust92 @hashicorp/terraform-aws
+/aws/*_aws_sagemaker_*.go    @DrFaust92
+/website/**/sagemaker*       @DrFaust92
 
-/aws/*_aws_workspaces_*.go     @Tensho @hashicorp/terraform-aws
-/website/**/workspaces*        @Tensho @hashicorp/terraform-aws
+/aws/*_aws_workspaces_*.go    @Tensho
+/website/**/workspaces*       @Tensho
 
-/aws/*_aws_mwaa_*.go     @shuheiktgw @hashicorp/terraform-aws
-/website/**/mwaa*        @shuheiktgw @hashicorp/terraform-aws
+/aws/*_aws_mwaa_*.go    @shuheiktgw
+/website/**/mwaa*       @shuheiktgw
 
-/aws/*_aws_emr_*.go     @shuheiktgw @hashicorp/terraform-aws
-/website/**/emr*        @shuheiktgw @hashicorp/terraform-aws
+/aws/*_aws_emr_*.go    @shuheiktgw
+/website/**/emr*       @shuheiktgw
+
+/aws/*aws_cloudwatch_event_*.go    @heitorlessa @sthulb
+/website/**/cloudwatch_event*      @heitorlessa @sthulb

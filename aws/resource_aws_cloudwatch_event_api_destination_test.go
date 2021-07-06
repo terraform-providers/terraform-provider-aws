@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchevents"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -84,7 +83,7 @@ func TestAccAWSCloudWatchEventApiDestination_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, cloudwatchevents.EndpointsID),
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventApiDestinationDestroy,
 		Steps: []resource.TestStep{
@@ -157,7 +156,7 @@ func TestAccAWSCloudWatchEventApiDestination_optional(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, cloudwatchevents.EndpointsID),
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventApiDestinationDestroy,
 		Steps: []resource.TestStep{
@@ -207,7 +206,7 @@ func TestAccAWSCloudWatchEventApiDestination_optional(t *testing.T) {
 					invocationEndpointModified,
 					httpMethodModified,
 					descriptionModified,
-					int64(invocationRateLimitPerSecondModified),
+					int64(invocationRateLimitPerSecond),
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudWatchEventApiDestinationExists(resourceName, &v3),
@@ -216,7 +215,7 @@ func TestAccAWSCloudWatchEventApiDestination_optional(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "http_method", httpMethodModified),
 					resource.TestCheckResourceAttr(resourceName, "invocation_endpoint", invocationEndpointModified),
 					resource.TestCheckResourceAttr(resourceName, "description", descriptionModified),
-					resource.TestCheckResourceAttr(resourceName, "invocation_rate_limit_per_second", fmt.Sprint(invocationRateLimitPerSecondModified)),
+					resource.TestCheckResourceAttr(resourceName, "invocation_rate_limit_per_second", fmt.Sprint(invocationRateLimitPerSecond)),
 				),
 			},
 		},
@@ -233,7 +232,7 @@ func TestAccAWSCloudWatchEventApiDestination_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, cloudwatchevents.EndpointsID),
+		ErrorCheck:   testAccErrorCheck(t, events.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchEventApiDestinationDestroy,
 		Steps: []resource.TestStep{

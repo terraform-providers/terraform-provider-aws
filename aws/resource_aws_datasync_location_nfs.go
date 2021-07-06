@@ -30,7 +30,6 @@ func resourceAwsDataSyncLocationNfs() *schema.Resource {
 			"on_prem_config": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -38,7 +37,27 @@ func resourceAwsDataSyncLocationNfs() *schema.Resource {
 							Type:     schema.TypeSet,
 							Required: true,
 							ForceNew: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validateArn,
+							},
+						},
+					},
+				},
+			},
+			"mount_options": {
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:         schema.TypeString,
+							Default:      datasync.NfsVersionAutomatic,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(datasync.NfsVersion_Values(), false),
 						},
 					},
 				},
@@ -47,12 +66,12 @@ func resourceAwsDataSyncLocationNfs() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 			"subdirectory": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 4096),
 				// Ignore missing trailing slash
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					if new == "/" {
@@ -88,10 +107,14 @@ func resourceAwsDataSyncLocationNfsCreate(d *schema.ResourceData, meta interface
 		Tags:           tags.IgnoreAws().DatasyncTags(),
 	}
 
+	if v, ok := d.GetOk("mount_options"); ok {
+		input.MountOptions = expandDataSyncNfsMountOptions(v.([]interface{}))
+	}
+
 	log.Printf("[DEBUG] Creating DataSync Location NFS: %s", input)
 	output, err := conn.CreateLocationNfs(input)
 	if err != nil {
-		return fmt.Errorf("error creating DataSync Location NFS: %s", err)
+		return fmt.Errorf("error creating DataSync Location NFS: %w", err)
 	}
 
 	d.SetId(aws.StringValue(output.LocationArn))
@@ -118,19 +141,23 @@ func resourceAwsDataSyncLocationNfsRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading DataSync Location NFS (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading DataSync Location NFS (%s): %w", d.Id(), err)
 	}
 
 	subdirectory, err := dataSyncParseLocationURI(aws.StringValue(output.LocationUri))
 
 	if err != nil {
-		return fmt.Errorf("error parsing Location NFS (%s) URI (%s): %s", d.Id(), aws.StringValue(output.LocationUri), err)
+		return fmt.Errorf("error parsing Location NFS (%s) URI (%s): %w", d.Id(), aws.StringValue(output.LocationUri), err)
 	}
 
 	d.Set("arn", output.LocationArn)
 
 	if err := d.Set("on_prem_config", flattenDataSyncOnPremConfig(output.OnPremConfig)); err != nil {
-		return fmt.Errorf("error setting on_prem_config: %s", err)
+		return fmt.Errorf("error setting on_prem_config: %w", err)
+	}
+
+	if err := d.Set("mount_options", flattenDataSyncNfsMountOptions(output.MountOptions)); err != nil {
+		return fmt.Errorf("error setting mount_options: %w", err)
 	}
 
 	d.Set("subdirectory", subdirectory)
@@ -139,7 +166,7 @@ func resourceAwsDataSyncLocationNfsRead(d *schema.ResourceData, meta interface{}
 	tags, err := keyvaluetags.DatasyncListTags(conn, d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for DataSync Location NFS (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for DataSync Location NFS (%s): %w", d.Id(), err)
 	}
 
 	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
@@ -159,11 +186,28 @@ func resourceAwsDataSyncLocationNfsRead(d *schema.ResourceData, meta interface{}
 func resourceAwsDataSyncLocationNfsUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
 
+	if d.HasChangesExcept("tags_all", "tags") {
+		input := &datasync.UpdateLocationNfsInput{
+			LocationArn:  aws.String(d.Id()),
+			OnPremConfig: expandDataSyncOnPremConfig(d.Get("on_prem_config").([]interface{})),
+			Subdirectory: aws.String(d.Get("subdirectory").(string)),
+		}
+
+		if v, ok := d.GetOk("mount_options"); ok {
+			input.MountOptions = expandDataSyncNfsMountOptions(v.([]interface{}))
+		}
+
+		_, err := conn.UpdateLocationNfs(input)
+		if err != nil {
+			return fmt.Errorf("error updating DataSync Location NFS (%s): %w", d.Id(), err)
+		}
+	}
+
 	if d.HasChange("tags_all") {
 		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating DataSync Location NFS (%s) tags: %s", d.Id(), err)
+			return fmt.Errorf("error updating DataSync Location NFS (%s) tags: %w", d.Id(), err)
 		}
 	}
 
@@ -185,8 +229,34 @@ func resourceAwsDataSyncLocationNfsDelete(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting DataSync Location NFS (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting DataSync Location NFS (%s): %w", d.Id(), err)
 	}
 
 	return nil
+}
+
+func expandDataSyncNfsMountOptions(l []interface{}) *datasync.NfsMountOptions {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	nfsMountOptions := &datasync.NfsMountOptions{
+		Version: aws.String(m["version"].(string)),
+	}
+
+	return nfsMountOptions
+}
+
+func flattenDataSyncNfsMountOptions(mountOptions *datasync.NfsMountOptions) []interface{} {
+	if mountOptions == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"version": aws.StringValue(mountOptions.Version),
+	}
+
+	return []interface{}{m}
 }

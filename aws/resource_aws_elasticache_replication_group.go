@@ -436,6 +436,16 @@ func resourceAwsElasticacheReplicationGroupCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("error creating ElastiCache Replication Group (%s): waiting for completion: %w", d.Id(), err)
 	}
 
+	if v, ok := d.GetOk("global_replication_group_id"); ok {
+		// When adding a replication group to a global replication group, the replication group can be in the "available"
+		// state, but the global replication group can still be in the "modifying" state. Wait for the replication group
+		// to be fully added to the global replication group.
+		// API calls to the global replication group can be made in any region.
+		if _, err := waiter.GlobalReplicationGroupAvailable(conn, v.(string), waiter.GlobalReplicationGroupDefaultCreatedTimeout); err != nil {
+			return fmt.Errorf("error waiting for ElastiCache Global Replication Group (%s) availability: %w", v, err)
+		}
+	}
+
 	return resourceAwsElasticacheReplicationGroupRead(d, meta)
 }
 
@@ -703,7 +713,7 @@ func resourceAwsElasticacheReplicationGroupDelete(d *schema.ResourceData, meta i
 	conn := meta.(*AWSClient).elasticacheconn
 
 	if globalReplicationGroupID, ok := d.GetOk("global_replication_group_id"); ok {
-		err := disassociateElasticacheReplicationGroup(conn, globalReplicationGroupID.(string), d.Id(), meta.(*AWSClient).region)
+		err := disassociateElasticacheReplicationGroup(conn, globalReplicationGroupID.(string), d.Id(), meta.(*AWSClient).region, waiter.GlobalReplicationGroupDisassociationReadyTimeout)
 		if err != nil {
 			return fmt.Errorf("error disassociating ElastiCache Replication Group (%s) from Global Replication Group (%s): %w", d.Id(), globalReplicationGroupID, err)
 		}
@@ -718,13 +728,13 @@ func resourceAwsElasticacheReplicationGroupDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func disassociateElasticacheReplicationGroup(conn *elasticache.ElastiCache, globalReplicationGroupID, id, region string) error {
+func disassociateElasticacheReplicationGroup(conn *elasticache.ElastiCache, globalReplicationGroupID, id, region string, readyTimeout time.Duration) error {
 	input := &elasticache.DisassociateGlobalReplicationGroupInput{
 		GlobalReplicationGroupId: aws.String(globalReplicationGroupID),
 		ReplicationGroupId:       aws.String(id),
 		ReplicationGroupRegion:   aws.String(region),
 	}
-	err := resource.Retry(waiter.GlobalReplicationGroupDisassociationRetryTimeout, func() *resource.RetryError {
+	err := resource.Retry(readyTimeout, func() *resource.RetryError {
 		_, err := conn.DisassociateGlobalReplicationGroup(input)
 		if tfawserr.ErrCodeEquals(err, elasticache.ErrCodeGlobalReplicationGroupNotFoundFault) {
 			return nil
@@ -745,7 +755,7 @@ func disassociateElasticacheReplicationGroup(conn *elasticache.ElastiCache, glob
 		return nil
 	}
 	if tfawserr.ErrCodeEquals(err, elasticache.ErrCodeInvalidGlobalReplicationGroupStateFault) {
-		return fmt.Errorf("tried for %s: %w", waiter.GlobalReplicationGroupDisassociationRetryTimeout.String(), err)
+		return fmt.Errorf("tried for %s: %w", readyTimeout.String(), err)
 	}
 
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfnet "github.com/terraform-providers/terraform-provider-aws/aws/internal/net"
 )
 
 func resourceAwsWafv2IPSet() *schema.Resource {
@@ -50,7 +51,7 @@ func resourceAwsWafv2IPSet() *schema.Resource {
 						for _, ov := range oldAddresses {
 							hasAddress := false
 							for _, nv := range newAddresses {
-								if cidrBlocksEqual(ov.(string), nv.(string)) {
+								if tfnet.CIDRBlocksEqual(ov.(string), nv.(string)) {
 									hasAddress = true
 									break
 								}

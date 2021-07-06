@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfeks "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/eks/finder"
 )
 
 func dataSourceAwsEksAddon() *schema.Resource {
@@ -22,28 +23,28 @@ func dataSourceAwsEksAddon() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"cluster_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateEKSClusterName,
+			"addon_version": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"addon_version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"service_account_role_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"cluster_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateEKSClusterName,
 			},
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"modified_at": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_account_role_arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -58,31 +59,23 @@ func dataSourceAwsEksAddonRead(ctx context.Context, d *schema.ResourceData, meta
 
 	addonName := d.Get("addon_name").(string)
 	clusterName := d.Get("cluster_name").(string)
+	id := tfeks.AddonCreateResourceID(clusterName, addonName)
 
-	input := &eks.DescribeAddonInput{
-		AddonName:   aws.String(addonName),
-		ClusterName: aws.String(clusterName),
-	}
+	addon, err := finder.AddonByClusterNameAndAddonName(ctx, conn, clusterName, addonName)
 
-	output, err := conn.DescribeAddonWithContext(ctx, input)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error reading EKS Addon (%s): %w", addonName, err))
+		return diag.FromErr(fmt.Errorf("error reading EKS Add-On (%s): %w", id, err))
 	}
 
-	addon := output.Addon
-	if addon == nil {
-		return diag.FromErr(fmt.Errorf("EKS Addon (%s) not found", addonName))
-	}
-
-	d.SetId(fmt.Sprintf("%s:%s", clusterName, addonName))
-	d.Set("arn", addon.AddonArn)
+	d.SetId(id)
 	d.Set("addon_version", addon.AddonVersion)
-	d.Set("service_account_role_arn", addon.ServiceAccountRoleArn)
+	d.Set("arn", addon.AddonArn)
 	d.Set("created_at", aws.TimeValue(addon.CreatedAt).Format(time.RFC3339))
 	d.Set("modified_at", aws.TimeValue(addon.ModifiedAt).Format(time.RFC3339))
+	d.Set("service_account_role_arn", addon.ServiceAccountRoleArn)
 
 	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(addon.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting tags attribute: %w", err))
+		return diag.FromErr(fmt.Errorf("error setting tags: %w", err))
 	}
 
 	return nil

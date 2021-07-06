@@ -54,3 +54,22 @@ func RealtimeLogConfigByARN(conn *cloudfront.CloudFront, arn string) (*cloudfron
 
 	return output.RealtimeLogConfig, nil
 }
+
+// MonitoringSubscriptionByDistributionId returns the monitoring subscription corresponding to the specified distribution id.
+// Returns nil if no subscription is found.
+func MonitoringSubscriptionByDistributionId(conn *cloudfront.CloudFront, id string) (*cloudfront.MonitoringSubscription, error) {
+	input := &cloudfront.GetMonitoringSubscriptionInput{
+		DistributionId: aws.String(id),
+	}
+
+	output, err := conn.GetMonitoringSubscription(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return nil, nil
+	}
+
+	return output.MonitoringSubscription, nil
+}

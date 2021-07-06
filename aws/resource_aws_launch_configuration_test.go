@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
 )
 
 func init() {
@@ -74,10 +75,9 @@ func TestAccAWSLaunchConfiguration_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSLaunchConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLaunchConfigurationNoNameConfig(),
+				Config: testAccAWSLaunchConfigurationConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLaunchConfigurationExists(resourceName, &conf),
-					testAccCheckAWSLaunchConfigurationGeneratedNamePrefix(resourceName, "terraform-"),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "autoscaling", regexp.MustCompile(`launchConfiguration:.+`)),
 				),
 			},
@@ -87,12 +87,61 @@ func TestAccAWSLaunchConfiguration_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"associate_public_ip_address"},
 			},
+		},
+	})
+}
+
+func TestAccAWSLaunchConfiguration_Name_Generated(t *testing.T) {
+	var conf autoscaling.LaunchConfiguration
+	resourceName := "aws_launch_configuration.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, autoscaling.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchConfigurationDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLaunchConfigurationPrefixNameConfig(),
+				Config: testAccAWSLaunchConfigurationConfigNameGenerated(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLaunchConfigurationExists(resourceName, &conf),
-					testAccCheckAWSLaunchConfigurationGeneratedNamePrefix(resourceName, "tf-acc-test-"),
+					naming.TestCheckResourceAttrNameGenerated(resourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", "terraform-"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"associate_public_ip_address"},
+			},
+		},
+	})
+}
+
+func TestAccAWSLaunchConfiguration_NamePrefix(t *testing.T) {
+	var conf autoscaling.LaunchConfiguration
+	resourceName := "aws_launch_configuration.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, autoscaling.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchConfigurationConfigNamePrefix("tf-acc-test-prefix-"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchConfigurationExists(resourceName, &conf),
+					naming.TestCheckResourceAttrNameFromPrefix(resourceName, "name", "tf-acc-test-prefix-"),
+					resource.TestCheckResourceAttr(resourceName, "name_prefix", "tf-acc-test-prefix-"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"associate_public_ip_address"},
 			},
 		},
 	})
@@ -210,7 +259,7 @@ func TestAccAWSLaunchConfiguration_RootBlockDevice_VolumeSize(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"associate_public_ip_address", "name_prefix"},
+				ImportStateVerifyIgnore: []string{"associate_public_ip_address"},
 			},
 			{
 				Config: testAccAWSLaunchConfigurationConfigWithRootBlockDeviceVolumeSize(rName, 20),
@@ -245,7 +294,7 @@ func TestAccAWSLaunchConfiguration_encryptedRootBlockDevice(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"associate_public_ip_address", "name_prefix"},
+				ImportStateVerifyIgnore: []string{"associate_public_ip_address"},
 			},
 		},
 	})
@@ -488,7 +537,7 @@ func TestAccAWSLaunchConfiguration_ebs_noDevice(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"associate_public_ip_address", "name_prefix"},
+				ImportStateVerifyIgnore: []string{"associate_public_ip_address"},
 			},
 		},
 	})
@@ -550,24 +599,6 @@ func testAccCheckAWSLaunchConfigurationWithEncryption(conf *autoscaling.LaunchCo
 			return fmt.Errorf("block device isn't encrypted as expected: /dev/sdb")
 		}
 
-		return nil
-	}
-}
-
-func testAccCheckAWSLaunchConfigurationGeneratedNamePrefix(
-	resource, prefix string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		r, ok := s.RootModule().Resources[resource]
-		if !ok {
-			return fmt.Errorf("Resource not found")
-		}
-		name, ok := r.Primary.Attributes["name"]
-		if !ok {
-			return fmt.Errorf("Name attr not found: %#v", r.Primary.Attributes)
-		}
-		if !strings.HasPrefix(name, prefix) {
-			return fmt.Errorf("Name: %q, does not have prefix: %q", name, prefix)
-		}
 		return nil
 	}
 }
@@ -823,27 +854,23 @@ resource "aws_launch_configuration" "test" {
 `, acctest.RandInt()))
 }
 
-func testAccAWSLaunchConfigurationNoNameConfig() string {
+func testAccAWSLaunchConfigurationConfigNameGenerated() string {
 	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 resource "aws_launch_configuration" "test" {
-  image_id                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
-  instance_type               = "t2.micro"
-  user_data                   = "testtest-user-data-change"
-  associate_public_ip_address = false
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "t2.micro"
 }
 `)
 }
 
-func testAccAWSLaunchConfigurationPrefixNameConfig() string {
-	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
+func testAccAWSLaunchConfigurationConfigNamePrefix(namePrefix string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_launch_configuration" "test" {
-  name_prefix                 = "tf-acc-test-"
-  image_id                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
-  instance_type               = "t2.micro"
-  user_data                   = "testtest-user-data-change"
-  associate_public_ip_address = false
+  name_prefix   = %[1]q
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "t2.micro"
 }
-`)
+`, namePrefix))
 }
 
 func testAccAWSLaunchConfigurationWithEncryption() string {

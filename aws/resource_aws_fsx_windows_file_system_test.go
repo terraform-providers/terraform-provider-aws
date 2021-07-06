@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -24,7 +25,7 @@ func testSweepFSXWindowsFileSystems(region string) error {
 	client, err := sharedClientForRegion(region)
 
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
 
 	conn := client.(*AWSClient).fsxconn
@@ -102,6 +103,9 @@ func TestAccAWSFsxWindowsFileSystem_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "weekly_maintenance_start_time", regexp.MustCompile(`^\d:\d\d:\d\d$`)),
 					resource.TestCheckResourceAttr(resourceName, "deployment_type", "SINGLE_AZ_1"),
 					resource.TestCheckResourceAttr(resourceName, "storage_type", "SSD"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.0.file_access_audit_log_level", "DISABLED"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.0.file_share_access_audit_log_level", "DISABLED"),
 				),
 			},
 			{
@@ -702,6 +706,50 @@ func TestAccAWSFsxWindowsFileSystem_WeeklyMaintenanceStartTime(t *testing.T) {
 	})
 }
 
+func TestAccAWSFsxWindowsFileSystem_auditConfig(t *testing.T) {
+	var filesystem fsx.FileSystem
+	resourceName := "aws_fsx_windows_file_system.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(fsx.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, fsx.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckFsxWindowsFileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsFsxWindowsFileSystemConfigAuditConfig(rName, "SUCCESS_ONLY"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckFsxWindowsFileSystemExists(resourceName, &filesystem),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.0.file_access_audit_log_level", "SUCCESS_ONLY"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.0.file_share_access_audit_log_level", "SUCCESS_ONLY"),
+					resource.TestCheckResourceAttrSet(resourceName, "audit_log_configuration.0.audit_log_destination"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"security_group_ids",
+					"skip_final_backup",
+				},
+			},
+			{
+				Config: testAccAwsFsxWindowsFileSystemConfigAuditConfig(rName, "SUCCESS_AND_FAILURE"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckFsxWindowsFileSystemExists(resourceName, &filesystem),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.0.file_access_audit_log_level", "SUCCESS_AND_FAILURE"),
+					resource.TestCheckResourceAttr(resourceName, "audit_log_configuration.0.file_share_access_audit_log_level", "SUCCESS_AND_FAILURE"),
+					resource.TestCheckResourceAttrSet(resourceName, "audit_log_configuration.0.audit_log_destination"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckFsxWindowsFileSystemExists(resourceName string, fs *fsx.FileSystem) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -1128,4 +1176,26 @@ resource "aws_fsx_windows_file_system" "test" {
   weekly_maintenance_start_time = %[1]q
 }
 `, weeklyMaintenanceStartTime)
+}
+
+func testAccAwsFsxWindowsFileSystemConfigAuditConfig(rName, status string) string {
+	return testAccAwsFsxWindowsFileSystemConfigBase() + fmt.Sprintf(`
+resource aws_cloudwatch_log_group "test" {
+  name = "/aws/fsx/%[1]s"
+}
+
+resource "aws_fsx_windows_file_system" "test" {
+  active_directory_id = aws_directory_service_directory.test.id
+  skip_final_backup   = true
+  storage_capacity    = 32
+  subnet_ids          = [aws_subnet.test1.id]
+  throughput_capacity = 32
+
+  audit_log_configuration {
+    audit_log_destination             = aws_cloudwatch_log_group.test.arn
+    file_access_audit_log_level       = %[2]q
+    file_share_access_audit_log_level = %[2]q
+  }
+}
+`, rName, status)
 }

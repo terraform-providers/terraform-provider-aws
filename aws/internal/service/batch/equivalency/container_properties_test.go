@@ -285,6 +285,89 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
 `,
 			ExpectEquivalent: true,
 		},
+		{
+			Name: "empty linuxParameters.devices, linuxParameters.tmpfs, logConfiguration.options",
+			ApiJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"devices": [],
+		"initProcessEnabled": true,
+		"tmpfs": []
+	},
+	"logConfiguration": {
+		"logDriver": "awslogs",
+		"options": {}
+	}
+}
+`,
+			ConfigurationJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"initProcessEnabled": true
+	},
+	"logConfiguration": {
+		"logDriver": "awslogs"
+	}
+}
+`,
+			ExpectEquivalent: true,
+		},
+		{
+			Name: "empty linuxParameters.devices.permissions, linuxParameters.tmpfs.mountOptions",
+			ApiJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"devices": [{
+			"containerPath": "/test",
+			"hostPath": "/tmp",
+			"permissions": []
+		}],
+		"initProcessEnabled": true,
+		"tmpfs": [{
+			"containerPath": "/tmp",
+			"mountOptions": [],
+			"size": 4096
+		}]
+	}
+}
+`,
+			ConfigurationJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+    "linuxParameters": {
+		"devices": [{
+			"containerPath": "/test",
+			"hostPath": "/tmp"
+		}],
+		"initProcessEnabled": true,
+		"tmpfs": [{
+			"containerPath": "/tmp",
+			"size": 4096
+		}]
+	}
+}
+`,
+			ExpectEquivalent: true,
+		},
 	}
 
 	for _, testCase := range testCases {

@@ -183,21 +183,21 @@ The following arguments are supported:
 The following arguments are supported:
 
 * `predefined_metric_type` - (Required) The metric type. Valid values are `ASGTotalCPUUtilization`, `ASGTotalNetworkIn`, `ASGTotalNetworkOut`, or `ALBTargetGroupRequestCount`.
-* `resource_label` - (Optional) A label that uniquely identifies a specific Application Load Balancer target group from which to determine the request count served by your Auto Scaling group.
+* `resource_label` - (Required) A label that uniquely identifies a specific Application Load Balancer target group from which to determine the request count served by your Auto Scaling group.
 
 ##### predefined_metric_pair_specification
 
 The following arguments are supported:
 
 * `predefined_metric_type` - (Required) Indicates which metrics to use. There are two different types of metrics for each metric type: one is a load metric and one is a scaling metric. For example, if the metric type is `ASGCPUUtilization`, the Auto Scaling group's total CPU metric is used as the load metric, and the average CPU metric is used for the scaling metric. Valid values are `ASGCPUUtilization`, `ASGNetworkIn`, `ASGNetworkOut`, or `ALBRequestCount`.
-* `resource_label` - (Optional) A label that uniquely identifies a specific Application Load Balancer target group from which to determine the request count served by your Auto Scaling group.
+* `resource_label` - (Required) A label that uniquely identifies a specific Application Load Balancer target group from which to determine the request count served by your Auto Scaling group.
 
 ##### predefined_scaling_metric_specification
 
 The following arguments are supported:
 
 * `predefined_metric_type` - (Required) Describes a scaling metric for a predictive scaling policy. Valid values are `ASGAverageCPUUtilization`, `ASGAverageNetworkIn`, `ASGAverageNetworkOut`, or `ALBRequestCountPerTarget`.
-* `resource_label` - (Optional) A label that uniquely identifies a specific Application Load Balancer target group from which to determine the request count served by your Auto Scaling group.
+* `resource_label` - (Required) A label that uniquely identifies a specific Application Load Balancer target group from which to determine the request count served by your Auto Scaling group.
 
 ## Attributes Reference
 

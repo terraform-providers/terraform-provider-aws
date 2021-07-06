@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsMainRouteTableAssociation() *schema.Resource {
@@ -17,16 +20,6 @@ func resourceAwsMainRouteTableAssociation() *schema.Resource {
 		Delete: resourceAwsMainRouteTableAssociationDelete,
 
 		Schema: map[string]*schema.Schema{
-			"vpc_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"route_table_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
 			// We use this field to record the main route table that is automatically
 			// created when the VPC is created. We need this to be able to "destroy"
 			// our main route table association, which we do by returning this route
@@ -35,140 +28,121 @@ func resourceAwsMainRouteTableAssociation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"route_table_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
+			"vpc_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 		},
 	}
 }
 
 func resourceAwsMainRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	vpcId := d.Get("vpc_id").(string)
-	routeTableId := d.Get("route_table_id").(string)
 
-	log.Printf("[INFO] Creating main route table association: %s => %s", vpcId, routeTableId)
+	vpcID := d.Get("vpc_id").(string)
 
-	mainAssociation, err := findMainRouteTableAssociation(conn, vpcId)
+	association, err := finder.MainRouteTableAssociationByVpcID(conn, vpcID)
 
 	if err != nil {
-		return fmt.Errorf("error finding EC2 VPC (%s) main route table association for replacement: %w", vpcId, err)
+		return fmt.Errorf("error reading Main Route Table Association (%s): %w", vpcID, err)
 	}
 
-	if mainAssociation == nil {
-		return fmt.Errorf("error finding EC2 VPC (%s) main route table association for replacement: association not found", vpcId)
+	routeTableID := d.Get("route_table_id").(string)
+	input := &ec2.ReplaceRouteTableAssociationInput{
+		AssociationId: association.RouteTableAssociationId,
+		RouteTableId:  aws.String(routeTableID),
 	}
 
-	resp, err := conn.ReplaceRouteTableAssociation(&ec2.ReplaceRouteTableAssociationInput{
-		AssociationId: mainAssociation.RouteTableAssociationId,
-		RouteTableId:  aws.String(routeTableId),
-	})
+	log.Printf("[DEBUG] Creating Main Route Table Association: %s", input)
+	output, err := conn.ReplaceRouteTableAssociation(input)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating Main Route Table Association (%s): %w", routeTableID, err)
 	}
 
-	d.Set("original_route_table_id", mainAssociation.RouteTableId)
-	d.SetId(aws.StringValue(resp.NewAssociationId))
-	log.Printf("[INFO] New main route table association ID: %s", d.Id())
+	d.SetId(aws.StringValue(output.NewAssociationId))
 
-	return nil
+	log.Printf("[DEBUG] Waiting for Main Route Table Association (%s) creation", d.Id())
+	if _, err := waiter.RouteTableAssociationUpdated(conn, d.Id()); err != nil {
+		return fmt.Errorf("error waiting for Main Route Table Association (%s) create: %w", d.Id(), err)
+	}
+
+	d.Set("original_route_table_id", association.RouteTableId)
+
+	return resourceAwsMainRouteTableAssociationRead(d, meta)
 }
 
 func resourceAwsMainRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	mainAssociation, err := findMainRouteTableAssociation(
-		conn,
-		d.Get("vpc_id").(string))
-	if err != nil {
-		return err
+	_, err := finder.MainRouteTableAssociationByID(conn, d.Id())
+
+	if !d.IsNewResource() && tfresource.NotFound(err) {
+		log.Printf("[WARN] Main Route Table Association (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	if mainAssociation == nil || *mainAssociation.RouteTableAssociationId != d.Id() {
-		// It seems it doesn't exist anymore, so clear the ID
-		d.SetId("")
+	if err != nil {
+		return fmt.Errorf("error reading Main Route Table Association (%s): %w", d.Id(), err)
 	}
 
 	return nil
 }
 
-// Update is almost exactly like Create, except we want to retain the
-// original_route_table_id - this needs to stay recorded as the AWS-created
-// table from VPC creation.
 func resourceAwsMainRouteTableAssociationUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	vpcId := d.Get("vpc_id").(string)
-	routeTableId := d.Get("route_table_id").(string)
 
-	log.Printf("[INFO] Updating main route table association: %s => %s", vpcId, routeTableId)
-
-	resp, err := conn.ReplaceRouteTableAssociation(&ec2.ReplaceRouteTableAssociationInput{
+	routeTableID := d.Get("route_table_id").(string)
+	input := &ec2.ReplaceRouteTableAssociationInput{
 		AssociationId: aws.String(d.Id()),
-		RouteTableId:  aws.String(routeTableId),
-	})
-	if err != nil {
-		return err
+		RouteTableId:  aws.String(routeTableID),
 	}
 
-	d.SetId(aws.StringValue(resp.NewAssociationId))
-	log.Printf("[INFO] New main route table association ID: %s", d.Id())
+	log.Printf("[DEBUG] Updating Main Route Table Association: %s", input)
+	output, err := conn.ReplaceRouteTableAssociation(input)
 
-	return nil
+	if err != nil {
+		return fmt.Errorf("error updating Main Route Table Association (%s): %w", routeTableID, err)
+	}
+
+	// This whole thing with the resource ID being changed on update seems unsustainable.
+	// Keeping it here for backwards compatibility...
+	d.SetId(aws.StringValue(output.NewAssociationId))
+
+	log.Printf("[DEBUG] Waiting for Main Route Table Association (%s) update", d.Id())
+	if _, err := waiter.RouteTableAssociationUpdated(conn, d.Id()); err != nil {
+		return fmt.Errorf("error waiting for Main Route Table Association (%s) update: %w", d.Id(), err)
+	}
+
+	return resourceAwsMainRouteTableAssociationRead(d, meta)
 }
 
 func resourceAwsMainRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	vpcId := d.Get("vpc_id").(string)
-	originalRouteTableId := d.Get("original_route_table_id").(string)
 
-	log.Printf("[INFO] Deleting main route table association by resetting Main Route Table for VPC: %s to its original Route Table: %s",
-		vpcId,
-		originalRouteTableId)
-
-	resp, err := conn.ReplaceRouteTableAssociation(&ec2.ReplaceRouteTableAssociationInput{
+	input := &ec2.ReplaceRouteTableAssociationInput{
 		AssociationId: aws.String(d.Id()),
-		RouteTableId:  aws.String(originalRouteTableId),
-	})
-	if err != nil {
-		return err
+		RouteTableId:  aws.String(d.Get("original_route_table_id").(string)),
 	}
 
-	log.Printf("[INFO] Resulting Association ID: %s", *resp.NewAssociationId)
+	log.Printf("[DEBUG] Deleting Main Route Table Association: %s", input)
+	output, err := conn.ReplaceRouteTableAssociation(input)
+
+	if err != nil {
+		return fmt.Errorf("error deleting Main Route Table Association (%s): %w", d.Get("route_table_id").(string), err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Main Route Table Association (%s) deletion", d.Id())
+	if _, err := waiter.RouteTableAssociationUpdated(conn, aws.StringValue(output.NewAssociationId)); err != nil {
+		return fmt.Errorf("error waiting for Main Route Table Association (%s) delete: %w", d.Id(), err)
+	}
 
 	return nil
-}
-
-func findMainRouteTableAssociation(conn *ec2.EC2, vpcId string) (*ec2.RouteTableAssociation, error) {
-	mainRouteTable, err := findMainRouteTable(conn, vpcId)
-	if err != nil {
-		return nil, err
-	}
-	if mainRouteTable == nil {
-		return nil, nil
-	}
-
-	for _, a := range mainRouteTable.Associations {
-		if *a.Main {
-			return a, nil
-		}
-	}
-	return nil, fmt.Errorf("Could not find main routing table association for VPC: %s", vpcId)
-}
-
-func findMainRouteTable(conn *ec2.EC2, vpcId string) (*ec2.RouteTable, error) {
-	mainFilter := &ec2.Filter{
-		Name:   aws.String("association.main"),
-		Values: []*string{aws.String("true")},
-	}
-	vpcFilter := &ec2.Filter{
-		Name:   aws.String("vpc-id"),
-		Values: []*string{aws.String(vpcId)},
-	}
-	routeResp, err := conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-		Filters: []*ec2.Filter{mainFilter, vpcFilter},
-	})
-	if err != nil {
-		return nil, err
-	} else if len(routeResp.RouteTables) != 1 {
-		return nil, nil
-	}
-
-	return routeResp.RouteTables[0], nil
 }

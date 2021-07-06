@@ -968,6 +968,94 @@ func TestAccAWSLBTargetGroup_updateSticknessEnabled(t *testing.T) {
 	})
 }
 
+func TestAccAWSLBTargetGroup_updateAppSticknessEnabled(t *testing.T) {
+	var conf elbv2.TargetGroup
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
+	resourceName := "aws_lb_target_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, elbv2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBTargetGroupConfig_appStickiness(targetGroupName, false, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
+				),
+			},
+			{
+				Config: testAccAWSLBTargetGroupConfig_appStickiness(targetGroupName, true, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "app_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_name", "Cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
+				),
+			},
+			{
+				Config: testAccAWSLBTargetGroupConfig_appStickiness(targetGroupName, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
+					resource.TestCheckResourceAttr(resourceName, "port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTPS"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_delay", "200"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.type", "app_cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_name", "Cookie"),
+					resource.TestCheckResourceAttr(resourceName, "stickiness.0.cookie_duration", "10000"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.path", "/health2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8082"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "4"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.matcher", "200"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLBTargetGroup_defaults_application(t *testing.T) {
 	var conf elbv2.TargetGroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -2250,6 +2338,53 @@ resource "aws_vpc" "test" {
   }
 }
 `, rName, stickinessBlock)
+}
+
+func testAccAWSLBTargetGroupConfig_appStickiness(targetGroupName string, addAppStickinessBlock bool, enabled bool) string {
+	var appSstickinessBlock string
+
+	if addAppStickinessBlock {
+		appSstickinessBlock = fmt.Sprintf(`
+stickiness {
+  enabled         = "%[1]t"
+  type            = "app_cookie"
+  cookie_name     = "Cookie"
+  cookie_duration = 10000
+}
+`, enabled)
+	}
+
+	return fmt.Sprintf(`
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 443
+  protocol = "HTTPS"
+  vpc_id   = aws_vpc.test.id
+
+  deregistration_delay = 200
+
+  %[2]s
+
+  health_check {
+    path                = "/health2"
+    interval            = 30
+    port                = 8082
+    protocol            = "HTTPS"
+    timeout             = 4
+    healthy_threshold   = 4
+    unhealthy_threshold = 4
+    matcher             = "200"
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-lb-target-group-stickiness"
+  }
+}
+`, targetGroupName, appSstickinessBlock)
 }
 
 func testAccAWSLBTargetGroupConfig_namePrefix(rName string) string {

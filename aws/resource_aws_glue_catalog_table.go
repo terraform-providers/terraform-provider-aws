@@ -622,7 +622,8 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 		storageDescriptor.StoredAsSubDirectories = aws.Bool(v.(bool))
 	}
 
-	if v, ok := s["schema_reference"]; ok {
+	if v, ok := s["schema_reference"]; ok && len(v.([]interface{})) > 0 {
+		storageDescriptor.Columns = nil
 		storageDescriptor.SchemaReference = expandGlueTableSchemaReference(v.([]interface{}))
 	}
 

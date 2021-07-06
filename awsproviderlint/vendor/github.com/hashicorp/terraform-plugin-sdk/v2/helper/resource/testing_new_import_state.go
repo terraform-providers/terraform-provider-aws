@@ -30,7 +30,10 @@ func testStepNewImportState(t testing.T, c TestCase, helper *plugintest.Helper, 
 			return err
 		}
 		return nil
-	}, wd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, wd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		t.Fatalf("Error getting state: %s", err)
 	}
@@ -71,14 +74,20 @@ func testStepNewImportState(t testing.T, c TestCase, helper *plugintest.Helper, 
 
 	err = runProviderCommand(t, func() error {
 		return importWd.Init()
-	}, importWd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, importWd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		t.Fatalf("Error running init: %s", err)
 	}
 
 	err = runProviderCommand(t, func() error {
 		return importWd.Import(step.ResourceName, importId)
-	}, importWd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, importWd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		return err
 	}
@@ -90,7 +99,10 @@ func testStepNewImportState(t testing.T, c TestCase, helper *plugintest.Helper, 
 			return err
 		}
 		return nil
-	}, importWd, c.ProviderFactories, c.ProtoV5ProviderFactories)
+	}, importWd, providerFactories{
+		legacy:  c.ProviderFactories,
+		protov5: c.ProtoV5ProviderFactories,
+		protov6: c.ProtoV6ProviderFactories})
 	if err != nil {
 		t.Fatalf("Error getting state: %s", err)
 	}

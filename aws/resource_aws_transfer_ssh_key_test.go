@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSTransferSshKey_basic(t *testing.T) {
+func testAccAWSTransferSshKey_basic(t *testing.T) {
 	var conf transfer.SshPublicKey
 	rName := acctest.RandString(5)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
 		ErrorCheck:   testAccErrorCheck(t, transfer.EndpointsID),
 		Providers:    testAccProviders,
