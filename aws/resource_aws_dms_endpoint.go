@@ -379,7 +379,7 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			MessageFormat:        aws.String(d.Get("kinesis_settings.0.message_format").(string)),
 			ServiceAccessRoleArn: aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
 			StreamArn:            aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
-			InludeNullAndEmpty:   aws.String(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
+			InludeNullAndEmpty:   aws.Bool(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
 		}
 	case "mongodb":
 		request.MongoDbSettings = &dms.MongoDbSettings{
