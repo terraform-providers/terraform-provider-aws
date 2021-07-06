@@ -190,6 +190,10 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateArn,
 						},
+						"include_null_and_empty": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -375,6 +379,7 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			MessageFormat:        aws.String(d.Get("kinesis_settings.0.message_format").(string)),
 			ServiceAccessRoleArn: aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
 			StreamArn:            aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
+			InludeNullAndEmpty:   aws.String(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
 		}
 	case "mongodb":
 		request.MongoDbSettings = &dms.MongoDbSettings{
@@ -602,13 +607,15 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	case "kinesis":
 		if d.HasChanges(
 			"kinesis_settings.0.service_access_role_arn",
-			"kinesis_settings.0.stream_arn") {
+			"kinesis_settings.0.stream_arn",
+			"kinesis_settings.0.include_null_and_empty") {
 			// Intentionally omitting MessageFormat, because it's rejected on ModifyEndpoint calls.
 			// "An error occurred (InvalidParameterValueException) when calling the ModifyEndpoint
 			// operation: Message format  cannot be modified for kinesis endpoints."
 			request.KinesisSettings = &dms.KinesisSettings{
 				ServiceAccessRoleArn: aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
 				StreamArn:            aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
+				InludeNullAndEmpty:   aws.String(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
 			}
 			request.EngineName = aws.String(d.Get("engine_name").(string)) // Must be included (should be 'kinesis')
 			hasChanges = true
@@ -815,6 +822,7 @@ func flattenDmsKinesisSettings(settings *dms.KinesisSettings) []map[string]inter
 		"message_format":          aws.StringValue(settings.MessageFormat),
 		"service_access_role_arn": aws.StringValue(settings.ServiceAccessRoleArn),
 		"stream_arn":              aws.StringValue(settings.StreamArn),
+		"include_null_and_empty":  aws.BoolValue(settings.IncludeNullAndEmpty),
 	}
 
 	return []map[string]interface{}{m}
