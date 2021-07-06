@@ -98,6 +98,7 @@ The `kinesis_settings` configuration block supports the following arguments:
 * `message_format` - (Optional) Output format for the records created. Defaults to `json`. Valid values are `json` and `json_unformatted` (a single line with no tab).
 * `service_access_role_arn` - (Optional) Amazon Resource Name (ARN) of the IAM Role with permissions to write to the Kinesis data stream.
 * `stream_arn` - (Optional) Amazon Resource Name (ARN) of the Kinesis data stream.
+* `include_null_and_empty` - (Optional) Include NULL and empty columns for records migrated to the endpoint. The default is false.
 
 ### mongodb_settings Arguments
 
