@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -17,10 +18,11 @@ import (
 
 func resourceAwsStorageGatewayFsxAssociateFileSystem() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAwsStorageGatewayFsxAssociateFileSystemCreate,
-		Read:   resourceAwsStorageGatewayFsxAssociateFileSystemRead,
-		Update: resourceAwsStorageGatewayFsxAssociateFileSystemUpdate,
-		Delete: resourceAwsStorageGatewayFsxAssociateFileSystemDelete,
+		Create:        resourceAwsStorageGatewayFsxAssociateFileSystemCreate,
+		Read:          resourceAwsStorageGatewayFsxAssociateFileSystemRead,
+		Update:        resourceAwsStorageGatewayFsxAssociateFileSystemUpdate,
+		Delete:        resourceAwsStorageGatewayFsxAssociateFileSystemDelete,
+		CustomizeDiff: customdiff.Sequence(SetTagsDiff),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -151,7 +153,7 @@ func resourceAwsStorageGatewayFsxAssociateFileSystemRead(d *schema.ResourceData,
 	output, err := conn.DescribeFileSystemAssociations(input)
 	if err != nil {
 		if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified fsx file system was not found.") {
-			log.Printf("[WARN] Storage Gateway FSx File System Assocation %q not found, removing from state", d.Id())
+			log.Printf("[WARN] Storage Gateway FSx File System Association %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -241,8 +243,8 @@ func resourceAwsStorageGatewayFsxAssociateFileSystemDelete(d *schema.ResourceDat
 	log.Printf("[DEBUG] Deleting Storage Gateway File System Association: %s", input)
 	_, err := conn.DisassociateFileSystem(input)
 	if err != nil {
-		if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified fsx file system was not found.") {
-			log.Printf("[WARN] Storage Gateway FSx File System Assocation %q not found, removing from state", d.Id())
+		if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file system association") {
+			log.Printf("[WARN] Storage Gateway FSx File System Association %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}

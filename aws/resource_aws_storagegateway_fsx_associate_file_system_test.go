@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"io/ioutil"
 	"regexp"
 	"testing"
 
@@ -31,7 +30,6 @@ func TestAccAWSStorageGatewayFsxAssociateFileSystem_basic(t *testing.T) {
 				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfig_Required(rName, username),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
-
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
 					resource.TestCheckResourceAttrPair(resourceName, "gateway_arn", gatewayResourceName, "arn"),
 					resource.TestCheckResourceAttrPair(resourceName, "location_arn", fsxResourceName, "arn"),
@@ -39,27 +37,92 @@ func TestAccAWSStorageGatewayFsxAssociateFileSystem_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cache_attributes.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
-				Destroy: false,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"username", "password"},
 			},
 		},
 	})
 }
 
-func TestAccAWSStorageGatewayFsxAssociateFileSystem_tags1(t *testing.T) {
-}
+func TestAccAWSStorageGatewayFsxAssociateFileSystem_tags(t *testing.T) {
+	var fsxFileSystemAssociation storagegateway.FileSystemAssociationInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_fsx_associate_file_system.test"
+	username := "Admin"
 
-func TestAccAWSStorageGatewayFsxAssociateFileSystem_tags2(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(storagegateway.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, storagegateway.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsStorageGatewayFsxAssociateFileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "key1", "value1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"username", "password"},
+			},
+			{
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags2(rName, username, "value1updated", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "key2", "value2"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAWSStorageGatewayFsxAssociateFileSystem_cacheAttributes(t *testing.T) {
 }
 
 func TestAccAWSStorageGatewayFsxAssociateFileSystem_disappears(t *testing.T) {
+	var fsxFileSystemAssociation storagegateway.FileSystemAssociationInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_fsx_associate_file_system.test"
+	username := "Admin"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(storagegateway.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, storagegateway.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsStorageGatewayFsxAssociateFileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfig_Required(rName, username),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsStorageGatewayFsxAssociateFileSystem(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 func testAccCheckAwsStorageGatewayFsxAssociateFileSystemDestroy(s *terraform.State) error {
@@ -77,7 +140,7 @@ func testAccCheckAwsStorageGatewayFsxAssociateFileSystemDestroy(s *terraform.Sta
 		output, err := conn.DescribeFileSystemAssociations(input)
 
 		if err != nil {
-			if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified fsx file share was not found.") {
+			if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file system association") {
 				continue
 			}
 			return err
@@ -159,7 +222,7 @@ resource "aws_storagegateway_gateway" "test" {
 }
 
 func testAccAwsStorageGatewayFsxAssociateFileSystemConfig_Required(rName, username string) string {
-	tempVar := testAccAWSStorageGatewayFsxAssociateFileSystemBase(rName, username) + fmt.Sprintf(`
+	return testAccAWSStorageGatewayFsxAssociateFileSystemBase(rName, username) + fmt.Sprintf(`
 resource "aws_storagegateway_fsx_associate_file_system" "test" {
   gateway_arn = aws_storagegateway_gateway.test.arn
   location_arn = aws_fsx_windows_file_system.test.arn
@@ -167,11 +230,35 @@ resource "aws_storagegateway_fsx_associate_file_system" "test" {
   password = aws_directory_service_directory.test.password
 }
 `, username)
+}
 
-	data := []byte(tempVar)
-	err := ioutil.WriteFile("/tmp/tf_resources.tf", data, 0644)
-	if err != nil {
-		return ""
-	}
-	return tempVar
+func testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username string, tagValue1 string) string {
+	return testAccAWSStorageGatewayFsxAssociateFileSystemBase(rName, username) + fmt.Sprintf(`
+resource "aws_storagegateway_fsx_associate_file_system" "test" {
+  gateway_arn = aws_storagegateway_gateway.test.arn
+  location_arn = aws_fsx_windows_file_system.test.arn
+  username = %[1]q
+  password = aws_directory_service_directory.test.password
+
+  tags = {
+    key1 = %[2]q
+  }
+}
+`, username, tagValue1)
+}
+
+func testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags2(rName, username string, tagValue1 string, tagValue2 string) string {
+	return testAccAWSStorageGatewayFsxAssociateFileSystemBase(rName, username) + fmt.Sprintf(`
+resource "aws_storagegateway_fsx_associate_file_system" "test" {
+  gateway_arn = aws_storagegateway_gateway.test.arn
+  location_arn = aws_fsx_windows_file_system.test.arn
+  username = %[1]q
+  password = aws_directory_service_directory.test.password
+
+  tags = {
+    key1 = %[2]q
+	key2 = %[3]q
+  }
+}
+`, username, tagValue1, tagValue2)
 }

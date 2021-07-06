@@ -149,7 +149,7 @@ func FsxFileSystemStatus(conn *storagegateway.StorageGateway, fileSystemArn stri
 		log.Printf("[DEBUG] Reading Storage Gateway FSx File System: %s", input)
 		output, err := conn.DescribeFileSystemAssociations(input)
 		if err != nil {
-			if tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file system association was not found.") {
+			if tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file system association") {
 				return nil, FsxFileSystemStatusNotFound, nil
 			}
 			return nil, FsxFileSystemStatusUnknown, fmt.Errorf("error reading Storage Gateway FSx File System: %w", err)
