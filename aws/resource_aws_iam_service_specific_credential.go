@@ -146,7 +146,7 @@ func resourceAwsIamServiceSpecificCredentialUpdate(d *schema.ResourceData, meta 
 
 		_, err := conn.UpdateServiceSpecificCredential(updateInput)
 		if err != nil {
-			return fmt.Errorf("error settings IAM Service Specific Credential status: %w", err)
+			return fmt.Errorf("error setting IAM Service Specific Credential status: %w", err)
 		}
 	}
 
