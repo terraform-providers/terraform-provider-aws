@@ -193,6 +193,7 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 						"include_null_and_empty": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
