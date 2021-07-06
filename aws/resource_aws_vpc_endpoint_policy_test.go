@@ -75,6 +75,7 @@ func TestAccAWSVpcEndpointPolicy_disappears_vpcEndpoint(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcEndpointDestroy,
 		Steps: []resource.TestStep{
