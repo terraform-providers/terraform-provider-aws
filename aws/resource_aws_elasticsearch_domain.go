@@ -829,7 +829,7 @@ func resourceAwsElasticSearchDomainUpdate(d *schema.ResourceData, meta interface
 		}
 
 		if d.HasChange("advanced_options") {
-			input.AdvancedOptions = stringMapToPointers(d.Get("advanced_options").(map[string]interface{}))
+			input.AdvancedOptions = expandStringMap(d.Get("advanced_options").(map[string]interface{}))
 		}
 
 		if d.HasChange("advanced_security_options") {
