@@ -407,6 +407,15 @@ func resourceAwsDbInstance() *schema.Resource {
 				Optional: true,
 			},
 
+			"replica_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"mounted",
+					"open-read-only",
+				}, false),
+			},
+
 			"replicas": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -699,6 +708,11 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 		if attr, ok := d.GetOk("ca_cert_identifier"); ok {
 			modifyDbInstanceInput.CACertificateIdentifier = aws.String(attr.(string))
+			requiresModifyDbInstance = true
+		}
+
+		if attr, ok := d.GetOk("replica_mode"); ok {
+			opts.ReplicaMode = aws.String(attr.(string))
 			requiresModifyDbInstance = true
 		}
 
@@ -1521,6 +1535,7 @@ func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("replicate_source_db", v.ReadReplicaSourceDBInstanceIdentifier)
+	d.Set("replica_mode", v.ReplicaMode)
 
 	d.Set("ca_cert_identifier", v.CACertificateIdentifier)
 
@@ -1763,6 +1778,11 @@ func resourceAwsDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			req.PerformanceInsightsRetentionPeriod = aws.Int64(int64(v.(int)))
 		}
 
+		requestUpdate = true
+	}
+
+	if d.HasChange("replica_mode") {
+		req.ReplicaMode = aws.String(d.Get("replica_mode").(string))
 		requestUpdate = true
 	}
 
