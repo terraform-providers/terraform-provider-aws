@@ -34,13 +34,9 @@ func resourceAwsDmsReplicationTask() *schema.Resource {
 				// Requires a Unix timestamp in seconds. Example 1484346880
 			},
 			"migration_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					dms.MigrationTypeValueFullLoad,
-					dms.MigrationTypeValueCdc,
-					dms.MigrationTypeValueFullLoadAndCdc,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(dms.MigrationTypeValue_Values(), false),
 			},
 			"replication_instance_arn": {
 				Type:         schema.TypeString,

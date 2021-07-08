@@ -73,12 +73,10 @@ func resourceAwsDlmLifecyclePolicy() *schema.Resource {
 													ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 6, 8, 12, 24}),
 												},
 												"interval_unit": {
-													Type:     schema.TypeString,
-													Optional: true,
-													Default:  dlm.IntervalUnitValuesHours,
-													ValidateFunc: validation.StringInSlice([]string{
-														dlm.IntervalUnitValuesHours,
-													}, false),
+													Type:         schema.TypeString,
+													Optional:     true,
+													Default:      dlm.IntervalUnitValuesHours,
+													ValidateFunc: validation.StringInSlice(dlm.IntervalUnitValues_Values(), false),
 												},
 												"times": {
 													Type:     schema.TypeList,
@@ -129,13 +127,10 @@ func resourceAwsDlmLifecyclePolicy() *schema.Resource {
 				},
 			},
 			"state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  dlm.SettablePolicyStateValuesEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					dlm.SettablePolicyStateValuesDisabled,
-					dlm.SettablePolicyStateValuesEnabled,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      dlm.SettablePolicyStateValuesEnabled,
+				ValidateFunc: validation.StringInSlice(dlm.SettablePolicyStateValues_Values(), false),
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),

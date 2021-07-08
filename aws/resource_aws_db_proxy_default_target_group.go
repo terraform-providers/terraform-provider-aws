@@ -76,7 +76,7 @@ func resourceAwsDbProxyDefaultTargetGroup() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
-								// This isn't available as a constant
+								//lintignore:AWSV001 // no enum in AWS SDK
 								ValidateFunc: validation.StringInSlice([]string{
 									"EXCLUDE_VARIABLE_SETS",
 								}, false),

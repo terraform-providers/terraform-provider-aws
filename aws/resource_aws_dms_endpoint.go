@@ -97,16 +97,14 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 				ValidateFunc: validateDmsEndpointId,
 			},
 			"endpoint_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					dms.ReplicationEndpointTypeValueSource,
-					dms.ReplicationEndpointTypeValueTarget,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(dms.ReplicationEndpointTypeValue_Values(), false),
 			},
 			"engine_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"aurora",
 					"aurora-postgresql",
@@ -172,13 +170,10 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"message_format": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								dms.MessageFormatValueJson,
-								dms.MessageFormatValueJsonUnformatted,
-							}, false),
-							Default: dms.MessageFormatValueJson,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(dms.MessageFormatValue_Values(), false),
+							Default:      dms.MessageFormatValueJson,
 						},
 						"service_access_role_arn": {
 							Type:         schema.TypeString,
@@ -318,15 +313,10 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 				Optional: true,
 			},
 			"ssl_mode": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					dms.DmsSslModeValueNone,
-					dms.DmsSslModeValueRequire,
-					dms.DmsSslModeValueVerifyCa,
-					dms.DmsSslModeValueVerifyFull,
-				}, false),
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(dms.DmsSslModeValue_Values(), false),
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),

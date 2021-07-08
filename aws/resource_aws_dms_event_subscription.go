@@ -69,6 +69,7 @@ func resourceAwsDmsEventSubscription() *schema.Resource {
 				Optional: true,
 				// The API suppors modification but doing so loses all source_ids
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"replication-instance",
 					"replication-task",

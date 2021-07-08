@@ -83,12 +83,9 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 32766),
 						},
 						"action": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.RuleActionAllow,
-								ec2.RuleActionDeny,
-							}, true),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ec2.RuleAction_Values(), true),
 						},
 						"protocol": {
 							Type:     schema.TypeString,
@@ -143,12 +140,9 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 32766),
 						},
 						"action": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.RuleActionAllow,
-								ec2.RuleActionDeny,
-							}, true),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ec2.RuleAction_Values(), true),
 						},
 						"protocol": {
 							Type:     schema.TypeString,

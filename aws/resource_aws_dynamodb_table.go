@@ -84,13 +84,9 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 							Required: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								dynamodb.ScalarAttributeTypeB,
-								dynamodb.ScalarAttributeTypeN,
-								dynamodb.ScalarAttributeTypeS,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(dynamodb.ScalarAttributeType_Values(), false),
 						},
 					},
 				},
@@ -102,13 +98,10 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 				},
 			},
 			"billing_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  dynamodb.BillingModeProvisioned,
-				ValidateFunc: validation.StringInSlice([]string{
-					dynamodb.BillingModePayPerRequest,
-					dynamodb.BillingModeProvisioned,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      dynamodb.BillingModeProvisioned,
+				ValidateFunc: validation.StringInSlice(dynamodb.BillingMode_Values(), false),
 			},
 			"global_secondary_index": {
 				Type:     schema.TypeSet,
@@ -276,13 +269,7 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 					value := v.(string)
 					return strings.ToUpper(value)
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					"",
-					dynamodb.StreamViewTypeNewImage,
-					dynamodb.StreamViewTypeOldImage,
-					dynamodb.StreamViewTypeNewAndOldImages,
-					dynamodb.StreamViewTypeKeysOnly,
-				}, false),
+				ValidateFunc: validation.StringInSlice(dynamodb.StreamViewType_Values(), false),
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),

@@ -72,13 +72,10 @@ func resourceAwsDocDBClusterParameterGroup() *schema.Resource {
 							Required: true,
 						},
 						"apply_method": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  docdb.ApplyMethodPendingReboot,
-							ValidateFunc: validation.StringInSlice([]string{
-								docdb.ApplyMethodImmediate,
-								docdb.ApplyMethodPendingReboot,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      docdb.ApplyMethodPendingReboot,
+							ValidateFunc: validation.StringInSlice(docdb.ApplyMethod_Values(), false),
 						},
 					},
 				},

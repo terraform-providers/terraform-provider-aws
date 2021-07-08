@@ -24,13 +24,10 @@ func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"address_family": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					directconnect.AddressFamilyIpv4,
-					directconnect.AddressFamilyIpv6,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(directconnect.AddressFamily_Values(), false),
 			},
 			"amazon_address": {
 				Type:     schema.TypeString,

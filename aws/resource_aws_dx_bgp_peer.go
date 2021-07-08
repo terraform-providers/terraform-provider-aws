@@ -23,7 +23,7 @@ func resourceAwsDxBgpPeer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{directconnect.AddressFamilyIpv4, directconnect.AddressFamilyIpv6}, false),
+				ValidateFunc: validation.StringInSlice(directconnect.AddressFamily_Values(), false),
 			},
 			"bgp_asn": {
 				Type:     schema.TypeInt,
