@@ -3234,6 +3234,174 @@ func TestAccAWSDBInstance_RestoreToPointInTime_SourceResourceID(t *testing.T) {
 	})
 }
 
+func TestAccAWSDBInstance_CoipEnabled(t *testing.T) {
+	var v rds.DBInstance
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, true, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &v),
+					testAccCheckAWSDBInstanceAttributes(&v),
+					resource.TestCheckResourceAttr(
+						resourceName, "customer_owned_ip_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_CoipEnabled_DisabledToEnabled(t *testing.T) {
+	var dbInstance rds.DBInstance
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, false, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ip_enabled", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"password",
+					"skip_final_snapshot",
+					"final_snapshot_identifier",
+				},
+			},
+			{
+				Config: testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, true, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ip_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_CoipEnabled_EnabledToDisabled(t *testing.T) {
+	var dbInstance rds.DBInstance
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, true, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ip_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"password",
+					"skip_final_snapshot",
+					"final_snapshot_identifier",
+				},
+			},
+			{
+				Config: testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, false, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ip_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_CoipEnabled_RestoreToPointInTime(t *testing.T) {
+	var dbInstance, sourceDbInstance rds.DBInstance
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	sourceName := "aws_db_instance.test"
+	resourceName := "aws_db_instance.restore"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_CoipEnabled_RestorePointInTime(rName, false, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(sourceName, &sourceDbInstance),
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ip_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"delete_automated_backups",
+					"final_snapshot_identifier",
+					"latest_restorable_time", // dynamic value of a DBInstance
+					"password",
+					"restore_to_point_in_time",
+					"skip_final_snapshot",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_CoipEnabled_SnapshotIdentifier(t *testing.T) {
+	var dbInstance, sourceDbInstance rds.DBInstance
+	var dbSnapshot rds.DBSnapshot
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	sourceDbResourceName := "aws_db_instance.test"
+	snapshotResourceName := "aws_db_snapshot.test"
+	resourceName := "aws_db_instance.restore"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_CoipEnabled_SnapshotIdentifier(rName, false, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(sourceDbResourceName, &sourceDbInstance),
+					testAccCheckDbSnapshotExists(snapshotResourceName, &dbSnapshot),
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ip_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAWSDBInstanceConfig_orderableClass(engine, version, license string) string {
 	return fmt.Sprintf(`
 data "aws_rds_orderable_db_instance" "test" {
@@ -7438,4 +7606,117 @@ resource "aws_db_instance" "test" {
   delete_automated_backups = false
 }
 `, rName))
+}
+
+func testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName string, coipEnabled bool, backupRetentionPeriod int) string {
+	return fmt.Sprintf(`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+resource "aws_vpc" "foo" {
+  cidr_block = "10.128.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "foo" {
+  cidr_block        = "10.128.1.0/24"
+  availability_zone = data.aws_outposts_outpost.test.availability_zone
+  vpc_id            = aws_vpc.foo.id
+  outpost_arn       = data.aws_outposts_outpost.test.arn
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_db_subnet_group" "foo" {
+  name       = %[1]q
+  subnet_ids = [aws_subnet.foo.id]
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+data "aws_ec2_local_gateway_route_table" "test" {
+  outpost_arn = data.aws_outposts_outpost.test.arn
+}
+
+resource "aws_ec2_local_gateway_route_table_vpc_association" "test" {
+  local_gateway_route_table_id = data.aws_ec2_local_gateway_route_table.test.id
+  vpc_id                       = aws_vpc.foo.id
+}
+
+data "aws_rds_engine_version" "test" {
+  engine             = "mysql"
+  preferred_versions = ["8.0.17", "8.0.19", "8.0.20", "8.0.21"]
+}
+
+data "aws_rds_orderable_db_instance" "test" {
+  engine                     = data.aws_rds_engine_version.test.engine
+  engine_version             = data.aws_rds_engine_version.test.version
+  preferred_instance_classes = ["db.m5.large", "db.m5.xlarge", "db.r5.large", "db.r5.xlarge"]
+}
+
+resource "aws_db_instance" "test" {
+  identifier                = %[1]q
+  allocated_storage         = 20
+  backup_retention_period   = %[3]d
+  engine                    = data.aws_rds_orderable_db_instance.test.engine
+  engine_version            = data.aws_rds_orderable_db_instance.test.engine_version
+  instance_class            = data.aws_rds_orderable_db_instance.test.instance_class
+  name                      = "baz"
+  parameter_group_name      = "default.${data.aws_rds_engine_version.test.parameter_group_family}"
+  password                  = "barbarbarbar"
+  skip_final_snapshot       = true
+  username                  = "foo"
+  db_subnet_group_name      = aws_db_subnet_group.foo.name
+  storage_encrypted         = true
+  customer_owned_ip_enabled = %[2]t
+}
+`, rName, coipEnabled, backupRetentionPeriod)
+}
+
+func testAccAWSDBInstanceConfig_CoipEnabled_RestorePointInTime(rName string, sourceCoipEnabled bool, targetCoipEnabled bool) string {
+	return composeConfig(
+		testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, sourceCoipEnabled, 1),
+		fmt.Sprintf(`
+resource "aws_db_instance" "restore" {
+  identifier     = "%[1]s-restore"
+  instance_class = aws_db_instance.test.instance_class
+  restore_to_point_in_time {
+    source_db_instance_identifier = aws_db_instance.test.identifier
+    use_latest_restorable_time    = true
+  }
+  storage_encrypted         = true
+  skip_final_snapshot       = true
+  db_subnet_group_name      = aws_db_instance.test.db_subnet_group_name
+  customer_owned_ip_enabled = %[2]t
+}
+`, rName, targetCoipEnabled))
+}
+
+func testAccAWSDBInstanceConfig_CoipEnabled_SnapshotIdentifier(rName string, sourceCoipEnabled bool, targetCoipEnabled bool) string {
+	return composeConfig(testAccAWSDBInstanceConfig_Outpost_CoipEnabled(rName, sourceCoipEnabled, 1), fmt.Sprintf(`
+resource "aws_db_snapshot" "test" {
+  db_instance_identifier = aws_db_instance.test.id
+  db_snapshot_identifier = %[1]q
+}
+
+resource "aws_db_instance" "restore" {
+  customer_owned_ip_enabled = %[2]t
+  db_subnet_group_name      = aws_db_subnet_group.foo.name
+  storage_encrypted         = true
+  identifier                = "%[1]s-restore"
+  instance_class            = aws_db_instance.test.instance_class
+  snapshot_identifier       = aws_db_snapshot.test.id
+  skip_final_snapshot       = true
+}
+`, rName, targetCoipEnabled))
 }

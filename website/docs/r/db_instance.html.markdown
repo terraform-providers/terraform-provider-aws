@@ -205,6 +205,7 @@ for more information.
 is provided) Username for the master DB user.
 * `vpc_security_group_ids` - (Optional) List of VPC security groups to
 associate.
+* `customer_owned_ip_enabled` - (Optional) Indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance. See [CoIP for RDS on Outposts](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html#rds-on-outposts.coip) for more information.
 
 ~> **NOTE:** Removing the `replicate_source_db` attribute from an existing RDS
 Replicate database managed by Terraform will promote the database to a fully
