@@ -968,15 +968,16 @@ func parseRecordId(id string) [4]string {
 	parts := strings.SplitN(id, "_", 2)
 	if len(parts) == 2 {
 		recZone = parts[0]
-		lastUnderscore := strings.LastIndex(parts[1], "_")
-		if lastUnderscore != -1 {
-			recName, recType = parts[1][0:lastUnderscore], parts[1][lastUnderscore+1:]
-			if !r53ValidRecordTypes.MatchString(recType) {
-				recSet, recType = recType, ""
-				lastUnderscore = strings.LastIndex(recName, "_")
-				if lastUnderscore != -1 {
-					recName, recType = recName[0:lastUnderscore], recName[lastUnderscore+1:]
-				}
+		firstUnderscore := strings.Index(parts[1][:], "_")
+		// Handles the case of having a DNS name that starts with _
+		if firstUnderscore == 0 {
+			firstUnderscore = strings.Index(parts[1][1:], "_") + 1
+		}
+		recName, recType = parts[1][0:firstUnderscore], parts[1][firstUnderscore+1:]
+		if !r53ValidRecordTypes.MatchString(recType) {
+			firstUnderscore = strings.Index(recType, "_")
+			if firstUnderscore != -1 {
+				recType, recSet = recType[0:firstUnderscore], recType[firstUnderscore+1:]
 			}
 		}
 	}
