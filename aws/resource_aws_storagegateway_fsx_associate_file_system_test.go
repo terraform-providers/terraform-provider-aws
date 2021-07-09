@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -144,17 +143,15 @@ func testAccCheckAwsStorageGatewayFsxAssociateFileSystemDestroy(s *terraform.Sta
 
 		if err != nil {
 			if tfawserr.ErrCodeEquals(err, storagegateway.ErrCodeInvalidGatewayRequestException) {
-				var awsErr awserr.Error
-				if errors.As(err, &awsErr) {
-					nestedErr := awsErr.OrigErr()
-					if nestedErr != nil && tfawserr.ErrCodeEquals(nestedErr, "FileSystemAssociationNotFound") {
-						continue
+				var igrex *storagegateway.InvalidGatewayRequestException
+				if ok := errors.As(err, &igrex); ok {
+					if err := igrex.Error_; err != nil {
+						if aws.StringValue(err.ErrorCode) == "FileSystemAssociationNotFound" {
+							continue
+						}
 					}
 				}
 			}
-			// if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file system association") {
-			// 	continue
-			// }
 			return err
 		}
 

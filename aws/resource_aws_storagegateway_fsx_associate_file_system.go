@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
@@ -126,22 +125,18 @@ func resourceAwsStorageGatewayFsxAssociateFileSystemCreate(d *schema.ResourceDat
 	output, err := conn.AssociateFileSystem(input)
 	if err != nil {
 		if tfawserr.ErrCodeEquals(err, storagegateway.ErrCodeInvalidGatewayRequestException) {
-			var awsErr awserr.Error
-			if errors.As(err, &awsErr) {
-				nestedErr := awsErr.OrigErr()
-				if nestedErr != nil && tfawserr.ErrCodeEquals(nestedErr, "FileSystemAssociationNotFound") {
-					log.Printf("[WARN] FSX File System %q not found, removing from state", d.Id())
-					d.SetId("")
-					return nil
+			var igrex *storagegateway.InvalidGatewayRequestException
+			if ok := errors.As(err, &igrex); ok {
+				if err := igrex.Error_; err != nil {
+					if aws.StringValue(err.ErrorCode) == "FileSystemAssociationNotFound" {
+						log.Printf("[WARN] FSX File System %q not found, removing from state", d.Id())
+						d.SetId("")
+						return nil
+					}
 				}
 			}
 		}
 
-		// if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified fsx file system was not found.") {
-		// 	log.Printf("[WARN] FSX File System %q not found, removing from state", d.Id())
-		// 	d.SetId("")
-		// 	return nil
-		// }
 		return fmt.Errorf("Error associating file system to storage gateway: %w", err)
 	}
 
@@ -168,21 +163,18 @@ func resourceAwsStorageGatewayFsxAssociateFileSystemRead(d *schema.ResourceData,
 	output, err := conn.DescribeFileSystemAssociations(input)
 	if err != nil {
 		if tfawserr.ErrCodeEquals(err, storagegateway.ErrCodeInvalidGatewayRequestException) {
-			var awsErr awserr.Error
-			if errors.As(err, &awsErr) {
-				nestedErr := awsErr.OrigErr()
-				if nestedErr != nil && tfawserr.ErrCodeEquals(nestedErr, "FileSystemAssociationNotFound") {
-					log.Printf("[WARN] FSX File System %q not found, removing from state", d.Id())
-					d.SetId("")
-					return nil
+			var igrex *storagegateway.InvalidGatewayRequestException
+			if ok := errors.As(err, &igrex); ok {
+				if err := igrex.Error_; err != nil {
+					if aws.StringValue(err.ErrorCode) == "FileSystemAssociationNotFound" {
+						log.Printf("[WARN] FSX File System %q not found, removing from state", d.Id())
+						d.SetId("")
+						return nil
+					}
 				}
 			}
 		}
-		// if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified fsx file system was not found.") {
-		// 	log.Printf("[WARN] Storage Gateway FSx File System Association %q not found, removing from state", d.Id())
-		// 	d.SetId("")
-		// 	return nil
-		// }
+
 		return fmt.Errorf("error reading Storage Gateway FSx File System: %w", err)
 	}
 

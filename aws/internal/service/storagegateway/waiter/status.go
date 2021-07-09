@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -153,15 +152,16 @@ func FsxFileSystemStatus(conn *storagegateway.StorageGateway, fileSystemArn stri
 		if err != nil {
 			// currently verbose, can update for clarity pending: https://github.com/hashicorp/aws-sdk-go-base/issues/59
 			if tfawserr.ErrCodeEquals(err, storagegateway.ErrCodeInvalidGatewayRequestException) {
-				var awsErr awserr.Error
-				if errors.As(err, &awsErr) {
-					nestedErr := awsErr.OrigErr()
-					if nestedErr != nil && tfawserr.ErrCodeEquals(nestedErr, "FileSystemAssociationNotFound") {
-						return nil, FsxFileSystemStatusNotFound, nil
+
+				var igrex *storagegateway.InvalidGatewayRequestException
+				if ok := errors.As(err, &igrex); ok {
+					if err := igrex.Error_; err != nil {
+						if aws.StringValue(err.ErrorCode) == "FileSystemAssociationNotFound" {
+							return nil, FsxFileSystemStatusNotFound, nil
+						}
 					}
 				}
 			}
-
 			return nil, FsxFileSystemStatusUnknown, fmt.Errorf("error reading Storage Gateway FSx File System: %w", err)
 		}
 
