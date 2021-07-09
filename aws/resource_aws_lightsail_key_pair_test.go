@@ -15,7 +15,9 @@ import (
 
 func TestAccAWSLightsailKeyPair_basic(t *testing.T) {
 	var conf lightsail.KeyPair
-	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resourceName := "aws_lightsail_key_pair.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
@@ -24,13 +26,13 @@ func TestAccAWSLightsailKeyPair_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLightsailKeyPairConfig_basic(lightsailName),
+				Config: testAccAWSLightsailKeyPairConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSLightsailKeyPairExists("aws_lightsail_key_pair.lightsail_key_pair_test", &conf),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "arn"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "fingerprint"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "public_key"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "private_key"),
+					testAccCheckAWSLightsailKeyPairExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "fingerprint"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_key"),
 				),
 			},
 		},
@@ -39,7 +41,14 @@ func TestAccAWSLightsailKeyPair_basic(t *testing.T) {
 
 func TestAccAWSLightsailKeyPair_publicKey(t *testing.T) {
 	var conf lightsail.KeyPair
-	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resourceName := "aws_lightsail_key_pair.test"
+
+	publicKey, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
@@ -48,15 +57,15 @@ func TestAccAWSLightsailKeyPair_publicKey(t *testing.T) {
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLightsailKeyPairConfig_imported(lightsailName, lightsailPubKey),
+				Config: testAccAWSLightsailKeyPairConfig_imported(rName, publicKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSLightsailKeyPairExists("aws_lightsail_key_pair.lightsail_key_pair_test", &conf),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "arn"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "fingerprint"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "public_key"),
-					resource.TestCheckNoResourceAttr("aws_lightsail_key_pair.lightsail_key_pair_test", "encrypted_fingerprint"),
-					resource.TestCheckNoResourceAttr("aws_lightsail_key_pair.lightsail_key_pair_test", "encrypted_private_key"),
-					resource.TestCheckNoResourceAttr("aws_lightsail_key_pair.lightsail_key_pair_test", "private_key"),
+					testAccCheckAWSLightsailKeyPairExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "fingerprint"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckNoResourceAttr(resourceName, "encrypted_fingerprint"),
+					resource.TestCheckNoResourceAttr(resourceName, "encrypted_private_key"),
+					resource.TestCheckNoResourceAttr(resourceName, "private_key"),
 				),
 			},
 		},
@@ -65,7 +74,9 @@ func TestAccAWSLightsailKeyPair_publicKey(t *testing.T) {
 
 func TestAccAWSLightsailKeyPair_encrypted(t *testing.T) {
 	var conf lightsail.KeyPair
-	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resourceName := "aws_lightsail_key_pair.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSLightsail(t) },
@@ -74,15 +85,15 @@ func TestAccAWSLightsailKeyPair_encrypted(t *testing.T) {
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLightsailKeyPairConfig_encrypted(lightsailName, testLightsailKeyPairPubKey1),
+				Config: testAccAWSLightsailKeyPairConfig_encrypted(rName, testLightsailKeyPairPubKey1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSLightsailKeyPairExists("aws_lightsail_key_pair.lightsail_key_pair_test", &conf),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "arn"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "fingerprint"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "encrypted_fingerprint"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "encrypted_private_key"),
-					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "public_key"),
-					resource.TestCheckNoResourceAttr("aws_lightsail_key_pair.lightsail_key_pair_test", "private_key"),
+					testAccCheckAWSLightsailKeyPairExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "fingerprint"),
+					resource.TestCheckResourceAttrSet(resourceName, "encrypted_fingerprint"),
+					resource.TestCheckResourceAttrSet(resourceName, "encrypted_private_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
+					resource.TestCheckNoResourceAttr(resourceName, "private_key"),
 				),
 			},
 		},
@@ -172,7 +183,7 @@ func testAccCheckAWSLightsailKeyPairDestroy(s *terraform.State) error {
 
 func testAccAWSLightsailKeyPairConfig_basic(lightsailName string) string {
 	return fmt.Sprintf(`
-resource "aws_lightsail_key_pair" "lightsail_key_pair_test" {
+resource "aws_lightsail_key_pair" "test" {
   name = "%s"
 }
 `, lightsailName)
@@ -180,21 +191,21 @@ resource "aws_lightsail_key_pair" "lightsail_key_pair_test" {
 
 func testAccAWSLightsailKeyPairConfig_imported(lightsailName, publicKey string) string {
 	return fmt.Sprintf(`
-resource "aws_lightsail_key_pair" "lightsail_key_pair_test" {
-  name = "%s"
+resource "aws_lightsail_key_pair" "test" {
+  name = %[1]q
 
-  public_key = "%s"
+  public_key = "%[2]s"
 }
 `, lightsailName, publicKey)
 }
 
 func testAccAWSLightsailKeyPairConfig_encrypted(lightsailName, key string) string {
 	return fmt.Sprintf(`
-resource "aws_lightsail_key_pair" "lightsail_key_pair_test" {
-  name = "%s"
+resource "aws_lightsail_key_pair" "test" {
+  name = %[1]q
 
   pgp_key = <<EOF
-%s
+%[2]s
 EOF
 }
 `, lightsailName, key)
@@ -210,7 +221,6 @@ resource "aws_lightsail_key_pair" "lightsail_key_pair_test_prefixed" {
 `
 }
 
-const lightsailPubKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com`
 const testLightsailKeyPairPubKey1 = `mQENBFXbjPUBCADjNjCUQwfxKL+RR2GA6pv/1K+zJZ8UWIF9S0lk7cVIEfJiprzzwiMwBS5cD0da
 rGin1FHvIWOZxujA7oW0O2TUuatqI3aAYDTfRYurh6iKLC+VS+F7H+/mhfFvKmgr0Y5kDCF1j0T/
 063QZ84IRGucR/X43IY7kAtmxGXH0dYOCzOe5UBX1fTn3mXGe2ImCDWBH7gOViynXmb6XNvXkP0f

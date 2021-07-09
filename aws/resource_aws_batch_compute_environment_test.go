@@ -327,7 +327,6 @@ func TestAccAWSBatchComputeEnvironment_createEc2(t *testing.T) {
 
 func TestAccAWSBatchComputeEnvironment_createEc2_DesiredVcpus_Ec2KeyPair_ImageId_ComputeResourcesTags(t *testing.T) {
 	var ce batch.ComputeEnvironmentDetail
-	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_batch_compute_environment.test"
 	amiDatasourceName := "data.aws_ami.amzn-ami-minimal-hvm-ebs"
 	instanceProfileResourceName := "aws_iam_instance_profile.ecs_instance"
@@ -336,6 +335,12 @@ func TestAccAWSBatchComputeEnvironment_createEc2_DesiredVcpus_Ec2KeyPair_ImageId
 	serviceRoleResourceName := "aws_iam_role.batch_service"
 	subnetResourceName := "aws_subnet.test"
 
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	publicKey, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
 		ErrorCheck:   testAccErrorCheck(t, batch.EndpointsID),
@@ -343,7 +348,7 @@ func TestAccAWSBatchComputeEnvironment_createEc2_DesiredVcpus_Ec2KeyPair_ImageId
 		CheckDestroy: testAccCheckBatchComputeEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSBatchComputeEnvironmentConfigEC2WithDesiredVcpusEc2KeyPairImageIdAndComputeResourcesTags(rName),
+				Config: testAccAWSBatchComputeEnvironmentConfigEC2WithDesiredVcpusEc2KeyPairImageIdAndComputeResourcesTags(rName, publicKey),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsBatchComputeEnvironmentExists(resourceName, &ce),
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "batch", fmt.Sprintf("compute-environment/%s", rName)),
@@ -1698,7 +1703,7 @@ resource "aws_batch_compute_environment" "test" {
 `, rName))
 }
 
-func testAccAWSBatchComputeEnvironmentConfigEC2WithDesiredVcpusEc2KeyPairImageIdAndComputeResourcesTags(rName string) string {
+func testAccAWSBatchComputeEnvironmentConfigEC2WithDesiredVcpusEc2KeyPairImageIdAndComputeResourcesTags(rName, publicKey string) string {
 	return composeConfig(
 		testAccAWSBatchComputeEnvironmentConfigBase(rName),
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
@@ -1737,9 +1742,9 @@ resource "aws_batch_compute_environment" "test" {
 
 resource "aws_key_pair" "test" {
   key_name   = %[1]q
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+  public_key = %[2]q
 }
-`, rName))
+`, rName, publicKey))
 }
 
 func testAccAWSBatchComputeEnvironmentConfigFargate(rName string) string {

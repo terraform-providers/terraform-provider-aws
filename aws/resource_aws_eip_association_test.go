@@ -128,6 +128,11 @@ func TestAccAWSEIPAssociation_spotInstance(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_eip_association.test"
 
+	publicKey, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ErrorCheck:        testAccErrorCheck(t, ec2.EndpointsID),
@@ -135,7 +140,7 @@ func TestAccAWSEIPAssociation_spotInstance(t *testing.T) {
 		CheckDestroy:      testAccCheckAWSEIPAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEIPAssociationConfig_spotInstance(rName),
+				Config: testAccAWSEIPAssociationConfig_spotInstance(rName, publicKey),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.test", false, &a),
 					testAccCheckAWSEIPAssociationExists(resourceName, &a),
@@ -428,7 +433,7 @@ resource "aws_eip_association" "test" {
 `)
 }
 
-func testAccAWSEIPAssociationConfig_spotInstance(rName string) string {
+func testAccAWSEIPAssociationConfig_spotInstance(rName, publicKey string) string {
 	return composeConfig(
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
 		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t3.micro", "t2.micro"),
@@ -450,7 +455,7 @@ resource "aws_internet_gateway" "test" {
 
 resource "aws_key_pair" "test" {
   key_name   = %[1]q
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+  public_key = %[2]q
 }
 
 resource "aws_spot_instance_request" "test" {
@@ -470,7 +475,7 @@ resource "aws_eip_association" "test" {
   allocation_id = aws_eip.test.id
   instance_id   = aws_spot_instance_request.test.spot_instance_id
 }
-`, rName))
+`, rName, publicKey))
 }
 
 func testAccAWSEIPAssociationConfig_instance() string {

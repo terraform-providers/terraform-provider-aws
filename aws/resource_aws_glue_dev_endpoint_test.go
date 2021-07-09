@@ -17,10 +17,6 @@ import (
 
 const (
 	GlueDevEndpointResourcePrefix = "tf-acc-test"
-	publicKey1                    = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 foo1@bar.com"
-	publicKey2                    = "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAq6U3HQYC4g8WzU147gZZ7CKQH8TgYn3chZGRPxaGmHW1RUwsyEs0nmombmIhwxudhJ4ehjqXsDLoQpd6+c7BuLgTMvbv8LgE9LX53vnljFe1dsObsr/fYLvpU9LTlo8HgHAqO5ibNdrAUvV31ronzCZhms/Gyfdaue88Fd0/YnsZVGeOZPayRkdOHSpqme2CBrpa8myBeL1CWl0LkDG4+YCURjbaelfyZlIApLYKy3FcCan9XQFKaL32MJZwCgzfOvWIMtYcU8QtXMgnA3/I3gXk8YDUJv5P4lj0s/PJXuTM8DygVAUtebNwPuinS7wwonm5FXcWMuVGsVpG5K7FGQ== foo2@bar.com"
-	publicKey3                    = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtCk0lzMj1gPEOjdfQ37AIxCyETqJBubaMWuB4bgvGHp8LvEghr2YDl2bml1JrE1EOcZhPnIwgyucryXKA959sTUlgbvaFN7vmpVze56Q9tVU6BJQxOdaRoy5FcQMET9LB6SdbXk+V4CkDMsQNaFXezpg98HgCj+V7+bBWsfI6U63IESlWKK7kraCom8EWxkQk4mk9fizE2I+KrtiqN4xcah02LFG6IMnS+Xy3CDhcpZeYzWOV6zhcf675UJOdg/pLgQbUhhiwTOJFgRo8IcvE3iBrRMz508ppx6vLLr8J+3B8ujykc+/3ZSGfQfx6rO+OuSskhG5FLI6icbQBtBzf foo3@bar.com"
-	publicKey4                    = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 foo4@bar.com"
 )
 
 func init() {
@@ -348,6 +344,15 @@ func TestAccGlueDevEndpoint_PublicKey(t *testing.T) {
 	rName := acctest.RandomWithPrefix(GlueDevEndpointResourcePrefix)
 	resourceName := "aws_glue_dev_endpoint.test"
 
+	publicKey1, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+	publicKey2, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, glue.EndpointsID),
@@ -382,6 +387,23 @@ func TestAccGlueDevEndpoint_PublicKeys(t *testing.T) {
 
 	rName := acctest.RandomWithPrefix(GlueDevEndpointResourcePrefix)
 	resourceName := "aws_glue_dev_endpoint.test"
+
+	publicKey1, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+	publicKey2, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+	publicKey3, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+	publicKey4, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

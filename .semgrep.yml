@@ -522,3 +522,18 @@ rules:
         - pattern: |
             fmt.Println(...)
     severity: WARNING
+
+  - id: ssh-key
+    languages: [go]
+    message: Generate random SSH keys using acctest.RandSSHKeyPair(). https://github.com/hashicorp/terraform-provider-aws/blob/main/docs/contributing/running-and-writing-acceptance-tests.md#hardcoded-ssh-key
+    paths:
+      include:
+        - aws/
+      exclude:
+        - awsproviderlint/vendor/
+    patterns:
+      # This isn't technically the correct regex, but for some reason adding a '+' causes the regex to
+      # miss some SSH keys. AFAICT, this is good enough.
+      - pattern-regex: 'ssh-rsa [A-Za-z0-9/]+'
+      - pattern-inside: '($X : string)'
+    severity: WARNING

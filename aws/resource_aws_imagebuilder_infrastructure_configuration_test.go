@@ -246,6 +246,15 @@ func TestAccAwsImageBuilderInfrastructureConfiguration_KeyPair(t *testing.T) {
 	keyPairResourceName2 := "aws_key_pair.test2"
 	resourceName := "aws_imagebuilder_infrastructure_configuration.test"
 
+	publicKey1, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+	publicKey2, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ErrorCheck:        testAccErrorCheck(t, imagebuilder.EndpointsID),
@@ -253,7 +262,7 @@ func TestAccAwsImageBuilderInfrastructureConfiguration_KeyPair(t *testing.T) {
 		CheckDestroy:      testAccCheckAwsImageBuilderInfrastructureConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair1(rName),
+				Config: testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair1(rName, publicKey1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsImageBuilderInfrastructureConfigurationExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "key_pair", keyPairResourceName, "key_name"),
@@ -265,7 +274,7 @@ func TestAccAwsImageBuilderInfrastructureConfiguration_KeyPair(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair2(rName),
+				Config: testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair2(rName, publicKey2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsImageBuilderInfrastructureConfigurationExists(resourceName),
 					testAccCheckResourceAttrRfc3339(resourceName, "date_updated"),
@@ -737,13 +746,13 @@ resource "aws_imagebuilder_infrastructure_configuration" "test" {
 `, rName))
 }
 
-func testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair1(rName string) string {
+func testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair1(rName, publicKey string) string {
 	return composeConfig(
 		testAccAwsImageBuilderInfrastructureConfigurationConfigBase(rName),
 		fmt.Sprintf(`
 resource "aws_key_pair" "test" {
   key_name   = %[1]q
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 example@example.com"
+  public_key = %[2]q
 }
 
 resource "aws_imagebuilder_infrastructure_configuration" "test" {
@@ -751,16 +760,16 @@ resource "aws_imagebuilder_infrastructure_configuration" "test" {
   key_pair              = aws_key_pair.test.key_name
   name                  = %[1]q
 }
-`, rName))
+`, rName, publicKey))
 }
 
-func testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair2(rName string) string {
+func testAccAwsImageBuilderInfrastructureConfigurationConfigKeyPair2(rName, publicKey string) string {
 	return composeConfig(
 		testAccAwsImageBuilderInfrastructureConfigurationConfigBase(rName),
 		fmt.Sprintf(`
 resource "aws_key_pair" "test2" {
   key_name   = "%[1]s-2"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 example@example.com"
+  public_key = %[2]q
 }
 
 resource "aws_imagebuilder_infrastructure_configuration" "test" {
@@ -768,7 +777,7 @@ resource "aws_imagebuilder_infrastructure_configuration" "test" {
   key_pair              = aws_key_pair.test2.key_name
   name                  = %[1]q
 }
-`, rName))
+`, rName, publicKey))
 }
 
 func testAccAwsImageBuilderInfrastructureConfigurationConfigLoggingS3LogsS3BucketName1(rName string) string {

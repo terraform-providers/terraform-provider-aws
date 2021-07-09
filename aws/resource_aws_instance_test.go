@@ -1485,19 +1485,12 @@ func TestAccAWSInstance_Empty_PrivateIP(t *testing.T) {
 func TestAccAWSInstance_keyPairCheck(t *testing.T) {
 	var v ec2.Instance
 	resourceName := "aws_instance.test"
+	keyPairResourceName := "aws_key_pair.test"
 	rName := fmt.Sprintf("tf-testacc-instance-%s", acctest.RandString(12))
 
-	testCheckKeyPair := func(keyName string) resource.TestCheckFunc {
-		return func(*terraform.State) error {
-			if v.KeyName == nil {
-				return fmt.Errorf("No Key Pair found, expected(%s)", keyName)
-			}
-			if v.KeyName != nil && *v.KeyName != keyName {
-				return fmt.Errorf("Bad key name, expected (%s), got (%s)", keyName, *v.KeyName)
-			}
-
-			return nil
-		}
+	publicKey, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1507,10 +1500,10 @@ func TestAccAWSInstance_keyPairCheck(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigKeyPair(rName),
+				Config: testAccInstanceConfigKeyPair(rName, publicKey),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testCheckKeyPair(rName),
+					resource.TestCheckResourceAttrPair(resourceName, "key_name", keyPairResourceName, "key_name"),
 				),
 			},
 		},
@@ -2619,7 +2612,12 @@ func TestAccAWSInstance_associatePublic_overridePrivate(t *testing.T) {
 func TestAccAWSInstance_getPasswordData_falseToTrue(t *testing.T) {
 	var before, after ec2.Instance
 	resourceName := "aws_instance.test"
+
 	rName := fmt.Sprintf("tf-testacc-instance-%s", acctest.RandString(12))
+	publicKey, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -2628,7 +2626,7 @@ func TestAccAWSInstance_getPasswordData_falseToTrue(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfig_getPasswordData(rName, false),
+				Config: testAccInstanceConfig_getPasswordData(rName, publicKey, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "get_password_data", "false"),
@@ -2641,7 +2639,7 @@ func TestAccAWSInstance_getPasswordData_falseToTrue(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccInstanceConfig_getPasswordData(rName, true),
+				Config: testAccInstanceConfig_getPasswordData(rName, publicKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &after),
 					testAccCheckInstanceNotRecreated(&before, &after),
@@ -2656,7 +2654,12 @@ func TestAccAWSInstance_getPasswordData_falseToTrue(t *testing.T) {
 func TestAccAWSInstance_getPasswordData_trueToFalse(t *testing.T) {
 	var before, after ec2.Instance
 	resourceName := "aws_instance.test"
+
 	rName := fmt.Sprintf("tf-testacc-instance-%s", acctest.RandString(12))
+	publicKey, _, err := acctest.RandSSHKeyPair(testAccDefaultEmailAddress)
+	if err != nil {
+		t.Fatalf("error generating random SSH key: %s", err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -2665,7 +2668,7 @@ func TestAccAWSInstance_getPasswordData_trueToFalse(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfig_getPasswordData(rName, true),
+				Config: testAccInstanceConfig_getPasswordData(rName, publicKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "get_password_data", "true"),
@@ -2679,7 +2682,7 @@ func TestAccAWSInstance_getPasswordData_trueToFalse(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"password_data", "get_password_data"},
 			},
 			{
-				Config: testAccInstanceConfig_getPasswordData(rName, false),
+				Config: testAccInstanceConfig_getPasswordData(rName, publicKey, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &after),
 					testAccCheckInstanceNotRecreated(&before, &after),
@@ -5114,11 +5117,13 @@ resource "aws_eip" "test" {
 `)
 }
 
-func testAccInstanceConfigKeyPair(rName string) string {
-	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
+func testAccInstanceConfigKeyPair(rName, publicKey string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		fmt.Sprintf(`
 resource "aws_key_pair" "test" {
   key_name   = %[1]q
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+  public_key = %[2]q
 }
 
 resource "aws_instance" "test" {
@@ -5130,11 +5135,12 @@ resource "aws_instance" "test" {
     Name = %[1]q
   }
 }
-`, rName))
+`, rName, publicKey))
 }
 
 func testAccInstanceConfigRootBlockDeviceMismatch(rName string) string {
-	return composeConfig(testAccAwsInstanceVpcConfig(rName, false), `
+	return composeConfig(
+		testAccAwsInstanceVpcConfig(rName, false), `
 resource "aws_instance" "test" {
   # This is an AMI in UsWest2 with RootDeviceName: "/dev/sda1"; actual root: "/dev/sda"
   ami = "ami-ef5b69df"
@@ -5593,11 +5599,11 @@ resource "aws_instance" "test" {
 `, rName))
 }
 
-func testAccInstanceConfig_getPasswordData(rName string, val bool) string {
+func testAccInstanceConfig_getPasswordData(rName, publicKey string, val bool) string {
 	return composeConfig(testAccLatestWindowsServer2016CoreAmiConfig(), fmt.Sprintf(`
 resource "aws_key_pair" "test" {
   key_name   = %[1]q
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAq6U3HQYC4g8WzU147gZZ7CKQH8TgYn3chZGRPxaGmHW1RUwsyEs0nmombmIhwxudhJ4ehjqXsDLoQpd6+c7BuLgTMvbv8LgE9LX53vnljFe1dsObsr/fYLvpU9LTlo8HgHAqO5ibNdrAUvV31ronzCZhms/Gyfdaue88Fd0/YnsZVGeOZPayRkdOHSpqme2CBrpa8myBeL1CWl0LkDG4+YCURjbaelfyZlIApLYKy3FcCan9XQFKaL32MJZwCgzfOvWIMtYcU8QtXMgnA3/I3gXk8YDUJv5P4lj0s/PJXuTM8DygVAUtebNwPuinS7wwonm5FXcWMuVGsVpG5K7FGQ== tf-acc-winpasswordtest"
+  public_key = %[2]q
 }
 
 resource "aws_instance" "test" {
@@ -5605,9 +5611,9 @@ resource "aws_instance" "test" {
   instance_type = "t2.medium"
   key_name      = aws_key_pair.test.key_name
 
-  get_password_data = %[2]t
+  get_password_data = %[3]t
 }
-`, rName, val))
+`, rName, publicKey, val))
 }
 
 func testAccInstanceConfig_CreditSpecification_Empty_NonBurstable(rName string) string {
