@@ -197,7 +197,7 @@ resource "aws_storagegateway_cache" "test" {
   # We expect this data source value to change due to how Storage Gateway works.
 
   lifecycle {
-    ignore_changes = ["disk_id"]
+    ignore_changes = [disk_id]
   }
 
   disk_id     = data.aws_storagegateway_local_disk.test.id

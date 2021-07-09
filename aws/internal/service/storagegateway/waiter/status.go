@@ -1,10 +1,12 @@
 package waiter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -18,6 +20,8 @@ const (
 	NfsFileShareStatusUnknown            = "Unknown"
 	SmbFileShareStatusNotFound           = "NotFound"
 	SmbFileShareStatusUnknown            = "Unknown"
+	FsxFileSystemStatusNotFound          = "NotFound"
+	FsxFileSystemStatusUnknown           = "Unknown"
 )
 
 func StorageGatewayGatewayStatus(conn *storagegateway.StorageGateway, gatewayARN string) resource.StateRefreshFunc {
@@ -47,6 +51,8 @@ func StorageGatewayGatewayJoinDomainStatus(conn *storagegateway.StorageGateway, 
 		}
 
 		output, err := conn.DescribeSMBSettings(input)
+
+		log.Printf("[DEBUG] Storage Gateway Gateway Join Domain Status: %s", *output.ActiveDirectoryStatus)
 
 		if tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified gateway is not connected") {
 			return output, storagegateway.ActiveDirectoryStatusUnknownError, nil
@@ -133,5 +139,38 @@ func SmbFileShareStatus(conn *storagegateway.StorageGateway, fileShareArn string
 		fileshare := output.SMBFileShareInfoList[0]
 
 		return fileshare, aws.StringValue(fileshare.FileShareStatus), nil
+	}
+}
+
+func FsxFileSystemStatus(conn *storagegateway.StorageGateway, fileSystemArn string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &storagegateway.DescribeFileSystemAssociationsInput{
+			FileSystemAssociationARNList: []*string{aws.String(fileSystemArn)},
+		}
+
+		log.Printf("[DEBUG] Reading Storage Gateway FSx File System: %s", input)
+		output, err := conn.DescribeFileSystemAssociations(input)
+		if err != nil {
+			// currently verbose, can update for clarity pending: https://github.com/hashicorp/aws-sdk-go-base/issues/59
+			if tfawserr.ErrCodeEquals(err, storagegateway.ErrCodeInvalidGatewayRequestException) {
+				var awsErr awserr.Error
+				if errors.As(err, &awsErr) {
+					nestedErr := awsErr.OrigErr()
+					if nestedErr != nil && tfawserr.ErrCodeEquals(nestedErr, "FileSystemAssociationNotFound") {
+						return nil, FsxFileSystemStatusNotFound, nil
+					}
+				}
+			}
+
+			return nil, FsxFileSystemStatusUnknown, fmt.Errorf("error reading Storage Gateway FSx File System: %w", err)
+		}
+
+		if output == nil || len(output.FileSystemAssociationInfoList) == 0 || output.FileSystemAssociationInfoList[0] == nil {
+			return nil, FsxFileSystemStatusNotFound, nil
+		}
+
+		filesystem := output.FileSystemAssociationInfoList[0]
+
+		return filesystem, aws.StringValue(filesystem.FileSystemAssociationStatus), nil
 	}
 }
