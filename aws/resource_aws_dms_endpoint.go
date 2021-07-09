@@ -195,6 +195,31 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"include_transaction_details": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"include_table_alter_operations": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"include_partition_value": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"include_control_details": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"partition_include_schema_table": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -377,10 +402,15 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	case "kinesis":
 		request.KinesisSettings = &dms.KinesisSettings{
-			MessageFormat:        aws.String(d.Get("kinesis_settings.0.message_format").(string)),
-			ServiceAccessRoleArn: aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
-			StreamArn:            aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
-			IncludeNullAndEmpty:  aws.Bool(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
+			MessageFormat:               aws.String(d.Get("kinesis_settings.0.message_format").(string)),
+			ServiceAccessRoleArn:        aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
+			StreamArn:                   aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
+			IncludeNullAndEmpty:         aws.Bool(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
+			IncludeTransactionDetails:   aws.Bool(d.Get("kinesis_settings.0.include_transaction_details").(bool)),
+			IncludeTableAlterOperations: aws.Bool(d.Get("kinesis_settings.0.include_table_alter_operations").(bool)),
+			IncludePartitionValue:       aws.Bool(d.Get("kinesis_settings.0.include_partition_value").(bool)),
+			IncludeControlDetails:       aws.Bool(d.Get("kinesis_settings.0.include_control_details").(bool)),
+			PartitionIncludeSchemaTable: aws.Bool(d.Get("kinesis_settings.0.partition_include_schema_table").(bool)),
 		}
 	case "mongodb":
 		request.MongoDbSettings = &dms.MongoDbSettings{
@@ -609,14 +639,24 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		if d.HasChanges(
 			"kinesis_settings.0.service_access_role_arn",
 			"kinesis_settings.0.stream_arn",
-			"kinesis_settings.0.include_null_and_empty") {
+			"kinesis_settings.0.include_null_and_empty",
+			"kinesis_settings.0.include_transaction_details",
+			"kinesis_settings.0.include_table_alter_operations",
+			"kinesis_settings.0.include_partition_value",
+			"kinesis_settings.0.include_control_details",
+			"kinesis_settings.0.partition_include_schema_table") {
 			// Intentionally omitting MessageFormat, because it's rejected on ModifyEndpoint calls.
 			// "An error occurred (InvalidParameterValueException) when calling the ModifyEndpoint
 			// operation: Message format  cannot be modified for kinesis endpoints."
 			request.KinesisSettings = &dms.KinesisSettings{
-				ServiceAccessRoleArn: aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
-				StreamArn:            aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
-				IncludeNullAndEmpty:  aws.Bool(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
+				ServiceAccessRoleArn:        aws.String(d.Get("kinesis_settings.0.service_access_role_arn").(string)),
+				StreamArn:                   aws.String(d.Get("kinesis_settings.0.stream_arn").(string)),
+				IncludeNullAndEmpty:         aws.Bool(d.Get("kinesis_settings.0.include_null_and_empty").(bool)),
+				IncludeTransactionDetails:   aws.Bool(d.Get("kinesis_settings.0.include_transaction_details").(bool)),
+				IncludeTableAlterOperations: aws.Bool(d.Get("kinesis_settings.0.include_table_alter_operations").(bool)),
+				IncludePartitionValue:       aws.Bool(d.Get("kinesis_settings.0.include_partition_value").(bool)),
+				IncludeControlDetails:       aws.Bool(d.Get("kinesis_settings.0.include_control_details").(bool)),
+				PartitionIncludeSchemaTable: aws.Bool(d.Get("kinesis_settings.0.partition_include_schema_table").(bool)),
 			}
 			request.EngineName = aws.String(d.Get("engine_name").(string)) // Must be included (should be 'kinesis')
 			hasChanges = true
