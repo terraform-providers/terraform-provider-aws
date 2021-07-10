@@ -331,8 +331,12 @@ func expandSagemakerWorkteamNotificationConfiguration(l []interface{}) *sagemake
 
 	m := l[0].(map[string]interface{})
 
-	config := &sagemaker.NotificationConfiguration{
-		NotificationTopicArn: aws.String(m["notification_topic_arn"].(string)),
+	config := &sagemaker.NotificationConfiguration{}
+
+	if v, ok := m["notification_topic_arn"].(string); ok && v != "" {
+		config.NotificationTopicArn = aws.String(v)
+	} else {
+		return nil
 	}
 
 	return config

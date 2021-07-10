@@ -130,6 +130,63 @@ func TestAccAWSSagemakerWorkteam_cognitoConfig(t *testing.T) {
 	})
 }
 
+func TestAccAWSSagemakerWorkteam_oidcConfig(t *testing.T) {
+	var workteam sagemaker.Workteam
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_sagemaker_workteam.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSagemakerWorkteamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSagemakerWorkteamOidcConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.*", rName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"workforce_name"},
+			},
+			{
+				Config: testAccAWSSagemakerWorkteamOidcConfig2(rName, "test"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.*", rName),
+					resource.TestCheckTypeSetElemAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.*", "test"),
+				),
+			},
+			{
+				Config: testAccAWSSagemakerWorkteamOidcConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.*", rName)),
+			},
+		},
+	})
+}
+
 func TestAccAWSSagemakerWorkteam_notificationConfig(t *testing.T) {
 	var workteam sagemaker.Workteam
 	rName := acctest.RandomWithPrefix("tf-acc-test")

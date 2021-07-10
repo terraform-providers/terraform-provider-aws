@@ -20,6 +20,9 @@ func init() {
 	resource.AddTestSweepers("aws_sagemaker_workforce", &resource.Sweeper{
 		Name: "aws_sagemaker_workforce",
 		F:    testSweepSagemakerWorkforces,
+		Dependencies: []string{
+			"aws_sagemaker_workteam",
+		},
 	})
 }
 
