@@ -447,7 +447,7 @@ resource "aws_sagemaker_workteam" "test" {
 func testAccAWSSagemakerWorkteamNotificationConfig(rName string) string {
 	return testAccAWSSagemakerWorkteamOidcBaseConfig(rName) + fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
-  name  = %[1]q
+  name = %[1]q
 }
 
 resource "aws_sns_topic_policy" "test" {
