@@ -39,7 +39,7 @@ resource "aws_sagemaker_workteam" "example" {
 
   member_definition {
     oidc_member_definition {
-      groups  = ["example"]
+      groups = ["example"]
     }
   }
 }

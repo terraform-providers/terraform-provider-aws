@@ -388,7 +388,7 @@ resource "aws_sagemaker_workteam" "test" {
       user_pool  = aws_cognito_user_pool_domain.test.user_pool_id
       user_group = aws_cognito_user_group.test2.id
     }
-  }  
+  }
 }
 `, rName)
 }
@@ -421,7 +421,7 @@ resource "aws_sagemaker_workteam" "test" {
 
   member_definition {
     oidc_member_definition {
-      groups  = [%[1]q]
+      groups = [%[1]q]
     }
   }
 }
@@ -437,7 +437,7 @@ resource "aws_sagemaker_workteam" "test" {
 
   member_definition {
     oidc_member_definition {
-      groups  = [%[1]q, %[2]q]
+      groups = [%[1]q, %[2]q]
     }
   }
 }
@@ -479,7 +479,7 @@ resource "aws_sagemaker_workteam" "test" {
 
   member_definition {
     oidc_member_definition {
-      groups  = [%[1]q]
+      groups = [%[1]q]
     }
   }
 
