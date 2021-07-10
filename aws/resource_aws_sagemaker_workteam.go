@@ -155,7 +155,7 @@ func resourceAwsSagemakerWorkteamRead(d *schema.ResourceData, meta interface{}) 
 
 	workteam, err := finder.WorkteamByName(conn, d.Id())
 	if err != nil {
-		if isAWSErr(err, "ValidationException", " The work team") {
+		if isAWSErr(err, "ValidationException", "The work team") {
 			d.SetId("")
 			log.Printf("[WARN] Unable to find SageMaker workteam (%s); removing from state", d.Id())
 			return nil
@@ -168,10 +168,7 @@ func resourceAwsSagemakerWorkteamRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("arn", arn)
 	d.Set("subdomain", workteam.SubDomain)
 	d.Set("description", workteam.Description)
-
-	// d.Set("workforce_arn", workteam.WorkforceArn)
 	d.Set("workteam_name", workteam.WorkteamName)
-	// d.Set("workforce_name", workteam.WorkforceName)
 
 	if err := d.Set("member_definition", flattenSagemakerWorkteamMemberDefinition(workteam.MemberDefinitions)); err != nil {
 		return fmt.Errorf("error setting member_definition for Sagemaker Workteam (%s): %w", d.Id(), err)
@@ -217,7 +214,7 @@ func resourceAwsSagemakerWorkteamDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	if _, err := conn.DeleteWorkteam(input); err != nil {
-		if isAWSErr(err, "ValidationException", "No workteam found for account") {
+		if isAWSErr(err, "ValidationException", "The work team") {
 			return nil
 		}
 		return fmt.Errorf("error deleting SageMaker workteam (%s): %w", d.Id(), err)

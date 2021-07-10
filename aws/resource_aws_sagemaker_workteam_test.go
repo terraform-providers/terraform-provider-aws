@@ -130,70 +130,58 @@ func TestAccAWSSagemakerWorkteam_cognitoConfig(t *testing.T) {
 	})
 }
 
-// func TestAccAWSSagemakerWorkteam_oidcConfig(t *testing.T) {
-// 	var workteam sagemaker.Workteam
-// 	rName := acctest.RandomWithPrefix("tf-acc-test")
-// 	resourceName := "aws_sagemaker_workteam.test"
-// 	endpoint1 := "https://example.com"
-// 	endpoint2 := "https://test.example.com"
+func TestAccAWSSagemakerWorkteam_notificationConfig(t *testing.T) {
+	var workteam sagemaker.Workteam
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_sagemaker_workteam.test"
 
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:     func() { testAccPreCheck(t) },
-// 		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
-// 		Providers:    testAccProviders,
-// 		CheckDestroy: testAccCheckAWSSagemakerWorkteamDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccAWSSagemakerWorkteamOidcConfig(rName, endpoint1),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
-// 					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
-// 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
-// 					resource.TestCheckResourceAttr(resourceName, "cognito_config.#", "0"),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.#", "1"),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.authorization_endpoint", endpoint1),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.client_id", rName),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.client_secret", rName),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.issuer", endpoint1),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.jwks_uri", endpoint1),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.logout_endpoint", endpoint1),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.token_endpoint", endpoint1),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.user_info_endpoint", endpoint1),
-// 					resource.TestCheckResourceAttr(resourceName, "source_ip_config.#", "1"),
-// 					resource.TestCheckResourceAttr(resourceName, "source_ip_config.0.cidrs.#", "0"),
-// 					resource.TestCheckResourceAttrSet(resourceName, "subdomain"),
-// 				),
-// 			},
-// 			{
-// 				ResourceName:            resourceName,
-// 				ImportState:             true,
-// 				ImportStateVerify:       true,
-// 				ImportStateVerifyIgnore: []string{"oidc_config.0.client_secret"},
-// 			},
-// 			{
-// 				Config: testAccAWSSagemakerWorkteamOidcConfig(rName, endpoint2),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
-// 					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
-// 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
-// 					resource.TestCheckResourceAttr(resourceName, "cognito_config.#", "0"),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.#", "1"),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.authorization_endpoint", endpoint2),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.client_id", rName),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.client_secret", rName),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.issuer", endpoint2),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.jwks_uri", endpoint2),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.logout_endpoint", endpoint2),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.token_endpoint", endpoint2),
-// 					resource.TestCheckResourceAttr(resourceName, "oidc_config.0.user_info_endpoint", endpoint2),
-// 					resource.TestCheckResourceAttr(resourceName, "source_ip_config.#", "1"),
-// 					resource.TestCheckResourceAttr(resourceName, "source_ip_config.0.cidrs.#", "0"),
-// 					resource.TestCheckResourceAttrSet(resourceName, "subdomain"),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSagemakerWorkteamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSagemakerWorkteamNotificationConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "description", rName),
+					resource.TestCheckResourceAttr(resourceName, "notification_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "notification_configuration.0.notification_topic_arn", "aws_sns_topic.test", "arn"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"workforce_name"},
+			},
+			{
+				Config: testAccAWSSagemakerWorkteamOidcConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "description", rName),
+					resource.TestCheckResourceAttr(resourceName, "notification_configuration.#", "1"),
+				),
+			},
+			{
+				Config: testAccAWSSagemakerWorkteamNotificationConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "workteam_name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`workteam/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "description", rName),
+					resource.TestCheckResourceAttr(resourceName, "notification_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "notification_configuration.0.notification_topic_arn", "aws_sns_topic.test", "arn"),
+				),
+			},
+		},
+	})
+}
 
 func TestAccAWSSagemakerWorkteam_disappears(t *testing.T) {
 	var workteam sagemaker.Workteam
@@ -207,7 +195,7 @@ func TestAccAWSSagemakerWorkteam_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSagemakerWorkteamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSagemakerWorkteamCognitoConfig(rName),
+				Config: testAccAWSSagemakerWorkteamOidcConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSagemakerWorkteam(), resourceName),
@@ -266,7 +254,7 @@ func testAccCheckAWSSagemakerWorkteamExists(n string, workteam *sagemaker.Workte
 	}
 }
 
-func testAccAWSSagemakerWorkteamBaseConfig(rName string) string {
+func testAccAWSSagemakerWorkteamCognitoBaseConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_cognito_user_pool" "test" {
   name = %[1]q
@@ -300,7 +288,7 @@ resource "aws_sagemaker_workforce" "test" {
 }
 
 func testAccAWSSagemakerWorkteamCognitoConfig(rName string) string {
-	return testAccAWSSagemakerWorkteamBaseConfig(rName) + fmt.Sprintf(`
+	return testAccAWSSagemakerWorkteamCognitoBaseConfig(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_workteam" "test" {
   workteam_name  = %[1]q
   workforce_name = aws_sagemaker_workforce.test.id
@@ -318,7 +306,7 @@ resource "aws_sagemaker_workteam" "test" {
 }
 
 func testAccAWSSagemakerWorkteamCognitoUpdatedConfig(rName string) string {
-	return testAccAWSSagemakerWorkteamBaseConfig(rName) + fmt.Sprintf(`
+	return testAccAWSSagemakerWorkteamCognitoBaseConfig(rName) + fmt.Sprintf(`
 resource "aws_cognito_user_group" "test2" {
   name         = "%[1]s-2"
   user_pool_id = aws_cognito_user_pool.test.id
@@ -348,21 +336,99 @@ resource "aws_sagemaker_workteam" "test" {
 `, rName)
 }
 
-// func testAccAWSSagemakerWorkteamOidcConfig(rName, endpoint string) string {
-// 	return testAccAWSSagemakerWorkteamBaseConfig(rName) + fmt.Sprintf(`
-// resource "aws_sagemaker_workteam" "test" {
-//   workteam_name = %[1]q
+func testAccAWSSagemakerWorkteamOidcBaseConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_sagemaker_workforce" "test" {
+  workforce_name = %[1]q
 
-//   oidc_config {
-//     authorization_endpoint = %[2]q
-//     client_id              = %[1]q
-//     client_secret          = %[1]q
-//     issuer                 = %[2]q
-//     jwks_uri               = %[2]q
-//     logout_endpoint        = %[2]q
-//     token_endpoint         = %[2]q
-//     user_info_endpoint     = %[2]q
-//   }
-// }
-// `, rName, endpoint)
-// }
+  oidc_config {
+    authorization_endpoint = "https://example.com"
+    client_id              = %[1]q
+    client_secret          = %[1]q
+    issuer                 = "https://example.com"
+    jwks_uri               = "https://example.com"
+    logout_endpoint        = "https://example.com"
+    token_endpoint         = "https://example.com"
+    user_info_endpoint     = "https://example.com"
+  }
+}
+`, rName)
+}
+
+func testAccAWSSagemakerWorkteamOidcConfig(rName string) string {
+	return testAccAWSSagemakerWorkteamOidcBaseConfig(rName) + fmt.Sprintf(`
+resource "aws_sagemaker_workteam" "test" {
+  workteam_name  = %[1]q
+  workforce_name = aws_sagemaker_workforce.test.id
+  description    = %[1]q
+
+  member_definition {
+    oidc_member_definition {
+	  groups  = [%[1]q]
+	}
+  }
+}
+`, rName)
+}
+
+func testAccAWSSagemakerWorkteamOidcConfig2(rName, group string) string {
+	return testAccAWSSagemakerWorkteamOidcBaseConfig(rName) + fmt.Sprintf(`
+resource "aws_sagemaker_workteam" "test" {
+  workteam_name  = %[1]q
+  workforce_name = aws_sagemaker_workforce.test.id
+  description    = %[1]q
+
+  member_definition {
+    oidc_member_definition {
+	  groups  = [%[1]q, %[2]q]
+	}
+  }
+}
+`, rName, group)
+}
+
+func testAccAWSSagemakerWorkteamNotificationConfig(rName string) string {
+	return testAccAWSSagemakerWorkteamOidcBaseConfig(rName) + fmt.Sprintf(`
+resource "aws_sns_topic" "test" {
+  name  = %[1]q
+}
+
+resource "aws_sns_topic_policy" "test" {
+  arn = aws_sns_topic.test.arn
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Id" : "default",
+    "Statement" : [
+      {
+        "Sid" : "%[1]s",
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "*"
+        },
+        "Action" : [
+          "sns:publish"
+        ],
+        "Resource" : "${aws_sns_topic.test.arn}"
+      }
+    ]
+  })
+}
+
+resource "aws_sagemaker_workteam" "test" {
+  workteam_name  = %[1]q
+  workforce_name = aws_sagemaker_workforce.test.id
+  description    = %[1]q
+
+  member_definition {
+    oidc_member_definition {
+	  groups  = [%[1]q]
+	}
+  }
+
+  notification_configuration {
+    notification_topic_arn = aws_sns_topic.test.arn
+  }
+}
+`, rName)
+}
