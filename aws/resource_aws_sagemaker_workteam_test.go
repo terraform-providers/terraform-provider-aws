@@ -355,8 +355,8 @@ resource "aws_sagemaker_workteam" "test" {
     cognito_member_definition {
       client_id  = aws_cognito_user_pool_client.test.id
       user_pool  = aws_cognito_user_pool_domain.test.user_pool_id
-	  user_group = aws_cognito_user_group.test.id
-	}
+      user_group = aws_cognito_user_group.test.id
+    }
   }
 }
 `, rName)
@@ -378,16 +378,16 @@ resource "aws_sagemaker_workteam" "test" {
     cognito_member_definition {
       client_id  = aws_cognito_user_pool_client.test.id
       user_pool  = aws_cognito_user_pool_domain.test.user_pool_id
-	  user_group = aws_cognito_user_group.test.id
-	}
+      user_group = aws_cognito_user_group.test.id
+    }
   }
 
   member_definition {
-	cognito_member_definition {
+    cognito_member_definition {
       client_id  = aws_cognito_user_pool_client.test.id
       user_pool  = aws_cognito_user_pool_domain.test.user_pool_id
-	  user_group = aws_cognito_user_group.test2.id
-	}
+      user_group = aws_cognito_user_group.test2.id
+    }
   }  
 }
 `, rName)
@@ -421,8 +421,8 @@ resource "aws_sagemaker_workteam" "test" {
 
   member_definition {
     oidc_member_definition {
-	  groups  = [%[1]q]
-	}
+      groups  = [%[1]q]
+    }
   }
 }
 `, rName)
@@ -437,8 +437,8 @@ resource "aws_sagemaker_workteam" "test" {
 
   member_definition {
     oidc_member_definition {
-	  groups  = [%[1]q, %[2]q]
-	}
+      groups  = [%[1]q, %[2]q]
+    }
   }
 }
 `, rName, group)
@@ -479,8 +479,8 @@ resource "aws_sagemaker_workteam" "test" {
 
   member_definition {
     oidc_member_definition {
-	  groups  = [%[1]q]
-	}
+      groups  = [%[1]q]
+    }
   }
 
   notification_configuration {

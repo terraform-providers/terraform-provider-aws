@@ -39,8 +39,8 @@ resource "aws_sagemaker_workteam" "example" {
 
   member_definition {
     oidc_member_definition {
-	    groups  = ["example"]
-	  }
+      groups  = ["example"]
+    }
   }
 }
 ```
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 #### Oidc Member Definition
 
-* `groups` - (Required) A list of comma seperated strings that identifies user groups in your OIDC IdP. Each user group is made up of a group of private workers.
+* `groups` - (Required) A list of comma separated strings that identifies user groups in your OIDC IdP. Each user group is made up of a group of private workers.
 
 ### Notification Configuration
 
