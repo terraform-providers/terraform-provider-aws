@@ -24,8 +24,9 @@ resource "aws_sagemaker_workteam" "example" {
     cognito_member_definition {
       client_id  = aws_cognito_user_pool_client.example.id
       user_pool  = aws_cognito_user_pool_domain.example.user_pool_id
-	    user_group = aws_cognito_user_group.example.id
-	}
+      user_group = aws_cognito_user_group.example.id
+    }
+  }
 }
 ```
 
