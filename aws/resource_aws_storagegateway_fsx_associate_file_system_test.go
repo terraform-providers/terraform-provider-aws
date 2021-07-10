@@ -63,12 +63,12 @@ func TestAccAWSStorageGatewayFsxAssociateFileSystem_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAwsStorageGatewayFsxAssociateFileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, "value1"),
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "key1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
 			},
 			{
@@ -78,22 +78,22 @@ func TestAccAWSStorageGatewayFsxAssociateFileSystem_tags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"username", "password"},
 			},
 			{
-				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags2(rName, username, "value1updated", "value2"),
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags2(rName, username, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "key1", "value1updated"),
-					resource.TestCheckResourceAttr(resourceName, "key2", "value2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 			{
-				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, "value2"),
+				Config: testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsStorageGatewayFsxAssociateFileSystemExists(resourceName, &fsxFileSystemAssociation),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`fs-association/fsa-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "key2", "value2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -241,7 +241,7 @@ resource "aws_storagegateway_fsx_associate_file_system" "test" {
 `, username)
 }
 
-func testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username string, tagValue1 string) string {
+func testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags1(rName, username, tagKey1, tagValue1 string) string {
 	return testAccAWSStorageGatewayFsxAssociateFileSystemBase(rName, username) + fmt.Sprintf(`
 resource "aws_storagegateway_fsx_associate_file_system" "test" {
   gateway_arn = aws_storagegateway_gateway.test.arn
@@ -250,13 +250,13 @@ resource "aws_storagegateway_fsx_associate_file_system" "test" {
   password = aws_directory_service_directory.test.password
 
   tags = {
-    key1 = %[2]q
+    %[2]q = %[3]q
   }
 }
-`, username, tagValue1)
+`, username, tagKey1, tagValue1)
 }
 
-func testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags2(rName, username string, tagValue1 string, tagValue2 string) string {
+func testAccAwsStorageGatewayFsxAssociateFileSystemConfigTags2(rName, username, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return testAccAWSStorageGatewayFsxAssociateFileSystemBase(rName, username) + fmt.Sprintf(`
 resource "aws_storagegateway_fsx_associate_file_system" "test" {
   gateway_arn = aws_storagegateway_gateway.test.arn
@@ -265,9 +265,9 @@ resource "aws_storagegateway_fsx_associate_file_system" "test" {
   password = aws_directory_service_directory.test.password
 
   tags = {
-    key1 = %[2]q
-	key2 = %[3]q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, username, tagValue1, tagValue2)
+`, username, tagKey1, tagValue1, tagKey2, tagValue2)
 }
