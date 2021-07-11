@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/sagemaker/finder"
 )
 
@@ -100,10 +101,8 @@ func resourceAwsSagemakerWorkteam() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"workforce_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"workforce_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -119,11 +118,14 @@ func resourceAwsSagemakerWorkteam() *schema.Resource {
 				),
 			},
 		},
+		CustomizeDiff: SetTagsDiff,
 	}
 }
 
 func resourceAwsSagemakerWorkteamCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	tags := defaultTagsConfig.MergeTags(keyvaluetags.New(d.Get("tags").(map[string]interface{})))
 
 	name := d.Get("workteam_name").(string)
 	input := &sagemaker.CreateWorkteamInput{
@@ -135,6 +137,10 @@ func resourceAwsSagemakerWorkteamCreate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("notification_configuration"); ok {
 		input.NotificationConfiguration = expandSagemakerWorkteamNotificationConfiguration(v.([]interface{}))
+	}
+
+	if len(tags) > 0 {
+		input.Tags = tags.IgnoreAws().SagemakerTags()
 	}
 
 	log.Printf("[DEBUG] Sagemaker Workteam create config: %#v", *input)
@@ -152,6 +158,8 @@ func resourceAwsSagemakerWorkteamCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsSagemakerWorkteamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	workteam, err := finder.WorkteamByName(conn, d.Id())
 	if err != nil {
@@ -178,29 +186,56 @@ func resourceAwsSagemakerWorkteamRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting notification_configuration for Sagemaker Workteam (%s): %w", d.Id(), err)
 	}
 
+	tags, err := keyvaluetags.SagemakerListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for SageMaker User Profile (%s): %w", d.Id(), err)
+	}
+
+	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+
+	//lintignore:AWSR002
+	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("tags_all", tags.Map()); err != nil {
+		return fmt.Errorf("error setting tags_all: %w", err)
+	}
+
 	return nil
 }
 
 func resourceAwsSagemakerWorkteamUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
-	input := &sagemaker.UpdateWorkteamInput{
-		WorkteamName:      aws.String(d.Id()),
-		MemberDefinitions: expandSagemakerWorkteamMemberDefinition(d.Get("member_definition").([]interface{})),
+	if d.HasChangeExcept("tags_all") {
+		input := &sagemaker.UpdateWorkteamInput{
+			WorkteamName:      aws.String(d.Id()),
+			MemberDefinitions: expandSagemakerWorkteamMemberDefinition(d.Get("member_definition").([]interface{})),
+		}
+
+		if d.HasChange("description") {
+			input.Description = aws.String(d.Get("description").(string))
+		}
+
+		if d.HasChange("notification_configuration") {
+			input.NotificationConfiguration = expandSagemakerWorkteamNotificationConfiguration(d.Get("notification_configuration").([]interface{}))
+		}
+
+		log.Printf("[DEBUG] Sagemaker Workteam update config: %#v", *input)
+		_, err := conn.UpdateWorkteam(input)
+		if err != nil {
+			return fmt.Errorf("error updating SageMaker Workteam: %w", err)
+		}
 	}
 
-	if d.HasChange("description") {
-		input.Description = aws.String(d.Get("description").(string))
-	}
+	if d.HasChange("tags_all") {
+		o, n := d.GetChange("tags_all")
 
-	if d.HasChange("notification_configuration") {
-		input.NotificationConfiguration = expandSagemakerWorkteamNotificationConfiguration(d.Get("notification_configuration").([]interface{}))
-	}
-
-	log.Printf("[DEBUG] Sagemaker Workteam update config: %#v", *input)
-	_, err := conn.UpdateWorkteam(input)
-	if err != nil {
-		return fmt.Errorf("error updating SageMaker Workteam: %w", err)
+		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating SageMaker UserProfile (%s) tags: %w", d.Id(), err)
+		}
 	}
 
 	return resourceAwsSagemakerWorkteamRead(d, meta)

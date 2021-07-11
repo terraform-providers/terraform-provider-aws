@@ -84,6 +84,7 @@ func TestAccAWSSagemakerWorkteam_cognitoConfig(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "member_definition.0.cognito_member_definition.0.user_pool", "aws_cognito_user_pool.test", "id"),
 					resource.TestCheckResourceAttrPair(resourceName, "member_definition.0.cognito_member_definition.0.user_group", "aws_cognito_user_group.test", "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "subdomain"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -182,6 +183,52 @@ func TestAccAWSSagemakerWorkteam_oidcConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.#", "1"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "member_definition.0.oidc_member_definition.0.groups.*", rName)),
+			},
+		},
+	})
+}
+
+func TestAccAWSSagemakerWorkteam_tags(t *testing.T) {
+	var workteam sagemaker.Workteam
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_sagemaker_workteam.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSagemakerWorkteamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSagemakerWorkteamTagsConfig1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"workforce_name"},
+			},
+			{
+				Config: testAccAWSSagemakerWorkteamTagsConfig2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSSagemakerWorkteamTagsConfig1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSagemakerWorkteamExists(resourceName, &workteam),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -488,4 +535,45 @@ resource "aws_sagemaker_workteam" "test" {
   }
 }
 `, rName)
+}
+
+func testAccAWSSagemakerWorkteamTagsConfig1(rName, tagKey1, tagValue1 string) string {
+	return testAccAWSSagemakerWorkteamOidcBaseConfig(rName) + fmt.Sprintf(`
+resource "aws_sagemaker_workteam" "test" {
+  workteam_name  = %[1]q
+  workforce_name = aws_sagemaker_workforce.test.id
+  description    = %[1]q
+
+  member_definition {
+    oidc_member_definition {
+      groups = [%[1]q]
+    }
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }  
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSSagemakerWorkteamTagsConfig2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSSagemakerWorkteamOidcBaseConfig(rName) + fmt.Sprintf(`
+resource "aws_sagemaker_workteam" "test" {
+  workteam_name  = %[1]q
+  workforce_name = aws_sagemaker_workforce.test.id
+  description    = %[1]q
+
+  member_definition {
+    oidc_member_definition {
+      groups = [%[1]q]
+    }
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q	
+  }  
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

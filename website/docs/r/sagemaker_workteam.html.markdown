@@ -54,7 +54,8 @@ The following arguments are supported:
 * `workforce_name` - (Required) The name of the Workteam (must be unique).
 * `workteam_name` - (Required) The name of the workforce.
 * `member_definition` - (Required) A list of Member Definitions that contains objects that identify the workers that make up the work team. Workforces can be created using Amazon Cognito or your own OIDC Identity Provider (IdP). For private workforces created using Amazon Cognito use `cognito_member_definition`. For workforces created using your own OIDC identity provider (IdP) use `oidc_member_definition`. Do not provide input for both of these parameters in a single request. see [Member Definition](#member-definition) details below.
-* `notification_configuration` - (Required) Configures notification of workers regarding available or expiring work items. see [Notification Configuration](#notification-configuration) details below.
+* `notification_configuration` - (Optional) Configures notification of workers regarding available or expiring work items. see [Notification Configuration](#notification-configuration) details below.
+* `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### Member Definition
 
@@ -83,6 +84,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS to this Workteam.
 * `id` - The name of the Workteam.
 * `subdomain` - The subdomain for your OIDC Identity Provider.
+* `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 
 ## Import
 
