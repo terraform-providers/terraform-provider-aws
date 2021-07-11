@@ -69,6 +69,10 @@ service/appconfig:
   - 'aws/internal/service/appconfig/**/*'
   - '**/*_appconfig_*'
   - '**/appconfig_*'
+service/appflow:
+  - 'aws/internal/service/appflow/**/*'
+  - '**/*_appflow_*'
+  - '**/appflow_*'
 service/applicationautoscaling:
   - 'aws/internal/service/applicationautoscaling/**/*'
   - '**/*_appautoscaling_*'

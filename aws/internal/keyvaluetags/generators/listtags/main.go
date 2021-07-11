@@ -22,6 +22,7 @@ var serviceNames = []string{
 	"acmpca",
 	"amplify",
 	"apigatewayv2",
+	"appflow",
 	"appmesh",
 	"apprunner",
 	"appstream",

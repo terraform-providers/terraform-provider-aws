@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/acmpca"
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go/service/appflow"
 	"github.com/aws/aws-sdk-go/service/appmesh"
 	"github.com/aws/aws-sdk-go/service/apprunner"
 	"github.com/aws/aws-sdk-go/service/appstream"
@@ -198,6 +199,23 @@ func Apigatewayv2ListTags(conn *apigatewayv2.ApiGatewayV2, identifier string) (K
 	}
 
 	return Apigatewayv2KeyValueTags(output.Tags), nil
+}
+
+// AppflowListTags lists appflow service tags.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func AppflowListTags(conn *appflow.Appflow, identifier string) (KeyValueTags, error) {
+	input := &appflow.ListTagsForResourceInput{
+		ResourceArn: aws.String(identifier),
+	}
+
+	output, err := conn.ListTagsForResource(input)
+
+	if err != nil {
+		return New(nil), err
+	}
+
+	return AppflowKeyValueTags(output.Tags), nil
 }
 
 // AppmeshListTags lists appmesh service tags.

@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go/service/appflow"
 	"github.com/aws/aws-sdk-go/service/appmesh"
 	"github.com/aws/aws-sdk-go/service/apprunner"
 	"github.com/aws/aws-sdk-go/service/appstream"
@@ -146,6 +147,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(apigateway.New)
 	case "apigatewayv2":
 		funcType = reflect.TypeOf(apigatewayv2.New)
+	case "appflow":
+		funcType = reflect.TypeOf(appflow.New)
 	case "appmesh":
 		funcType = reflect.TypeOf(appmesh.New)
 	case "apprunner":
