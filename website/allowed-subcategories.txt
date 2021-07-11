@@ -6,6 +6,7 @@ API Gateway v2 (WebSocket and HTTP APIs)
 Access Analyzer
 Amplify Console
 AppConfig
+AppFlow
 AppMesh
 App Runner
 AppSync
