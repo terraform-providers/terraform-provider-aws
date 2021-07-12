@@ -144,9 +144,9 @@ resource "aws_apprunner_service" "test" {
     auto_deployments_enabled = false
     image_repository {
       image_configuration {
-        port = "8080"
+        port = "80"
       }
-      image_identifier      = "public.ecr.aws/a8a7m9a7/test-ecr-public:latest"
+      image_identifier      = "public.ecr.aws/nginx/nginx:latest"
       image_repository_type = "ECR_PUBLIC"
     }
   }
