@@ -69,6 +69,7 @@ The default is `false`.
 * `include_public` - (Optional) Set this value to true to include manual DB snapshots that are public and can be
 copied or restored by any AWS account, otherwise set this value to false. The default is `false`.
 
+* `status` - (Optional) The status of this DB snapshot.
 
 ## Attributes Reference
 
@@ -87,7 +88,6 @@ In addition to all arguments above, the following attributes are exported:
 * `option_group_name` - Provides the option group name for the DB snapshot.
 * `source_db_snapshot_identifier` - The DB snapshot Arn that the DB snapshot was copied from. It only has value in case of cross customer or cross region copy.
 * `source_region` - The region that the DB snapshot was created in or copied from.
-* `status` - Specifies the status of this DB snapshot.
 * `storage_type` - Specifies the storage type associated with DB snapshot.
 * `vpc_id` - Specifies the ID of the VPC associated with the DB snapshot.
 * `snapshot_create_time` - Provides the time when the snapshot was taken, in Universal Coordinated Time (UTC).

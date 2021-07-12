@@ -48,6 +48,10 @@ func dataSourceAwsDbSnapshot() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
 			//Computed values returned
 			"allocated_storage": {
@@ -106,10 +110,6 @@ func dataSourceAwsDbSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"storage_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -152,21 +152,29 @@ func dataSourceAwsDbSnapshotRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if len(resp.DBSnapshots) < 1 {
+	var snapshots []*rds.DBSnapshot
+
+	if v, ok := d.GetOk("status"); ok {
+		snapshots = filterDbSnapshotStatus(resp.DBSnapshots, v.(string))
+	} else {
+		snapshots = resp.DBSnapshots
+	}
+
+	if len(snapshots) < 1 {
 		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
 	}
 
 	var snapshot *rds.DBSnapshot
-	if len(resp.DBSnapshots) > 1 {
+	if len(snapshots) > 1 {
 		recent := d.Get("most_recent").(bool)
 		log.Printf("[DEBUG] aws_db_snapshot - multiple results found and `most_recent` is set to: %t", recent)
 		if recent {
-			snapshot = mostRecentDbSnapshot(resp.DBSnapshots)
+			snapshot = mostRecentDbSnapshot(snapshots)
 		} else {
 			return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria.")
 		}
 	} else {
-		snapshot = resp.DBSnapshots[0]
+		snapshot = snapshots[0]
 	}
 
 	return dbSnapshotDescriptionAttributes(d, snapshot)
@@ -192,6 +200,16 @@ func mostRecentDbSnapshot(snapshots []*rds.DBSnapshot) *rds.DBSnapshot {
 	sortedSnapshots := snapshots
 	sort.Sort(rdsSnapshotSort(sortedSnapshots))
 	return sortedSnapshots[len(sortedSnapshots)-1]
+}
+
+func filterDbSnapshotStatus(snapshots []*rds.DBSnapshot, status string) []*rds.DBSnapshot {
+	var results []*rds.DBSnapshot
+	for _, v := range snapshots {
+		if *v.Status == status {
+			results = append(results, v)
+		}
+	}
+	return results
 }
 
 func dbSnapshotDescriptionAttributes(d *schema.ResourceData, snapshot *rds.DBSnapshot) error {

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -101,6 +102,31 @@ func TestAccAWSDbClusterSnapshotDataSource_MostRecent(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "db_cluster_snapshot_arn", resourceName, "db_cluster_snapshot_arn"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "db_cluster_snapshot_identifier", resourceName, "db_cluster_snapshot_identifier"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDbClusterSnapshotDataSource_MostRecentWithStaus(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_db_cluster_snapshot.test"
+	resourceName := "aws_db_cluster_snapshot.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsDbClusterSnapshotDataSourceConfig_MostRecentWithStatus(rName, "available"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsDbClusterSnapshotDataSourceExists(dataSourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "db_cluster_snapshot_arn", resourceName, "db_cluster_snapshot_arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "db_cluster_snapshot_identifier", resourceName, "db_cluster_snapshot_identifier"),
+				),
+			},
+			{
+				Config:      testAccCheckAwsDbClusterSnapshotDataSourceConfig_MostRecentWithStatus(rName, "invalid"),
+				ExpectError: regexp.MustCompile(`Your query returned no results`),
 			},
 		},
 	})
@@ -270,4 +296,57 @@ data "aws_db_cluster_snapshot" "test" {
   most_recent           = true
 }
 `, rName)
+}
+
+func testAccCheckAwsDbClusterSnapshotDataSourceConfig_MostRecentWithStatus(rName string, status string) string {
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "192.168.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "test" {
+  count = 2
+
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = "192.168.${count.index}.0/24"
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_db_subnet_group" "test" {
+  name       = %[1]q
+  subnet_ids = [aws_subnet.test.*.id[0], aws_subnet.test.*.id[1]]
+}
+
+resource "aws_rds_cluster" "test" {
+  cluster_identifier   = %[1]q
+  db_subnet_group_name = aws_db_subnet_group.test.name
+  master_password      = "barbarbarbar"
+  master_username      = "foo"
+  skip_final_snapshot  = true
+}
+
+resource "aws_db_cluster_snapshot" "incorrect" {
+  db_cluster_identifier          = aws_rds_cluster.test.id
+  db_cluster_snapshot_identifier = "%[1]s-incorrect"
+}
+
+resource "aws_db_cluster_snapshot" "test" {
+  db_cluster_identifier          = aws_db_cluster_snapshot.incorrect.db_cluster_identifier
+  db_cluster_snapshot_identifier = %[1]q
+}
+
+data "aws_db_cluster_snapshot" "test" {
+  db_cluster_identifier = aws_db_cluster_snapshot.test.db_cluster_identifier
+  most_recent           = true
+  status                = "%[2]s"
+}
+`, rName, status)
 }

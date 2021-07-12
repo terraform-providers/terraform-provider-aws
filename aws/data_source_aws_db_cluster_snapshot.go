@@ -50,6 +50,10 @@ func dataSourceAwsDbClusterSnapshot() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
 			//Computed values returned
 			"allocated_storage": {
@@ -97,10 +101,6 @@ func dataSourceAwsDbClusterSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -141,21 +141,29 @@ func dataSourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if len(resp.DBClusterSnapshots) < 1 {
+	var snapshots []*rds.DBClusterSnapshot
+
+	if v, ok := d.GetOk("status"); ok {
+		snapshots = filterDbClusterSnapshotStatus(resp.DBClusterSnapshots, v.(string))
+	} else {
+		snapshots = resp.DBClusterSnapshots
+	}
+
+	if len(snapshots) < 1 {
 		return errors.New("Your query returned no results. Please change your search criteria and try again.")
 	}
 
 	var snapshot *rds.DBClusterSnapshot
-	if len(resp.DBClusterSnapshots) > 1 {
+	if len(snapshots) > 1 {
 		recent := d.Get("most_recent").(bool)
 		log.Printf("[DEBUG] aws_db_cluster_snapshot - multiple results found and `most_recent` is set to: %t", recent)
 		if recent {
-			snapshot = mostRecentDbClusterSnapshot(resp.DBClusterSnapshots)
+			snapshot = mostRecentDbClusterSnapshot(snapshots)
 		} else {
 			return errors.New("Your query returned more than one result. Please try a more specific search criteria.")
 		}
 	} else {
-		snapshot = resp.DBClusterSnapshots[0]
+		snapshot = snapshots[0]
 	}
 
 	d.SetId(aws.StringValue(snapshot.DBClusterSnapshotIdentifier))
@@ -213,4 +221,14 @@ func mostRecentDbClusterSnapshot(snapshots []*rds.DBClusterSnapshot) *rds.DBClus
 	sortedSnapshots := snapshots
 	sort.Sort(rdsClusterSnapshotSort(sortedSnapshots))
 	return sortedSnapshots[len(sortedSnapshots)-1]
+}
+
+func filterDbClusterSnapshotStatus(snapshots []*rds.DBClusterSnapshot, status string) []*rds.DBClusterSnapshot {
+	var results []*rds.DBClusterSnapshot
+	for _, v := range snapshots {
+		if *v.Status == status {
+			results = append(results, v)
+		}
+	}
+	return results
 }

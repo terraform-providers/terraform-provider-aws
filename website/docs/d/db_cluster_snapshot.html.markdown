@@ -61,6 +61,8 @@ The default is `false`.
 * `include_public` - (Optional) Set this value to true to include manual DB Cluster Snapshots that are public and can be
 copied or restored by any AWS account, otherwise set this value to false. The default is `false`.
 
+* `status` - (Optional) The status of DB Cluster Snapshot.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -77,7 +79,6 @@ In addition to all arguments above, the following attributes are exported:
 * `port` - Port that the DB cluster was listening on at the time of the snapshot.
 * `snapshot_create_time` - Time when the snapshot was taken, in Universal Coordinated Time (UTC).
 * `source_db_cluster_snapshot_identifier` - The DB Cluster Snapshot Arn that the DB Cluster Snapshot was copied from. It only has value in case of cross customer or cross region copy.
-* `status` - The status of this DB Cluster Snapshot.
 * `storage_encrypted` - Specifies whether the DB cluster snapshot is encrypted.
 * `vpc_id` - The VPC ID associated with the DB cluster snapshot.
 * `tags` - A map of tags for the resource.
