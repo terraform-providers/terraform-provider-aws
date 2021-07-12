@@ -328,6 +328,7 @@ In addition to all arguments above, the following attributes are exported:
 
 `aws_elasticsearch_domain` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
+* `create` - (Optional, Default: `60m`) How long to wait for Elasticsearch domain creation.
 * `update` - (Optional, Default: `60m`) How long to wait for updates.
 
 ## Import
