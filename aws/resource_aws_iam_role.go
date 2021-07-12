@@ -386,6 +386,9 @@ func resourceAwsIamRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 			_, err := iamconn.PutRolePermissionsBoundary(input)
 			if err != nil {
+				if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+					d.Set("permissions_boundary", nil)
+				}
 				return fmt.Errorf("error updating IAM Role permissions boundary: %s", err)
 			}
 		} else {
