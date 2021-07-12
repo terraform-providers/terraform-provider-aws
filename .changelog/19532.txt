@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_iam_role: Add plan time validation for `path`, `permissions_boundary`, `managed_policy_arns`.
+```

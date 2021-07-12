@@ -109,7 +109,7 @@ func TestAccAWSRolePolicyAttachment_disappears_Role(t *testing.T) {
 					testAccCheckAWSRolePolicyAttachmentExists(resourceName, 1, &attachedRolePolicies),
 					// DeleteConflict: Cannot delete entity, must detach all policies first.
 					testAccCheckAWSIAMRolePolicyAttachmentDisappears(resourceName),
-					testAccCheckAWSRoleDisappears(&role),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsIamRole(), iamRoleResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
