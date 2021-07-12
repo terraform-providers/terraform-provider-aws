@@ -11,7 +11,8 @@ import (
 
 func TestAccDataSourceAwsCodeStarConnectionsConnection_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	dataSourceName := "data.aws_codestarconnections_connection.test"
+	dataSourceName := "data.aws_codestarconnections_connection.test_arn"
+	dataSourceName2 := "data.aws_codestarconnections_connection.test_name"
 	resourceName := "aws_codestarconnections_connection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,6 +29,12 @@ func TestAccDataSourceAwsCodeStarConnectionsConnection_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "name", dataSourceName, "name"),
 					resource.TestCheckResourceAttrPair(resourceName, "connection_status", dataSourceName, "connection_status"),
 					resource.TestCheckResourceAttrPair(resourceName, "tags.%", dataSourceName, "tags.%"),
+					resource.TestCheckResourceAttrPair(resourceName, "id", dataSourceName2, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", dataSourceName2, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "provider_type", dataSourceName2, "provider_type"),
+					resource.TestCheckResourceAttrPair(resourceName, "name", dataSourceName2, "name"),
+					resource.TestCheckResourceAttrPair(resourceName, "connection_status", dataSourceName2, "connection_status"),
+					resource.TestCheckResourceAttrPair(resourceName, "tags.%", dataSourceName2, "tags.%"),
 				),
 			},
 		},
@@ -61,8 +68,12 @@ resource "aws_codestarconnections_connection" "test" {
   provider_type = "Bitbucket"
 }
 
-data "aws_codestarconnections_connection" "test" {
+data "aws_codestarconnections_connection" "test_arn" {
   arn = aws_codestarconnections_connection.test.arn
+}
+
+data "aws_codestarconnections_connection" "test_name" {
+  name = aws_codestarconnections_connection.test.name
 }
 `, rName)
 }

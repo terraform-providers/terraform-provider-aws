@@ -20,3 +20,32 @@ func ConnectionByArn(conn *codestarconnections.CodeStarConnections, arn string) 
 
 	return output.Connection, nil
 }
+
+func ConnectionByName(conn *codestarconnections.CodeStarConnections, name string) (*codestarconnections.Connection, error) {
+	var result *codestarconnections.Connection
+
+	err := conn.ListConnectionsPages(&codestarconnections.ListConnectionsInput{}, func(page *codestarconnections.ListConnectionsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, connection := range page.Connections {
+			if connection == nil {
+				continue
+			}
+
+			if aws.StringValue(connection.ConnectionName) == name {
+				result = connection
+				return false
+			}
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/codestarconnections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/codestarconnections/finder"
@@ -15,8 +17,10 @@ func dataSourceAwsCodeStarConnectionsConnection() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateArn,
 			},
 
 			"connection_status": {
@@ -32,6 +36,7 @@ func dataSourceAwsCodeStarConnectionsConnection() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 
 			"provider_type": {
@@ -48,16 +53,38 @@ func dataSourceAwsCodeStarConnectionsConnectionRead(d *schema.ResourceData, meta
 	conn := meta.(*AWSClient).codestarconnectionsconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	arn := d.Get("arn").(string)
-
 	log.Printf("[DEBUG] Getting CodeStar Connection")
-	connection, err := finder.ConnectionByArn(conn, arn)
-	if err != nil {
-		return fmt.Errorf("error getting CodeStar Connection (%s): %w", arn, err)
+
+	var connection *codestarconnections.Connection
+	var err error
+
+	if v, ok := d.GetOk("arn"); ok {
+		arn := v.(string)
+		connection, err = finder.ConnectionByArn(conn, arn)
+		if err != nil {
+			return fmt.Errorf("error getting CodeStar Connection (%s): %w", arn, err)
+		}
+		if connection == nil {
+			return fmt.Errorf("Could not find CodeStar connection with arn (%s)", arn)
+		}
+	} else if v, ok := d.GetOk("name"); ok {
+		name := v.(string)
+		connection, err = finder.ConnectionByName(conn, name)
+		if err != nil {
+			return fmt.Errorf("error getting CodeStar Connection (%s): %w", name, err)
+		}
+		if connection == nil {
+			return fmt.Errorf("Could not find CodeStar connection with name (%s)", name)
+		}
+	} else {
+		return fmt.Errorf("Either arn or name must be specified")
 	}
+
 	log.Printf("[DEBUG] CodeStar Connection: %#v", connection)
 
+	arn := aws.StringValue(connection.ConnectionArn)
 	d.SetId(arn)
+	d.Set("arn", arn)
 	d.Set("connection_status", connection.ConnectionStatus)
 	d.Set("host_arn", connection.HostArn)
 	d.Set("name", connection.ConnectionName)

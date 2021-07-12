@@ -12,9 +12,19 @@ Provides details about CodeStar Connection.
 
 ## Example Usage
 
+### By ARN
+
 ```terraform
 data "aws_codestarconnections_connection" "example" {
   arn = aws_codestarconnections_connection.example.arn
+}
+```
+
+### By Name
+
+```terraform
+data "aws_codestarconnections_connection" "example" {
+  name = aws_codestarconnections_connection.example.name
 }
 ```
 
@@ -22,7 +32,10 @@ data "aws_codestarconnections_connection" "example" {
 
 The following arguments are supported:
 
-* `arn` - (Required) The CodeStar Connection ARN.
+* `arn` - (Optional) The CodeStar Connection ARN.
+* `name` - (Optional) The CodeStar Connection name.
+
+~> **NOTE**: When both `arn` and `name` are specified, `arn` takes precedence.
 
 ## Attributes Reference
 
