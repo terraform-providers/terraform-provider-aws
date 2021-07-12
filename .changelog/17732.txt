@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/aws_ssm_association: Add plan time validation to `association_name`, `document_version`, `schedule_expression`, `output_location.s3_bucket_name`, `output_location.s3_key_prefix`, `targets.key`, `targets.values`, `automation_target_parameter_name`
+```
+
+```release-note:enhancement
+resource/aws_ssm_association: Add `wait_for_success_timeout_seconds` argument
+```
+
+```release-note:enhancement
+resource/aws_ssm_association: Add `arn` attribute
+```

@@ -2,17 +2,18 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ssm/finder"
 )
 
 func TestAccAWSSSMAssociation_basic(t *testing.T) {
-	name := fmt.Sprintf("tf-acc-ssm-association-%s", acctest.RandString(10))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,10 +23,20 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfig(name),
+				Config: testAccAWSSSMAssociationBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ssm", regexp.MustCompile(`association/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "false"),
+					resource.TestCheckResourceAttrPair(resourceName, "instance_id", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "output_location.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "targets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "InstanceIds"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "targets.0.values.0", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "document_version", "$DEFAULT"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
@@ -59,8 +70,8 @@ func TestAccAWSSSMAssociation_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
-	name := acctest.RandString(10)
+func TestAccAWSSSMAssociation_disappears_document(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,7 +81,29 @@ func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(name, true),
+				Config: testAccAWSSSMAssociationBasicConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSsmDocument(), "aws_ssm_document.test"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ssm_association.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "true"),
@@ -82,7 +115,7 @@ func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(name, false),
+				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "false"),
@@ -93,7 +126,7 @@ func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_withTargets(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 	oneTarget := `
 
@@ -123,15 +156,12 @@ targets {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithTargets(name, oneTarget),
+				Config: testAccAWSSSMAssociationBasicConfigWithTargets(rName, oneTarget),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.0.key", "tag:Name"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.0.values.0", "acceptanceTest"),
+					resource.TestCheckResourceAttr(resourceName, "targets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "tag:Name"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.0", "acceptanceTest"),
 				),
 			},
 			{
@@ -140,31 +170,23 @@ targets {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithTargets(name, twoTargets),
+				Config: testAccAWSSSMAssociationBasicConfigWithTargets(rName, twoTargets),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.#", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.0.key", "tag:Name"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.0.values.0", "acceptanceTest"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.1.key", "tag:ExtraName"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.1.values.0", "acceptanceTest"),
+					resource.TestCheckResourceAttr(resourceName, "targets.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "tag:Name"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.0", "acceptanceTest"),
+					resource.TestCheckResourceAttr(resourceName, "targets.1.key", "tag:ExtraName"),
+					resource.TestCheckResourceAttr(resourceName, "targets.1.values.0", "acceptanceTest"),
 				),
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithTargets(name, oneTarget),
+				Config: testAccAWSSSMAssociationBasicConfigWithTargets(rName, oneTarget),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.0.key", "tag:Name"),
-					resource.TestCheckResourceAttr(
-						resourceName, "targets.0.values.0", "acceptanceTest"),
+					resource.TestCheckResourceAttr(resourceName, "targets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "tag:Name"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.0", "acceptanceTest"),
 				),
 			},
 		},
@@ -172,7 +194,7 @@ targets {
 }
 
 func TestAccAWSSSMAssociation_withParameters(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -182,49 +204,10 @@ func TestAccAWSSSMAssociation_withParameters(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithParameters(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithParameters(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameters.Directory", "myWorkSpace"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"parameters"},
-			},
-			{
-				Config: testAccAWSSSMAssociationBasicConfigWithParametersUpdated(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameters.Directory", "myWorkSpaceUpdated"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAWSSSMAssociation_withAssociationName(t *testing.T) {
-	assocName1 := acctest.RandString(10)
-	assocName2 := acctest.RandString(10)
-	rName := acctest.RandString(5)
-	resourceName := "aws_ssm_association.test"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSSSMAssociationBasicConfigWithAssociationName(rName, assocName1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "association_name", assocName1),
+					resource.TestCheckResourceAttr(resourceName, "parameters.Directory", "myWorkSpace"),
 				),
 			},
 			{
@@ -233,11 +216,79 @@ func TestAccAWSSSMAssociation_withAssociationName(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithAssociationName(rName, assocName2),
+				Config: testAccAWSSSMAssociationBasicConfigWithParametersUpdated(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "association_name", assocName2),
+					resource.TestCheckResourceAttr(resourceName, "parameters.Directory", "myWorkSpaceUpdated"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSSMAssociation_withAssociationName(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ssm_association.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMAssociationBasicConfigWithAssociationName(rName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSSSMAssociationBasicConfigWithAssociationName(rName, rNameUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rNameUpdated),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSSMAssociation_waitForSuccess(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ssm_association.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ssm.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMAssociationWaitTimeoutConfig(rName, rName, 30),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+			},
+			{
+				Config: testAccAWSSSMAssociationWaitTimeoutConfig(rName, rNameUpdated, 60),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rNameUpdated),
 				),
 			},
 		},
@@ -245,8 +296,7 @@ func TestAccAWSSSMAssociation_withAssociationName(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_withAssociationNameAndScheduleExpression(t *testing.T) {
-	assocName := acctest.RandString(10)
-	rName := acctest.RandString(5)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 	scheduleExpression1 := "cron(0 16 ? * TUE *)"
 	scheduleExpression2 := "cron(0 16 ? * WED *)"
@@ -258,10 +308,10 @@ func TestAccAWSSSMAssociation_withAssociationNameAndScheduleExpression(t *testin
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, assocName, scheduleExpression1),
+				Config: testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, scheduleExpression1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "association_name", assocName),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "schedule_expression", scheduleExpression1),
 				),
 			},
@@ -271,10 +321,10 @@ func TestAccAWSSSMAssociation_withAssociationNameAndScheduleExpression(t *testin
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, assocName, scheduleExpression2),
+				Config: testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, scheduleExpression2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "association_name", assocName),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "schedule_expression", scheduleExpression2),
 				),
 			},
@@ -283,7 +333,7 @@ func TestAccAWSSSMAssociation_withAssociationNameAndScheduleExpression(t *testin
 }
 
 func TestAccAWSSSMAssociation_withDocumentVersion(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -293,11 +343,10 @@ func TestAccAWSSSMAssociation_withDocumentVersion(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithDocumentVersion(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithDocumentVersion(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "document_version", "1"),
+					resource.TestCheckResourceAttr(resourceName, "document_version", "1"),
 				),
 			},
 			{
@@ -310,7 +359,8 @@ func TestAccAWSSSMAssociation_withDocumentVersion(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_withOutputLocation(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rNameUpdated := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -320,13 +370,11 @@ func TestAccAWSSSMAssociation_withOutputLocation(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocation(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocation(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "output_location.0.s3_bucket_name", fmt.Sprintf("tf-acc-test-ssmoutput-%s", name)),
-					resource.TestCheckResourceAttr(
-						resourceName, "output_location.0.s3_key_prefix", "SSMAssociation"),
+					resource.TestCheckResourceAttr(resourceName, "output_location.0.s3_bucket_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "output_location.0.s3_key_prefix", "SSMAssociation"),
 				),
 			},
 			{
@@ -335,23 +383,19 @@ func TestAccAWSSSMAssociation_withOutputLocation(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateBucketName(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateBucketName(rName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "output_location.0.s3_bucket_name", fmt.Sprintf("tf-acc-test-ssmoutput-updated-%s", name)),
-					resource.TestCheckResourceAttr(
-						resourceName, "output_location.0.s3_key_prefix", "SSMAssociation"),
+					resource.TestCheckResourceAttr(resourceName, "output_location.0.s3_bucket_name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "output_location.0.s3_key_prefix", "SSMAssociation"),
 				),
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateKeyPrefix(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateKeyPrefix(rName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "output_location.0.s3_bucket_name", fmt.Sprintf("tf-acc-test-ssmoutput-updated-%s", name)),
-					resource.TestCheckResourceAttr(
-						resourceName, "output_location.0.s3_key_prefix", "UpdatedAssociation"),
+					resource.TestCheckResourceAttr(resourceName, "output_location.0.s3_bucket_name", rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "output_location.0.s3_key_prefix", "UpdatedAssociation"),
 				),
 			},
 		},
@@ -359,7 +403,7 @@ func TestAccAWSSSMAssociation_withOutputLocation(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_withAutomationTargetParamName(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -369,25 +413,22 @@ func TestAccAWSSSMAssociation_withAutomationTargetParamName(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName, "myWorkSpace"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameters.Directory", "myWorkSpace"),
+					resource.TestCheckResourceAttr(resourceName, "parameters.Directory", "myWorkSpace"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"parameters"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithParametersUpdated(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName, "myWorkSpaceUpdated"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameters.Directory", "myWorkSpaceUpdated"),
+					resource.TestCheckResourceAttr(resourceName, "parameters.Directory", "myWorkSpaceUpdated"),
 				),
 			},
 		},
@@ -395,7 +436,7 @@ func TestAccAWSSSMAssociation_withAutomationTargetParamName(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -405,7 +446,7 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpression(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpression(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "schedule_expression", "cron(0 16 ? * TUE *)"),
@@ -417,7 +458,7 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpressionUpdated(name),
+				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpressionUpdated(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "schedule_expression", "cron(0 16 ? * WED *)"),
@@ -428,8 +469,7 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_withComplianceSeverity(t *testing.T) {
-	assocName := acctest.RandString(10)
-	rName := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	compSeverity1 := "HIGH"
 	compSeverity2 := "LOW"
 	resourceName := "aws_ssm_association.test"
@@ -441,13 +481,11 @@ func TestAccAWSSSMAssociation_withComplianceSeverity(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity1, rName, assocName),
+				Config: testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity1, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "association_name", assocName),
-					resource.TestCheckResourceAttr(
-						resourceName, "compliance_severity", compSeverity1),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "compliance_severity", compSeverity1),
 				),
 			},
 			{
@@ -456,13 +494,11 @@ func TestAccAWSSSMAssociation_withComplianceSeverity(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity2, rName, assocName),
+				Config: testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity2, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "association_name", assocName),
-					resource.TestCheckResourceAttr(
-						resourceName, "compliance_severity", compSeverity2),
+					resource.TestCheckResourceAttr(resourceName, "association_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "compliance_severity", compSeverity2),
 				),
 			},
 		},
@@ -470,7 +506,7 @@ func TestAccAWSSSMAssociation_withComplianceSeverity(t *testing.T) {
 }
 
 func TestAccAWSSSMAssociation_rateControl(t *testing.T) {
-	name := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_ssm_association.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -480,13 +516,11 @@ func TestAccAWSSSMAssociation_rateControl(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMAssociationRateControlConfig(name, "10%"),
+				Config: testAccAWSSSMAssociationRateControlConfig(rName, "10%"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "max_concurrency", "10%"),
-					resource.TestCheckResourceAttr(
-						resourceName, "max_errors", "10%"),
+					resource.TestCheckResourceAttr(resourceName, "max_concurrency", "10%"),
+					resource.TestCheckResourceAttr(resourceName, "max_errors", "10%"),
 				),
 			},
 			{
@@ -495,13 +529,11 @@ func TestAccAWSSSMAssociation_rateControl(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSSSMAssociationRateControlConfig(name, "20%"),
+				Config: testAccAWSSSMAssociationRateControlConfig(rName, "20%"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "max_concurrency", "20%"),
-					resource.TestCheckResourceAttr(
-						resourceName, "max_errors", "20%"),
+					resource.TestCheckResourceAttr(resourceName, "max_concurrency", "20%"),
+					resource.TestCheckResourceAttr(resourceName, "max_errors", "20%"),
 				),
 			},
 		},
@@ -520,11 +552,7 @@ func testAccCheckAWSSSMAssociationExists(n string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ssmconn
-
-		_, err := conn.DescribeAssociation(&ssm.DescribeAssociationInput{
-			AssociationId: aws.String(rs.Primary.Attributes["association_id"]),
-		})
-
+		_, err := finder.AssociationByID(conn, rs.Primary.ID)
 		if err != nil {
 			if isAWSErr(err, ssm.ErrCodeAssociationDoesNotExist, "") {
 				return nil
@@ -544,10 +572,7 @@ func testAccCheckAWSSSMAssociationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		out, err := conn.DescribeAssociation(&ssm.DescribeAssociationInput{
-			AssociationId: aws.String(rs.Primary.Attributes["association_id"]),
-		})
-
+		out, err := finder.AssociationByID(conn, rs.Primary.ID)
 		if err != nil {
 			if isAWSErr(err, ssm.ErrCodeAssociationDoesNotExist, "") {
 				continue
@@ -563,10 +588,10 @@ func testAccCheckAWSSSMAssociationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(rName string, applyOnlyAtCronInterval bool) string {
+func testAccAWSSSMAssociationConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
+  name          = %[1]q
   document_type = "Command"
 
   content = <<DOC
@@ -590,7 +615,11 @@ resource "aws_ssm_document" "test" {
 DOC
 
 }
+`, rName)
+}
 
+func testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(rName string, applyOnlyAtCronInterval bool) string {
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
   name                        = aws_ssm_document.test.name
   schedule_expression         = "cron(0 16 ? * TUE *)"
@@ -604,18 +633,12 @@ resource "aws_ssm_association" "test" {
 `, rName, applyOnlyAtCronInterval)
 }
 
-func testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName string) string {
-	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
-resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "ssm_profile-%[1]s"
-  role = aws_iam_role.ssm_role.name
-}
-
+func testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName, directory string) string {
+	return fmt.Sprintf(`
 data "aws_partition" "current" {}
 
-resource "aws_iam_role" "ssm_role" {
-  name = "ssm_role-%[1]s"
-  path = "/"
+resource "aws_iam_role" "test" {
+  name = %[1]q
 
   assume_role_policy = <<EOF
 {
@@ -632,18 +655,17 @@ resource "aws_iam_role" "ssm_role" {
   ]
 }
 EOF
-
 }
 
-resource "aws_ssm_document" "foo" {
-  name          = "test_document-%[1]s"
+resource "aws_ssm_document" "test" {
+  name          = %[1]q
   document_type = "Automation"
 
   content = <<DOC
 {
   "description": "Systems Manager Automation Demo",
   "schemaVersion": "0.3",
-  "assumeRole": "${aws_iam_role.ssm_role.arn}",
+  "assumeRole": "${aws_iam_role.test.arn}",
   "parameters": {
     "Directory": {
       "description": "(Optional) The path to the working directory on your instance.",
@@ -654,41 +676,11 @@ resource "aws_ssm_document" "foo" {
   },
   "mainSteps": [
     {
-      "name": "startInstances",
-      "action": "aws:runInstances",
-      "timeoutSeconds": 1200,
-      "maxAttempts": 1,
-      "onFailure": "Abort",
+      "name": "sleep",
+      "action": "aws:sleep",
+      "timeoutSeconds": 15,
       "inputs": {
-        "ImageId": "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}",
-        "InstanceType": "t2.small",
-        "MinInstanceCount": 1,
-        "MaxInstanceCount": 1,
-        "IamInstanceProfileName": "${aws_iam_instance_profile.ssm_profile.name}"
-      }
-    },
-    {
-      "name": "stopInstance",
-      "action": "aws:changeInstanceState",
-      "maxAttempts": 1,
-      "onFailure": "Continue",
-      "inputs": {
-        "InstanceIds": [
-          "{{ startInstances.InstanceIds }}"
-        ],
-        "DesiredState": "stopped"
-      }
-    },
-    {
-      "name": "terminateInstance",
-      "action": "aws:changeInstanceState",
-      "maxAttempts": 1,
-      "onFailure": "Continue",
-      "inputs": {
-        "InstanceIds": [
-          "{{ startInstances.InstanceIds }}"
-        ],
-        "DesiredState": "terminated"
+        "Duration":"PT5S"
       }
     }
   ]
@@ -698,12 +690,12 @@ DOC
 }
 
 resource "aws_ssm_association" "test" {
-  name                             = aws_ssm_document.foo.name
+  name                             = aws_ssm_document.test.name
   automation_target_parameter_name = "Directory"
 
   parameters = {
-    AutomationAssumeRole = aws_iam_role.ssm_role.id
-    Directory            = "myWorkSpace"
+    AutomationAssumeRole = aws_iam_role.test.id
+    Directory            = %[2]q
   }
 
   targets {
@@ -713,13 +705,13 @@ resource "aws_ssm_association" "test" {
 
   schedule_expression = "rate(60 minutes)"
 }
-`, rName))
+`, rName, directory)
 }
 
 func testAccAWSSSMAssociationBasicConfigWithParametersUpdated(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
+  name          = %[1]q
   document_type = "Command"
 
   content = <<-DOC
@@ -769,7 +761,7 @@ resource "aws_ssm_association" "test" {
 func testAccAWSSSMAssociationBasicConfigWithParameters(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
+  name          = %[1]q
   document_type = "Command"
 
   content = <<-DOC
@@ -817,81 +809,37 @@ resource "aws_ssm_association" "test" {
 }
 
 func testAccAWSSSMAssociationBasicConfigWithTargets(rName, targetsStr string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
   name = aws_ssm_document.test.name
   %s
 }
-`, rName, targetsStr)
+`, targetsStr)
 }
 
 func testAccAWSSSMAssociationBasicConfig(rName string) string {
-	return fmt.Sprintf(`
-variable "name" {
-  default = "%s"
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
-data "aws_ami" "amzn" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-}
-
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableAZsNoOptInDefaultExcludeConfig(),
+		testAccAWSSSMAssociationConfigBase(rName),
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = var.name
+    Name = %[1]q
   }
 }
 
-resource "aws_subnet" "first" {
+resource "aws_subnet" "test" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = data.aws_availability_zones.available.names[0]
 }
 
 resource "aws_security_group" "test" {
-  name        = var.name
+  name        = %[1]q
   description = "foo"
   vpc_id      = aws_vpc.main.id
 
@@ -904,80 +852,28 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_instance" "test" {
-  ami                    = data.aws_ami.amzn.image_id
+  ami                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   availability_zone      = data.aws_availability_zones.available.names[0]
-  instance_type          = "t2.micro"
+  instance_type          = data.aws_ec2_instance_type_offering.available.instance_type
   vpc_security_group_ids = [aws_security_group.test.id]
-  subnet_id              = aws_subnet.first.id
+  subnet_id              = aws_subnet.test.id
 
   tags = {
-    Name = var.name
+    Name = %[1]q
   }
-}
-
-resource "aws_ssm_document" "test" {
-  name          = var.name
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
 }
 
 resource "aws_ssm_association" "test" {
-  name        = var.name
+  name        = %[1]q
   instance_id = aws_instance.test.id
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSSSMAssociationBasicConfigWithDocumentVersion(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
-  name             = "test_document_association-%s"
+  name             = %[1]q
   document_version = aws_ssm_document.test.latest_version
 
   targets {
@@ -985,37 +881,11 @@ resource "aws_ssm_association" "test" {
     values = ["acceptanceTest"]
   }
 }
-`, rName, rName)
+`, rName)
 }
 
 func testAccAWSSSMAssociationBasicConfigWithScheduleExpression(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+	return testAccAWSSSMAssociationConfigBase(rName) + `
 resource "aws_ssm_association" "test" {
   name                = aws_ssm_document.test.name
   schedule_expression = "cron(0 16 ? * TUE *)"
@@ -1025,37 +895,11 @@ resource "aws_ssm_association" "test" {
     values = ["acceptanceTest"]
   }
 }
-`, rName)
+`
 }
 
 func testAccAWSSSMAssociationBasicConfigWithScheduleExpressionUpdated(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+	return testAccAWSSSMAssociationConfigBase(rName) + `
 resource "aws_ssm_association" "test" {
   name                = aws_ssm_document.test.name
   schedule_expression = "cron(0 16 ? * WED *)"
@@ -1065,40 +909,14 @@ resource "aws_ssm_association" "test" {
     values = ["acceptanceTest"]
   }
 }
-`, rName)
+`
 }
 
 func testAccAWSSSMAssociationBasicConfigWithOutPutLocation(rName string) string {
-	return fmt.Sprintf(`
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_s3_bucket" "output_location" {
-  bucket        = "tf-acc-test-ssmoutput-%s"
+  bucket        = %[1]q
   force_destroy = true
-}
-
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
 }
 
 resource "aws_ssm_association" "test" {
@@ -1114,45 +932,19 @@ resource "aws_ssm_association" "test" {
     s3_key_prefix  = "SSMAssociation"
   }
 }
-`, rName, rName)
+`, rName)
 }
 
-func testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateBucketName(rName string) string {
-	return fmt.Sprintf(`
+func testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateBucketName(rName, rNameUpdated string) string {
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_s3_bucket" "output_location" {
-  bucket        = "tf-acc-test-ssmoutput-%s"
+  bucket        = %[1]q
   force_destroy = true
 }
 
 resource "aws_s3_bucket" "output_location_updated" {
-  bucket        = "tf-acc-test-ssmoutput-updated-%s"
+  bucket        = %[2]q
   force_destroy = true
-}
-
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
 }
 
 resource "aws_ssm_association" "test" {
@@ -1168,45 +960,19 @@ resource "aws_ssm_association" "test" {
     s3_key_prefix  = "SSMAssociation"
   }
 }
-`, rName, rName, rName)
+`, rName, rNameUpdated)
 }
 
-func testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateKeyPrefix(rName string) string {
-	return fmt.Sprintf(`
+func testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateKeyPrefix(rName, rNameUpdated string) string {
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_s3_bucket" "output_location" {
-  bucket        = "tf-acc-test-ssmoutput-%s"
+  bucket        = %[1]q
   force_destroy = true
 }
 
 resource "aws_s3_bucket" "output_location_updated" {
-  bucket        = "tf-acc-test-ssmoutput-updated-%s"
+  bucket        = %[2]q
   force_destroy = true
-}
-
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
 }
 
 resource "aws_ssm_association" "test" {
@@ -1222,40 +988,14 @@ resource "aws_ssm_association" "test" {
     s3_key_prefix  = "UpdatedAssociation"
   }
 }
-`, rName, rName, rName)
+`, rName, rNameUpdated)
 }
 
 func testAccAWSSSMAssociationBasicConfigWithAssociationName(rName, assocName string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
   name             = aws_ssm_document.test.name
-  association_name = "%s"
+  association_name = %[2]q
 
   targets {
     key    = "tag:Name"
@@ -1265,125 +1005,62 @@ resource "aws_ssm_association" "test" {
 `, rName, assocName)
 }
 
-func testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, associationName, scheduleExpression string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+func testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, scheduleExpression string) string {
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
-  association_name    = %q
+  association_name    = %[1]q
   name                = aws_ssm_document.test.name
-  schedule_expression = %q
+  schedule_expression = %[2]q
 
   targets {
     key    = "tag:Name"
     values = ["acceptanceTest"]
   }
 }
-`, rName, associationName, scheduleExpression)
+`, rName, scheduleExpression)
 }
 
-func testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity, rName, assocName string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "test_document_association-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+func testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity, rName string) string {
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
   name                = aws_ssm_document.test.name
-  association_name    = "%s"
-  compliance_severity = "%s"
+  association_name    = %[1]q
+  compliance_severity = %[2]q
 
   targets {
     key    = "tag:Name"
     values = ["acceptanceTest"]
   }
 }
-`, rName, assocName, compSeverity)
+`, rName, compSeverity)
 }
 
 func testAccAWSSSMAssociationRateControlConfig(rName, rate string) string {
-	return fmt.Sprintf(`
-resource "aws_ssm_document" "test" {
-  name          = "tf-test-ssm-document-%s"
-  document_type = "Command"
-
-  content = <<DOC
-{
-  "schemaVersion": "1.2",
-  "description": "Check ip configuration of a Linux instance.",
-  "parameters": {},
-  "runtimeConfig": {
-    "aws:runShellScript": {
-      "properties": [
-        {
-          "id": "0.aws:runShellScript",
-          "runCommand": [
-            "ifconfig"
-          ]
-        }
-      ]
-    }
-  }
-}
-DOC
-
-}
-
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ssm_association" "test" {
   name            = aws_ssm_document.test.name
-  max_concurrency = "%s"
-  max_errors      = "%s"
+  max_concurrency = %[2]q
+  max_errors      = %[2]q
 
   targets {
     key    = "tag:Name"
     values = ["acceptanceTest"]
   }
 }
-`, rName, rate, rate)
+`, rName, rate)
+}
+
+func testAccAWSSSMAssociationWaitTimeoutConfig(rName, assocName string, wait int) string {
+	return testAccAWSSSMAssociationConfigBase(rName) + fmt.Sprintf(`
+resource "aws_ssm_association" "test" {
+  name                             = aws_ssm_document.test.name
+  association_name                 = %[2]q
+  wait_for_success_timeout_seconds = %[3]d
+
+  targets {
+    key    = "tag:Name"
+    values = ["acceptanceTest"]
+  }
+}
+`, rName, assocName, wait)
 }
