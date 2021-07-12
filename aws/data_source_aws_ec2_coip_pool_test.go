@@ -41,6 +41,7 @@ func TestAccDataSourceAwsEc2CoipPool_Id(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_route_table_id", regexp.MustCompile(`^lgw-rtb-`)),
 					resource.TestMatchResourceAttr(dataSourceName, "pool_id", regexp.MustCompile(`^ipv4pool-coip-`)),
+					testAccMatchResourceAttrRegionalARN(dataSourceName, "arn", "ec2", regexp.MustCompile(`coip-pool/ipv4pool-coip-.+$`)),
 					testCheckResourceAttrGreaterThanValue(dataSourceName, "pool_cidrs.#", "0"),
 				),
 			},
