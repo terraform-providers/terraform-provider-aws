@@ -164,13 +164,21 @@ func resourceAwsLambdaProvisionedConcurrencyConfigDelete(d *schema.ResourceData,
 }
 
 func resourceAwsLambdaProvisionedConcurrencyConfigParseId(id string) (string, string, error) {
-	parts := strings.SplitN(id, ":", 2)
 
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", fmt.Errorf("unexpected format of ID (%s), expected FUNCTION_NAME:QUALIFIER", id)
+	parts := strings.Split(id, ":")
+
+	if len(parts) < 2 {
+		return "", "", fmt.Errorf("unexpected format of ID (%s), expected id to terminate as FUNCTION_NAME:QUALIFIER", id)
 	}
 
-	return parts[0], parts[1], nil
+	// Handle the multiple valid formats for the function name parameter that PutProvisionedConcurrencyConfig supports
+	// (see https://docs.aws.amazon.com/lambda/latest/dg/API_PutProvisionedConcurrencyConfig.html#API_PutProvisionedConcurrencyConfig_RequestSyntax). The qualifier should always
+	// appear after the terminal colon (from the state id formatting function) while everything prior is the function name
+
+	functionName := strings.Join(parts[:len(parts)-1], ":")
+	qualifier := parts[len(parts)-1]
+
+	return functionName, qualifier, nil
 }
 
 func refreshLambdaProvisionedConcurrencyConfigStatus(conn *lambda.Lambda, functionName, qualifier string) resource.StateRefreshFunc {
