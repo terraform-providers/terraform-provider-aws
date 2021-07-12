@@ -294,7 +294,26 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("timeout", function.Timeout)
-	d.Set("version", function.Version)
+
+	versionsInput := &lambda.ListVersionsByFunctionInput{
+		FunctionName: aws.String(functionName),
+		MaxItems:     aws.Int64(10000),
+	}
+	var latestPublishedVersion string
+	log.Printf("[DEBUG] Getting List of Lambda Versions : %s", versionsInput)
+	errVersions := listVersionsByFunctionPages(conn, versionsInput, func(p *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
+		if lastPage {
+			last := p.Versions[len(p.Versions)-1]
+			latestPublishedVersion = *last.Version
+			return false
+		}
+		return true
+	})
+
+	if errVersions != nil {
+		return fmt.Errorf("error getting List of Lambda Versions for Function (%s): %s", functionName, errVersions)
+	}
+	d.Set("version", latestPublishedVersion) //Unpublished lambda set to "$LATEST"
 
 	if err := d.Set("vpc_config", flattenLambdaVpcConfigResponse(function.VpcConfig)); err != nil {
 		return fmt.Errorf("error setting vpc_config: %w", err)

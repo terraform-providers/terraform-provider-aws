@@ -55,5 +55,5 @@ In addition to all arguments above, the following attributes are exported:
 * `source_code_size` - The size in bytes of the function .zip file.
 * `timeout` - The function execution time at which Lambda should terminate the function.
 * `tracing_config` - Tracing settings of the function.
-* `version` - The version of the Lambda function.
+* `version` - The latest published version of the Lambda function. For unpublished lambda function, version is set to `$LATEST`.
 * `vpc_config` - VPC configuration associated with your Lambda function.
