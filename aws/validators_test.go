@@ -3206,6 +3206,37 @@ func TestCloudWatchEventCustomEventBusEventSourceName(t *testing.T) {
 	}
 }
 
+func TestValidateMQBrokerName(t *testing.T) {
+	validNames := []string{
+		"ValidName",
+		"V_-dN01e",
+		"0",
+		"-",
+		"_",
+		strings.Repeat("x", 50),
+	}
+	for _, v := range validNames {
+		_, errors := validateMQBrokerName(v, "name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid broker name: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"Inval:d.~Name",
+		"Invalid Name",
+		"*",
+		"",
+		strings.Repeat("x", 51),
+	}
+	for _, v := range invalidNames {
+		_, errors := validateMQBrokerName(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid broker name", v)
+		}
+	}
+}
+
 func TestValidateServiceDiscoveryNamespaceName(t *testing.T) {
 	validNames := []string{
 		"ValidName",

@@ -57,9 +57,10 @@ func resourceAwsMqBroker() *schema.Resource {
 				ForceNew: true,
 			},
 			"broker_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateMQBrokerName,
 			},
 			"configuration": {
 				Type:     schema.TypeList,
@@ -264,6 +265,7 @@ func resourceAwsMqBroker() *schema.Resource {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
+				MaxItems: 5,
 			},
 			"storage_type": {
 				Type:         schema.TypeString,

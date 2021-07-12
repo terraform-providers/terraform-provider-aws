@@ -74,7 +74,7 @@ resource "aws_mq_broker" "example" {
 
 The following arguments are required:
 
-* `broker_name` - (Required) Name of the broker.
+* `broker_name` - (Required) Name of the broker. This value must be unique in your AWS account, 1-50 characters long, must contain only letters, numbers, dashes, and underscores, and must not contain white spaces, brackets, wildcard characters, or special characters.
 * `engine_type` - (Required) Type of broker engine. Valid values are `ActiveMQ` and `RabbitMQ`.
 * `engine_version` - (Required) Version of the broker engine. See the [AmazonMQ Broker Engine docs](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html) for supported versions. For example, `5.15.0`.
 * `host_instance_type` - (Required) Broker's instance type. For example, `mq.t3.micro`, `mq.m5.large`.
