@@ -55,6 +55,8 @@ to detach the volume from the instance to which it is attached at destroy
 time, and instead just remove the attachment from Terraform state. This is
 useful when destroying an instance which has volumes created by some other
 means attached.
+* `stop_instance_before_detaching` - (Optional, Boolean) Set this to true to ensure that the target instance is stopped
+before trying to detach the volume. Stops the instance, if it is not already stopped.
 
 ## Attributes Reference
 

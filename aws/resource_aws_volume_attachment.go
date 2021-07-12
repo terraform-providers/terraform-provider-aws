@@ -65,6 +65,10 @@ func resourceAwsVolumeAttachment() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"stop_instance_before_detaching": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -186,6 +190,43 @@ func volumeAttachmentStateRefreshFunc(conn *ec2.EC2, name, volumeID, instanceID 
 	}
 }
 
+// InstanceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
+// an EC2 instance.
+func instanceStateRefreshFunc(conn *ec2.EC2, instanceID string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
+			InstanceIds: []*string{aws.String(instanceID)},
+		})
+		if err != nil {
+			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+				// Set this to nil as if we didn't find anything.
+				resp = nil
+			} else {
+				log.Printf("Error on InstanceStateRefresh: %s", err)
+				return nil, "", err
+			}
+		}
+
+		if resp == nil || len(resp.Reservations) == 0 || len(resp.Reservations[0].Instances) == 0 {
+			// Sometimes AWS just has consistency issues and doesn't see
+			// our instance yet. Return an empty state.
+			return nil, "", nil
+		}
+
+		i := resp.Reservations[0].Instances[0]
+		state := *i.State.Name
+
+		for _, failState := range failStates {
+			if state == failState {
+				return i, state, fmt.Errorf("Failed to reach target state. Reason: %s",
+					stringifyStateReason(i.StateReason))
+			}
+		}
+
+		return i, state, nil
+	}
+}
+
 func resourceAwsVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
@@ -235,6 +276,29 @@ func resourceAwsVolumeAttachmentDelete(d *schema.ResourceData, meta interface{})
 	name := d.Get("device_name").(string)
 	vID := d.Get("volume_id").(string)
 	iID := d.Get("instance_id").(string)
+
+	if _, ok := d.GetOk("stop_instance_before_detaching"); ok {
+		opts := &ec2.StopInstancesInput{
+			InstanceIds: []*string{aws.String(iID)},
+		}
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"pending", "running", "shutting-down", "stopping"},
+			Target:     []string{"stopped"},
+			Refresh:    instanceStateRefreshFunc(conn, iID, []string{}),
+			Timeout:    5 * time.Minute,
+			Delay:      10 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+		log.Printf("[Debug] Stopping target instance (%s) before detaching Volume (%s)", iID, vID)
+		_, err := conn.StopInstances(opts)
+		if err != nil {
+			return fmt.Errorf("Error stopping Instance (%s)", iID)
+		}
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("Error waiting Instance (%s) to stop", iID)
+		}
+	}
 
 	opts := &ec2.DetachVolumeInput{
 		Device:     aws.String(name),
