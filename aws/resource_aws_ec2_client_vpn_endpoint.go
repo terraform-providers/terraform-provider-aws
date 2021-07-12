@@ -62,6 +62,15 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 					ec2.TransportProtocolUdp,
 				}, false),
 			},
+			"vpn_port": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  443,
+				ValidateFunc: validation.IntInSlice([]int{
+					443,
+					1194,
+				}),
+			},
 			"authentication_options": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -146,6 +155,7 @@ func resourceAwsEc2ClientVpnEndpointCreate(d *schema.ResourceData, meta interfac
 		ClientCidrBlock:      aws.String(d.Get("client_cidr_block").(string)),
 		ServerCertificateArn: aws.String(d.Get("server_certificate_arn").(string)),
 		TransportProtocol:    aws.String(d.Get("transport_protocol").(string)),
+		VpnPort:              aws.Int64(int64(d.Get("vpn_port").(int))),
 		SplitTunnel:          aws.Bool(d.Get("split_tunnel").(bool)),
 		TagSpecifications:    ec2TagSpecificationsFromKeyValueTags(tags, ec2.ResourceTypeClientVpnEndpoint),
 	}
@@ -236,6 +246,7 @@ func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{
 	d.Set("client_cidr_block", result.ClientVpnEndpoints[0].ClientCidrBlock)
 	d.Set("server_certificate_arn", result.ClientVpnEndpoints[0].ServerCertificateArn)
 	d.Set("transport_protocol", result.ClientVpnEndpoints[0].TransportProtocol)
+	d.Set("vpn_port", result.ClientVpnEndpoints[0].VpnPort)
 	d.Set("dns_name", result.ClientVpnEndpoints[0].DnsName)
 	d.Set("dns_servers", result.ClientVpnEndpoints[0].DnsServers)
 
@@ -322,6 +333,10 @@ func resourceAwsEc2ClientVpnEndpointUpdate(d *schema.ResourceData, meta interfac
 
 	if d.HasChange("split_tunnel") {
 		req.SplitTunnel = aws.Bool(d.Get("split_tunnel").(bool))
+	}
+
+	if d.HasChange("vpn_port") {
+		req.VpnPort = aws.Int64(int64(d.Get("vpn_port").(int)))
 	}
 
 	if d.HasChange("connection_log_options") {

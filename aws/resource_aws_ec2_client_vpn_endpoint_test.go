@@ -93,6 +93,7 @@ func TestAccAwsEc2ClientVpn_serial(t *testing.T) {
 			"withDNSServers":    testAccAwsEc2ClientVpnEndpoint_withDNSServers,
 			"tags":              testAccAwsEc2ClientVpnEndpoint_tags,
 			"splitTunnel":       testAccAwsEc2ClientVpnEndpoint_splitTunnel,
+			"vpnPort":           testAccAwsEc2ClientVpnEndpoint_vpnPort,
 		},
 		"AuthorizationRule": {
 			"basic":      testAccAwsEc2ClientVpnAuthorizationRule_basic,
@@ -414,6 +415,39 @@ func testAccPreCheckClientVPNSyncronize(t *testing.T) {
 	sync.TestAccPreCheckSyncronize(t, testAccEc2ClientVpnEndpointSemaphore, "Client VPN")
 }
 
+func testAccAwsEc2ClientVpnEndpoint_vpnPort(t *testing.T) {
+	var v1, v2 ec2.ClientVpnEndpoint
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ec2_client_vpn_endpoint.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckClientVPNSyncronize(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsEc2ClientVpnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEc2ClientVpnEndpointConfigVpnPort(rName, 1194),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsEc2ClientVpnEndpointExists(resourceName, &v1),
+					resource.TestCheckResourceAttr(resourceName, "vpn_port", "1194"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccEc2ClientVpnEndpointConfigDefaultVpnPort(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsEc2ClientVpnEndpointExists(resourceName, &v2),
+					resource.TestCheckResourceAttr(resourceName, "vpn_port", "443"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsEc2ClientVpnEndpointDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
@@ -713,4 +747,43 @@ resource "aws_ec2_client_vpn_endpoint" "test" {
   }
 }
 `, rName, splitTunnel)
+}
+
+func testAccEc2ClientVpnEndpointConfigVpnPort(rName string, vpnPort int) string {
+	return testAccEc2ClientVpnEndpointConfigAcmCertificateBase() + fmt.Sprintf(`
+resource "aws_ec2_client_vpn_endpoint" "test" {
+  client_cidr_block      = "10.0.0.0/16"
+  description            = "terraform-testacc-clientvpn-%s"
+  server_certificate_arn = "${aws_acm_certificate.test.arn}"
+  vpn_port               = %d
+
+  authentication_options {
+    type                       = "certificate-authentication"
+    root_certificate_chain_arn = "${aws_acm_certificate.test.arn}"
+  }
+
+  connection_log_options {
+    enabled = false
+  }
+}
+`, rName, vpnPort)
+}
+
+func testAccEc2ClientVpnEndpointConfigDefaultVpnPort(rName string) string {
+	return testAccEc2ClientVpnEndpointConfigAcmCertificateBase() + fmt.Sprintf(`
+resource "aws_ec2_client_vpn_endpoint" "test" {
+  client_cidr_block      = "10.0.0.0/16"
+  description            = "terraform-testacc-clientvpn-%s"
+  server_certificate_arn = "${aws_acm_certificate.test.arn}"
+
+  authentication_options {
+    type                       = "certificate-authentication"
+    root_certificate_chain_arn = "${aws_acm_certificate.test.arn}"
+  }
+
+  connection_log_options {
+    enabled = false
+  }
+}
+`, rName)
 }
