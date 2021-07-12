@@ -2685,6 +2685,11 @@ func readS3ObjectLockConfiguration(conn *s3.S3, bucket string) ([]interface{}, e
 			return nil, nil
 		}
 
+		// AWS Snowball doesn't implement this API and returns NotImplemented
+		if isAWSErr(err, "NotImplemented", "") {
+			return nil, nil
+		}
+
 		if isAWSErr(err, "ObjectLockConfigurationNotFoundError", "") {
 			return nil, nil
 		}
