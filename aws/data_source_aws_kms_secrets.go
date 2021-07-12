@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsKmsSecrets() *schema.Resource {
@@ -23,6 +24,15 @@ func dataSourceAwsKmsSecrets() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+						"key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"encryption_algorithm": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"SYMMETRIC_DEFAULT", "RSAES_OAEP_SHA_1", "RSAES_OAEP_SHA_256"}, false),
 						},
 						"payload": {
 							Type:     schema.TypeString,
@@ -81,6 +91,16 @@ func dataSourceAwsKmsSecretsRead(d *schema.ResourceData, meta interface{}) error
 			for _, v := range grant_tokens.([]interface{}) {
 				params.GrantTokens = append(params.GrantTokens, aws.String(v.(string)))
 			}
+		}
+
+		key_id := secret["key_id"]
+		if key_id != "" {
+			params.KeyId = aws.String(key_id.(string))
+		}
+
+		encryption_algorithm := secret["encryption_algorithm"]
+		if encryption_algorithm != "" {
+			params.EncryptionAlgorithm = aws.String(encryption_algorithm.(string))
 		}
 
 		// decrypt

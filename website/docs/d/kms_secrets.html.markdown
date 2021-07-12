@@ -40,8 +40,10 @@ data "aws_kms_secrets" "example" {
 
   secret {
     # ... potentially other configuration ...
-    name    = "master_username"
-    payload = "AQECAHgaPa0J8WadplGCqqVAr4HNvDaFSQ+NaiwIBhmm6qDSFwAAAGIwYAYJKoZIhvcNAQcGoFMwUQIBADBMBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDI+LoLdvYv8l41OhAAIBEIAfx49FFJCLeYrkfMfAw6XlnxP23MmDBdqP8dPp28OoAQ=="
+    key_id               = "12345678-1234-1234-1234-123456789012"
+    encryption_algorithm =  "RSAES_OAEP_SHA_256"
+    name                 = "master_username"
+    payload              = "AQECAHgaPa0J8WadplGCqqVAr4HNvDaFSQ+NaiwIBhmm6qDSFwAAAGIwYAYJKoZIhvcNAQcGoFMwUQIBADBMBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDI+LoLdvYv8l41OhAAIBEIAfx49FFJCLeYrkfMfAw6XlnxP23MmDBdqP8dPp28OoAQ=="
   }
 }
 
@@ -64,6 +66,8 @@ Each `secret` supports the following arguments:
 
 * `name` - (Required) The name to export this secret under in the attributes.
 * `payload` - (Required) Base64 encoded payload, as returned from a KMS encrypt operation.
+* `key_id` - (Optional) Key ID of the asymmetric key used to encrypt the secret. Key ARN, Alias name or Alias ARN can also be used. Required if encryption_algorithm is set.
+* `encryption_algorithm` - (Optional) Encryption algorithm used to encrypt the secret. Valid values are `SYMMETRIC_DEFAULT`, `RSAES_OAEP_SHA_1` or `RSAES_OAEP_SHA_256`. Required if key_id is set.
 * `context` - (Optional) An optional mapping that makes up the Encryption Context for the secret.
 * `grant_tokens` (Optional) An optional list of Grant Tokens for the secret.
 
