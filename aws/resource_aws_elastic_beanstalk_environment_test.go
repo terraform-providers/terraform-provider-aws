@@ -66,6 +66,39 @@ func testSweepElasticBeanstalkEnvironments(region string) error {
 	return errors
 }
 
+func Test_dropGeneratedHostname(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Input    string
+		Expected string
+	}{
+		{
+			Name:     "simple",
+			Input:    "www.example.com",
+			Expected: "www.example.com",
+		},
+		{
+			Name:     "simple_2",
+			Input:    "www.example.com,abcdef123.us-east-1.elasticbeanstalk.com",
+			Expected: "www.example.com",
+		},
+		{
+			Name:     "simple_3",
+			Input:    "abcdef123.us-east-1.elasticbeanstalk.com",
+			Expected: "",
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			got := dropGeneratedHostname(testCase.Input)
+
+			if got != testCase.Expected {
+				t.Errorf("got %v, expected %v", got, testCase.Expected)
+			}
+		})
+	}
+}
+
 func TestAccAWSBeanstalkEnv_basic(t *testing.T) {
 	var app elasticbeanstalk.EnvironmentDescription
 

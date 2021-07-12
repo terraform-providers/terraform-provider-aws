@@ -683,6 +683,8 @@ func fetchAwsElasticBeanstalkEnvironmentSettings(d *schema.ResourceData, meta in
 				m["value"] = dropGeneratedSecurityGroup(*optionSetting.Value, meta)
 			case "Subnets", "ELBSubnets":
 				m["value"] = sortValues(*optionSetting.Value)
+			case "HostHeaders":
+				m["value"] = dropGeneratedHostname(*optionSetting.Value)
 			default:
 				m["value"] = *optionSetting.Value
 			}
@@ -958,6 +960,17 @@ func extractOptionSettings(s *schema.Set) []*elasticbeanstalk.ConfigurationOptio
 	}
 
 	return settings
+}
+
+func dropGeneratedHostname(settingValue string) string {
+	var realNames []string
+	names := strings.Split(settingValue, ",")
+	for _, name := range names {
+		if !strings.HasSuffix(name, ".elasticbeanstalk.com") {
+			realNames = append(realNames, name)
+		}
+	}
+	return strings.Join(realNames, ",")
 }
 
 func dropGeneratedSecurityGroup(settingValue string, meta interface{}) string {
