@@ -946,6 +946,7 @@ func Provider() *schema.Provider {
 			"aws_prometheus_workspace":                                resourceAwsPrometheusWorkspace(),
 			"aws_proxy_protocol_policy":                               resourceAwsProxyProtocolPolicy(),
 			"aws_qldb_ledger":                                         resourceAwsQLDBLedger(),
+			"aws_qldb_stream":                                         resourceAwsQLDBStream(),
 			"aws_quicksight_group":                                    resourceAwsQuickSightGroup(),
 			"aws_quicksight_user":                                     resourceAwsQuickSightUser(),
 			"aws_ram_principal_association":                           resourceAwsRamPrincipalAssociation(),

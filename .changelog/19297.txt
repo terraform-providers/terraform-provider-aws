@@ -1,0 +1,3 @@
+```release-note:new-resource
+resource/aws_qldb_stream
+```
