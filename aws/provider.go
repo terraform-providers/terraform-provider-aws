@@ -837,6 +837,7 @@ func Provider() *schema.Provider {
 			"aws_iot_thing_principal_attachment":                      resourceAwsIotThingPrincipalAttachment(),
 			"aws_iot_thing_type":                                      resourceAwsIotThingType(),
 			"aws_iot_topic_rule":                                      resourceAwsIotTopicRule(),
+			"aws_iotanalytics_channel":                                resourceAwsIoTAnalyticsChannel(),
 			"aws_iot_role_alias":                                      resourceAwsIotRoleAlias(),
 			"aws_key_pair":                                            resourceAwsKeyPair(),
 			"aws_kinesis_analytics_application":                       resourceAwsKinesisAnalyticsApplication(),
