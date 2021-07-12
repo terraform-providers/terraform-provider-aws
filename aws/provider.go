@@ -859,6 +859,7 @@ func Provider() *schema.Provider {
 			"aws_lambda_event_source_mapping":                         resourceAwsLambdaEventSourceMapping(),
 			"aws_lambda_function_event_invoke_config":                 resourceAwsLambdaFunctionEventInvokeConfig(),
 			"aws_lambda_function":                                     resourceAwsLambdaFunction(),
+			"aws_lambda_invocation":                                   resourceAwsLambdaInvocation(),
 			"aws_lambda_layer_version":                                resourceAwsLambdaLayerVersion(),
 			"aws_lambda_permission":                                   resourceAwsLambdaPermission(),
 			"aws_lambda_provisioned_concurrency_config":               resourceAwsLambdaProvisionedConcurrencyConfig(),
