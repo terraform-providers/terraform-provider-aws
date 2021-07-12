@@ -90,6 +90,7 @@ func testAccAWSSagemakerApp_basic(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "sagemaker", regexp.MustCompile(`app/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "resource_spec.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_spec.0.sagemaker_image_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_spec.0.sagemaker_image_version_arn"),
 					resource.TestCheckResourceAttr(resourceName, "resource_spec.0.instance_type", "system"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -122,6 +123,7 @@ func testAccAWSSagemakerApp_resourceSpec(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "resource_spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "resource_spec.0.instance_type", "system"),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_spec.0.sagemaker_image_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_spec.0.sagemaker_image_version_arn"),
 				),
 			},
 			{

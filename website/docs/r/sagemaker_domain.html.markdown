@@ -101,7 +101,7 @@ The following arguments are supported:
 
 ### Default User Settings
 
-* `execution_role` - (Required) The execution role ARN for the user.
+* `execution_role` - (Optional) The execution role ARN for the user.
 * `security_groups` - (Optional) The security groups.
 * `sharing_settings` - (Optional) The sharing settings. See [Sharing Settings](#sharing-settings) below.
 * `tensor_board_app_settings` - (Optional) The TensorBoard app settings. See [TensorBoard App Settings](#tensorboard-app-settings) below.
@@ -131,6 +131,7 @@ The following arguments are supported:
 
 * `instance_type` - (Optional) The instance type that the image version runs on.. For valid values see [Sagemaker Instance Types](https://docs.aws.amazon.com/sagemaker/latest/dg/notebooks-available-instance-types.html).
 * `sagemaker_image_arn` - (Optional) The ARN of the SageMaker image that the image version belongs to.
+* `sagemaker_image_version_arn` - (Optional) The ARN of the image version created on the instance.
 
 ##### Custom Image
 
