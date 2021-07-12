@@ -799,6 +799,7 @@ func Provider() *schema.Provider {
 			"aws_iam_access_key":                                      resourceAwsIamAccessKey(),
 			"aws_iam_account_alias":                                   resourceAwsIamAccountAlias(),
 			"aws_iam_account_password_policy":                         resourceAwsIamAccountPasswordPolicy(),
+			"aws_iam_assume_role_policy":                              resourceAwsIamAssumeRolePolicy(),
 			"aws_iam_group_policy":                                    resourceAwsIamGroupPolicy(),
 			"aws_iam_group":                                           resourceAwsIamGroup(),
 			"aws_iam_group_membership":                                resourceAwsIamGroupMembership(),
