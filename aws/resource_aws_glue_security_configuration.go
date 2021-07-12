@@ -35,14 +35,11 @@ func resourceAwsGlueSecurityConfiguration() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cloudwatch_encryption_mode": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										Default:  glue.CloudWatchEncryptionModeDisabled,
-										ValidateFunc: validation.StringInSlice([]string{
-											glue.CloudWatchEncryptionModeDisabled,
-											glue.CloudWatchEncryptionModeSseKms,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      glue.CloudWatchEncryptionModeDisabled,
+										ValidateFunc: validation.StringInSlice(glue.CloudWatchEncryptionMode_Values(), false),
 									},
 									"kms_key_arn": {
 										Type:     schema.TypeString,
@@ -60,14 +57,11 @@ func resourceAwsGlueSecurityConfiguration() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"job_bookmarks_encryption_mode": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										Default:  glue.JobBookmarksEncryptionModeDisabled,
-										ValidateFunc: validation.StringInSlice([]string{
-											glue.JobBookmarksEncryptionModeCseKms,
-											glue.JobBookmarksEncryptionModeDisabled,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      glue.JobBookmarksEncryptionModeDisabled,
+										ValidateFunc: validation.StringInSlice(glue.JobBookmarksEncryptionMode_Values(), false),
 									},
 									"kms_key_arn": {
 										Type:     schema.TypeString,
@@ -90,15 +84,11 @@ func resourceAwsGlueSecurityConfiguration() *schema.Resource {
 										ForceNew: true,
 									},
 									"s3_encryption_mode": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										Default:  glue.S3EncryptionModeDisabled,
-										ValidateFunc: validation.StringInSlice([]string{
-											glue.S3EncryptionModeDisabled,
-											glue.S3EncryptionModeSseKms,
-											glue.S3EncryptionModeSseS3,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      glue.S3EncryptionModeDisabled,
+										ValidateFunc: validation.StringInSlice(glue.S3EncryptionMode_Values(), false),
 									},
 								},
 							},

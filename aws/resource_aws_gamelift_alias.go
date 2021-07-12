@@ -48,12 +48,9 @@ func resourceAwsGameliftAlias() *schema.Resource {
 							Optional: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								gamelift.RoutingStrategyTypeSimple,
-								gamelift.RoutingStrategyTypeTerminal,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(gamelift.RoutingStrategyType_Values(), false),
 						},
 					},
 				},

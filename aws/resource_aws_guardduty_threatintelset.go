@@ -41,17 +41,10 @@ func resourceAwsGuardDutyThreatintelset() *schema.Resource {
 				Required: true,
 			},
 			"format": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					guardduty.ThreatIntelSetFormatTxt,
-					guardduty.ThreatIntelSetFormatStix,
-					guardduty.ThreatIntelSetFormatOtxCsv,
-					guardduty.ThreatIntelSetFormatAlienVault,
-					guardduty.ThreatIntelSetFormatProofPoint,
-					guardduty.ThreatIntelSetFormatFireEye,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(guardduty.ThreatIntelSetFormat_Values(), false),
 			},
 			"location": {
 				Type:     schema.TypeString,

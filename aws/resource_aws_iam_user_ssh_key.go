@@ -54,13 +54,10 @@ func resourceAwsIamUserSshKey() *schema.Resource {
 			},
 
 			"encoding": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					iam.EncodingTypeSsh,
-					iam.EncodingTypePem,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(iam.EncodingType_Values(), false),
 			},
 
 			"status": {

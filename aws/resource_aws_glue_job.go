@@ -45,9 +45,10 @@ func resourceAwsGlueJob() *schema.Resource {
 							Required: true,
 						},
 						"python_version": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{"2", "3"}, true),
 						},
 					},

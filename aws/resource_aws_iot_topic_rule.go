@@ -110,6 +110,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 						"operation": {
 							Type:     schema.TypeString,
 							Optional: true,
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{
 								"DELETE",
 								"INSERT",
@@ -546,6 +547,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 									"operation": {
 										Type:     schema.TypeString,
 										Optional: true,
+										//lintignore:AWSV001 // no enum in AWS SDK
 										ValidateFunc: validation.StringInSlice([]string{
 											"DELETE",
 											"INSERT",

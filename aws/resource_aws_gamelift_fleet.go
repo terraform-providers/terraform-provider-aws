@@ -45,14 +45,11 @@ func resourceAwsGameliftFleet() *schema.Resource {
 				ForceNew: true,
 			},
 			"fleet_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  gamelift.FleetTypeOnDemand,
-				ValidateFunc: validation.StringInSlice([]string{
-					gamelift.FleetTypeOnDemand,
-					gamelift.FleetTypeSpot,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      gamelift.FleetTypeOnDemand,
+				ValidateFunc: validation.StringInSlice(gamelift.FleetType_Values(), false),
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -87,12 +84,9 @@ func resourceAwsGameliftFleet() *schema.Resource {
 							ValidateFunc: validateCIDRNetworkAddress,
 						},
 						"protocol": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								gamelift.IpProtocolTcp,
-								gamelift.IpProtocolUdp,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(gamelift.IpProtocol_Values(), false),
 						},
 						"to_port": {
 							Type:         schema.TypeInt,
@@ -117,13 +111,10 @@ func resourceAwsGameliftFleet() *schema.Resource {
 				},
 			},
 			"new_game_session_protection_policy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  gamelift.ProtectionPolicyNoProtection,
-				ValidateFunc: validation.StringInSlice([]string{
-					gamelift.ProtectionPolicyNoProtection,
-					gamelift.ProtectionPolicyFullProtection,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      gamelift.ProtectionPolicyNoProtection,
+				ValidateFunc: validation.StringInSlice(gamelift.ProtectionPolicy_Values(), false),
 			},
 			"operating_system": {
 				Type:     schema.TypeString,

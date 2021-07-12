@@ -41,14 +41,11 @@ func resourceAwsFlowLog() *schema.Resource {
 			},
 
 			"log_destination_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  ec2.LogDestinationTypeCloudWatchLogs,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.LogDestinationTypeCloudWatchLogs,
-					ec2.LogDestinationTypeS3,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.LogDestinationTypeCloudWatchLogs,
+				ValidateFunc: validation.StringInSlice(ec2.LogDestinationType_Values(), false),
 			},
 
 			"log_group_name": {
@@ -82,14 +79,10 @@ func resourceAwsFlowLog() *schema.Resource {
 			},
 
 			"traffic_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.TrafficTypeAccept,
-					ec2.TrafficTypeAll,
-					ec2.TrafficTypeReject,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.TrafficType_Values(), false),
 			},
 
 			"log_format": {
