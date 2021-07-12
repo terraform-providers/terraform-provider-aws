@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_launch_configuration: Honor associate_public_ip_address = false
+```
