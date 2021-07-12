@@ -320,6 +320,7 @@ func Provider() *schema.Provider {
 			"aws_internet_gateway":                           dataSourceAwsInternetGateway(),
 			"aws_iot_endpoint":                               dataSourceAwsIotEndpoint(),
 			"aws_ip_ranges":                                  dataSourceAwsIPRanges(),
+			"aws_key_pair":                                   dataSourceAwsKeyPair(),
 			"aws_kinesis_stream":                             dataSourceAwsKinesisStream(),
 			"aws_kinesis_stream_consumer":                    dataSourceAwsKinesisStreamConsumer(),
 			"aws_kms_alias":                                  dataSourceAwsKmsAlias(),
