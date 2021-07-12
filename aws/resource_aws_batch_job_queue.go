@@ -48,7 +48,7 @@ func resourceAwsBatchJobQueue() *schema.Resource {
 			"state": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{batch.JQStateDisabled, batch.JQStateEnabled}, true),
+				ValidateFunc: validation.StringInSlice(batch.JQState_Values(), true),
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),

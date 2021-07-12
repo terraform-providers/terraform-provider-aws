@@ -157,7 +157,7 @@ func resourceAwsBatchJobDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{batch.JobDefinitionTypeContainer}, true),
+				ValidateFunc: validation.StringInSlice(batch.JobDefinitionType_Values(), true),
 			},
 			"revision": {
 				Type:     schema.TypeInt,
