@@ -451,7 +451,7 @@ func resourceAwsLambdaPermissionImport(d *schema.ResourceData, meta interface{})
 		return nil, err
 	}
 
-	d.Set("function_name", getFunctionOutput.Configuration.FunctionArn)
+	d.Set("function_name", getFunctionOutput.Configuration.FunctionName)
 	d.Set("statement_id", statementId)
 	if qualifier != "" {
 		d.Set("qualifier", qualifier)
