@@ -83,6 +83,18 @@ const (
 	InvalidVpnGatewayIDNotFound         = "InvalidVpnGatewayID.NotFound"
 )
 
+// See https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html#check-import-task-status
+const (
+	EbsSnapshotImportActive     = "active"
+	EbsSnapshotImportDeleting   = "deleting"
+	EbsSnapshotImportDeleted    = "deleted"
+	EbsSnapshotImportUpdating   = "updating"
+	EbsSnapshotImportValidating = "validating"
+	EbsSnapshotImportValidated  = "validated"
+	EbsSnapshotImportConverting = "converting"
+	EbsSnapshotImportCompleted  = "completed"
+)
+
 func UnsuccessfulItemError(apiObject *ec2.UnsuccessfulItemError) error {
 	if apiObject == nil {
 		return nil
