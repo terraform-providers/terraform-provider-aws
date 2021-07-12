@@ -58,6 +58,11 @@ func dataSourceAwsKinesisStream() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"consumers_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"tags": tagsSchemaComputed(),
 		},
 	}
@@ -82,6 +87,7 @@ func dataSourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("creation_timestamp", state.creationTimestamp)
 	d.Set("retention_period", state.retentionPeriod)
 	d.Set("shard_level_metrics", state.shardLevelMetrics)
+	d.Set("consumers_count", state.consumersCount)
 
 	tags, err := keyvaluetags.KinesisListTags(conn, sn)
 
