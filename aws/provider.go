@@ -662,6 +662,7 @@ func Provider() *schema.Provider {
 			"aws_docdb_subnet_group":                                  resourceAwsDocDBSubnetGroup(),
 			"aws_dx_bgp_peer":                                         resourceAwsDxBgpPeer(),
 			"aws_dx_connection":                                       resourceAwsDxConnection(),
+			"aws_dx_connection_accepter":                              resourceAwsDxConnectionAccepter(),
 			"aws_dx_connection_association":                           resourceAwsDxConnectionAssociation(),
 			"aws_dx_gateway":                                          resourceAwsDxGateway(),
 			"aws_dx_gateway_association":                              resourceAwsDxGatewayAssociation(),
