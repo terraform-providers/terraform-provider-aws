@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -26,6 +27,7 @@ func TestAccAWSElasticTranscoderPreset_basic(t *testing.T) {
 				Config: testAccAwsElasticTranscoderPresetConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckElasticTranscoderPresetExists(resourceName, &preset),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "elastictranscoder", regexp.MustCompile(`preset/.+`)),
 				),
 			},
 			{
@@ -52,7 +54,7 @@ func TestAccAWSElasticTranscoderPreset_disappears(t *testing.T) {
 				Config: testAccAwsElasticTranscoderPresetConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckElasticTranscoderPresetExists(resourceName, &preset),
-					testAccCheckElasticTranscoderPresetDisappears(&preset),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsElasticTranscoderPreset(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -60,7 +62,35 @@ func TestAccAWSElasticTranscoderPreset_disappears(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/14087
+//https://github.com/terraform-providers/terraform-provider-aws/issues/14090
+func TestAccAWSElasticTranscoderPreset_audio_noBitRate(t *testing.T) {
+	var preset elastictranscoder.Preset
+	resourceName := "aws_elastictranscoder_preset.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		ErrorCheck:   testAccErrorCheck(t, elastictranscoder.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckElasticTranscoderPresetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsElasticTranscoderPresetNoBitRateConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckElasticTranscoderPresetExists(resourceName, &preset),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "elastictranscoder", regexp.MustCompile(`preset/.+`)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/14087
 func TestAccAWSElasticTranscoderPreset_AudioCodecOptions_empty(t *testing.T) {
 	var preset elastictranscoder.Preset
 	resourceName := "aws_elastictranscoder_preset.test"
@@ -219,17 +249,6 @@ func testAccCheckElasticTranscoderPresetExists(name string, preset *elastictrans
 	}
 }
 
-func testAccCheckElasticTranscoderPresetDisappears(preset *elastictranscoder.Preset) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).elastictranscoderconn
-		_, err := conn.DeletePreset(&elastictranscoder.DeletePresetInput{
-			Id: preset.Id,
-		})
-
-		return err
-	}
-}
-
 func testAccCheckElasticTranscoderPresetDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).elastictranscoderconn
 
@@ -243,7 +262,7 @@ func testAccCheckElasticTranscoderPresetDestroy(s *terraform.State) error {
 		})
 
 		if err == nil {
-			if out.Preset != nil && *out.Preset.Id == rs.Primary.ID {
+			if out.Preset != nil && aws.StringValue(out.Preset.Id) == rs.Primary.ID {
 				return fmt.Errorf("Elastic Transcoder Preset still exists")
 			}
 		}
@@ -267,6 +286,22 @@ resource "aws_elastictranscoder_preset" "test" {
     bit_rate           = 320
     channels           = 2
     codec              = "mp3"
+    sample_rate        = 44100
+  }
+}
+`, rName)
+}
+
+func testAccAwsElasticTranscoderPresetNoBitRateConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_elastictranscoder_preset" "test" {
+  container = "wav"
+  name      = %[1]q
+
+  audio {
+    audio_packing_mode = "SingleTrack"
+    channels           = 2
+    codec              = "pcm"
     sample_rate        = 44100
   }
 }

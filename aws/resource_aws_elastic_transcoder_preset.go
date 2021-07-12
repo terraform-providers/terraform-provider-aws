@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsElasticTranscoderPreset() *schema.Resource {
@@ -37,26 +38,54 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SingleTrack",
+								"OneChannelPerTrack",
+								"OneChannelPerTrackWithMosTo8Tracks",
+							}, false),
 						},
 						"bit_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"channels": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"0",
+								"1",
+								"2",
+							}, false),
 						},
 						"codec": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"AAC",
+								"flac",
+								"mp2",
+								"mp3",
+								"pcm",
+								"vorbis",
+							}, false),
 						},
 						"sample_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"22050",
+								"32000",
+								"44100",
+								"48000",
+								"96000",
+							}, false),
 						},
 					},
 				},
@@ -65,28 +94,52 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bit_depth": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"8",
+								"16",
+								"24",
+								"32",
+							}, false),
 						},
 						"bit_order": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"LittleEndian",
+							}, false),
 						},
 						"profile": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"AAC-LC",
+								"HE-AAC",
+								"HE-AACv2",
+							}, false),
 						},
 						"signed": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Signed",
+								"Unsigned",
+							}, false),
 						},
 					},
 				},
@@ -96,6 +149,22 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"flac",
+					"flv",
+					"fmp4",
+					"gif",
+					"mp2",
+					"mp3",
+					"mp4",
+					"mpg",
+					"mxf",
+					"oga",
+					"ogg",
+					"ts",
+					"wav",
+					"webm",
+				}, false),
 			},
 
 			"description": {
@@ -123,11 +192,22 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"1:1",
+								"4:3",
+								"3:2",
+								"16:9",
+							}, false),
 						},
 						"format": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"jpg",
+								"png",
+							}, false),
 						},
 						"interval": {
 							Type:     schema.TypeString,
@@ -148,6 +228,10 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Pad",
+								"NoPad",
+							}, false),
 						},
 						"resolution": {
 							Type:     schema.TypeString,
@@ -158,6 +242,14 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Fit",
+								"Fill",
+								"Stretch",
+								"Keep",
+								"ShrinkToFit",
+								"ShrinkToFill",
+							}, false),
 						},
 					},
 				},
@@ -167,6 +259,10 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Custom",
+					"System",
+				}, false),
 			},
 
 			"video": {
@@ -181,31 +277,69 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"1:1",
+								"4:3",
+								"3:2",
+								"16:9",
+							}, false),
 						},
 						"bit_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"codec": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"gif",
+								"H.264",
+								"mpeg2",
+								"vp8",
+								"vp9",
+							}, false),
 						},
 						"display_aspect_ratio": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"1:1",
+								"4:3",
+								"3:2",
+								"16:9",
+							}, false),
 						},
 						"fixed_gop": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"true",
+								"false",
+							}, false),
 						},
 						"frame_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"auto",
+								"10",
+								"15",
+								"23.97",
+								"24",
+								"25",
+								"29.97",
+								"30",
+								"50",
+								"60",
+							}, false),
 						},
 						"keyframes_max_dist": {
 							Type:     schema.TypeString,
@@ -217,6 +351,17 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"10",
+								"15",
+								"23.97",
+								"24",
+								"25",
+								"29.97",
+								"30",
+								"50",
+								"60",
+							}, false),
 						},
 						"max_height": {
 							Type:     schema.TypeString,
@@ -232,6 +377,10 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Pad",
+								"NoPad",
+							}, false),
 						},
 						"resolution": {
 							Type:     schema.TypeString,
@@ -243,6 +392,14 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Default:  "Fit",
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Fit",
+								"Fill",
+								"Stretch",
+								"Keep",
+								"ShrinkToFit",
+								"ShrinkToFill",
+							}, false),
 						},
 					},
 				},
@@ -259,6 +416,11 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Left",
+								"Right",
+								"Center",
+							}, false),
 						},
 						"horizontal_offset": {
 							Type:     schema.TypeString,
@@ -266,9 +428,10 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							ForceNew: true,
 						},
 						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringLenBetween(1, 40),
 						},
 						"max_height": {
 							Type:     schema.TypeString,
@@ -289,16 +452,30 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Fit",
+								"Stretch",
+								"ShrinkToFit",
+							}, false),
 						},
 						"target": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Content",
+								"Frame",
+							}, false),
 						},
 						"vertical_align": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Top",
+								"Bottom",
+								"Center",
+							}, false),
 						},
 						"vertical_offset": {
 							Type:     schema.TypeString,
@@ -344,8 +521,8 @@ func resourceAwsElasticTranscoderPresetCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error creating Elastic Transcoder Preset: %s", err)
 	}
 
-	if resp.Warning != nil && *resp.Warning != "" {
-		log.Printf("[WARN] Elastic Transcoder Preset: %s", *resp.Warning)
+	if resp.Warning != nil && aws.StringValue(resp.Warning) != "" {
+		log.Printf("[WARN] Elastic Transcoder Preset: %s", aws.StringValue(resp.Warning))
 	}
 
 	d.SetId(aws.StringValue(resp.Preset.Id))
@@ -415,14 +592,19 @@ func expandETAudioParams(d *schema.ResourceData) *elastictranscoder.AudioParamet
 	}
 	audio := l[0].(map[string]interface{})
 
-	return &elastictranscoder.AudioParameters{
+	ap := &elastictranscoder.AudioParameters{
 		AudioPackingMode: aws.String(audio["audio_packing_mode"].(string)),
-		BitRate:          aws.String(audio["bit_rate"].(string)),
 		Channels:         aws.String(audio["channels"].(string)),
 		Codec:            aws.String(audio["codec"].(string)),
 		CodecOptions:     expandETAudioCodecOptions(d),
 		SampleRate:       aws.String(audio["sample_rate"].(string)),
 	}
+
+	if v, ok := audio["bit_rate"]; ok && v.(string) != "" {
+		ap.BitRate = aws.String(v.(string))
+	}
+
+	return ap
 }
 
 func expandETAudioCodecOptions(d *schema.ResourceData) *elastictranscoder.AudioCodecOptions {
@@ -573,6 +755,7 @@ func resourceAwsElasticTranscoderPresetRead(d *schema.ResourceData, meta interfa
 
 	if err != nil {
 		if isAWSErr(err, elastictranscoder.ErrCodeResourceNotFoundException, "") {
+			log.Printf("[WARN] ElasticTranscoder Preset (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -633,10 +816,13 @@ func flattenETAudioParameters(audio *elastictranscoder.AudioParameters) []map[st
 
 	result := map[string]interface{}{
 		"audio_packing_mode": aws.StringValue(audio.AudioPackingMode),
-		"bit_rate":           aws.StringValue(audio.BitRate),
 		"channels":           aws.StringValue(audio.Channels),
 		"codec":              aws.StringValue(audio.Codec),
 		"sample_rate":        aws.StringValue(audio.SampleRate),
+	}
+
+	if audio.BitRate != nil {
+		result["bit_rate"] = aws.StringValue(audio.BitRate)
 	}
 
 	return []map[string]interface{}{result}
