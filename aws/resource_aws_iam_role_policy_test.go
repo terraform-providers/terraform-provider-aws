@@ -182,6 +182,25 @@ func TestAccAWSIAMRolePolicy_generatedName(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMRolePolicy_duplicatePolicyName(t *testing.T) {
+	suffix := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMRolePolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsIamRolePolicyConfig(suffix),
+			},
+			{
+				Config:      testAccAwsIamRolePolicyConfigDuplicate(suffix),
+				ExpectError: regexp.MustCompile(fmt.Sprintf("Error IAM policy tf_test_policy_test_%[1]s from role tf_test_role_test_%[1]s is already exist", suffix)),
+			},
+		},
+	})
+}
+
 func TestAccAWSIAMRolePolicy_invalidJSON(t *testing.T) {
 	role := acctest.RandString(10)
 
@@ -620,4 +639,25 @@ resource "aws_iam_role_policy" "test" {
   })
 }
 `, rName)
+}
+
+func testAccAwsIamRolePolicyConfigDuplicate(suffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "aws_iam_role_policy" "foo_%[2]s_2" {
+	name = "tf_test_policy_test_%[2]s"
+	role = "${aws_iam_role.role_%[2]s.name}"
+	policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "EC2:*",
+    "Resource": "*"
+  }
+}
+EOF
+}
+`, testAccAwsIamRolePolicyConfig(suffix), suffix)
 }

@@ -76,6 +76,12 @@ func resourceAwsIamRolePolicyPut(d *schema.ResourceData, meta interface{}) error
 	}
 	request.PolicyName = aws.String(policyName)
 
+	if d.IsNewResource() {
+		if err := resourceAwsIamRolePolicyCheckNameDuplicate(iamconn, d.Get("role").(string), policyName); err != nil {
+			return err
+		}
+	}
+
 	if _, err := iamconn.PutRolePolicy(request); err != nil {
 		return fmt.Errorf("Error putting IAM role policy %s: %s", *request.PolicyName, err)
 	}
@@ -178,4 +184,25 @@ func resourceAwsIamRolePolicyParseId(id string) (roleName, policyName string, er
 	roleName = parts[0]
 	policyName = parts[1]
 	return
+}
+
+func resourceAwsIamRolePolicyCheckNameDuplicate(conn *iam.IAM, roleName, policyName string) error {
+	request := &iam.GetRolePolicyInput{
+		PolicyName: aws.String(policyName),
+		RoleName:   aws.String(roleName),
+	}
+
+	resp, err := conn.GetRolePolicy(request)
+	if err != nil {
+		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+			return nil
+		}
+		return fmt.Errorf("Error reading IAM policy %s from role %s: %s", policyName, roleName, err)
+	}
+
+	if resp != nil && policyName == aws.StringValue(resp.PolicyName) {
+		return fmt.Errorf("Error IAM policy %s from role %s is already exist", policyName, roleName)
+	}
+
+	return nil
 }
