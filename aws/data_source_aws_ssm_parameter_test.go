@@ -53,13 +53,31 @@ func TestAccAWSSsmParameterDataSource_fullPath(t *testing.T) {
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsSsmParameterDataSourceConfig(name, "false"),
+				Config: testAccCheckAwsSsmParameterDataSourceConfigWithDsSection(name,
+					`data "aws_ssm_parameter" "test" {
+  name            = aws_ssm_parameter.test.name
+  with_decryption = false
+  optional		  = true
+}`),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_ssm_parameter.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "type", "String"),
 					resource.TestCheckResourceAttr(resourceName, "value", "TestValue"),
 					resource.TestCheckResourceAttr(resourceName, "with_decryption", "false"),
+				),
+			},
+			{
+				Config: testAccCheckAwsSsmParameterDataSourceConfigWithDsSection(name,
+					`data "aws_ssm_parameter" "test" {
+  name            = "not-exists-param-name"
+  with_decryption = false
+  optional		  = true
+}`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", "not-exists-param-name"),
+					resource.TestCheckResourceAttr(resourceName, "arn", "null"),
+					resource.TestCheckResourceAttr(resourceName, "value", "null"),
 				),
 			},
 		},
@@ -79,4 +97,17 @@ data "aws_ssm_parameter" "test" {
   with_decryption = %s
 }
 `, name, withDecryption)
+}
+
+func testAccCheckAwsSsmParameterDataSourceConfigWithDsSection(rName string, dataSource string) string {
+	return fmt.Sprintf(`
+resource "aws_ssm_parameter" "test" {
+  name  = "%s"
+  type  = "String"
+  value = "TestValue"
+}
+
+%s
+
+`, rName, dataSource)
 }

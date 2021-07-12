@@ -2,11 +2,10 @@ package aws
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"log"
 )
 
 func dataSourceAwsSsmParameter() *schema.Resource {
@@ -35,6 +34,11 @@ func dataSourceAwsSsmParameter() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			"optional": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"version": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -48,6 +52,8 @@ func dataAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error {
 
 	name := d.Get("name").(string)
 
+	optional := d.Get("optional").(bool)
+
 	paramInput := &ssm.GetParameterInput{
 		Name:           aws.String(name),
 		WithDecryption: aws.Bool(d.Get("with_decryption").(bool)),
@@ -57,7 +63,17 @@ func dataAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := ssmconn.GetParameter(paramInput)
 
 	if err != nil {
-		return fmt.Errorf("Error describing SSM parameter (%s): %w", name, err)
+		if optional && isAWSErr(err, ssm.ErrCodeParameterNotFound, "") {
+			// return nil value if the ssm parameter set to optional
+			d.SetId(name)
+			d.Set("name", name)
+			d.Set("arn", "null")
+			d.Set("value", "null")
+
+			return nil
+		} else {
+			return fmt.Errorf("Error describing SSM parameter (%s): %w", name, err)
+		}
 	}
 
 	param := resp.Parameter

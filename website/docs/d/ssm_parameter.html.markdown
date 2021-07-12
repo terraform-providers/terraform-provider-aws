@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the parameter.
 * `with_decryption` - (Optional) Whether to return decrypted `SecureString` value. Defaults to `true`.
-
+* `optional` - (Optional) Whether to allow parameters that do not exist， defaults to `false`. If the value is true, the parameter allowed to not exist and `null` string will be returned.
 
 In addition to all arguments above, the following attributes are exported:
 
