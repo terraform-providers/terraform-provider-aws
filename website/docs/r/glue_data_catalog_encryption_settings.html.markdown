@@ -16,13 +16,13 @@ Provides a Glue Data Catalog Encryption Settings resource.
 resource "aws_glue_data_catalog_encryption_settings" "example" {
   data_catalog_encryption_settings {
     connection_password_encryption {
-      aws_kms_key_id                       = aws_kms_key.test.arn
+      aws_kms_key_arn                      = aws_kms_key.test.arn
       return_connection_password_encrypted = true
     }
 
     encryption_at_rest {
       catalog_encryption_mode = "SSE-KMS"
-      sse_aws_kms_key_id      = aws_kms_key.test.arn
+      sse_aws_kms_key_arn     = aws_kms_key.test.arn
     }
   }
 }
@@ -43,12 +43,12 @@ The following arguments are supported:
 ### connection_password_encryption
 
 * `return_connection_password_encrypted` - (Required) When set to `true`, passwords remain encrypted in the responses of GetConnection and GetConnections. This encryption takes effect independently of the catalog encryption.
-* `aws_kms_key_id` - (Optional) A KMS key ARN that is used to encrypt the connection password. If connection password protection is enabled, the caller of CreateConnection and UpdateConnection needs at least `kms:Encrypt` permission on the specified AWS KMS key, to encrypt passwords before storing them in the Data Catalog.
+* `aws_kms_key_arn` - (Optional) A KMS key ARN that is used to encrypt the connection password. If connection password protection is enabled, the caller of CreateConnection and UpdateConnection needs at least `kms:Encrypt` permission on the specified AWS KMS key, to encrypt passwords before storing them in the Data Catalog.
 
 ### encryption_at_rest
 
 * `catalog_encryption_mode` - (Required) The encryption-at-rest mode for encrypting Data Catalog data. Valid values are `DISABLED` and `SSE-KMS`.
-* `sse_aws_kms_key_id` - (Optional) The ARN of the AWS KMS key to use for encryption at rest.
+* `sse_aws_kms_key_arn` - (Optional) The ARN of the AWS KMS key to use for encryption at rest.
 
 ## Attributes Reference
 

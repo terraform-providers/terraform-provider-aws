@@ -38,7 +38,7 @@ func resourceAwsGlueDataCatalogEncryptionSettings() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"aws_kms_key_id": {
+									"aws_kms_key_arn": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validateArn,
@@ -61,7 +61,7 @@ func resourceAwsGlueDataCatalogEncryptionSettings() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringInSlice(glue.CatalogEncryptionMode_Values(), false),
 									},
-									"sse_aws_kms_key_id": {
+									"sse_aws_kms_key_arn": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validateArn,
@@ -143,7 +143,7 @@ func expandGlueDataCatalogConnectionPasswordEncryption(settings []interface{}) *
 		ReturnConnectionPasswordEncrypted: aws.Bool(m["return_connection_password_encrypted"].(bool)),
 	}
 
-	if v, ok := m["aws_kms_key_id"].(string); ok && v != "" {
+	if v, ok := m["aws_kms_key_arn"].(string); ok && v != "" {
 		target.AwsKmsKeyId = aws.String(v)
 	}
 
@@ -156,7 +156,7 @@ func flattenGlueDataCatalogConnectionPasswordEncryption(settings *glue.Connectio
 	}
 
 	if settings.AwsKmsKeyId != nil {
-		m["aws_kms_key_id"] = aws.StringValue(settings.AwsKmsKeyId)
+		m["aws_kms_key_arn"] = aws.StringValue(settings.AwsKmsKeyId)
 	}
 
 	return []map[string]interface{}{m}
@@ -169,7 +169,7 @@ func expandGlueDataCatalogEncryptionAtRest(settings []interface{}) *glue.Encrypt
 		CatalogEncryptionMode: aws.String(m["catalog_encryption_mode"].(string)),
 	}
 
-	if v, ok := m["sse_aws_kms_key_id"].(string); ok && v != "" {
+	if v, ok := m["sse_aws_kms_key_arn"].(string); ok && v != "" {
 		target.SseAwsKmsKeyId = aws.String(v)
 	}
 
@@ -182,7 +182,7 @@ func flattenGlueDataCatalogEncryptionAtRest(settings *glue.EncryptionAtRest) []m
 	}
 
 	if settings.SseAwsKmsKeyId != nil {
-		m["sse_aws_kms_key_id"] = aws.StringValue(settings.SseAwsKmsKeyId)
+		m["sse_aws_kms_key_arn"] = aws.StringValue(settings.SseAwsKmsKeyId)
 	}
 
 	return []map[string]interface{}{m}
