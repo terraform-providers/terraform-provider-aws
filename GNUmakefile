@@ -13,6 +13,7 @@ build: fmtcheck
 
 gen:
 	rm -f aws/internal/keyvaluetags/*_gen.go
+	rm -f aws/internal/namevaluesfilters/*_gen.go
 	rm -f aws/internal/service/**/lister/*_gen.go
 	go generate ./...
 

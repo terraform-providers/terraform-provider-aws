@@ -25,6 +25,7 @@ rules:
         - aws/resource_aws_transfer_server.go
         - aws/*_test.go
         - aws/internal/keyvaluetags/
+        - aws/internal/namevaluesfilters/
         - aws/internal/service/wafregional/
         # Legacy resource handling
         - aws/resource_aws_autoscaling_group.go
