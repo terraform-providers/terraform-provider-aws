@@ -20,6 +20,11 @@ func dataSourceAwsEc2InstanceTypeOfferings() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"locations": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"location_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -28,6 +33,11 @@ func dataSourceAwsEc2InstanceTypeOfferings() *schema.Resource {
 					ec2.LocationTypeAvailabilityZoneId,
 					ec2.LocationTypeRegion,
 				}, false),
+			},
+			"location_types": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -47,6 +57,8 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 	}
 
 	var instanceTypes []string
+	var locations []string
+	var locationTypes []string
 
 	for {
 		output, err := conn.DescribeInstanceTypeOfferings(input)
@@ -65,6 +77,8 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 			}
 
 			instanceTypes = append(instanceTypes, aws.StringValue(instanceTypeOffering.InstanceType))
+			locations = append(locations, aws.StringValue(instanceTypeOffering.Location))
+			locationTypes = append(locationTypes, aws.StringValue(instanceTypeOffering.LocationType))
 		}
 
 		if aws.StringValue(output.NextToken) == "" {
@@ -76,6 +90,14 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 
 	if err := d.Set("instance_types", instanceTypes); err != nil {
 		return fmt.Errorf("error setting instance_types: %w", err)
+	}
+
+	if err := d.Set("locations", locations); err != nil {
+		return fmt.Errorf("error setting locations: %w", err)
+	}
+
+	if err := d.Set("location_types", locationTypes); err != nil {
+		return fmt.Errorf("error setting location_types: %w", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)

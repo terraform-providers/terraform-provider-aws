@@ -59,6 +59,14 @@ func testAccCheckEc2InstanceTypeOfferingsInstanceTypes(dataSourceName string) re
 			return fmt.Errorf("expected at least one instance_types result, got none")
 		}
 
+		if v := rs.Primary.Attributes["locations.#"]; v == "0" {
+			return fmt.Errorf("expected at least one locations result, got none")
+		}
+
+		if v := rs.Primary.Attributes["location_types.#"]; v == "0" {
+			return fmt.Errorf("expected at least one location_types result, got none")
+		}
+
 		return nil
 	}
 }
