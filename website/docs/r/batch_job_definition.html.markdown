@@ -142,6 +142,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name of the job definition.
+* `arn_prefix` - The job definition ARN prefix without revision number.
 * `revision` - The revision of the job definition.
 * `tags_all` - A map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block).
 

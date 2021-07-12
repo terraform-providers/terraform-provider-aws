@@ -167,6 +167,10 @@ func resourceAwsBatchJobDefinition() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn_prefix": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 
 		CustomizeDiff: SetTagsDiff,
@@ -243,6 +247,7 @@ func resourceAwsBatchJobDefinitionRead(d *schema.ResourceData, meta interface{})
 	}
 
 	d.Set("arn", jobDefinition.JobDefinitionArn)
+	d.Set("arn_prefix", strings.TrimSuffix(*jobDefinition.JobDefinitionArn, fmt.Sprintf(":%d", *jobDefinition.Revision)))
 
 	containerProperties, err := flattenBatchContainerProperties(jobDefinition.ContainerProperties)
 
