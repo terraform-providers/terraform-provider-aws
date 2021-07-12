@@ -1,0 +1,4 @@
+
+```release-note:enhancement
+resource/aws_ecs_service: Add `wait_for_steady_state_timeout_in_minutes` argument for configurable timeouts when waiting for steady state
+```

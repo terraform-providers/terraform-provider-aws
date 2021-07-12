@@ -928,6 +928,48 @@ func TestAccAWSEcsService_withLaunchTypeFargateAndUpdateWaitForSteadyState(t *te
 	})
 }
 
+func TestAccAWSEcsService_withLaunchTypeFargateAndUpdateWaitForSteadyStateWithTimeout(t *testing.T) {
+	var service ecs.Service
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ecs_service.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ecs.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcsServiceWithLaunchTypeFargateWithoutWait(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "desired_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "wait_for_steady_state", "false"),
+				),
+			},
+			{
+				// Modify desired count and wait for the ECS Cluster to reach steady state
+				Config: testAccAWSEcsServiceWithLaunchTypeFargateAndWaitWithTimeout(rName, 2, true, 15),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "desired_count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "wait_for_steady_state", "true"),
+					resource.TestCheckResourceAttr(resourceName, "wait_for_steady_state_timeout_in_minutes", "15"),
+				),
+			},
+			{
+				// Modify desired count without wait
+				Config: testAccAWSEcsServiceWithLaunchTypeFargateAndWait(rName, 1, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "desired_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "wait_for_steady_state", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSEcsService_withLaunchTypeEC2AndNetworkConfiguration(t *testing.T) {
 	var service ecs.Service
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -1620,6 +1662,123 @@ resource "aws_ecs_service" "test" {
 }
 
 `, rName, desiredCount, waitForSteadyState)
+}
+
+func testAccAWSEcsServiceWithLaunchTypeFargateAndWaitWithTimeout(rName string, desiredCount int, waitForSteadyState bool, timeout int) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.10.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "test" {
+  count             = 2
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_internet_gateway" "test" {
+  vpc_id = aws_vpc.test.id
+}
+
+resource "aws_route_table" "test" {
+  vpc_id = aws_vpc.test.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.test.id
+  }
+}
+
+resource "aws_route_table_association" "test" {
+  count          = 2
+  subnet_id      = element(aws_subnet.test.*.id, count.index)
+  route_table_id = aws_route_table.test.id
+}
+
+resource "aws_security_group" "test" {
+  name        = %[1]q
+  description = "Allow traffic"
+  vpc_id      = aws_vpc.test.id
+
+  ingress {
+    protocol    = "6"
+    from_port   = 80
+    to_port     = 8000
+    cidr_blocks = [aws_vpc.test.cidr_block]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+}
+
+resource "aws_ecs_cluster" "test" {
+  name = %[1]q
+}
+
+resource "aws_ecs_task_definition" "test" {
+  family                   = %[1]q
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 256,
+    "essential": true,
+    "image": "mongo:latest",
+    "memory": 512,
+    "name": "mongodb",
+    "networkMode": "awsvpc"
+  }
+]
+DEFINITION
+}
+
+resource "aws_ecs_service" "test" {
+  name            = %[1]q
+  cluster         = aws_ecs_cluster.test.id
+  task_definition = aws_ecs_task_definition.test.arn
+  desired_count   = %d
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    security_groups  = [aws_security_group.test.id]
+    subnets          = aws_subnet.test[*].id
+    assign_public_ip = true
+  }
+
+  wait_for_steady_state                    = %t
+  wait_for_steady_state_timeout_in_minutes = %d
+}
+
+`, rName, desiredCount, waitForSteadyState, timeout)
 }
 
 func testAccAWSEcsServiceWithInterchangeablePlacementStrategy(rName string) string {
