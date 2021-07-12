@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -26,29 +27,34 @@ func testSweepSagemakerModels(region string) error {
 		return fmt.Errorf("error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).sagemakerconn
+	var sweeperErrs *multierror.Error
 
-	req := &sagemaker.ListModelsInput{}
-	resp, err := conn.ListModels(req)
-	if err != nil {
-		return fmt.Errorf("error listing models: %w", err)
-	}
+	err = conn.ListModelsPages(&sagemaker.ListModelsInput{}, func(page *sagemaker.ListModelsOutput, lastPage bool) bool {
+		for _, model := range page.Models {
 
-	if len(resp.Models) == 0 {
-		log.Print("[DEBUG] No sagemaker models to sweep")
-		return nil
-	}
-
-	for _, model := range resp.Models {
-		_, err := conn.DeleteModel(&sagemaker.DeleteModelInput{
-			ModelName: model.ModelName,
-		})
-		if err != nil {
-			return fmt.Errorf(
-				"error deleting sagemaker model (%s): %w", aws.StringValue(model.ModelName), err)
+			r := resourceAwsSagemakerModel()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(model.ModelName))
+			err = r.Delete(d, client)
+			if err != nil {
+				log.Printf("[ERROR] %s", err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
+				continue
+			}
 		}
+
+		return !lastPage
+	})
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping SageMaker Model sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
 	}
 
-	return nil
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Sagemaker Models: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSSagemakerModel_basic(t *testing.T) {
@@ -74,6 +80,34 @@ func TestAccAWSSagemakerModel_basic(t *testing.T) {
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "sagemaker", fmt.Sprintf("model/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "enable_network_isolation", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "inference_execution_config.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSagemakerModel_inferenceExecutionConfig(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_sagemaker_model.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, sagemaker.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSagemakerModelDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSagemakerModelInferenceExecutionConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSagemakerModelExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "inference_execution_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "inference_execution_config.0.mode", "Serial"),
 				),
 			},
 			{
@@ -452,6 +486,27 @@ resource "aws_sagemaker_model" "test" {
   execution_role_arn = aws_iam_role.test.arn
 
   primary_container {
+    image = data.aws_sagemaker_prebuilt_ecr_image.test.registry_path
+  }
+}
+`, rName)
+}
+
+func testAccSagemakerModelInferenceExecutionConfig(rName string) string {
+	return testAccSagemakerModelConfigBase(rName) + fmt.Sprintf(`
+resource "aws_sagemaker_model" "test" {
+  name               = %[1]q
+  execution_role_arn = aws_iam_role.test.arn
+
+  inference_execution_config {
+    mode = "Serial"
+  }
+
+  container {
+    image = data.aws_sagemaker_prebuilt_ecr_image.test.registry_path
+  }
+
+  container {
     image = data.aws_sagemaker_prebuilt_ecr_image.test.registry_path
   }
 }

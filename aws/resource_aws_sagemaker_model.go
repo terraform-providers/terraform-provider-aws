@@ -28,7 +28,88 @@ func resourceAwsSagemakerModel() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
+			"container": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"container_hostname": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateSagemakerName,
+						},
+						"environment": {
+							Type:         schema.TypeMap,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateSagemakerEnvironment,
+							Elem:         &schema.Schema{Type: schema.TypeString},
+						},
+						"image": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validateSagemakerImage,
+						},
+						"image_config": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"repository_access_mode": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(sagemaker.RepositoryAccessMode_Values(), false),
+									},
+								},
+							},
+						},
+						"mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      sagemaker.ContainerModeSingleModel,
+							ValidateFunc: validation.StringInSlice(sagemaker.ContainerMode_Values(), false),
+						},
+						"model_data_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateSagemakerModelDataUrl,
+						},
+					},
+				},
+			},
+			"enable_network_isolation": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+			"execution_role_arn": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
+			},
+			"inference_execution_config": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mode": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(sagemaker.InferenceExecutionMode_Values(), false),
+						},
+					},
+				},
+			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -36,7 +117,6 @@ func resourceAwsSagemakerModel() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateSagemakerName,
 			},
-
 			"primary_container": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -49,35 +129,18 @@ func resourceAwsSagemakerModel() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validateSagemakerName,
 						},
-
-						"image": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validateSagemakerImage,
-						},
-
-						"mode": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							Default:      sagemaker.ContainerModeSingleModel,
-							ValidateFunc: validation.StringInSlice(sagemaker.ContainerMode_Values(), false),
-						},
-
-						"model_data_url": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validateSagemakerModelDataUrl,
-						},
-
 						"environment": {
 							Type:         schema.TypeMap,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validateSagemakerEnvironment,
 							Elem:         &schema.Schema{Type: schema.TypeString},
+						},
+						"image": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validateSagemakerImage,
 						},
 						"image_config": {
 							Type:     schema.TypeList,
@@ -94,10 +157,24 @@ func resourceAwsSagemakerModel() *schema.Resource {
 								},
 							},
 						},
+						"mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      sagemaker.ContainerModeSingleModel,
+							ValidateFunc: validation.StringInSlice(sagemaker.ContainerMode_Values(), false),
+						},
+						"model_data_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateSagemakerModelDataUrl,
+						},
 					},
 				},
 			},
-
+			"tags":     tagsSchema(),
+			"tags_all": tagsSchemaComputed(),
 			"vpc_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -108,92 +185,18 @@ func resourceAwsSagemakerModel() *schema.Resource {
 						"subnets": {
 							Type:     schema.TypeSet,
 							Required: true,
+							MaxItems: 16,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"security_group_ids": {
 							Type:     schema.TypeSet,
 							Required: true,
+							MaxItems: 5,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
 			},
-
-			"execution_role_arn": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateArn,
-			},
-
-			"enable_network_isolation": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"container": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"container_hostname": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validateSagemakerName,
-						},
-
-						"image": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validateSagemakerImage,
-						},
-
-						"mode": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							Default:      sagemaker.ContainerModeSingleModel,
-							ValidateFunc: validation.StringInSlice(sagemaker.ContainerMode_Values(), false),
-						},
-
-						"model_data_url": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validateSagemakerModelDataUrl,
-						},
-
-						"environment": {
-							Type:         schema.TypeMap,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validateSagemakerEnvironment,
-							Elem:         &schema.Schema{Type: schema.TypeString},
-						},
-						"image_config": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"repository_access_mode": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringInSlice(sagemaker.RepositoryAccessMode_Values(), false),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"tags":     tagsSchema(),
-			"tags_all": tagsSchemaComputed(),
 		},
 
 		CustomizeDiff: SetTagsDiff,
@@ -238,6 +241,10 @@ func resourceAwsSagemakerModelCreate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("enable_network_isolation"); ok {
 		createOpts.EnableNetworkIsolation = aws.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("inference_execution_config"); ok {
+		createOpts.InferenceExecutionConfig = expandSagemakerModelInferenceExecutionConfig(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] Sagemaker model create config: %#v", *createOpts)
@@ -285,29 +292,29 @@ func resourceAwsSagemakerModelRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error reading Sagemaker model %s: %w", d.Id(), err)
 	}
 
-	if err := d.Set("arn", model.ModelArn); err != nil {
-		return fmt.Errorf("unable to set arn for sagemaker model %q: %+v", d.Id(), err)
-	}
-	if err := d.Set("name", model.ModelName); err != nil {
-		return err
-	}
-	if err := d.Set("execution_role_arn", model.ExecutionRoleArn); err != nil {
-		return err
-	}
-	if err := d.Set("enable_network_isolation", model.EnableNetworkIsolation); err != nil {
-		return err
-	}
+	arn := aws.StringValue(model.ModelArn)
+	d.Set("arn", arn)
+	d.Set("name", model.ModelName)
+	d.Set("execution_role_arn", model.ExecutionRoleArn)
+	d.Set("enable_network_isolation", model.EnableNetworkIsolation)
+
 	if err := d.Set("primary_container", flattenContainer(model.PrimaryContainer)); err != nil {
-		return err
+		return fmt.Errorf("error setting primary_container: %w", err)
 	}
+
 	if err := d.Set("container", flattenContainers(model.Containers)); err != nil {
-		return err
+		return fmt.Errorf("error setting container: %w", err)
 	}
+
 	if err := d.Set("vpc_config", flattenSageMakerVpcConfigResponse(model.VpcConfig)); err != nil {
 		return fmt.Errorf("error setting vpc_config: %w", err)
 	}
 
-	tags, err := keyvaluetags.SagemakerListTags(conn, aws.StringValue(model.ModelArn))
+	if err := d.Set("inference_execution_config", flattenSagemakerModelInferenceExecutionConfig(model.InferenceExecutionConfig)); err != nil {
+		return fmt.Errorf("error setting inference_execution_config: %w", err)
+	}
+
+	tags, err := keyvaluetags.SagemakerListTags(conn, arn)
 	if err != nil {
 		return fmt.Errorf("error listing tags for Sagemaker Model (%s): %w", d.Id(), err)
 	}
@@ -479,4 +486,30 @@ func flattenContainers(containers []*sagemaker.ContainerDefinition) []interface{
 		fContainers = append(fContainers, flattenContainer(container)[0].(map[string]interface{}))
 	}
 	return fContainers
+}
+
+func expandSagemakerModelInferenceExecutionConfig(l []interface{}) *sagemaker.InferenceExecutionConfig {
+	if len(l) == 0 {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	config := &sagemaker.InferenceExecutionConfig{
+		Mode: aws.String(m["mode"].(string)),
+	}
+
+	return config
+}
+
+func flattenSagemakerModelInferenceExecutionConfig(config *sagemaker.InferenceExecutionConfig) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+
+	cfg := make(map[string]interface{})
+
+	cfg["mode"] = aws.StringValue(config.Mode)
+
+	return []interface{}{cfg}
 }
