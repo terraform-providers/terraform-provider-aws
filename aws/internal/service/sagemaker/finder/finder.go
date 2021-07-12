@@ -179,3 +179,26 @@ func AppByName(conn *sagemaker.SageMaker, domainID, userProfileName, appType, ap
 
 	return output, nil
 }
+
+// WorkforceByName returns the workforce corresponding to the specified name.
+// Returns nil if no workforce is found.
+func WorkforceByName(conn *sagemaker.SageMaker, name string) (*sagemaker.Workforce, error) {
+	input := &sagemaker.DescribeWorkforceInput{
+		WorkforceName: aws.String(name),
+	}
+
+	output, err := conn.DescribeWorkforce(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil {
+		return nil, nil
+	}
+
+	if output.Workforce == nil {
+		return nil, nil
+	}
+
+	return output.Workforce, nil
+}

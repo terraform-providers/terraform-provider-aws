@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_sagemaker_workforce
+```
+
+```release-note:enhancement
+resource/aws_cognito_user_pool_client: Set `callback_urls` and `logout_urls` as computed.
+```
