@@ -532,6 +532,7 @@ func Provider() *schema.Provider {
 			"aws_athena_workgroup":                                    resourceAwsAthenaWorkgroup(),
 			"aws_autoscaling_attachment":                              resourceAwsAutoscalingAttachment(),
 			"aws_autoscaling_group":                                   resourceAwsAutoscalingGroup(),
+			"aws_autoscaling_group_tag":                               resourceAwsAutoscalingGroupTag(),
 			"aws_autoscaling_lifecycle_hook":                          resourceAwsAutoscalingLifecycleHook(),
 			"aws_autoscaling_notification":                            resourceAwsAutoscalingNotification(),
 			"aws_autoscaling_policy":                                  resourceAwsAutoscalingPolicy(),
