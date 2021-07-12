@@ -65,6 +65,11 @@ func resourceAwsVolumeAttachment() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"created_timeout_in_minutes": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  5,
+			},
 		},
 	}
 }
@@ -133,7 +138,7 @@ func resourceAwsVolumeAttachmentCreate(d *schema.ResourceData, meta interface{})
 		Pending:    []string{ec2.VolumeAttachmentStateAttaching},
 		Target:     []string{ec2.VolumeAttachmentStateAttached},
 		Refresh:    volumeAttachmentStateRefreshFunc(conn, name, vID, iID),
-		Timeout:    5 * time.Minute,
+		Timeout:    time.Duration(d.Get("created_timeout_in_minutes").(int)) * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
