@@ -25,6 +25,9 @@ resource "aws_securityhub_organization_admin_account" "example" {
 
   admin_account_id = "123456789012"
 }
+
+// Auto enable security hub in organization member accounts
+resource "aws_securityhub_organization_configuration" "example" {}
 ```
 
 ## Argument Reference

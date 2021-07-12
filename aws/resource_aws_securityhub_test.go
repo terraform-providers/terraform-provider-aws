@@ -40,6 +40,9 @@ func TestAccAWSSecurityHub_serial(t *testing.T) {
 			"disappears":  testAccAwsSecurityHubOrganizationAdminAccount_disappears,
 			"MultiRegion": testAccAwsSecurityHubOrganizationAdminAccount_MultiRegion,
 		},
+		"OrganizationConfiguration": {
+			"basic": testAccAwsSecurityHubOrganizationConfiguration_basic,
+		},
 		"ProductSubscription": {
 			"basic": testAccAWSSecurityHubProductSubscription_basic,
 		},
