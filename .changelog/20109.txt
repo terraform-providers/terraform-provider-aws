@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/rds_cluster_instance: Add `performance_insights_retention_period` attribute
+```

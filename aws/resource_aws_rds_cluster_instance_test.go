@@ -805,6 +805,46 @@ func TestAccAWSRDSClusterInstance_PerformanceInsightsKmsKeyId_AuroraMysql2_Defau
 	})
 }
 
+func TestAccAWSRDSClusterInstance_PerformanceInsightsRetentionPeriod(t *testing.T) {
+	var dbInstance rds.DBInstance
+	resourceName := "aws_rds_cluster_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccRDSPerformanceInsightsDefaultVersionPreCheck(t, "aurora") },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterInstanceConfigPerformanceInsightsRetentionPeriod(rName, 731),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "performance_insights_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "performance_insights_retention_period", "731"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"identifier_prefix",
+				},
+			},
+			{
+				Config: testAccAWSClusterInstanceConfigPerformanceInsightsRetentionPeriod(rName, 7),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "performance_insights_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "performance_insights_retention_period", "7"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSRDSClusterInstance_PerformanceInsightsKmsKeyId_AuroraPostgresql(t *testing.T) {
 	var dbInstance rds.DBInstance
 	kmsKeyResourceName := "aws_kms_key.test"
@@ -1605,6 +1645,35 @@ resource "aws_rds_cluster_instance" "test" {
   performance_insights_kms_key_id = aws_kms_key.test.arn
 }
 `, rName, engine)
+}
+
+func testAccAWSClusterInstanceConfigPerformanceInsightsRetentionPeriod(rName string, performanceInsightsRetentionPeriod int) string {
+	return fmt.Sprintf(`
+resource "aws_rds_cluster" "test" {
+  cluster_identifier  = %[1]q
+  database_name       = "mydb"
+  engine              = "aurora"
+  master_password     = "mustbeeightcharacters"
+  master_username     = "foo"
+  skip_final_snapshot = true
+}
+
+data "aws_rds_orderable_db_instance" "test" {
+  engine                        = aws_rds_cluster.test.engine
+  engine_version                = aws_rds_cluster.test.engine_version
+  supports_performance_insights = true
+  preferred_instance_classes    = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
+resource "aws_rds_cluster_instance" "test" {
+  cluster_identifier                    = aws_rds_cluster.test.id
+  engine                                = aws_rds_cluster.test.engine
+  identifier                            = %[1]q
+  instance_class                        = data.aws_rds_orderable_db_instance.test.instance_class
+  performance_insights_enabled          = true
+  performance_insights_retention_period = %[2]d
+}
+`, rName, performanceInsightsRetentionPeriod)
 }
 
 func testAccAWSRDSClusterInstanceConfig_PubliclyAccessible(rName string, publiclyAccessible bool) string {
