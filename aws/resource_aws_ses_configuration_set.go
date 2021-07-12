@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -62,6 +63,20 @@ func resourceAwsSesConfigurationSet() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
+			"tracking_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"custom_redirect_domain": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "cannot end with a period"),
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -117,6 +132,18 @@ func resourceAwsSesConfigurationSetCreate(d *schema.ResourceData, meta interface
 		_, err := conn.UpdateConfigurationSetSendingEnabled(input)
 		if err != nil {
 			return fmt.Errorf("error adding SES configuration set (%s) sending enabled: %w", configurationSetName, err)
+		}
+	}
+
+	if v, ok := d.GetOk("tracking_options"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		input := &ses.CreateConfigurationSetTrackingOptionsInput{
+			ConfigurationSetName: aws.String(configurationSetName),
+			TrackingOptions:      expandSesConfigurationSetTrackingOptions(v.([]interface{})),
+		}
+
+		_, err := conn.CreateConfigurationSetTrackingOptions(input)
+		if err != nil {
+			return fmt.Errorf("error adding SES configuration set (%s) tracking options: %w", configurationSetName, err)
 		}
 	}
 
@@ -208,6 +235,18 @@ func resourceAwsSesConfigurationSetUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("tracking_options") {
+		input := &ses.UpdateConfigurationSetTrackingOptionsInput{
+			ConfigurationSetName: aws.String(d.Id()),
+			TrackingOptions:      expandSesConfigurationSetTrackingOptions(d.Get("tracking_options").([]interface{})),
+		}
+
+		_, err := conn.UpdateConfigurationSetTrackingOptions(input)
+		if err != nil {
+			return fmt.Errorf("error updating SES configuration set (%s) tracking options: %w", d.Id(), err)
+		}
+	}
+
 	return resourceAwsSesConfigurationSetRead(d, meta)
 }
 
@@ -257,4 +296,23 @@ func flattenSesConfigurationSetDeliveryOptions(options *ses.DeliveryOptions) []i
 	}
 
 	return []interface{}{m}
+}
+
+func expandSesConfigurationSetTrackingOptions(l []interface{}) *ses.TrackingOptions {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	tfMap, ok := l[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	options := &ses.TrackingOptions{}
+
+	if v, ok := tfMap["custom_redirect_domain"].(string); ok && v != "" {
+		options.CustomRedirectDomain = aws.String(v)
+	}
+
+	return options
 }
