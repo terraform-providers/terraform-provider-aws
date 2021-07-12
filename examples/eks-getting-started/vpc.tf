@@ -15,7 +15,7 @@ resource "aws_vpc" "demo" {
   )
 }
 
-resource "aws_subnet" "demo" {
+resource "aws_subnet" "demo-subnet" {
   count = 2
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
