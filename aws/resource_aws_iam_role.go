@@ -337,7 +337,21 @@ func resourceAwsIamRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 			RoleName:       aws.String(d.Id()),
 			PolicyDocument: aws.String(d.Get("assume_role_policy").(string)),
 		}
-		_, err := iamconn.UpdateAssumeRolePolicy(assumeRolePolicyInput)
+
+		err := resource.Retry(30*time.Second, func() *resource.RetryError {
+			var err error
+			_, err = iamconn.UpdateAssumeRolePolicy(assumeRolePolicyInput)
+			// IAM users (referenced in Principal field of assume policy)
+			// can take ~30 seconds to propagate in AWS
+			if isAWSErr(err, "MalformedPolicyDocument", "Invalid principal in policy") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		})
+		if isResourceTimeoutError(err) {
+			_, err = iamconn.UpdateAssumeRolePolicy(assumeRolePolicyInput)
+		}
+
 		if err != nil {
 			if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 				d.SetId("")
