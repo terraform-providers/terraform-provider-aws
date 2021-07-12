@@ -796,6 +796,45 @@ func TestAccAWSStorageGatewayGateway_bandwidthAll(t *testing.T) {
 	})
 }
 
+func TestAccAWSStorageGatewayGateway_maintenanceStartTime(t *testing.T) {
+	var gateway storagegateway.DescribeGatewayInformationOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayGatewayMaintenanceStartTimeConfig(rName, 22, 0, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.0.hour", "22"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.0.minute", "0"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.0.day_of_week", "3"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"activation_key", "gateway_ip_address"},
+			},
+			{
+				Config: testAccAWSStorageGatewayGatewayMaintenanceStartTimeConfig(rName, 21, 10, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.0.hour", "21"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.0.minute", "10"),
+					resource.TestCheckResourceAttr(resourceName, "maintenance_start_time.0.day_of_week", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSStorageGatewayGatewayDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).storagegatewayconn
 
@@ -1384,4 +1423,21 @@ resource "aws_storagegateway_gateway" "test" {
   average_download_rate_limit_in_bits_per_sec = %[2]d
 }
 `, rName, rate)
+}
+
+func testAccAWSStorageGatewayGatewayMaintenanceStartTimeConfig(rName string, hour_of_day int, minute_of_hour int, day_of_week int, day_of_month int) string {
+	return testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName) + fmt.Sprintf(`
+resource "aws_storagegateway_gateway" "test" {
+  gateway_ip_address = aws_instance.test.public_ip
+  gateway_name       = %[1]q
+  gateway_timezone   = "GMT"
+  gateway_type       = "CACHED"
+  maintenance_start_time {
+    hour_of_day    = %[2]d
+    minute_of_hour = %[3]d
+    day_of_week    = %[4]d  
+    day_of_month   = %[5]d  
+  }
+}
+`, rName, hour_of_day, minute_of_hour, day_of_week, day_of_month)
 }
