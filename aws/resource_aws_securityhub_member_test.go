@@ -23,9 +23,35 @@ func testAccAWSSecurityHubMember_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSecurityHubMemberDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSecurityHubMemberConfig_basic("111111111111", "example@example.com"),
+				Config: testAccAWSSecurityHubMemberConfig_basic("111111111111"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityHubMemberExists(resourceName, &member),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAWSSecurityHubMember_email(t *testing.T) {
+	var member securityhub.Member
+	resourceName := "aws_securityhub_member.example"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, securityhub.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSecurityHubMemberDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSecurityHubMemberConfig_email("111111111111", "example@example.com"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSecurityHubMemberExists(resourceName, &member),
+					resource.TestCheckResourceAttr(resourceName, "email", "example@example.com"),
 				),
 			},
 			{
@@ -125,7 +151,18 @@ func testAccCheckAWSSecurityHubMemberDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAWSSecurityHubMemberConfig_basic(accountId, email string) string {
+func testAccAWSSecurityHubMemberConfig_basic(accountId string) string {
+	return fmt.Sprintf(`
+resource "aws_securityhub_account" "example" {}
+
+resource "aws_securityhub_member" "example" {
+  depends_on = [aws_securityhub_account.example]
+  account_id = "%s"
+}
+`, accountId)
+}
+
+func testAccAWSSecurityHubMemberConfig_email(accountId, email string) string {
 	return fmt.Sprintf(`
 resource "aws_securityhub_account" "example" {}
 

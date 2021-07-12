@@ -28,7 +28,7 @@ resource "aws_securityhub_member" "example" {
 The following arguments are supported:
 
 * `account_id` - (Required) The ID of the member AWS account.
-* `email` - (Required) The email of the member AWS account.
+* `email` - (Optional) The email of the member AWS account.
 * `invite` - (Optional) Boolean whether to invite the account to Security Hub as a member. Defaults to `false`.
 
 ## Attributes Reference

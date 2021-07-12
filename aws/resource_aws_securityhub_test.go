@@ -11,6 +11,7 @@ func TestAccAWSSecurityHub_serial(t *testing.T) {
 		},
 		"Member": {
 			"basic":  testAccAWSSecurityHubMember_basic,
+			"email":  testAccAWSSecurityHubMember_email,
 			"invite": testAccAWSSecurityHubMember_invite,
 		},
 		"ActionTarget": {
