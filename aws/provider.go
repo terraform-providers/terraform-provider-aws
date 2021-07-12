@@ -1090,6 +1090,7 @@ func Provider() *schema.Provider {
 			"aws_ssm_patch_group":                                     resourceAwsSsmPatchGroup(),
 			"aws_ssm_parameter":                                       resourceAwsSsmParameter(),
 			"aws_ssm_resource_data_sync":                              resourceAwsSsmResourceDataSync(),
+			"aws_ssm_service_setting":                                 resourceAwsSsmServiceSetting(),
 			"aws_ssoadmin_account_assignment":                         resourceAwsSsoAdminAccountAssignment(),
 			"aws_ssoadmin_managed_policy_attachment":                  resourceAwsSsoAdminManagedPolicyAttachment(),
 			"aws_ssoadmin_permission_set":                             resourceAwsSsoAdminPermissionSet(),
