@@ -349,6 +349,7 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 			Port:                             aws.Int64(int64(d.Get("port").(int))),
 			AllowVersionUpgrade:              aws.Bool(d.Get("allow_version_upgrade").(bool)),
 			NodeType:                         aws.String(d.Get("node_type").(string)),
+			NumberOfNodes:                    aws.Int64(int64(d.Get("number_of_nodes").(int))),
 			PubliclyAccessible:               aws.Bool(d.Get("publicly_accessible").(bool)),
 			AutomatedSnapshotRetentionPeriod: aws.Int64(int64(d.Get("automated_snapshot_retention_period").(int))),
 		}

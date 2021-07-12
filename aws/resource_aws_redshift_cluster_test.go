@@ -107,6 +107,42 @@ func TestAccAWSRedshiftCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSRedshiftCluster_restoreFromSnapshot(t *testing.T) {
+	var v redshift.Cluster
+
+	ri := acctest.RandInt()
+	config := testAccAWSRedshiftClusterConfig_restoreFromSnapshot(ri)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRedshiftClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRedshiftClusterExists("aws_redshift_cluster.default", &v),
+					resource.TestCheckResourceAttr(
+						"aws_redshift_cluster.default", "cluster_type", "multi-node"),
+					resource.TestCheckResourceAttr(
+						"aws_redshift_cluster.default", "publicly_accessible", "true"),
+					resource.TestMatchResourceAttr("aws_redshift_cluster.default", "dns_name", regexp.MustCompile(fmt.Sprintf("^tf-redshift-cluster-%d.*\\.redshift\\..*", ri))),
+				),
+			},
+			{
+				ResourceName:      "aws_redshift_cluster.default",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"final_snapshot_identifier",
+					"master_password",
+					"skip_final_snapshot",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAWSRedshiftCluster_withFinalSnapshot(t *testing.T) {
 	var v redshift.Cluster
 
@@ -790,6 +826,89 @@ resource "aws_redshift_cluster" "default" {
   skip_final_snapshot                 = true
 }
 `, rInt))
+}
+
+func testAccAWSRedshiftClusterConfig_restoreFromSnapshot(rInt int) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "foo" {
+	cidr_block = "10.0.0.0/16"
+
+	tags = {
+		Name = "tf-acc-test-%d"
+	}
+}
+
+resource "aws_internet_gateway" "foo" {
+  vpc_id = "${aws_vpc.foo.id}"
+
+  tags = {
+    Name = "tf-acc-test-%d"
+  }
+}
+
+resource "aws_subnet" "bar1" {
+	vpc_id            = "${aws_vpc.foo.id}"
+	cidr_block        = "10.0.0.0/24"
+	availability_zone = "${data.aws_availability_zones.available.names[0]}"
+
+  tags = {
+	  Name = "tf-acc-test-%d"
+  }
+}
+
+resource "aws_subnet" "bar2" {
+	vpc_id            = "${aws_vpc.foo.id}"
+	cidr_block        = "10.0.1.0/24"
+	availability_zone = "${data.aws_availability_zones.available.names[1]}"
+
+	tags = {
+		Name = "tf-acc-test-%d"
+	}
+}
+
+resource "aws_redshift_subnet_group" "foo" {
+  name        = "tf-acc-test-%d"
+  subnet_ids  = ["${aws_subnet.bar1.id}","${aws_subnet.bar2.id}"]
+
+  tags = {
+		Name = "tf-acc-test-%d"
+	}
+}
+
+data "aws_security_group" "default" {
+  name   = "default"
+  vpc_id = "${aws_vpc.foo.id}"
+}
+
+resource "aws_redshift_cluster" "default" {
+  cluster_identifier                  = "tf-redshift-cluster-%d"
+  database_name                       = "dev"
+  node_type                           = "ra3.4xlarge"
+  automated_snapshot_retention_period = 2
+  number_of_nodes					            = 2
+#  snapshot_identifier                 = "xx"
+#  snapshot_cluster_identifier         = "rs:xx"
+  skip_final_snapshot                 = true
+  preferred_maintenance_window        = "sun:04:25-sun:04:55"
+  final_snapshot_identifier           = "tf-redshift-cluster-%d"
+  publicly_accessible                 = true
+  cluster_subnet_group_name           = "${aws_redshift_subnet_group.foo.id}"
+  vpc_security_group_ids              = ["${data.aws_security_group.default.id}"]
+
+  timeouts {
+    create = "30m"
+  }
+}
+`, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAWSRedshiftClusterConfig_encrypted(rInt int) string {
