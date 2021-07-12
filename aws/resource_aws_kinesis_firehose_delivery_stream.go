@@ -152,6 +152,63 @@ func s3ConfigurationSchema() *schema.Schema {
 	}
 }
 
+func s3BackupConfigurationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"bucket_arn": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+
+				"buffer_size": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Default:  5,
+				},
+
+				"buffer_interval": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Default:  300,
+				},
+
+				"compression_format": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Default:  "UNCOMPRESSED",
+				},
+
+				"kms_key_arn": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validateArn,
+				},
+
+				"role_arn": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+
+				"prefix": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
+				"error_output_prefix": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
+				"cloudwatch_logging_options": cloudWatchLoggingOptionsSchema(),
+			},
+		},
+	}
+}
+
 func processingConfigurationSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeList,
@@ -1212,7 +1269,7 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 							ValidateFunc: validation.StringInSlice(firehose.S3BackupMode_Values(), false),
 						},
 
-						"s3_backup_configuration": s3ConfigurationSchema(),
+						"s3_backup_configuration": s3BackupConfigurationSchema(),
 
 						"cloudwatch_logging_options": cloudWatchLoggingOptionsSchema(),
 
@@ -1258,7 +1315,7 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 							ValidateFunc: validation.StringInSlice(firehose.S3BackupMode_Values(), false),
 						},
 
-						"s3_backup_configuration": s3ConfigurationSchema(),
+						"s3_backup_configuration": s3BackupConfigurationSchema(),
 
 						"retry_duration": {
 							Type:         schema.TypeInt,
@@ -1597,6 +1654,7 @@ func expandS3BackupConfig(d map[string]interface{}) *firehose.S3DestinationConfi
 			SizeInMBs:         aws.Int64(int64(s3["buffer_size"].(int))),
 		},
 		Prefix:                  extractPrefixConfiguration(s3),
+		ErrorOutputPrefix:       extractErrorOutputPrefixConfiguration(s3),
 		CompressionFormat:       aws.String(s3["compression_format"].(string)),
 		EncryptionConfiguration: extractEncryptionConfiguration(s3),
 	}
@@ -1683,6 +1741,7 @@ func updateS3BackupConfig(d map[string]interface{}) *firehose.S3DestinationUpdat
 			SizeInMBs:         aws.Int64((int64)(s3["buffer_size"].(int))),
 		},
 		Prefix:                   extractPrefixConfiguration(s3),
+		ErrorOutputPrefix:        extractErrorOutputPrefixConfiguration(s3),
 		CompressionFormat:        aws.String(s3["compression_format"].(string)),
 		EncryptionConfiguration:  extractEncryptionConfiguration(s3),
 		CloudWatchLoggingOptions: extractCloudWatchLoggingConfiguration(s3),
@@ -2024,6 +2083,14 @@ func extractVpcConfiguration(es map[string]interface{}) *firehose.VpcConfigurati
 
 func extractPrefixConfiguration(s3 map[string]interface{}) *string {
 	if v, ok := s3["prefix"]; ok {
+		return aws.String(v.(string))
+	}
+
+	return nil
+}
+
+func extractErrorOutputPrefixConfiguration(s3 map[string]interface{}) *string {
+	if v, ok := s3["error_output_prefix"]; ok {
 		return aws.String(v.(string))
 	}
 
