@@ -621,6 +621,7 @@ func Provider() *schema.Provider {
 			"aws_cur_report_definition":                               resourceAwsCurReportDefinition(),
 			"aws_customer_gateway":                                    resourceAwsCustomerGateway(),
 			"aws_datapipeline_pipeline":                               resourceAwsDataPipelinePipeline(),
+			"aws_datapipeline_definition":                             resourceAwsDataPipelineDefinition(),
 			"aws_datasync_agent":                                      resourceAwsDataSyncAgent(),
 			"aws_datasync_location_efs":                               resourceAwsDataSyncLocationEfs(),
 			"aws_datasync_location_fsx_windows_file_system":           resourceAwsDataSyncLocationFsxWindowsFileSystem(),
