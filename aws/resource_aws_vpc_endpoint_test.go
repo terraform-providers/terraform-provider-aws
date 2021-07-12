@@ -782,21 +782,12 @@ resource "aws_vpc" "test" {
   }
 }
 
-data "aws_security_group" "test" {
-  vpc_id = aws_vpc.test.id
-  name   = "default"
-}
-
 data "aws_region" "current" {}
 
 resource "aws_vpc_endpoint" "test" {
   vpc_id            = aws_vpc.test.id
   service_name      = "com.amazonaws.${data.aws_region.current.name}.ec2"
   vpc_endpoint_type = "Interface"
-
-  security_group_ids = [
-    data.aws_security_group.test.id,
-  ]
 }
 `, rName)
 }

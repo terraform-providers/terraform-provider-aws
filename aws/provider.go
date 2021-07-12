@@ -1134,6 +1134,7 @@ func Provider() *schema.Provider {
 			"aws_vpc_endpoint":                                        resourceAwsVpcEndpoint(),
 			"aws_vpc_endpoint_connection_notification":                resourceAwsVpcEndpointConnectionNotification(),
 			"aws_vpc_endpoint_route_table_association":                resourceAwsVpcEndpointRouteTableAssociation(),
+			"aws_vpc_endpoint_security_group_association":             resourceAwsVpcEndpointSecurityGroupAssociation(),
 			"aws_vpc_endpoint_subnet_association":                     resourceAwsVpcEndpointSubnetAssociation(),
 			"aws_vpc_endpoint_service":                                resourceAwsVpcEndpointService(),
 			"aws_vpc_endpoint_service_allowed_principal":              resourceAwsVpcEndpointServiceAllowedPrincipal(),

@@ -99,6 +99,10 @@ func VpcEndpointRouteTableAssociationCreateID(vpcEndpointID, routeTableID string
 	return fmt.Sprintf("a-%s%d", vpcEndpointID, hashcode.String(routeTableID))
 }
 
+func VpcEndpointSecurityGroupAssociationCreateID(vpcEndpointID, securityGroupID string) string {
+	return fmt.Sprintf("a-%s%d", vpcEndpointID, hashcode.String(securityGroupID))
+}
+
 func VpcEndpointSubnetAssociationCreateID(vpcEndpointID, subnetID string) string {
 	return fmt.Sprintf("a-%s%d", vpcEndpointID, hashcode.String(subnetID))
 }

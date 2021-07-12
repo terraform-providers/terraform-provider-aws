@@ -407,6 +407,34 @@ func RouteByPrefixListIDDestination(conn *ec2.EC2, routeTableID, prefixListID st
 	return nil, &resource.NotFoundError{}
 }
 
+// DefaultSecurityGroup returns the default security group for the specified VPC.
+// Returns NotFoundError if no default security group is found.
+func DefaultSecurityGroup(conn *ec2.EC2, vpcID string) (*ec2.SecurityGroup, error) {
+	filters := map[string]string{
+		"group-name": "default",
+		"vpc-id":     vpcID,
+	}
+
+	input := &ec2.DescribeSecurityGroupsInput{
+		Filters: tfec2.BuildAttributeFilterList(filters),
+	}
+
+	output, err := conn.DescribeSecurityGroups(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.SecurityGroups) == 0 || output.SecurityGroups[0] == nil {
+		return nil, &resource.NotFoundError{
+			Message:     "Empty result",
+			LastRequest: input,
+		}
+	}
+
+	return output.SecurityGroups[0], nil
+}
+
 // SecurityGroupByID looks up a security group by ID. When not found, returns nil and potentially an API error.
 func SecurityGroupByID(conn *ec2.EC2, id string) (*ec2.SecurityGroup, error) {
 	req := &ec2.DescribeSecurityGroupsInput{
@@ -689,6 +717,25 @@ func VpcEndpointRouteTableAssociationExists(conn *ec2.EC2, vpcEndpointID string,
 
 	return &resource.NotFoundError{
 		LastError: fmt.Errorf("VPC Endpoint Route Table Association (%s/%s) not found", vpcEndpointID, routeTableID),
+	}
+}
+
+// VpcEndpointRouteTableAssociationExists returns NotFoundError if no association for the specified VPC endpoint and security group IDs is found.
+func VpcEndpointSecurityGroupAssociationExists(conn *ec2.EC2, vpcEndpointID, securityGroupID string) error {
+	vpcEndpoint, err := VpcEndpointByID(conn, vpcEndpointID)
+
+	if err != nil {
+		return err
+	}
+
+	for _, group := range vpcEndpoint.Groups {
+		if aws.StringValue(group.GroupId) == securityGroupID {
+			return nil
+		}
+	}
+
+	return &resource.NotFoundError{
+		LastError: fmt.Errorf("VPC Endpoint Security Group Association (%s/%s) not found", vpcEndpointID, securityGroupID),
 	}
 }
 

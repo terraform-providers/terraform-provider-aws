@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_vpc_endpoint_security_group_association
+```
+
+```release-note:enhancement
+resource/aws_vpc_endpoint: The `security_group_ids` attribute can now be empty when the resource is created. In this case the VPC's default security is associated with the VPC endpoint
+```
