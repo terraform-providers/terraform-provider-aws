@@ -190,6 +190,8 @@ across different markets and instance types. Conflicts with `launch_template_con
 * `excess_capacity_termination_policy` - Indicates whether running Spot
   instances should be terminated if the target capacity of the Spot fleet
   request is decreased below the current size of the Spot fleet.
+* `terminate_instances` - (Optional) Whether to terminate Spot instances for
+  the Spot Fleet if it is deleted successfully. Defaults to `false`.
 * `terminate_instances_with_expiration` - Indicates whether running Spot
   instances should be terminated when the Spot fleet request expires.
 * `instance_interruption_behaviour` - (Optional) Indicates whether a Spot
