@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_opsworks_custom_layer: Add support for `cloudwatch_configuration`
+```
+
+```release-note:enhancement
+resource/aws_opsworks_custom_layer: Add plan time validation for `ebs_volume.type`
+```

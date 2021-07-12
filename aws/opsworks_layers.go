@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
@@ -195,6 +196,13 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 						Type:     schema.TypeString,
 						Optional: true,
 						Default:  "standard",
+						ValidateFunc: validation.StringInSlice([]string{
+							"standard",
+							"io1",
+							"gp2",
+							"st1",
+							"sc1",
+						}, false),
 					},
 
 					"encrypted": {
@@ -215,6 +223,102 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 		},
 		"tags":     tagsSchema(),
 		"tags_all": tagsSchemaComputed(),
+		"cloudwatch_configuration": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				if old == "1" && new == "0" && !d.Get("cloudwatch_configuration.0.enabled").(bool) {
+					return true
+				}
+				return false
+			},
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							if old == "false" && new == "" {
+								return true
+							}
+							return false
+						},
+					},
+					"log_streams": {
+						Type:     schema.TypeList,
+						Optional: true,
+						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							if old == "1" && new == "0" && !d.Get("cloudwatch_configuration.0.enabled").(bool) {
+								return true
+							}
+							return false
+						},
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"batch_count": {
+									Type:         schema.TypeInt,
+									Default:      1000,
+									Optional:     true,
+									ValidateFunc: validation.IntAtMost(10000),
+								},
+								"batch_size": {
+									Type:         schema.TypeInt,
+									Default:      32768,
+									Optional:     true,
+									ValidateFunc: validation.IntAtMost(1048576),
+								},
+								"buffer_duration": {
+									Type:         schema.TypeInt,
+									Default:      5000,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(5000),
+								},
+								"datetime_format": {
+									Type:     schema.TypeString,
+									Optional: true,
+								},
+								"encoding": {
+									Type:         schema.TypeString,
+									Optional:     true,
+									Default:      opsworks.CloudWatchLogsEncodingUtf8,
+									ValidateFunc: validation.StringInSlice(opsworks.CloudWatchLogsEncoding_Values(), false),
+								},
+								"file": {
+									Type:     schema.TypeString,
+									Required: true,
+								},
+								"file_fingerprint_lines": {
+									Type:     schema.TypeString,
+									Optional: true,
+									Default:  "1",
+								},
+								"initial_position": {
+									Type:         schema.TypeString,
+									Optional:     true,
+									Default:      opsworks.CloudWatchLogsInitialPositionStartOfFile,
+									ValidateFunc: validation.StringInSlice(opsworks.CloudWatchLogsInitialPosition_Values(), false),
+								},
+								"log_group_name": {
+									Type:         schema.TypeString,
+									Required:     true,
+									ValidateFunc: validateLogGroupName,
+								},
+								"multiline_start_pattern": {
+									Type:     schema.TypeString,
+									Optional: true,
+								},
+								"time_zone": {
+									Type:         schema.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(opsworks.CloudWatchLogsTimeZone_Values(), false),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	if lt.CustomShortName {
@@ -304,6 +408,10 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, meta interface{}) erro
 	d.Set("stack_id", layer.StackId)
 	d.Set("use_ebs_optimized_instances", layer.UseEbsOptimizedInstances)
 
+	if err := d.Set("cloudwatch_configuration", flattenOpsworksCloudWatchConfig(layer.CloudWatchLogsConfiguration)); err != nil {
+		return fmt.Errorf("error setting cloudwatch_configuration: %w", err)
+	}
+
 	if lt.CustomShortName {
 		d.Set("short_name", layer.Shortname)
 	}
@@ -313,7 +421,7 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, meta interface{}) erro
 	} else {
 		policy, err := structure.NormalizeJsonString(*layer.CustomJson)
 		if err != nil {
-			return fmt.Errorf("policy contains an invalid JSON: %s", err)
+			return fmt.Errorf("policy contains an invalid JSON: %w", err)
 		}
 		d.Set("custom_json", policy)
 	}
@@ -351,7 +459,7 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, meta interface{}) erro
 	tags, err := keyvaluetags.OpsworksListTags(conn, arn)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for Opsworks Layer (%s): %s", arn, err)
+		return fmt.Errorf("error listing tags for Opsworks Layer (%s): %w", arn, err)
 	}
 
 	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
@@ -395,6 +503,10 @@ func (lt *opsworksLayerType) Create(d *schema.ResourceData, meta interface{}) er
 		VolumeConfigurations:        lt.VolumeConfigurations(d),
 	}
 
+	if v, ok := d.GetOk("cloudwatch_configuration"); ok {
+		req.CloudWatchLogsConfiguration = expandOpsworksCloudWatchConfig(v.([]interface{}))
+	}
+
 	if lt.CustomShortName {
 		req.Shortname = aws.String(d.Get("short_name").(string))
 	} else {
@@ -435,7 +547,7 @@ func (lt *opsworksLayerType) Create(d *schema.ResourceData, meta interface{}) er
 
 	if len(tags) > 0 {
 		if err := keyvaluetags.OpsworksUpdateTags(conn, arn, nil, tags); err != nil {
-			return fmt.Errorf("error updating Opsworks stack (%s) tags: %s", arn, err)
+			return fmt.Errorf("error updating Opsworks stack (%s) tags: %w", arn, err)
 		}
 	}
 
@@ -464,6 +576,10 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, meta interface{}) er
 		UseEbsOptimizedInstances:    aws.Bool(d.Get("use_ebs_optimized_instances").(bool)),
 		Attributes:                  attributes,
 		VolumeConfigurations:        lt.VolumeConfigurations(d),
+	}
+
+	if v, ok := d.GetOk("cloudwatch_configuration"); ok {
+		req.CloudWatchLogsConfiguration = expandOpsworksCloudWatchConfig(v.([]interface{}))
 	}
 
 	if lt.CustomShortName {
@@ -515,7 +631,7 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, meta interface{}) er
 
 		arn := d.Get("arn").(string)
 		if err := keyvaluetags.OpsworksUpdateTags(conn, arn, o, n); err != nil {
-			return fmt.Errorf("error updating Opsworks Layer (%s) tags: %s", arn, err)
+			return fmt.Errorf("error updating Opsworks Layer (%s) tags: %w", arn, err)
 		}
 	}
 
@@ -719,4 +835,149 @@ func (lt *opsworksLayerType) SetVolumeConfigurations(d *schema.ResourceData, v [
 	}
 
 	d.Set("ebs_volume", newValue)
+}
+
+func expandOpsworksCloudWatchConfig(l []interface{}) *opsworks.CloudWatchLogsConfiguration {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	config := &opsworks.CloudWatchLogsConfiguration{
+		Enabled:    aws.Bool(m["enabled"].(bool)),
+		LogStreams: expandOpsworksCloudWatchConfigLogStream(m["log_streams"].([]interface{})),
+	}
+
+	return config
+}
+
+func expandOpsworksCloudWatchConfigLogStream(l []interface{}) []*opsworks.CloudWatchLogsLogStream {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	logStreams := make([]*opsworks.CloudWatchLogsLogStream, 0)
+
+	for _, m := range l {
+		item := m.(map[string]interface{})
+		logStream := &opsworks.CloudWatchLogsLogStream{}
+
+		if v, ok := item["batch_count"]; ok {
+			logStream.BatchCount = aws.Int64(int64(v.(int)))
+		}
+
+		if v, ok := item["batch_size"]; ok {
+			logStream.BatchSize = aws.Int64(int64(v.(int)))
+		}
+
+		if v, ok := item["buffer_duration"]; ok {
+			logStream.BufferDuration = aws.Int64(int64(v.(int)))
+		}
+
+		if v, ok := item["datetime_format"]; ok {
+			logStream.DatetimeFormat = aws.String(v.(string))
+		}
+
+		if v, ok := item["encoding"]; ok {
+			logStream.Encoding = aws.String(v.(string))
+		}
+
+		if v, ok := item["file"]; ok {
+			logStream.File = aws.String(v.(string))
+		}
+
+		if v, ok := item["file_fingerprint_lines"]; ok {
+			logStream.FileFingerprintLines = aws.String(v.(string))
+		}
+
+		if v, ok := item["initial_position"]; ok {
+			logStream.InitialPosition = aws.String(v.(string))
+		}
+
+		if v, ok := item["log_group_name"]; ok {
+			logStream.LogGroupName = aws.String(v.(string))
+		}
+
+		if v, ok := item["multiline_start_pattern"]; ok {
+			logStream.MultiLineStartPattern = aws.String(v.(string))
+		}
+
+		if v, ok := item["time_zone"]; ok {
+			logStream.TimeZone = aws.String(v.(string))
+		}
+
+		logStreams = append(logStreams, logStream)
+	}
+
+	return logStreams
+}
+
+func flattenOpsworksCloudWatchConfig(cloudwatchConfig *opsworks.CloudWatchLogsConfiguration) []map[string]interface{} {
+	if cloudwatchConfig == nil {
+		return nil
+	}
+
+	p := map[string]interface{}{
+		"enabled":     aws.BoolValue(cloudwatchConfig.Enabled),
+		"log_streams": flattenOpsworksCloudWatchConfigLogStreams(cloudwatchConfig.LogStreams),
+	}
+
+	return []map[string]interface{}{p}
+}
+
+func flattenOpsworksCloudWatchConfigLogStreams(logStreams []*opsworks.CloudWatchLogsLogStream) []interface{} {
+	out := make([]interface{}, len(logStreams))
+
+	for i, logStream := range logStreams {
+		m := make(map[string]interface{})
+
+		if logStream.TimeZone != nil {
+			m["time_zone"] = aws.StringValue(logStream.TimeZone)
+		}
+
+		if logStream.MultiLineStartPattern != nil {
+			m["multiline_start_pattern"] = aws.StringValue(logStream.MultiLineStartPattern)
+		}
+
+		if logStream.Encoding != nil {
+			m["encoding"] = aws.StringValue(logStream.Encoding)
+		}
+
+		if logStream.LogGroupName != nil {
+			m["log_group_name"] = aws.StringValue(logStream.LogGroupName)
+		}
+
+		if logStream.File != nil {
+			m["file"] = aws.StringValue(logStream.File)
+		}
+
+		if logStream.DatetimeFormat != nil {
+			m["datetime_format"] = aws.StringValue(logStream.DatetimeFormat)
+		}
+
+		if logStream.FileFingerprintLines != nil {
+			m["file_fingerprint_lines"] = aws.StringValue(logStream.FileFingerprintLines)
+		}
+
+		if logStream.InitialPosition != nil {
+			m["initial_position"] = aws.StringValue(logStream.InitialPosition)
+		}
+
+		if logStream.BatchSize != nil {
+			m["batch_size"] = aws.Int64Value(logStream.BatchSize)
+		}
+
+		if logStream.BatchCount != nil {
+			m["batch_count"] = aws.Int64Value(logStream.BatchCount)
+		}
+
+		if logStream.BufferDuration != nil {
+			m["buffer_duration"] = aws.Int64Value(logStream.BufferDuration)
+		}
+
+		out[i] = m
+	}
+
+	return out
 }
