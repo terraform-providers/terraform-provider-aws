@@ -62,6 +62,21 @@ func TestAccDataSourceAwsVpcs_filters(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAwsVpcs_empty(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsVpcsConfig_empty(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsVpcsDataSourceExists("data.aws_vpcs.all"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckResourceAttrGreaterThanValue(name, key, value string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ms := s.RootModule()
@@ -153,4 +168,10 @@ data "aws_vpcs" "selected" {
   }
 }
 `, rName)
+}
+
+func testAccDataSourceAwsVpcsConfig_empty() string {
+	return fmt.Sprintf(`
+	data "aws_vpcs" "all" {}
+	`)
 }

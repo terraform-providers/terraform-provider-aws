@@ -55,11 +55,15 @@ func dataSourceAwsVpcsRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	if resp == nil || len(resp.Vpcs) == 0 {
-		return fmt.Errorf("no matching VPC found")
-	}
+	var vpcs []string
 
-	vpcs := make([]string, 0)
+	if resp == nil || len(resp.Vpcs) == 0 {
+		if err := d.Set("ids", vpcs); err != nil {
+			return fmt.Errorf("Error setting vpc ids: %s", err)
+		}
+		d.SetId(time.Now().UTC().String())
+		return nil
+	}
 
 	for _, vpc := range resp.Vpcs {
 		vpcs = append(vpcs, aws.StringValue(vpc.VpcId))
