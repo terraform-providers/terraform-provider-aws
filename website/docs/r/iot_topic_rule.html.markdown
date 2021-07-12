@@ -159,6 +159,7 @@ The `republish` object takes the following arguments:
 The `s3` object takes the following arguments:
 
 * `bucket_name` - (Required) The Amazon S3 bucket name.
+* `canned_acl` - (Optional) The Amazon S3 canned ACL that controls access to the object identified by the object key. [Valid values](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl).
 * `key` - (Required) The object key.
 * `role_arn` - (Required) The ARN of the IAM role that grants access.
 

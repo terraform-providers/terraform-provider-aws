@@ -404,6 +404,33 @@ func TestAccAWSIoTTopicRule_s3(t *testing.T) {
 	})
 }
 
+func TestAccAWSIoTTopicRule_s3_canned_acl(t *testing.T) {
+	rName := acctest.RandString(5)
+	resourceName := "aws_iot_topic_rule.rule"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, iot.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSIoTTopicRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIoTTopicRule_s3_canned_acl(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTTopicRuleExists("aws_iot_topic_rule.rule"),
+					resource.TestCheckResourceAttr(resourceName, "s3.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "s3.0.canned_acl", "private"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSIoTTopicRule_sns(t *testing.T) {
 	rName := acctest.RandString(5)
 	resourceName := "aws_iot_topic_rule.rule"
@@ -942,6 +969,25 @@ resource "aws_iot_topic_rule" "rule" {
 
   s3 {
     bucket_name = "mybucket"
+    key         = "mykey"
+    role_arn    = aws_iam_role.iot_role.arn
+  }
+}
+`, rName)
+}
+
+func testAccAWSIoTTopicRule_s3_canned_acl(rName string) string {
+	return fmt.Sprintf(testAccAWSIoTTopicRuleRole+`
+resource "aws_iot_topic_rule" "rule" {
+  name        = "test_rule_%[1]s"
+  description = "Example rule"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
+  sql_version = "2015-10-08"
+
+  s3 {
+    bucket_name = "mybucket"
+    canned_acl  = "private"
     key         = "mykey"
     role_arn    = aws_iam_role.iot_role.arn
   }

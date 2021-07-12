@@ -336,6 +336,11 @@ func resourceAwsIotTopicRule() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"canned_acl": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(iot.CannedAccessControlList_Values(), false),
+						},
 						"key": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -923,6 +928,11 @@ func resourceAwsIotTopicRule() *schema.Resource {
 									"bucket_name": {
 										Type:     schema.TypeString,
 										Required: true,
+									},
+									"canned_acl": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(iot.CannedAccessControlList_Values(), false),
 									},
 									"key": {
 										Type:     schema.TypeString,
@@ -1588,6 +1598,10 @@ func expandIotS3Action(tfList []interface{}) *iot.S3Action {
 
 	if v, ok := tfMap["bucket_name"].(string); ok && v != "" {
 		apiObject.BucketName = aws.String(v)
+	}
+
+	if v, ok := tfMap["canned_acl"].(string); ok && v != "" {
+		apiObject.CannedAcl = aws.String(v)
 	}
 
 	if v, ok := tfMap["key"].(string); ok && v != "" {
@@ -2518,6 +2532,10 @@ func flattenIotS3Action(apiObject *iot.S3Action) []interface{} {
 
 	if v := apiObject.BucketName; v != nil {
 		tfMap["bucket_name"] = aws.StringValue(v)
+	}
+
+	if v := apiObject.CannedAcl; v != nil {
+		tfMap["canned_acl"] = aws.StringValue(v)
 	}
 
 	if v := apiObject.Key; v != nil {
