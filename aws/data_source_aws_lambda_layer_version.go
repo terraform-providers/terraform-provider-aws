@@ -19,6 +19,11 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"ignore_non_existing": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"version": {
 				Type:          schema.TypeInt,
 				Optional:      true,
@@ -101,6 +106,11 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 		}
 
 		if len(listOutput.LayerVersions) == 0 {
+			if d.Get("ignore_non_existing").(bool) {
+				log.Printf("[DEBUG] Looking for lambda layer %s skip it ignoring that it doesn't exist", layerName)
+				d.SetId("")
+				return nil
+			}
 			return fmt.Errorf("error listing Lambda Layer Versions (%s): empty response", layerName)
 		}
 
