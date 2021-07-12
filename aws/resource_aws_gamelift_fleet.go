@@ -70,6 +70,19 @@ func resourceAwsGameliftFleet() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
+			"location_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 100,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"location": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"ec2_inbound_permission": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -217,6 +230,9 @@ func resourceAwsGameliftFleetCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	if v, ok := d.GetOk("fleet_type"); ok {
 		input.FleetType = aws.String(v.(string))
+	}
+	if v, ok := d.GetOk("location_configuration"); ok {
+		input.Locations = expandGameliftLocations(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("ec2_inbound_permission"); ok {
 		input.EC2InboundPermissions = expandGameliftIpPermissions(v.([]interface{}))
@@ -500,6 +516,25 @@ func waitForGameliftFleetToBeDeleted(conn *gamelift.GameLift, id string, timeout
 		}
 	}
 	return err
+}
+
+func expandGameliftLocations(cfgs []interface{}) []*gamelift.LocationConfiguration {
+	if len(cfgs) < 1 {
+		return []*gamelift.LocationConfiguration{}
+	}
+
+	locs := make([]*gamelift.LocationConfiguration, len(cfgs))
+	for i, rawCfg := range cfgs {
+		cfg := rawCfg.(map[string]interface{})
+		locs[i] = expandGameliftLocation(cfg)
+	}
+	return locs
+}
+
+func expandGameliftLocation(cfg map[string]interface{}) *gamelift.LocationConfiguration {
+	return &gamelift.LocationConfiguration{
+		Location: aws.String(cfg["location"].(string)),
+	}
 }
 
 func expandGameliftIpPermissions(cfgs []interface{}) []*gamelift.IpPermission {
