@@ -60,4 +60,22 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-DynamoDB table items cannot be imported.
+DynamoDB table items can be imported using the `table_name` along with the values of the hash key and optional range key, e.g.,
+
+```
+# Table with hash key only: table_name|hash_key_value
+$ terraform import aws_dynamodb_table_item.game 'GameScores|Team1'
+
+# Table with hash and range keys: table_name|hash_key_value|range_key_value
+$ terraform import aws_dynamodb_table_item.player 'PlayerScores|Team1|Player1'
+```
+
+JSON array syntax is also supported in the event the data contains `|`:
+
+```
+$ terraform import aws_dynamodb_table_item.game '["GameScores", "Team1"]'
+
+$ terraform import aws_dynamodb_table_item.player '["PlayerScores", "Team1", "Player1"]'
+```
+
+Encode any binary values as base64.
