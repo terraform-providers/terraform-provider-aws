@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_route53_record : Fix unable to import bare domains
+```

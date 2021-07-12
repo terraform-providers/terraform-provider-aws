@@ -278,6 +278,35 @@ func TestAccAWSRoute53Record_basic_trailingPeriodAndZoneID(t *testing.T) {
 	})
 }
 
+// TestAccAWSRoute53Record_basic_bareDomain ensures an aws_route_53_record
+// with no/empty subdomain can be imported correctly
+// https://github.com/hashicorp/terraform-provider-aws/issues/4792
+func TestAccAWSRoute53Record_basic_bareDomain(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+	resourceName := "aws_route53_record.default"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, route53.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoute53RecordConfig_bareDomain,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53RecordExists(resourceName, &record1),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"allow_overwrite", "weight"},
+			},
+		},
+	})
+}
+
 func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 	var record1 route53.ResourceRecordSet
 	resourceName := "aws_route53_record.default"
@@ -1286,6 +1315,20 @@ resource "aws_route53_zone" "main" {
 resource "aws_route53_record" "default" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "www.DOmaiN.test."
+  type    = "A"
+  ttl     = "30"
+  records = ["127.0.0.1", "127.0.0.27"]
+}
+`
+
+const testAccRoute53RecordConfig_bareDomain = `
+resource "aws_route53_zone" "main" {
+  name = "notexample.com"
+}
+
+resource "aws_route53_record" "default" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = ""
   type    = "A"
   ttl     = "30"
   records = ["127.0.0.1", "127.0.0.27"]

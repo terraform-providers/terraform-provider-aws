@@ -174,11 +174,17 @@ In addition to all arguments above, the following attributes are exported:
 Route53 Records can be imported using ID of the record, which is the zone identifier, record name, and record type, separated by underscores (`_`). e.g.
 
 ```
-$ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR_dev.example.com_NS
+$ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR_dev_NS
 ```
 
 If the record also contains a delegated set identifier, it can be appended:
 
 ```
-$ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR_dev.example.com_NS_dev
+$ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR_dev_NS_dev
+```
+
+If the record is a bare domain the record name can be ommited:
+
+```
+$ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR__NS
 ```
