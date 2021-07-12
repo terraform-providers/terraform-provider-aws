@@ -2017,11 +2017,15 @@ func checkYamlString(yamlString interface{}) (string, error) {
 }
 
 func normalizeJsonOrYamlString(templateString interface{}) (string, error) {
+	var cleanedTemplateString interface{} = strings.ReplaceAll(templateString.(string), "\r", "")
 	if looksLikeJsonString(templateString) {
 		return structure.NormalizeJsonString(templateString.(string))
 	}
 
-	return checkYamlString(templateString)
+	if looksLikeJsonString(cleanedTemplateString) {
+		return structure.NormalizeJsonString(cleanedTemplateString)
+	}
+	return checkYamlString(cleanedTemplateString)
 }
 
 func buildApiGatewayInvokeURL(client *AWSClient, restApiId, stageName string) string {
