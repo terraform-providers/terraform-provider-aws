@@ -266,6 +266,7 @@ func Provider() *schema.Provider {
 			"aws_ec2_transit_gateway_route_table":            dataSourceAwsEc2TransitGatewayRouteTable(),
 			"aws_ec2_transit_gateway_route_tables":           dataSourceAwsEc2TransitGatewayRouteTables(),
 			"aws_ec2_transit_gateway_vpc_attachment":         dataSourceAwsEc2TransitGatewayVpcAttachment(),
+			"aws_ec2_transit_gateway_vpc_attachments":        dataSourceAwsEc2TransitGatewayVpcAttachments(),
 			"aws_ec2_transit_gateway_vpn_attachment":         dataSourceAwsEc2TransitGatewayVpnAttachment(),
 			"aws_ecr_authorization_token":                    dataSourceAwsEcrAuthorizationToken(),
 			"aws_ecr_image":                                  dataSourceAwsEcrImage(),
