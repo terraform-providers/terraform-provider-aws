@@ -764,6 +764,7 @@ func Provider() *schema.Provider {
 			"aws_gamelift_alias":                                      resourceAwsGameliftAlias(),
 			"aws_gamelift_build":                                      resourceAwsGameliftBuild(),
 			"aws_gamelift_fleet":                                      resourceAwsGameliftFleet(),
+			"aws_gamelift_game_server_group":                          resourceAwsGameliftGameServerGroup(),
 			"aws_gamelift_game_session_queue":                         resourceAwsGameliftGameSessionQueue(),
 			"aws_glacier_vault":                                       resourceAwsGlacierVault(),
 			"aws_glacier_vault_lock":                                  resourceAwsGlacierVaultLock(),
