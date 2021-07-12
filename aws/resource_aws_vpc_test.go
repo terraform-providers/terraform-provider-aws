@@ -752,6 +752,202 @@ func TestAccAWSVpc_tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSVpc_propagateTagsFalse(t *testing.T) {
+	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSVPCConfigTags1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+					testAccCheckVpcNetACLTagged(resourceName, 0, "", ""),
+					testAccCheckVpcSecGrpTagged(resourceName, 0, "", ""),
+					testAccCheckVpcRtTblTagged(resourceName, 0, "", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSVpc_propagateTagsTrue(t *testing.T) {
+	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, ec2.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSVPCConfigTags1Propagate("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+					testAccCheckVpcNetACLTagged(resourceName, 1, "key1", "value1"),
+					testAccCheckVpcSecGrpTagged(resourceName, 1, "key1", "value1"),
+					testAccCheckVpcRtTblTagged(resourceName, 1, "key1", "value1"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckVpcNetACLTagged(n string, tags_nb int, tag_key string, tag_value string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No VPC ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+		filter1 := &ec2.Filter{
+			Name:   aws.String("default"),
+			Values: []*string{aws.String("true")},
+		}
+		filter2 := &ec2.Filter{
+			Name:   aws.String("vpc-id"),
+			Values: []*string{aws.String(rs.Primary.ID)},
+		}
+		describeNetworkACLOpts := &ec2.DescribeNetworkAclsInput{
+			Filters: []*ec2.Filter{filter1, filter2},
+		}
+		networkAclResp, err := conn.DescribeNetworkAcls(describeNetworkACLOpts)
+
+		if err != nil {
+			return err
+		}
+		if v := networkAclResp.NetworkAcls; len(v) >= 0 {
+			if len(v) != 1 {
+				return fmt.Errorf("VPC default Network ACL not found [%d]", len(v))
+			}
+			if len(v[0].Tags) != tags_nb {
+				return fmt.Errorf("VPC default Network ACL has bad number of tags [%d, expected %d]", len(v[0].Tags), tags_nb)
+			}
+			if tags_nb > 0 {
+				if *v[0].Tags[0].Key != tag_key {
+					return fmt.Errorf("VPC default Network ACL bad tag key [%s, expected %s]", *v[0].Tags[0].Key, tag_key)
+				}
+				if *v[0].Tags[0].Value != tag_value {
+					return fmt.Errorf("VPC default Network ACL bad tag value [%s, expected %s]", *v[0].Tags[0].Value, tag_value)
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func testAccCheckVpcSecGrpTagged(n string, tags_nb int, tag_key string, tag_value string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No VPC ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+		filter1 := &ec2.Filter{
+			Name:   aws.String("group-name"),
+			Values: []*string{aws.String("default")},
+		}
+		filter2 := &ec2.Filter{
+			Name:   aws.String("vpc-id"),
+			Values: []*string{aws.String(rs.Primary.ID)},
+		}
+		describeSgOpts := &ec2.DescribeSecurityGroupsInput{
+			Filters: []*ec2.Filter{filter1, filter2},
+		}
+		securityGroupResp, err := conn.DescribeSecurityGroups(describeSgOpts)
+		if err != nil {
+			return err
+		}
+		if v := securityGroupResp.SecurityGroups; len(v) >= 0 {
+			if len(v) != 1 {
+				return fmt.Errorf("VPC default Security Group not found [%d]", len(v))
+			}
+			if len(v[0].Tags) != tags_nb {
+				return fmt.Errorf("VPC default Security Group has bad number of tags [%d, %d expected]", len(v[0].Tags), tags_nb)
+			}
+			if tags_nb > 0 {
+				if *v[0].Tags[0].Key != tag_key {
+					return fmt.Errorf("VPC default Security Group bad tag key [%s, expected %s]", *v[0].Tags[0].Key, tag_key)
+				}
+				if *v[0].Tags[0].Value != tag_value {
+					return fmt.Errorf("VPC default Security Group bad tag value [%s, expected %s]", *v[0].Tags[0].Value, tag_value)
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func testAccCheckVpcRtTblTagged(n string, tags_nb int, tag_key string, tag_value string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No VPC ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+		filter1 := &ec2.Filter{
+			Name:   aws.String("association.main"),
+			Values: []*string{aws.String("true")},
+		}
+		filter2 := &ec2.Filter{
+			Name:   aws.String("vpc-id"),
+			Values: []*string{aws.String(rs.Primary.ID)},
+		}
+
+		describeRtOpts := &ec2.DescribeRouteTablesInput{
+			Filters: []*ec2.Filter{filter1, filter2},
+		}
+
+		routeTableResp, err := conn.DescribeRouteTables(describeRtOpts)
+		if err != nil {
+			return err
+		}
+		if v := routeTableResp.RouteTables; len(v) >= 0 {
+			if len(v) != 1 {
+				return fmt.Errorf("VPC default Route Table not found [%d]", len(v))
+			}
+			if len(v[0].Tags) != tags_nb {
+				return fmt.Errorf("VPC default Route Table has bad number of tags [%d, %d expected]", len(v[0].Tags), tags_nb)
+			}
+			if tags_nb > 0 {
+				if *v[0].Tags[0].Key != tag_key {
+					return fmt.Errorf("VPC default Route Table bad tag key [%s, expected %s]", *v[0].Tags[0].Key, tag_key)
+				}
+				if *v[0].Tags[0].Value != tag_value {
+					return fmt.Errorf("VPC default Route Table bad tag value [%s, expected %s]", *v[0].Tags[0].Value, tag_value)
+				}
+			}
+		}
+		return nil
+	}
+}
+
 func TestAccAWSVpc_update(t *testing.T) {
 	var vpc ec2.Vpc
 	resourceName := "aws_vpc.test"
@@ -1037,6 +1233,19 @@ func testAccAWSVPCConfigTags1(tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
+
+  tags = {
+    %[1]q = %[2]q
+  }
+}
+`, tagKey1, tagValue1)
+}
+
+func testAccAWSVPCConfigTags1Propagate(tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block     = "10.1.0.0/16"
+  propagate_tags = true
 
   tags = {
     %[1]q = %[2]q
