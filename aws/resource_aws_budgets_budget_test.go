@@ -196,10 +196,15 @@ func TestAccAWSBudgetsBudget_notification(t *testing.T) {
 		testAccAWSBudgetsBudgetNotificationConfigDefaults(),
 	}
 
+	domain := testAccRandomDomainName()
+	address1 := testAccRandomEmailAddress(domain)
+	address2 := testAccRandomEmailAddress(domain)
+	address3 := testAccRandomEmailAddress(domain)
+
 	noEmails := []string{}
-	oneEmail := []string{"test@example.com"}
-	oneOtherEmail := []string{"bar@example.com"}
-	twoEmails := []string{"bar@example.com", "baz@example.com"}
+	oneEmail := []string{address1}
+	oneOtherEmail := []string{address2}
+	twoEmails := []string{address2, address3}
 	noTopics := []string{}
 	oneTopic := []string{"${aws_sns_topic.budget_notifications.arn}"}
 
@@ -665,8 +670,17 @@ resource "aws_budgets_budget" "test" {
   time_unit         = "%s"
     %s
 }
-`, aws.StringValue(budgetConfig.BudgetName), aws.StringValue(budgetConfig.BudgetType), aws.StringValue(budgetConfig.BudgetLimit.Amount), aws.StringValue(budgetConfig.BudgetLimit.Unit), aws.BoolValue(budgetConfig.CostTypes.IncludeTax), aws.BoolValue(budgetConfig.CostTypes.IncludeSubscription), aws.BoolValue(budgetConfig.CostTypes.UseBlended), timePeriodStart, timePeriodEnd, aws.StringValue(budgetConfig.TimeUnit), strings.Join(notificationStrings, "\n"))
-
+`, aws.StringValue(budgetConfig.BudgetName),
+		aws.StringValue(budgetConfig.BudgetType),
+		aws.StringValue(budgetConfig.BudgetLimit.Amount),
+		aws.StringValue(budgetConfig.BudgetLimit.Unit),
+		aws.BoolValue(budgetConfig.CostTypes.IncludeTax),
+		aws.BoolValue(budgetConfig.CostTypes.IncludeSubscription),
+		aws.BoolValue(budgetConfig.CostTypes.UseBlended),
+		timePeriodStart,
+		timePeriodEnd,
+		aws.StringValue(budgetConfig.TimeUnit),
+		strings.Join(notificationStrings, "\n"))
 }
 
 func testAccAWSBudgetsBudgetConfigNotificationSnippet(notification budgets.Notification, emails []string, topics []string) string {
@@ -689,5 +703,10 @@ notification {
   subscriber_sns_topic_arns  = [%s]
   comparison_operator        = "%s"
 }
-`, aws.Float64Value(notification.Threshold), aws.StringValue(notification.ThresholdType), aws.StringValue(notification.NotificationType), strings.Join(quotedEMails, ","), strings.Join(quotedTopics, ","), aws.StringValue(notification.ComparisonOperator))
+`, aws.Float64Value(notification.Threshold),
+		aws.StringValue(notification.ThresholdType),
+		aws.StringValue(notification.NotificationType),
+		strings.Join(quotedEMails, ","),
+		strings.Join(quotedTopics, ","),
+		aws.StringValue(notification.ComparisonOperator))
 }

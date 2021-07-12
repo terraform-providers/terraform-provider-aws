@@ -92,7 +92,7 @@ func testAccCheckAWSTransferSshKeyDestroy(s *terraform.State) error {
 		}
 		serverID, userName, sshKeyID, err := decodeTransferSshKeyId(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("error parsing Transfer SSH Public Key ID: %s", err)
+			return fmt.Errorf("error parsing Transfer SSH Public Key ID: %w", err)
 		}
 
 		describe, err := conn.DescribeUser(&transfer.DescribeUserInput{

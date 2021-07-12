@@ -205,5 +205,5 @@ resource "aws_quicksight_user" %[1]q {
 }
 
 func testAccAWSQuickSightUserConfig(rName string) string {
-	return testAccAWSQuickSightUserConfigWithEmail(rName, "fakeemail@example.com")
+	return testAccAWSQuickSightUserConfigWithEmail(rName, testAccDefaultEmailAddress)
 }

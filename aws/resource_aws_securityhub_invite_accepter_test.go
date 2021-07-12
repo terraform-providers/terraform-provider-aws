@@ -26,13 +26,13 @@ func testAccAWSSecurityHubInviteAccepter_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckAWSSecurityHubInviteAccepterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSecurityHubInviteAccepterConfig_basic(),
+				Config: testAccAWSSecurityHubInviteAccepterConfig_basic(testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityHubInviteAccepterExists(resourceName),
 				),
 			},
 			{
-				Config:            testAccAWSSecurityHubInviteAccepterConfig_basic(),
+				Config:            testAccAWSSecurityHubInviteAccepterConfig_basic(testAccDefaultEmailAddress),
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -93,9 +93,10 @@ func testAccCheckAWSSecurityHubInviteAccepterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAWSSecurityHubInviteAccepterConfig_basic() string {
+func testAccAWSSecurityHubInviteAccepterConfig_basic(email string) string {
 	return composeConfig(
-		testAccAlternateAccountProviderConfig(), `
+		testAccAlternateAccountProviderConfig(),
+		fmt.Sprintf(`
 resource "aws_securityhub_invite_accepter" "test" {
   master_id = aws_securityhub_member.source.master_id
 
@@ -106,7 +107,7 @@ resource "aws_securityhub_member" "source" {
   provider = awsalternate
 
   account_id = data.aws_caller_identity.test.account_id
-  email      = "example@example.com"
+  email      = %[1]q
   invite     = true
 
   depends_on = [aws_securityhub_account.source]
@@ -119,5 +120,5 @@ resource "aws_securityhub_account" "source" {
 }
 
 data "aws_caller_identity" "test" {}
-`)
+`, email))
 }

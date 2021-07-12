@@ -23,7 +23,7 @@ func testAccAWSSecurityHubMember_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSecurityHubMemberDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSecurityHubMemberConfig_basic("111111111111", "example@example.com"),
+				Config: testAccAWSSecurityHubMemberConfig_basic("111111111111", testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityHubMemberExists(resourceName, &member),
 				),
@@ -48,7 +48,7 @@ func testAccAWSSecurityHubMember_invite(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSecurityHubMemberDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSecurityHubMemberConfig_invite("111111111111", "example@example.com", true),
+				Config: testAccAWSSecurityHubMemberConfig_invite("111111111111", testAccDefaultEmailAddress, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityHubMemberExists(resourceName, &member),
 					resource.TestCheckResourceAttr(resourceName, "member_status", "Invited"),
@@ -131,8 +131,8 @@ resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_member" "example" {
   depends_on = [aws_securityhub_account.example]
-  account_id = "%s"
-  email      = "%s"
+  account_id = %[1]q
+  email      = %[2]q
 }
 `, accountId, email)
 }
@@ -143,9 +143,9 @@ resource "aws_securityhub_account" "example" {}
 
 resource "aws_securityhub_member" "example" {
   depends_on = [aws_securityhub_account.example]
-  account_id = "%s"
-  email      = "%s"
-  invite     = %t
+  account_id = %[1]q
+  email      = %[2]q
+  invite     = %[3]t
 }
 `, accountId, email, invite)
 }

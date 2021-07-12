@@ -432,7 +432,7 @@ func TestAccAWSBeanstalkEnv_settingWithJsonValue(t *testing.T) {
 		CheckDestroy: testAccCheckBeanstalkEnvDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBeanstalkEnvSettingJsonValue(rName, publicKey),
+				Config: testAccBeanstalkEnvSettingJsonValue(rName, publicKey, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBeanstalkEnvExists(resourceName, &app),
 				),
@@ -1545,7 +1545,7 @@ resource "aws_elastic_beanstalk_environment" "test" {
 `, rName)
 }
 
-func testAccBeanstalkEnvSettingJsonValue(rName, publicKey string) string {
+func testAccBeanstalkEnvSettingJsonValue(rName, publicKey, email string) string {
 	return testAccBeanstalkEnvConfigBase(rName) + fmt.Sprintf(`
 resource "aws_sqs_queue" "test" {
   name = %[1]q
@@ -1607,7 +1607,7 @@ resource "aws_elastic_beanstalk_environment" "test" {
   setting {
     namespace = "aws:elasticbeanstalk:sns:topics"
     name      = "Notification Endpoint"
-    value     = "example@example.com"
+    value     = %[3]q
   }
 
   setting {
@@ -1727,5 +1727,5 @@ resource "aws_elastic_beanstalk_environment" "test" {
 EOF
   }
 }
-`, rName, publicKey)
+`, rName, publicKey, email)
 }

@@ -26,7 +26,6 @@ func testAccAwsMacie2Member_basic(t *testing.T) {
 	var providers []*schema.Provider
 	var macie2Output macie2.GetMemberOutput
 	resourceName := "aws_macie2_member.member"
-	email := "required@example.com"
 	dataSourceAlternate := "data.aws_caller_identity.member"
 
 	resource.Test(t, resource.TestCase{
@@ -39,7 +38,7 @@ func testAccAwsMacie2Member_basic(t *testing.T) {
 		ErrorCheck:        testAccErrorCheck(t, macie2.EndpointsID),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsMacieMemberConfigBasic(email),
+				Config: testAccAwsMacieMemberConfigBasic(testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMacie2MemberExists(resourceName, &macie2Output),
 					resource.TestCheckResourceAttr(resourceName, "relationship_status", macie2.RelationshipStatusCreated),
@@ -52,7 +51,7 @@ func testAccAwsMacie2Member_basic(t *testing.T) {
 				),
 			},
 			{
-				Config:            testAccAwsMacieMemberConfigBasic(email),
+				Config:            testAccAwsMacieMemberConfigBasic(testAccDefaultEmailAddress),
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -65,7 +64,6 @@ func testAccAwsMacie2Member_disappears(t *testing.T) {
 	var providers []*schema.Provider
 	var macie2Output macie2.GetMemberOutput
 	resourceName := "aws_macie2_member.member"
-	email := "required@example.com"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -77,7 +75,7 @@ func testAccAwsMacie2Member_disappears(t *testing.T) {
 		ErrorCheck:        testAccErrorCheck(t, macie2.EndpointsID),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsMacieMemberConfigBasic(email),
+				Config: testAccAwsMacieMemberConfigBasic(testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMacie2MemberExists(resourceName, &macie2Output),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsMacie2Member(), resourceName),
@@ -257,7 +255,6 @@ func testAccAwsMacie2Member_withTags(t *testing.T) {
 	var providers []*schema.Provider
 	var macie2Output macie2.GetMemberOutput
 	resourceName := "aws_macie2_member.member"
-	email := "required@example.com"
 	dataSourceAlternate := "data.aws_caller_identity.member"
 
 	resource.Test(t, resource.TestCase{
@@ -270,7 +267,7 @@ func testAccAwsMacie2Member_withTags(t *testing.T) {
 		ErrorCheck:        testAccErrorCheck(t, macie2.EndpointsID),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsMacieMemberConfigWithTags(email),
+				Config: testAccAwsMacieMemberConfigWithTags(testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMacie2MemberExists(resourceName, &macie2Output),
 					testAccCheckResourceAttrRfc3339(resourceName, "invited_at"),

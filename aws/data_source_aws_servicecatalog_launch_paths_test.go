@@ -13,7 +13,9 @@ func TestAccAWSServiceCatalogLaunchPathsDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_servicecatalog_launch_paths.test"
 	resourceNameProduct := "aws_servicecatalog_product.test"
 	resourceNamePortfolio := "aws_servicecatalog_portfolio.test"
+
 	rName := acctest.RandomWithPrefix("tf-acc-test")
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:   func() { testAccPreCheck(t) },
@@ -21,7 +23,7 @@ func TestAccAWSServiceCatalogLaunchPathsDataSource_basic(t *testing.T) {
 		Providers:  testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogLaunchPathsDataSourceConfig_basic(rName),
+				Config: testAccAWSServiceCatalogLaunchPathsDataSourceConfig_basic(rName, domain, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "accept_language", "en"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "product_id", resourceNameProduct, "id"),
@@ -34,7 +36,7 @@ func TestAccAWSServiceCatalogLaunchPathsDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccAWSServiceCatalogLaunchPathsDataSourceConfig_base(rName string) string {
+func testAccAWSServiceCatalogLaunchPathsDataSourceConfig_base(rName, domain, email string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudformation_stack" "test" {
   name = %[1]q
@@ -69,8 +71,8 @@ resource "aws_servicecatalog_product" "test" {
   owner               = "ägare"
   type                = "CLOUD_FORMATION_TEMPLATE"
   support_description = "supportbeskrivning"
-  support_email       = "support@example.com"
-  support_url         = "http://example.com"
+  support_email       = %[3]q
+  support_url         = %[2]q
 
   provisioning_artifact_parameters {
     description          = "artefaktbeskrivning"
@@ -118,11 +120,11 @@ resource "aws_servicecatalog_principal_portfolio_association" "test" {
   portfolio_id  = aws_servicecatalog_portfolio.test.id
   principal_arn = data.aws_caller_identity.current.arn
 }
-`, rName)
+`, rName, domain, email)
 }
 
-func testAccAWSServiceCatalogLaunchPathsDataSourceConfig_basic(rName string) string {
-	return composeConfig(testAccAWSServiceCatalogLaunchPathsDataSourceConfig_base(rName), `
+func testAccAWSServiceCatalogLaunchPathsDataSourceConfig_basic(rName, domain, email string) string {
+	return composeConfig(testAccAWSServiceCatalogLaunchPathsDataSourceConfig_base(rName, domain, email), `
 data "aws_servicecatalog_launch_paths" "test" {
   product_id = aws_servicecatalog_product_portfolio_association.test.product_id
 

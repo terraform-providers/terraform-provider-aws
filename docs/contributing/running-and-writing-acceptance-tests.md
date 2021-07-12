@@ -44,6 +44,7 @@
         - [Hardcoded Region](#hardcoded-region)
         - [Hardcoded Spot Price](#hardcoded-spot-price)
         - [Hardcoded SSH Keys](#hardcoded-ssh-keys)
+        - [Hardcoded Email Addresses](#hardcoded-email-addresses)
 
 Terraform includes an acceptance test harness that does most of the repetitive
 work involved in testing a resource. For additional information about testing
@@ -1570,6 +1571,7 @@ func TestAccAWSKeyPair_basic(t *testing.T) {
       },
     },
   })
+}
 
 func testAccAWSKeyPairConfig(rName, publicKey string) string {
 	return fmt.Sprintf(`
@@ -1578,5 +1580,66 @@ resource "aws_key_pair" "test" {
   public_key = %[2]q
 }
 `, rName, publicKey)
+}
+```
+
+#### Hardcoded Email Addresses
+
+- [ ] __Uses either testAccDefaultEmailAddress Constant or testAccRandomEmailAddress() Function__: Any hardcoded email addresses should replaced with either the constant `testAccDefaultEmailAddress` or the function `testAccRandomEmailAddress()`.
+
+Using `testAccDefaultEmailAddress` is preferred when using a single email address in an acceptance test.
+
+Here's an example using `testAccDefaultEmailAddress`
+
+```go
+func TestAccAWSSNSTopicSubscription_email(t *testing.T) {
+	...
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		...
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSNSTopicSubscriptionEmailConfig(rName, testAccDefaultEmailAddress),
+				Check: resource.ComposeTestCheckFunc(
+					...
+					resource.TestCheckResourceAttr(resourceName, "endpoint", testAccDefaultEmailAddress),
+				),
+			},
+		},
+	})
+}
+```
+
+Here's an example using `testAccRandomEmailAddress()`
+
+```go
+func TestAccAWSPinpointEmailChannel_basic(t *testing.T) {
+	...
+
+	domain := testAccRandomDomainName()
+	address1 := testAccRandomEmailAddress(domain)
+	address2 := testAccRandomEmailAddress(domain)
+
+	resource.ParallelTest(t, resource.TestCase{
+		...
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSPinpointEmailChannelConfig_FromAddress(domain, address1),
+				Check: resource.ComposeTestCheckFunc(
+					...
+					resource.TestCheckResourceAttr(resourceName, "from_address", address1),
+				),
+			},
+			{
+				Config: testAccAWSPinpointEmailChannelConfig_FromAddress(domain, address2),
+				Check: resource.ComposeTestCheckFunc(
+					...
+					resource.TestCheckResourceAttr(resourceName, "from_address", address2),
+				),
+			},
+		},
+	})
 }
 ```

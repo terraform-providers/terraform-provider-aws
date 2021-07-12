@@ -389,13 +389,13 @@ func TestAccAWSSNSTopicSubscription_email(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSNSTopicSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSNSTopicSubscriptionEmailConfig(rName),
+				Config: testAccAWSSNSTopicSubscriptionEmailConfig(rName, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSNSTopicSubscriptionExists(resourceName, attributes),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", sns.ServiceName, regexp.MustCompile(fmt.Sprintf("%s:.+", rName))),
 					resource.TestCheckResourceAttr(resourceName, "confirmation_was_authenticated", "false"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_policy", ""),
-					resource.TestCheckResourceAttr(resourceName, "endpoint", "invalid_email@example.com"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint", testAccDefaultEmailAddress),
 					resource.TestCheckResourceAttr(resourceName, "filter_policy", ""),
 					resource.TestCheckResourceAttr(resourceName, "pending_confirmation", "true"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "email"),
@@ -603,8 +603,8 @@ func obfuscateEndpoint(t *testing.T, endpoint string) string {
 func TestObfuscateEndpointPassword(t *testing.T) {
 	checks := map[string]string{
 		"https://example.com/myroute":                   "https://example.com/myroute",
-		"https://username@example.com/myroute":          "https://username@example.com/myroute",
-		"https://username:password@example.com/myroute": "https://username:****@example.com/myroute",
+		"https://username@example.com/myroute":          "https://username@example.com/myroute",      // nosemgrep: email-address
+		"https://username:password@example.com/myroute": "https://username:****@example.com/myroute", // nosemgrep: email-address
 	}
 	for endpoint, expected := range checks {
 		out := obfuscateEndpoint(t, endpoint)
@@ -1040,7 +1040,7 @@ resource "aws_sns_topic_subscription" "test" {
 `, rName)
 }
 
-func testAccAWSSNSTopicSubscriptionEmailConfig(rName string) string {
+func testAccAWSSNSTopicSubscriptionEmailConfig(rName, email string) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
   name = %[1]q
@@ -1049,9 +1049,9 @@ resource "aws_sns_topic" "test" {
 resource "aws_sns_topic_subscription" "test" {
   topic_arn = aws_sns_topic.test.arn
   protocol  = "email"
-  endpoint  = "invalid_email@example.com"
+  endpoint  = %[2]q
 }
-`, rName)
+`, rName, email)
 }
 
 func testAccAWSSNSTopicSubscriptionConfig_firehose(rName string) string {

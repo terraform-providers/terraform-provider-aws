@@ -29,7 +29,7 @@ func TestAccAWSSESReceiptRule_basic(t *testing.T) {
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSESReceiptRuleBasicConfig(rName),
+				Config: testAccAWSSESReceiptRuleBasicConfig(rName, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSESReceiptRuleExists(resourceName, &rule),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
@@ -43,7 +43,7 @@ func TestAccAWSSESReceiptRule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "stop_action.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "workmail_action.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "recipients.#", "1"),
-					resource.TestCheckTypeSetElemAttr(resourceName, "recipients.*", "test@example.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "recipients.*", testAccDefaultEmailAddress),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "scan_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "tls_policy", "Require"),
@@ -335,7 +335,7 @@ func TestAccAWSSESReceiptRule_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSESReceiptRuleBasicConfig(rName),
+				Config: testAccAWSSESReceiptRuleBasicConfig(rName, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSESReceiptRuleExists(resourceName, &rule),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesReceiptRuleSet(), ruleSetResourceName),
@@ -343,7 +343,7 @@ func TestAccAWSSESReceiptRule_disappears(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config: testAccAWSSESReceiptRuleBasicConfig(rName),
+				Config: testAccAWSSESReceiptRuleBasicConfig(rName, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSESReceiptRuleExists(resourceName, &rule),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesReceiptRule(), resourceName),
@@ -447,7 +447,7 @@ func testAccPreCheckSESReceiptRule(t *testing.T) {
 	}
 }
 
-func testAccAWSSESReceiptRuleBasicConfig(rName string) string {
+func testAccAWSSESReceiptRuleBasicConfig(rName, email string) string {
 	return fmt.Sprintf(`
 resource "aws_ses_receipt_rule_set" "test" {
   rule_set_name = %[1]q
@@ -456,12 +456,12 @@ resource "aws_ses_receipt_rule_set" "test" {
 resource "aws_ses_receipt_rule" "test" {
   name          = %[1]q
   rule_set_name = aws_ses_receipt_rule_set.test.rule_set_name
-  recipients    = ["test@example.com"]
+  recipients    = [%[2]q]
   enabled       = true
   scan_enabled  = true
   tls_policy    = "Require"
 }
-`, rName)
+`, rName, email)
 }
 
 func testAccAWSSESReceiptRuleS3ActionConfig(rName string) string {
@@ -479,7 +479,7 @@ resource "aws_s3_bucket" "test" {
 resource "aws_ses_receipt_rule" "test" {
   name          = %[1]q
   rule_set_name = aws_ses_receipt_rule_set.test.rule_set_name
-  recipients    = ["test@example.com"]
+  recipients    = [%[2]q]
   enabled       = true
   scan_enabled  = true
   tls_policy    = "Require"
@@ -489,7 +489,7 @@ resource "aws_ses_receipt_rule" "test" {
     position    = 1
   }
 }
-`, rName)
+`, rName, testAccDefaultEmailAddress)
 }
 
 func testAccAWSSESReceiptRuleSNSActionConfig(rName string) string {
@@ -505,7 +505,7 @@ resource "aws_sns_topic" "test" {
 resource "aws_ses_receipt_rule" "test" {
   name          = %[1]q
   rule_set_name = aws_ses_receipt_rule_set.test.rule_set_name
-  recipients    = ["test@example.com"]
+  recipients    = [%[2]q]
   enabled       = true
   scan_enabled  = true
   tls_policy    = "Require"
@@ -515,7 +515,7 @@ resource "aws_ses_receipt_rule" "test" {
     position  = 1
   }
 }
-`, rName)
+`, rName, testAccDefaultEmailAddress)
 }
 
 func testAccAWSSESReceiptRuleSNSActionEncodingConfig(rName string) string {
@@ -531,7 +531,7 @@ resource "aws_sns_topic" "test" {
 resource "aws_ses_receipt_rule" "test" {
   name          = %[1]q
   rule_set_name = aws_ses_receipt_rule_set.test.rule_set_name
-  recipients    = ["test@example.com"]
+  recipients    = [%[2]q]
   enabled       = true
   scan_enabled  = true
   tls_policy    = "Require"
@@ -542,7 +542,7 @@ resource "aws_ses_receipt_rule" "test" {
     position  = 1
   }
 }
-`, rName)
+`, rName, testAccDefaultEmailAddress)
 }
 
 func testAccAWSSESReceiptRuleLambdaActionConfig(rName string) string {
@@ -587,7 +587,7 @@ resource "aws_lambda_permission" "test" {
 resource "aws_ses_receipt_rule" "test" {
   name          = %[1]q
   rule_set_name = aws_ses_receipt_rule_set.test.rule_set_name
-  recipients    = ["test@example.com"]
+  recipients    = [%[2]q]
   enabled       = true
   scan_enabled  = true
   tls_policy    = "Require"
@@ -599,7 +599,7 @@ resource "aws_ses_receipt_rule" "test" {
 
   depends_on = [aws_lambda_permission.test]
 }
-`, rName)
+`, rName, testAccDefaultEmailAddress)
 }
 
 func testAccAWSSESReceiptRuleStopActionConfig(rName string) string {
@@ -615,7 +615,7 @@ resource "aws_sns_topic" "test" {
 resource "aws_ses_receipt_rule" "test" {
   name          = %[1]q
   rule_set_name = aws_ses_receipt_rule_set.test.rule_set_name
-  recipients    = ["test@example.com"]
+  recipients    = [%[2]q]
   enabled       = true
   scan_enabled  = true
   tls_policy    = "Require"
@@ -626,7 +626,7 @@ resource "aws_ses_receipt_rule" "test" {
     position  = 1
   }
 }
-`, rName)
+`, rName, testAccDefaultEmailAddress)
 }
 
 func testAccAWSSESReceiptRuleOrderConfig(rName string) string {

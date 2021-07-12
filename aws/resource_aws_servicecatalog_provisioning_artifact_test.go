@@ -109,6 +109,8 @@ func TestAccAWSServiceCatalogProvisioningArtifact_basic(t *testing.T) {
 	resourceName := "aws_servicecatalog_provisioning_artifact.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, servicecatalog.EndpointsID),
@@ -116,7 +118,7 @@ func TestAccAWSServiceCatalogProvisioningArtifact_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsServiceCatalogProvisioningArtifactDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName),
+				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceCatalogProvisioningArtifactExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "accept_language", tfservicecatalog.AcceptLanguageEnglish),
@@ -149,6 +151,8 @@ func TestAccAWSServiceCatalogProvisioningArtifact_disappears(t *testing.T) {
 	resourceName := "aws_servicecatalog_provisioning_artifact.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, servicecatalog.EndpointsID),
@@ -156,7 +160,7 @@ func TestAccAWSServiceCatalogProvisioningArtifact_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAwsServiceCatalogProvisioningArtifactDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName),
+				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceCatalogProvisioningArtifactExists(resourceName),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsServiceCatalogProvisioningArtifact(), resourceName),
@@ -171,6 +175,8 @@ func TestAccAWSServiceCatalogProvisioningArtifact_update(t *testing.T) {
 	resourceName := "aws_servicecatalog_provisioning_artifact.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, servicecatalog.EndpointsID),
@@ -178,7 +184,7 @@ func TestAccAWSServiceCatalogProvisioningArtifact_update(t *testing.T) {
 		CheckDestroy: testAccCheckAwsServiceCatalogProvisioningArtifactDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName),
+				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceCatalogProvisioningArtifactExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "accept_language", tfservicecatalog.AcceptLanguageEnglish),
@@ -189,7 +195,7 @@ func TestAccAWSServiceCatalogProvisioningArtifact_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_update(rName),
+				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_update(rName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "accept_language", "jp"),
 					resource.TestCheckResourceAttr(resourceName, "active", "false"),
@@ -216,6 +222,8 @@ func TestAccAWSServiceCatalogProvisioningArtifact_physicalID(t *testing.T) {
 	resourceName := "aws_servicecatalog_provisioning_artifact.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, servicecatalog.EndpointsID),
@@ -223,7 +231,7 @@ func TestAccAWSServiceCatalogProvisioningArtifact_physicalID(t *testing.T) {
 		CheckDestroy: testAccCheckAwsServiceCatalogProvisioningArtifactDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_physicalID(rName),
+				Config: testAccAWSServiceCatalogProvisioningArtifactConfig_physicalID(rName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceCatalogProvisioningArtifactExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "accept_language", tfservicecatalog.AcceptLanguageEnglish),
@@ -320,7 +328,7 @@ func testAccCheckAwsServiceCatalogProvisioningArtifactExists(resourceName string
 	}
 }
 
-func testAccAWSServiceCatalogProvisioningArtifactConfigTemplateURLBase(rName string) string {
+func testAccAWSServiceCatalogProvisioningArtifactConfigTemplateURLBase(rName, domain string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
   bucket        = %[1]q
@@ -362,8 +370,8 @@ resource "aws_servicecatalog_product" "test" {
   owner               = "ägare"
   type                = "CLOUD_FORMATION_TEMPLATE"
   support_description = %[1]q
-  support_email       = "support@example.com"
-  support_url         = "http://example.com"
+  support_email       = %[3]q
+  support_url         = %[2]q
 
   provisioning_artifact_parameters {
     description                 = "artefaktbeskrivning"
@@ -377,11 +385,11 @@ resource "aws_servicecatalog_product" "test" {
     Name = %[1]q
   }
 }
-`, rName)
+`, rName, domain, testAccDefaultEmailAddress)
 }
 
-func testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName string) string {
-	return composeConfig(testAccAWSServiceCatalogProvisioningArtifactConfigTemplateURLBase(rName), fmt.Sprintf(`
+func testAccAWSServiceCatalogProvisioningArtifactConfig_basic(rName, domain string) string {
+	return composeConfig(testAccAWSServiceCatalogProvisioningArtifactConfigTemplateURLBase(rName, domain), fmt.Sprintf(`
 resource "aws_servicecatalog_provisioning_artifact" "test" {
   accept_language             = "en"
   active                      = true
@@ -396,8 +404,8 @@ resource "aws_servicecatalog_provisioning_artifact" "test" {
 `, rName))
 }
 
-func testAccAWSServiceCatalogProvisioningArtifactConfig_update(rName string) string {
-	return composeConfig(testAccAWSServiceCatalogProvisioningArtifactConfigTemplateURLBase(rName), fmt.Sprintf(`
+func testAccAWSServiceCatalogProvisioningArtifactConfig_update(rName, domain string) string {
+	return composeConfig(testAccAWSServiceCatalogProvisioningArtifactConfigTemplateURLBase(rName, domain), fmt.Sprintf(`
 resource "aws_servicecatalog_provisioning_artifact" "test" {
   accept_language             = "jp"
   active                      = false
@@ -412,7 +420,7 @@ resource "aws_servicecatalog_provisioning_artifact" "test" {
 `, rName))
 }
 
-func testAccAWSServiceCatalogProvisioningArtifactConfigPhysicalIDBase(rName string) string {
+func testAccAWSServiceCatalogProvisioningArtifactConfigPhysicalIDBase(rName, domain string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudformation_stack" "test" {
   name = %[1]q
@@ -447,8 +455,8 @@ resource "aws_servicecatalog_product" "test" {
   owner               = "ägare"
   type                = "CLOUD_FORMATION_TEMPLATE"
   support_description = "supportbeskrivning"
-  support_email       = "support@example.com"
-  support_url         = "http://example.com"
+  support_email       = %[3]q
+  support_url         = %[2]q
 
   provisioning_artifact_parameters {
     description          = "artefaktbeskrivning"
@@ -457,11 +465,11 @@ resource "aws_servicecatalog_product" "test" {
     type                 = "CLOUD_FORMATION_TEMPLATE"
   }
 }
-`, rName)
+`, rName, domain, testAccDefaultEmailAddress)
 }
 
-func testAccAWSServiceCatalogProvisioningArtifactConfig_physicalID(rName string) string {
-	return composeConfig(testAccAWSServiceCatalogProvisioningArtifactConfigPhysicalIDBase(rName), fmt.Sprintf(`
+func testAccAWSServiceCatalogProvisioningArtifactConfig_physicalID(rName, domain string) string {
+	return composeConfig(testAccAWSServiceCatalogProvisioningArtifactConfigPhysicalIDBase(rName, domain), fmt.Sprintf(`
 resource "aws_servicecatalog_provisioning_artifact" "test" {
   accept_language             = "en"
   active                      = true

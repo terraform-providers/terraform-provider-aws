@@ -173,7 +173,7 @@ func TestValidateCloudWatchEventBusNameOrARN(t *testing.T) {
 		"HelloWorl_d",
 		"hello-world",
 		"hello.World0125",
-		"aws.partner/mongodb.com/stitch.trigger/something",
+		"aws.partner/mongodb.com/stitch.trigger/something",        // nosemgrep: domain-names
 		"arn:aws:events:us-east-1:123456789012:event-bus/default", // lintignore:AWSAT003,AWSAT005
 	}
 	for _, v := range validNames {
@@ -1880,11 +1880,11 @@ func TestValidateOpenIdURL(t *testing.T) {
 		ErrCount int
 	}{
 		{
-			Value:    "http://wrong.scheme.com",
+			Value:    "http://wrong.scheme.com", // nosemgrep: domain-names
 			ErrCount: 1,
 		},
 		{
-			Value:    "ftp://wrong.scheme.co.uk",
+			Value:    "ftp://wrong.scheme.co.uk", // nosemgrep: domain-names
 			ErrCount: 1,
 		},
 		{
@@ -2036,7 +2036,7 @@ func TestValidateCognitoSupportedLoginProviders(t *testing.T) {
 	validValues := []string{
 		"foo",
 		"7346241598935552",
-		"123456789012.apps.googleusercontent.com",
+		"123456789012.apps.googleusercontent.com", // nosemgrep: domain-names
 		"foo_bar",
 		"foo;bar",
 		"foo/bar",

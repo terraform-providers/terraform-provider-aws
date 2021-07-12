@@ -30,7 +30,7 @@ func testAccErrorCheckSkipCodebuild(t *testing.T) resource.ErrorCheckFunc {
 func testAccAWSCodeBuildBitbucketSourceLocationFromEnv() string {
 	sourceLocation := os.Getenv("AWS_CODEBUILD_BITBUCKET_SOURCE_LOCATION")
 	if sourceLocation == "" {
-		return "https://terraform@bitbucket.org/terraform/aws-test.git"
+		return "https://terraform@bitbucket.org/terraform/aws-test.git" // nosemgrep: email-address
 	}
 	return sourceLocation
 }
@@ -1044,6 +1044,8 @@ func TestAccAWSCodeBuildProject_Source_ReportBuildStatus_Bitbucket(t *testing.T)
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codebuild_project.test"
 
+	sourceLocation := testAccAWSCodeBuildBitbucketSourceLocationFromEnv()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		ErrorCheck:   testAccErrorCheck(t, codebuild.EndpointsID),
@@ -1051,7 +1053,7 @@ func TestAccAWSCodeBuildProject_Source_ReportBuildStatus_Bitbucket(t *testing.T)
 		CheckDestroy: testAccCheckAWSCodeBuildProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_Bitbucket(rName, true),
+				Config: testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_Bitbucket(rName, sourceLocation, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
 					resource.TestCheckResourceAttr(resourceName, "source.0.report_build_status", "true"),
@@ -1063,7 +1065,7 @@ func TestAccAWSCodeBuildProject_Source_ReportBuildStatus_Bitbucket(t *testing.T)
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_Bitbucket(rName, false),
+				Config: testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_Bitbucket(rName, sourceLocation, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
 					resource.TestCheckResourceAttr(resourceName, "source.0.report_build_status", "false"),
@@ -1146,6 +1148,8 @@ func TestAccAWSCodeBuildProject_Source_Type_Bitbucket(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codebuild_project.test"
 
+	sourceLocation := testAccAWSCodeBuildBitbucketSourceLocationFromEnv()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		ErrorCheck:   testAccErrorCheck(t, codebuild.EndpointsID),
@@ -1153,10 +1157,11 @@ func TestAccAWSCodeBuildProject_Source_Type_Bitbucket(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCodeBuildProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodeBuildProjectConfig_Source_Type_Bitbucket(rName),
+				Config: testAccAWSCodeBuildProjectConfig_Source_Type_Bitbucket(rName, sourceLocation),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists(resourceName, &project),
 					resource.TestCheckResourceAttr(resourceName, "source.0.type", "BITBUCKET"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.location", sourceLocation),
 				),
 			},
 			{
@@ -3401,7 +3406,7 @@ resource "aws_codebuild_project" "test" {
 `, rName, insecureSSL))
 }
 
-func testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_Bitbucket(rName string, reportBuildStatus bool) string {
+func testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_Bitbucket(rName, sourceLocation string, reportBuildStatus bool) string {
 	return composeConfig(testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName), fmt.Sprintf(`
 resource "aws_codebuild_project" "test" {
   name         = %[1]q
@@ -3418,12 +3423,12 @@ resource "aws_codebuild_project" "test" {
   }
 
   source {
-    location            = "https://terraform@bitbucket.org/terraform/aws-test.git"
-    report_build_status = %[2]t
+    location            = %[2]q
+    report_build_status = %[3]t
     type                = "BITBUCKET"
   }
 }
-`, rName, reportBuildStatus))
+`, rName, sourceLocation, reportBuildStatus))
 }
 
 func testAccAWSCodeBuildProjectConfig_Source_ReportBuildStatus_GitHub(rName string, reportBuildStatus bool) string {
@@ -3476,7 +3481,7 @@ resource "aws_codebuild_project" "test" {
 `, rName, reportBuildStatus))
 }
 
-func testAccAWSCodeBuildProjectConfig_Source_Type_Bitbucket(rName string) string {
+func testAccAWSCodeBuildProjectConfig_Source_Type_Bitbucket(rName, sourceLocation string) string {
 	return composeConfig(testAccAWSCodeBuildProjectConfig_Base_ServiceRole(rName), fmt.Sprintf(`
 resource "aws_codebuild_project" "test" {
   name         = %[1]q
@@ -3497,7 +3502,7 @@ resource "aws_codebuild_project" "test" {
     type     = "BITBUCKET"
   }
 }
-`, rName, testAccAWSCodeBuildBitbucketSourceLocationFromEnv()))
+`, rName, sourceLocation))
 }
 
 func testAccAWSCodeBuildProjectConfig_Source_Type_CodeCommit(rName string) string {

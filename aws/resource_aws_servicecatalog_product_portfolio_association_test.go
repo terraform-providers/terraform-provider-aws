@@ -123,6 +123,8 @@ func TestAccAWSServiceCatalogProductPortfolioAssociation_basic(t *testing.T) {
 	resourceName := "aws_servicecatalog_product_portfolio_association.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, servicecatalog.EndpointsID),
@@ -130,7 +132,7 @@ func TestAccAWSServiceCatalogProductPortfolioAssociation_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsServiceCatalogProductPortfolioAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogProductPortfolioAssociationConfig_basic(rName),
+				Config: testAccAWSServiceCatalogProductPortfolioAssociationConfig_basic(rName, domain, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceCatalogProductPortfolioAssociationExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "portfolio_id", "aws_servicecatalog_portfolio.test", "id"),
@@ -150,6 +152,8 @@ func TestAccAWSServiceCatalogProductPortfolioAssociation_disappears(t *testing.T
 	resourceName := "aws_servicecatalog_product_portfolio_association.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	domain := fmt.Sprintf("http://%s", testAccRandomDomainName())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, servicecatalog.EndpointsID),
@@ -157,7 +161,7 @@ func TestAccAWSServiceCatalogProductPortfolioAssociation_disappears(t *testing.T
 		CheckDestroy: testAccCheckAwsServiceCatalogProductPortfolioAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSServiceCatalogProductPortfolioAssociationConfig_basic(rName),
+				Config: testAccAWSServiceCatalogProductPortfolioAssociationConfig_basic(rName, domain, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceCatalogProductPortfolioAssociationExists(resourceName),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsServiceCatalogProductPortfolioAssociation(), resourceName),
@@ -222,7 +226,7 @@ func testAccCheckAwsServiceCatalogProductPortfolioAssociationExists(resourceName
 	}
 }
 
-func testAccAWSServiceCatalogProductPortfolioAssociationConfig_base(rName string) string {
+func testAccAWSServiceCatalogProductPortfolioAssociationConfig_base(rName, domain, email string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudformation_stack" "test" {
   name = %[1]q
@@ -257,8 +261,8 @@ resource "aws_servicecatalog_product" "test" {
   owner               = "ägare"
   type                = "CLOUD_FORMATION_TEMPLATE"
   support_description = "supportbeskrivning"
-  support_email       = "support@example.com"
-  support_url         = "http://example.com"
+  support_email       = %[3]q
+  support_url         = %[2]q
 
   provisioning_artifact_parameters {
     description          = "artefaktbeskrivning"
@@ -276,11 +280,11 @@ resource "aws_servicecatalog_portfolio" "test" {
   name          = %[1]q
   provider_name = %[1]q
 }
-`, rName)
+`, rName, domain, email)
 }
 
-func testAccAWSServiceCatalogProductPortfolioAssociationConfig_basic(rName string) string {
-	return composeConfig(testAccAWSServiceCatalogProductPortfolioAssociationConfig_base(rName), `
+func testAccAWSServiceCatalogProductPortfolioAssociationConfig_basic(rName, domain, email string) string {
+	return composeConfig(testAccAWSServiceCatalogProductPortfolioAssociationConfig_base(rName, domain, email), `
 resource "aws_servicecatalog_product_portfolio_association" "test" {
   portfolio_id = aws_servicecatalog_portfolio.test.id
   product_id   = aws_servicecatalog_product.test.id

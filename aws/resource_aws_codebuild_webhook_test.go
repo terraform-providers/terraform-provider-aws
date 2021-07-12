@@ -18,6 +18,8 @@ func TestAccAWSCodeBuildWebhook_Bitbucket(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codebuild_webhook.test"
 
+	sourceLocation := testAccAWSCodeBuildBitbucketSourceLocationFromEnv()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		ErrorCheck:   testAccErrorCheck(t, codebuild.EndpointsID),
@@ -25,7 +27,7 @@ func TestAccAWSCodeBuildWebhook_Bitbucket(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCodeBuildWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodeBuildWebhookConfig_Bitbucket(rName),
+				Config: testAccAWSCodeBuildWebhookConfig_Bitbucket(rName, sourceLocation),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildWebhookExists(resourceName, &webhook),
 					resource.TestCheckResourceAttr(resourceName, "branch_filter", ""),
@@ -287,8 +289,9 @@ func testAccCheckAWSCodeBuildWebhookExists(name string, webhook *codebuild.Webho
 	}
 }
 
-func testAccAWSCodeBuildWebhookConfig_Bitbucket(rName string) string {
-	return fmt.Sprintf(testAccAWSCodeBuildProjectConfig_Source_Type_Bitbucket(rName) + `
+func testAccAWSCodeBuildWebhookConfig_Bitbucket(rName, sourceLocation string) string {
+	return composeConfig(
+		testAccAWSCodeBuildProjectConfig_Source_Type_Bitbucket(rName, sourceLocation), `
 resource "aws_codebuild_webhook" "test" {
   project_name = aws_codebuild_project.test.name
 }

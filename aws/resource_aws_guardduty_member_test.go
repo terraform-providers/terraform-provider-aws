@@ -13,7 +13,6 @@ import (
 func testAccAwsGuardDutyMember_basic(t *testing.T) {
 	resourceName := "aws_guardduty_member.test"
 	accountID := "111111111111"
-	email := "required@example.com"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,12 +21,12 @@ func testAccAwsGuardDutyMember_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsGuardDutyMemberDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGuardDutyMemberConfig_basic(accountID, email),
+				Config: testAccGuardDutyMemberConfig_basic(accountID, testAccDefaultEmailAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsGuardDutyMemberExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "account_id", accountID),
 					resource.TestCheckResourceAttrSet(resourceName, "detector_id"),
-					resource.TestCheckResourceAttr(resourceName, "email", email),
+					resource.TestCheckResourceAttr(resourceName, "email", testAccDefaultEmailAddress),
 					resource.TestCheckResourceAttr(resourceName, "relationship_status", "Created"),
 				),
 			},

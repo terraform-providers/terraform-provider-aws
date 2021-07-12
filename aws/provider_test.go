@@ -2338,3 +2338,9 @@ func testAccRandomDomain() domainName {
 // testAccDefaultEmailAddress is the default email address to set as a
 // resource or data source parameter for acceptance tests.
 const testAccDefaultEmailAddress = "no-reply@hashicorp.com"
+
+// testAccRandomEmailAddress generates a random email address in the form
+// "tf-acc-test-<random>@<domain>"
+func testAccRandomEmailAddress(domainName string) string {
+	return fmt.Sprintf("%s@%s", acctest.RandomWithPrefix("tf-acc-test"), domainName)
+}

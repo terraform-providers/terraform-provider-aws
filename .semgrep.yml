@@ -523,6 +523,23 @@ rules:
             fmt.Println(...)
     severity: WARNING
 
+  - id: email-address
+    languages: [go]
+    message: Use default email address or generate a random email address. https://github.com/hashicorp/terraform-provider-aws/blob/main/docs/contributing/running-and-writing-acceptance-tests.md#hardcoded-ssh-key
+    paths:
+      include:
+        - aws/
+      exclude:
+        - aws/internal/generators
+        - aws/internal/keyvaluetags/generators
+        - "**/list_pages_gen.go"
+        - awsproviderlint/vendor/
+    patterns:
+      - pattern-regex: '[-_A-Za-z0-9.+]+@([-A-Za-z0-9]+\.)(com|net|org)'
+      - pattern-not-regex: 'no-reply@hashicorp\.com'
+      - pattern-inside: '($X : string)'
+    severity: WARNING
+
   - id: ssh-key
     languages: [go]
     message: Generate random SSH keys using acctest.RandSSHKeyPair(). https://github.com/hashicorp/terraform-provider-aws/blob/main/docs/contributing/running-and-writing-acceptance-tests.md#hardcoded-ssh-key
