@@ -297,6 +297,7 @@ func Provider() *schema.Provider {
 			"aws_glue_data_catalog_encryption_settings":      dataSourceAwsGlueDataCatalogEncryptionSettings(),
 			"aws_glue_script":                                dataSourceAwsGlueScript(),
 			"aws_guardduty_detector":                         dataSourceAwsGuarddutyDetector(),
+			"aws_hosted_zones":                               dataSourceAwsHostedZones(),
 			"aws_iam_account_alias":                          dataSourceAwsIamAccountAlias(),
 			"aws_iam_group":                                  dataSourceAwsIAMGroup(),
 			"aws_iam_instance_profile":                       dataSourceAwsIAMInstanceProfile(),
