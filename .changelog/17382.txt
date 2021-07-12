@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/aws_vpc_peering_connections: Return empty array instead of error when no connections found.
+```
