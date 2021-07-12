@@ -101,6 +101,7 @@ func resourceAwsWafv2RuleGroup() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+						"rule_label":        wafv2RuleLabelsSchema(),
 						"statement":         wafv2RootStatementSchema(3),
 						"visibility_config": wafv2VisibilityConfigSchema(),
 					},

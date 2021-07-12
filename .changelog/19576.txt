@@ -1,0 +1,15 @@
+```release-notes:enhancement
+resource/aws_wafv2_web_acl: Add `rule_label` to rules.
+```
+
+```release-notes:enhancement
+resource/aws_wafv2_web_acl: Added support for `label_match_statement` to rules.
+```
+
+```release-notes:enhancement
+resource/aws_wafv2_rule_group: Add `rule_label` to rules.
+```
+
+```release-notes:enhancement
+resource/aws_wafv2_rule_group: Added support for `label_match_statement` to rules.
+```

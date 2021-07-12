@@ -33,6 +33,25 @@ func wafv2EmptySchemaDeprecated() *schema.Schema {
 	}
 }
 
+func wafv2RuleLabelsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.All(
+						validation.StringLenBetween(1, 1024),
+						validation.StringMatch(regexp.MustCompile(`^[0-9A-Za-z_\-:]+$`), "must contain only alphanumeric, underscore, hyphen, and colon characters"),
+					),
+				},
+			},
+		},
+	}
+}
+
 func wafv2RootStatementSchema(level int) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -44,6 +63,7 @@ func wafv2RootStatementSchema(level int) *schema.Schema {
 				"byte_match_statement":                  wafv2ByteMatchStatementSchema(),
 				"geo_match_statement":                   wafv2GeoMatchStatementSchema(),
 				"ip_set_reference_statement":            wafv2IpSetReferenceStatementSchema(),
+				"label_match_statement":                 wafv2LabelMatchStatementSchema(),
 				"not_statement":                         wafv2StatementSchema(level - 1),
 				"or_statement":                          wafv2StatementSchema(level - 1),
 				"regex_pattern_set_reference_statement": wafv2RegexPatternSetReferenceStatementSchema(),
@@ -72,6 +92,7 @@ func wafv2StatementSchema(level int) *schema.Schema {
 								"byte_match_statement":                  wafv2ByteMatchStatementSchema(),
 								"geo_match_statement":                   wafv2GeoMatchStatementSchema(),
 								"ip_set_reference_statement":            wafv2IpSetReferenceStatementSchema(),
+								"label_match_statement":                 wafv2LabelMatchStatementSchema(),
 								"not_statement":                         wafv2StatementSchema(level - 1),
 								"or_statement":                          wafv2StatementSchema(level - 1),
 								"regex_pattern_set_reference_statement": wafv2RegexPatternSetReferenceStatementSchema(),
@@ -100,6 +121,7 @@ func wafv2StatementSchema(level int) *schema.Schema {
 							"byte_match_statement":                  wafv2ByteMatchStatementSchema(),
 							"geo_match_statement":                   wafv2GeoMatchStatementSchema(),
 							"ip_set_reference_statement":            wafv2IpSetReferenceStatementSchema(),
+							"label_match_statement":                 wafv2LabelMatchStatementSchema(),
 							"regex_pattern_set_reference_statement": wafv2RegexPatternSetReferenceStatementSchema(),
 							"size_constraint_statement":             wafv2SizeConstraintSchema(),
 							"sqli_match_statement":                  wafv2SqliMatchStatementSchema(),
@@ -199,6 +221,31 @@ func wafv2IpSetReferenceStatementSchema() *schema.Schema {
 							},
 						},
 					},
+				},
+			},
+		},
+	}
+}
+
+func wafv2LabelMatchStatementSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.All(
+						validation.StringLenBetween(1, 1024),
+						validation.StringMatch(regexp.MustCompile(`^[0-9A-Za-z_\-:]+$`), "must contain only alphanumeric, underscore, hyphen, and colon characters"),
+					),
+				},
+				"scope": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(wafv2.LabelMatchScope_Values(), false),
 				},
 			},
 		},
@@ -550,13 +597,39 @@ func expandWafv2Rule(m map[string]interface{}) *wafv2.Rule {
 		return nil
 	}
 
-	return &wafv2.Rule{
+	rule := &wafv2.Rule{
 		Name:             aws.String(m["name"].(string)),
 		Priority:         aws.Int64(int64(m["priority"].(int))),
 		Action:           expandWafv2RuleAction(m["action"].([]interface{})),
 		Statement:        expandWafv2RootStatement(m["statement"].([]interface{})),
 		VisibilityConfig: expandWafv2VisibilityConfig(m["visibility_config"].([]interface{})),
 	}
+
+	if v, ok := m["rule_label"].(*schema.Set); ok {
+		rule.RuleLabels = expandWafv2RuleLabels(v.List())
+	}
+
+	return rule
+}
+
+func expandWafv2RuleLabels(l []interface{}) []*wafv2.Label {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	labels := make([]*wafv2.Label, 0)
+
+	for _, label := range l {
+		if label == nil {
+			continue
+		}
+		m := label.(map[string]interface{})
+		labels = append(labels, &wafv2.Label{
+			Name: aws.String(m["name"].(string)),
+		})
+	}
+
+	return labels
 }
 
 func expandWafv2RuleAction(l []interface{}) *wafv2.RuleAction {
@@ -771,6 +844,10 @@ func expandWafv2Statement(m map[string]interface{}) *wafv2.Statement {
 		statement.GeoMatchStatement = expandWafv2GeoMatchStatement(v.([]interface{}))
 	}
 
+	if v, ok := m["label_match_statement"]; ok {
+		statement.LabelMatchStatement = expandWafv2LabelMatchStatement(v.([]interface{}))
+	}
+
 	if v, ok := m["not_statement"]; ok {
 		statement.NotStatement = expandWafv2NotStatement(v.([]interface{}))
 	}
@@ -979,6 +1056,21 @@ func expandWafv2GeoMatchStatement(l []interface{}) *wafv2.GeoMatchStatement {
 	return statement
 }
 
+func expandWafv2LabelMatchStatement(l []interface{}) *wafv2.LabelMatchStatement {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	statement := &wafv2.LabelMatchStatement{
+		Key:   aws.String(m["key"].(string)),
+		Scope: aws.String(m["scope"].(string)),
+	}
+
+	return statement
+}
+
 func expandWafv2NotStatement(l []interface{}) *wafv2.NotStatement {
 	if len(l) == 0 || l[0] == nil {
 		return nil
@@ -1072,6 +1164,7 @@ func flattenWafv2Rules(r []*wafv2.Rule) interface{} {
 		m["action"] = flattenWafv2RuleAction(rule.Action)
 		m["name"] = aws.StringValue(rule.Name)
 		m["priority"] = int(aws.Int64Value(rule.Priority))
+		m["rule_label"] = flattenWafv2RuleLabels(rule.RuleLabels)
 		m["statement"] = flattenWafv2RootStatement(rule.Statement)
 		m["visibility_config"] = flattenWafv2VisibilityConfig(rule.VisibilityConfig)
 		out[i] = m
@@ -1189,6 +1282,21 @@ func flattenWafv2CustomHeader(h *wafv2.CustomHTTPHeader) map[string]interface{} 
 	return m
 }
 
+func flattenWafv2RuleLabels(l []*wafv2.Label) []interface{} {
+	if len(l) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(l))
+	for i, label := range l {
+		out[i] = map[string]interface{}{
+			"name": aws.StringValue(label.Name),
+		}
+	}
+
+	return out
+}
+
 func flattenWafv2RootStatement(s *wafv2.Statement) interface{} {
 	if s == nil {
 		return []interface{}{}
@@ -1227,6 +1335,10 @@ func flattenWafv2Statement(s *wafv2.Statement) map[string]interface{} {
 
 	if s.GeoMatchStatement != nil {
 		m["geo_match_statement"] = flattenWafv2GeoMatchStatement(s.GeoMatchStatement)
+	}
+
+	if s.LabelMatchStatement != nil {
+		m["label_match_statement"] = flattenWafv2LabelMatchStatement(s.LabelMatchStatement)
 	}
 
 	if s.NotStatement != nil {
@@ -1404,6 +1516,19 @@ func flattenWafv2GeoMatchStatement(g *wafv2.GeoMatchStatement) interface{} {
 	m := map[string]interface{}{
 		"country_codes":       flattenStringList(g.CountryCodes),
 		"forwarded_ip_config": flattenWafv2ForwardedIPConfig(g.ForwardedIPConfig),
+	}
+
+	return []interface{}{m}
+}
+
+func flattenWafv2LabelMatchStatement(l *wafv2.LabelMatchStatement) interface{} {
+	if l == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"key":   aws.StringValue(l.Key),
+		"scope": aws.StringValue(l.Scope),
 	}
 
 	return []interface{}{m}
