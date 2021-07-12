@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSEbsSnapshotDataSource_basic(t *testing.T) {
+func TestAccEC2EBSSnapshotDataSource_basic(t *testing.T) {
 	dataSourceName := "data.aws_ebs_snapshot.test"
 	resourceName := "aws_ebs_snapshot.test"
 
@@ -38,7 +38,7 @@ func TestAccAWSEbsSnapshotDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsSnapshotDataSource_Filter(t *testing.T) {
+func TestAccEC2EBSSnapshotDataSource_filter(t *testing.T) {
 	dataSourceName := "data.aws_ebs_snapshot.test"
 	resourceName := "aws_ebs_snapshot.test"
 
@@ -58,7 +58,7 @@ func TestAccAWSEbsSnapshotDataSource_Filter(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsSnapshotDataSource_MostRecent(t *testing.T) {
+func TestAccEC2EBSSnapshotDataSource_mostRecent(t *testing.T) {
 	dataSourceName := "data.aws_ebs_snapshot.test"
 	resourceName := "aws_ebs_snapshot.test"
 

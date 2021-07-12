@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSEbsSnapshotCopy_basic(t *testing.T) {
+func TestAccEC2EBSSnapshotCopy_basic(t *testing.T) {
 	var snapshot ec2.Snapshot
 	resourceName := "aws_ebs_snapshot_copy.test"
 
@@ -34,7 +34,7 @@ func TestAccAWSEbsSnapshotCopy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsSnapshotCopy_tags(t *testing.T) {
+func TestAccEC2EBSSnapshotCopy_tags(t *testing.T) {
 	var snapshot ec2.Snapshot
 	resourceName := "aws_ebs_snapshot_copy.test"
 
@@ -73,7 +73,7 @@ func TestAccAWSEbsSnapshotCopy_tags(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsSnapshotCopy_withDescription(t *testing.T) {
+func TestAccEC2EBSSnapshotCopy_withDescription(t *testing.T) {
 	var snapshot ec2.Snapshot
 	resourceName := "aws_ebs_snapshot_copy.test"
 
@@ -94,7 +94,7 @@ func TestAccAWSEbsSnapshotCopy_withDescription(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsSnapshotCopy_withRegions(t *testing.T) {
+func TestAccEC2EBSSnapshotCopy_withRegions(t *testing.T) {
 	var providers []*schema.Provider
 	var snapshot ec2.Snapshot
 	resourceName := "aws_ebs_snapshot_copy.test"
@@ -119,7 +119,7 @@ func TestAccAWSEbsSnapshotCopy_withRegions(t *testing.T) {
 
 }
 
-func TestAccAWSEbsSnapshotCopy_withKms(t *testing.T) {
+func TestAccEC2EBSSnapshotCopy_withKMS(t *testing.T) {
 	var snapshot ec2.Snapshot
 	kmsKeyResourceName := "aws_kms_key.test"
 	resourceName := "aws_ebs_snapshot_copy.test"
@@ -141,7 +141,7 @@ func TestAccAWSEbsSnapshotCopy_withKms(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsSnapshotCopy_disappears(t *testing.T) {
+func TestAccEC2EBSSnapshotCopy_disappears(t *testing.T) {
 	var snapshot ec2.Snapshot
 	resourceName := "aws_ebs_snapshot_copy.test"
 

@@ -74,7 +74,7 @@ func testAccErrorCheckSkipEBSVolume(t *testing.T) resource.ErrorCheckFunc {
 	)
 }
 
-func TestAccAWSEBSVolume_basic(t *testing.T) {
+func TestAccEC2EBSVolume_basic(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -109,7 +109,7 @@ func TestAccAWSEBSVolume_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_updateAttachedEbsVolume(t *testing.T) {
+func TestAccEC2EBSVolume_updateAttachedEBSVolume(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -144,7 +144,7 @@ func TestAccAWSEBSVolume_updateAttachedEbsVolume(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_updateSize(t *testing.T) {
+func TestAccEC2EBSVolume_updateSize(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -179,7 +179,7 @@ func TestAccAWSEBSVolume_updateSize(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_updateType(t *testing.T) {
+func TestAccEC2EBSVolume_updateType(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -214,7 +214,7 @@ func TestAccAWSEBSVolume_updateType(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_updateIops_Io1(t *testing.T) {
+func TestAccEC2EBSVolume_updateIOPS_io1(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -249,7 +249,7 @@ func TestAccAWSEBSVolume_updateIops_Io1(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_updateIops_Io2(t *testing.T) {
+func TestAccEC2EBSVolume_updateIOPS_io2(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -284,7 +284,7 @@ func TestAccAWSEBSVolume_updateIops_Io2(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_kmsKey(t *testing.T) {
+func TestAccEC2EBSVolume_kmsKey(t *testing.T) {
 	var v ec2.Volume
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccAwsEbsVolumeConfigWithKmsKey, ri)
@@ -315,7 +315,7 @@ func TestAccAWSEBSVolume_kmsKey(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_NoIops(t *testing.T) {
+func TestAccEC2EBSVolume_noIOPS(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -342,7 +342,7 @@ func TestAccAWSEBSVolume_NoIops(t *testing.T) {
 }
 
 // Reference: https://github.com/hashicorp/terraform-provider-aws/issues/12667
-func TestAccAWSEBSVolume_InvalidIopsForType(t *testing.T) {
+func TestAccEC2EBSVolume_invalidIOPSForType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -358,7 +358,7 @@ func TestAccAWSEBSVolume_InvalidIopsForType(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_InvalidThroughputForType(t *testing.T) {
+func TestAccEC2EBSVolume_invalidThroughputForType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -374,7 +374,7 @@ func TestAccAWSEBSVolume_InvalidThroughputForType(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_withTags(t *testing.T) {
+func TestAccEC2EBSVolume_withTags(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -401,7 +401,7 @@ func TestAccAWSEBSVolume_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_multiAttach(t *testing.T) {
+func TestAccEC2EBSVolume_multiAttach(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -429,7 +429,7 @@ func TestAccAWSEBSVolume_multiAttach(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_outpost(t *testing.T) {
+func TestAccEC2EBSVolume_outpost(t *testing.T) {
 	var v ec2.Volume
 	outpostDataSourceName := "data.aws_outposts_outpost.test"
 	resourceName := "aws_ebs_volume.test"
@@ -456,7 +456,7 @@ func TestAccAWSEBSVolume_outpost(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_gp3_basic(t *testing.T) {
+func TestAccEC2EBSVolume_gp3_basic(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -494,7 +494,7 @@ func TestAccAWSEBSVolume_gp3_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_gp3_iops(t *testing.T) {
+func TestAccEC2EBSVolume_gp3_iops(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -550,7 +550,7 @@ func TestAccAWSEBSVolume_gp3_iops(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_gp3_throughput(t *testing.T) {
+func TestAccEC2EBSVolume_gp3_throughput(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -606,7 +606,7 @@ func TestAccAWSEBSVolume_gp3_throughput(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_gp3_to_gp2(t *testing.T) {
+func TestAccEC2EBSVolume_gp3_to_gp2(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -662,7 +662,7 @@ func TestAccAWSEBSVolume_gp3_to_gp2(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_snapshotID(t *testing.T) {
+func TestAccEC2EBSVolume_snapshotID(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	snapshotResourceName := "aws_ebs_snapshot.test"
@@ -701,7 +701,7 @@ func TestAccAWSEBSVolume_snapshotID(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_snapshotIDAndSize(t *testing.T) {
+func TestAccEC2EBSVolume_snapshotIDAndSize(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	snapshotResourceName := "aws_ebs_snapshot.test"
@@ -740,7 +740,7 @@ func TestAccAWSEBSVolume_snapshotIDAndSize(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_disappears(t *testing.T) {
+func TestAccEC2EBSVolume_disappears(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 

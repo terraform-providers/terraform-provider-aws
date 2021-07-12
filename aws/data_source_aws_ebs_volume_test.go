@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSEbsVolumeDataSource_basic(t *testing.T) {
+func TestAccEC2EBSVolumeDataSource_basic(t *testing.T) {
 	resourceName := "aws_ebs_volume.test"
 	dataSourceName := "data.aws_ebs_volume.test"
 
@@ -34,7 +34,7 @@ func TestAccAWSEbsVolumeDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSEbsVolumeDataSource_multipleFilters(t *testing.T) {
+func TestAccEC2EBSVolumeDataSource_multipleFilters(t *testing.T) {
 	resourceName := "aws_ebs_volume.test"
 	dataSourceName := "data.aws_ebs_volume.test"
 
