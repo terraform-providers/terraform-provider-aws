@@ -156,7 +156,31 @@ func dataSourceAwsOrganizationsOrganizationRead(d *schema.ResourceData, meta int
 	d.Set("master_account_email", org.Organization.MasterAccountEmail)
 	d.Set("master_account_id", org.Organization.MasterAccountId)
 
+	// Some of these APIs are only allowed if the account you are in has
+	// organization admin privileges.  The org's master account always has
+	// this as well as other accounts that have delegated admin for any
+	// service.
+	var hasOrgAdmin bool
 	if aws.StringValue(org.Organization.MasterAccountId) == meta.(*AWSClient).accountid {
+		hasOrgAdmin = true
+	} else {
+		err = conn.ListDelegatedAdministratorsPages(&organizations.ListDelegatedAdministratorsInput{}, func(page *organizations.ListDelegatedAdministratorsOutput, lastPage bool) bool {
+			for _, account := range page.DelegatedAdministrators {
+				if aws.StringValue(account.Id) == meta.(*AWSClient).accountid {
+					hasOrgAdmin = true
+					return false
+				}
+			}
+
+			return !lastPage
+		})
+		if err != nil && !isAWSErr(err, organizations.ErrCodeAccessDeniedException, "") {
+			return fmt.Errorf("error listing AWS Organization (%s) delegated admins: %s", d.Id(), err)
+		}
+
+	}
+
+	if hasOrgAdmin {
 		var accounts []*organizations.Account
 		var nonMasterAccounts []*organizations.Account
 		err = conn.ListAccountsPages(&organizations.ListAccountsInput{}, func(page *organizations.ListAccountsOutput, lastPage bool) bool {
