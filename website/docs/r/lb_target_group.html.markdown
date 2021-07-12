@@ -58,6 +58,7 @@ resource "aws_lb_target_group" "lambda-example" {
 
 The following arguments are supported:
 
+* `deregistration_connection_termination` - (Optional) Boolean to enable / disable support for post-deregistration connection termination on Network Load Balancers. See [doc](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#deregistration-delay) for more information.
 * `deregistration_delay` - (Optional) Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.
 * `health_check` - (Optional, Maximum of 1) Health Check configuration block. Detailed below.
 * `lambda_multi_value_headers_enabled` - (Optional) Whether the request and response headers exchanged between the load balancer and the Lambda function include arrays of values or strings. Only applies when `target_type` is `lambda`. Default is `false`.

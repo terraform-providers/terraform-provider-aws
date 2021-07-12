@@ -47,6 +47,11 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"deregistration_connection_termination": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"deregistration_delay": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -523,6 +528,13 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			})
 		}
 
+		if d.HasChange("deregistration_connection_termination") {
+			attrs = append(attrs, &elbv2.TargetGroupAttribute{
+				Key:   aws.String("deregistration_delay.connection_termination.enabled"),
+				Value: aws.String(strconv.FormatBool(d.Get("deregistration_connection_termination").(bool))),
+			})
+		}
+
 		if d.HasChange("slow_start") {
 			attrs = append(attrs, &elbv2.TargetGroupAttribute{
 				Key:   aws.String("slow_start.duration_seconds"),
@@ -751,6 +763,12 @@ func flattenAwsLbTargetGroupResource(d *schema.ResourceData, meta interface{}, t
 
 	for _, attr := range attrResp.Attributes {
 		switch aws.StringValue(attr.Key) {
+		case "deregistration_delay.connection_termination.enabled":
+			enabled, err := strconv.ParseBool(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("Error converting deregistration_delay.connection_termination.enabled to bool: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("deregistration_connection_termination", enabled)
 		case "deregistration_delay.timeout_seconds":
 			timeout, err := strconv.Atoi(aws.StringValue(attr.Value))
 			if err != nil {

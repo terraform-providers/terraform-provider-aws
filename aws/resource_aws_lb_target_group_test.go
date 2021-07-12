@@ -335,6 +335,7 @@ func TestAccAWSLBTargetGroup_Protocol_Geneve(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
+					"deregistration_connection_termination",
 					"lambda_multi_value_headers_enabled",
 					"proxy_protocol_v2",
 					"slow_start",
@@ -476,6 +477,36 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroupWithProxy(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSLBTargetGroupExists(resourceName, &confAfter),
 					resource.TestCheckResourceAttr(resourceName, "proxy_protocol_v2", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLBTargetGroup_networkLB_TargetGroupWithConnectionTermination(t *testing.T) {
+	var confBefore, confAfter elbv2.TargetGroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_lb_target_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		ErrorCheck:    testAccErrorCheck(t, elbv2.EndpointsID),
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBTargetGroupConfig_typeTCP(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &confBefore),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_connection_termination", "false"),
+				),
+			},
+			{
+				Config: testAccAWSLBTargetGroupConfig_typeTCP_withConnectionTermination(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &confAfter),
+					resource.TestCheckResourceAttr(resourceName, "deregistration_connection_termination", "true"),
 				),
 			},
 		},
@@ -2103,6 +2134,40 @@ resource "aws_lb_target_group" "test" {
   vpc_id   = aws_vpc.test.id
 
   deregistration_delay = 200
+
+  health_check {
+    interval            = 10
+    port                = "traffic-port"
+    protocol            = "TCP"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+  }
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName)
+}
+
+func testAccAWSLBTargetGroupConfig_typeTCP_withConnectionTermination(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 8082
+  protocol = "TCP"
+  vpc_id   = aws_vpc.test.id
+
+  deregistration_delay                  = 200
+  deregistration_connection_termination = true
 
   health_check {
     interval            = 10
