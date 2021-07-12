@@ -610,6 +610,24 @@ func resourceAwsCodeBuildProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"secondary_source_version": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 12,
+				Set:      resourceAwsCodeBuildProjectArtifactsHash,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"source_identifier": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"source_version": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"build_timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -754,6 +772,10 @@ func resourceAwsCodeBuildProjectCreate(d *schema.ResourceData, meta interface{})
 		params.BadgeEnabled = aws.Bool(v.(bool))
 	}
 
+	if v, ok := d.GetOk("secondary_source_version"); ok && v.(*schema.Set).Len() > 0 {
+		params.SecondarySourceVersions = expandProjectSecondarySourceVersions(v.(*schema.Set))
+	}
+
 	var resp *codebuild.CreateProjectOutput
 	// Handle IAM eventual consistency
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
@@ -777,7 +799,7 @@ func resourceAwsCodeBuildProjectCreate(d *schema.ResourceData, meta interface{})
 		resp, err = conn.CreateProject(params)
 	}
 	if err != nil {
-		return fmt.Errorf("Error creating CodeBuild project: %s", err)
+		return fmt.Errorf("Error creating CodeBuild project: %w", err)
 	}
 
 	d.SetId(aws.StringValue(resp.Project.Arn))
@@ -843,6 +865,22 @@ func expandProjectSecondaryArtifacts(d *schema.ResourceData) []*codebuild.Projec
 	return artifacts
 }
 
+func expandProjectSecondarySourceVersions(ssv *schema.Set) []*codebuild.ProjectSourceVersion {
+	sourceVersions := make([]*codebuild.ProjectSourceVersion, 0)
+
+	rawSourceVersions := ssv.List()
+	if len(rawSourceVersions) == 0 {
+		return nil
+	}
+
+	for _, config := range rawSourceVersions {
+		sourceVersion := expandProjectSourceVersion(config.(map[string]interface{}))
+		sourceVersions = append(sourceVersions, &sourceVersion)
+	}
+
+	return sourceVersions
+}
+
 func expandProjectArtifacts(d *schema.ResourceData) codebuild.ProjectArtifacts {
 	configs := d.Get("artifacts").([]interface{})
 	data := configs[0].(map[string]interface{})
@@ -892,6 +930,16 @@ func expandProjectArtifactData(data map[string]interface{}) codebuild.ProjectArt
 	}
 
 	return projectArtifacts
+}
+
+func expandProjectSourceVersion(data map[string]interface{}) codebuild.ProjectSourceVersion {
+
+	sourceVersion := codebuild.ProjectSourceVersion{
+		SourceIdentifier: aws.String(data["source_identifier"].(string)),
+		SourceVersion:    aws.String(data["source_version"].(string)),
+	}
+
+	return sourceVersion
 }
 
 func expandProjectCache(s []interface{}) *codebuild.ProjectCache {
@@ -1257,43 +1305,47 @@ func resourceAwsCodeBuildProjectRead(d *schema.ResourceData, meta interface{}) e
 	project := resp.Projects[0]
 
 	if err := d.Set("artifacts", flattenAwsCodeBuildProjectArtifacts(project.Artifacts)); err != nil {
-		return fmt.Errorf("error setting artifacts: %s", err)
+		return fmt.Errorf("error setting artifacts: %w", err)
 	}
 
 	if err := d.Set("environment", flattenAwsCodeBuildProjectEnvironment(project.Environment)); err != nil {
-		return fmt.Errorf("error setting environment: %s", err)
+		return fmt.Errorf("error setting environment: %w", err)
 	}
 
 	if err := d.Set("file_system_locations", flattenAwsCodeBuildProjectFileSystemLocations(project.FileSystemLocations)); err != nil {
-		return fmt.Errorf("error setting file_system_locations: %s", err)
+		return fmt.Errorf("error setting file_system_locations: %w", err)
 	}
 
 	if err := d.Set("cache", flattenAwsCodebuildProjectCache(project.Cache)); err != nil {
-		return fmt.Errorf("error setting cache: %s", err)
+		return fmt.Errorf("error setting cache: %w", err)
 	}
 
 	if err := d.Set("logs_config", flattenAwsCodeBuildLogsConfig(project.LogsConfig)); err != nil {
-		return fmt.Errorf("error setting logs_config: %s", err)
+		return fmt.Errorf("error setting logs_config: %w", err)
 	}
 
 	if err := d.Set("secondary_artifacts", flattenAwsCodeBuildProjectSecondaryArtifacts(project.SecondaryArtifacts)); err != nil {
-		return fmt.Errorf("error setting secondary_artifacts: %s", err)
+		return fmt.Errorf("error setting secondary_artifacts: %w", err)
 	}
 
 	if err := d.Set("secondary_sources", flattenAwsCodeBuildProjectSecondarySources(project.SecondarySources)); err != nil {
-		return fmt.Errorf("error setting secondary_sources: %s", err)
+		return fmt.Errorf("error setting secondary_sources: %w", err)
 	}
 
 	if err := d.Set("source", flattenAwsCodeBuildProjectSource(project.Source)); err != nil {
-		return fmt.Errorf("error setting source: %s", err)
+		return fmt.Errorf("error setting source: %w", err)
 	}
 
 	if err := d.Set("vpc_config", flattenAwsCodeBuildVpcConfig(project.VpcConfig)); err != nil {
-		return fmt.Errorf("error setting vpc_config: %s", err)
+		return fmt.Errorf("error setting vpc_config: %w", err)
 	}
 
 	if err := d.Set("build_batch_config", flattenAwsCodeBuildBuildBatchConfig(project.BuildBatchConfig)); err != nil {
-		return fmt.Errorf("error setting build_batch_config: %s", err)
+		return fmt.Errorf("error setting build_batch_config: %w", err)
+	}
+
+	if err := d.Set("secondary_source_version", flattenAwsCodeBuildProjectSecondarySourceVersions(project.SecondarySourceVersions)); err != nil {
+		return fmt.Errorf("error setting secondary_source_version: %w", err)
 	}
 
 	d.Set("arn", project.Arn)
@@ -1378,6 +1430,17 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if d.HasChange("secondary_source_version") {
+		psv := d.Get("secondary_source_version")
+
+		if psv.(*schema.Set).Len() > 0 {
+			log.Printf("%#v", psv)
+			params.SecondarySourceVersions = expandProjectSecondarySourceVersions(psv.(*schema.Set))
+		} else {
+			params.SecondarySourceVersions = []*codebuild.ProjectSourceVersion{}
+		}
+	}
+
 	if d.HasChange("vpc_config") {
 		params.VpcConfig = expandCodeBuildVpcConfig(d.Get("vpc_config").([]interface{}))
 	}
@@ -1396,7 +1459,7 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 			params.Cache = expandProjectCache(v.([]interface{}))
 		} else {
 			params.Cache = &codebuild.ProjectCache{
-				Type: aws.String("NO_CACHE"),
+				Type: aws.String(codebuild.CacheTypeNoCache),
 			}
 		}
 	}
@@ -1459,9 +1522,7 @@ func resourceAwsCodeBuildProjectUpdate(d *schema.ResourceData, meta interface{})
 		_, err = conn.UpdateProject(params)
 	}
 	if err != nil {
-		return fmt.Errorf(
-			"[ERROR] Error updating CodeBuild project (%s): %s",
-			d.Id(), err)
+		return fmt.Errorf("[ERROR] Error updating CodeBuild project (%s): %w", d.Id(), err)
 	}
 
 	return resourceAwsCodeBuildProjectRead(d, meta)
@@ -1581,6 +1642,17 @@ func flattenAwsCodeBuildProjectSecondaryArtifacts(artifactsList []*codebuild.Pro
 	return &artifactSet
 }
 
+func flattenAwsCodeBuildProjectSecondarySourceVersions(sourceVersions []*codebuild.ProjectSourceVersion) *schema.Set {
+	sourceVersionSet := schema.Set{
+		F: resourceAwsCodeBuildProjectSourceVersionHash,
+	}
+
+	for _, sourceVersions := range sourceVersions {
+		sourceVersionSet.Add(flattenAwsCodeBuildProjectsourceVersionsData(*sourceVersions))
+	}
+	return &sourceVersionSet
+}
+
 func flattenAwsCodeBuildProjectArtifacts(artifacts *codebuild.ProjectArtifacts) []interface{} {
 	return []interface{}{flattenAwsCodeBuildProjectArtifactsData(*artifacts)}
 }
@@ -1621,6 +1693,20 @@ func flattenAwsCodeBuildProjectArtifactsData(artifacts codebuild.ProjectArtifact
 	if artifacts.Path != nil {
 		values["path"] = aws.StringValue(artifacts.Path)
 	}
+	return values
+}
+
+func flattenAwsCodeBuildProjectsourceVersionsData(sourceVersion codebuild.ProjectSourceVersion) map[string]interface{} {
+	values := map[string]interface{}{}
+
+	if sourceVersion.SourceIdentifier != nil {
+		values["source_identifier"] = aws.StringValue(sourceVersion.SourceIdentifier)
+	}
+
+	if sourceVersion.SourceVersion != nil {
+		values["source_version"] = aws.StringValue(sourceVersion.SourceVersion)
+	}
+
 	return values
 }
 
@@ -1820,6 +1906,21 @@ func resourceAwsCodeBuildProjectArtifactsHash(v interface{}) int {
 	}
 
 	if v, ok := m["type"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func resourceAwsCodeBuildProjectSourceVersionHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	if v, ok := m["source_identifier"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["source_version"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 
