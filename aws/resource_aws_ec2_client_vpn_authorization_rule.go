@@ -111,6 +111,11 @@ func resourceAwsEc2ClientVpnAuthorizationRuleRead(d *schema.ResourceData, meta i
 		d.SetId("")
 		return nil
 	}
+	if isAWSErr(err, tfec2.ErrCodeClientVpnEndpointIdNotFound, "") {
+		log.Printf("[WARN] EC2 Client VPN (%s) not found, removing rule from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("error reading Client VPN authorization rule: %w", err)
 	}
@@ -172,6 +177,9 @@ func deleteClientVpnAuthorizationRule(conn *ec2.EC2, input *ec2.RevokeClientVpnI
 
 	_, err := conn.RevokeClientVpnIngress(input)
 	if isAWSErr(err, tfec2.ErrCodeClientVpnAuthorizationRuleNotFound, "") {
+		return nil
+	}
+	if isAWSErr(err, tfec2.ErrCodeClientVpnEndpointIdNotFound, "") {
 		return nil
 	}
 	if err != nil {
