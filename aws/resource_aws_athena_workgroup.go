@@ -48,6 +48,11 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 							Optional: true,
 							Default:  true,
 						},
+						"engine_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "AUTO",
+						},
 						"publish_cloudwatch_metrics_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -315,6 +320,12 @@ func expandAthenaWorkGroupConfiguration(l []interface{}) *athena.WorkGroupConfig
 		configuration.EnforceWorkGroupConfiguration = aws.Bool(v.(bool))
 	}
 
+	if v, ok := m["engine_version"]; ok {
+		configuration.EngineVersion = &athena.EngineVersion{
+			SelectedEngineVersion: aws.String(v.(string)),
+		}
+	}
+
 	if v, ok := m["publish_cloudwatch_metrics_enabled"]; ok {
 		configuration.PublishCloudWatchMetricsEnabled = aws.Bool(v.(bool))
 	}
@@ -343,6 +354,12 @@ func expandAthenaWorkGroupConfigurationUpdates(l []interface{}) *athena.WorkGrou
 
 	if v, ok := m["enforce_workgroup_configuration"]; ok {
 		configurationUpdates.EnforceWorkGroupConfiguration = aws.Bool(v.(bool))
+	}
+
+	if v, ok := m["engine_version"]; ok {
+		configurationUpdates.EngineVersion = &athena.EngineVersion{
+			SelectedEngineVersion: aws.String(v.(string)),
+		}
 	}
 
 	if v, ok := m["publish_cloudwatch_metrics_enabled"]; ok {
@@ -428,6 +445,7 @@ func flattenAthenaWorkGroupConfiguration(configuration *athena.WorkGroupConfigur
 	m := map[string]interface{}{
 		"bytes_scanned_cutoff_per_query":     aws.Int64Value(configuration.BytesScannedCutoffPerQuery),
 		"enforce_workgroup_configuration":    aws.BoolValue(configuration.EnforceWorkGroupConfiguration),
+		"engine_version":                     aws.StringValue(configuration.EngineVersion.SelectedEngineVersion),
 		"publish_cloudwatch_metrics_enabled": aws.BoolValue(configuration.PublishCloudWatchMetricsEnabled),
 		"result_configuration":               flattenAthenaWorkGroupResultConfiguration(configuration.ResultConfiguration),
 	}
