@@ -64,6 +64,11 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 				Optional: true,
 			},
 
+			"fail_on_warnings": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"disable_execute_api_endpoint": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -203,6 +208,10 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 			RestApiId: gateway.Id,
 			Mode:      aws.String(apigateway.PutModeOverwrite),
 			Body:      []byte(body.(string)),
+		}
+
+		if v, ok := d.GetOk("fail_on_warnings"); ok {
+			input.FailOnWarnings = aws.Bool(v.(bool))
 		}
 
 		if v, ok := d.GetOk("parameters"); ok && len(v.(map[string]interface{})) > 0 {
@@ -570,6 +579,10 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 				RestApiId: aws.String(d.Id()),
 				Mode:      aws.String(apigateway.PutModeOverwrite),
 				Body:      []byte(body.(string)),
+			}
+
+			if v, ok := d.GetOk("fail_on_warnings"); ok {
+				input.FailOnWarnings = aws.Bool(v.(bool))
 			}
 
 			if v, ok := d.GetOk("parameters"); ok && len(v.(map[string]interface{})) > 0 {

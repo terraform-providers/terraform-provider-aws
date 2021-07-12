@@ -930,6 +930,51 @@ func TestAccAWSAPIGatewayRestApi_EndpointConfiguration_VpcEndpointIds_SetByBody(
 	})
 }
 
+func TestAccAWSAPIGatewayRestApi_Fail_On_Warnings(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, apigateway.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			// Verify invalid body fails creation, when fail_on_warnings is true
+			{
+				Config:      testAccAWSAPIGatewayRestApiFailOnWarnings(rName, "original", "fail_on_warnings = true"),
+				ExpectError: regexp.MustCompile(`BadRequestException: Warnings found during import`),
+			},
+			// Verify invalid body succeeds creation, when fail_on_warnings is not set
+			{
+				Config: testAccAWSAPIGatewayRestApiFailOnWarnings(rName, "original", ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/users"}),
+					resource.TestMatchResourceAttr(resourceName, "description", regexp.MustCompile(`original`)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			// Verify invalid body fails update, when fail_on_warnings is true
+			{
+				Config:      testAccAWSAPIGatewayRestApiFailOnWarnings(rName, "update", "fail_on_warnings = true"),
+				ExpectError: regexp.MustCompile(`BadRequestException: Warnings found during import`),
+			},
+			// Verify invalid body succeeds update, when fail_on_warnings is not set
+			{
+				Config: testAccAWSAPIGatewayRestApiFailOnWarnings(rName, "update", ""),
+				Check:  resource.TestMatchResourceAttr(resourceName, "description", regexp.MustCompile(`update`)),
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayRestApi_MinimumCompressionSize(t *testing.T) {
 	var conf apigateway.RestApi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -2381,4 +2426,52 @@ resource "aws_api_gateway_rest_api" "test" {
   })
 }
 `, rName, bodyPolicyEffect)
+}
+
+func testAccAWSAPIGatewayRestApiFailOnWarnings(rName string, title string, failOnWarnings string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name        = %[1]q
+  description = %[2]q
+
+  %[3]s
+  body = jsonencode({
+    openapi = "3.0.0"
+    info = {
+      title       = "Sample API"
+      description = %[2]q
+      version     = "0.1.9"
+    }
+    servers = [{
+      url = "http://api.example.com/v1"
+    }]
+    components = {
+      invalid_key_will_warn = "a_value"
+    }
+    paths = {
+      "/users" = {
+        get = {
+          summary     = "Returns a list of users."
+          description = "Optional extended description in CommonMark or HTML."
+          responses = {
+            "200" = {
+              description = "A JSON array of user names"
+              content = {
+                "application/json" = {
+                  schema = {
+                    type = "array"
+                    items = {
+                      type = "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+}
+`, rName, title, failOnWarnings)
 }
