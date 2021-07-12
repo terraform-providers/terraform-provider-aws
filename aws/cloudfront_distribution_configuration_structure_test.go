@@ -247,6 +247,15 @@ func loggingConfigConf() map[string]interface{} {
 	}
 }
 
+func loggingConfigConfDisabled() map[string]interface{} {
+	return map[string]interface{}{
+		"include_cookies": false,
+		"bucket":          "mylogs.s3.amazonaws.com",
+		"prefix":          "myprefix",
+		"enabled":         false,
+	}
+}
+
 func customErrorResponsesConfSet() *schema.Set {
 	return schema.NewSet(customErrorResponseHash, customErrorResponsesConf())
 }
@@ -928,6 +937,24 @@ func TestCloudFrontStructure_expandLoggingConfig(t *testing.T) {
 	lc := expandLoggingConfig(data)
 	if !*lc.Enabled {
 		t.Fatalf("Expected Enabled to be true, got %v", *lc.Enabled)
+	}
+	if *lc.Prefix != "myprefix" {
+		t.Fatalf("Expected Prefix to be myprefix, got %v", *lc.Prefix)
+	}
+	if *lc.Bucket != "mylogs.s3.amazonaws.com" {
+		t.Fatalf("Expected Bucket to be mylogs.s3.amazonaws.com, got %v", *lc.Bucket)
+	}
+	if *lc.IncludeCookies {
+		t.Fatalf("Expected IncludeCookies to be false, got %v", *lc.IncludeCookies)
+	}
+}
+
+func TestCloudFrontStructure_expandLoggingConfigDisabled(t *testing.T) {
+	data := loggingConfigConfDisabled()
+
+	lc := expandLoggingConfig(data)
+	if *lc.Enabled {
+		t.Fatalf("Expected Enabled to be false, got %v", *lc.Enabled)
 	}
 	if *lc.Prefix != "myprefix" {
 		t.Fatalf("Expected Prefix to be myprefix, got %v", *lc.Prefix)
