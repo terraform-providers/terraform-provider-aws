@@ -90,6 +90,7 @@ The following arguments are supported:
     * `enabled` - (Optional) Whether or not auto-deployment is enabled.
     * `retain_stacks_on_account_removal` - (Optional) Whether or not to retain stacks when the account is removed.
 * `name` - (Required) Name of the StackSet. The name must be unique in the region where you create your StackSet. The name can contain only alphanumeric characters (case-sensitive) and hyphens. It must start with an alphabetic character and cannot be longer than 128 characters.
+* `call_as` - (Optional) Describes whether you are acting as an account administrator in the organization's management account or as a delegated administrator in a member account. Valid values: `SELF`, `DELEGATED_ADMIN`. Default: `SELF`.
 * `capabilities` - (Optional) A list of capabilities. Valid values: `CAPABILITY_IAM`, `CAPABILITY_NAMED_IAM`, `CAPABILITY_AUTO_EXPAND`.
 * `description` - (Optional) Description of the StackSet.
 * `execution_role_name` - (Optional) Name of the IAM Role in all target accounts for StackSet operations. Defaults to `AWSCloudFormationStackSetExecutionRole` when using the `SELF_MANAGED` permission model. This should not be defined when using the `SERVICE_MANAGED` permission model.

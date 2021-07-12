@@ -63,6 +63,12 @@ func resourceAwsCloudFormationStackSet() *schema.Resource {
 					},
 				},
 			},
+			"call_as": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      cloudformation.CallAsSelf,
+				ValidateFunc: validation.StringInSlice(cloudformation.CallAs_Values(), false),
+			},
 			"capabilities": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -145,6 +151,10 @@ func resourceAwsCloudFormationStackSetCreate(d *schema.ResourceData, meta interf
 
 	if v, ok := d.GetOk("auto_deployment"); ok {
 		input.AutoDeployment = expandAutoDeployment(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("call_as"); ok {
+		input.CallAs = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("capabilities"); ok {
@@ -271,6 +281,10 @@ func resourceAwsCloudFormationStackSetUpdate(d *schema.ResourceData, meta interf
 
 	if v, ok := d.GetOk("administration_role_arn"); ok {
 		input.AdministrationRoleARN = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("call_as"); ok {
+		input.CallAs = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("capabilities"); ok {
