@@ -83,7 +83,7 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"target_group": {
 										Type:     schema.TypeSet,
-										MinItems: 2,
+										MinItems: 1,
 										MaxItems: 5,
 										Required: true,
 										Elem: &schema.Resource{
