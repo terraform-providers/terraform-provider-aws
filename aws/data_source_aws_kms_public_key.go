@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -75,7 +76,7 @@ func dataSourceAwsKmsPublicKeyRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("arn", output.KeyId)
 	d.Set("customer_master_key_spec", output.CustomerMasterKeySpec)
 	d.Set("key_usage", output.KeyUsage)
-	d.Set("public_key", string(output.PublicKey))
+	d.Set("public_key", base64.StdEncoding.EncodeToString(output.PublicKey))
 
 	if err := d.Set("encryption_algorithms", flattenStringList(output.EncryptionAlgorithms)); err != nil {
 		return fmt.Errorf("error setting encryption_algorithms: %w", err)
