@@ -426,6 +426,10 @@ func validateElbName(v interface{}, k string) (ws []string, errors []error) {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot end with a hyphen: %q", k, value))
 	}
+	if strings.HasPrefix(value, "internal-") {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot begin with `internal-`: %q", k, value))
+	}
 	return
 }
 
