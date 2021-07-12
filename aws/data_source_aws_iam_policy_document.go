@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -167,6 +168,7 @@ func dataSourceAwsIamPolicyDocumentRead(d *schema.ResourceData, meta interface{}
 		var cfgStmtIntf = cfgStmts.([]interface{})
 		stmts := make([]*IAMPolicyStatement, len(cfgStmtIntf))
 		sidMap := make(map[string]struct{})
+		sidTestRegex := regexp.MustCompile(`[0-9A-Za-z]*`)
 
 		for i, stmtI := range cfgStmtIntf {
 			cfgStmt := stmtI.(map[string]interface{})
@@ -180,6 +182,9 @@ func dataSourceAwsIamPolicyDocumentRead(d *schema.ResourceData, meta interface{}
 				}
 				stmt.Sid = sid.(string)
 				if len(stmt.Sid) > 0 {
+					if !sidTestRegex.MatchString(stmt.Sid) {
+						return fmt.Errorf("Error in sid (%s), sid must match regex [0-9A-Za-z]*.", sid.(string))
+					}
 					sidMap[stmt.Sid] = struct{}{}
 				}
 			}
