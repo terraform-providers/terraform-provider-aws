@@ -1008,6 +1008,8 @@ func Provider() *schema.Provider {
 			"aws_sagemaker_notebook_instance_lifecycle_configuration": resourceAwsSagemakerNotebookInstanceLifeCycleConfiguration(),
 			"aws_sagemaker_notebook_instance":                         resourceAwsSagemakerNotebookInstance(),
 			"aws_sagemaker_user_profile":                              resourceAwsSagemakerUserProfile(),
+			"aws_sagemaker_workforce":                                 resourceAwsSagemakerWorkforce(),
+			"aws_sagemaker_workteam":                                  resourceAwsSagemakerWorkteam(),
 			"aws_schemas_discoverer":                                  resourceAwsSchemasDiscoverer(),
 			"aws_schemas_registry":                                    resourceAwsSchemasRegistry(),
 			"aws_schemas_schema":                                      resourceAwsSchemasSchema(),

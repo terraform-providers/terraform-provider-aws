@@ -97,6 +97,7 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 			"callback_urls": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				MaxItems: 100,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -147,6 +148,7 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 			"logout_urls": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				MaxItems: 100,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
