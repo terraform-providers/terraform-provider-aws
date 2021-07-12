@@ -40,6 +40,9 @@ func resourceAwsSpotInstanceRequest() *schema.Resource {
 			// The Spot Instance Request Schema is based on the AWS Instance schema.
 			s := resourceAwsInstance().Schema
 
+			// Remove things that are not used in spot instance requests
+			delete(s, "metadata_options")
+
 			// Everything on a spot instance is ForceNew except tags
 			for k, v := range s {
 				if k == "tags" || k == "tags_all" {
