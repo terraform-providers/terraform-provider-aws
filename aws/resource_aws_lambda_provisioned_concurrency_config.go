@@ -164,13 +164,20 @@ func resourceAwsLambdaProvisionedConcurrencyConfigDelete(d *schema.ResourceData,
 }
 
 func resourceAwsLambdaProvisionedConcurrencyConfigParseId(id string) (string, string, error) {
-	parts := strings.SplitN(id, ":", 2)
+	parts := strings.SplitN(id, ":", 8)
 
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", fmt.Errorf("unexpected format of ID (%s), expected FUNCTION_NAME:QUALIFIER", id)
+	// functionname with qualifier
+	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+		return parts[0], parts[1], nil
 	}
 
-	return parts[0], parts[1], nil
+	// arn with qualifier
+	if len(parts) == 8 && parts[0] == "arn" && parts[1] == "aws" && parts[2] == "lambda" && parts[5] == "function" &&
+		parts[6] != "" && parts[7] != "" {
+		return strings.Join(parts[0:7], ":"), parts[7], nil
+	}
+
+	return "", "", fmt.Errorf("unexpected format of ID (%s), expected FUNCTION_NAME:QUALIFIER or ARN:QUALIFIER", id)
 }
 
 func refreshLambdaProvisionedConcurrencyConfigStatus(conn *lambda.Lambda, functionName, qualifier string) resource.StateRefreshFunc {

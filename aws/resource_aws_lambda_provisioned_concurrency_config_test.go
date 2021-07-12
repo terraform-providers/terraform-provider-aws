@@ -151,6 +151,39 @@ func TestAccAWSLambdaProvisionedConcurrencyConfig_Qualifier_AliasName(t *testing
 	})
 }
 
+func Test_resourceAwsLambdaProvisionedConcurrencyConfigParseId(t *testing.T) {
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		want1   string
+		wantErr bool
+	}{		
+		{ "function with qualifier", args{ "my-function:alias" }, "my-function", "alias", false },
+		{ "function w/o qualifier", args{ "my-function" }, "", "", true },
+		{ "ARN with qualifier", args{ "arn:aws:lambda:nice-region:1234567890:function:my-function:alias" }, "arn:aws:lambda:nice-region:1234567890:function:my-function", "alias", false },
+		{ "ARN w/o qualifier", args{ "arn:aws:lambda:nice-region:1234567890:function:my-function" }, "", "", true },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, err := resourceAwsLambdaProvisionedConcurrencyConfigParseId(tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("resourceAwsLambdaProvisionedConcurrencyConfigParseId() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("resourceAwsLambdaProvisionedConcurrencyConfigParseId() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("resourceAwsLambdaProvisionedConcurrencyConfigParseId() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
 func testAccCheckLambdaProvisionedConcurrencyConfigDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
