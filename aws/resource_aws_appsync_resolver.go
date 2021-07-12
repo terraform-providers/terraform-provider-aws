@@ -52,13 +52,10 @@ func resourceAwsAppsyncResolver() *schema.Resource {
 				Optional: true,
 			},
 			"kind": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  appsync.ResolverKindUnit,
-				ValidateFunc: validation.StringInSlice([]string{
-					appsync.ResolverKindUnit,
-					appsync.ResolverKindPipeline,
-				}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      appsync.ResolverKindUnit,
+				ValidateFunc: validation.StringInSlice(appsync.ResolverKind_Values(), true),
 			},
 			"pipeline_config": {
 				Type:          schema.TypeList,

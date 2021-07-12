@@ -102,6 +102,7 @@ func resourceAwsApiGatewayV2Integration() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "1.0",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",

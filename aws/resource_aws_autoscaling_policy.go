@@ -67,6 +67,7 @@ func resourceAwsAutoscalingPolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "SimpleScaling", // preserve AWS's default to make validation easier.
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"SimpleScaling",
 					"StepScaling",

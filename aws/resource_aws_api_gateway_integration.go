@@ -56,26 +56,17 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 			},
 
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigateway.IntegrationTypeHttp,
-					apigateway.IntegrationTypeAws,
-					apigateway.IntegrationTypeMock,
-					apigateway.IntegrationTypeHttpProxy,
-					apigateway.IntegrationTypeAwsProxy,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(apigateway.IntegrationType_Values(), false),
 			},
 
 			"connection_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  apigateway.ConnectionTypeInternet,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigateway.ConnectionTypeInternet,
-					apigateway.ConnectionTypeVpcLink,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      apigateway.ConnectionTypeInternet,
+				ValidateFunc: validation.StringInSlice(apigateway.ConnectionType_Values(), false),
 			},
 
 			"connection_id": {
@@ -124,6 +115,7 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"WHEN_NO_MATCH",
 					"WHEN_NO_TEMPLATES",

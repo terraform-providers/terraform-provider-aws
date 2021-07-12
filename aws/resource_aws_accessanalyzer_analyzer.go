@@ -50,14 +50,11 @@ func resourceAwsAccessAnalyzerAnalyzer() *schema.Resource {
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  accessanalyzer.TypeAccount,
-				ValidateFunc: validation.StringInSlice([]string{
-					accessanalyzer.TypeAccount,
-					accessanalyzer.TypeOrganization,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      accessanalyzer.TypeAccount,
+				ValidateFunc: validation.StringInSlice(accessanalyzer.Type_Values(), false),
 			},
 		},
 

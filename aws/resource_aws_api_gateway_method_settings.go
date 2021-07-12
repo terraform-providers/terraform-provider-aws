@@ -54,6 +54,7 @@ func resourceAwsApiGatewayMethodSettings() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{
 								"OFF",
 								"ERROR",
@@ -96,14 +97,10 @@ func resourceAwsApiGatewayMethodSettings() *schema.Resource {
 							Computed: true,
 						},
 						"unauthorized_cache_control_header_strategy": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								apigateway.UnauthorizedCacheControlHeaderStrategyFailWith403,
-								apigateway.UnauthorizedCacheControlHeaderStrategySucceedWithResponseHeader,
-								apigateway.UnauthorizedCacheControlHeaderStrategySucceedWithoutResponseHeader,
-							}, false),
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(apigateway.UnauthorizedCacheControlHeaderStrategy_Values(), false),
+							Computed:     true,
 						},
 					},
 				},

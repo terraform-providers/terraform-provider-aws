@@ -34,8 +34,9 @@ func resourceAwsApiGatewayV2Authorizer() *schema.Resource {
 				ValidateFunc: validateArn,
 			},
 			"authorizer_payload_format_version": {
-				Type:         schema.TypeString,
-				Optional:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{"1.0", "2.0"}, false),
 			},
 			"authorizer_result_ttl_in_seconds": {

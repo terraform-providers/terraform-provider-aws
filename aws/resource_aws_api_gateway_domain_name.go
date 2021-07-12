@@ -63,13 +63,10 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 			},
 
 			"security_policy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigateway.SecurityPolicyTls10,
-					apigateway.SecurityPolicyTls12,
-				}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(apigateway.SecurityPolicy_Values(), true),
 			},
 
 			"certificate_arn": {
@@ -108,11 +105,8 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 							// BadRequestException: Cannot create an api with multiple Endpoint Types
 							MaxItems: 1,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									apigateway.EndpointTypeEdge,
-									apigateway.EndpointTypeRegional,
-								}, false),
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringInSlice(apigateway.EndpointType_Values(), false),
 							},
 						},
 					},

@@ -60,22 +60,18 @@ func resourceAwsApiGatewayV2DomainName() *schema.Resource {
 							ValidateFunc: validateArn,
 						},
 						"endpoint_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								apigatewayv2.EndpointTypeRegional,
-							}, true),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(apigatewayv2.EndpointType_Values(), true),
 						},
 						"hosted_zone_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"security_policy": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								apigatewayv2.SecurityPolicyTls12,
-							}, true),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(apigatewayv2.SecurityPolicy_Values(), true),
 						},
 						"target_domain_name": {
 							Type:     schema.TypeString,

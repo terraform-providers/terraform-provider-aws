@@ -107,11 +107,9 @@ func resourceAwsAutoScalingPlansScalingPlan() *schema.Resource {
 									},
 
 									"statistic": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											autoscalingplans.MetricStatisticSum,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(autoscalingplans.MetricStatistic_Values(), false),
 									},
 
 									"unit": {

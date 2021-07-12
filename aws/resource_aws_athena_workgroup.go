@@ -66,13 +66,9 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"encryption_option": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														athena.EncryptionOptionCseKms,
-														athena.EncryptionOptionSseKms,
-														athena.EncryptionOptionSseS3,
-													}, false),
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(athena.EncryptionOption_Values(), false),
 												},
 												"kms_key_arn": {
 													Type:         schema.TypeString,
@@ -107,13 +103,10 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 				),
 			},
 			"state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  athena.WorkGroupStateEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					athena.WorkGroupStateDisabled,
-					athena.WorkGroupStateEnabled,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      athena.WorkGroupStateEnabled,
+				ValidateFunc: validation.StringInSlice(athena.WorkGroupState_Values(), false),
 			},
 			"force_destroy": {
 				Type:     schema.TypeBool,

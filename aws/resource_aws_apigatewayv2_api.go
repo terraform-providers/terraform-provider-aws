@@ -32,6 +32,7 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "$request.header.x-api-key",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"$context.authorizer.usageIdentifierKey",
 					"$request.header.x-api-key",

@@ -48,13 +48,9 @@ func resourceAwsAthenaDatabase() *schema.Resource {
 							Optional: true,
 						},
 						"encryption_option": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								athena.EncryptionOptionCseKms,
-								athena.EncryptionOptionSseKms,
-								athena.EncryptionOptionSseS3,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(athena.EncryptionOption_Values(), false),
 						},
 					},
 				},

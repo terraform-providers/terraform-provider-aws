@@ -53,28 +53,16 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key_algorithm": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								acmpca.KeyAlgorithmEcPrime256v1,
-								acmpca.KeyAlgorithmEcSecp384r1,
-								acmpca.KeyAlgorithmRsa2048,
-								acmpca.KeyAlgorithmRsa4096,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(acmpca.KeyAlgorithm_Values(), false),
 						},
 						"signing_algorithm": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								acmpca.SigningAlgorithmSha256withecdsa,
-								acmpca.SigningAlgorithmSha256withrsa,
-								acmpca.SigningAlgorithmSha384withecdsa,
-								acmpca.SigningAlgorithmSha384withrsa,
-								acmpca.SigningAlgorithmSha512withecdsa,
-								acmpca.SigningAlgorithmSha512withrsa,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(acmpca.SigningAlgorithm_Values(), false),
 						},
 						// https://docs.aws.amazon.com/acm-pca/latest/APIReference/API_ASN1Subject.html
 						"subject": {
@@ -265,14 +253,11 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  acmpca.CertificateAuthorityTypeSubordinate,
-				ValidateFunc: validation.StringInSlice([]string{
-					acmpca.CertificateAuthorityTypeRoot,
-					acmpca.CertificateAuthorityTypeSubordinate,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      acmpca.CertificateAuthorityTypeSubordinate,
+				ValidateFunc: validation.StringInSlice(acmpca.CertificateAuthorityType_Values(), false),
 			},
 		},
 

@@ -59,18 +59,9 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 				Optional: true,
 			},
 			"cache_cluster_size": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigateway.CacheClusterSize05,
-					apigateway.CacheClusterSize16,
-					apigateway.CacheClusterSize61,
-					apigateway.CacheClusterSize118,
-					apigateway.CacheClusterSize135,
-					apigateway.CacheClusterSize237,
-					apigateway.CacheClusterSize284,
-					apigateway.CacheClusterSize582,
-				}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apigateway.CacheClusterSize_Values(), true),
 			},
 			"client_certificate_id": {
 				Type:     schema.TypeString,

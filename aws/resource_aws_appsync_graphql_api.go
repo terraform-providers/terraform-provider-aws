@@ -116,13 +116,9 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 							Required: true,
 						},
 						"field_log_level": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								appsync.FieldLogLevelAll,
-								appsync.FieldLogLevelError,
-								appsync.FieldLogLevelNone,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(appsync.FieldLogLevel_Values(), false),
 						},
 						"exclude_verbose_content": {
 							Type:     schema.TypeBool,
@@ -173,12 +169,9 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 							Computed: true,
 						},
 						"default_action": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								appsync.DefaultActionAllow,
-								appsync.DefaultActionDeny,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(appsync.DefaultAction_Values(), false),
 						},
 						"user_pool_id": {
 							Type:     schema.TypeString,

@@ -152,10 +152,7 @@ func resourceAwsAcmCertificate() *schema.Resource {
 							Default:       acm.CertificateTransparencyLoggingPreferenceEnabled,
 							ForceNew:      true,
 							ConflictsWith: []string{"private_key", "certificate_body", "certificate_chain"},
-							ValidateFunc: validation.StringInSlice([]string{
-								acm.CertificateTransparencyLoggingPreferenceEnabled,
-								acm.CertificateTransparencyLoggingPreferenceDisabled,
-							}, false),
+							ValidateFunc:  validation.StringInSlice(acm.CertificateTransparencyLoggingPreference_Values(), false),
 						},
 					},
 				},

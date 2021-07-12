@@ -28,12 +28,9 @@ func resourceAwsApiGatewayV2IntegrationResponse() *schema.Resource {
 				ForceNew: true,
 			},
 			"content_handling_strategy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.ContentHandlingStrategyConvertToBinary,
-					apigatewayv2.ContentHandlingStrategyConvertToText,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.ContentHandlingStrategy_Values(), false),
 			},
 			"integration_id": {
 				Type:     schema.TypeString,

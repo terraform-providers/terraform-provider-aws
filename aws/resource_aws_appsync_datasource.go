@@ -39,15 +39,9 @@ func resourceAwsAppsyncDatasource() *schema.Resource {
 				},
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					appsync.DataSourceTypeAwsLambda,
-					appsync.DataSourceTypeAmazonDynamodb,
-					appsync.DataSourceTypeAmazonElasticsearch,
-					appsync.DataSourceTypeHttp,
-					appsync.DataSourceTypeNone,
-				}, true),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(appsync.DataSourceType_Values(), true),
 				StateFunc: func(v interface{}) string {
 					return strings.ToUpper(v.(string))
 				},

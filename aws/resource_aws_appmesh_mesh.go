@@ -50,13 +50,10 @@ func resourceAwsAppmeshMesh() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  appmesh.EgressFilterTypeDropAll,
-										ValidateFunc: validation.StringInSlice([]string{
-											appmesh.EgressFilterTypeAllowAll,
-											appmesh.EgressFilterTypeDropAll,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      appmesh.EgressFilterTypeDropAll,
+										ValidateFunc: validation.StringInSlice(appmesh.EgressFilterType_Values(), false),
 									},
 								},
 							},

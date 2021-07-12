@@ -60,6 +60,7 @@ func resourceAwsAppsyncFunction() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "2018-05-29",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"2018-05-29",
 				}, true),

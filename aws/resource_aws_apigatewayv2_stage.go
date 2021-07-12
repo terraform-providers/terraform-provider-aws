@@ -84,14 +84,10 @@ func resourceAwsApiGatewayV2Stage() *schema.Resource {
 							Default:  false,
 						},
 						"logging_level": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								apigatewayv2.LoggingLevelError,
-								apigatewayv2.LoggingLevelInfo,
-								apigatewayv2.LoggingLevelOff,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(apigatewayv2.LoggingLevel_Values(), false),
 						},
 						"throttling_burst_limit": {
 							Type:     schema.TypeInt,
@@ -145,14 +141,10 @@ func resourceAwsApiGatewayV2Stage() *schema.Resource {
 							Default:  false,
 						},
 						"logging_level": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								apigatewayv2.LoggingLevelError,
-								apigatewayv2.LoggingLevelInfo,
-								apigatewayv2.LoggingLevelOff,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(apigatewayv2.LoggingLevel_Values(), false),
 						},
 						"route_key": {
 							Type:     schema.TypeString,

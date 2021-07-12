@@ -55,14 +55,10 @@ func resourceAwsApiGatewayAuthorizer() *schema.Resource {
 				ForceNew: true,
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  apigateway.AuthorizerTypeToken,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigateway.AuthorizerTypeCognitoUserPools,
-					apigateway.AuthorizerTypeRequest,
-					apigateway.AuthorizerTypeToken,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      apigateway.AuthorizerTypeToken,
+				ValidateFunc: validation.StringInSlice(apigateway.AuthorizerType_Values(), false),
 			},
 			"authorizer_credentials": {
 				Type:         schema.TypeString,
