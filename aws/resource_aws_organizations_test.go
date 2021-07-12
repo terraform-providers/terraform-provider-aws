@@ -20,6 +20,9 @@ func TestAccAWSOrganizations_serial(t *testing.T) {
 			"ParentId": testAccAwsOrganizationsAccount_ParentId,
 			"Tags":     testAccAwsOrganizationsAccount_Tags,
 		},
+		"Accounts": {
+			"DataSource": testAccDataSourceAwsOrganizationsAccounts_basic,
+		},
 		"OrganizationalUnit": {
 			"basic":      testAccAwsOrganizationsOrganizationalUnit_basic,
 			"disappears": testAccAwsOrganizationsOrganizationalUnit_disappears,
