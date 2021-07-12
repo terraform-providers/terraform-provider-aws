@@ -23,34 +23,37 @@ func init() {
 func testSweepKmsKeys(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).kmsconn
 
 	err = conn.ListKeysPages(&kms.ListKeysInput{Limit: aws.Int64(int64(1000))}, func(out *kms.ListKeysOutput, lastPage bool) bool {
 		for _, k := range out.Keys {
+			kKeyId := aws.StringValue(k.KeyId)
 			kOut, err := conn.DescribeKey(&kms.DescribeKeyInput{
 				KeyId: k.KeyId,
 			})
 			if err != nil {
-				log.Printf("Error: Failed to describe key %q: %s", *k.KeyId, err)
+				log.Printf("Error: Failed to describe key %q: %s", kKeyId, err)
 				return false
 			}
-			if *kOut.KeyMetadata.KeyManager == kms.KeyManagerTypeAws {
+			if aws.StringValue(kOut.KeyMetadata.KeyManager) == kms.KeyManagerTypeAws {
 				// Skip (default) keys which are managed by AWS
 				continue
 			}
-			if *kOut.KeyMetadata.KeyState == kms.KeyStatePendingDeletion {
+			if aws.StringValue(kOut.KeyMetadata.KeyState) == kms.KeyStatePendingDeletion {
 				// Skip keys which are already scheduled for deletion
 				continue
 			}
 
-			_, err = conn.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
-				KeyId:               k.KeyId,
-				PendingWindowInDays: aws.Int64(int64(7)),
-			})
+			r := resourceAwsKmsKey()
+			d := r.Data(nil)
+			d.SetId(kKeyId)
+			d.Set("key_id", kKeyId)
+			d.Set("deletion_window_in_days", "7")
+			err = r.Delete(d, client)
 			if err != nil {
-				log.Printf("Error: Failed to schedule key %q for deletion: %s", *k.KeyId, err)
+				log.Printf("Error: Failed to schedule key %q for deletion: %s", kKeyId, err)
 				return false
 			}
 		}
@@ -61,7 +64,7 @@ func testSweepKmsKeys(region string) error {
 			log.Printf("[WARN] Skipping KMS Key sweep for %s: %s", region, err)
 			return nil
 		}
-		return fmt.Errorf("Error describing KMS keys: %s", err)
+		return fmt.Errorf("Error describing KMS keys: %w", err)
 	}
 
 	return nil
@@ -84,6 +87,8 @@ func TestAccAWSKmsKey_basic(t *testing.T) {
 					testAccCheckAWSKmsKeyExists(resourceName, &key),
 					resource.TestCheckResourceAttr(resourceName, "customer_master_key_spec", "SYMMETRIC_DEFAULT"),
 					resource.TestCheckResourceAttr(resourceName, "key_usage", "ENCRYPT_DECRYPT"),
+					resource.TestCheckResourceAttr(resourceName, "multi_region", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -134,7 +139,7 @@ func TestAccAWSKmsKey_disappears(t *testing.T) {
 				Config: testAccAWSKmsKey(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsKeyExists(resourceName, &key),
-					testAccCheckAWSKmsKeyDisappears(&key),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsKmsKey(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -315,6 +320,34 @@ func TestAccAWSKmsKey_tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSKmsKey_multiRegion(t *testing.T) {
+	var key kms.KeyMetadata
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
+	resourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, kms.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSKmsKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSKmsKeyMultiRegionConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSKmsKeyExists(resourceName, &key),
+					resource.TestCheckResourceAttr(resourceName, "multi_region", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_window_in_days"},
+			},
+		},
+	})
+}
+
 func testAccCheckAWSKmsKeyHasPolicy(name string, expectedPolicyText string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -414,19 +447,6 @@ func testAccCheckAWSKmsKeyIsEnabled(key *kms.KeyMetadata, isEnabled bool) resour
 		}
 
 		return nil
-	}
-}
-
-func testAccCheckAWSKmsKeyDisappears(key *kms.KeyMetadata) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).kmsconn
-
-		_, err := conn.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
-			KeyId:               key.KeyId,
-			PendingWindowInDays: aws.Int64(int64(7)),
-		})
-
-		return err
 	}
 }
 
@@ -653,6 +673,16 @@ resource "aws_kms_key" "test" {
     Key1        = "Value One"
     Description = "Very interesting"
   }
+}
+`, rName)
+}
+
+func testAccAWSKmsKeyMultiRegionConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+  description             = %[1]q
+  deletion_window_in_days = 7
+  multi_region            = true
 }
 `, rName)
 }

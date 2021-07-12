@@ -35,6 +35,7 @@ Valid values: `SYMMETRIC_DEFAULT`,  `RSA_2048`, `RSA_3072`, `RSA_4096`, `ECC_NIS
 * `deletion_window_in_days` - (Optional) Duration in days after which the key is deleted after destruction of the resource, must be between 7 and 30 days. Defaults to 30 days.
 * `is_enabled` - (Optional) Specifies whether the key is enabled. Defaults to true.
 * `enable_key_rotation` - (Optional) Specifies whether [key rotation](http://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html) is enabled. Defaults to false.
+* `multi_region` - (Optional) Creates a multi-Region primary key that you can replicate into other AWS Regions. You cannot change this value after you create the CMK. Defaults to false.
 * `tags` - (Optional) A map of tags to assign to the object. If configured with a provider [`default_tags` configuration block](https://www.terraform.io/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ## Attributes Reference

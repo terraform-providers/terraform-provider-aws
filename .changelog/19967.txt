@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/aws_kms_key: Add `multi_region` argument.
+```
+
+```release-note:enhancement
+resource/aws_kms_key: Add plan time validation to `description`.
+```
