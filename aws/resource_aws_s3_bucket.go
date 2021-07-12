@@ -1966,9 +1966,25 @@ func resourceAwsS3BucketServerSideEncryptionConfigurationUpdate(s3conn *s3.S3, d
 	}
 	log.Printf("[DEBUG] S3 put bucket replication configuration: %#v", i)
 
-	_, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return s3conn.PutBucketEncryption(i)
+	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		var err error
+		_, err = s3conn.PutBucketEncryption(i)
+
+		if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") ||
+			(d.IsNewResource() && isAWSErr(err, "OperationAborted", "")) {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
+	if isResourceTimeoutError(err) {
+		_, err = s3conn.PutBucketEncryption(i)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error putting S3 server side encryption configuration: %s", err)
 	}
