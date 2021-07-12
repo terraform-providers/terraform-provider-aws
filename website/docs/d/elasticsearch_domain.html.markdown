@@ -47,6 +47,8 @@ The following attributes are exported:
     * `warm_enabled` - Indicates warm storage is enabled.
     * `warm_count` - The number of warm nodes in the cluster.
     * `warm_type` - The instance type for the Elasticsearch cluster's warm nodes.
+    * `cold_storage_options` - Configuration block containing cold storage configuration.
+        * `enabled` - Indicates  cold storage is enabled.
 * `cognito_options` - Domain Amazon Cognito Authentication options for Kibana.
     * `enabled` - Whether Amazon Cognito Authentication is enabled.
     * `user_pool_id` - The Cognito User pool used by the domain.

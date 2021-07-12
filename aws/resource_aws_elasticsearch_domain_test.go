@@ -340,6 +340,44 @@ func TestAccAWSElasticSearchDomain_warm(t *testing.T) {
 	})
 }
 
+func TestAccAWSElasticSearchDomain_witColdStorageOptions(t *testing.T) {
+	var domain elasticsearch.ElasticsearchDomainStatus
+	ri := acctest.RandInt()
+	resourceName := "aws_elasticsearch_domain.test"
+	resourceId := fmt.Sprintf("tf-test-%d", ri)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckIamServiceLinkedRoleEs(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticsearch.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckESDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccESDomainConfig_WithColdStorageOptions(ri, false, false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists(resourceName, &domain),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cluster_config.0.cold_storage_options.*", map[string]string{
+						"enabled": "false",
+					})),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     resourceId,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccESDomainConfig_WithColdStorageOptions(ri, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists(resourceName, &domain),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cluster_config.0.cold_storage_options.*", map[string]string{
+						"enabled": "true",
+					})),
+			},
+		},
+	})
+}
+
 func TestAccAWSElasticSearchDomain_withDedicatedMaster(t *testing.T) {
 	var domain elasticsearch.ElasticsearchDomainStatus
 	ri := acctest.RandInt()
@@ -1633,6 +1671,55 @@ resource "aws_elasticsearch_domain" "test" {
   }
 }
 `, randInt, enabled)
+}
+
+func testAccESDomainConfig_WithColdStorageOptions(randInt int, dMasterEnabled bool, warmEnabled bool, csEnabled bool) string {
+	warmConfig := ""
+	if warmEnabled {
+		warmConfig = `
+	warm_count = "2"
+	warm_type = "ultrawarm1.medium.elasticsearch"
+`
+	}
+
+	coldConfig := ""
+	if csEnabled {
+		coldConfig = `
+	cold_storage_options {
+	  enabled = true
+	}
+`
+	}
+
+	return fmt.Sprintf(`
+resource "aws_elasticsearch_domain" "test" {
+  domain_name = "tf-test-%d"
+  
+  elasticsearch_version = "7.9"
+  
+  cluster_config {
+    instance_type            = "m3.medium.elasticsearch"
+    instance_count           = "1"
+    dedicated_master_enabled = %t
+    dedicated_master_count   = "3"
+    dedicated_master_type    = "m3.medium.elasticsearch"
+	warm_enabled             = %[3]t
+
+    %[4]s
+
+	%[5]s
+  }
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+
+  timeouts {
+    update = "180m"
+  }
+}
+`, randInt, dMasterEnabled, warmEnabled, warmConfig, coldConfig)
 }
 
 func testAccESDomainConfig_ClusterUpdate(randInt, instanceInt, snapshotInt int) string {
