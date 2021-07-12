@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/directconnect/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func init() {
@@ -78,10 +81,11 @@ func testSweepDxLags(region string) error {
 	return sweeperErrs.ErrorOrNil()
 }
 
-func TestAccAWSDxLag_basic(t *testing.T) {
-	lagName1 := fmt.Sprintf("tf-dx-lag-%s", acctest.RandString(5))
-	lagName2 := fmt.Sprintf("tf-dx-lag-%s", acctest.RandString(5))
+func TestAccAwsDxLag_basic(t *testing.T) {
+	var lag directconnect.Lag
 	resourceName := "aws_dx_lag.test"
+	rName1 := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -90,38 +94,48 @@ func TestAccAWSDxLag_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsDxLagDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDxLagConfig(lagName1),
+				Config: testAccDxLagConfigBasic(rName1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxLagExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", lagName1),
+					testAccCheckAwsDxLagExists(resourceName, &lag),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "directconnect", regexp.MustCompile(`dxlag/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "connections_bandwidth", "1Gbps"),
-					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2-EQ"),
+					resource.TestCheckResourceAttr(resourceName, "force_destroy", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "has_logical_redundancy"),
+					resource.TestCheckResourceAttrSet(resourceName, "jumbo_frame_capable"),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName1),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
+			{
+				Config: testAccDxLagConfigBasic(rName2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsDxLagExists(resourceName, &lag),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "directconnect", regexp.MustCompile(`dxlag/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "connections_bandwidth", "1Gbps"),
+					resource.TestCheckResourceAttr(resourceName, "force_destroy", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "has_logical_redundancy"),
+					resource.TestCheckResourceAttrSet(resourceName, "jumbo_frame_capable"),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName2),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			// Test import.
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"force_destroy"},
-			},
-			{
-				Config: testAccDxLagConfig(lagName2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxLagExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", lagName2),
-					resource.TestCheckResourceAttr(resourceName, "connections_bandwidth", "1Gbps"),
-					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2-EQ"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-				),
 			},
 		},
 	})
 }
 
-func TestAccAWSDxLag_tags(t *testing.T) {
-	lagName := fmt.Sprintf("tf-dx-lag-%s", acctest.RandString(5))
+func TestAccAwsDxLag_disappears(t *testing.T) {
+	var lag directconnect.Lag
 	resourceName := "aws_dx_lag.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -130,14 +144,38 @@ func TestAccAWSDxLag_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAwsDxLagDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDxLagConfig_tags(lagName),
+				Config: testAccDxLagConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxLagExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", lagName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "original"),
+					testAccCheckAwsDxLagExists(resourceName, &lag),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsDxLag(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsDxLag_Tags(t *testing.T) {
+	var lag directconnect.Lag
+	resourceName := "aws_dx_lag.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsDxLagDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDxLagConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsDxLagExists(resourceName, &lag),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
 			},
+			// Test import.
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
@@ -145,20 +183,22 @@ func TestAccAWSDxLag_tags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"force_destroy"},
 			},
 			{
-				Config: testAccDxLagConfig_tagsChanged(lagName),
+				Config: testAccDxLagConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxLagExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", lagName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "changed"),
+					testAccCheckAwsDxLagExists(resourceName, &lag),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 			{
-				Config: testAccDxLagConfig(lagName),
+				Config: testAccDxLagConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxLagExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", lagName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccCheckAwsDxLagExists(resourceName, &lag),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -173,73 +213,90 @@ func testAccCheckAwsDxLagDestroy(s *terraform.State) error {
 			continue
 		}
 
-		input := &directconnect.DescribeLagsInput{
-			LagId: aws.String(rs.Primary.ID),
+		_, err := finder.LagByID(conn, rs.Primary.ID)
+
+		if tfresource.NotFound(err) {
+			continue
 		}
 
-		resp, err := conn.DescribeLags(input)
 		if err != nil {
 			return err
 		}
-		for _, v := range resp.Lags {
-			if *v.LagId == rs.Primary.ID && !(*v.LagState == directconnect.LagStateDeleted) {
-				return fmt.Errorf("[DESTROY ERROR] Dx Lag (%s) found", rs.Primary.ID)
-			}
-		}
+
+		return fmt.Errorf("Direct Connect LAG %s still exists", rs.Primary.ID)
 	}
 
 	return nil
 }
 
-func testAccCheckAwsDxLagExists(name string) resource.TestCheckFunc {
+func testAccCheckAwsDxLagExists(name string, v *directconnect.Lag) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, ok := s.RootModule().Resources[name]
+		conn := testAccProvider.Meta().(*AWSClient).dxconn
+
+		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No ID is set")
+		}
+
+		lag, err := finder.LagByID(conn, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		*v = *lag
 
 		return nil
 	}
 }
 
-func testAccDxLagConfig(n string) string {
+func testAccDxLagConfigBasic(rName string) string {
 	return fmt.Sprintf(`
+data "aws_dx_locations" "test" {}
+
 resource "aws_dx_lag" "test" {
-  name                  = "%s"
+  name                  = %[1]q
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2-EQ"
-  force_destroy         = true
+  location              = tolist(data.aws_dx_locations.test.location_codes)[0]
 }
-`, n)
+`, rName)
 }
 
-func testAccDxLagConfig_tags(n string) string {
+func testAccDxLagConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
-resource "aws_dx_lag" "test" {
-  name                  = "%s"
-  connections_bandwidth = "1Gbps"
-  location              = "EqSe2-EQ"
-  force_destroy         = true
+data "aws_dx_locations" "test" {}
 
-  tags = {
-    Environment = "production"
-    Usage       = "original"
-  }
-}
-`, n)
-}
-
-func testAccDxLagConfig_tagsChanged(n string) string {
-	return fmt.Sprintf(`
 resource "aws_dx_lag" "test" {
-  name                  = "%s"
+  name                  = %[1]q
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2-EQ"
+  location              = tolist(data.aws_dx_locations.test.location_codes)[0]
   force_destroy         = true
 
   tags = {
-    Usage = "changed"
+    %[2]q = %[3]q
   }
 }
-`, n)
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccDxLagConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+data "aws_dx_locations" "test" {}
+
+resource "aws_dx_lag" "test" {
+  name                  = %[1]q
+  connections_bandwidth = "1Gbps"
+  location              = tolist(data.aws_dx_locations.test.location_codes)[0]
+  force_destroy         = true
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

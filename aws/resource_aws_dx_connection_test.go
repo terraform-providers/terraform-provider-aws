@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/directconnect/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func init() {
@@ -77,9 +80,10 @@ func testSweepDxConnections(region string) error {
 	return sweeperErrs.ErrorOrNil()
 }
 
-func TestAccAWSDxConnection_basic(t *testing.T) {
-	connectionName := fmt.Sprintf("tf-dx-%s", acctest.RandString(5))
+func TestAccAwsDxConnection_basic(t *testing.T) {
+	var connection directconnect.Connection
 	resourceName := "aws_dx_connection.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -88,15 +92,17 @@ func TestAccAWSDxConnection_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsDxConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDxConnectionConfig(connectionName),
+				Config: testAccDxConnectionConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxConnectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", connectionName),
+					testAccCheckAwsDxConnectionExists(resourceName, &connection),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "directconnect", regexp.MustCompile(`dxcon/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "bandwidth", "1Gbps"),
-					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2-EQ"),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
+			// Test import.
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
@@ -106,9 +112,10 @@ func TestAccAWSDxConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSDxConnection_tags(t *testing.T) {
-	connectionName := fmt.Sprintf("tf-dx-%s", acctest.RandString(5))
+func TestAccAwsDxConnection_disappears(t *testing.T) {
+	var connection directconnect.Connection
 	resourceName := "aws_dx_connection.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,26 +124,60 @@ func TestAccAWSDxConnection_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAwsDxConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDxConnectionConfig_tags(connectionName),
+				Config: testAccDxConnectionConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxConnectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", connectionName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "original"),
+					testAccCheckAwsDxConnectionExists(resourceName, &connection),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsDxConnection(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsDxConnection_Tags(t *testing.T) {
+	var connection directconnect.Connection
+	resourceName := "aws_dx_connection.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, directconnect.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsDxConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDxConnectionConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsDxConnectionExists(resourceName, &connection),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
 			},
+			// Test import.
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDxConnectionConfig_tagsChanged(connectionName),
+				Config: testAccDxConnectionConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsDxConnectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", connectionName),
+					testAccCheckAwsDxConnectionExists(resourceName, &connection),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccDxConnectionConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsDxConnectionExists(resourceName, &connection),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "changed"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -151,69 +192,88 @@ func testAccCheckAwsDxConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		input := &directconnect.DescribeConnectionsInput{
-			ConnectionId: aws.String(rs.Primary.ID),
+		_, err := finder.ConnectionByID(conn, rs.Primary.ID)
+
+		if tfresource.NotFound(err) {
+			continue
 		}
 
-		resp, err := conn.DescribeConnections(input)
 		if err != nil {
 			return err
 		}
-		for _, v := range resp.Connections {
-			if *v.ConnectionId == rs.Primary.ID && !(*v.ConnectionState == directconnect.ConnectionStateDeleted) {
-				return fmt.Errorf("[DESTROY ERROR] Dx Connection (%s) not deleted", rs.Primary.ID)
-			}
-		}
+
+		return fmt.Errorf("Direct Connect connection %s still exists", rs.Primary.ID)
 	}
+
 	return nil
 }
 
-func testAccCheckAwsDxConnectionExists(name string) resource.TestCheckFunc {
+func testAccCheckAwsDxConnectionExists(name string, v *directconnect.Connection) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, ok := s.RootModule().Resources[name]
+		conn := testAccProvider.Meta().(*AWSClient).dxconn
+
+		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No ID is set")
+		}
+
+		connection, err := finder.ConnectionByID(conn, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		*v = *connection
 
 		return nil
 	}
 }
 
-func testAccDxConnectionConfig(n string) string {
+func testAccDxConnectionConfigBasic(rName string) string {
 	return fmt.Sprintf(`
+data "aws_dx_locations" "test" {}
+
 resource "aws_dx_connection" "test" {
-  name      = "%s"
+  name      = %[1]q
   bandwidth = "1Gbps"
-  location  = "EqSe2-EQ"
+  location  = tolist(data.aws_dx_locations.test.location_codes)[0]
 }
-`, n)
+`, rName)
 }
 
-func testAccDxConnectionConfig_tags(n string) string {
+func testAccDxConnectionConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
+data "aws_dx_locations" "test" {}
+
 resource "aws_dx_connection" "test" {
-  name      = "%s"
+  name      = %[1]q
   bandwidth = "1Gbps"
-  location  = "EqSe2-EQ"
+  location  = tolist(data.aws_dx_locations.test.location_codes)[0]
 
   tags = {
-    Environment = "production"
-    Usage       = "original"
+    %[2]q = %[3]q
   }
 }
-`, n)
+`, rName, tagKey1, tagValue1)
 }
 
-func testAccDxConnectionConfig_tagsChanged(n string) string {
+func testAccDxConnectionConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
+data "aws_dx_locations" "test" {}
+
 resource "aws_dx_connection" "test" {
-  name      = "%s"
+  name      = %[1]q
   bandwidth = "1Gbps"
-  location  = "EqSe2-EQ"
+  location  = tolist(data.aws_dx_locations.test.location_codes)[0]
 
   tags = {
-    Usage = "changed"
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, n)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
