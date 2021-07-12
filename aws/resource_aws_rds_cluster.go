@@ -436,6 +436,18 @@ func resourceAwsRDSCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"domain": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: false,
+			},
+
+			"domain_iam_role_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: false,
+			},
+
 			"enabled_cloudwatch_logs_exports": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -573,6 +585,14 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			opts.VpcSecurityGroupIds = expandStringSet(attr)
 		}
 
+		if attr, ok := d.GetOkExists("domain"); ok {
+			opts.Domain = aws.String(attr.(string))
+		}
+
+		if attr, ok := d.GetOkExists("domain_iam_role_name"); ok {
+			opts.DomainIAMRoleName = aws.String(attr.(string))
+		}
+
 		log.Printf("[DEBUG] RDS Cluster restore from snapshot configuration: %s", opts)
 		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 			_, err := conn.RestoreDBClusterFromSnapshot(&opts)
@@ -671,6 +691,14 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 		if attr, ok := d.GetOkExists("storage_encrypted"); ok {
 			createOpts.StorageEncrypted = aws.Bool(attr.(bool))
+		}
+
+		if attr, ok := d.GetOkExists("domain"); ok {
+			createOpts.Domain = aws.String(attr.(string))
+		}
+
+		if attr, ok := d.GetOkExists("domain_iam_role_name"); ok {
+			createOpts.DomainIAMRoleName = aws.String(attr.(string))
 		}
 
 		log.Printf("[DEBUG] RDS Cluster restore options: %s", createOpts)
@@ -902,6 +930,14 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			createOpts.StorageEncrypted = aws.Bool(attr.(bool))
 		}
 
+		if attr, ok := d.GetOkExists("domain"); ok {
+			createOpts.Domain = aws.String(attr.(string))
+		}
+
+		if attr, ok := d.GetOkExists("domain_iam_role_name"); ok {
+			createOpts.DomainIAMRoleName = aws.String(attr.(string))
+		}
+
 		log.Printf("[DEBUG] RDS Cluster create options: %s", createOpts)
 		var resp *rds.CreateDBClusterOutput
 		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
@@ -1081,6 +1117,13 @@ func resourceAwsRDSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("storage_encrypted", dbc.StorageEncrypted)
 	d.Set("enable_http_endpoint", dbc.HttpEndpointEnabled)
 
+	d.Set("domain", "")
+	d.Set("domain_iam_role_name", "")
+	if len(dbc.DomainMemberships) > 0 && dbc.DomainMemberships[0] != nil {
+		d.Set("domain", dbc.DomainMemberships[0].Domain)
+		d.Set("domain_iam_role_name", dbc.DomainMemberships[0].IAMRoleName)
+	}
+
 	var vpcg []string
 	for _, g := range dbc.VpcSecurityGroups {
 		vpcg = append(vpcg, aws.StringValue(g.VpcSecurityGroupId))
@@ -1188,6 +1231,12 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("db_cluster_parameter_group_name") {
 		req.DBClusterParameterGroupName = aws.String(d.Get("db_cluster_parameter_group_name").(string))
+		requestUpdate = true
+	}
+
+	if d.HasChanges("domain", "domain_iam_role_name") {
+		req.Domain = aws.String(d.Get("domain").(string))
+		req.DomainIAMRoleName = aws.String(d.Get("domain_iam_role_name").(string))
 		requestUpdate = true
 	}
 
