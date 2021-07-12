@@ -166,6 +166,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/aws/aws-sdk-go/service/workdocs"
 	"github.com/aws/aws-sdk-go/service/worklink"
 	"github.com/aws/aws-sdk-go/service/workmail"
 	"github.com/aws/aws-sdk-go/service/workspaces"
@@ -383,6 +384,7 @@ type AWSClient struct {
 	wafconn                             *waf.WAF
 	wafregionalconn                     *wafregional.WAFRegional
 	wafv2conn                           *wafv2.WAFV2
+	workdocsconn                        *workdocs.WorkDocs
 	worklinkconn                        *worklink.WorkLink
 	workmailconn                        *workmail.WorkMail
 	workspacesconn                      *workspaces.WorkSpaces
@@ -627,6 +629,7 @@ func (c *Config) Client() (interface{}, error) {
 		wafconn:                             waf.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["waf"])})),
 		wafregionalconn:                     wafregional.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["wafregional"])})),
 		wafv2conn:                           wafv2.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["wafv2"])})),
+		workdocsconn:                        workdocs.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["workdocs"])})),
 		worklinkconn:                        worklink.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["worklink"])})),
 		workmailconn:                        workmail.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["workmail"])})),
 		workspacesconn:                      workspaces.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["workspaces"])})),

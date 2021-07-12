@@ -457,6 +457,7 @@ func Provider() *schema.Provider {
 			"aws_acmpca_certificate_authority":                        resourceAwsAcmpcaCertificateAuthority(),
 			"aws_acmpca_certificate_authority_certificate":            resourceAwsAcmpcaCertificateAuthorityCertificate(),
 			"aws_acmpca_certificate":                                  resourceAwsAcmpcaCertificate(),
+			"aws_ad_user":                                             resourceAwsAdUser(),
 			"aws_ami":                                                 resourceAwsAmi(),
 			"aws_ami_copy":                                            resourceAwsAmiCopy(),
 			"aws_ami_from_instance":                                   resourceAwsAmiFromInstance(),
