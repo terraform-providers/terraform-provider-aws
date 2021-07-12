@@ -21,7 +21,6 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 	userName := fmt.Sprintf("tf-acc-user-gm-basic-%s", rString)
 	userName2 := fmt.Sprintf("tf-acc-user-gm-basic-two-%s", rString)
 	userName3 := fmt.Sprintf("tf-acc-user-gm-basic-three-%s", rString)
-	membershipName := fmt.Sprintf("tf-acc-membership-gm-basic-%s", rString)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,7 +29,7 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSGroupMembershipDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSGroupMemberConfig(groupName, userName, membershipName),
+				Config: testAccAWSGroupMemberConfig(groupName, userName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
 					testAccCheckAWSGroupMembershipAttributes(&group, groupName, []string{userName}),
@@ -38,7 +37,7 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 			},
 
 			{
-				Config: testAccAWSGroupMemberConfigUpdate(groupName, userName, userName2, userName3, membershipName),
+				Config: testAccAWSGroupMemberConfigUpdate(groupName, userName, userName2, userName3),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
 					testAccCheckAWSGroupMembershipAttributes(&group, groupName, []string{userName2, userName3}),
@@ -46,7 +45,7 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 			},
 
 			{
-				Config: testAccAWSGroupMemberConfigUpdateDown(groupName, userName3, membershipName),
+				Config: testAccAWSGroupMemberConfigUpdateDown(groupName, userName3),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
 					testAccCheckAWSGroupMembershipAttributes(&group, groupName, []string{userName3}),
@@ -61,7 +60,6 @@ func TestAccAWSGroupMembership_paginatedUserList(t *testing.T) {
 
 	rString := acctest.RandString(8)
 	groupName := fmt.Sprintf("tf-acc-group-gm-pul-%s", rString)
-	membershipName := fmt.Sprintf("tf-acc-membership-gm-pul-%s", rString)
 	userNamePrefix := fmt.Sprintf("tf-acc-user-gm-pul-%s-", rString)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +69,7 @@ func TestAccAWSGroupMembership_paginatedUserList(t *testing.T) {
 		CheckDestroy: testAccCheckAWSGroupMembershipDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSGroupMemberConfigPaginatedUserList(groupName, membershipName, userNamePrefix),
+				Config: testAccAWSGroupMemberConfigPaginatedUserList(groupName, userNamePrefix),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
 					resource.TestCheckResourceAttr(
@@ -159,7 +157,7 @@ func testAccCheckAWSGroupMembershipAttributes(group *iam.GetGroupOutput, groupNa
 	}
 }
 
-func testAccAWSGroupMemberConfig(groupName, userName, membershipName string) string {
+func testAccAWSGroupMemberConfig(groupName, userName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_group" "group" {
   name = "%s"
@@ -170,14 +168,13 @@ resource "aws_iam_user" "user" {
 }
 
 resource "aws_iam_group_membership" "team" {
-  name  = "%s"
   users = [aws_iam_user.user.name]
   group = aws_iam_group.group.name
 }
-`, groupName, userName, membershipName)
+`, groupName, userName)
 }
 
-func testAccAWSGroupMemberConfigUpdate(groupName, userName, userName2, userName3, membershipName string) string {
+func testAccAWSGroupMemberConfigUpdate(groupName, userName, userName2, userName3 string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_group" "group" {
   name = "%s"
@@ -196,8 +193,6 @@ resource "aws_iam_user" "user_three" {
 }
 
 resource "aws_iam_group_membership" "team" {
-  name = "%s"
-
   users = [
     aws_iam_user.user_two.name,
     aws_iam_user.user_three.name,
@@ -205,10 +200,10 @@ resource "aws_iam_group_membership" "team" {
 
   group = aws_iam_group.group.name
 }
-`, groupName, userName, userName2, userName3, membershipName)
+`, groupName, userName, userName2, userName3)
 }
 
-func testAccAWSGroupMemberConfigUpdateDown(groupName, userName3, membershipName string) string {
+func testAccAWSGroupMemberConfigUpdateDown(groupName, userName3 string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_group" "group" {
   name = "%s"
@@ -219,25 +214,22 @@ resource "aws_iam_user" "user_three" {
 }
 
 resource "aws_iam_group_membership" "team" {
-  name = "%s"
-
   users = [
     aws_iam_user.user_three.name,
   ]
 
   group = aws_iam_group.group.name
 }
-`, groupName, userName3, membershipName)
+`, groupName, userName3)
 }
 
-func testAccAWSGroupMemberConfigPaginatedUserList(groupName, membershipName, userNamePrefix string) string {
+func testAccAWSGroupMemberConfigPaginatedUserList(groupName, userNamePrefix string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_group" "group" {
   name = "%s"
 }
 
 resource "aws_iam_group_membership" "team" {
-  name  = "%s"
   group = aws_iam_group.group.name
 
   # TODO: Switch back to simple list reference when test configurations are upgraded to 0.12 syntax
@@ -350,5 +342,5 @@ resource "aws_iam_user" "user" {
   count = 101
   name  = format("%s%%d", count.index + 1)
 }
-`, groupName, membershipName, userNamePrefix)
+`, groupName, userNamePrefix)
 }

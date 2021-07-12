@@ -21,8 +21,6 @@ more information on managing IAM Groups or IAM Users, see [IAM Groups][1] or
 
 ```terraform
 resource "aws_iam_group_membership" "team" {
-  name = "tf-testing-group-membership"
-
   users = [
     aws_iam_user.user_one.name,
     aws_iam_user.user_two.name,
@@ -56,7 +54,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `name` - The name to identify the Group Membership
+* `name` - *Deprecated:* Don't set this attribute. The name to identify the Group Membership
 * `users` - list of IAM User names
 * `group` – IAM Group name
 
@@ -64,3 +62,11 @@ In addition to all arguments above, the following attributes are exported:
 [1]: /docs/providers/aws/r/iam_group.html
 [2]: /docs/providers/aws/r/iam_user.html
 [3]: /docs/providers/aws/r/iam_user_group_membership.html
+
+## Import
+
+IAM Group Membership can be imported using the `group`, e.g.
+
+```
+$ terraform import aws_iam_group_membership.team test-group
+```
