@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/aws_s3_bucket_object: Argument `content_sensitive` to create objects with sensitive values. Will not be displayed in diffs.
+```

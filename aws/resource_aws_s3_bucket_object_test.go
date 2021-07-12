@@ -198,6 +198,28 @@ func TestAccAWSS3BucketObject_content(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3BucketObject_contentSensitive(t *testing.T) {
+	var obj s3.GetObjectOutput
+	resourceName := "aws_s3_bucket_object.object"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {},
+				Config:    testAccAWSS3BucketObjectConfigContentSensitive(rInt, "some_bucket_content"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckAWSS3BucketObjectBody(&obj, "some_bucket_content"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSS3BucketObject_etagEncryption(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "aws_s3_bucket_object.object"
@@ -1548,6 +1570,20 @@ resource "aws_s3_bucket_object" "object" {
   bucket  = aws_s3_bucket.object_bucket.bucket
   key     = "test-key"
   content = %[2]q
+}
+`, randInt, content)
+}
+
+func testAccAWSS3BucketObjectConfigContentSensitive(randInt int, content string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "object_bucket" {
+  bucket = "tf-object-test-bucket-%[1]d"
+}
+
+resource "aws_s3_bucket_object" "object" {
+  bucket  = aws_s3_bucket.object_bucket.bucket
+  key     = "test-key"
+  content_sensitive = %[2]q
 }
 `, randInt, content)
 }

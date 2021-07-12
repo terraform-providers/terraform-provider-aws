@@ -102,19 +102,26 @@ func resourceAwsS3BucketObject() *schema.Resource {
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"content", "content_base64"},
+				ConflictsWith: []string{"content", "content_sensitive", "content_base64"},
 			},
 
 			"content": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"source", "content_base64"},
+				ConflictsWith: []string{"source", "content_sensitive", "content_base64"},
+			},
+
+			"content_sensitive": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"source", "content", "content_base64"},
 			},
 
 			"content_base64": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"source", "content"},
+				ConflictsWith: []string{"source", "content", "content_sensitive"},
 			},
 
 			"storage_class": {
@@ -221,6 +228,9 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 			}
 		}()
 	} else if v, ok := d.GetOk("content"); ok {
+		content := v.(string)
+		body = bytes.NewReader([]byte(content))
+	} else if v, ok := d.GetOk("content_sensitive"); ok {
 		content := v.(string)
 		body = bytes.NewReader([]byte(content))
 	} else if v, ok := d.GetOk("content_base64"); ok {
@@ -577,6 +587,7 @@ func hasS3BucketObjectContentChanges(d resourceDiffer) bool {
 		"content_language",
 		"content_type",
 		"content",
+		"content_sensitive",
 		"etag",
 		"kms_key_id",
 		"metadata",
