@@ -1260,7 +1260,7 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			return nil
 		})
 		if isResourceTimeoutError(err) {
-			_, err = conn.CreateDBInstance(&opts)
+			createdDBInstanceOutput, err = conn.CreateDBInstance(&opts)
 		}
 		if err != nil {
 			if isAWSErr(err, "InvalidParameterValue", "") {

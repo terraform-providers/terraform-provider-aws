@@ -113,11 +113,9 @@ func resourceAwsSignerSigningProfilePermissionCreate(d *schema.ResourceData, met
 	}
 
 	log.Printf("[DEBUG] Adding new Signer signing profile permission: %s", addProfilePermissionInput)
-	//var addProfilePermissionOutput *signer.AddProfilePermissionOutput
 	// Retry for IAM eventual consistency
 	err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
-		var err error
-		_, err = conn.AddProfilePermission(addProfilePermissionInput)
+		_, err := conn.AddProfilePermission(addProfilePermissionInput)
 
 		if isAWSErr(err, signer.ErrCodeConflictException, "") || isAWSErr(err, signer.ErrCodeResourceNotFoundException, "") {
 			return resource.RetryableError(err)

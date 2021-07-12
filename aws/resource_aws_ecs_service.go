@@ -1218,8 +1218,6 @@ func resourceAwsEcsServiceDelete(d *schema.ResourceData, meta interface{}) error
 	}
 	// Wait until the ECS service is drained
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		log.Printf("[DEBUG] Trying to delete ECS service %s", input)
-
 		_, err := conn.DeleteService(&input)
 
 		if err != nil {

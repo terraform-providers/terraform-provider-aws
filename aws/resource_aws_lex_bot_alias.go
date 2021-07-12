@@ -154,7 +154,7 @@ func resourceAwsLexBotAliasCreate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	})
 
-	if tfresource.TimedOut(err) {
+	if tfresource.TimedOut(err) { // nosemgrep: helper-schema-TimeoutError-check-doesnt-return-output
 		_, err = conn.PutBotAlias(input)
 	}
 

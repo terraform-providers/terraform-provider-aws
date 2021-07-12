@@ -458,8 +458,7 @@ func resourceAwsEipDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		var err error
-		_, err = ec2conn.ReleaseAddress(input)
+		_, err := ec2conn.ReleaseAddress(input)
 
 		if err == nil {
 			return nil
@@ -561,7 +560,7 @@ func waitForEc2AddressAssociationClassic(conn *ec2.EC2, publicIP string, instanc
 		return nil
 	})
 
-	if tfresource.TimedOut(err) {
+	if tfresource.TimedOut(err) { // nosemgrep: helper-schema-TimeoutError-check-doesnt-return-output
 		_, err = conn.DescribeAddresses(input)
 	}
 

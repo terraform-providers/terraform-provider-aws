@@ -177,7 +177,7 @@ func resourceAwsWafv2WebACLCreate(d *schema.ResourceData, meta interface{}) erro
 	})
 
 	if isResourceTimeoutError(err) {
-		_, err = conn.CreateWebACL(params)
+		resp, err = conn.CreateWebACL(params)
 	}
 
 	if err != nil {

@@ -213,8 +213,7 @@ func resourceAwsGlueTriggerCreate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Creating Glue Trigger: %s", input)
 	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
-		var err error
-		_, err = conn.CreateTrigger(input)
+		_, err := conn.CreateTrigger(input)
 		if err != nil {
 			if tfawserr.ErrMessageContains(err, glue.ErrCodeInvalidInputException, "Service is unable to assume role") {
 				return resource.RetryableError(err)

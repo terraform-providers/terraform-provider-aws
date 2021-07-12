@@ -60,8 +60,7 @@ func resourceAwsWafv2WebACLAssociationCreate(d *schema.ResourceData, meta interf
 	}
 
 	err := resource.Retry(Wafv2WebACLAssociationCreateTimeout, func() *resource.RetryError {
-		var err error
-		_, err = conn.AssociateWebACL(params)
+		_, err := conn.AssociateWebACL(params)
 		if err != nil {
 			if isAWSErr(err, wafv2.ErrCodeWAFUnavailableEntityException, "") {
 				return resource.RetryableError(err)

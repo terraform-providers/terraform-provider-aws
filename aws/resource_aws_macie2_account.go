@@ -68,9 +68,8 @@ func resourceMacie2AccountCreate(ctx context.Context, d *schema.ResourceData, me
 		input.Status = aws.String(v.(string))
 	}
 
-	var err error
-	err = resource.RetryContext(ctx, 4*time.Minute, func() *resource.RetryError {
-		_, err = conn.EnableMacieWithContext(ctx, input)
+	err := resource.RetryContext(ctx, 4*time.Minute, func() *resource.RetryError {
+		_, err := conn.EnableMacieWithContext(ctx, input)
 		if err != nil {
 			if tfawserr.ErrCodeEquals(err, macie2.ErrorCodeClientError) {
 				return resource.RetryableError(err)

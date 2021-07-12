@@ -150,7 +150,7 @@ func resourceAwsWafv2RuleGroupCreate(d *schema.ResourceData, meta interface{}) e
 	})
 
 	if isResourceTimeoutError(err) {
-		_, err = conn.CreateRuleGroup(params)
+		resp, err = conn.CreateRuleGroup(params)
 	}
 
 	if err != nil {
