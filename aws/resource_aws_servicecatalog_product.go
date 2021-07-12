@@ -68,7 +68,6 @@ func resourceAwsServiceCatalogProduct() *schema.Resource {
 			"provisioning_artifact_parameters": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
