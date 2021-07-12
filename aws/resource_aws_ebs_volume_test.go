@@ -401,7 +401,7 @@ func TestAccAWSEBSVolume_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_multiAttach(t *testing.T) {
+func TestAccAWSEBSVolume_multiAttachIo1(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -413,7 +413,35 @@ func TestAccAWSEBSVolume_multiAttach(t *testing.T) {
 		CheckDestroy: testAccCheckVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEbsVolumeConfigMultiAttach(rName),
+				Config: testAccAwsEbsVolumeConfigMultiAttach(rName, "io1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVolumeExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "multi_attach_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSVolume_multiAttachIo2(t *testing.T) {
+	var v ec2.Volume
+	resourceName := "aws_ebs_volume.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheckSkipEBSVolume(t),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsVolumeConfigMultiAttach(rName, "io2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVolumeExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "multi_attach_enabled", "true"),
@@ -1237,7 +1265,7 @@ resource "aws_ebs_volume" "test" {
 `
 }
 
-func testAccAwsEbsVolumeConfigMultiAttach(rName string) string {
+func testAccAwsEbsVolumeConfigMultiAttach(rName string, volume_type string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
@@ -1250,7 +1278,7 @@ data "aws_availability_zones" "available" {
 
 resource "aws_ebs_volume" "test" {
   availability_zone    = data.aws_availability_zones.available.names[0]
-  type                 = "io1"
+  type                 = %[2]q
   multi_attach_enabled = true
   size                 = 4
   iops                 = 100
@@ -1259,7 +1287,7 @@ resource "aws_ebs_volume" "test" {
     Name = %[1]q
   }
 }
-`, rName)
+`, rName, volume_type)
 }
 
 func testAccAwsEbsVolumeConfigSizeTypeIopsThroughput(rName, size, volumeType, iops, throughput string) string {
