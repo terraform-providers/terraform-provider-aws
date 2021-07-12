@@ -1,0 +1,3 @@
+```release-note:enhancement
+ resource/aws_ebs_volume: Add support for multi_attach_enabled in io2 volume types
+ ```

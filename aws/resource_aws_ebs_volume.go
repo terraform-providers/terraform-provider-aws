@@ -417,8 +417,8 @@ func resourceAwsEbsVolumeCustomizeDiff(_ context.Context, diff *schema.ResourceD
 			}
 		}
 
-		// MultiAttachEnabled is supported with io1 volumes only.
-		if multiAttachEnabled && volumeType != ec2.VolumeTypeIo1 {
+		// MultiAttachEnabled is supported with io1 and io2 volumes only.
+		if multiAttachEnabled && volumeType != ec2.VolumeTypeIo1 && volumeType != ec2.VolumeTypeIo2 {
 			return fmt.Errorf("'multi_attach_enabled' must not be set when 'type' is '%s'", volumeType)
 		}
 
