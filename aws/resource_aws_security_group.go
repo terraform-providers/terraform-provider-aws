@@ -138,6 +138,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 						"description": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Default:      "",
 							ValidateFunc: validateSecurityGroupRuleDescription,
 						},
 					},
@@ -208,6 +209,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 						"description": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Default:      "",
 							ValidateFunc: validateSecurityGroupRuleDescription,
 						},
 					},
