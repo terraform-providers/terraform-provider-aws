@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_autoscalingplans_scaling_plan: Fix updates to `scaling_instruction` attribute
+```
