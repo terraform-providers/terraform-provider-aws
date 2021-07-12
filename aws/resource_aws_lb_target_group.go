@@ -187,16 +187,7 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 					"HTTP1",
 					"HTTP2",
 				}, true),
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if d.Get("target_type").(string) == elbv2.TargetTypeEnumLambda {
-						return true
-					}
-					switch d.Get("protocol").(string) {
-					case elbv2.ProtocolEnumHttp, elbv2.ProtocolEnumHttps:
-						return false
-					}
-					return true
-				},
+				ForceNew: true,
 			},
 			"proxy_protocol_v2": {
 				Type:     schema.TypeBool,
