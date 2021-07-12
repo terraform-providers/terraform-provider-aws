@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -385,6 +386,67 @@ func TestAccAwsAppsyncDatasource_Type_None(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAppsyncDatasourceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", "NONE"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsAppsyncDatasource_Type_RelationalDatabase(t *testing.T) {
+	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_datasource.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncDatasourceConfigTypeRelationalDatabase(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncDatasourceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", "RELATIONAL_DATABASE"),
+					resource.TestCheckResourceAttr(resourceName, "relational_database_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "relational_database_config.0.source_type", "RDS_HTTP_ENDPOINT"),
+					resource.TestCheckResourceAttr(resourceName, "relational_database_config.0.http_endpoint_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "relational_database_config.0.http_endpoint_config.0.region", "us-east-1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsAppsyncDatasource_Type_RelationalDatabaseWithOptions(t *testing.T) {
+	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_datasource.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncDatasourceConfigTypeRelationalDatabaseWithOptions(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncDatasourceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "relational_database_config.0.http_endpoint_config.0.schema", "mydb"),
+					resource.TestCheckResourceAttrPair(resourceName, "relational_database_config.0.http_endpoint_config.0.database_name", "aws_rds_cluster.test", "database_name"),
 				),
 			},
 			{
@@ -828,4 +890,126 @@ resource "aws_appsync_datasource" "test" {
   type   = "NONE"
 }
 `, rName, rName)
+}
+
+func testAccAppsyncDatasourceConfigBaseRelationalDatabase(rName string) string {
+	return fmt.Sprintf(`
+variable "secretsmanager" {
+  default = {
+    username = "foo"
+    password = "mustbeeightcharaters"
+  }
+
+  type = "map"
+}
+
+resource "aws_secretsmanager_secret" "test" {
+  name = %[1]q
+}
+
+resource "aws_secretsmanager_secret_version" "test" {
+  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_string = "${jsonencode(var.secretsmanager)}"
+}
+
+resource "aws_rds_cluster" "test" {
+  cluster_identifier              = %[1]q
+  engine_mode            = "serverless"
+  database_name                   = "mydb"
+  master_username                 = "${var.secretsmanager["username"]}"
+  master_password                 = "${var.secretsmanager["password"]}"
+  db_cluster_parameter_group_name = "default.aurora5.6"
+  skip_final_snapshot             = true
+
+  scaling_configuration {
+    min_capacity = 1
+    max_capacity = 2
+  }
+}
+
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "appsync.amazonaws.com"
+      },
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test" {
+  role = "${aws_iam_role.test.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "rds:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "${aws_rds_cluster.test.arn}"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = %[1]q
+}
+
+`, rName)
+}
+
+func testAccAppsyncDatasourceConfigTypeRelationalDatabase(rName string) string {
+	return testAccAppsyncDatasourceConfigBaseRelationalDatabase(rName) + fmt.Sprintf(`
+resource "aws_appsync_datasource" "test" {
+  api_id           = "${aws_appsync_graphql_api.test.id}"
+  name             = %[1]q
+  service_role_arn = "${aws_iam_role.test.arn}"
+  type             = "RELATIONAL_DATABASE"
+
+  relational_database_config {
+
+    http_endpoint_config {
+      cluster_identifier   = "${aws_rds_cluster.test.id}"
+      secret_store_arn   = "${aws_secretsmanager_secret.test.arn}"
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAppsyncDatasourceConfigTypeRelationalDatabaseWithOptions(rName string) string {
+	return testAccAppsyncDatasourceConfigBaseRelationalDatabase(rName) + fmt.Sprintf(`
+resource "aws_appsync_datasource" "test" {
+  api_id           = "${aws_appsync_graphql_api.test.id}"
+  name             = %[1]q
+  service_role_arn = "${aws_iam_role.test.arn}"
+  type             = "RELATIONAL_DATABASE"
+
+  relational_database_config {
+    http_endpoint_config {
+      cluster_identifier = "${aws_rds_cluster.test.id}"
+      database_name      = "${aws_rds_cluster.test.database_name}"
+      secret_store_arn   = "${aws_secretsmanager_secret.test.arn}"
+      schema             = "mydb"
+    }
+  }
+}
+`, rName)
 }

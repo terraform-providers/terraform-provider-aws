@@ -89,13 +89,14 @@ The following arguments are supported:
 
 * `api_id` - (Required) The API ID for the GraphQL API for the DataSource.
 * `name` - (Required) A user-supplied name for the DataSource.
-* `type` - (Required) The type of the DataSource. Valid values: `AWS_LAMBDA`, `AMAZON_DYNAMODB`, `AMAZON_ELASTICSEARCH`, `HTTP`, `NONE`.
+* `type` - (Required) The type of the DataSource. Valid values: `AWS_LAMBDA`, `AMAZON_DYNAMODB`, `AMAZON_ELASTICSEARCH`, `HTTP`, `NONE`, `RELATIONAL_DATABASE`.
 * `description` - (Optional) A description of the DataSource.
 * `service_role_arn` - (Optional) The IAM service role ARN for the data source.
 * `dynamodb_config` - (Optional) DynamoDB settings. See [below](#dynamodb_config)
 * `elasticsearch_config` - (Optional) Amazon Elasticsearch settings. See [below](#elasticsearch_config)
 * `http_config` - (Optional) HTTP settings. See [below](#http_config)
 * `lambda_config` - (Optional) AWS Lambda settings. See [below](#lambda_config)
+* `relational_database_config` (Optional) AWS RDS settings. See [below](#relational_database_config)
 
 ### dynamodb_config
 
@@ -123,6 +124,23 @@ The following arguments are supported:
 The following arguments are supported:
 
 * `function_arn` - (Required) The ARN for the Lambda function.
+
+### relational_database_config
+
+The following arguments are supported:
+
+* `http_endpoint_config` - (Required) The Amazon RDS HTTP endpoint configuration. See [below](#http_endpoint_config)
+* `source_type` - (Optional) Source type for the relational database. Valid values: `RDS_HTTP_ENDPOINT`.
+
+### http_endpoint_config
+
+The following arguments are supported:
+
+* `cluster_identifier` - (Required) Amazon RDS cluster identifier.
+* `secret_store_arn` - (Required) AWS secret store ARN for database credentials.
+* `database_name` - (Optional) Logical database name.
+* `region` - (Optional) AWS Region for RDS HTTP endpoint. Defaults to current region.
+* `schema` - (Optional) Logical schema name.
 
 ## Attributes Reference
 
