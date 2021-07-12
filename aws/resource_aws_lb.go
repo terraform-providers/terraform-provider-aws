@@ -189,6 +189,12 @@ func resourceAwsLb() *schema.Resource {
 				Default:  false,
 			},
 
+			"wait_for_provisioning": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"idle_timeout": {
 				Type:             schema.TypeInt,
 				Optional:         true,
@@ -343,9 +349,11 @@ func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(aws.StringValue(lb.LoadBalancerArn))
 	log.Printf("[INFO] LB ID: %s", d.Id())
 
-	_, err = waiter.LoadBalancerActive(conn, aws.StringValue(lb.LoadBalancerArn), d.Timeout(schema.TimeoutCreate))
-	if err != nil {
-		return fmt.Errorf("error waiting for Load Balancer (%s) to be active: %w", d.Get("name").(string), err)
+	if _, ok := d.GetOk("wait_for_provisioning"); ok {
+		_, err = waiter.LoadBalancerActive(conn, aws.StringValue(lb.LoadBalancerArn), d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf("error waiting for Load Balancer (%s) to be active: %w", d.Get("name").(string), err)
+		}
 	}
 
 	return resourceAwsLbUpdate(d, meta)
@@ -539,9 +547,11 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	_, err := waiter.LoadBalancerActive(conn, d.Id(), d.Timeout(schema.TimeoutUpdate))
-	if err != nil {
-		return fmt.Errorf("error waiting for Load Balancer (%s) to be active: %w", d.Get("name").(string), err)
+	if _, ok := d.GetOk("wait_for_provisioning"); ok {
+		_, err := waiter.LoadBalancerActive(conn, d.Id(), d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("error waiting for Load Balancer (%s) to be active: %w", d.Get("name").(string), err)
+		}
 	}
 
 	return resourceAwsLbRead(d, meta)

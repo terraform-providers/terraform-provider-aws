@@ -48,6 +48,7 @@ resource "aws_lb" "test" {
   subnets            = aws_subnet.public.*.id
 
   enable_deletion_protection = true
+  wait_for_provisioning      = false
 
   tags = {
     Environment = "production"
@@ -122,6 +123,7 @@ for load balancers of type `network` will force a recreation of the resource.
 * `enable_http2` - (Optional) Indicates whether HTTP/2 is enabled in `application` load balancers. Defaults to `true`.
 * `customer_owned_ipv4_pool` - (Optional) The ID of the customer owned ipv4 pool to use for this load balancer.
 * `ip_address_type` - (Optional) The type of IP addresses used by the subnets for your load balancer. The possible values are `ipv4` and `dualstack`
+* `wait_for_provisioning` - (Optional) If true will wait for LB to become active else will return immediately. Defaults to `true`.
 * `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 Access Logs (`access_logs`) support the following:
