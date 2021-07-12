@@ -45,6 +45,11 @@ func TestAccAWSLakeFormation_serial(t *testing.T) {
 			"wildcardSelectOnly":      testAccAWSLakeFormationPermissions_twcWildcardSelectOnly,
 			"wildcardSelectPlus":      testAccAWSLakeFormationPermissions_twcWildcardSelectPlus,
 		},
+		"PolicyTag": {
+			"basic":      testAccAWSLakeFormationPolicyTag_basic,
+			"disappears": testAccAWSLakeFormationPolicyTag_disappears,
+			"values":     testAccAWSLakeFormationPolicyTag_values,
+		},
 	}
 
 	for group, m := range testCases {
