@@ -60,11 +60,16 @@ The `primary_container` and `container` block both support:
 * `container_hostname` - (Optional) The DNS host name for the container.
 * `environment` - (Optional) Environment variables for the Docker container.
    A list of key value pairs.
-* `image_config` - (Optional) Specifies whether the model container is in Amazon ECR or a private Docker registry accessible from your Amazon Virtual Private Cloud (VPC). For more information see [Using a Private Docker Registry for Real-Time Inference Containers](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-containers-inference-private.html). see [Image Config](#image-config).
+* `image_config` - (Optional) Specifies whether the model container is in Amazon ECR or a private Docker registry accessible from your Amazon Virtual Private Cloud (VPC). For more information see [Using a Private Docker Registry for Real-Time Inference Containers](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-containers-inference-private.html). Also see [Image Config](#image-config).
+* `multi_model_config` - (Optional) Specifies optional configuration for the multi-model endpoint. For more information see [Create a Multi-Model Endpoint](https://docs.aws.amazon.com/sagemaker/latest/dg/create-multi-model-endpoint.html). Also see [Multi model config](#multi-model-config).
 
 ### Image Config
 
 * `repository_access_mode` - (Required) Specifies whether the model container is in Amazon ECR or a private Docker registry accessible from your Amazon Virtual Private Cloud (VPC). Allowed values are: `Platform` and `Vpc`.
+
+### Multi model Config
+
+* `model_cache_setting` - (Required) Specifies whether the multi-model endpoint is configured to cache Docker images. Allowed values are: `Enabled` (default) and `Disabled`.
 
 ## Attributes Reference
 

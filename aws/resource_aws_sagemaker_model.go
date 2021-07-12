@@ -79,6 +79,7 @@ func resourceAwsSagemakerModel() *schema.Resource {
 							ValidateFunc: validateSagemakerEnvironment,
 							Elem:         &schema.Schema{Type: schema.TypeString},
 						},
+
 						"image_config": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -90,6 +91,24 @@ func resourceAwsSagemakerModel() *schema.Resource {
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringInSlice(sagemaker.RepositoryAccessMode_Values(), false),
+									},
+								},
+							},
+						},
+
+						"multi_model_config": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"model_cache_setting": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      sagemaker.ModelCacheSettingEnabled,
+										ValidateFunc: validation.StringInSlice(sagemaker.ModelCacheSetting_Values(), false),
 									},
 								},
 							},
@@ -173,6 +192,7 @@ func resourceAwsSagemakerModel() *schema.Resource {
 							ValidateFunc: validateSagemakerEnvironment,
 							Elem:         &schema.Schema{Type: schema.TypeString},
 						},
+
 						"image_config": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -184,6 +204,24 @@ func resourceAwsSagemakerModel() *schema.Resource {
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringInSlice(sagemaker.RepositoryAccessMode_Values(), false),
+									},
+								},
+							},
+						},
+
+						"multi_model_config": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"model_cache_setting": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      sagemaker.ModelCacheSettingEnabled,
+										ValidateFunc: validation.StringInSlice(sagemaker.ModelCacheSetting_Values(), false),
 									},
 								},
 							},
@@ -404,6 +442,10 @@ func expandContainer(m map[string]interface{}) *sagemaker.ContainerDefinition {
 		container.ImageConfig = expandSagemakerModelImageConfig(v.([]interface{}))
 	}
 
+	if v, ok := m["multi_model_config"]; ok {
+		container.MultiModelConfig = expandSagemakerModelMultiModelConfig(v.([]interface{}))
+	}
+
 	return &container
 }
 
@@ -419,6 +461,20 @@ func expandSagemakerModelImageConfig(l []interface{}) *sagemaker.ImageConfig {
 	}
 
 	return imageConfig
+}
+
+func expandSagemakerModelMultiModelConfig(l []interface{}) *sagemaker.MultiModelConfig {
+	if len(l) == 0 {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	multiModelConfig := &sagemaker.MultiModelConfig{
+		ModelCacheSetting: aws.String(m["model_cache_setting"].(string)),
+	}
+
+	return multiModelConfig
 }
 
 func expandContainers(a []interface{}) []*sagemaker.ContainerDefinition {
@@ -458,6 +514,10 @@ func flattenContainer(container *sagemaker.ContainerDefinition) []interface{} {
 		cfg["image_config"] = flattenSagemakerImageConfig(container.ImageConfig)
 	}
 
+	if container.MultiModelConfig != nil {
+		cfg["multi_model_config"] = flattenSagemakerMultiModelConfig(container.MultiModelConfig)
+	}
+
 	return []interface{}{cfg}
 }
 
@@ -469,6 +529,18 @@ func flattenSagemakerImageConfig(imageConfig *sagemaker.ImageConfig) []interface
 	cfg := make(map[string]interface{})
 
 	cfg["repository_access_mode"] = aws.StringValue(imageConfig.RepositoryAccessMode)
+
+	return []interface{}{cfg}
+}
+
+func flattenSagemakerMultiModelConfig(multiModelConfig *sagemaker.MultiModelConfig) []interface{} {
+	if multiModelConfig == nil {
+		return []interface{}{}
+	}
+
+	cfg := make(map[string]interface{})
+
+	cfg["model_cache_setting"] = aws.StringValue(multiModelConfig.ModelCacheSetting)
 
 	return []interface{}{cfg}
 }
