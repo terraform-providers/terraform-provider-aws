@@ -60,6 +60,7 @@ The following arguments are supported:
 * `bucket` - (Required) The name of the bucket to read the object from. Alternatively, an [S3 access point](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-access-points.html) ARN can be specified
 * `key` - (Required) The full path to the object inside the bucket
 * `version_id` - (Optional) Specific version ID of the object returned (defaults to latest version)
+* `forced_content_type` - (Optional) Force interpretation of the resource to be of a different content type (useful to get the body of non-binary resource that are not considered as text even if they are, i.e. certificates)
 
 ## Attributes Reference
 

@@ -67,6 +67,10 @@ func dataSourceAwsS3BucketObject() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"forced_content_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"key": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -129,6 +133,7 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
+	forcedContentType := d.Get("forced_content_type").(string)
 
 	input := s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
@@ -155,6 +160,11 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	}
 	if aws.BoolValue(out.DeleteMarker) {
 		return fmt.Errorf("Requested S3 object %q%s has been deleted", bucket+key, versionText)
+	}
+
+	contentType := *out.ContentType
+	if forcedContentType == "" {
+		forcedContentType = contentType
 	}
 
 	log.Printf("[DEBUG] Received S3 object: %s", out)
@@ -193,7 +203,7 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("storage_class", out.StorageClass)
 	}
 
-	if isContentTypeAllowed(out.ContentType) {
+	if isContentTypeAllowed(&forcedContentType) {
 		input := s3.GetObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),

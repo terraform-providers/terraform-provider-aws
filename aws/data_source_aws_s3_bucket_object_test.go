@@ -110,6 +110,40 @@ func TestAccDataSourceAWSS3BucketObject_readableBody(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSS3BucketObject_forcedContentType_readableBody(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceOnlyConf, conf := testAccAWSDataSourceS3ObjectConfig_forcedContentType_readableBody(rInt)
+
+	var rObj s3.GetObjectOutput
+	var dsObj s3.GetObjectOutput
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                  func() { testAccPreCheck(t) },
+		Providers:                 testAccProviders,
+		PreventPostDestroyRefresh: true,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceOnlyConf,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &rObj),
+				),
+			},
+			{
+				Config: conf,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsS3ObjectDataSourceExists("data.aws_s3_bucket_object.obj", &dsObj),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_length", "120"),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_type", "application/x-x509-ca-cert"),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "etag", "877716107971cdd406981bbbe85c97f4"),
+					resource.TestMatchResourceAttr("data.aws_s3_bucket_object.obj", "last_modified",
+						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "body", "-----BEGIN CERTIFICATE-----\nbWFpbiBDb250cm9sIFZhbGlkYXRXDDEdMBsGA1UECxMUUG9zaXRpdmVTU0wgV2ls==\n-----END CERTIFICATE-----"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAWSS3BucketObject_kmsEncrypted(t *testing.T) {
 	rInt := acctest.RandInt()
 
@@ -516,6 +550,29 @@ data "aws_s3_bucket_object" "obj" {
   key    = aws_s3_bucket_object.object.key
 }
 `, randInt)
+}
+
+func testAccAWSDataSourceS3ObjectConfig_forcedContentType_readableBody(randInt int) (string, string) {
+	resources := fmt.Sprintf(`
+resource "aws_s3_bucket" "object_bucket" {
+	bucket = "tf-object-test-bucket-%d"
+}
+resource "aws_s3_bucket_object" "object" {
+	bucket = "${aws_s3_bucket.object_bucket.bucket}"
+	key = "tf-testing-obj-%d-forced-readable"
+	content = "-----BEGIN CERTIFICATE-----\nbWFpbiBDb250cm9sIFZhbGlkYXRXDDEdMBsGA1UECxMUUG9zaXRpdmVTU0wgV2ls==\n-----END CERTIFICATE-----"
+	content_type = "application/x-x509-ca-cert"
+}
+`, randInt, randInt)
+
+	both := fmt.Sprintf(`%s
+data "aws_s3_bucket_object" "obj" {
+	bucket = "tf-object-test-bucket-%d"
+	key = "tf-testing-obj-%d-forced-readable"
+	forced_content_type = "text/text"
+}`, resources, randInt, randInt)
+
+	return resources, both
 }
 
 func testAccAWSDataSourceS3ObjectConfig_kmsEncrypted(randInt int) string {
