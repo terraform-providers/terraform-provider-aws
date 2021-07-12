@@ -1022,6 +1022,7 @@ func Provider() *schema.Provider {
 			"aws_ses_domain_mail_from":                                resourceAwsSesDomainMailFrom(),
 			"aws_ses_email_identity":                                  resourceAwsSesEmailIdentity(),
 			"aws_ses_identity_policy":                                 resourceAwsSesIdentityPolicy(),
+			"aws_ses_identity_feedback_forwarding_enabled":            resourceAwsSesIdentityFeedbackForwardingEnabled(),
 			"aws_ses_receipt_filter":                                  resourceAwsSesReceiptFilter(),
 			"aws_ses_receipt_rule":                                    resourceAwsSesReceiptRule(),
 			"aws_ses_receipt_rule_set":                                resourceAwsSesReceiptRuleSet(),
