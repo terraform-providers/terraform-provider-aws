@@ -58,7 +58,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the ElastiCache Global Replication Group.
 * `arn` - The ARN of the ElastiCache Global Replication Group.
-* `actual_engine_version` - (**DEPRECATED** use `engine_version_actual` instead) The full version number of the cache engine running on the members of this global replication group.
 * `engine_version_actual` - The full version number of the cache engine running on the members of this global replication group.
 * `at_rest_encryption_enabled` - A flag that indicate whether the encryption at rest is enabled.
 * `auth_token_enabled` - A flag that indicate whether AuthToken (password) is enabled.

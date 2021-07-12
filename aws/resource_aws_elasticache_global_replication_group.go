@@ -78,11 +78,6 @@ func resourceAwsElasticacheGlobalReplicationGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"actual_engine_version": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use engine_version_actual instead",
-			},
 			"global_replication_group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -201,7 +196,6 @@ func resourceAwsElasticacheGlobalReplicationGroupRead(d *schema.ResourceData, me
 	d.Set("cluster_enabled", globalReplicationGroup.ClusterEnabled)
 	d.Set("engine", globalReplicationGroup.Engine)
 	d.Set("engine_version_actual", globalReplicationGroup.EngineVersion)
-	d.Set("actual_engine_version", globalReplicationGroup.EngineVersion)
 	d.Set("global_replication_group_description", globalReplicationGroup.GlobalReplicationGroupDescription)
 	d.Set("global_replication_group_id", globalReplicationGroup.GlobalReplicationGroupId)
 	d.Set("transit_encryption_enabled", globalReplicationGroup.TransitEncryptionEnabled)
