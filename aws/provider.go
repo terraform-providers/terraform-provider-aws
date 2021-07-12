@@ -752,6 +752,7 @@ func Provider() *schema.Provider {
 			"aws_elb":                                                 resourceAwsElb(),
 			"aws_elb_attachment":                                      resourceAwsElbAttachment(),
 			"aws_emr_cluster":                                         resourceAwsEMRCluster(),
+			"aws_emrcontainers_virtual_cluster":                       resourceAwsEMRContainersVirtualCluster(),
 			"aws_emr_instance_group":                                  resourceAwsEMRInstanceGroup(),
 			"aws_emr_instance_fleet":                                  resourceAwsEMRInstanceFleet(),
 			"aws_emr_managed_scaling_policy":                          resourceAwsEMRManagedScalingPolicy(),
