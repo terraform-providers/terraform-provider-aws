@@ -153,8 +153,33 @@ func TestCapacitySatisfiedUpdate(t *testing.T) {
 			Data:            map[string]interface{}{},
 			ExpectSatisfied: true,
 		},
+		"min_size, got it": {
+			Data: map[string]interface{}{
+				"min_size": 5,
+			},
+			HaveASG:         5,
+			ExpectSatisfied: true,
+		},
+		"min_size overrides desired_capacity": {
+			Data: map[string]interface{}{
+				"min_size":         5,
+				"desired_capacity": 2,
+			},
+			HaveASG:         2,
+			ExpectSatisfied: false,
+			ExpectReason:    "Need exactly 5 healthy instances in ASG, have 2",
+		},
 		"desired_capacity, have less": {
 			Data: map[string]interface{}{
+				"desired_capacity": 5,
+			},
+			HaveASG:         2,
+			ExpectSatisfied: false,
+			ExpectReason:    "Need exactly 5 healthy instances in ASG, have 2",
+		},
+		"desired_capacity overrides min_size": {
+			Data: map[string]interface{}{
+				"min_size":         2,
 				"desired_capacity": 5,
 			},
 			HaveASG:         2,

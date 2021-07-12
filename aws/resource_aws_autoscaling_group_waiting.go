@@ -183,11 +183,13 @@ func capacitySatisfiedCreate(d *schema.ResourceData, haveASG, haveELB int) (bool
 
 // capacitySatisfiedUpdate only cares about specific targets
 func capacitySatisfiedUpdate(d *schema.ResourceData, haveASG, haveELB int) (bool, string) {
-	if wantASG := d.Get("desired_capacity").(int); wantASG > 0 {
-		if haveASG != wantASG {
-			return false, fmt.Sprintf(
-				"Need exactly %d healthy instances in ASG, have %d", wantASG, haveASG)
-		}
+	minASG := d.Get("min_size").(int)
+	if wantASG := d.Get("desired_capacity").(int); wantASG > minASG {
+		minASG = wantASG
+	}
+	if haveASG != minASG {
+		return false, fmt.Sprintf(
+			"Need exactly %d healthy instances in ASG, have %d", minASG, haveASG)
 	}
 	if wantELB := d.Get("wait_for_elb_capacity").(int); wantELB > 0 {
 		if haveELB != wantELB {
