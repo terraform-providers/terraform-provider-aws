@@ -206,6 +206,12 @@ func resourceAwsEMRInstanceGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err != nil {
+		if isAWSErr(err, emr.ErrCodeInvalidRequestException, "is not valid") {
+			log.Printf("[DEBUG] EMR Cluster corresponding to Instance Group (%s) not found, removing", d.Id())
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("error reading EMR Instance Group (%s): %s", d.Id(), err)
 	}
 
@@ -389,7 +395,7 @@ func fetchEMRInstanceGroup(conn *emr.EMR, clusterID, groupID string) (*emr.Insta
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve EMR Cluster (%q): %s", clusterID, err)
+		return nil, err
 	}
 
 	if len(groups) == 0 {
