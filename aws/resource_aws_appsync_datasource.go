@@ -31,6 +31,9 @@ func resourceAwsAppsyncDatasource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					validateStringLen := validation.StringLenBetween(1, 32)
+					ws, errors = validateStringLen(v, k)
+
 					value := v.(string)
 					if !regexp.MustCompile(`[_A-Za-z][_0-9A-Za-z]*`).MatchString(value) {
 						errors = append(errors, fmt.Errorf("%q must match [_A-Za-z][_0-9A-Za-z]*", k))
