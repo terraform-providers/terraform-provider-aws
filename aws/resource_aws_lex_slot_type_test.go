@@ -282,6 +282,48 @@ func TestAccAwsLexSlotType_name(t *testing.T) {
 	})
 }
 
+func TestAccAwsLexSlotType_parentSlotOverride(t *testing.T) {
+	var v lexmodelbuildingservice.GetSlotTypeOutput
+	rName := "aws_lex_slot_type.test"
+	testSlotTypeID := "test_slot_type_" + acctest.RandStringFromCharSet(8, acctest.CharSetAlpha)
+	testSlotPattern := "[" + acctest.RandStringFromCharSet(8, acctest.CharSetAlpha) + "]{8}"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(lexmodelbuildingservice.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, lexmodelbuildingservice.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsLexSlotTypeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsLexSlotTypeConfig_basic(testSlotTypeID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAwsLexSlotTypeExists(rName, &v),
+					resource.TestCheckResourceAttr(rName, "slot_type_configuration.#", "0"),
+				),
+			},
+			{
+				ResourceName:            rName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_version"},
+			},
+			{
+				Config: testAccAwsLexSlotTypeConfig_parentSlotOverride(testSlotTypeID, testSlotPattern),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAwsLexSlotTypeExists(rName, &v),
+					resource.TestCheckResourceAttr(rName, "slot_type_configuration.0.regex_configuration.0.pattern", testSlotPattern),
+				),
+			},
+			{
+				ResourceName:            rName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_version"},
+			},
+		},
+	})
+}
+
 func TestAccAwsLexSlotType_valueSelectionStrategy(t *testing.T) {
 	var v lexmodelbuildingservice.GetSlotTypeOutput
 	rName := "aws_lex_slot_type.test"
@@ -513,4 +555,18 @@ resource "aws_lex_slot_type" "test" {
   }
 }
 `, rName)
+}
+
+func testAccAwsLexSlotTypeConfig_parentSlotOverride(rName string, pattern string) string {
+	return fmt.Sprintf(`
+resource "aws_lex_slot_type" "test" {
+  name = "%s"
+  parent_slot_type_signature = "AMAZON.AlphaNumeric"
+  slot_type_configuration {
+    regex_configuration {
+      pattern = "%s"
+    }
+  }
+}
+`, rName, pattern)
 }

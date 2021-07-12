@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lexmodelbuildingservice"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -32,6 +34,16 @@ func resourceAwsLexSlotType() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: customdiff.Sequence(
+			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
+				if diff.HasChange("enumeration_value") && diff.HasChange("slot_type_configuration") {
+					diff.ForceNew("enumeration_value")
+					diff.ForceNew("slot_type_configuration")
+				}
+				return nil
+			},
+		),
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(LexSlotTypeCreateTimeout),
 			Update: schema.DefaultTimeout(LexSlotTypeUpdateTimeout),
@@ -55,14 +67,14 @@ func resourceAwsLexSlotType() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "",
 				ValidateFunc: validation.StringLenBetween(0, 200),
 			},
 			"enumeration_value": {
-				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
-				MaxItems: 10000,
+				Type:         schema.TypeSet,
+				MinItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"enumeration_value", "slot_type_configuration"},
+				MaxItems:     10000,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"synonyms": {
@@ -96,10 +108,44 @@ func resourceAwsLexSlotType() *schema.Resource {
 				),
 			},
 			"value_selection_strategy": {
-				Type:         schema.TypeString,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"parent_slot_type_signature", "slot_type_configuration"},
+				Default:       lexmodelbuildingservice.SlotValueSelectionStrategyOriginalValue,
+				ValidateFunc:  validation.StringInSlice(lexmodelbuildingservice.SlotValueSelectionStrategy_Values(), false),
+			},
+			"parent_slot_type_signature": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 100),
+					validation.StringMatch(regexp.MustCompile(`^((AMAZON\.)_?|[A-Za-z]_?)+`), ""),
+				),
+			},
+			"slot_type_configuration": {
+				Type:         schema.TypeSet,
 				Optional:     true,
-				Default:      lexmodelbuildingservice.SlotValueSelectionStrategyOriginalValue,
-				ValidateFunc: validation.StringInSlice(lexmodelbuildingservice.SlotValueSelectionStrategy_Values(), false),
+				ExactlyOneOf: []string{"enumeration_value", "slot_type_configuration"},
+				MinItems:     1,
+				MaxItems:     1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"regex_configuration": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"pattern": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			"version": {
 				Type:     schema.TypeString,
@@ -114,14 +160,21 @@ func resourceAwsLexSlotTypeCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 
 	input := &lexmodelbuildingservice.PutSlotTypeInput{
-		CreateVersion:          aws.Bool(d.Get("create_version").(bool)),
-		Description:            aws.String(d.Get("description").(string)),
-		Name:                   aws.String(name),
-		ValueSelectionStrategy: aws.String(d.Get("value_selection_strategy").(string)),
+		CreateVersion:           aws.Bool(d.Get("create_version").(bool)),
+		Description:             aws.String(d.Get("description").(string)),
+		Name:                    aws.String(name),
+		ValueSelectionStrategy:  aws.String(d.Get("value_selection_strategy").(string)),
+		ParentSlotTypeSignature: aws.String(d.Get("parent_slot_type_signature").(string)),
 	}
 
 	if v, ok := d.GetOk("enumeration_value"); ok {
 		input.EnumerationValues = expandLexEnumerationValues(v.(*schema.Set).List())
+	}
+
+	if v, ok := d.GetOk("slot_type_configuration"); ok {
+		input.SlotTypeConfigurations = expandLexSlotTypeConfigurations(v.(*schema.Set).List())
+	} else {
+		input.ParentSlotTypeSignature = nil
 	}
 
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
@@ -172,9 +225,14 @@ func resourceAwsLexSlotTypeRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("last_updated_date", resp.LastUpdatedDate.Format(time.RFC3339))
 	d.Set("name", resp.Name)
 	d.Set("value_selection_strategy", resp.ValueSelectionStrategy)
+	d.Set("parent_slot_type_signature", resp.ParentSlotTypeSignature)
 
 	if resp.EnumerationValues != nil {
 		d.Set("enumeration_value", flattenLexEnumerationValues(resp.EnumerationValues))
+	}
+
+	if resp.SlotTypeConfigurations != nil {
+		d.Set("slot_type_configuration", flattenLexSlotTypeConfigurations(resp.SlotTypeConfigurations))
 	}
 
 	version, err := getLatestLexSlotTypeVersion(conn, &lexmodelbuildingservice.GetSlotTypeVersionsInput{
@@ -224,15 +282,22 @@ func resourceAwsLexSlotTypeUpdate(d *schema.ResourceData, meta interface{}) erro
 	conn := meta.(*AWSClient).lexmodelconn
 
 	input := &lexmodelbuildingservice.PutSlotTypeInput{
-		Checksum:               aws.String(d.Get("checksum").(string)),
-		CreateVersion:          aws.Bool(d.Get("create_version").(bool)),
-		Description:            aws.String(d.Get("description").(string)),
-		Name:                   aws.String(d.Id()),
-		ValueSelectionStrategy: aws.String(d.Get("value_selection_strategy").(string)),
+		Checksum:                aws.String(d.Get("checksum").(string)),
+		CreateVersion:           aws.Bool(d.Get("create_version").(bool)),
+		Description:             aws.String(d.Get("description").(string)),
+		Name:                    aws.String(d.Id()),
+		ValueSelectionStrategy:  aws.String(d.Get("value_selection_strategy").(string)),
+		ParentSlotTypeSignature: aws.String(d.Get("parent_slot_type_signature").(string)),
 	}
 
 	if v, ok := d.GetOk("enumeration_value"); ok {
 		input.EnumerationValues = expandLexEnumerationValues(v.(*schema.Set).List())
+	}
+
+	if v, ok := d.GetOk("slot_type_configuration"); ok {
+		input.SlotTypeConfigurations = expandLexSlotTypeConfigurations(v.(*schema.Set).List())
+	} else {
+		input.ParentSlotTypeSignature = nil
 	}
 
 	err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -303,6 +368,20 @@ func flattenLexEnumerationValues(values []*lexmodelbuildingservice.EnumerationVa
 	return
 }
 
+func flattenLexSlotTypeConfigurations(values []*lexmodelbuildingservice.SlotTypeConfiguration) (flattened []map[string]interface{}) {
+	for _, value := range values {
+		flattened = append(flattened, map[string]interface{}{
+			"regex_configuration": []map[string]interface{}{
+				{
+					"pattern": aws.StringValue(value.RegexConfiguration.Pattern),
+				},
+			},
+		})
+	}
+
+	return
+}
+
 func expandLexEnumerationValues(rawValues []interface{}) []*lexmodelbuildingservice.EnumerationValue {
 	enums := make([]*lexmodelbuildingservice.EnumerationValue, 0, len(rawValues))
 	for _, rawValue := range rawValues {
@@ -316,5 +395,19 @@ func expandLexEnumerationValues(rawValues []interface{}) []*lexmodelbuildingserv
 			Value:    aws.String(value["value"].(string)),
 		})
 	}
+	return enums
+}
+
+func expandLexSlotTypeConfigurations(rawValues []interface{}) []*lexmodelbuildingservice.SlotTypeConfiguration {
+	enums := make([]*lexmodelbuildingservice.SlotTypeConfiguration, 0, len(rawValues))
+	regexConfigRaw := rawValues[0].(map[string]interface{})
+	patternConfigRaw := regexConfigRaw["regex_configuration"].(*schema.Set).List()
+	patternRaw := patternConfigRaw[0].(map[string]interface{})
+	pattern := patternRaw["pattern"].(string)
+	enums = append(enums, &lexmodelbuildingservice.SlotTypeConfiguration{
+		RegexConfiguration: &lexmodelbuildingservice.SlotTypeRegexConfiguration{
+			Pattern: aws.String(pattern),
+		},
+	})
 	return enums
 }
