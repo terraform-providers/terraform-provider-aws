@@ -443,6 +443,42 @@ func TestAccAWSDBClusterParameterGroup_updateParameters(t *testing.T) {
 	})
 }
 
+func TestAccAWSDBClusterParameterGroup_caseParameters(t *testing.T) {
+	var v rds.DBClusterParameterGroup
+	resourceName := "aws_rds_cluster_parameter_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBClusterParameterGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBClusterParameterGroupUpperCaseConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBClusterParameterGroupExists(resourceName, &v),
+					testAccCheckAWSDBClusterParameterGroupAttributes(&v, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "family", "aurora5.6"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_connections",
+						"value": "LEAST({DBInstanceClassMemory/6000000},10)",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSDBClusterParameterGroupUpperCaseConfig(rName),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSDBClusterParameterGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).rdsconn
 
@@ -735,6 +771,20 @@ resource "aws_rds_cluster_parameter_group" "test" {
   }
 }
 `, name)
+}
+
+func testAccAWSDBClusterParameterGroupUpperCaseConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_rds_cluster_parameter_group" "test" {
+  name   = "%s"
+  family = "aurora5.6"
+
+  parameter {
+    name  = "max_connections"
+    value = "LEAST({DBInstanceClassMemory/6000000},10)"
+  }
+}
+`, rName)
 }
 
 const testAccAWSDBClusterParameterGroupConfig_namePrefix = `

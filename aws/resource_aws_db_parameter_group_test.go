@@ -341,7 +341,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "log_output",
-						"value": "file",
+						"value": "FILE",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "max_allowed_packet",
@@ -520,7 +520,7 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "log_output",
-						"value": "file",
+						"value": "FILE",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
 						"name":  "max_allowed_packet",
@@ -767,6 +767,42 @@ func TestAccAWSDBParameterGroup_updateParameters(t *testing.T) {
 						"value": "utf8",
 					}),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDBParameterGroup_caseParameters(t *testing.T) {
+	var v rds.DBParameterGroup
+	resourceName := "aws_db_parameter_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		ErrorCheck:   testAccErrorCheck(t, rds.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBParameterGroupUpperCaseConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBParameterGroupExists(resourceName, &v),
+					testAccCheckAWSDBParameterGroupAttributes(&v, rName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "family", "mysql5.6"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_connections",
+						"value": "LEAST({DBInstanceClassMemory/6000000},10)",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSDBParameterGroupUpperCaseConfig(rName),
 			},
 		},
 	})
@@ -1100,7 +1136,7 @@ resource "aws_db_parameter_group" "test" {
 
   parameter {
     name  = "event_scheduler"
-    value = "ON"
+    value = "on"
   }
 
   parameter {
@@ -1260,7 +1296,7 @@ resource "aws_db_parameter_group" "test" {
 
   parameter {
     name  = "tx_isolation"
-    value = "REPEATABLE-READ"
+    value = "repeatable-read"
   }
 }
 `, n)
@@ -1320,7 +1356,7 @@ resource "aws_db_parameter_group" "test" {
 
   parameter {
     name  = "event_scheduler"
-    value = "ON"
+    value = "on"
   }
 
   parameter {
@@ -1480,7 +1516,7 @@ resource "aws_db_parameter_group" "test" {
 
   parameter {
     name  = "tx_isolation"
-    value = "REPEATABLE-READ"
+    value = "repeatable-read"
   }
 }
 `, n)
@@ -1547,6 +1583,20 @@ resource "aws_db_parameter_group" "test" {
   }
 }
 `, n)
+}
+
+func testAccAWSDBParameterGroupUpperCaseConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_db_parameter_group" "test" {
+  name   = "%s"
+  family = "mysql5.6"
+
+  parameter {
+    name  = "max_connections"
+    value = "LEAST({DBInstanceClassMemory/6000000},10)"
+  }
+}
+`, rName)
 }
 
 const testAccDBParameterGroupConfig_namePrefix = `

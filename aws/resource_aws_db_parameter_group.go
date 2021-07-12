@@ -66,13 +66,13 @@ func resourceAwsDbParameterGroup() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							StateFunc: func(v interface{}) string {
+								return strings.ToLower(v.(string))
+							},
 						},
 						"value": {
 							Type:     schema.TypeString,
 							Required: true,
-							StateFunc: func(v interface{}) string {
-								return strings.ToLower(v.(string))
-							},
 						},
 						"apply_method": {
 							Type:     schema.TypeString,
