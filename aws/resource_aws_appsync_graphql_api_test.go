@@ -169,6 +169,22 @@ func TestAccAWSAppsyncGraphqlApi_Schema(t *testing.T) {
 	})
 }
 
+func TestAccAWSAppsyncGraphqlApi_Schema_Error(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncGraphqlApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAppsyncGraphqlApiConfig_Schema_Invalid(rName),
+				ExpectError: regexp.MustCompile("The field type 'PostV2' is not present when resolving type 'Query'"),
+			},
+		},
+	})
+}
+
 func TestAccAWSAppsyncGraphqlApi_AuthenticationType(t *testing.T) {
 	var api1, api2 appsync.GraphqlApi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -1226,6 +1242,16 @@ resource "aws_appsync_graphql_api" "test" {
   authentication_type = "API_KEY"
   name                = %q
   schema              = "type Mutation {\n\tputPost(id: ID!, title: String!): Post\n}\n\ntype Post {\n\tid: ID!\n\ttitle: String!\n}\n\ntype Query {\n\tsinglePost(id: ID!): Post\n}\n\nschema {\n\tquery: Query\n\tmutation: Mutation\n\n}\n"
+}
+`, rName)
+}
+
+func testAccAppsyncGraphqlApiConfig_Schema_Invalid(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = %q
+  schema              = "type Mutation {\n\tputPost(id: ID!, title: String!): Post\n}\n\ntype Post {\n\tid: ID!\n\ttitle: String!\n}\n\ntype Query {\n\tsinglePost(id: ID!): PostV2\n}\n\nschema {\n\tquery: Query\n\tmutation: Mutation\n\n}\n"
 }
 `, rName)
 }

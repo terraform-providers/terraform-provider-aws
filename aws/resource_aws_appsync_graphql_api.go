@@ -611,6 +611,9 @@ func resourceAwsAppsyncSchemaPut(d *schema.ResourceData, meta interface{}) error
 				if err != nil {
 					return 0, "", err
 				}
+				if *result.Status == "FAILED" {
+					return result, *result.Status, fmt.Errorf("%s", *result.Details)
+				}
 				return result, *result.Status, nil
 			},
 			Timeout: d.Timeout(schema.TimeoutCreate),
