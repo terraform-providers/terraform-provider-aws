@@ -872,6 +872,54 @@ func TestAccAWSRDSCluster_ReplicationSourceIdentifier_KmsKeyId(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/6749
+func TestAccAWSRDSCluster_ReplicationSourceIdentifier_PromoteReplica(t *testing.T) {
+	var providers []*schema.Provider
+	var primaryCluster, replicaCluster rds.DBCluster
+	resourceName := "aws_rds_cluster.test"
+	replicaResourceName := "aws_rds_cluster.replica"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
+		},
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
+		CheckDestroy:      testAccCheckWithProviders(testAccCheckAWSClusterDestroyWithProvider, &providers),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterConfigReplicationSourceIdentifier(rName, "replica"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExistsWithProvider(resourceName, &primaryCluster, testAccAwsRegionProviderFunc(testAccGetRegion(), &providers)),
+					testAccCheckAWSClusterExistsWithProvider(replicaResourceName, &replicaCluster, testAccAwsRegionProviderFunc(testAccGetAlternateRegion(), &providers)),
+					resource.TestCheckResourceAttrPair(replicaResourceName, "replication_source_identifier", "aws_rds_cluster.test", "arn"),
+				),
+			},
+			{
+				Config: testAccAWSClusterConfigReplicationSourceIdentifier(rName, "standalone"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExistsWithProvider(resourceName, &primaryCluster, testAccAwsRegionProviderFunc(testAccGetRegion(), &providers)),
+					testAccCheckAWSClusterExistsWithProvider(replicaResourceName, &replicaCluster, testAccAwsRegionProviderFunc(testAccGetAlternateRegion(), &providers)),
+					resource.TestCheckResourceAttr(replicaResourceName, "replication_source_identifier", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"cluster_identifier_prefix",
+					"master_password",
+					"skip_final_snapshot",
+					"snapshot_identifier",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAWSRDSCluster_backupsUpdate(t *testing.T) {
 	var v rds.DBCluster
 	resourceName := "aws_rds_cluster.test"
@@ -3348,7 +3396,7 @@ resource "aws_rds_cluster" "test" {
 `, n)
 }
 
-func testAccAWSClusterConfigReplicationSourceIdentifierKmsKeyId(rName string) string {
+func testAccAWSClusterReplicationSourceIdentifierBaseConfig(rName string) string {
 	return composeConfig(
 		testAccMultipleRegionProviderConfig(2),
 		fmt.Sprintf(`
@@ -3379,44 +3427,10 @@ resource "aws_rds_cluster_parameter_group" "test" {
   }
 }
 
-resource "aws_rds_cluster" "test" {
-  cluster_identifier              = "%[1]s-primary"
-  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.test.name
-  database_name                   = "mydb"
-  master_username                 = "foo"
-  master_password                 = "mustbeeightcharaters"
-  storage_encrypted               = true
-  skip_final_snapshot             = true
-}
-
 resource "aws_rds_cluster_instance" "test" {
   identifier         = "%[1]s-primary"
   cluster_identifier = aws_rds_cluster.test.id
   instance_class     = "db.t2.small"
-}
-
-resource "aws_kms_key" "alternate" {
-  provider    = "awsalternate"
-  description = %[1]q
-
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Id": "kms-tf-1",
-  "Statement": [
-    {
-      "Sid": "Enable IAM User Permissions",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": "kms:*",
-      "Resource": "*"
-    }
-  ]
-}
-  POLICY
-
 }
 
 resource "aws_vpc" "alternate" {
@@ -3444,6 +3458,74 @@ resource "aws_db_subnet_group" "alternate" {
   provider   = "awsalternate"
   name       = %[1]q
   subnet_ids = aws_subnet.alternate[*].id
+}
+`, rName))
+}
+
+func testAccAWSClusterConfigReplicationSourceIdentifier(rName, clusterType string) string {
+	return composeConfig(
+		testAccAWSClusterReplicationSourceIdentifierBaseConfig(rName),
+		fmt.Sprintf(`
+resource "aws_rds_cluster" "test" {
+  cluster_identifier              = "%[1]s-primary"
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.test.name
+  database_name                   = "mydb"
+  master_username                 = "foo"
+  master_password                 = "mustbeeightcharaters"
+  skip_final_snapshot             = true
+}
+
+resource "aws_rds_cluster" "replica" {
+  provider                      = "awsalternate"
+  cluster_identifier            = "%[1]s-replica"
+  db_subnet_group_name          = aws_db_subnet_group.alternate.name
+  skip_final_snapshot           = true
+  replication_source_identifier = "%s" == "replica" ? aws_rds_cluster.test.arn : null
+  source_region                 = data.aws_region.current.name
+
+  depends_on = [
+    aws_rds_cluster_instance.test,
+  ]
+}
+`, rName, clusterType))
+}
+
+func testAccAWSClusterConfigReplicationSourceIdentifierKmsKeyId(rName string) string {
+	return composeConfig(
+		testAccAWSClusterReplicationSourceIdentifierBaseConfig(rName),
+		fmt.Sprintf(`
+resource "aws_rds_cluster" "test" {
+  cluster_identifier              = "%[1]s-primary"
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.test.name
+  database_name                   = "mydb"
+  master_username                 = "foo"
+  master_password                 = "mustbeeightcharaters"
+  storage_encrypted               = true
+  skip_final_snapshot             = true
+}
+
+resource "aws_kms_key" "alternate" {
+  provider    = "awsalternate"
+  description = %[1]q
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "kms-tf-1",
+  "Statement": [
+    {
+      "Sid": "Enable IAM User Permissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    }
+  ]
+}
+  POLICY
+
 }
 
 resource "aws_rds_cluster" "alternate" {

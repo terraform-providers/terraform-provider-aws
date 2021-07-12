@@ -1259,6 +1259,23 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	// separate request to promote a cluster
+	if d.HasChange("replication_source_identifier") {
+		if d.Get("replication_source_identifier").(string) == "" {
+			// promote
+			input := &rds.PromoteReadReplicaDBClusterInput{
+				DBClusterIdentifier: aws.String(d.Id()),
+			}
+			_, err := conn.PromoteReadReplicaDBCluster(input)
+			if err != nil {
+				return fmt.Errorf("error promoting RDS Cluster read replica (%s): %w", d.Id(), err)
+			}
+			d.Set("replication_source_identifier", "")
+		} else {
+			return errors.New("cannot elect new source RDS Cluster for replication")
+		}
+	}
+
 	if d.HasChange("global_cluster_identifier") {
 		oRaw, nRaw := d.GetChange("global_cluster_identifier")
 		o := oRaw.(string)
