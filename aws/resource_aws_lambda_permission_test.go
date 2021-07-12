@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -41,8 +42,8 @@ func TestLambdaPermissionUnmarshalling(t *testing.T) {
 	}
 
 	expectedPrincipal := "events.amazonaws.com"
-	if v.Statement[0].Principal["Service"] != expectedPrincipal {
-		t.Fatalf("Expected Principal to match (%q != %q)", v.Statement[0].Principal["Service"], expectedPrincipal)
+	if v.Statement[0].Principal.Identifiers != expectedPrincipal {
+		t.Fatalf("Expected Principal to match (%q != %q)", v.Statement[0].Principal, expectedPrincipal)
 	}
 
 	expectedSourceAccount := "319201112229"
@@ -57,6 +58,21 @@ func TestLambdaPermissionUnmarshalling(t *testing.T) {
 		t.Fatalf("Expected Event Source Token to match (%q != %q)",
 			v.Statement[0].Condition["StringEquals"]["lambda:EventSourceToken"],
 			expectedEventSourceToken)
+	}
+}
+
+// This test was added because AWS will respond with a principal of "*" (that is, not a JSON value)
+// if that's what the value was when the permission was created. This caused an unmarshalling error.
+func TestLambdaPermissionUnmarshallingWithNonJsonPrincipal(t *testing.T) {
+	v := LambdaPolicy{}
+	err := json.Unmarshal(testLambdaPolicyWithWildcardPrincipal, &v)
+	if err != nil {
+		t.Fatalf("Expected no error when unmarshalling: %s", err)
+	}
+
+	expectedPrincipal := []string{"*"}
+	if !reflect.DeepEqual(v.Statement[0].Principal.Identifiers, expectedPrincipal) {
+		t.Fatalf("Expected Principal to match (%q != %q)", v.Statement[0].Principal.Identifiers, expectedPrincipal)
 	}
 }
 
@@ -1165,6 +1181,30 @@ var testLambdaPolicy = []byte(`{
       "Principal": {
         "Service": "events.amazonaws.com"
       },
+      "Sid": "36fe77d9-a4ae-13fb-8beb-5dc6821d5291"
+    }
+  ],
+  "Id": "default"
+}`)
+
+// lintignore:AWSAT003,AWSAT005 // unit test
+var testLambdaPolicyWithWildcardPrincipal = []byte(`{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceAccount": "319201112229",
+          "lambda:EventSourceToken": "test-event-source-token"
+        },
+        "ArnLike": {
+          "AWS:SourceArn": "arn:aws:events:eu-west-1:319201112229:rule/RunDaily"
+        }
+      },
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",
+      "Effect": "Allow",
+      "Principal": "*",
       "Sid": "36fe77d9-a4ae-13fb-8beb-5dc6821d5291"
     }
   ],

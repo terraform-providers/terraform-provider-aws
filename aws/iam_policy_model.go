@@ -124,6 +124,40 @@ func (ps IAMPolicyStatementPrincipalSet) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&raw)
 }
 
+func (ps *IAMPolicyStatementPrincipal) UnmarshalJSON(b []byte) error {
+	var out IAMPolicyStatementPrincipal
+
+	var data interface{}
+	if err := json.Unmarshal(b, &data); err != nil {
+		return err
+	}
+
+	switch t := data.(type) {
+	case string:
+		out = IAMPolicyStatementPrincipal{Type: "AWS", Identifiers: []string{"*"}}
+	case map[string]interface{}:
+		for key, value := range data.(map[string]interface{}) {
+			switch vt := value.(type) {
+			case string:
+				out = IAMPolicyStatementPrincipal{Type: key, Identifiers: value.(string)}
+			case []interface{}:
+				values := []string{}
+				for _, v := range value.([]interface{}) {
+					values = append(values, v.(string))
+				}
+				out = IAMPolicyStatementPrincipal{Type: key, Identifiers: values}
+			default:
+				return fmt.Errorf("Unsupported data type %T for IAMPolicyStatementPrincipal", vt)
+			}
+		}
+	default:
+		return fmt.Errorf("Unsupported data type %T for IAMPolicyStatementPrincipal", t)
+	}
+
+	*ps = out
+	return nil
+}
+
 func (ps *IAMPolicyStatementPrincipalSet) UnmarshalJSON(b []byte) error {
 	var out IAMPolicyStatementPrincipalSet
 
