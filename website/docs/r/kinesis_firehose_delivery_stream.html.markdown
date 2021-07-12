@@ -94,7 +94,7 @@ resource "aws_lambda_function" "lambda_processor" {
 }
 ```
 
-### S3 Destination
+### S3 Destination (deprecated)
 
 ```terraform
 resource "aws_s3_bucket" "bucket" {
@@ -402,7 +402,7 @@ The `server_side_encryption` object supports the following:
 * `key_type`- (Optional) Type of encryption key. Default is `AWS_OWNED_CMK`. Valid values are `AWS_OWNED_CMK` and `CUSTOMER_MANAGED_CMK`
 * `key_arn` - (Optional) Amazon Resource Name (ARN) of the encryption key. Required when `key_type` is `CUSTOMER_MANAGED_CMK`.
 
-The `s3_configuration` object supports the following:
+The (DEPRECATED) `s3_configuration`  object supports the following:
 
 * `role_arn` - (Required) The ARN of the AWS credentials.
 * `bucket_arn` - (Required) The ARN of the S3 bucket
