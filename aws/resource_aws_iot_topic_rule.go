@@ -1234,6 +1234,7 @@ func resourceAwsIotTopicRuleUpdate(d *schema.ResourceData, meta interface{}) err
 		"sql",
 		"sql_version",
 		"sqs",
+		"error_action",
 	) {
 		input := &iot.ReplaceTopicRuleInput{
 			RuleName:         aws.String(d.Get("name").(string)),
