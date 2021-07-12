@@ -54,6 +54,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iot"
 	"github.com/aws/aws-sdk-go/service/iotanalytics"
 	"github.com/aws/aws-sdk-go/service/iotevents"
+	"github.com/aws/aws-sdk-go/service/iotwireless"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
@@ -1966,6 +1967,33 @@ func (tags KeyValueTags) IoteventsTags() []*iotevents.Tag {
 
 // IoteventsKeyValueTags creates KeyValueTags from iotevents service tags.
 func IoteventsKeyValueTags(tags []*iotevents.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// IotwirelessTags returns iotwireless service tags.
+func (tags KeyValueTags) IotwirelessTags() []*iotwireless.Tag {
+	result := make([]*iotwireless.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &iotwireless.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// IotwirelessKeyValueTags creates KeyValueTags from iotwireless service tags.
+func IotwirelessKeyValueTags(tags []*iotwireless.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {

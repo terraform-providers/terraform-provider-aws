@@ -66,6 +66,7 @@ var sliceServiceNames = []string{
 	"iot",
 	"iotanalytics",
 	"iotevents",
+	"iotwireless",
 	"kinesis",
 	"kinesisanalytics",
 	"kinesisanalyticsv2",

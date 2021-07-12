@@ -67,6 +67,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iot"
 	"github.com/aws/aws-sdk-go/service/iotanalytics"
 	"github.com/aws/aws-sdk-go/service/iotevents"
+	"github.com/aws/aws-sdk-go/service/iotwireless"
 	"github.com/aws/aws-sdk-go/service/kafka"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
@@ -1195,6 +1196,23 @@ func IoteventsListTags(conn *iotevents.IoTEvents, identifier string) (KeyValueTa
 	}
 
 	return IoteventsKeyValueTags(output.Tags), nil
+}
+
+// IotwirelessListTags lists iotwireless service tags.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func IotwirelessListTags(conn *iotwireless.IoTWireless, identifier string) (KeyValueTags, error) {
+	input := &iotwireless.ListTagsForResourceInput{
+		ResourceArn: aws.String(identifier),
+	}
+
+	output, err := conn.ListTagsForResource(input)
+
+	if err != nil {
+		return New(nil), err
+	}
+
+	return IotwirelessKeyValueTags(output.Tags), nil
 }
 
 // KafkaListTags lists kafka service tags.
