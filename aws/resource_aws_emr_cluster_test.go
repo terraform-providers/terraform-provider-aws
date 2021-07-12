@@ -1491,29 +1491,42 @@ func testAccCheckAWSEmrDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).emrconn
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_emr_cluster" {
-			continue
-		}
+		if rs.Type == "aws_emr_cluster" {
 
-		params := &emr.DescribeClusterInput{
-			ClusterId: aws.String(rs.Primary.ID),
-		}
+			params := &emr.DescribeClusterInput{
+				ClusterId: aws.String(rs.Primary.ID),
+			}
 
-		describe, err := conn.DescribeCluster(params)
+			describe, err := conn.DescribeCluster(params)
 
-		if err == nil {
-			if describe.Cluster != nil &&
-				*describe.Cluster.Status.State == "WAITING" {
-				return fmt.Errorf("EMR Cluster still exists")
+			if err == nil {
+				if describe.Cluster != nil &&
+					*describe.Cluster.Status.State == "WAITING" {
+					return fmt.Errorf("EMR Cluster still exists")
+				}
+			}
+
+			providerErr, ok := err.(awserr.Error)
+			if !ok {
+				return err
+			}
+
+			log.Printf("[ERROR] %v", providerErr)
+		} else if rs.Type == "aws_emr_security_configuration" {
+			params := &emr.DescribeSecurityConfigurationInput{
+				Name: aws.String(rs.Primary.ID),
+			}
+
+			_, err := conn.DescribeSecurityConfiguration(params)
+
+			if err == nil {
+				return fmt.Errorf("EMR Security Configuration still exists")
+			}
+
+			if !isAWSErr(err, "InvalidRequestException", "does not exist") {
+				return err
 			}
 		}
-
-		providerErr, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-
-		log.Printf("[ERROR] %v", providerErr)
 	}
 
 	return nil

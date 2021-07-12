@@ -1370,43 +1370,35 @@ func resourceAwsEMRClusterDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	input := &emr.ListInstancesInput{
+	describeReq := &emr.DescribeClusterInput{
 		ClusterId: aws.String(d.Id()),
 	}
-	var resp *emr.ListInstancesOutput
-	var count int
+	var describeResp *emr.DescribeClusterOutput
+	state := ""
 	err = resource.Retry(20*time.Minute, func() *resource.RetryError {
-		var err error
-		resp, err = conn.ListInstances(input)
+		var describeErr error
+		describeResp, describeErr = conn.DescribeCluster(describeReq)
 
-		if err != nil {
-			return resource.NonRetryableError(err)
+		if describeErr != nil {
+			return resource.NonRetryableError(describeErr)
 		}
 
-		count = countEMRRemainingInstances(resp, d.Id())
-		if count != 0 {
-			return resource.RetryableError(fmt.Errorf("EMR Cluster (%s) has (%d) Instances remaining", d.Id(), count))
+		if (describeResp == nil) || (describeResp.Cluster == nil) || (describeResp.Cluster.Status == nil) {
+			return resource.RetryableError(fmt.Errorf("Continuing to retrieve EMR Cluster (%s) state", d.Id()))
+		}
+
+		state = aws.StringValue(describeResp.Cluster.Status.State)
+		if (state != emr.ClusterStateTerminated) && (state != emr.ClusterStateTerminatedWithErrors) {
+			return resource.RetryableError(fmt.Errorf("EMR Cluster (%s) has (%s) state", d.Id(), state))
 		}
 		return nil
 	})
 
 	if isResourceTimeoutError(err) {
-		resp, err = conn.ListInstances(input)
-
-		if err == nil {
-			count = countEMRRemainingInstances(resp, d.Id())
-		}
+		err = fmt.Errorf("EMR Cluster (%s) has (%s) state", d.Id(), state)
 	}
 
-	if count != 0 {
-		return fmt.Errorf("EMR Cluster (%s) has (%d) Instances remaining", d.Id(), count)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error waiting for EMR Cluster (%s) Instances to drain: %s", d.Id(), err)
-	}
-
-	return nil
+	return err
 }
 
 func countEMRRemainingInstances(resp *emr.ListInstancesOutput, emrClusterId string) int {
