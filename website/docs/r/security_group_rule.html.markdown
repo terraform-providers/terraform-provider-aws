@@ -114,6 +114,12 @@ Import a rule, applicable to all ports, with a protocol other than TCP/UDP/ICMP/
 $ terraform import aws_security_group_rule.ingress sg-6777656e646f6c796e_ingress_92_0_65536_10.0.3.0/24_10.0.4.0/24
 ```
 
+Import a default any/any egress rule to 0.0.0.0/0:
+
+```console
+$ terraform import aws_security_group_rule.default_egress sg-6777656e646f6c796e_egress_all_0_0_0.0.0.0/0
+```
+
 Import an egress rule with a prefix list ID destination:
 
 ```console
