@@ -50,6 +50,11 @@ func resourceAwsElasticBeanstalkConfigurationTemplate() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"source_configuration": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -79,6 +84,13 @@ func resourceAwsElasticBeanstalkConfigurationTemplateCreate(d *schema.ResourceDa
 
 	if attr, ok := d.GetOk("solution_stack_name"); ok {
 		opts.SolutionStackName = aws.String(attr.(string))
+	}
+
+	if attr, ok := d.GetOk("source_configuration"); ok {
+		opts.SourceConfiguration = &elasticbeanstalk.SourceConfiguration{
+			ApplicationName: aws.String(appName),
+			TemplateName:    aws.String(attr.(string)),
+		}
 	}
 
 	log.Printf("[DEBUG] Elastic Beanstalk configuration template create opts: %s", opts)

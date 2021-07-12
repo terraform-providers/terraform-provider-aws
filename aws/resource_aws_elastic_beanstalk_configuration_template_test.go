@@ -74,6 +74,41 @@ func TestAccAWSBeanstalkConfigurationTemplate_Setting(t *testing.T) {
 	})
 }
 
+func TestAccAWSBeanstalkConfigurationTemplate_SourceConfiguration(t *testing.T) {
+	var config elasticbeanstalk.ConfigurationSettingsDescription
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBeanstalkConfigurationTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBeanstalkConfigurationTemplateConfig_SourceConfiguration(acctest.RandString(5)),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBeanstalkConfigurationTemplateExists("aws_elastic_beanstalk_configuration_template.tf_template_child", &config),
+					testAccCheckBeanstalkConfigurationTemplateHasSetting("aws:autoscaling:launchconfiguration", "InstanceType", &config),
+					resource.TestCheckResourceAttr(
+						"aws_elastic_beanstalk_configuration_template.tf_template_child", "setting.#", "1"),
+					resource.TestCheckResourceAttr(
+						"aws_elastic_beanstalk_configuration_template.tf_template_child", "setting.2322376506.value", "400"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckBeanstalkConfigurationTemplateHasSetting(namespace string, optionName string, config *elasticbeanstalk.ConfigurationSettingsDescription) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, setting := range config.OptionSettings {
+			if *setting.Namespace == namespace && *setting.OptionName == optionName {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("OptionName %s in Namespace %s not found", optionName, namespace)
+	}
+}
+
 func testAccCheckBeanstalkConfigurationTemplateDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).elasticbeanstalkconn
 
@@ -226,4 +261,40 @@ resource "aws_elastic_beanstalk_configuration_template" "tf_template" {
   }
 }
 `, name, name)
+}
+
+func testAccBeanstalkConfigurationTemplateConfig_SourceConfiguration(name string) string {
+	return fmt.Sprintf(`
+resource "aws_elastic_beanstalk_application" "tftest" {
+  name        = "tf-test-%s"
+  description = "tf-test-desc"
+}
+
+resource "aws_elastic_beanstalk_configuration_template" "tf_template_parent" {
+  name        = "tf-test-parent-%s"
+  application = "${aws_elastic_beanstalk_application.tftest.name}"
+
+  solution_stack_name = "64bit Amazon Linux 2018.03 v2.9.2 running Python"
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "InstanceType"
+    value     = "m1.small"
+  }
+}
+
+resource "aws_elastic_beanstalk_configuration_template" "tf_template_child" {
+  name                 = "tf-test-child-%s"
+  application          = "${aws_elastic_beanstalk_application.tftest.name}"
+  source_configuration = "${aws_elastic_beanstalk_configuration_template.tf_template_parent.name}"
+
+  solution_stack_name = "64bit Amazon Linux 2018.03 v2.9.2 running Python"
+
+  setting {
+    namespace = "aws:autoscaling:asg"
+    name      = "Cooldown"
+    value     = "400"
+  }
+}
+`, name, name, name)
 }

@@ -40,6 +40,7 @@ The following arguments are supported:
   below in [Option Settings](#option-settings)
 * `solution_stack_name` – (Optional) A solution stack to base your Template
 off of. Example stacks can be found in the [Amazon API documentation][1]
+* `source_configuration` - (Optional) A configuration template that this resource will inherit from
 
 
 ## Option Settings
