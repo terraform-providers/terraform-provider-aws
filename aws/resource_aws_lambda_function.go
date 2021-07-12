@@ -285,9 +285,10 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"variables": {
-							Type:     schema.TypeMap,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Type:         schema.TypeMap,
+							Optional:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z]([a-zA-Z0-9_])+`), "must start with a letter and contain only alphanumeric and underscore characters"),
+							Elem:         &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
