@@ -40,6 +40,14 @@ func TestAccAWSDynamoDbTableItem_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemContent+"\n"),
 				),
 			},
+			{
+				ResourceName:            "aws_dynamodb_table_item.test",
+				ImportState:             true,
+				ImportStateId:           fmt.Sprintf("%s/%s/S/something", tableName, hashKey),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"item"}, // item is verified separately below
+				ImportStateCheck:        testAccCheckAWSDynamoDbTableItemImportState(itemContent),
+			},
 		},
 	})
 }
@@ -75,6 +83,14 @@ func TestAccAWSDynamoDbTableItem_rangeKey(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "table_name", tableName),
 					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemContent+"\n"),
 				),
+			},
+			{
+				ResourceName:            "aws_dynamodb_table_item.test",
+				ImportState:             true,
+				ImportStateId:           fmt.Sprintf("%s/%s/S/something/%s/S/something-else", tableName, hashKey, rangeKey),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"item"}, // item is verified separately below
+				ImportStateCheck:        testAccCheckAWSDynamoDbTableItemImportState(itemContent),
 			},
 		},
 	})
@@ -319,6 +335,25 @@ func testAccCheckAWSDynamoDbTableItemCount(tableName string, count int64) resour
 		if *out.Count != expectedCount {
 			return fmt.Errorf("Expected %d items, got %d", expectedCount, *out.Count)
 		}
+		return nil
+	}
+}
+
+func testAccCheckAWSDynamoDbTableItemImportState(item string) resource.ImportStateCheckFunc {
+	return func(s []*terraform.InstanceState) error {
+		if len(s) != 1 {
+			return fmt.Errorf("expected 1 state: %#v", s)
+		}
+
+		rs := s[0]
+
+		if isEqual := jsonBytesEqual([]byte(rs.Attributes["item"]), []byte(item)); !isEqual {
+			return fmt.Errorf(
+				"Item values not equivalent. Difference is shown below. Top is actual, bottom is expected."+
+					"\n\n%s\n\n%s",
+				rs.Attributes["item"], item)
+		}
+
 		return nil
 	}
 }

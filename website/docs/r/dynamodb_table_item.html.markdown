@@ -60,4 +60,35 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-DynamoDB table items cannot be imported.
+DynamoDB table items can be imported using the `table_name`, `hash_key`, `hash_key_type`, `hash_key_value` and optionally `range_key`, `range_key_type`, `range_key_value` if required, separated by slashes (`/`).
+
+### Examples
+
+Import an item with a hash key only of type string:
+
+```hcl
+resource "aws_dynamodb_table_item" "example" {
+  table_name = "test_table"
+  hash_key   = "exampleHashKey"
+
+  item = <<ITEM
+{
+  "exampleHashKey": {"S": "something"},
+  "one": {"N": "11111"},
+  "two": {"N": "22222"},
+  "three": {"N": "33333"},
+  "four": {"N": "44444"}
+}
+ITEM
+}
+```
+
+```console
+$ terraform import aws_dynamodb_table_item test_table/exampleHashKey/S/something
+```
+
+The same example as above with a range key of type number:
+
+```console
+$ terraform import aws_dynamodb_table_item test_table/exampleHashKey/S/something/exampleRangeKey/N/1111
+```

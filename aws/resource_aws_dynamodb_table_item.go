@@ -17,6 +17,9 @@ func resourceAwsDynamoDbTableItem() *schema.Resource {
 		Read:   resourceAwsDynamoDbTableItemRead,
 		Update: resourceAwsDynamoDbTableItemUpdate,
 		Delete: resourceAwsDynamoDbTableItemDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsDynamoDbTableItemImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"table_name": {
@@ -35,9 +38,10 @@ func resourceAwsDynamoDbTableItem() *schema.Resource {
 				Optional: true,
 			},
 			"item": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateDynamoDbTableItem,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateFunc:     validateDynamoDbTableItem,
+				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 			},
 		},
 	}
@@ -220,6 +224,40 @@ func resourceAwsDynamoDbTableItemDelete(d *schema.ResourceData, meta interface{}
 	return err
 }
 
+func resourceAwsDynamoDbTableItemImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if err := populateDynamoDbTableItemFromImport(d); err != nil {
+		return nil, err
+	}
+	tableName, hashKey, rangeKey := d.Get("table_name").(string), d.Get("hash_key").(string), d.Get("range_key").(string)
+
+	attrs, err := expandDynamoDbTableItemAttributes(d.Get("item").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	conn := meta.(*AWSClient).dynamodbconn
+	result, err := conn.GetItem(&dynamodb.GetItemInput{
+		TableName:      aws.String(tableName),
+		ConsistentRead: aws.Bool(true),
+		Key:            buildDynamoDbTableItemQueryKey(attrs, hashKey, rangeKey),
+	})
+	if err != nil || result.Item == nil {
+		return nil, fmt.Errorf("Error retrieving DynamoDB table item: %s", err)
+	}
+
+	// Override all item attributes with result from getItem query
+	itemAttrs, err := flattenDynamoDbTableItemAttributes(result.Item)
+	if err != nil {
+		return nil, err
+	}
+	d.Set("item", itemAttrs)
+
+	id := buildDynamoDbTableItemId(tableName, hashKey, rangeKey, result.Item)
+	d.SetId(id)
+
+	return []*schema.ResourceData{d}, nil
+}
+
 // Helpers
 
 func buildDynamoDbExpressionAttributeNames(attrs map[string]*dynamodb.AttributeValue) map[string]*string {
@@ -253,6 +291,65 @@ func buildDynamoDbTableItemId(tableName string, hashKey string, rangeKey string,
 		id = append(id, aws.StringValue(rangeVal.N))
 	}
 	return strings.Join(id, "|")
+}
+
+func populateDynamoDbTableItemFromImport(d *schema.ResourceData) error {
+	log.Printf("[DEBUG] Parsing id string %s", d.Id())
+	importParts := strings.Split(d.Id(), "/")
+	if len(importParts) < 4 {
+		errStr := "unexpected format of id string (%q), expected TABLE_NAME/HASH_KEY/HASH_KEY_TYPE/HASH_VALUE/(RANGE_KEY/RANGE_KEY_TYPE/RANGE_VALUE)?: %s"
+		return fmt.Errorf(errStr, d.Id(), "too few parts")
+	}
+	hashParts, rangeParts := importParts[1:4], importParts[4:]
+
+	d.Set("table_name", importParts[0])
+
+	attrs := map[string]*dynamodb.AttributeValue{}
+
+	d.Set("hash_key", importParts[1])
+	hashKeyVal, err := buildDynamoDbAttributeValue(&hashParts[2], hashParts[1])
+	if err != nil {
+		return err
+	}
+	attrs[hashParts[0]] = hashKeyVal
+
+	// Set range if specified
+	if len(rangeParts) > 0 {
+		d.Set("range_key", rangeParts[0])
+		rangeKeyVal, err := buildDynamoDbAttributeValue(&rangeParts[2], rangeParts[1])
+		if err != nil {
+			return err
+		}
+		attrs[rangeParts[0]] = rangeKeyVal
+	}
+
+	// Item is simply hash & range attributes at this point
+	itemAttrs, err := flattenDynamoDbTableItemAttributes(attrs)
+	if err != nil {
+		return err
+	}
+	d.Set("item", itemAttrs)
+
+	return nil
+}
+
+func buildDynamoDbAttributeValue(v *string, t string) (*dynamodb.AttributeValue, error) {
+	switch t {
+	case "B":
+		return &dynamodb.AttributeValue{
+			B: []byte(*v),
+		}, nil
+	case "N":
+		return &dynamodb.AttributeValue{
+			N: v,
+		}, nil
+	case "S":
+		return &dynamodb.AttributeValue{
+			S: v,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unexpected attribute value type, expected values are B, N or S")
+	}
 }
 
 func buildDynamoDbTableItemQueryKey(attrs map[string]*dynamodb.AttributeValue, hashKey string, rangeKey string) map[string]*dynamodb.AttributeValue {
