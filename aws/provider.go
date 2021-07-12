@@ -223,6 +223,7 @@ func Provider() *schema.Provider {
 			"aws_cloudwatch_event_connection":                dataSourceAwsCloudwatchEventConnection(),
 			"aws_cloudwatch_event_source":                    dataSourceAwsCloudWatchEventSource(),
 			"aws_cloudwatch_log_group":                       dataSourceAwsCloudwatchLogGroup(),
+			"aws_cloudwatch_log_groups":                      dataSourceAwsCloudwatchLogGroups(),
 			"aws_codeartifact_authorization_token":           dataSourceAwsCodeArtifactAuthorizationToken(),
 			"aws_codeartifact_repository_endpoint":           dataSourceAwsCodeArtifactRepositoryEndpoint(),
 			"aws_cognito_user_pools":                         dataSourceAwsCognitoUserPools(),
