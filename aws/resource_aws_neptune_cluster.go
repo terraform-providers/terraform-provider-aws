@@ -345,6 +345,7 @@ func resourceAwsNeptuneClusterCreate(d *schema.ResourceData, meta interface{}) e
 
 	if attr, ok := d.GetOk("kms_key_arn"); ok {
 		createDbClusterInput.KmsKeyId = aws.String(attr.(string))
+		restoreDBClusterFromSnapshotInput.KmsKeyId = aws.String(attr.(string))
 	}
 
 	if attr, ok := d.GetOk("neptune_cluster_parameter_group_name"); ok {
