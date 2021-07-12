@@ -133,9 +133,20 @@ func resourceAwsCloudFrontFunctionRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error describing CloudFront Function (%s/%s): %w", d.Id(), stage, err)
 	}
 
+	if d.Get("publish").(bool) {
+		describeDevelopmentFunctionOutput, err2 := finder.FunctionByNameAndStage(conn, d.Id(), cloudfront.FunctionStageDevelopment)
+
+		if err2 != nil {
+			return fmt.Errorf("error describing CloudFront Function (%s/%s): %w", d.Id(), cloudfront.FunctionStageDevelopment, err2)
+		}
+
+		d.Set("etag", describeDevelopmentFunctionOutput.ETag)
+	} else {
+		d.Set("etag", describeFunctionOutput.ETag)
+	}
+
 	d.Set("arn", describeFunctionOutput.FunctionSummary.FunctionMetadata.FunctionARN)
 	d.Set("comment", describeFunctionOutput.FunctionSummary.FunctionConfig.Comment)
-	d.Set("etag", describeFunctionOutput.ETag)
 	d.Set("name", describeFunctionOutput.FunctionSummary.Name)
 	d.Set("runtime", describeFunctionOutput.FunctionSummary.FunctionConfig.Runtime)
 	d.Set("status", describeFunctionOutput.FunctionSummary.Status)
