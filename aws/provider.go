@@ -233,6 +233,7 @@ func Provider() *schema.Provider {
 			"aws_db_cluster_snapshot":                        dataSourceAwsDbClusterSnapshot(),
 			"aws_db_event_categories":                        dataSourceAwsDbEventCategories(),
 			"aws_db_instance":                                dataSourceAwsDbInstance(),
+			"aws_db_parameter_group":                         dataSourceAwsDbParameterGroup(),
 			"aws_db_snapshot":                                dataSourceAwsDbSnapshot(),
 			"aws_db_subnet_group":                            dataSourceAwsDbSubnetGroup(),
 			"aws_directory_service_directory":                dataSourceAwsDirectoryServiceDirectory(),
