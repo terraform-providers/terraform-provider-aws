@@ -377,6 +377,11 @@ func resourceAwsInstance() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"host_resource_group_arn": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"primary_network_interface_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -626,7 +631,7 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	tagSpecifications = append(tagSpecifications, ec2TagSpecificationsFromMap(d.Get("volume_tags").(map[string]interface{}), ec2.ResourceTypeVolume)...)
 
 	// Build the creation struct
-	runOpts := &ec2.RunInstancesInput{
+	runOptsWithPlacement := &ec2.RunInstancesInput{
 		BlockDeviceMappings:               instanceOpts.BlockDeviceMappings,
 		CapacityReservationSpecification:  instanceOpts.CapacityReservationSpecification,
 		DisableApiTermination:             instanceOpts.DisableAPITermination,
@@ -656,6 +661,35 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		TagSpecifications:                 tagSpecifications,
 	}
 
+	// Build the creation struct
+	runOpts := &ec2.RunInstancesInput{
+		BlockDeviceMappings:               instanceOpts.BlockDeviceMappings,
+		DisableApiTermination:             instanceOpts.DisableAPITermination,
+		EbsOptimized:                      instanceOpts.EBSOptimized,
+		Monitoring:                        instanceOpts.Monitoring,
+		IamInstanceProfile:                instanceOpts.IAMInstanceProfile,
+		ImageId:                           instanceOpts.ImageID,
+		InstanceInitiatedShutdownBehavior: instanceOpts.InstanceInitiatedShutdownBehavior,
+		InstanceType:                      instanceOpts.InstanceType,
+		Ipv6AddressCount:                  instanceOpts.Ipv6AddressCount,
+		Ipv6Addresses:                     instanceOpts.Ipv6Addresses,
+		KeyName:                           instanceOpts.KeyName,
+		MaxCount:                          aws.Int64(int64(1)),
+		MinCount:                          aws.Int64(int64(1)),
+		NetworkInterfaces:                 instanceOpts.NetworkInterfaces,
+		PrivateIpAddress:                  instanceOpts.PrivateIPAddress,
+		SecurityGroupIds:                  instanceOpts.SecurityGroupIDs,
+		SecurityGroups:                    instanceOpts.SecurityGroups,
+		SubnetId:                          instanceOpts.SubnetID,
+		UserData:                          instanceOpts.UserData64,
+		CreditSpecification:               instanceOpts.CreditSpecification,
+		CpuOptions:                        instanceOpts.CpuOptions,
+		HibernationOptions:                instanceOpts.HibernationOptions,
+		MetadataOptions:                   instanceOpts.MetadataOptions,
+		EnclaveOptions:                    instanceOpts.EnclaveOptions,
+		TagSpecifications:                 tagSpecifications,
+	}
+
 	_, ipv6CountOk := d.GetOk("ipv6_address_count")
 	_, ipv6AddressOk := d.GetOk("ipv6_addresses")
 
@@ -669,7 +703,14 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	var runResp *ec2.Reservation
 	err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
-		runResp, err = conn.RunInstances(runOpts)
+		// Validation check for host_resource_group_arn exists or not.
+		if instanceOpts.Placement.HostResourceGroupArn != nil {
+			runResp, err = conn.RunInstances(runOpts)
+		} else if instanceOpts.Placement.HostResourceGroupArn == nil && instanceOpts.Placement.GroupName == nil {
+			runResp, err = conn.RunInstances(runOpts)
+		} else if instanceOpts.Placement.GroupName != nil {
+			runResp, err = conn.RunInstances(runOptsWithPlacement)
+		}
 		// IAM instance profiles can take ~10 seconds to propagate in AWS:
 		// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
 		if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile") {
@@ -681,13 +722,24 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 			log.Print("[DEBUG] IAM Instance Profile appears to have no IAM roles, retrying...")
 			return resource.RetryableError(err)
 		}
+		if isAWSErr(err, "InvalidParameterValue", "Invalid value 'When HostResourceGroupArn is specified, Placement GroupName cannot be set.' for groupName.") {
+			log.Print("[DEBUG] Placement GroupName cannot be set., retrying...")
+			return resource.RetryableError(err)
+		}
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
 	if isResourceTimeoutError(err) {
-		runResp, err = conn.RunInstances(runOpts)
+		// Validation check for host_resource_group_arn exists or not.
+		if instanceOpts.Placement.HostResourceGroupArn != nil {
+			runResp, err = conn.RunInstances(runOpts)
+		} else if instanceOpts.Placement.HostResourceGroupArn == nil && instanceOpts.Placement.GroupName == nil {
+			runResp, err = conn.RunInstances(runOpts)
+		} else if instanceOpts.Placement.GroupName != nil {
+			runResp, err = conn.RunInstances(runOptsWithPlacement)
+		}
 	}
 	// Warn if the AWS Error involves group ids, to help identify situation
 	// where a user uses group ids in security_groups for the Default VPC.
@@ -828,20 +880,20 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	if instance.Placement.HostId != nil {
 		d.Set("host_id", instance.Placement.HostId)
 	}
-
+	if instance.Placement.HostResourceGroupArn != nil {
+		d.Set("placement_group", "")
+		d.Set("host_resource_group_arn", instance.Placement.HostResourceGroupArn)
+	}
 	if instance.CpuOptions != nil {
 		d.Set("cpu_core_count", instance.CpuOptions.CoreCount)
 		d.Set("cpu_threads_per_core", instance.CpuOptions.ThreadsPerCore)
 	}
-
 	if instance.HibernationOptions != nil {
 		d.Set("hibernation", instance.HibernationOptions.Configured)
 	}
-
 	if err := d.Set("metadata_options", flattenEc2InstanceMetadataOptions(instance.MetadataOptions)); err != nil {
 		return fmt.Errorf("error setting metadata_options: %s", err)
 	}
-
 	if err := d.Set("enclave_options", flattenEc2EnclaveOptions(instance.EnclaveOptions)); err != nil {
 		return fmt.Errorf("error setting enclave_options: %s", err)
 	}
@@ -2451,6 +2503,9 @@ func buildAwsInstanceOpts(d *schema.ResourceData, meta interface{}) (*awsInstanc
 	}
 	if v := d.Get("host_id").(string); v != "" {
 		opts.Placement.HostId = aws.String(v)
+	}
+	if v := d.Get("host_resource_group_arn").(string); v != "" {
+		opts.Placement.HostResourceGroupArn = aws.String(v)
 	}
 
 	if v := d.Get("cpu_core_count").(int); v > 0 {

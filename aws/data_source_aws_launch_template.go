@@ -345,6 +345,7 @@ func dataSourceAwsLaunchTemplate() *schema.Resource {
 						},
 						"host_resource_group_arn": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
 						},
 						"spread_domain": {

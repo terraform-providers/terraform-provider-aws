@@ -115,6 +115,7 @@ interpolation.
 * `tags` - A map of tags assigned to the Instance.
 * `tenancy` - The tenancy of the instance: `dedicated`, `default`, `host`.
 * `host_id` - The Id of the dedicated host the instance will be assigned to.
+* `host_resource_group_arn` - The ARN of the Host Resource Group in which to launch instances.
 * `vpc_security_group_ids` - The associated security groups in a non-default VPC.
 * `credit_specification` - The credit specification of the Instance.
 * `metadata_options` - The metadata options of the Instance.
