@@ -1,0 +1,7 @@
+```release-note:new-resource
+aws_emrcontainers_virtual_cluster
+```
+
+```release-note:new-data-source
+aws_emrcontainers_virtual_cluster
+```
