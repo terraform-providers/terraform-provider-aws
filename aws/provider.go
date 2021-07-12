@@ -387,6 +387,7 @@ func Provider() *schema.Provider {
 			"aws_s3_bucket":                                  dataSourceAwsS3Bucket(),
 			"aws_s3_bucket_object":                           dataSourceAwsS3BucketObject(),
 			"aws_s3_bucket_objects":                          dataSourceAwsS3BucketObjects(),
+			"aws_s3_bucket_policy":                           dataSourceAwsS3BucketPolicy(),
 			"aws_sagemaker_prebuilt_ecr_image":               dataSourceAwsSageMakerPrebuiltECRImage(),
 			"aws_secretsmanager_secret":                      dataSourceAwsSecretsManagerSecret(),
 			"aws_secretsmanager_secret_rotation":             dataSourceAwsSecretsManagerSecretRotation(),
