@@ -1774,36 +1774,45 @@ func readBlockDevices(d *schema.ResourceData, instance *ec2.Instance, conn *ec2.
 		return err
 	}
 
-	// This handles cases where the root device block is of type "EBS"
-	// and #readBlockDevicesFromInstance only returns 1 reference to a block-device
-	// stored in ibds["root"]
-	if _, ok := d.GetOk("ebs_block_device"); ok {
-		if len(ibds["ebs"].([]map[string]interface{})) == 0 {
-			ebs := make(map[string]interface{})
-			for k, v := range ibds["root"].(map[string]interface{}) {
-				ebs[k] = v
+	var ebsBlockDevices []map[string]interface{}
+	var rootBlockDevice []interface{}
+
+	if ibds != nil {
+		if v, ok := ibds["ebs"].([]map[string]interface{}); ok {
+			// This handles cases where the root device block is of type "EBS"
+			// and #readBlockDevicesFromInstance only returns 1 reference to a block-device
+			// stored in ibds["root"]
+			if len(v) == 0 {
+				ebs := make(map[string]interface{})
+
+				rootMap, ok := ibds["root"].(map[string]interface{})
+				if ok {
+					for k, v := range rootMap {
+						ebs[k] = v
+					}
+				}
+
+				if snapshotId, ok := ibds["snapshot_id"].(string); ok {
+					ebs["snapshot_id"] = snapshotId
+				}
+
+				ebsBlockDevices = []map[string]interface{}{ebs}
+			} else {
+				ebsBlockDevices = v
 			}
-			ebs["snapshot_id"] = ibds["snapshot_id"]
-			ibds["ebs"] = append(ibds["ebs"].([]map[string]interface{}), ebs)
+		}
+
+		if v, ok := ibds["root"].(map[string]interface{}); ok {
+			rootBlockDevice = []interface{}{v}
 		}
 	}
 
-	if err := d.Set("ebs_block_device", ibds["ebs"]); err != nil {
+	if err := d.Set("ebs_block_device", ebsBlockDevices); err != nil {
 		return err
 	}
 
-	// This handles the import case which needs to be defaulted to empty
-	if _, ok := d.GetOk("root_block_device"); !ok {
-		if err := d.Set("root_block_device", []interface{}{}); err != nil {
-			return err
-		}
-	}
-
-	if ibds["root"] != nil {
-		roots := []interface{}{ibds["root"]}
-		if err := d.Set("root_block_device", roots); err != nil {
-			return err
-		}
+	if err := d.Set("root_block_device", rootBlockDevice); err != nil {
+		return err
 	}
 
 	return nil
