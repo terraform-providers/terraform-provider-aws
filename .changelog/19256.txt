@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_instance: Fix issue with assuming Placement and disableApiTermination instance atrributes exist when deploying to a Snowball Edge device
+```
