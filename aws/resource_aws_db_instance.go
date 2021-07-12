@@ -184,6 +184,22 @@ func resourceAwsDbInstance() *schema.Resource {
 					value := v.(string)
 					return strings.ToLower(value)
 				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"aurora",
+					"aurora-mysql",
+					"aurora-postgresql",
+					"mariadb",
+					"mysql",
+					"oracle-ee",
+					"oracle-se",
+					"oracle-se1",
+					"oracle-se2",
+					"postgres",
+					"sqlserver-ee",
+					"sqlserver-ex",
+					"sqlserver-se",
+					"sqlserver-web",
+				}, false),
 			},
 			"engine_version": {
 				Type:             schema.TypeString,
