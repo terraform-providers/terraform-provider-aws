@@ -1860,6 +1860,10 @@ func TestValidateDbParamGroupName(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
+			Value:    "default.aurora-postgresql9.6",
+			ErrCount: 0,
+		},
+		{
 			Value:    acctest.RandStringFromCharSet(256, acctest.CharSetAlpha),
 			ErrCount: 1,
 		},

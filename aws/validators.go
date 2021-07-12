@@ -224,9 +224,9 @@ func validateTagFilters(v interface{}, k string) (ws []string, errors []error) {
 
 func validateDbParamGroupName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
-	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
+	if !regexp.MustCompile(`^[0-9a-z-.]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in parameter group %q", k))
+			"only lowercase alphanumeric characters, hyphens and periods allowed in parameter group %q", k))
 	}
 	if !regexp.MustCompile(`^[a-z]`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
