@@ -1056,6 +1056,7 @@ func Provider() *schema.Provider {
 			"aws_securityhub_member":                                  resourceAwsSecurityHubMember(),
 			"aws_securityhub_organization_admin_account":              resourceAwsSecurityHubOrganizationAdminAccount(),
 			"aws_securityhub_product_subscription":                    resourceAwsSecurityHubProductSubscription(),
+			"aws_securityhub_standards_control":                       resourceAwsSecurityHubStandardsControl(),
 			"aws_securityhub_standards_subscription":                  resourceAwsSecurityHubStandardsSubscription(),
 			"aws_servicecatalog_budget_resource_association":          resourceAwsServiceCatalogBudgetResourceAssociation(),
 			"aws_servicecatalog_constraint":                           resourceAwsServiceCatalogConstraint(),

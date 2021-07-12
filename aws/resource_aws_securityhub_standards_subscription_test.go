@@ -13,6 +13,8 @@ import (
 func testAccAWSSecurityHubStandardsSubscription_basic(t *testing.T) {
 	var standardsSubscription *securityhub.StandardsSubscription
 
+	resourceName := "aws_securityhub_standards_subscription.test"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		ErrorCheck:   testAccErrorCheck(t, securityhub.EndpointsID),
@@ -22,11 +24,11 @@ func testAccAWSSecurityHubStandardsSubscription_basic(t *testing.T) {
 			{
 				Config: testAccAWSSecurityHubStandardsSubscriptionConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSecurityHubStandardsSubscriptionExists("aws_securityhub_standards_subscription.example", standardsSubscription),
+					testAccCheckAWSSecurityHubStandardsSubscriptionExists(resourceName, standardsSubscription),
 				),
 			},
 			{
-				ResourceName:      "aws_securityhub_standards_subscription.example",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -95,16 +97,16 @@ func testAccCheckAWSSecurityHubStandardsSubscriptionDestroy(s *terraform.State) 
 }
 
 const testAccAWSSecurityHubStandardsSubscriptionConfig_empty = `
-resource "aws_securityhub_account" "example" {}
+resource "aws_securityhub_account" "test" {}
 `
 
 const testAccAWSSecurityHubStandardsSubscriptionConfig_basic = `
-resource "aws_securityhub_account" "example" {}
+resource "aws_securityhub_account" "test" {}
 
 data "aws_partition" "current" {}
 
-resource "aws_securityhub_standards_subscription" "example" {
-  depends_on    = [aws_securityhub_account.example]
+resource "aws_securityhub_standards_subscription" "test" {
   standards_arn = "arn:${data.aws_partition.current.partition}:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0"
+  depends_on    = [aws_securityhub_account.test]
 }
 `
