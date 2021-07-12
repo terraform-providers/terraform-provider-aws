@@ -303,6 +303,31 @@ func RouteTableAssociationState(conn *ec2.EC2, id string) resource.StateRefreshF
 }
 
 const (
+	InternetGatewayAttachmentStatusNotFound = "NotFound"
+
+	InternetGatewayAttachmentStatusUnknown = "Unknown"
+)
+
+// InternetGatewayAttachmentStatus fetches the attachment between the specified Internet Gateway and VPC and its state
+func InternetGatewayAttachmentStatus(conn *ec2.EC2, igwID, vpcID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		result, err := finder.InternetGatewayAttachmentByID(conn, igwID, vpcID)
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidInternetGatewayIDNotFound) {
+			return nil, InternetGatewayAttachmentStatusNotFound, nil
+		}
+		if err != nil {
+			return nil, InternetGatewayAttachmentStatusUnknown, err
+		}
+
+		if result == nil {
+			return nil, InternetGatewayAttachmentStatusNotFound, nil
+		}
+
+		return result, aws.StringValue(result.State), nil
+	}
+}
+
+const (
 	SecurityGroupStatusCreated = "Created"
 
 	SecurityGroupStatusNotFound = "NotFound"

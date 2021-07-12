@@ -71,6 +71,20 @@ func ClientVpnRouteParseID(id string) (string, string, string, error) {
 			"target-subnet-id"+clientVpnRouteIDSeparator+"destination-cidr-block", id)
 }
 
+func InternetGatewayAttachmentCreateID(vpcID, igwID string) string {
+	return fmt.Sprintf("%s:%s", vpcID, igwID)
+}
+
+func InternetGatewayAttachmentParseID(id string) (string, string, error) {
+	parts := strings.Split(id, ":")
+
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("Unexpected format of ID (%q), expected VPC-ID:IGW-ID", id)
+	}
+
+	return parts[0], parts[1], nil
+}
+
 // RouteCreateID returns a route resource ID.
 func RouteCreateID(routeTableID, destination string) string {
 	return fmt.Sprintf("r-%s%d", routeTableID, hashcode.String(destination))
