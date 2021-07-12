@@ -113,6 +113,11 @@ func resourceAwsLambdaLayerVersion() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"retain": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -239,6 +244,12 @@ func resourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsLambdaLayerVersionDelete(d *schema.ResourceData, meta interface{}) error {
+	retain := d.Get("retain").(bool)
+	if retain {
+		log.Printf("[DEBUG] Retaining Lambda Layer %q", d.Get("arn").(string))
+		return nil
+	}
+
 	conn := meta.(*AWSClient).lambdaconn
 
 	version, err := strconv.ParseInt(d.Get("version").(string), 10, 64)
@@ -251,7 +262,7 @@ func resourceAwsLambdaLayerVersionDelete(d *schema.ResourceData, meta interface{
 		VersionNumber: aws.Int64(version),
 	})
 	if err != nil {
-		return fmt.Errorf("error deleting Lambda Layer Version (%s): %s", d.Id(), err)
+		return fmt.Errorf("Error deleting Lambda Layer Version (%s): %s", d.Id(), err)
 	}
 
 	log.Printf("[DEBUG] Lambda layer %q deleted", d.Get("arn").(string))
