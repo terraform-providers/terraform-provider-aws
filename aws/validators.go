@@ -1480,9 +1480,13 @@ func validateOpenIdURL(v interface{}, k string) (ws []string, errors []error) {
 
 func validateAwsKmsName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
-	if !regexp.MustCompile(`^(alias\/)[a-zA-Z0-9:/_-]+$`).MatchString(value) {
+	if regexp.MustCompile(`^(alias\/aws)`).MatchString(value) {
+		es = append(es, fmt.Errorf("Use of reserved AWS CMK prefix 'alias/aws' in %q", k))
+	}
+
+	if !regexp.MustCompile(`^(alias\/)[a-zA-Z0-9\/_-]+$`).MatchString(value) {
 		es = append(es, fmt.Errorf(
-			"%q must begin with 'alias/' and be comprised of only [a-zA-Z0-9:/_-]", k))
+			"%q must begin with 'alias/' and be comprised of only [a-zA-Z0-9/_-]", k))
 	}
 	return
 }
