@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
@@ -33,6 +34,30 @@ func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"connection_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  cloud9.ConnectionTypeConnectSsh,
+				ValidateFunc: validation.StringInSlice([]string{
+					cloud9.ConnectionTypeConnectSsh,
+					cloud9.ConnectionTypeConnectSsm,
+				}, false),
+			},
+			"image_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "amazonlinux-1-x86_64",
+				ValidateFunc: validation.StringInSlice([]string{
+					"amazonlinux-1-x86_64",
+					"amazonlinux-2-x86_64",
+					"ubuntu-18.04-x86_64",
+					"resolve:ssm:/aws/service/cloud9/amis/amazonlinux-1-x86_64",
+					"resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64",
+					"resolve:ssm:/aws/service/cloud9/amis/ubuntu-18.04-x86_64",
+				}, false),
 			},
 			"automatic_stop_time_minutes": {
 				Type:     schema.TypeInt,
@@ -78,6 +103,8 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 
 	params := &cloud9.CreateEnvironmentEC2Input{
 		InstanceType:       aws.String(d.Get("instance_type").(string)),
+		ConnectionType:     aws.String(d.Get("connection_type").(string)),
+		ImageId:            aws.String(d.Get("image_id").(string)),
 		Name:               aws.String(d.Get("name").(string)),
 		ClientRequestToken: aws.String(resource.UniqueId()),
 		Tags:               tags.IgnoreAws().Cloud9Tags(),
@@ -183,6 +210,7 @@ func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{
 	d.Set("name", env.Name)
 	d.Set("owner_arn", env.OwnerArn)
 	d.Set("type", env.Type)
+	d.Set("connection_type", env.ConnectionType)
 
 	tags, err := keyvaluetags.Cloud9ListTags(conn, arn)
 

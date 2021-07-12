@@ -41,7 +41,7 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id"},
+				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id", "image_id"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2Config(rNameUpdated),
@@ -89,7 +89,7 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id"},
+				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id", "image_id"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(rNameUpdated, uDescription, userName),
@@ -130,7 +130,7 @@ func TestAccAWSCloud9EnvironmentEc2_tags(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id"},
+				ImportStateVerifyIgnore: []string{"instance_type", "subnet_id", "image_id"},
 			},
 			{
 				Config: testAccAWSCloud9EnvironmentEc2ConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
@@ -172,6 +172,41 @@ func TestAccAWSCloud9EnvironmentEc2_disappears(t *testing.T) {
 					testAccCheckAWSCloud9EnvironmentEc2Disappears(&conf),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSCloud9EnvironmentEc2_SSM(t *testing.T) {
+	var conf cloud9.Environment
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	description := acctest.RandomWithPrefix("Tf Acc Test")
+	userName := acctest.RandomWithPrefix("tf_acc_cloud9_env")
+	resourceName := "aws_cloud9_environment_ec2.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, cloud9.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloud9EnvironmentEc2SSMConfig(rName, description, userName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "instance_type", "t2.micro"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "cloud9", regexp.MustCompile(`environment:.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "owner_arn", "aws_iam_user.test", "arn"),
+					resource.TestCheckResourceAttr(resourceName, "type", "ec2"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"instance_type", "automatic_stop_time_minutes", "subnet_id", "image_id"},
 			},
 		},
 	})
@@ -299,10 +334,10 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  availability_zone = data.aws_availability_zones.available.names[0]
-  cidr_block        = "10.0.0.0/24"
-  vpc_id            = aws_vpc.test.id
-
+  availability_zone       = data.aws_availability_zones.available.names[0]
+  cidr_block              = "10.0.0.0/24"
+  vpc_id                  = aws_vpc.test.id
+  map_public_ip_on_launch = true
   tags = {
     Name = "tf-acc-test-cloud9-environment-ec2"
   }
@@ -347,6 +382,8 @@ resource "aws_cloud9_environment_ec2" "test" {
   automatic_stop_time_minutes = 60
   description                 = %[2]q
   instance_type               = "t2.micro"
+  connection_type             = "CONNECT_SSH"
+  image_id                    = "amazonlinux-1-x86_64"
   name                        = %[1]q
   owner_arn                   = aws_iam_user.test.arn
   subnet_id                   = aws_subnet.test.id
@@ -389,4 +426,58 @@ resource "aws_cloud9_environment_ec2" "test" {
   }
 }
 `, name, tagKey1, tagValue1, tagKey2, tagValue2)
+}
+
+func testAccAWSCloud9EnvironmentEc2SSMConfig(name, description, userName string) string {
+	return testAccAWSCloud9EnvironmentEc2ConfigBase() + fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+data "aws_iam_policy_document" "cloud9_ssm_access" {
+  statement {
+    effect = "Allow"
+    principals {
+      identifiers = [
+        "ec2.amazonaws.com",
+        "cloud9.amazonaws.com"
+      ]
+      type = "Service"
+    }
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "cloud9_ssm_access" {
+  name               = "AWSCloud9SSMAccessRole"
+  path               = "/service-role/"
+  assume_role_policy = data.aws_iam_policy_document.cloud9_ssm_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "cloud9_ssm_access" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSCloud9SSMInstanceProfile"
+  role       = aws_iam_role.cloud9_ssm_access.name
+}
+
+resource "aws_iam_instance_profile" "cloud9_ssm_access" {
+  name = "AWSCloud9SSMInstanceProfile"
+  path = "/cloud9/"
+  role = aws_iam_role.cloud9_ssm_access.name
+}
+
+resource "aws_cloud9_environment_ec2" "test" {
+  depends_on = [aws_route.test, aws_iam_instance_profile.cloud9_ssm_access]
+
+  automatic_stop_time_minutes = 60
+  description                 = %[2]q
+  instance_type               = "t2.micro"
+  connection_type             = "CONNECT_SSM"
+  image_id                    = "amazonlinux-2-x86_64"
+  name                        = %[1]q
+  owner_arn                   = aws_iam_user.test.arn
+  subnet_id                   = aws_subnet.test.id
+}
+
+resource "aws_iam_user" "test" {
+  name = %[3]q
+}
+`, name, description, userName)
 }

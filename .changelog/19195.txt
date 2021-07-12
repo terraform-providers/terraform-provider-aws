@@ -1,0 +1,3 @@
+```release-note:enhancement
+aws_cloud9_environment_ec2: Add connection_type and image_id. Allows the usage of Cloud9 with SSM access to EC2 instance
+```

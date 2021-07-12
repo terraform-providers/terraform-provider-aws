@@ -72,6 +72,14 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the environment.
 * `instance_type` - (Required) The type of instance to connect to the environment, e.g. `t2.micro`.
+* `connection_type` - (Optional) The connection type used for connecting to an Amazon EC2 environment. Valid values are CONNECT_SSH (default) and CONNECT_SSM. For more information please refer [AWS documentation for Cloud9](https://docs.aws.amazon.com/cloud9/latest/user-guide/ec2-ssm.html).
+* `image_id` - (Optional) The identifier for the Amazon Machine Image (AMI) that's used to create the EC2 instance. Valid values are
+    * amazonlinux-1-x86_64 (default)
+    * amazonlinux-2-x86_64
+    * ubuntu-18.04-x86_64
+    * resolve:ssm:/aws/service/cloud9/amis/amazonlinux-1-x86_64
+    * resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
+    * resolve:ssm:/aws/service/cloud9/amis/ubuntu-18.04-x86_64
 * `automatic_stop_time_minutes` - (Optional) The number of minutes until the running instance is shut down after the environment has last been used.
 * `description` - (Optional) The description of the environment.
 * `owner_arn` - (Optional) The ARN of the environment owner. This can be ARN of any AWS IAM principal. Defaults to the environment's creator.
