@@ -20,6 +20,7 @@ func dataSourceAwsIotEndpoint() *schema.Resource {
 			"endpoint_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"iot:CredentialProvider",
 					"iot:Data",

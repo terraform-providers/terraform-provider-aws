@@ -18,6 +18,7 @@ func dataSourceAwsRoute53ResolverRules() *schema.Resource {
 			"owner_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.Any(
 					validateAwsAccountId,
 					// The owner of the default Internet Resolver rule.
@@ -38,23 +39,15 @@ func dataSourceAwsRoute53ResolverRules() *schema.Resource {
 			},
 
 			"rule_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					route53resolver.RuleTypeOptionForward,
-					route53resolver.RuleTypeOptionSystem,
-					route53resolver.RuleTypeOptionRecursive,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(route53resolver.RuleTypeOption_Values(), false),
 			},
 
 			"share_status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					route53resolver.ShareStatusNotShared,
-					route53resolver.ShareStatusSharedWithMe,
-					route53resolver.ShareStatusSharedByMe,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(route53resolver.ShareStatus_Values(), false),
 			},
 		},
 	}

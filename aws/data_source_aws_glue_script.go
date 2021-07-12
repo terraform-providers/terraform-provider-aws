@@ -77,13 +77,10 @@ func dataSourceAwsGlueScript() *schema.Resource {
 				},
 			},
 			"language": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  glue.LanguagePython,
-				ValidateFunc: validation.StringInSlice([]string{
-					glue.LanguagePython,
-					glue.LanguageScala,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      glue.LanguagePython,
+				ValidateFunc: validation.StringInSlice(glue.Language_Values(), false),
 			},
 			"python_script": {
 				Type:     schema.TypeString,

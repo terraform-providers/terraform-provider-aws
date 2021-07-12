@@ -264,6 +264,7 @@ func dataSourceAwsSageMakerPrebuiltECRImage() *schema.Resource {
 			"repository_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					sageMakerRepositoryBlazingText,
 					sageMakerRepositoryDeepARForecasting,

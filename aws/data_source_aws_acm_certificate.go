@@ -32,15 +32,8 @@ func dataSourceAwsAcmCertificate() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						acm.KeyAlgorithmEcPrime256v1,
-						acm.KeyAlgorithmEcSecp384r1,
-						acm.KeyAlgorithmEcSecp521r1,
-						acm.KeyAlgorithmRsa1024,
-						acm.KeyAlgorithmRsa2048,
-						acm.KeyAlgorithmRsa4096,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(acm.KeyAlgorithm_Values(), false),
 				},
 			},
 			"types": {

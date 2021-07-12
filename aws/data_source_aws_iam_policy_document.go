@@ -84,9 +84,10 @@ func dataSourceAwsIamPolicyDocument() *schema.Resource {
 							},
 						},
 						"effect": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "Allow",
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "Allow",
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{"Allow", "Deny"}, false),
 						},
 						"not_actions":    setOfString,
@@ -105,6 +106,7 @@ func dataSourceAwsIamPolicyDocument() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "2012-10-17",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"2008-10-17",
 					"2012-10-17",

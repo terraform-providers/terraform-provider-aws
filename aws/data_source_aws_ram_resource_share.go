@@ -34,12 +34,9 @@ func dataSourceAwsRamResourceShare() *schema.Resource {
 			},
 
 			"resource_owner": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ram.ResourceOwnerOtherAccounts,
-					ram.ResourceOwnerSelf,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(ram.ResourceOwner_Values(), false),
 			},
 
 			"name": {

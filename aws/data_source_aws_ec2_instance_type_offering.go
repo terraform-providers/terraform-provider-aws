@@ -20,13 +20,9 @@ func dataSourceAwsEc2InstanceTypeOffering() *schema.Resource {
 				Computed: true,
 			},
 			"location_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.LocationTypeAvailabilityZone,
-					ec2.LocationTypeAvailabilityZoneId,
-					ec2.LocationTypeRegion,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(ec2.LocationType_Values(), false),
 			},
 			"preferred_instance_types": {
 				Type:     schema.TypeList,

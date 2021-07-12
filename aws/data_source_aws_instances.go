@@ -22,15 +22,8 @@ func dataSourceAwsInstances() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						ec2.InstanceStateNamePending,
-						ec2.InstanceStateNameRunning,
-						ec2.InstanceStateNameShuttingDown,
-						ec2.InstanceStateNameStopped,
-						ec2.InstanceStateNameStopping,
-						ec2.InstanceStateNameTerminated,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(ec2.InstanceStateName_Values(), false),
 				},
 			},
 
