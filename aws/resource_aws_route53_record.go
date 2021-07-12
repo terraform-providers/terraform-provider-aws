@@ -958,7 +958,7 @@ func nilString(s string) *string {
 }
 
 func normalizeAwsAliasName(alias interface{}) string {
-	input := strings.ToLower(alias.(string))
+	input := cleanRecordName(strings.ToLower(alias.(string)))
 	output := strings.TrimPrefix(input, "dualstack.")
 	return strings.TrimSuffix(output, ".")
 }

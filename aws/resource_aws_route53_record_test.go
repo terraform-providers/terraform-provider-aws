@@ -70,6 +70,9 @@ func TestNormalizeAwsAliasName(t *testing.T) {
 		{"dualstack.test-987654321.region.elb.amazonaws.com", "test-987654321.region.elb.amazonaws.com"},
 		{"dualstacktest.test", "dualstacktest.test"},
 		{"NAME-123456789.region.elb.amazonaws.com", "name-123456789.region.elb.amazonaws.com"},
+		{"\\052.nonexample.com", "*.nonexample.com"},
+		{"\\100.nonexample.com", "@.nonexample.com"},
+		{"\\043.nonexample.com", "#.nonexample.com"},
 	}
 
 	for _, tc := range cases {
