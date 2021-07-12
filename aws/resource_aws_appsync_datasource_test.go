@@ -220,6 +220,38 @@ func TestAccAwsAppsyncDatasource_HTTPConfig_Endpoint(t *testing.T) {
 	})
 }
 
+func TestAccAwsAppsyncDatasource_HTTPConfig_AuthorizationConfig(t *testing.T) {
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_datasource.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncDatasourceConfig_HTTPConfig_Endpoint_Signing(rName, "http://example.com", "us-east-1", "cognito-idp"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.iam_config.region", "us-east-1"),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.iam_config.service_name", "cognito-idp"),
+				),
+			},
+			{
+				Config: testAccAppsyncDatasourceConfig_HTTPConfig_Endpoint_Signing(rName, "http://example.org", "us-east-2", "states"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.iam_config.region", "us-east-2"),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.iam_config.service_name", "states"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAwsAppsyncDatasource_Type(t *testing.T) {
 	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
 	resourceName := "aws_appsync_datasource.test"
@@ -734,6 +766,29 @@ resource "aws_appsync_datasource" "test" {
   }
 }
 `, rName, rName, endpoint)
+}
+
+func testAccAppsyncDatasourceConfig_HTTPConfig_Endpoint_Signing(rName, endpoint string, region string, service string) string {
+	return fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = %q
+}
+
+resource "aws_appsync_datasource" "test" {
+  api_id = aws_appsync_graphql_api.test.id
+  name   = %q
+  type   = "HTTP"
+
+  http_config {
+    endpoint = %q
+    iam_config {
+      region       = %q
+      service_name = %q
+    }
+  }
+}
+`, rName, rName, endpoint, region, service)
 }
 
 func testAccAppsyncDatasourceConfig_Type_DynamoDB(rName string) string {
