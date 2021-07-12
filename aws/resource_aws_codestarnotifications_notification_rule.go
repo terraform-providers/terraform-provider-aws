@@ -37,12 +37,9 @@ func resourceAwsCodeStarNotificationsNotificationRule() *schema.Resource {
 			},
 
 			"detail_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					codestarnotifications.DetailTypeBasic,
-					codestarnotifications.DetailTypeFull,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(codestarnotifications.DetailType_Values(), false),
 			},
 
 			"event_type_ids": {
@@ -70,13 +67,10 @@ func resourceAwsCodeStarNotificationsNotificationRule() *schema.Resource {
 			},
 
 			"status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  codestarnotifications.NotificationRuleStatusEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					codestarnotifications.NotificationRuleStatusEnabled,
-					codestarnotifications.NotificationRuleStatusDisabled,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      codestarnotifications.NotificationRuleStatusEnabled,
+				ValidateFunc: validation.StringInSlice(codestarnotifications.NotificationRuleStatus_Values(), false),
 			},
 
 			"tags":     tagsSchema(),

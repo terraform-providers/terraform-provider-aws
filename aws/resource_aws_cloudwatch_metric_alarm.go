@@ -230,15 +230,17 @@ func resourceAwsCloudWatchMetricAlarm() *schema.Resource {
 				ValidateFunc:  validation.StringMatch(regexp.MustCompile(`p(\d{1,2}(\.\d{0,2})?|100)`), "must specify a value between p0.0 and p100"),
 			},
 			"treat_missing_data": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "missing",
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "missing",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{"breaching", "notBreaching", "ignore", "missing"}, true),
 			},
 			"evaluate_low_sample_count_percentiles": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{"evaluate", "ignore"}, true),
 			},
 

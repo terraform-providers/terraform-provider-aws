@@ -38,9 +38,10 @@ func resourceAwsCloudHsmV2Cluster() *schema.Resource {
 			},
 
 			"hsm_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{"hsm1.medium"}, false),
 			},
 

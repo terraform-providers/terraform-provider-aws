@@ -37,12 +37,9 @@ func resourceAwsCognitoIdentityPoolRolesAttachment() *schema.Resource {
 							Required: true,
 						},
 						"ambiguous_role_resolution": {
-							Type:     schema.TypeString,
-							Optional: true, // Required if Type equals Token or Rules.
-							ValidateFunc: validation.StringInSlice([]string{
-								cognitoidentity.AmbiguousRoleResolutionTypeAuthenticatedRole,
-								cognitoidentity.AmbiguousRoleResolutionTypeDeny,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true, // Required if Type equals Token or Rules.
+							ValidateFunc: validation.StringInSlice(cognitoidentity.AmbiguousRoleResolutionType_Values(), false),
 						},
 						"mapping_rule": {
 							Type:     schema.TypeList,
@@ -56,14 +53,9 @@ func resourceAwsCognitoIdentityPoolRolesAttachment() *schema.Resource {
 										ValidateFunc: validateCognitoRoleMappingsRulesClaim,
 									},
 									"match_type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											cognitoidentity.MappingRuleMatchTypeEquals,
-											cognitoidentity.MappingRuleMatchTypeContains,
-											cognitoidentity.MappingRuleMatchTypeStartsWith,
-											cognitoidentity.MappingRuleMatchTypeNotEqual,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(cognitoidentity.MappingRuleMatchType_Values(), false),
 									},
 									"role_arn": {
 										Type:         schema.TypeString,
@@ -79,12 +71,9 @@ func resourceAwsCognitoIdentityPoolRolesAttachment() *schema.Resource {
 							},
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								cognitoidentity.RoleMappingTypeToken,
-								cognitoidentity.RoleMappingTypeRules,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitoidentity.RoleMappingType_Values(), false),
 						},
 					},
 				},

@@ -28,15 +28,11 @@ func resourceAwsCodeDeployDeploymentConfig() *schema.Resource {
 			},
 
 			"compute_platform": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					codedeploy.ComputePlatformServer,
-					codedeploy.ComputePlatformLambda,
-					codedeploy.ComputePlatformEcs,
-				}, false),
-				Default: codedeploy.ComputePlatformServer,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(codedeploy.ComputePlatform_Values(), false),
+				Default:      codedeploy.ComputePlatformServer,
 			},
 
 			"minimum_healthy_hosts": {
@@ -47,13 +43,10 @@ func resourceAwsCodeDeployDeploymentConfig() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codedeploy.MinimumHealthyHostsTypeHostCount,
-								codedeploy.MinimumHealthyHostsTypeFleetPercent,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(codedeploy.MinimumHealthyHostsType_Values(), false),
 						},
 						"value": {
 							Type:     schema.TypeInt,
@@ -72,15 +65,11 @@ func resourceAwsCodeDeployDeploymentConfig() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								codedeploy.TrafficRoutingTypeAllAtOnce,
-								codedeploy.TrafficRoutingTypeTimeBasedCanary,
-								codedeploy.TrafficRoutingTypeTimeBasedLinear,
-							}, false),
-							Default: codedeploy.TrafficRoutingTypeAllAtOnce,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(codedeploy.TrafficRoutingType_Values(), false),
+							Default:      codedeploy.TrafficRoutingTypeAllAtOnce,
 						},
 
 						"time_based_canary": {

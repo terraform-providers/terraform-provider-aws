@@ -51,12 +51,10 @@ func resourceAwsCustomerGateway() *schema.Resource {
 			},
 
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.GatewayTypeIpsec1,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.GatewayType_Values(), false),
 			},
 
 			"tags":     tagsSchema(),

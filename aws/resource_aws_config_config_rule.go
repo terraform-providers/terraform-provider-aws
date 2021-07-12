@@ -98,12 +98,9 @@ func resourceAwsConfigConfigRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"owner": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								configservice.OwnerCustomLambda,
-								configservice.OwnerAws,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(configservice.Owner_Values(), false),
 						},
 						"source_detail": {
 							Type:     schema.TypeSet,

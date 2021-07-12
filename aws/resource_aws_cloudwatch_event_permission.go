@@ -41,13 +41,15 @@ func resourceAwsCloudWatchEventPermission() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
-							Type:         schema.TypeString,
-							Required:     true,
+							Type:     schema.TypeString,
+							Required: true,
+							//lintignore:AWSV001 //  no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{"aws:PrincipalOrgID"}, false),
 						},
 						"type": {
-							Type:         schema.TypeString,
-							Required:     true,
+							Type:     schema.TypeString,
+							Required: true,
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{"StringEquals"}, false),
 						},
 						"value": {

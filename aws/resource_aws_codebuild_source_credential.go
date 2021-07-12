@@ -26,23 +26,16 @@ func resourceAwsCodeBuildSourceCredential() *schema.Resource {
 				Computed: true,
 			},
 			"auth_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					codebuild.AuthTypeBasicAuth,
-					codebuild.AuthTypePersonalAccessToken,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(codebuild.AuthType_Values(), false),
 			},
 			"server_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					codebuild.ServerTypeGithub,
-					codebuild.ServerTypeBitbucket,
-					codebuild.ServerTypeGithubEnterprise,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(codebuild.ServerType_Values(), false),
 			},
 			"token": {
 				Type:      schema.TypeString,

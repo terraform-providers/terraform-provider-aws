@@ -24,14 +24,10 @@ func resourceAwsCodePipelineWebhook() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"authentication": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					codepipeline.WebhookAuthenticationTypeGithubHmac,
-					codepipeline.WebhookAuthenticationTypeIp,
-					codepipeline.WebhookAuthenticationTypeUnauthenticated,
-				}, false),
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(codepipeline.WebhookAuthenticationType_Values(), false),
 			},
 			"authentication_configuration": {
 				Type:     schema.TypeList,

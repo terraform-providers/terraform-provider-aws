@@ -89,13 +89,9 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"forward": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														cloudfront.ItemSelectionAll,
-														cloudfront.ItemSelectionNone,
-														cloudfront.ItemSelectionWhitelist,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(cloudfront.ItemSelection_Values(), false),
 												},
 												"whitelisted_names": {
 													Type:     schema.TypeSet,
@@ -288,13 +284,9 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"forward": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														cloudfront.ItemSelectionAll,
-														cloudfront.ItemSelectionNone,
-														cloudfront.ItemSelectionWhitelist,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(cloudfront.ItemSelection_Values(), false),
 												},
 												"whitelisted_names": {
 													Type:     schema.TypeSet,
@@ -422,7 +414,7 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "http2",
-				ValidateFunc: validation.StringInSlice([]string{"http1.1", "http2"}, false),
+				ValidateFunc: validation.StringInSlice(cloudfront.HttpVersion_Values(), false),
 			},
 			"logging_config": {
 				Type:     schema.TypeList,
@@ -632,13 +624,9 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"restriction_type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											cloudfront.GeoRestrictionTypeNone,
-											cloudfront.GeoRestrictionTypeBlacklist,
-											cloudfront.GeoRestrictionTypeWhitelist,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(cloudfront.GeoRestrictionType_Values(), false),
 									},
 								},
 							},

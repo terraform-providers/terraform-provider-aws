@@ -62,15 +62,9 @@ func resourceAwsConfigOrganizationCustomRule() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 256),
 			},
 			"maximum_execution_frequency": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					configservice.MaximumExecutionFrequencyOneHour,
-					configservice.MaximumExecutionFrequencyThreeHours,
-					configservice.MaximumExecutionFrequencySixHours,
-					configservice.MaximumExecutionFrequencyTwelveHours,
-					configservice.MaximumExecutionFrequencyTwentyFourHours,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(configservice.MaximumExecutionFrequency_Values(), false),
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -108,12 +102,8 @@ func resourceAwsConfigOrganizationCustomRule() *schema.Resource {
 				MinItems: 1,
 				MaxItems: 3,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"ConfigurationItemChangeNotification",
-						"OversizedConfigurationItemChangeNotification",
-						"ScheduledNotification",
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(configservice.OrganizationConfigRuleTriggerType_Values(), false),
 				},
 			},
 		},

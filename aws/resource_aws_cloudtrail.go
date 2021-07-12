@@ -86,14 +86,10 @@ func resourceAwsCloudTrail() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"read_write_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  cloudtrail.ReadWriteTypeAll,
-							ValidateFunc: validation.StringInSlice([]string{
-								cloudtrail.ReadWriteTypeAll,
-								cloudtrail.ReadWriteTypeReadOnly,
-								cloudtrail.ReadWriteTypeWriteOnly,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      cloudtrail.ReadWriteTypeAll,
+							ValidateFunc: validation.StringInSlice(cloudtrail.ReadWriteType_Values(), false),
 						},
 
 						"include_management_events": {
@@ -108,8 +104,9 @@ func resourceAwsCloudTrail() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:         schema.TypeString,
-										Required:     true,
+										Type:     schema.TypeString,
+										Required: true,
+										//lintignore:AWSV001 // no enum in AWS SDK
 										ValidateFunc: validation.StringInSlice([]string{"AWS::S3::Object", "AWS::Lambda::Function", "AWS::DynamoDB::Table"}, false),
 									},
 									"values": {
