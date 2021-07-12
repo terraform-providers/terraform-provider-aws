@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_instance: Stopped instances retain associate_public_ip_address setting
+```

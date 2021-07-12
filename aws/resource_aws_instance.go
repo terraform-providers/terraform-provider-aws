@@ -923,7 +923,11 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("source_dest_check", primaryNetworkInterface.SourceDestCheck)
 		}
 
-		d.Set("associate_public_ip_address", primaryNetworkInterface.Association != nil)
+		if aws.StringValue(instance.State.Name) != ec2.InstanceStateNameStopped {
+			d.Set("associate_public_ip_address", primaryNetworkInterface.Association != nil)
+		} else {
+			log.Printf("[INFO] Cannot determine associate_public_ip_address in stopped state")
+		}
 
 		for _, address := range primaryNetworkInterface.PrivateIpAddresses {
 			if !aws.BoolValue(address.Primary) {
