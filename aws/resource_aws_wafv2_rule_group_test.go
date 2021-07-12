@@ -1325,6 +1325,71 @@ func TestAccAwsWafv2RuleGroup_RuleAction_CustomResponse(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAwsWafv2RuleGroupConfig_RuleActionBlock_CustomResponseBody(ruleGroupName, "test_body_1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsWafv2RuleGroupExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/rulegroup/.+$`)),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", ruleGroupName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
+					resource.TestCheckResourceAttr(resourceName, "visibility_config.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "custom_response_body.*", map[string]string{
+						"key":          "test_body_1",
+						"content":      "test response 1",
+						"content_type": "TEXT_PLAIN",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "custom_response_body.*", map[string]string{
+						"key":          "test_body_2",
+						"content":      "<html><body>test response 2</body></html>",
+						"content_type": "TEXT_HTML",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"action.#":                           "1",
+						"action.0.allow.#":                   "0",
+						"action.0.block.#":                   "1",
+						"action.0.block.0.custom_response.#": "1",
+						"action.0.block.0.custom_response.0.response_code":            "429",
+						"action.0.block.0.custom_response.0.custom_response_body_key": "test_body_1",
+						"action.0.count.#": "0",
+					}),
+				),
+			},
+			{
+				Config: testAccAwsWafv2RuleGroupConfig_RuleActionBlock_CustomResponseBody(ruleGroupName, "test_body_2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsWafv2RuleGroupExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/rulegroup/.+$`)),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", ruleGroupName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
+					resource.TestCheckResourceAttr(resourceName, "visibility_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_response_body.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "custom_response_body.*", map[string]string{
+						"key":          "test_body_1",
+						"content":      "test response 1",
+						"content_type": "TEXT_PLAIN",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "custom_response_body.*", map[string]string{
+						"key":          "test_body_2",
+						"content":      "<html><body>test response 2</body></html>",
+						"content_type": "TEXT_HTML",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"action.#":                           "1",
+						"action.0.allow.#":                   "0",
+						"action.0.block.#":                   "1",
+						"action.0.block.0.custom_response.#": "1",
+						"action.0.block.0.custom_response.0.response_code":            "429",
+						"action.0.block.0.custom_response.0.custom_response_body_key": "test_body_2",
+						"action.0.count.#": "0",
+					}),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -2008,6 +2073,60 @@ resource "aws_wafv2_rule_group" "test" {
   }
 }
 `, name)
+}
+
+func testAccAwsWafv2RuleGroupConfig_RuleActionBlock_CustomResponseBody(name string, customBodyKey string) string {
+	return fmt.Sprintf(`
+resource "aws_wafv2_rule_group" "test" {
+  capacity = 2
+  name     = "%[1]s"
+  scope    = "REGIONAL"
+
+  custom_response_body {
+    key          = "test_body_1"
+    content      = "test response 1"
+    content_type = "TEXT_PLAIN"
+  }
+
+  custom_response_body {
+    key          = "test_body_2"
+    content      = "<html><body>test response 2</body></html>"
+    content_type = "TEXT_HTML"
+  }
+
+  rule {
+    name     = "rule-1"
+    priority = 1
+
+    action {
+      block {
+        custom_response {
+          response_code            = 429
+          custom_response_body_key = "%[2]s"
+        }
+      }
+    }
+
+    statement {
+      geo_match_statement {
+        country_codes = ["US", "NL"]
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "friendly-rule-metric-name"
+      sampled_requests_enabled   = false
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = false
+    metric_name                = "friendly-metric-name"
+    sampled_requests_enabled   = false
+  }
+}
+`, name, customBodyKey)
 }
 
 func testAccAwsWafv2RuleGroupConfig_RuleActionCount(name string) string {

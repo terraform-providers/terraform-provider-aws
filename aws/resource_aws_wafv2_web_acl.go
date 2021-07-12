@@ -53,6 +53,7 @@ func resourceAwsWafv2WebACL() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"custom_response_body": wafv2CustomResponseBodySchema(),
 			"default_action": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -156,6 +157,10 @@ func resourceAwsWafv2WebACLCreate(d *schema.ResourceData, meta interface{}) erro
 		VisibilityConfig: expandWafv2VisibilityConfig(d.Get("visibility_config").([]interface{})),
 	}
 
+	if v, ok := d.Get("custom_response_body").(*schema.Set); ok && len(v.List()) > 0 {
+		params.CustomResponseBodies = expandWafv2CustomResponseBodies(v.List())
+	}
+
 	if v, ok := d.GetOk("description"); ok {
 		params.Description = aws.String(v.(string))
 	}
@@ -224,6 +229,10 @@ func resourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("arn", resp.WebACL.ARN)
 	d.Set("lock_token", resp.LockToken)
 
+	if err := d.Set("custom_response_body", flattenWafv2CustomResponseBodies(resp.WebACL.CustomResponseBodies)); err != nil {
+		return fmt.Errorf("Error setting custom_response_body: %w", err)
+	}
+
 	if err := d.Set("default_action", flattenWafv2DefaultAction(resp.WebACL.DefaultAction)); err != nil {
 		return fmt.Errorf("Error setting default_action: %w", err)
 	}
@@ -259,7 +268,7 @@ func resourceAwsWafv2WebACLRead(d *schema.ResourceData, meta interface{}) error 
 func resourceAwsWafv2WebACLUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafv2conn
 
-	if d.HasChanges("default_action", "description", "rule", "visibility_config") {
+	if d.HasChanges("custom_response_body", "default_action", "description", "rule", "visibility_config") {
 		u := &wafv2.UpdateWebACLInput{
 			Id:               aws.String(d.Id()),
 			Name:             aws.String(d.Get("name").(string)),
@@ -268,6 +277,10 @@ func resourceAwsWafv2WebACLUpdate(d *schema.ResourceData, meta interface{}) erro
 			DefaultAction:    expandWafv2DefaultAction(d.Get("default_action").([]interface{})),
 			Rules:            expandWafv2WebACLRules(d.Get("rule").(*schema.Set).List()),
 			VisibilityConfig: expandWafv2VisibilityConfig(d.Get("visibility_config").([]interface{})),
+		}
+
+		if v, ok := d.Get("custom_response_body").(*schema.Set); ok && len(v.List()) > 0 {
+			u.CustomResponseBodies = expandWafv2CustomResponseBodies(v.List())
 		}
 
 		if v, ok := d.GetOk("description"); ok {

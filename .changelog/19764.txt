@@ -1,0 +1,15 @@
+```release-notes:enhancement
+resource/aws_wafv2_web_acl: Added `custom_response_body` blocks so you can define custom response bodies.
+```
+
+```release-notes:enhancement
+resource/aws_wafv2_web_acl: Added `custom_response_body_key` to `custom_response` actions.
+```
+
+```release-notes:enhancement
+resource/aws_wafv2_rule_group: Added `custom_response_body` blocks so you can define custom response bodies.
+```
+
+```release-notes:enhancement
+resource/aws_wafv2_rule_group: Added `custom_response_body_key` to `custom_response` actions.
+```

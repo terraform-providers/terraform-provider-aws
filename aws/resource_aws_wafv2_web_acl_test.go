@@ -1308,6 +1308,40 @@ func TestAccAwsWafv2WebACL_CustomResponse(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAwsWafv2WebACLConfig_CustomResponseBody(webACLName, 404, 429),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsWafv2WebACLExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/webacl/.+$`)),
+					resource.TestCheckResourceAttr(resourceName, "name", webACLName),
+					resource.TestCheckResourceAttr(resourceName, "custom_response_body.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_response_body.0.key", "test_body"),
+					resource.TestCheckResourceAttr(resourceName, "custom_response_body.0.content", "<html><body>Oops<body></html>"),
+					resource.TestCheckResourceAttr(resourceName, "custom_response_body.0.content_type", "TEXT_HTML"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.allow.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.block.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.block.0.custom_response.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.block.0.custom_response.0.response_code", "404"),
+					resource.TestCheckResourceAttr(resourceName, "scope", "REGIONAL"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"name":                               "rule-1",
+						"action.#":                           "1",
+						"action.0.allow.#":                   "0",
+						"action.0.block.#":                   "1",
+						"action.0.block.0.custom_response.#": "1",
+						"action.0.block.0.custom_response.0.response_code":            "429",
+						"action.0.block.0.custom_response.0.custom_response_body_key": "test_body",
+						"action.0.count.#": "0",
+						"priority":         "1",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "visibility_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.cloudwatch_metrics_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.metric_name", "friendly-metric-name"),
+					resource.TestCheckResourceAttr(resourceName, "visibility_config.0.sampled_requests_enabled", "false"),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -1879,6 +1913,63 @@ resource "aws_wafv2_web_acl" "test" {
   }
 }
 `, name, defaultStatusCode, countryBlockStatusCode, countryHeaderName)
+}
+
+func testAccAwsWafv2WebACLConfig_CustomResponseBody(name string, defaultStatusCode int, countryBlockStatusCode int) string {
+	return fmt.Sprintf(`
+resource "aws_wafv2_web_acl" "test" {
+  name        = "%[1]s"
+  description = "%[1]s"
+  scope       = "REGIONAL"
+
+  default_action {
+    block {
+      custom_response {
+        response_code = %[2]d
+      }
+    }
+  }
+
+  custom_response_body {
+    key          = "test_body"
+    content      = "<html><body>Oops<body></html>"
+    content_type = "TEXT_HTML"
+  }
+
+  rule {
+    name     = "rule-1"
+    priority = 1
+
+    action {
+      block {
+        custom_response {
+          response_code = %[3]d
+
+          custom_response_body_key = "test_body"
+        }
+      }
+    }
+
+    statement {
+      geo_match_statement {
+        country_codes = ["US", "CA"]
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "friendly-rule-metric-name"
+      sampled_requests_enabled   = false
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = false
+    metric_name                = "friendly-metric-name"
+    sampled_requests_enabled   = false
+  }
+}
+`, name, defaultStatusCode, countryBlockStatusCode)
 }
 
 func testAccAwsWafv2WebACLConfig_GeoMatchStatement_ForwardedIPConfig(name, fallbackBehavior, headerName string) string {

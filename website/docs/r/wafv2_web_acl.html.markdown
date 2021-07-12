@@ -255,6 +255,7 @@ resource "aws_wafv2_web_acl" "test" {
 
 The following arguments are supported:
 
+* `custom_response_body` - (Optional) Defines custom response bodies that can be referenced by `custom_response` actions. See [Custom Response Body](#custom-response-body) below for details.
 * `default_action` - (Required) The action to perform if none of the `rules` contained in the WebACL match. See [Default Action](#default-action) below for details.
 * `description` - (Optional) A friendly description of the WebACL.
 * `name` - (Required) A friendly name of the WebACL.
@@ -262,6 +263,14 @@ The following arguments are supported:
 * `scope` - (Required) Specifies whether this is for an AWS CloudFront distribution or for a regional application. Valid values are `CLOUDFRONT` or `REGIONAL`. To work with CloudFront, you must also specify the region `us-east-1` (N. Virginia) on the AWS provider.
 * `tags` - (Optional) An map of key:value pairs to associate with the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 * `visibility_config` - (Required) Defines and enables Amazon CloudWatch metrics and web request sample collection. See [Visibility Configuration](#visibility-configuration) below for details.
+
+### Custom Response Body
+
+Each `custom_response_body` block supports the following arguments:
+
+* `key` - (Required) A unique key identifying the custom response body. This is referenced by the `custom_response_body_key` argument in the [Custom Response](#custom-response) block.
+* `content` - (Required) The payload of the custom response.
+* `content_type` - (Required) The type of content in the payload that you are defining in the `content` argument. Valid values are `TEXT_PLAIN`, `TEXT_HTML`, or `APPLICATION_JSON`.
 
 ### Default Action
 
@@ -332,7 +341,8 @@ The `custom_request_handling` block supports the following arguments:
 
 The `custom_response` block supports the following arguments:
 
-* `response_code` - (Optional) The HTTP status code to return to the client.
+* `custom_response_body_key` - (Optional) References the response body that you want AWS WAF to return to the web request client. This must reference a `key` defined in a `custom_response_body` block of this resource.
+* `response_code` - (Required) The HTTP status code to return to the client.
 * `response_header` - (Optional) The `response_header` blocks used to define the HTTP response headers added to the response. See [Custom HTTP Header](#custom-http-header) below for details.
 
 ### Custom HTTP Header
