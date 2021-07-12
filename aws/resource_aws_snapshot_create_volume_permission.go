@@ -39,9 +39,19 @@ func resourceAwsSnapshotCreateVolumePermissionCreate(d *schema.ResourceData, met
 	snapshot_id := d.Get("snapshot_id").(string)
 	account_id := d.Get("account_id").(string)
 
-	_, err := conn.ModifySnapshotAttribute(&ec2.ModifySnapshotAttributeInput{
+	accountIsOwner, err := isAccountSnapshotOwner(conn, snapshot_id, account_id)
+	if err != nil {
+		return fmt.Errorf("Error adding snapshot %s: %s", ec2.SnapshotAttributeNameCreateVolumePermission, err)
+	}
+
+	if accountIsOwner {
+		return fmt.Errorf("Error adding snapshot %s: specified account %s is the snapshot owner",
+			ec2.SnapshotAttributeNameCreateVolumePermission, account_id)
+	}
+
+	_, err = conn.ModifySnapshotAttribute(&ec2.ModifySnapshotAttributeInput{
 		SnapshotId: aws.String(snapshot_id),
-		Attribute:  aws.String("createVolumePermission"),
+		Attribute:  aws.String(ec2.SnapshotAttributeNameCreateVolumePermission),
 		CreateVolumePermission: &ec2.CreateVolumePermissionModifications{
 			Add: []*ec2.CreateVolumePermission{
 				{UserId: aws.String(account_id)},
@@ -49,7 +59,7 @@ func resourceAwsSnapshotCreateVolumePermissionCreate(d *schema.ResourceData, met
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("Error adding snapshot createVolumePermission: %s", err)
+		return fmt.Errorf("Error adding snapshot %s: %s", ec2.SnapshotAttributeNameCreateVolumePermission, err)
 	}
 
 	d.SetId(fmt.Sprintf("%s-%s", snapshot_id, account_id))
@@ -65,8 +75,8 @@ func resourceAwsSnapshotCreateVolumePermissionCreate(d *schema.ResourceData, met
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf(
-			"Error waiting for snapshot createVolumePermission (%s) to be added: %s",
-			d.Id(), err)
+			"Error waiting for snapshot %s (%s) to be added: %s",
+			ec2.SnapshotAttributeNameCreateVolumePermission, d.Id(), err)
 	}
 
 	return nil
@@ -103,7 +113,7 @@ func resourceAwsSnapshotCreateVolumePermissionDelete(d *schema.ResourceData, met
 
 	_, err = conn.ModifySnapshotAttribute(&ec2.ModifySnapshotAttributeInput{
 		SnapshotId: aws.String(snapshotID),
-		Attribute:  aws.String("createVolumePermission"),
+		Attribute:  aws.String(ec2.SnapshotAttributeNameCreateVolumePermission),
 		CreateVolumePermission: &ec2.CreateVolumePermissionModifications{
 			Remove: []*ec2.CreateVolumePermission{
 				{UserId: aws.String(accountID)},
@@ -111,7 +121,7 @@ func resourceAwsSnapshotCreateVolumePermissionDelete(d *schema.ResourceData, met
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("Error removing snapshot createVolumePermission: %s", err)
+		return fmt.Errorf("Error removing snapshot %s: %s", ec2.SnapshotAttributeNameCreateVolumePermission, err)
 	}
 
 	// Wait for the account to disappear from the permission list
@@ -125,11 +135,27 @@ func resourceAwsSnapshotCreateVolumePermissionDelete(d *schema.ResourceData, met
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf(
-			"Error waiting for snapshot createVolumePermission (%s) to be removed: %s",
-			d.Id(), err)
+			"Error waiting for snapshot %s (%s) to be removed: %s",
+			ec2.SnapshotAttributeNameCreateVolumePermission, d.Id(), err)
 	}
 
 	return nil
+}
+
+func isAccountSnapshotOwner(conn *ec2.EC2, snapshot_id string, account_id string) (bool, error) {
+	output, err := conn.DescribeSnapshots(&ec2.DescribeSnapshotsInput{
+		SnapshotIds: aws.StringSlice([]string{snapshot_id}),
+	})
+	if err != nil {
+		return false, fmt.Errorf("Error describing snapshot %s: %s", snapshot_id, err)
+	}
+
+	if len(output.Snapshots) != 1 {
+		return false, fmt.Errorf("Error locating snapshot %s: found %d snapshots, expected 1",
+			snapshot_id, len(output.Snapshots))
+	}
+
+	return *output.Snapshots[0].OwnerId == account_id, nil
 }
 
 func hasCreateVolumePermission(conn *ec2.EC2, snapshot_id string, account_id string) (bool, error) {
@@ -148,10 +174,10 @@ func resourceAwsSnapshotCreateVolumePermissionStateRefreshFunc(conn *ec2.EC2, sn
 	return func() (interface{}, string, error) {
 		attrs, err := conn.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
 			SnapshotId: aws.String(snapshot_id),
-			Attribute:  aws.String("createVolumePermission"),
+			Attribute:  aws.String(ec2.SnapshotAttributeNameCreateVolumePermission),
 		})
 		if err != nil {
-			return nil, "", fmt.Errorf("Error refreshing snapshot createVolumePermission state: %s", err)
+			return nil, "", fmt.Errorf("Error refreshing snapshot %s state: %s", ec2.SnapshotAttributeNameCreateVolumePermission, err)
 		}
 
 		for _, vp := range attrs.CreateVolumePermissions {
