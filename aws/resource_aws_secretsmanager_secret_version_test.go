@@ -95,6 +95,15 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "one"),
 				),
+			}, {
+				Config: testAccAwsSecretsManagerSecretVersionConfig_VersionStages_Single(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretVersionExists(resourceName, &version),
+					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
+					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "one"),
+				),
 			},
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_VersionStages_SingleUpdated(rName),
@@ -121,6 +130,53 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsSecretsManagerSecretVersion_VersionStages_external_update(t *testing.T) {
+	var version secretsmanager.GetSecretValueOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_secretsmanager_secret_version.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		ErrorCheck:   testAccErrorCheck(t, secretsmanager.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsSecretsManagerSecretVersionConfig_VersionStages_Single(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretVersionExists(resourceName, &version),
+					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
+					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "one"),
+				),
+				Destroy: false,
+			},
+			{
+				PreConfig: func() {
+					conn := testAccProvider.Meta().(*AWSClient).secretsmanagerconn
+
+					input := &secretsmanager.PutSecretValueInput{
+						SecretId:     version.ARN,
+						SecretString: aws.String("external_update"),
+					}
+					_, err := conn.PutSecretValue(input)
+					if err != nil {
+						t.Fatalf("error externally updating (outside Terraform) SecretsManager secret version: %s", err)
+					}
+				},
+				Config: testAccAwsSecretsManagerSecretVersionConfig_VersionStages_Single(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
+					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "one"),
+				),
 			},
 		},
 	})

@@ -191,6 +191,9 @@ func resourceAwsSecretsManagerSecretVersionUpdate(d *schema.ResourceData, meta i
 	stagesToAdd := ns.Difference(os).List()
 	stagesToRemove := os.Difference(ns).List()
 
+	var describedSecret *secretsmanager.DescribeSecretOutput
+	awsPreviousVersionID := aws.String(versionID)
+
 	for _, stage := range stagesToAdd {
 		input := &secretsmanager.UpdateSecretVersionStageInput{
 			MoveToVersionId: aws.String(versionID),
@@ -198,11 +201,67 @@ func resourceAwsSecretsManagerSecretVersionUpdate(d *schema.ResourceData, meta i
 			VersionStage:    aws.String(stage.(string)),
 		}
 
+		if stage.(string) == "AWSCURRENT" {
+			log.Printf("[DEBUG] Going to set AWSCURRENT staging label for secret %q version %q", secretID, versionID)
+
+			// NOTE: Cache it to prevent calling it more than once
+			if describedSecret == nil {
+				describedSecret, err = conn.DescribeSecret(&secretsmanager.DescribeSecretInput{SecretId: aws.String(secretID)})
+				if err != nil {
+					return fmt.Errorf("error updating Secrets Manager Secret %q Version Stage %q: %s", secretID, stage.(string), err)
+				}
+
+				var awsCurrentStageVersionID *string
+
+				var nextToken *string = nil
+
+			loopListVersionIDsPagination:
+				for {
+					output, err := conn.ListSecretVersionIds(&secretsmanager.ListSecretVersionIdsInput{
+						NextToken: nextToken,
+						SecretId:  aws.String(secretID),
+					})
+					if err != nil {
+						return fmt.Errorf("error updating Secrets Manager Secret %q Version Stage %q: %s", secretID, stage.(string), err)
+					}
+
+					for _, version := range output.Versions {
+						for _, versionStage := range version.VersionStages {
+							// NOTE: Even though AWS API can return multiple version stages to a single version,
+							// there's only one `AWSCURRENT`, therefore return early.
+							if versionStage != nil && *versionStage == "AWSCURRENT" {
+								awsCurrentStageVersionID = version.VersionId
+								break loopListVersionIDsPagination
+							}
+						}
+					}
+
+					if output.NextToken == nil {
+						break
+					}
+
+					nextToken = output.NextToken
+				}
+
+				input.RemoveFromVersionId = awsCurrentStageVersionID
+				log.Printf(
+					"[DEBUG] Going to move AWSCURRENT staging label for secret %q from version: %q to version %q",
+					secretID,
+					*awsCurrentStageVersionID,
+					versionID,
+				)
+			}
+
+		}
 		log.Printf("[DEBUG] Updating Secrets Manager Secret Version Stage: %s", input)
 		_, err := conn.UpdateSecretVersionStage(input)
 		if err != nil {
 			return fmt.Errorf("error updating Secrets Manager Secret %q Version Stage %q: %s", secretID, stage.(string), err)
 		}
+
+		// NOTE: After changing the `AWSCURRENT`, the previous `AWSCURRENT` is now `AWSPREVIOUS`,
+		// which we'll need to remove previous labels.
+		awsPreviousVersionID = input.RemoveFromVersionId
 	}
 
 	for _, stage := range stagesToRemove {
@@ -212,7 +271,7 @@ func resourceAwsSecretsManagerSecretVersionUpdate(d *schema.ResourceData, meta i
 			continue
 		}
 		input := &secretsmanager.UpdateSecretVersionStageInput{
-			RemoveFromVersionId: aws.String(versionID),
+			RemoveFromVersionId: awsPreviousVersionID,
 			SecretId:            aws.String(secretID),
 			VersionStage:        aws.String(stage.(string)),
 		}
