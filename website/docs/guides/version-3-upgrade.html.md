@@ -1072,6 +1072,10 @@ resource "aws_glue_job" "example" {
 
 In many regions today and in all regions after October 1, 2020, the [SES API will only accept version 4 signatures](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/using-ses-api-authentication.html). If referencing the `ses_smtp_password` attribute, switch your Terraform configuration to the `ses_smtp_password_v4` attribute instead. Please note that this signature is based on the region of the Terraform AWS Provider. If you need the SES v4 password in multiple regions, it may require using [multiple provider instances](https://www.terraform.io/docs/configuration/providers.html#alias-multiple-provider-configurations).
 
+Depending on when the `aws_iam_access_key` resource was created, it may not have a `ses_smtp_password_v4` attribute for you to use. If this is the case you will need to [taint](/docs/commands/taint.html) the resource so that it can be recreated with the new value. 
+
+Alternatively, you can stage the change by creating a new `aws_iam_access_key` resource and change any downstream dependencies to use the new `ses_smtp_password_v4` attribute. Once dependents have been updated with the new resource you can remove the old one.
+
 ## Resource: aws_iam_instance_profile
 
 ### roles Argument Removal
