@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -35,93 +35,54 @@ func init() {
 
 func testSweepSecurityGroups(region string) error {
 	client, err := sharedClientForRegion(region)
+
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
+
 	conn := client.(*AWSClient).ec2conn
+	sweepResources := make([]*testSweepResource, 0)
+	var errs *multierror.Error
 
 	input := &ec2.DescribeSecurityGroupsInput{}
 
 	// Delete all non-default EC2 Security Group Rules to prevent DependencyViolation errors
 	err = conn.DescribeSecurityGroupsPages(input, func(page *ec2.DescribeSecurityGroupsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
 		for _, sg := range page.SecurityGroups {
 			if aws.StringValue(sg.GroupName) == "default" {
 				log.Printf("[DEBUG] Skipping default EC2 Security Group: %s", aws.StringValue(sg.GroupId))
 				continue
 			}
 
-			if sg.IpPermissions != nil {
-				req := &ec2.RevokeSecurityGroupIngressInput{
-					GroupId:       sg.GroupId,
-					IpPermissions: sg.IpPermissions,
-				}
+			r := resourceAwsSecurityGroup()
+			d := r.Data(nil)
+			d.SetId(aws.StringValue(sg.GroupId))
+			d.Set("revoke_rules_on_delete", true)
 
-				if _, err = conn.RevokeSecurityGroupIngress(req); err != nil {
-					log.Printf("[ERROR] Error revoking ingress rule for Security Group (%s): %s", aws.StringValue(sg.GroupId), err)
-				}
-			}
-
-			if sg.IpPermissionsEgress != nil {
-				req := &ec2.RevokeSecurityGroupEgressInput{
-					GroupId:       sg.GroupId,
-					IpPermissions: sg.IpPermissionsEgress,
-				}
-
-				if _, err = conn.RevokeSecurityGroupEgress(req); err != nil {
-					log.Printf("[ERROR] Error revoking egress rule for Security Group (%s): %s", aws.StringValue(sg.GroupId), err)
-				}
-			}
+			sweepResources = append(sweepResources, NewTestSweepResource(r, d, client))
 		}
 
 		return !lastPage
 	})
 
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping EC2 Security Group sweep for %s: %s", region, err)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error describing EC2 Security Groups for %s: %w", region, err))
+	}
+
+	if err := testSweepResourceOrchestrator(sweepResources); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("error sweeping EC2 Security Groups for %s: %w", region, err))
+	}
+
+	if testSweepSkipSweepError(errs.ErrorOrNil()) {
+		log.Printf("[WARN] Skipping EC2 Security Groups sweep for %s: %s", region, errs)
 		return nil
 	}
 
-	if err != nil {
-		return fmt.Errorf("Error retrieving EC2 Security Groups: %s", err)
-	}
-
-	err = conn.DescribeSecurityGroupsPages(input, func(page *ec2.DescribeSecurityGroupsOutput, lastPage bool) bool {
-		for _, sg := range page.SecurityGroups {
-			if aws.StringValue(sg.GroupName) == "default" {
-				log.Printf("[DEBUG] Skipping default EC2 Security Group: %s", aws.StringValue(sg.GroupId))
-				continue
-			}
-
-			input := &ec2.DeleteSecurityGroupInput{
-				GroupId: sg.GroupId,
-			}
-
-			// Handle EC2 eventual consistency
-			err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-				_, err := conn.DeleteSecurityGroup(input)
-
-				if isAWSErr(err, "DependencyViolation", "") {
-					return resource.RetryableError(err)
-				}
-				if err != nil {
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-
-			if err != nil {
-				log.Printf("[ERROR] Error deleting Security Group (%s): %s", aws.StringValue(sg.GroupId), err)
-			}
-		}
-
-		return !lastPage
-	})
-
-	if err != nil {
-		return fmt.Errorf("Error retrieving EC2 Security Groups: %s", err)
-	}
-
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func TestProtocolStateFunc(t *testing.T) {
