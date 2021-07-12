@@ -366,6 +366,8 @@ func resourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "UnsupportedOperation" {
 			log.Printf("[WARN] VPC Classic Link is not supported in this region")
+		} else if isAWSErr(err, "InvalidVpcID.NotFound", "") {
+			log.Printf("[WARN] VPC Classic Link functionality you requested is not available for this VPC")
 		} else {
 			return err
 		}
