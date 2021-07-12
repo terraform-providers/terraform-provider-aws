@@ -1377,9 +1377,7 @@ func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("db_subnet_group_name", v.DBSubnetGroup.DBSubnetGroupName)
 	}
 
-	if v.CharacterSetName != nil {
-		d.Set("character_set_name", v.CharacterSetName)
-	}
+	d.Set("character_set_name", v.CharacterSetName)
 
 	d.Set("timezone", v.Timezone)
 

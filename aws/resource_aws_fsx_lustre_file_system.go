@@ -402,18 +402,11 @@ func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}
 	d.Set("auto_import_policy", lustreConfig.DataRepositoryConfiguration.AutoImportPolicy)
 	d.Set("imported_file_chunk_size", lustreConfig.DataRepositoryConfiguration.ImportedFileChunkSize)
 	d.Set("deployment_type", lustreConfig.DeploymentType)
-	if lustreConfig.PerUnitStorageThroughput != nil {
-		d.Set("per_unit_storage_throughput", lustreConfig.PerUnitStorageThroughput)
-	}
+	d.Set("per_unit_storage_throughput", lustreConfig.PerUnitStorageThroughput)
 	d.Set("mount_name", lustreConfig.MountName)
 	d.Set("storage_type", filesystem.StorageType)
-	if lustreConfig.DriveCacheType != nil {
-		d.Set("drive_cache_type", lustreConfig.DriveCacheType)
-	}
-
-	if filesystem.KmsKeyId != nil {
-		d.Set("kms_key_id", filesystem.KmsKeyId)
-	}
+	d.Set("drive_cache_type", lustreConfig.DriveCacheType)
+	d.Set("kms_key_id", filesystem.KmsKeyId)
 
 	if err := d.Set("network_interface_ids", aws.StringValueSlice(filesystem.NetworkInterfaceIds)); err != nil {
 		return fmt.Errorf("error setting network_interface_ids: %w", err)

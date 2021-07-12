@@ -178,10 +178,7 @@ func resourceAwsNeptuneEventSubscriptionRead(d *schema.ResourceData, meta interf
 	d.Set("sns_topic_arn", sub.SnsTopicArn)
 	d.Set("enabled", sub.Enabled)
 	d.Set("customer_aws_id", sub.CustomerAwsId)
-
-	if sub.SourceType != nil {
-		d.Set("source_type", sub.SourceType)
-	}
+	d.Set("source_type", sub.SourceType)
 
 	if sub.SourceIdsList != nil {
 		if err := d.Set("source_ids", flattenStringList(sub.SourceIdsList)); err != nil {

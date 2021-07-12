@@ -139,8 +139,6 @@ func expandOriginAccessIdentityConfig(d *schema.ResourceData) *cloudfront.Origin
 }
 
 func flattenOriginAccessIdentityConfig(d *schema.ResourceData, originAccessIdentityConfig *cloudfront.OriginAccessIdentityConfig) {
-	if originAccessIdentityConfig.Comment != nil {
-		d.Set("comment", originAccessIdentityConfig.Comment)
-	}
+	d.Set("comment", originAccessIdentityConfig.Comment)
 	d.Set("caller_reference", originAccessIdentityConfig.CallerReference)
 }

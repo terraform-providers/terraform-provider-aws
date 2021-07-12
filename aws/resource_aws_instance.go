@@ -819,15 +819,9 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	if instance.Placement != nil {
 		d.Set("availability_zone", instance.Placement.AvailabilityZone)
 	}
-	if instance.Placement.GroupName != nil {
-		d.Set("placement_group", instance.Placement.GroupName)
-	}
-	if instance.Placement.Tenancy != nil {
-		d.Set("tenancy", instance.Placement.Tenancy)
-	}
-	if instance.Placement.HostId != nil {
-		d.Set("host_id", instance.Placement.HostId)
-	}
+	d.Set("placement_group", instance.Placement.GroupName)
+	d.Set("tenancy", instance.Placement.Tenancy)
+	d.Set("host_id", instance.Placement.HostId)
 
 	if instance.CpuOptions != nil {
 		d.Set("cpu_core_count", instance.CpuOptions.CoreCount)
@@ -909,20 +903,10 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting network_interfaces: %v", err)
 		}
 
-		// Set primary network interface details
-		// If an instance is shutting down, network interfaces are detached, and attributes may be nil,
-		// need to protect against nil pointer dereferences
-		if primaryNetworkInterface.SubnetId != nil {
-			d.Set("subnet_id", primaryNetworkInterface.SubnetId)
-		}
-		if primaryNetworkInterface.NetworkInterfaceId != nil {
-			d.Set("primary_network_interface_id", primaryNetworkInterface.NetworkInterfaceId)
-		}
+		d.Set("subnet_id", primaryNetworkInterface.SubnetId)
+		d.Set("primary_network_interface_id", primaryNetworkInterface.NetworkInterfaceId)
 		d.Set("ipv6_address_count", len(primaryNetworkInterface.Ipv6Addresses))
-		if primaryNetworkInterface.SourceDestCheck != nil {
-			d.Set("source_dest_check", primaryNetworkInterface.SourceDestCheck)
-		}
-
+		d.Set("source_dest_check", primaryNetworkInterface.SourceDestCheck)
 		d.Set("associate_public_ip_address", primaryNetworkInterface.Association != nil)
 
 		for _, address := range primaryNetworkInterface.PrivateIpAddresses {
