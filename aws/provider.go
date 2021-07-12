@@ -410,6 +410,7 @@ func Provider() *schema.Provider {
 			"aws_ssm_patch_baseline":                         dataSourceAwsSsmPatchBaseline(),
 			"aws_ssoadmin_instances":                         dataSourceAwsSsoAdminInstances(),
 			"aws_ssoadmin_permission_set":                    dataSourceAwsSsoAdminPermissionSet(),
+			"aws_ssoadmin_role":                              dataSourceAwsSsoAdminRole(),
 			"aws_storagegateway_local_disk":                  dataSourceAwsStorageGatewayLocalDisk(),
 			"aws_subnet":                                     dataSourceAwsSubnet(),
 			"aws_subnet_ids":                                 dataSourceAwsSubnetIDs(),
