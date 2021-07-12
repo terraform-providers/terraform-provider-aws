@@ -42,6 +42,11 @@ func resourceAwsMskScramSecretAssociation() *schema.Resource {
 					ValidateFunc: validateArn,
 				},
 			},
+			"scram_secrets": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -69,7 +74,7 @@ func resourceAwsMskScramSecretAssociationCreate(d *schema.ResourceData, meta int
 func resourceAwsMskScramSecretAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kafkaconn
 
-	secretArnList, err := finder.ScramSecrets(conn, d.Id())
+	scramSecrets, err := finder.ScramSecrets(conn, d.Id())
 
 	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, kafka.ErrCodeNotFoundException) {
 		log.Printf("[WARN] Scram secret(s) for MSK cluster (%s) not found, removing from state", d.Id())
@@ -81,8 +86,21 @@ func resourceAwsMskScramSecretAssociationRead(d *schema.ResourceData, meta inter
 	}
 
 	d.Set("cluster_arn", d.Id())
-	if err := d.Set("secret_arn_list", flattenStringSet(secretArnList)); err != nil {
+
+	// As the scramSecrets var holds *ALL* secrets associated with the MSK cluster,
+	// both via this resource and outside of Terraform, we need to store
+	// only those associated by this resource to prevent subsequent plans from
+	// suggesting removal of secrets not configured in "secret_arn_list"
+	configuredSecrets := schema.NewSet(schema.HashString, d.Get("secret_arn_list").(*schema.Set).List())
+	allClusterSecrets := flattenStringSet(scramSecrets)
+	filteredSecretArnList := configuredSecrets.Intersection(allClusterSecrets)
+
+	if err := d.Set("secret_arn_list", filteredSecretArnList); err != nil {
 		return fmt.Errorf("error setting secret_arn_list: %w", err)
+	}
+
+	if err := d.Set("scram_secrets", allClusterSecrets); err != nil {
+		return fmt.Errorf("error setting scram_secrets: %w", err)
 	}
 
 	return nil
@@ -93,16 +111,24 @@ func resourceAwsMskScramSecretAssociationUpdate(d *schema.ResourceData, meta int
 
 	o, n := d.GetChange("secret_arn_list")
 	oldSet, newSet := o.(*schema.Set), n.(*schema.Set)
+	scramSecrets := d.Get("scram_secrets").(*schema.Set)
 
 	if newSet.Len() > 0 {
 		if newSecrets := newSet.Difference(oldSet); newSecrets.Len() > 0 {
-			output, err := associateMSKClusterSecrets(conn, d.Id(), expandStringSet(newSecrets))
-			if err != nil {
-				return fmt.Errorf("error associating scram secret(s) with MSK cluster (%s): %w", d.Id(), err)
-			}
+			// Check if the *new* scram secret(s) are already associated with the MSK Cluster
+			// i.e. values exist in the set of *all* known secrets (held in the scram_secrets Computed argument)
+			// to prevent API errors e.g. "failed to associate 1 secret for cluster: The provided secret is already associated with this cluster."
+			if scramSecrets != nil && newSecrets.Difference(scramSecrets).Len() == 0 {
+				log.Printf("[DEBUG] skipping associating scram secrets %v with MSK cluster (%s): already associated", newSecrets.List(), d.Id())
+			} else {
+				output, err := associateMSKClusterSecrets(conn, d.Id(), expandStringSet(newSecrets))
+				if err != nil {
+					return fmt.Errorf("error associating scram secret(s) with MSK cluster (%s): %w", d.Id(), err)
+				}
 
-			if len(output.UnprocessedScramSecrets) != 0 {
-				return unprocessedScramSecretsError(output.ClusterArn, output.UnprocessedScramSecrets, AssociatingSecret)
+				if len(output.UnprocessedScramSecrets) != 0 {
+					return unprocessedScramSecretsError(output.ClusterArn, output.UnprocessedScramSecrets, AssociatingSecret)
+				}
 			}
 		}
 	}
@@ -126,17 +152,10 @@ func resourceAwsMskScramSecretAssociationUpdate(d *schema.ResourceData, meta int
 func resourceAwsMskScramSecretAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kafkaconn
 
-	secretArnList, err := finder.ScramSecrets(conn, d.Id())
+	configuredSecrets := d.Get("secret_arn_list").(*schema.Set)
 
-	if err != nil {
-		if tfawserr.ErrCodeEquals(err, kafka.ErrCodeNotFoundException) {
-			return nil
-		}
-		return fmt.Errorf("error reading scram secret(s) for MSK cluster (%s): %w", d.Id(), err)
-	}
-
-	if len(secretArnList) > 0 {
-		output, err := disassociateMSKClusterSecrets(conn, d.Id(), secretArnList)
+	if configuredSecrets.Len() > 0 {
+		output, err := disassociateMSKClusterSecrets(conn, d.Id(), expandStringSet(configuredSecrets))
 		if err != nil {
 			if tfawserr.ErrCodeEquals(err, kafka.ErrCodeNotFoundException) {
 				return nil

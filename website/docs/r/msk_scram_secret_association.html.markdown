@@ -78,13 +78,14 @@ POLICY
 The following arguments are supported:
 
 * `cluster_arn` - (Required, Forces new resource) Amazon Resource Name (ARN) of the MSK cluster.
-* `secret_arn_list` - (Required) List of AWS Secrets Manager secret ARNs.
+* `secret_arn_list` - (Required) Set of AWS Secrets Manager secret ARNs.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Amazon Resource Name (ARN) of the MSK cluster.
+* `scram_secrets` - Set of AWS Secrets Manager secret ARNs associated with the MSK cluster including secrets configured in `secret_arn_list` and those managed outside of Terraform, if any.
 
 ## Import
 
