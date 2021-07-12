@@ -382,7 +382,6 @@ func resourceAwsSsmDocumentUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error validating Permissions: %v", errors)
 		}
 	}
-
 	if d.HasChange("tags_all") {
 		o, n := d.GetChange("tags_all")
 
@@ -670,8 +669,8 @@ func updateAwsSSMDocument(d *schema.ResourceData, meta interface{}) error {
 		updateDocInput.VersionName = aws.String(v.(string))
 	}
 
-	if d.HasChange("attachments_source") {
-		updateDocInput.Attachments = expandSsmAttachmentsSources(d.Get("attachments_source").([]interface{}))
+	if v, ok := d.GetOk("attachments_source"); ok {
+		updateDocInput.Attachments = expandSsmAttachmentsSources(v.([]interface{}))
 	}
 
 	newDefaultVersion := d.Get("default_version").(string)

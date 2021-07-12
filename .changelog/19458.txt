@@ -1,0 +1,3 @@
+```release-note:bugfix
+resource/aws_ssm_docment: Fix Attachments error on update
+```
