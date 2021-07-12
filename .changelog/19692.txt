@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_route53_resolver_endpoint: Accept multiple ip_address blocks with the same `subnet_id` when `ip` is specified
+```

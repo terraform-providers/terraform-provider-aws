@@ -346,6 +346,6 @@ func route53ResolverEndpointWaitUntilTargetState(conn *route53resolver.Route53Re
 func route53ResolverEndpointHashIpAddress(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["subnet_id"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-%s-", m["subnet_id"].(string), m["ip"].(string)))
 	return hashcode.String(buf.String())
 }

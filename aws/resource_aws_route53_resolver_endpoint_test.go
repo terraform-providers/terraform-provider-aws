@@ -326,11 +326,13 @@ resource "aws_route53_resolver_endpoint" "foo" {
   ]
 
   ip_address {
-    subnet_id = aws_subnet.sn1.id
+    subnet_id = aws_subnet.sn3.id
+    ip        = cidrhost(aws_subnet.sn3.cidr_block, 53)
   }
 
   ip_address {
     subnet_id = aws_subnet.sn3.id
+    ip        = cidrhost(aws_subnet.sn3.cidr_block, 54)
   }
 
   tags = {
