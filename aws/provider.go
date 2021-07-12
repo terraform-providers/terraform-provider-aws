@@ -246,6 +246,7 @@ func Provider() *schema.Provider {
 			"aws_ebs_snapshot_ids":                           dataSourceAwsEbsSnapshotIds(),
 			"aws_ebs_volume":                                 dataSourceAwsEbsVolume(),
 			"aws_ebs_volumes":                                dataSourceAwsEbsVolumes(),
+			"aws_ec2_client_vpn_endpoint":                    dataSourceAwsEc2ClientVpnEndpoint(),
 			"aws_ec2_coip_pool":                              dataSourceAwsEc2CoipPool(),
 			"aws_ec2_coip_pools":                             dataSourceAwsEc2CoipPools(),
 			"aws_ec2_instance_type":                          dataSourceAwsEc2InstanceType(),
