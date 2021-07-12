@@ -359,6 +359,7 @@ resource "aws_autoscaling_schedule" "foobar" {
   max_size               = 1
   desired_capacity       = 0
   recurrence             = "0 8 * * *"
+  time_zone              = "Pacific/Tahiti"
   autoscaling_group_name = aws_autoscaling_group.foobar.name
 }
 `, r, r)
