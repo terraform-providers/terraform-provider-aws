@@ -97,12 +97,20 @@ func resourceAwsAppsyncFunctionCreate(d *schema.ResourceData, meta interface{}) 
 		input.ResponseMappingTemplate = aws.String(v.(string))
 	}
 
-	resp, err := conn.CreateFunction(input)
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	resp, err := retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.CreateFunction(input)
+	})
+
 	if err != nil {
 		return fmt.Errorf("Error creating AppSync Function: %s", err)
 	}
 
-	d.SetId(fmt.Sprintf("%s-%s", apiID, aws.StringValue(resp.FunctionConfiguration.FunctionId)))
+	d.SetId(fmt.Sprintf("%s-%s", apiID,
+		aws.StringValue(resp.(*appsync.CreateFunctionOutput).FunctionConfiguration.FunctionId)))
 
 	return resourceAwsAppsyncFunctionRead(d, meta)
 }
@@ -168,14 +176,21 @@ func resourceAwsAppsyncFunctionUpdate(d *schema.ResourceData, meta interface{}) 
 		input.ResponseMappingTemplate = aws.String(v.(string))
 	}
 
-	_, err = conn.UpdateFunction(input)
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err = retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.UpdateFunction(input)
+	})
+
 	if isAWSErr(err, appsync.ErrCodeNotFoundException, "") {
 		log.Printf("[WARN] No such entity found for Appsync Function (%s)", d.Id())
 		d.SetId("")
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("Error updating AppSync Function %s: %s", d.Id(), err)
+		return fmt.Errorf("Error updating AppSync Function (%s): %s", d.Id(), err)
 	}
 
 	return resourceAwsAppsyncFunctionRead(d, meta)
@@ -194,12 +209,19 @@ func resourceAwsAppsyncFunctionDelete(d *schema.ResourceData, meta interface{}) 
 		FunctionId: aws.String(functionID),
 	}
 
-	_, err = conn.DeleteFunction(input)
-	if isAWSErr(err, appsync.ErrCodeNotFoundException, "") {
-		return nil
-	}
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err = retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.DeleteFunction(input)
+	})
+
 	if err != nil {
-		return fmt.Errorf("Error deleting AppSync Function %s: %s", d.Id(), err)
+		if isAWSErr(err, appsync.ErrCodeNotFoundException, "") {
+			return nil
+		}
+		return fmt.Errorf("Error deleting AppSync Function (%s): %s", d.Id(), err)
 	}
 
 	return nil

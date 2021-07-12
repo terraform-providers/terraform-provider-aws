@@ -67,12 +67,21 @@ func resourceAwsAppsyncApiKeyCreate(d *schema.ResourceData, meta interface{}) er
 		t, _ := time.Parse(time.RFC3339, v.(string))
 		params.Expires = aws.Int64(t.Unix())
 	}
-	resp, err := conn.CreateApiKey(params)
+
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	resp, err := retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.CreateApiKey(params)
+	})
+
 	if err != nil {
 		return fmt.Errorf("error creating Appsync API Key: %s", err)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", apiID, aws.StringValue(resp.ApiKey.Id)))
+	d.SetId(fmt.Sprintf("%s:%s", apiID,
+		aws.StringValue(resp.(*appsync.CreateApiKeyOutput).ApiKey.Id)))
 	return resourceAwsAppsyncApiKeyRead(d, meta)
 }
 
@@ -121,9 +130,16 @@ func resourceAwsAppsyncApiKeyUpdate(d *schema.ResourceData, meta interface{}) er
 		params.Expires = aws.Int64(t.Unix())
 	}
 
-	_, err = conn.UpdateApiKey(params)
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err = retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.UpdateApiKey(params)
+	})
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating Appsync API Key (%s): %s", d.Id(), err)
 	}
 
 	return resourceAwsAppsyncApiKeyRead(d, meta)
@@ -142,14 +158,21 @@ func resourceAwsAppsyncApiKeyDelete(d *schema.ResourceData, meta interface{}) er
 		ApiId: aws.String(apiID),
 		Id:    aws.String(keyID),
 	}
-	_, err = conn.DeleteApiKey(input)
+
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err = retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.DeleteApiKey(input)
+	})
+
 	if err != nil {
 		if isAWSErr(err, appsync.ErrCodeNotFoundException, "") {
 			return nil
 		}
-		return err
+		return fmt.Errorf("error deleting Appsync API Key (%s): %s", d.Id(), err)
 	}
-
 	return nil
 }
 

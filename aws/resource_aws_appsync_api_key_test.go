@@ -113,6 +113,36 @@ func TestAccAWSAppsyncApiKey_Expires(t *testing.T) {
 	})
 }
 
+func TestAccAWSAppsyncApiKey_multipleApiKeys(t *testing.T) {
+	var apiKey appsync.ApiKey
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_api_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, appsync.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncApiKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncApiKey_multipleApiKeys(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"1", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"2", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"3", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"4", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"5", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"6", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"7", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"8", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"9", &apiKey),
+					testAccCheckAwsAppsyncApiKeyExists(resourceName+"10", &apiKey),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsAppsyncApiKeyDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).appsyncconn
 	for _, rs := range s.RootModule().Resources {
@@ -222,4 +252,25 @@ resource "aws_appsync_api_key" "test" {
   api_id = aws_appsync_graphql_api.test.id
 }
 `, rName)
+}
+
+func testAccAppsyncApiKey_multipleApiKeys(rName string) string {
+	var resources string
+	for i := 1; i <= 10; i++ {
+		resources = resources + fmt.Sprintf(`
+		resource "aws_appsync_api_key" "test%d" {
+			api_id = aws_appsync_graphql_api.test.id
+		}
+`, i)
+	}
+
+	return fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = %q
+}
+
+%s
+
+`, rName, resources)
 }

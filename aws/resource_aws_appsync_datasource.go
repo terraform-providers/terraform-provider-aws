@@ -172,9 +172,16 @@ func resourceAwsAppsyncDatasourceCreate(d *schema.ResourceData, meta interface{}
 		input.ServiceRoleArn = aws.String(v.(string))
 	}
 
-	_, err := conn.CreateDataSource(input)
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err := retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.CreateDataSource(input)
+	})
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating AppSync Data Source: %s", err)
 	}
 
 	d.SetId(d.Get("api_id").(string) + "-" + d.Get("name").(string))
@@ -273,10 +280,18 @@ func resourceAwsAppsyncDatasourceUpdate(d *schema.ResourceData, meta interface{}
 		input.ServiceRoleArn = aws.String(v.(string))
 	}
 
-	_, err = conn.UpdateDataSource(input)
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err = retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.UpdateDataSource(input)
+	})
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating AppSync Data Source (%s): %s", d.Id(), err)
 	}
+
 	return resourceAwsAppsyncDatasourceRead(d, meta)
 }
 
@@ -294,12 +309,19 @@ func resourceAwsAppsyncDatasourceDelete(d *schema.ResourceData, meta interface{}
 		Name:  aws.String(name),
 	}
 
-	_, err = conn.DeleteDataSource(input)
+	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
+	awsMutexKV.Lock(mutexKey)
+	defer awsMutexKV.Unlock(mutexKey)
+
+	_, err = retryOnAwsCode(appsync.ErrCodeConcurrentModificationException, func() (interface{}, error) {
+		return conn.DeleteDataSource(input)
+	})
+
 	if err != nil {
 		if isAWSErr(err, appsync.ErrCodeNotFoundException, "") {
 			return nil
 		}
-		return err
+		return fmt.Errorf("error deleting AppSync Data Source (%s): %s", d.Id(), err)
 	}
 
 	return nil

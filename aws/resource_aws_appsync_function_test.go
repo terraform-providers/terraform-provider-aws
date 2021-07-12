@@ -138,6 +138,36 @@ func TestAccAwsAppsyncFunction_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAwsAppsyncFunction_multipleFunctions(t *testing.T) {
+	var function appsync.FunctionConfiguration
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_function.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, appsync.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncFunctionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncFunction_multipleFunctions(rName, testAccGetRegion()),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"1", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"2", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"3", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"4", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"5", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"6", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"7", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"8", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"9", &function),
+					testAccCheckAwsAppsyncFunctionExists(resourceName+"10", &function),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsAppsyncFunctionDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).appsyncconn
 	for _, rs := range s.RootModule().Resources {
@@ -286,4 +316,37 @@ EOF
 EOF
 }
 `, testAccAppsyncDatasourceConfig_DynamoDBConfig_Region(r1, region), r2)
+}
+
+func testAccAppsyncFunction_multipleFunctions(rName, region string) string {
+	var functionResources string
+	for i := 1; i <= 10; i++ {
+		functionResources = functionResources + fmt.Sprintf(`
+		resource "aws_appsync_function" "test%d" {
+			api_id                   = aws_appsync_graphql_api.test.id
+			data_source              = aws_appsync_datasource.test.name
+			name                     = "test%d"
+			request_mapping_template = <<EOF
+		{
+			"version": "2018-05-29",
+			"method": "GET",
+			"resourcePath": "/",
+			"params":{
+				"headers": $utils.http.copyheaders($ctx.request.headers)
+			}
+		}
+		EOF
+
+			response_mapping_template = <<EOF
+		#if($ctx.result.statusCode == 200)
+			$ctx.result.body
+		#else
+			$utils.appendError($ctx.result.body, $ctx.result.statusCode)
+		#end
+		EOF
+		}
+`, i, i)
+	}
+
+	return testAccAppsyncDatasourceConfig_DynamoDBConfig_Region(rName, region) + functionResources
 }

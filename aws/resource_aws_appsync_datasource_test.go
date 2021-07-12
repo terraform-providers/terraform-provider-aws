@@ -454,6 +454,35 @@ func testAccCheckAwsAppsyncDatasourceExists(name string) resource.TestCheckFunc 
 	}
 }
 
+func TestAccAwsAppsyncDatasource_multipleDatasources(t *testing.T) {
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_datasource.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
+		ErrorCheck:   testAccErrorCheck(t, appsync.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncDatasource_multipleDatasources(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"1"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"2"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"3"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"4"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"5"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"6"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"7"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"8"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"9"),
+					testAccCheckAwsAppsyncDatasourceExists(resourceName+"10"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAppsyncDatasourceConfig_base_DynamoDB(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_dynamodb_table" "test" {
@@ -828,4 +857,32 @@ resource "aws_appsync_datasource" "test" {
   type   = "NONE"
 }
 `, rName, rName)
+}
+
+func testAccAppsyncDatasource_multipleDatasources(rName string) string {
+	var datasourceResources string
+	for i := 1; i <= 10; i++ {
+		datasourceResources = datasourceResources + fmt.Sprintf(`
+resource "aws_appsync_datasource" "test%d" {
+  api_id           = "${aws_appsync_graphql_api.test.id}"
+  name             = "test%d"
+  type             = "AWS_LAMBDA"
+  service_role_arn = aws_iam_role.test.arn
+
+  lambda_config {
+		function_arn = aws_lambda_function.test.arn
+	}
+}
+`, i, i)
+	}
+
+	return testAccAppsyncDatasourceConfig_base_Lambda(rName) + fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = %q
+}
+
+%s
+
+`, rName, datasourceResources)
 }
