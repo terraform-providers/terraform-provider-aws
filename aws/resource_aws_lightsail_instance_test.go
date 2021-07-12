@@ -193,7 +193,7 @@ func TestAccAWSLightsailInstance_Tags(t *testing.T) {
 	})
 }
 
-func TestAccAWSLightsailInstance_disapear(t *testing.T) {
+func TestAccAWSLightsailInstance_disappear(t *testing.T) {
 	var conf lightsail.Instance
 	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
 
