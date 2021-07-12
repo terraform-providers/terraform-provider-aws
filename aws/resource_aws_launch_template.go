@@ -602,6 +602,7 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 								ec2.ResourceTypeVolume,
 								ec2.ResourceTypeSpotInstancesRequest,
 								ec2.ResourceTypeElasticGpu,
+								ec2.ResourceTypeNetworkInterface,
 							}, false),
 						},
 						"tags": tagsSchema(),

@@ -337,11 +337,11 @@ For more information, see the documentation on [Nitro Enclaves](https://docs.aws
 
 ### Tag Specifications
 
-The tags to apply to the resources during launch. You can tag instances, volumes, elastic GPUs and spot instance requests. More information can be found in the [EC2 API documentation](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_LaunchTemplateTagSpecificationRequest.html).
+The tags to apply to the resources during launch. You can tag instances, volumes, elastic GPUs, spot instance requests and network interfaces. More information can be found in the [EC2 API documentation](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_LaunchTemplateTagSpecificationRequest.html).
 
 Each `tag_specifications` block supports the following:
 
-* `resource_type` - The type of resource to tag. Valid values are `instance`, `volume`, `elastic-gpu` and `spot-instances-request`.
+* `resource_type` - The type of resource to tag. Valid values are `instance`, `volume`, `elastic-gpu`, `spot-instances-request` and `network-interface`.
 * `tags` - A map of tags to assign to the resource.
 
 
