@@ -306,6 +306,33 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"data_format": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      dms.DataFormatValueCsv,
+							ValidateFunc: validation.StringInSlice(dms.DataFormatValue_Values(), false),
+						},
+						"parquet_timestamp_in_millisecond": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"parquet_version": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      dms.ParquetVersionValueParquet10,
+							ValidateFunc: validation.StringInSlice(dms.ParquetVersionValue_Values(), false),
+						},
+						"encryption_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "SSE_S3",
+							ValidateFunc: validation.StringInSlice([]string{"SSE_S3", "SSE_KMS"}, false),
+						},
+						"server_side_encryption_kms_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -401,14 +428,19 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		request.DatabaseName = aws.String(d.Get("database_name").(string))
 	case "s3":
 		request.S3Settings = &dms.S3Settings{
-			ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
-			ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
-			CsvRowDelimiter:         aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
-			CsvDelimiter:            aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
-			BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
-			BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
-			CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
-			DatePartitionEnabled:    aws.Bool(d.Get("s3_settings.0.date_partition_enabled").(bool)),
+			BucketFolder:                  aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
+			BucketName:                    aws.String(d.Get("s3_settings.0.bucket_name").(string)),
+			CompressionType:               aws.String(d.Get("s3_settings.0.compression_type").(string)),
+			CsvDelimiter:                  aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
+			CsvRowDelimiter:               aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
+			DataFormat:                    aws.String(d.Get("s3_settings.0.data_format").(string)),
+			DatePartitionEnabled:          aws.Bool(d.Get("s3_settings.0.date_partition_enabled").(bool)),
+			EncryptionMode:                aws.String(d.Get("s3_settings.0.encryption_mode").(string)),
+			ExternalTableDefinition:       aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
+			ParquetTimestampInMillisecond: aws.Bool(d.Get("s3_settings.0.parquet_timestamp_in_millisecond").(bool)),
+			ParquetVersion:                aws.String(d.Get("s3_settings.0.parquet_version").(string)),
+			ServerSideEncryptionKmsKeyId:  aws.String(d.Get("s3_settings.0.server_side_encryption_kms_key_id").(string)),
+			ServiceAccessRoleArn:          aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
 		}
 	default:
 		request.Password = aws.String(d.Get("password").(string))
@@ -648,15 +680,22 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		if d.HasChanges(
 			"s3_settings.0.service_access_role_arn", "s3_settings.0.external_table_definition",
 			"s3_settings.0.csv_row_delimiter", "s3_settings.0.csv_delimiter", "s3_settings.0.bucket_folder",
-			"s3_settings.0.bucket_name", "s3_settings.0.compression_type") {
+			"s3_settings.0.bucket_name", "s3_settings.0.compression_type", "s3_settings.0.data_format",
+			"s3_settings.0.parquet_version", "s3_settings.0.parquet_timestamp_in_millisecond",
+			"s3_settings.0.encryption_mode", "s3_settings.0.server_side_encryption_kms_key_id") {
 			request.S3Settings = &dms.S3Settings{
-				ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
-				ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
-				CsvRowDelimiter:         aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
-				CsvDelimiter:            aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
-				BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
-				BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
-				CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
+				BucketFolder:                  aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
+				BucketName:                    aws.String(d.Get("s3_settings.0.bucket_name").(string)),
+				CompressionType:               aws.String(d.Get("s3_settings.0.compression_type").(string)),
+				CsvDelimiter:                  aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
+				CsvRowDelimiter:               aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
+				DataFormat:                    aws.String(d.Get("s3_settings.0.data_format").(string)),
+				EncryptionMode:                aws.String(d.Get("s3_settings.0.encryption_mode").(string)),
+				ExternalTableDefinition:       aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
+				ParquetTimestampInMillisecond: aws.Bool(d.Get("s3_settings.0.parquet_timestamp_in_millisecond").(bool)),
+				ParquetVersion:                aws.String(d.Get("s3_settings.0.parquet_version").(string)),
+				ServerSideEncryptionKmsKeyId:  aws.String(d.Get("s3_settings.0.server_side_encryption_kms_key_id").(string)),
+				ServiceAccessRoleArn:          aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
 			}
 			request.EngineName = aws.String(d.Get("engine_name").(string)) // Must be included (should be 's3')
 			hasChanges = true
@@ -843,14 +882,19 @@ func flattenDmsS3Settings(settings *dms.S3Settings) []map[string]interface{} {
 	}
 
 	m := map[string]interface{}{
-		"service_access_role_arn":   aws.StringValue(settings.ServiceAccessRoleArn),
-		"external_table_definition": aws.StringValue(settings.ExternalTableDefinition),
-		"csv_row_delimiter":         aws.StringValue(settings.CsvRowDelimiter),
-		"csv_delimiter":             aws.StringValue(settings.CsvDelimiter),
-		"bucket_folder":             aws.StringValue(settings.BucketFolder),
-		"bucket_name":               aws.StringValue(settings.BucketName),
-		"compression_type":          aws.StringValue(settings.CompressionType),
-		"date_partition_enabled":    aws.BoolValue(settings.DatePartitionEnabled),
+		"bucket_folder":                     aws.StringValue(settings.BucketFolder),
+		"bucket_name":                       aws.StringValue(settings.BucketName),
+		"compression_type":                  aws.StringValue(settings.CompressionType),
+		"csv_delimiter":                     aws.StringValue(settings.CsvDelimiter),
+		"csv_row_delimiter":                 aws.StringValue(settings.CsvRowDelimiter),
+		"data_format":                       aws.StringValue(settings.DataFormat),
+		"date_partition_enabled":            aws.BoolValue(settings.DatePartitionEnabled),
+		"encryption_mode":                   aws.StringValue(settings.EncryptionMode),
+		"external_table_definition":         aws.StringValue(settings.ExternalTableDefinition),
+		"parquet_timestamp_in_millisecond":  aws.BoolValue(settings.ParquetTimestampInMillisecond),
+		"parquet_version":                   aws.StringValue(settings.ParquetVersion),
+		"server_side_encryption_kms_key_id": aws.StringValue(settings.ServerSideEncryptionKmsKeyId),
+		"service_access_role_arn":           aws.StringValue(settings.ServiceAccessRoleArn),
 	}
 
 	return []map[string]interface{}{m}
