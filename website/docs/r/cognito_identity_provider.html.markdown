@@ -37,6 +37,44 @@ resource "aws_cognito_identity_provider" "example_provider" {
 }
 ```
 
+## Example SAML Identity Provider
+
+```hcl
+resource "aws_cognito_user_pool" "example" {
+  name                     = "example-pool"
+  auto_verified_attributes = ["email"]
+}
+
+resource "aws_cognito_user_pool_client" "example_client" {
+  name                                 = "client"
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_scopes                 = ["email", "openid", "aws.cognito.signin.user.admin", "profile"]
+  callback_urls                        = ["https://example.com/oauth2/idpresponse"]
+  logout_urls                          = ["https://example.com/logout"]
+  user_pool_id                         = aws_cognito_user_pool.example.id
+  supported_identity_providers         = ["SAMLProvider"]
+  allowed_oauth_flows_user_pool_client = true
+  generate_secret                      = true
+  depends_on                           = [aws_cognito_identity_provider.example_provider]
+}
+
+resource "aws_cognito_identity_provider" "example_provider" {
+  user_pool_id  = "${aws_cognito_user_pool.example.id}"
+  provider_name = "SAMLProvider"
+  provider_type = "SAML"
+
+  provider_details = {
+    MetadataFile = file("${path.module}/xml_file_idp_gives_you.xml")
+  }
+
+  idp_identifiers = ["example.com"]
+
+  attribute_mapping = {
+    email    = "email"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
