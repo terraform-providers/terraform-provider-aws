@@ -81,6 +81,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/licensemanager"
 	"github.com/aws/aws-sdk-go/service/lightsail"
+	"github.com/aws/aws-sdk-go/service/locationservice"
 	"github.com/aws/aws-sdk-go/service/mediaconnect"
 	"github.com/aws/aws-sdk-go/service/mediaconvert"
 	"github.com/aws/aws-sdk-go/service/medialive"
@@ -285,6 +286,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(licensemanager.New)
 	case "lightsail":
 		funcType = reflect.TypeOf(lightsail.New)
+	case "locationservice":
+		funcType = reflect.TypeOf(locationservice.New)
 	case "mediaconnect":
 		funcType = reflect.TypeOf(mediaconnect.New)
 	case "mediaconvert":

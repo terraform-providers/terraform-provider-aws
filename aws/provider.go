@@ -880,6 +880,7 @@ func Provider() *schema.Provider {
 			"aws_load_balancer_policy":                                resourceAwsLoadBalancerPolicy(),
 			"aws_load_balancer_backend_server_policy":                 resourceAwsLoadBalancerBackendServerPolicies(),
 			"aws_load_balancer_listener_policy":                       resourceAwsLoadBalancerListenerPolicies(),
+			"aws_location_tracker":                                    resourceAwsLocationTracker(),
 			"aws_lb_ssl_negotiation_policy":                           resourceAwsLBSSLNegotiationPolicy(),
 			"aws_macie2_account":                                      resourceAwsMacie2Account(),
 			"aws_macie2_classification_job":                           resourceAwsMacie2ClassificationJob(),
