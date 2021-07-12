@@ -68,13 +68,11 @@ func resourceAwsMskCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"az_distribution": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  kafka.BrokerAZDistributionDefault,
-							ValidateFunc: validation.StringInSlice([]string{
-								kafka.BrokerAZDistributionDefault,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      kafka.BrokerAZDistributionDefault,
+							ValidateFunc: validation.StringInSlice(kafka.BrokerAZDistribution_Values(), false),
 						},
 						"client_subnets": {
 							Type:     schema.TypeList,

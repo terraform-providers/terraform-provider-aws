@@ -218,13 +218,10 @@ func resourceAwsLb() *schema.Resource {
 			},
 
 			"ip_address_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					elbv2.IpAddressTypeIpv4,
-					elbv2.IpAddressTypeDualstack,
-				}, false),
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(elbv2.IpAddressType_Values(), false),
 			},
 
 			"customer_owned_ipv4_pool": {

@@ -157,6 +157,7 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "#{protocol}",
+										//lintignore:AWSV001 // no enum in AWS SDK
 										ValidateFunc: validation.StringInSlice([]string{
 											"#{protocol}",
 											"HTTP",
@@ -190,6 +191,7 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 									"content_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										//lintignore:AWSV001 // no enum in AWS SDK
 										ValidateFunc: validation.StringInSlice([]string{
 											"text/plain",
 											"text/css",

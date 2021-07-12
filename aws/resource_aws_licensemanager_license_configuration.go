@@ -41,15 +41,10 @@ func resourceAwsLicenseManagerLicenseConfiguration() *schema.Resource {
 				Default:  false,
 			},
 			"license_counting_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					licensemanager.LicenseCountingTypeVCpu,
-					licensemanager.LicenseCountingTypeInstance,
-					licensemanager.LicenseCountingTypeCore,
-					licensemanager.LicenseCountingTypeSocket,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(licensemanager.LicenseCountingType_Values(), false),
 			},
 			"license_rules": {
 				Type:     schema.TypeList,

@@ -79,13 +79,10 @@ func resourceAwsKinesisStream() *schema.Resource {
 			},
 
 			"encryption_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "NONE",
-				ValidateFunc: validation.StringInSlice([]string{
-					kinesis.EncryptionTypeNone,
-					kinesis.EncryptionTypeKms,
-				}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice(kinesis.EncryptionType_Values(), true),
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return strings.EqualFold(old, new)
 				},

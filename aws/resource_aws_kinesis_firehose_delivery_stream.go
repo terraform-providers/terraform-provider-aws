@@ -894,6 +894,7 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 					value := v.(string)
 					return strings.ToLower(value)
 				},
+				//lintignore:AWSV001 // internal constants
 				ValidateFunc: validation.StringInSlice([]string{
 					firehoseDestinationTypeS3,
 					firehoseDestinationTypeExtendedS3,
@@ -1417,13 +1418,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						},
 
 						"hec_endpoint_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  firehose.HECEndpointTypeRaw,
-							ValidateFunc: validation.StringInSlice([]string{
-								firehose.HECEndpointTypeRaw,
-								firehose.HECEndpointTypeEvent,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.HECEndpointTypeRaw,
+							ValidateFunc: validation.StringInSlice(firehose.HECEndpointType_Values(), false),
 						},
 
 						"hec_token": {
@@ -1432,13 +1430,10 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 						},
 
 						"s3_backup_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  firehose.SplunkS3BackupModeFailedEventsOnly,
-							ValidateFunc: validation.StringInSlice([]string{
-								firehose.SplunkS3BackupModeFailedEventsOnly,
-								firehose.SplunkS3BackupModeAllEvents,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      firehose.SplunkS3BackupModeFailedEventsOnly,
+							ValidateFunc: validation.StringInSlice(firehose.SplunkS3BackupMode_Values(), false),
 						},
 
 						"retry_duration": {

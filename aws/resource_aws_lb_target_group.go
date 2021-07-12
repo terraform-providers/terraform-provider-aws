@@ -101,11 +101,7 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 							StateFunc: func(v interface{}) string {
 								return strings.ToUpper(v.(string))
 							},
-							ValidateFunc: validation.StringInSlice([]string{
-								elbv2.ProtocolEnumHttp,
-								elbv2.ProtocolEnumHttps,
-								elbv2.ProtocolEnumTcp,
-							}, true),
+							ValidateFunc:     validation.StringInSlice(elbv2.ProtocolEnum_Values(), true),
 							DiffSuppressFunc: suppressIfTargetType(elbv2.TargetTypeEnumLambda),
 						},
 						"timeout": {
@@ -132,6 +128,7 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"round_robin",
 					"least_outstanding_requests",
@@ -182,6 +179,7 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 				StateFunc: func(v interface{}) string {
 					return strings.ToUpper(v.(string))
 				},
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"GRPC",
 					"HTTP1",
@@ -241,6 +239,7 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							//lintignore:AWSV001 // no enum in AWS SDK
 							ValidateFunc: validation.StringInSlice([]string{
 								"lb_cookie",  // Only for ALBs
 								"app_cookie", // Only for ALBs

@@ -38,14 +38,11 @@ func resourceAwsMediaConvertQueue() *schema.Resource {
 				Optional: true,
 			},
 			"pricing_plan": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  mediaconvert.PricingPlanOnDemand,
-				ValidateFunc: validation.StringInSlice([]string{
-					mediaconvert.PricingPlanOnDemand,
-					mediaconvert.PricingPlanReserved,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      mediaconvert.PricingPlanOnDemand,
+				ValidateFunc: validation.StringInSlice(mediaconvert.PricingPlan_Values(), false),
 			},
 			"reservation_plan_settings": {
 				Type:     schema.TypeList,
@@ -55,19 +52,14 @@ func resourceAwsMediaConvertQueue() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"commitment": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								mediaconvert.CommitmentOneYear,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(mediaconvert.Commitment_Values(), false),
 						},
 						"renewal_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								mediaconvert.RenewalTypeAutoRenew,
-								mediaconvert.RenewalTypeExpire,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(mediaconvert.RenewalType_Values(), false),
 						},
 						"reserved_slots": {
 							Type:     schema.TypeInt,
@@ -77,13 +69,10 @@ func resourceAwsMediaConvertQueue() *schema.Resource {
 				},
 			},
 			"status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  mediaconvert.QueueStatusActive,
-				ValidateFunc: validation.StringInSlice([]string{
-					mediaconvert.QueueStatusActive,
-					mediaconvert.QueueStatusPaused,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      mediaconvert.QueueStatusActive,
+				ValidateFunc: validation.StringInSlice(mediaconvert.QueueStatus_Values(), false),
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),

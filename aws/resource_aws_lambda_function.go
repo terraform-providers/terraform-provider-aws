@@ -300,12 +300,9 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"mode": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								lambda.TracingModeActive,
-								lambda.TracingModePassThrough},
-								true),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(lambda.TracingMode_Values(), true),
 						},
 					},
 				},

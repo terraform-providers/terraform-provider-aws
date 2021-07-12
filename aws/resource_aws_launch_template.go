@@ -184,12 +184,9 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"capacity_reservation_preference": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.CapacityReservationPreferenceOpen,
-								ec2.CapacityReservationPreferenceNone,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(ec2.CapacityReservationPreference_Values(), false),
 						},
 						"capacity_reservation_target": {
 							Type:     schema.TypeList,
@@ -291,12 +288,9 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 			},
 
 			"instance_initiated_shutdown_behavior": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.ShutdownBehaviorStop,
-					ec2.ShutdownBehaviorTerminate,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(ec2.ShutdownBehavior_Values(), false),
 			},
 
 			"instance_market_options": {
@@ -308,7 +302,7 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 						"market_type": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{ec2.MarketTypeSpot}, false),
+							ValidateFunc: validation.StringInSlice(ec2.MarketType_Values(), false),
 						},
 						"spot_options": {
 							Type:     schema.TypeList,
@@ -329,12 +323,9 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 										Optional: true,
 									},
 									"spot_instance_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											ec2.SpotInstanceTypeOneTime,
-											ec2.SpotInstanceTypePersistent,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(ec2.SpotInstanceType_Values(), false),
 									},
 									"valid_until": {
 										Type:         schema.TypeString,
@@ -389,13 +380,13 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.StringInSlice([]string{ec2.LaunchTemplateInstanceMetadataEndpointStateEnabled, ec2.LaunchTemplateInstanceMetadataEndpointStateDisabled}, false),
+							ValidateFunc: validation.StringInSlice(ec2.LaunchTemplateInstanceMetadataEndpointState_Values(), false),
 						},
 						"http_tokens": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.StringInSlice([]string{ec2.LaunchTemplateHttpTokensStateOptional, ec2.LaunchTemplateHttpTokensStateRequired}, false),
+							ValidateFunc: validation.StringInSlice(ec2.LaunchTemplateHttpTokensState_Values(), false),
 						},
 						"http_put_response_hop_limit": {
 							Type:         schema.TypeInt,
@@ -554,13 +545,9 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 							Optional: true,
 						},
 						"tenancy": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.TenancyDedicated,
-								ec2.TenancyDefault,
-								ec2.TenancyHost,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(ec2.Tenancy_Values(), false),
 						},
 						"partition_number": {
 							Type:     schema.TypeInt,
@@ -597,6 +584,7 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 						"resource_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							//lintignore:AWSV001 // only a limited number of resource types are handled by launch templates
 							ValidateFunc: validation.StringInSlice([]string{
 								ec2.ResourceTypeInstance,
 								ec2.ResourceTypeVolume,
