@@ -93,6 +93,67 @@ resource "aws_lb" "example" {
 }
 ```
 
+### Full LB stack
+
+```hcl
+# Unlike the Classic LBs, the ALBs generally require at least 4 different
+# resources: the lb, the listener, the target group, and the target group
+# attachment
+
+# The ALB
+resource "aws_lb" "test" {
+  name               = "test"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = ["${aws_security_group.lb_sg.id}"]
+  subnets            = ["${aws_subnet.public.*.id}"]
+  enable_deletion_protection = true
+  access_logs {
+    bucket   = "${aws_s3_bucket.lb_logs.bucket}"
+    prefix   = "test-lb"
+  }
+  tags {
+    Name = "test"
+  }
+}
+
+# The target group and its attachment, in this example an IP target
+resource "aws_lb_target_group" "test" {
+  name        = "test"
+  health_check = {
+    healthy_threshold   = "5"
+    matcher             = "200"
+    path                = "/"
+    protocol            = "HTTPS"
+    unhealthy_threshold = "2"
+  }
+  port        = 443
+  protocol    = "HTTPS"
+  target_type = "ip"
+  vpc_id      = "${aws_vpc.test.id}"
+}
+resource "aws_lb_target_group_attachment" "test" {
+  availability_zone = "all"
+  target_group_arn  = "${aws_lb_target_group.test.arn}"
+  target_id         = "8.8.8.8"
+  port              = 443
+}
+
+# The listener
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = "${aws_lb.test.arn}"
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
+  certificate_arn   = "${data.aws_acm_certificate.test.arn}"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.test.arn}"
+  }
+}
+```
+
 ## Argument Reference
 
 ~> **NOTE:** Please note that internal LBs can only use `ipv4` as the ip_address_type. You can only change to `dualstack` ip_address_type if the selected subnets are IPv6 enabled.
