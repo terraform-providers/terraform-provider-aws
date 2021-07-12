@@ -127,6 +127,7 @@ func dataSourceAwsDbSnapshotRead(d *schema.ResourceData, meta interface{}) error
 
 	instanceIdentifier, instanceIdentifierOk := d.GetOk("db_instance_identifier")
 	snapshotIdentifier, snapshotIdentifierOk := d.GetOk("db_snapshot_identifier")
+	snapshotType, snapshotTypeOk := d.GetOk("snapshot_type")
 
 	if !instanceIdentifierOk && !snapshotIdentifierOk {
 		return fmt.Errorf("One of db_snapshot_identifier or db_instance_identifier must be assigned")
@@ -136,12 +137,22 @@ func dataSourceAwsDbSnapshotRead(d *schema.ResourceData, meta interface{}) error
 		IncludePublic: aws.Bool(d.Get("include_public").(bool)),
 		IncludeShared: aws.Bool(d.Get("include_shared").(bool)),
 	}
-	if v, ok := d.GetOk("snapshot_type"); ok {
-		params.SnapshotType = aws.String(v.(string))
+
+	if snapshotTypeOk {
+		params.SnapshotType = aws.String(snapshotType.(string))
 	}
+
+	// Don't set DBInstanceIdentifier for public or shared snapshots as it will
+	// never match (only instance identifiers from the current account will match).
+	// The filtering will need to be done client-side.
 	if instanceIdentifierOk {
-		params.DBInstanceIdentifier = aws.String(instanceIdentifier.(string))
+		if snapshotType == "public" || snapshotType == "shared" {
+			log.Printf("[DEBUG] Not combining DBInstanceIdentifier with SnapshotType %s in query; filtering client-side instead", snapshotType)
+		} else {
+			params.DBInstanceIdentifier = aws.String(instanceIdentifier.(string))
+		}
 	}
+
 	if snapshotIdentifierOk {
 		params.DBSnapshotIdentifier = aws.String(snapshotIdentifier.(string))
 	}
@@ -156,17 +167,24 @@ func dataSourceAwsDbSnapshotRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
 	}
 
+	var snapshots []*rds.DBSnapshot
+	if (snapshotType == "public" || snapshotType == "shared") && instanceIdentifierOk {
+		snapshots = filterSnapshotsByInstanceId(resp.DBSnapshots, instanceIdentifier.(string))
+	} else {
+		snapshots = resp.DBSnapshots
+	}
+
 	var snapshot *rds.DBSnapshot
-	if len(resp.DBSnapshots) > 1 {
+	if len(snapshots) > 1 {
 		recent := d.Get("most_recent").(bool)
 		log.Printf("[DEBUG] aws_db_snapshot - multiple results found and `most_recent` is set to: %t", recent)
 		if recent {
-			snapshot = mostRecentDbSnapshot(resp.DBSnapshots)
+			snapshot = mostRecentDbSnapshot(snapshots)
 		} else {
 			return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria.")
 		}
 	} else {
-		snapshot = resp.DBSnapshots[0]
+		snapshot = snapshots[0]
 	}
 
 	return dbSnapshotDescriptionAttributes(d, snapshot)
@@ -192,6 +210,23 @@ func mostRecentDbSnapshot(snapshots []*rds.DBSnapshot) *rds.DBSnapshot {
 	sortedSnapshots := snapshots
 	sort.Sort(rdsSnapshotSort(sortedSnapshots))
 	return sortedSnapshots[len(sortedSnapshots)-1]
+}
+
+// Client-side filtering of snapshots by DB Instance Identifier.
+// This is needed for shared or public snapshots i.e. situations where the
+// DB Instance Identifier isn't valid for the current account.
+func filterSnapshotsByInstanceId(snapshots []*rds.DBSnapshot, instanceId string) []*rds.DBSnapshot {
+	results := make([]*rds.DBSnapshot, 0, len(snapshots))
+
+	for _, s := range snapshots {
+		if *s.DBInstanceIdentifier == instanceId {
+			results = append(results, s)
+		}
+	}
+
+	log.Printf("[DEBUG] Of %d snapshots, %d had DBInstanceIdentifer == %s", len(snapshots), len(results), instanceId)
+
+	return results
 }
 
 func dbSnapshotDescriptionAttributes(d *schema.ResourceData, snapshot *rds.DBSnapshot) error {
