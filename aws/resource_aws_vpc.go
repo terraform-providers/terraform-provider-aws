@@ -840,7 +840,7 @@ func waitForEc2VpcIpv6CidrBlockAssociationCreate(conn *ec2.EC2, vpcID, associati
 		},
 		Target:  []string{ec2.VpcCidrBlockStateCodeAssociated},
 		Refresh: Ipv6CidrStateRefreshFunc(conn, vpcID, associationID),
-		Timeout: 1 * time.Minute,
+		Timeout: 5 * time.Minute,
 	}
 	_, err := stateConf.WaitForState()
 
