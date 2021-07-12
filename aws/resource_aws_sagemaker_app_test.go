@@ -318,6 +318,10 @@ resource "aws_sagemaker_domain" "test" {
   default_user_settings {
     execution_role = aws_iam_role.test.arn
   }
+
+  retention_policy {
+    home_efs_file_system = "Delete"
+  }
 }
 
 resource "aws_sagemaker_user_profile" "test" {

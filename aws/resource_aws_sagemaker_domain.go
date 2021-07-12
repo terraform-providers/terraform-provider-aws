@@ -226,6 +226,22 @@ func resourceAwsSagemakerDomain() *schema.Resource {
 			},
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
+			"retention_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"home_efs_file_system": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(sagemaker.RetentionType_Values(), false),
+							Default:      sagemaker.RetentionTypeRetain,
+						},
+					},
+				},
+			},
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -377,9 +393,10 @@ func resourceAwsSagemakerDomainDelete(d *schema.ResourceData, meta interface{}) 
 
 	input := &sagemaker.DeleteDomainInput{
 		DomainId: aws.String(d.Id()),
-		RetentionPolicy: &sagemaker.RetentionPolicy{
-			HomeEfsFileSystem: aws.String(sagemaker.RetentionTypeDelete),
-		},
+	}
+
+	if v, ok := d.GetOk("retention_policy"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		input.RetentionPolicy = expandSagemakerRetentionPolicy(v.([]interface{}))
 	}
 
 	if _, err := conn.DeleteDomain(input); err != nil {
@@ -395,6 +412,21 @@ func resourceAwsSagemakerDomainDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+func expandSagemakerRetentionPolicy(l []interface{}) *sagemaker.RetentionPolicy {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	config := &sagemaker.RetentionPolicy{}
+
+	if v, ok := m["home_efs_file_system"].(string); ok && v != "" {
+		config.HomeEfsFileSystem = aws.String(v)
+	}
+
+	return config
 }
 
 func expandSagemakerDomainDefaultUserSettings(l []interface{}) *sagemaker.UserSettings {
