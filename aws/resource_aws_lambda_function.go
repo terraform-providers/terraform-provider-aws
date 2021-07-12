@@ -321,6 +321,7 @@ func resourceAwsLambdaFunction() *schema.Resource {
 
 		CustomizeDiff: customdiff.Sequence(
 			checkHandlerRuntimeForZipFunction,
+			checkImageUriForImageFunction,
 			updateComputedAttributesOnPublish,
 			SetTagsDiff,
 		),
@@ -334,6 +335,16 @@ func checkHandlerRuntimeForZipFunction(_ context.Context, d *schema.ResourceDiff
 
 	if packageType == lambda.PackageTypeZip && !handlerOk && !runtimeOk {
 		return fmt.Errorf("handler and runtime must be set when PackageType is Zip")
+	}
+	return nil
+}
+
+func checkImageUriForImageFunction(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	packageType := d.Get("package_type")
+	_, imageUriOk := d.GetOk("image_uri")
+
+	if (packageType == lambda.PackageTypeImage && !imageUriOk) || (packageType == lambda.PackageTypeZip && imageUriOk) {
+		return fmt.Errorf("image_uri can only be set when PackageType is Image")
 	}
 	return nil
 }
