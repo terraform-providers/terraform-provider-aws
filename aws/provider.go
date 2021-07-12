@@ -696,6 +696,7 @@ func Provider() *schema.Provider {
 			"aws_ec2_local_gateway_route":                             resourceAwsEc2LocalGatewayRoute(),
 			"aws_ec2_local_gateway_route_table_vpc_association":       resourceAwsEc2LocalGatewayRouteTableVpcAssociation(),
 			"aws_ec2_managed_prefix_list":                             resourceAwsEc2ManagedPrefixList(),
+			"aws_ec2_managed_prefix_list_entry":                       resourceAwsEc2ManagedPrefixListEntry(),
 			"aws_ec2_tag":                                             resourceAwsEc2Tag(),
 			"aws_ec2_traffic_mirror_filter":                           resourceAwsEc2TrafficMirrorFilter(),
 			"aws_ec2_traffic_mirror_filter_rule":                      resourceAwsEc2TrafficMirrorFilterRule(),

@@ -51,6 +51,7 @@ func resourceAwsEc2ManagedPrefixList() *schema.Resource {
 			"entry": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cidr": {

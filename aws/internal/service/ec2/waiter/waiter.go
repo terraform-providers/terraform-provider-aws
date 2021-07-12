@@ -257,6 +257,8 @@ func InstanceIamInstanceProfileUpdated(conn *ec2.EC2, instanceID string, expecte
 	return nil, err
 }
 
+const ManagedPrefixListEntryCreateTimeout = 5 * time.Minute
+
 const (
 	NetworkAclPropagationTimeout      = 2 * time.Minute
 	NetworkAclEntryPropagationTimeout = 5 * time.Minute
