@@ -42,6 +42,7 @@ func TestAccAWSEc2InstanceTypeOfferingsDataSource_LocationType(t *testing.T) {
 				Config: testAccAWSEc2InstanceTypeOfferingsDataSourceConfigLocationType(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEc2InstanceTypeOfferingsInstanceTypes(dataSourceName),
+					testAccCheckEc2InstanceTypeOfferingsLocations(dataSourceName),
 				),
 			},
 		},
@@ -57,6 +58,21 @@ func testAccCheckEc2InstanceTypeOfferingsInstanceTypes(dataSourceName string) re
 
 		if v := rs.Primary.Attributes["instance_types.#"]; v == "0" {
 			return fmt.Errorf("expected at least one instance_types result, got none")
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckEc2InstanceTypeOfferingsLocations(dataSourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[dataSourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", dataSourceName)
+		}
+
+		if v := rs.Primary.Attributes["locations.#"]; v == "0" {
+			return fmt.Errorf("expected at least one locations result, got none")
 		}
 
 		return nil

@@ -47,6 +47,7 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 	}
 
 	var instanceTypes []string
+	var locations []string
 
 	for {
 		output, err := conn.DescribeInstanceTypeOfferings(input)
@@ -65,6 +66,7 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 			}
 
 			instanceTypes = append(instanceTypes, aws.StringValue(instanceTypeOffering.InstanceType))
+			locations = append(locations, aws.StringValue(instanceTypeOffering.Location))
 		}
 
 		if aws.StringValue(output.NextToken) == "" {
@@ -76,6 +78,10 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 
 	if err := d.Set("instance_types", instanceTypes); err != nil {
 		return fmt.Errorf("error setting instance_types: %w", err)
+	}
+
+	if err := d.Set("locations", locations); err != nil {
+		return fmt.Errorf("error setting locations: %s", err)
 	}
 
 	d.SetId(meta.(*AWSClient).region)
