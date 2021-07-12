@@ -284,6 +284,7 @@ func Provider() *schema.Provider {
 			"aws_eks_cluster":                                dataSourceAwsEksCluster(),
 			"aws_eks_cluster_auth":                           dataSourceAwsEksClusterAuth(),
 			"aws_elastic_beanstalk_application":              dataSourceAwsElasticBeanstalkApplication(),
+			"aws_elastic_beanstalk_environment":              dataSourceAwsElasticBeanstalkEnvironment(),
 			"aws_elastic_beanstalk_hosted_zone":              dataSourceAwsElasticBeanstalkHostedZone(),
 			"aws_elastic_beanstalk_solution_stack":           dataSourceAwsElasticBeanstalkSolutionStack(),
 			"aws_elasticache_cluster":                        dataSourceAwsElastiCacheCluster(),
