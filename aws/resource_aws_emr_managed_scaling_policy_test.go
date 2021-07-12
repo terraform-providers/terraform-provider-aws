@@ -87,6 +87,30 @@ func TestAccAwsEmrManagedScalingPolicy_ComputeLimits_MaximumOndemandCapacityUnit
 	})
 }
 
+func TestAccAwsEmrManagedScalingPolicy_ComputeLimits_MaximumOndemandCapacityUnits_SpotOnly(t *testing.T) {
+	resourceName := "aws_emr_managed_scaling_policy.testpolicy"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEmrManagedScalingPolicyDestroy,
+
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEmrManagedScalingPolicy_ComputeLimits_MaximumOndemandCapacityUnits(rName, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEmrManagedScalingPolicyExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAwsEmrManagedScalingPolicy_disappears(t *testing.T) {
 	resourceName := "aws_emr_managed_scaling_policy.testpolicy"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
