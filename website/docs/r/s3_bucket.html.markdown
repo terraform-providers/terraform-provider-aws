@@ -54,6 +54,21 @@ EOF
 }
 ```
 
+### Static Website Redirect
+
+```hcl
+resource "aws_s3_bucket" "s3_www_bucket" {
+  bucket = var.bucket_name
+  acl    = "public-read"
+
+  website {
+    redirect_all_requests_to = "http://example.com"
+  }
+
+  tags = var.tags
+}
+```
+
 ### Using CORS
 
 ```terraform
