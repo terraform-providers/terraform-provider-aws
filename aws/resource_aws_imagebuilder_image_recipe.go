@@ -81,7 +81,7 @@ func resourceAwsImageBuilderImageRecipe() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ForceNew:     true,
-										ValidateFunc: validateArn,
+										ValidateFunc: validation.StringLenBetween(1, 1024),
 									},
 									"snapshot_id": {
 										Type:     schema.TypeString,
