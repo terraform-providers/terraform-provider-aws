@@ -1,0 +1,3 @@
+```release-note:bug
+resource/aws_db_proxy_target: Fixed InvalidDBInstanceState: DB Instance is in an unsupported state - CREATING, needs to be in [AVAILABLE, MODIFYING, BACKING_UP]
+```

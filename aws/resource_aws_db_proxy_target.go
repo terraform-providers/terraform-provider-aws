@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/rds/finder"
 )
@@ -101,13 +103,24 @@ func resourceAwsDbProxyTargetCreate(d *schema.ResourceData, meta interface{}) er
 		params.DBClusterIdentifiers = []*string{aws.String(v.(string))}
 	}
 
-	resp, err := conn.RegisterDBProxyTargets(&params)
+	var err error
+	var registerDBProxyTargetsOutput *rds.RegisterDBProxyTargetsOutput
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		registerDBProxyTargetsOutput, err = conn.RegisterDBProxyTargets(&params)
+		if err != nil {
+			if isAWSErr(err, "InvalidDBInstanceState", "CREATING") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
 
 	if err != nil {
 		return fmt.Errorf("error registering RDS DB Proxy (%s/%s) Target: %w", dbProxyName, targetGroupName, err)
 	}
 
-	dbProxyTarget := resp.DBProxyTargets[0]
+	dbProxyTarget := registerDBProxyTargetsOutput.DBProxyTargets[0]
 
 	d.SetId(strings.Join([]string{dbProxyName, targetGroupName, aws.StringValue(dbProxyTarget.Type), aws.StringValue(dbProxyTarget.RdsResourceId)}, "/"))
 
