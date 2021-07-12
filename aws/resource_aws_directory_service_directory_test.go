@@ -98,6 +98,7 @@ func TestAccAWSDirectoryServiceDirectory_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckServiceDirectoryExists(resourceName, &ds),
 					resource.TestCheckResourceAttrSet(resourceName, "security_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.#", "0"),
 				),
 			},
 			{
@@ -302,6 +303,55 @@ func TestAccAWSDirectoryServiceDirectory_withAliasAndSso(t *testing.T) {
 					testAccCheckServiceDirectoryExists(resourceName, &ds),
 					testAccCheckServiceDirectoryAlias(resourceName, alias),
 					testAccCheckServiceDirectorySso(resourceName, false),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDirectoryServiceDirectory_microsoftStandard_withRadiusMfa(t *testing.T) {
+	var ds directoryservice.DirectoryDescription
+	resourceName := "aws_directory_service_directory.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDirectoryService(t) },
+		ErrorCheck:   testAccErrorCheck(t, directoryservice.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDirectoryServiceDirectoryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDirectoryServiceDirectoryConfig_microsoftStandard_withRadiusMfa,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckServiceDirectoryExists(resourceName, &ds),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.label", "MyRadius"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.port", "1812"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.protocol", "PAP"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.retries", "4"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.secret", "12345678"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.servers.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.timeout", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"password",
+					"radius_settings.0.secret",
+				},
+			},
+			{
+				Config: testAccDirectoryServiceDirectoryConfig_microsoftStandard_withRadiusMfa_update,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckServiceDirectoryExists(resourceName, &ds),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.label", "MyRadiusTest"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.port", "1813"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.protocol", "CHAP"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.retries", "3"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.secret", "abcdefgh"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.servers.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "radius_settings.0.timeout", "10"),
 				),
 			},
 		},
@@ -648,6 +698,50 @@ resource "aws_directory_service_directory" "test" {
   vpc_settings {
     vpc_id     = aws_vpc.test.id
     subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
+  }
+}
+`
+
+const testAccDirectoryServiceDirectoryConfig_microsoftStandard_withRadiusMfa = testAccDirectoryServiceDirectoryConfigBase + `
+resource "aws_directory_service_directory" "test" {
+  name     = "corp.notexample.com"
+  password = "SuperSecretPassw0rd"
+  type     = "MicrosoftAD"
+  edition  = "Standard"
+  vpc_settings {
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
+  }
+  radius_settings {
+    protocol = "PAP"
+    label    = "MyRadius"
+    port     = 1812
+    retries  = 4
+    servers  = ["10.0.1.5"]
+    timeout  = 1
+    secret   = "12345678"
+  }
+}
+`
+
+const testAccDirectoryServiceDirectoryConfig_microsoftStandard_withRadiusMfa_update = testAccDirectoryServiceDirectoryConfigBase + `
+resource "aws_directory_service_directory" "test" {
+  name     = "corp.notexample.com"
+  password = "SuperSecretPassw0rd"
+  type     = "MicrosoftAD"
+  edition  = "Standard"
+  vpc_settings {
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
+  }
+  radius_settings {
+    protocol = "CHAP"
+    label    = "MyRadiusTest"
+    port     = 1813
+    retries  = 3
+    servers  = ["10.0.1.6", "10.0.1.7"]
+    timeout  = 10
+    secret   = "abcdefgh"
   }
 }
 `

@@ -182,6 +182,59 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 					directoryservice.DirectoryEditionStandard,
 				}, false),
 			},
+			"radius_settings": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"protocol": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(directoryservice.RadiusAuthenticationProtocol_Values(), false),
+						},
+						"label": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 64),
+						},
+						"port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+						"retries": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 10),
+						},
+						"servers": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringLenBetween(1, 256),
+							},
+							Set: schema.HashString,
+						},
+						"timeout": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20),
+						},
+						"secret": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringLenBetween(8, 512),
+						},
+						"same_username": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 
 		CustomizeDiff: SetTagsDiff,
@@ -367,6 +420,52 @@ func enableDirectoryServiceSso(dsconn *directoryservice.DirectoryService, d *sch
 	return nil
 }
 
+func enableRadiusMfa(dsconn *directoryservice.DirectoryService, d *schema.ResourceData) error {
+	if v, ok := d.GetOk("radius_settings"); ok {
+		directoryType := d.Get("type").(string)
+
+		if directoryType == directoryservice.DirectoryTypeSimpleAd {
+			return fmt.Errorf("Multi-factor authentication is not available for Simple AD.")
+		}
+
+		settings := v.([]interface{})
+		s := settings[0].(map[string]interface{})
+
+		var radiusServers []*string
+		for _, id := range s["servers"].(*schema.Set).List() {
+			radiusServers = append(radiusServers, aws.String(id.(string)))
+		}
+
+		input := directoryservice.EnableRadiusInput{
+			DirectoryId: aws.String(d.Id()),
+			RadiusSettings: &directoryservice.RadiusSettings{
+				AuthenticationProtocol: aws.String(s["protocol"].(string)),
+				DisplayLabel:           aws.String(s["label"].(string)),
+				RadiusPort:             aws.Int64(int64(s["port"].(int))),
+				RadiusRetries:          aws.Int64(int64(s["retries"].(int))),
+				RadiusServers:          radiusServers,
+				RadiusTimeout:          aws.Int64(int64(s["timeout"].(int))),
+				SharedSecret:           aws.String(s["secret"].(string)),
+				UseSameUsername:        aws.Bool(s["same_username"].(bool)),
+			},
+		}
+
+		log.Printf("[DEBUG] Enabling Radius MFA for DS directory %q", d.Id())
+		if _, err := dsconn.EnableRadius(&input); err != nil {
+			return fmt.Errorf("Error Enabling Radius MFA for DS directory %s: %s", d.Id(), err)
+		}
+	} else {
+		log.Printf("[DEBUG] Disabling Radius MFA for DS directory %q", d.Id())
+		if _, err := dsconn.DisableRadius(&directoryservice.DisableRadiusInput{
+			DirectoryId: aws.String(d.Id()),
+		}); err != nil {
+			return fmt.Errorf("Error Disabling Radius MFA for DS directory %s: %s", d.Id(), err)
+		}
+	}
+
+	return nil
+}
+
 func resourceAwsDirectoryServiceDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	dsconn := meta.(*AWSClient).dsconn
 
@@ -416,6 +515,12 @@ func resourceAwsDirectoryServiceDirectoryCreate(d *schema.ResourceData, meta int
 		}
 	}
 
+	if d.HasChange("radius_settings") {
+		if err := enableRadiusMfa(dsconn, d); err != nil {
+			return err
+		}
+	}
+
 	return resourceAwsDirectoryServiceDirectoryRead(d, meta)
 }
 
@@ -424,6 +529,12 @@ func resourceAwsDirectoryServiceDirectoryUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("enable_sso") {
 		if err := enableDirectoryServiceSso(dsconn, d); err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("radius_settings") {
+		if err := enableRadiusMfa(dsconn, d); err != nil {
 			return err
 		}
 	}
@@ -482,6 +593,17 @@ func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta inter
 	}
 
 	d.Set("enable_sso", dir.SsoEnabled)
+
+	radiusSecret := aws.String("")
+	if v, ok := d.GetOk("radius_settings"); ok && len(v.([]interface{})) > 0 {
+		settings := v.([]interface{})
+		s := settings[0].(map[string]interface{})
+		radiusSecret = aws.String(s["secret"].(string))
+	}
+
+	if err := d.Set("radius_settings", flattenDSRadiusSettings(dir.RadiusSettings, radiusSecret)); err != nil {
+		return fmt.Errorf("error setting radius_settings: %s", err)
+	}
 
 	if aws.StringValue(dir.Type) == directoryservice.DirectoryTypeAdconnector {
 		d.Set("security_group_id", dir.ConnectSettings.SecurityGroupId)

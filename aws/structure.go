@@ -1485,6 +1485,26 @@ func flattenDSConnectSettings(
 	return []map[string]interface{}{settings}
 }
 
+func flattenDSRadiusSettings(
+	s *directoryservice.RadiusSettings, radiusSecret *string) []map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+
+	settings := make(map[string]interface{})
+
+	settings["protocol"] = aws.StringValue(s.AuthenticationProtocol)
+	settings["label"] = aws.StringValue(s.DisplayLabel)
+	settings["port"] = aws.Int64Value(s.RadiusPort)
+	settings["retries"] = aws.Int64Value(s.RadiusRetries)
+	settings["servers"] = flattenStringSet(s.RadiusServers)
+	settings["timeout"] = aws.Int64Value(s.RadiusTimeout)
+	settings["same_username"] = aws.BoolValue(s.UseSameUsername)
+	settings["secret"] = radiusSecret
+
+	return []map[string]interface{}{settings}
+}
+
 func expandCloudFormationParameters(params map[string]interface{}) []*cloudformation.Parameter {
 	var cfParams []*cloudformation.Parameter
 	for k, v := range params {

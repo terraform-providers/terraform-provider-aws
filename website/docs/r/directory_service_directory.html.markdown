@@ -64,6 +64,16 @@ resource "aws_directory_service_directory" "bar" {
     subnet_ids = [aws_subnet.foo.id, aws_subnet.bar.id]
   }
 
+  radius_settings {
+    protocol = "PAP"
+    label    = "MyRadius"
+    port     = 1812
+    retries  = 4
+    servers  = ["10.0.1.5"]
+    timeout  = 1
+    secret   = "12345678"
+  }
+
   tags = {
     Project = "foo"
   }
@@ -135,12 +145,24 @@ The following arguments are supported:
 * `enable_sso` - (Optional) Whether to enable single-sign on for the directory. Requires `alias`. Defaults to `false`.
 * `type` (Optional) - The directory type (`SimpleAD`, `ADConnector` or `MicrosoftAD` are accepted values). Defaults to `SimpleAD`.
 * `edition` - (Optional) The MicrosoftAD edition (`Standard` or `Enterprise`). Defaults to `Enterprise` (applies to MicrosoftAD type only).
+* `radius_settings` - (Optional) Radius MFA settings (Not available for `SimpleAD`). Fields documented below.
 * `tags` - (Optional) A map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](/docs/providers/aws/index.html#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 **vpc_settings** supports the following:
 
 * `subnet_ids` - (Required) The identifiers of the subnets for the directory servers (2 subnets in 2 different AZs).
 * `vpc_id` - (Required) The identifier of the VPC that the directory is in.
+
+**radius_settings** supports the following:
+
+* `protocol` - (Required) The protocol specified for your RADIUS endpoints. Valid Values: PAP | CHAP | MS-CHAPv1 | MS-CHAPv2
+* `label` - (Required) Display label.
+* `port` - (Required) The port that your RADIUS server is using for communications.
+* `retries` - (Required) The maximum number of times that communication with the RADIUS server is attempted.
+* `servers` - (Required) An array of strings that contains the IP addresses of the RADIUS server endpoints, or the IP addresses of your RADIUS server load balancer.
+* `timeout` - (Required) The amount of time, in seconds, to wait for the RADIUS server to respond.
+* `secret` - (Required) Required for enabling RADIUS on the directory.
+* `same_username` - (Optional) Not currently used.
 
 **connect_settings** supports the following:
 
