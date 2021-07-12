@@ -217,6 +217,13 @@ func resourceAwsLb() *schema.Resource {
 				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
 			},
 
+			"enable_waf_fail_open": {
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Default:          false,
+				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
+			},
+
 			"ip_address_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -451,10 +458,18 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 				Value: aws.String(fmt.Sprintf("%d", d.Get("idle_timeout").(int))),
 			})
 		}
+
 		if d.HasChange("enable_http2") || d.IsNewResource() {
 			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
 				Key:   aws.String("routing.http2.enabled"),
 				Value: aws.String(strconv.FormatBool(d.Get("enable_http2").(bool))),
+			})
+		}
+
+		if d.HasChange("enable_waf_fail_open") || d.IsNewResource() {
+			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
+				Key:   aws.String("waf.fail_open.enabled"),
+				Value: aws.String(strconv.FormatBool(d.Get("enable_waf_fail_open").(bool))),
 			})
 		}
 
@@ -817,6 +832,10 @@ func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.Lo
 			http2Enabled := aws.StringValue(attr.Value) == "true"
 			log.Printf("[DEBUG] Setting ALB HTTP/2 Enabled: %t", http2Enabled)
 			d.Set("enable_http2", http2Enabled)
+		case "waf.fail_open.enabled":
+			wafFailOpenEnabled := aws.StringValue(attr.Value) == "true"
+			log.Printf("[DEBUG] Setting ALB WAF fail open Enabled: %t", wafFailOpenEnabled)
+			d.Set("enable_waf_fail_open", wafFailOpenEnabled)
 		case "load_balancing.cross_zone.enabled":
 			crossZoneLbEnabled := aws.StringValue(attr.Value) == "true"
 			log.Printf("[DEBUG] Setting NLB Cross Zone Load Balancing Enabled: %t", crossZoneLbEnabled)

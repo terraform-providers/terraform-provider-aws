@@ -114,6 +114,11 @@ func dataSourceAwsLb() *schema.Resource {
 				Computed: true,
 			},
 
+			"enable_waf_fail_open": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"idle_timeout": {
 				Type:     schema.TypeInt,
 				Computed: true,
