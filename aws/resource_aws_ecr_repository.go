@@ -43,14 +43,11 @@ func resourceAwsEcrRepository() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"encryption_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ecr.EncryptionTypeAes256,
-								ecr.EncryptionTypeKms,
-							}, false),
-							Default:  ecr.EncryptionTypeAes256,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(ecr.EncryptionType_Values(), false),
+							Default:      ecr.EncryptionTypeAes256,
+							ForceNew:     true,
 						},
 						"kms_key": {
 							Type:     schema.TypeString,
@@ -78,13 +75,10 @@ func resourceAwsEcrRepository() *schema.Resource {
 				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			},
 			"image_tag_mutability": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ecr.ImageTagMutabilityMutable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ecr.ImageTagMutabilityMutable,
-					ecr.ImageTagMutabilityImmutable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ecr.ImageTagMutabilityMutable,
+				ValidateFunc: validation.StringInSlice(ecr.ImageTagMutability_Values(), false),
 			},
 			"name": {
 				Type:     schema.TypeString,

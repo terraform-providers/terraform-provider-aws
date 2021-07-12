@@ -56,13 +56,10 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				ForceNew: true,
 			},
 			"az_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					elasticache.AZModeCrossAz,
-					elasticache.AZModeSingleAz,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(elasticache.AZMode_Values(), false),
 			},
 			"cache_nodes": {
 				Type:     schema.TypeList,

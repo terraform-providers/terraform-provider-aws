@@ -33,12 +33,9 @@ func resourceAwsEc2AvailabilityZoneGroup() *schema.Resource {
 				ForceNew: true,
 			},
 			"opt_in_status": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.AvailabilityZoneOptInStatusOptedIn,
-					ec2.AvailabilityZoneOptInStatusNotOptedIn,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(ec2.AvailabilityZoneOptInStatus_Values(), false),
 			},
 		},
 	}

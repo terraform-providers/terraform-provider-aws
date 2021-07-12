@@ -64,12 +64,9 @@ func resourceAwsEc2TrafficMirrorFilterRule() *schema.Resource {
 				Optional: true,
 			},
 			"rule_action": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.TrafficMirrorRuleActionAccept,
-					ec2.TrafficMirrorRuleActionReject,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(ec2.TrafficMirrorRuleAction_Values(), false),
 			},
 			"rule_number": {
 				Type:     schema.TypeInt,
@@ -100,12 +97,9 @@ func resourceAwsEc2TrafficMirrorFilterRule() *schema.Resource {
 				},
 			},
 			"traffic_direction": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.TrafficDirectionIngress,
-					ec2.TrafficDirectionEgress,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(ec2.TrafficDirection_Values(), false),
 			},
 		},
 	}

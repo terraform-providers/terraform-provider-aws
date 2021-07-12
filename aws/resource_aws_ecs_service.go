@@ -111,15 +111,11 @@ func resourceAwsEcsService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							ForceNew: true,
-							Optional: true,
-							Default:  ecs.DeploymentControllerTypeEcs,
-							ValidateFunc: validation.StringInSlice([]string{
-								ecs.DeploymentControllerTypeCodeDeploy,
-								ecs.DeploymentControllerTypeEcs,
-								ecs.DeploymentControllerTypeExternal,
-							}, false),
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							Default:      ecs.DeploymentControllerTypeEcs,
+							ValidateFunc: validation.StringInSlice(ecs.DeploymentControllerType_Values(), false),
 						},
 					},
 				},
@@ -258,13 +254,9 @@ func resourceAwsEcsService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ecs.PlacementStrategyTypeBinpack,
-								ecs.PlacementStrategyTypeRandom,
-								ecs.PlacementStrategyTypeSpread,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ecs.PlacementStrategyType_Values(), false),
 						},
 						"field": {
 							Type:     schema.TypeString,
@@ -294,12 +286,9 @@ func resourceAwsEcsService() *schema.Resource {
 							Optional: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ecs.PlacementConstraintTypeDistinctInstance,
-								ecs.PlacementConstraintTypeMemberOf,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ecs.PlacementConstraintType_Values(), false),
 						},
 					},
 				},
@@ -319,11 +308,7 @@ func resourceAwsEcsService() *schema.Resource {
 					}
 					return false
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					ecs.PropagateTagsService,
-					ecs.PropagateTagsTaskDefinition,
-					"",
-				}, false),
+				ValidateFunc: validation.StringInSlice(ecs.PropagateTags_Values(), false),
 			},
 			"scheduling_strategy": {
 				Type:     schema.TypeString,

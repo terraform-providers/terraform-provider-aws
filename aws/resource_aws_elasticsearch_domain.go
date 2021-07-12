@@ -146,13 +146,10 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 							Default:  true,
 						},
 						"tls_security_policy": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								elasticsearch.TLSSecurityPolicyPolicyMinTls10201907,
-								elasticsearch.TLSSecurityPolicyPolicyMinTls12201907,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(elasticsearch.TLSSecurityPolicy_Values(), false),
 						},
 						"custom_endpoint_enabled": {
 							Type:     schema.TypeBool,
@@ -206,11 +203,7 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 							Computed: true,
 							ValidateFunc: validation.Any(
 								validation.StringIsEmpty,
-								validation.StringInSlice([]string{
-									elasticsearch.VolumeTypeStandard,
-									elasticsearch.VolumeTypeGp2,
-									elasticsearch.VolumeTypeIo1,
-								}, false),
+								validation.StringInSlice(elasticsearch.VolumeType_Values(), false),
 							),
 						},
 					},
@@ -317,6 +310,7 @@ func resourceAwsElasticSearchDomain() *schema.Resource {
 						"warm_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							//lintignore:AWSV001 // elasticsearch SDK contains no constant for ultrawarm1.xlarge.elasticsearch
 							ValidateFunc: validation.StringInSlice([]string{
 								elasticsearch.ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch,
 								elasticsearch.ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch,

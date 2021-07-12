@@ -397,15 +397,10 @@ func resourceAwsEMRCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action_on_failure": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								emr.ActionOnFailureCancelAndWait,
-								emr.ActionOnFailureContinue,
-								emr.ActionOnFailureTerminateCluster,
-								emr.ActionOnFailureTerminateJobFlow,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(emr.ActionOnFailure_Values(), false),
 						},
 						"hadoop_jar_step": {
 							Type:       schema.TypeList,
@@ -474,14 +469,11 @@ func resourceAwsEMRCluster() *schema.Resource {
 				Required: true,
 			},
 			"scale_down_behavior": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					emr.ScaleDownBehaviorTerminateAtInstanceHour,
-					emr.ScaleDownBehaviorTerminateAtTaskCompletion,
-				}, false),
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(emr.ScaleDownBehavior_Values(), false),
 			},
 			"security_configuration": {
 				Type:     schema.TypeString,

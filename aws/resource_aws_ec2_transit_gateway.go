@@ -53,44 +53,32 @@ func resourceAwsEc2TransitGateway() *schema.Resource {
 				Computed: true,
 			},
 			"auto_accept_shared_attachments": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.AutoAcceptSharedAttachmentsValueDisable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.AutoAcceptSharedAttachmentsValueDisable,
-					ec2.AutoAcceptSharedAttachmentsValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.AutoAcceptSharedAttachmentsValueDisable,
+				ValidateFunc: validation.StringInSlice(ec2.AutoAcceptSharedAttachmentsValue_Values(), false),
 			},
 			"default_route_table_association": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.DefaultRouteTableAssociationValueEnable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.DefaultRouteTableAssociationValueDisable,
-					ec2.DefaultRouteTableAssociationValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.DefaultRouteTableAssociationValueEnable,
+				ValidateFunc: validation.StringInSlice(ec2.DefaultRouteTableAssociationValue_Values(), false),
 			},
 			"default_route_table_propagation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.DefaultRouteTablePropagationValueEnable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.DefaultRouteTablePropagationValueDisable,
-					ec2.DefaultRouteTablePropagationValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.DefaultRouteTablePropagationValueEnable,
+				ValidateFunc: validation.StringInSlice(ec2.DefaultRouteTablePropagationValue_Values(), false),
 			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"dns_support": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.DnsSupportValueEnable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.DnsSupportValueDisable,
-					ec2.DnsSupportValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.DnsSupportValueEnable,
+				ValidateFunc: validation.StringInSlice(ec2.DnsSupportValue_Values(), false),
 			},
 			"owner_id": {
 				Type:     schema.TypeString,
@@ -103,13 +91,10 @@ func resourceAwsEc2TransitGateway() *schema.Resource {
 			"tags":     tagsSchema(),
 			"tags_all": tagsSchemaComputed(),
 			"vpn_ecmp_support": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.VpnEcmpSupportValueEnable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.VpnEcmpSupportValueDisable,
-					ec2.VpnEcmpSupportValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.VpnEcmpSupportValueEnable,
+				ValidateFunc: validation.StringInSlice(ec2.VpnEcmpSupportValue_Values(), false),
 			},
 		},
 	}

@@ -31,22 +31,16 @@ func resourceAwsEc2TransitGatewayVpcAttachment() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(ec2.ApplianceModeSupportValue_Values(), false),
 			},
 			"dns_support": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.DnsSupportValueEnable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.DnsSupportValueDisable,
-					ec2.DnsSupportValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.DnsSupportValueEnable,
+				ValidateFunc: validation.StringInSlice(ec2.DnsSupportValue_Values(), false),
 			},
 			"ipv6_support": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.Ipv6SupportValueDisable,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.Ipv6SupportValueDisable,
-					ec2.Ipv6SupportValueEnable,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.Ipv6SupportValueDisable,
+				ValidateFunc: validation.StringInSlice(ec2.Ipv6SupportValue_Values(), false),
 			},
 			"subnet_ids": {
 				Type:     schema.TypeSet,

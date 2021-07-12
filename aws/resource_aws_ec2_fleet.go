@@ -33,13 +33,10 @@ func resourceAwsEc2Fleet() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"excess_capacity_termination_policy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.FleetExcessCapacityTerminationPolicyTermination,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.FleetExcessCapacityTerminationPolicyNoTermination,
-					ec2.FleetExcessCapacityTerminationPolicyTermination,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.FleetExcessCapacityTerminationPolicyTermination,
+				ValidateFunc: validation.StringInSlice(ec2.FleetExcessCapacityTerminationPolicy_Values(), false),
 			},
 			"launch_template_config": {
 				Type:     schema.TypeList,
@@ -135,9 +132,8 @@ func resourceAwsEc2Fleet() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							Default:  "lowestPrice",
+							//lintignore:AWSV001 // AWS SDK constant ec2.FleetOnDemandAllocationStrategyLowestPrice is incorrect ("lowest-price" vs "lowestPrice")
 							ValidateFunc: validation.StringInSlice([]string{
-								// AWS SDK constant incorrect
-								// ec2.FleetOnDemandAllocationStrategyLowestPrice,
 								"lowestPrice",
 								ec2.FleetOnDemandAllocationStrategyPrioritized,
 							}, false),
@@ -167,23 +163,18 @@ func resourceAwsEc2Fleet() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							Default:  "lowestPrice",
+							//lintignore:AWSV001 // AWS SDK contant ec2.SpotAllocationStrategyLowestPrice is incorrect ("lowest-price" vs "lowestPrice")
 							ValidateFunc: validation.StringInSlice([]string{
 								ec2.SpotAllocationStrategyDiversified,
-								// AWS SDK constant incorrect
-								// ec2.SpotAllocationStrategyLowestPrice,
 								"lowestPrice",
 							}, false),
 						},
 						"instance_interruption_behavior": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  ec2.SpotInstanceInterruptionBehaviorTerminate,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.SpotInstanceInterruptionBehaviorHibernate,
-								ec2.SpotInstanceInterruptionBehaviorStop,
-								ec2.SpotInstanceInterruptionBehaviorTerminate,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      ec2.SpotInstanceInterruptionBehaviorTerminate,
+							ValidateFunc: validation.StringInSlice(ec2.SpotInstanceInterruptionBehavior_Values(), false),
 						},
 						"instance_pools_to_use_count": {
 							Type:         schema.TypeInt,
@@ -217,12 +208,10 @@ func resourceAwsEc2Fleet() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"replacement_strategy": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														"launch",
-													}, false),
+													Type:         schema.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringInSlice(ec2.FleetReplacementStrategy_Values(), false),
 												},
 											},
 										},
@@ -243,13 +232,10 @@ func resourceAwsEc2Fleet() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default_target_capacity_type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.DefaultTargetCapacityTypeOnDemand,
-								ec2.DefaultTargetCapacityTypeSpot,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(ec2.DefaultTargetCapacityType_Values(), false),
 						},
 						"on_demand_target_capacity": {
 							Type:     schema.TypeInt,
@@ -325,14 +311,11 @@ func resourceAwsEc2Fleet() *schema.Resource {
 				ForceNew: true,
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  ec2.FleetTypeMaintain,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.FleetTypeMaintain,
-					ec2.FleetTypeRequest,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.FleetTypeMaintain,
+				ValidateFunc: validation.StringInSlice(ec2.FleetType_Values(), false),
 			},
 		},
 	}

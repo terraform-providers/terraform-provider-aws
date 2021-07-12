@@ -37,10 +37,8 @@ func resourceAwsEc2TrafficMirrorFilter() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"amazon-dns",
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(ec2.TrafficMirrorNetworkService_Values(), false),
 				},
 			},
 			"tags":     tagsSchema(),

@@ -974,6 +974,7 @@ func isValidProtocol(s string) bool {
 }
 
 func validateListenerProtocol() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"HTTP",
 		"HTTPS",
