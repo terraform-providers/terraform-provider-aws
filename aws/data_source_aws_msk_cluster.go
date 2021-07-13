@@ -35,6 +35,12 @@ func dataSourceAwsMskCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"broker_client_vpc_ip_addresses": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
 			"cluster_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -106,11 +112,25 @@ func dataSourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error reading MSK Cluster (%s) bootstrap brokers: %w", aws.StringValue(cluster.ClusterArn), err)
 	}
 
+	nodesInput := &kafka.ListNodesInput{
+		ClusterArn: cluster.ClusterArn,
+	}
+
+	nodesOut, err := conn.ListNodes(nodesInput)
+	if err != nil {
+		return fmt.Errorf("failed requesting list nodes info for %q : %w", d.Id(), err)
+	}
+
 	d.Set("arn", cluster.ClusterArn)
 	d.Set("bootstrap_brokers", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerString)))
 	d.Set("bootstrap_brokers_sasl_iam", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringSaslIam)))
 	d.Set("bootstrap_brokers_sasl_scram", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringSaslScram)))
 	d.Set("bootstrap_brokers_tls", sortMskClusterEndpoints(aws.StringValue(bootstrapBrokersOutput.BootstrapBrokerStringTls)))
+
+	if err := d.Set("broker_client_vpc_ip_addresses", flattenMskNodeInfoListBrokerIpAddresses(nodesOut)); err != nil {
+		return fmt.Errorf("error setting broker_client_vpc_ip_addresses: %w", err)
+	}
+
 	d.Set("cluster_name", cluster.ClusterName)
 	d.Set("kafka_version", cluster.CurrentBrokerSoftwareInfo.KafkaVersion)
 	d.Set("number_of_broker_nodes", cluster.NumberOfBrokerNodes)
