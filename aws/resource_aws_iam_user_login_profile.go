@@ -21,6 +21,7 @@ import (
 )
 
 func resourceAwsIamUserLoginProfile() *schema.Resource {
+
 	return &schema.Resource{
 		Create: resourceAwsIamUserLoginProfileCreate,
 		Read:   resourceAwsIamUserLoginProfileRead,
@@ -41,7 +42,12 @@ func resourceAwsIamUserLoginProfile() *schema.Resource {
 			},
 			"pgp_key": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				ForceNew: true,
+			},
+			"password": {
+				Type:     schema.TypeString,
+				Optional: true,
 				ForceNew: true,
 			},
 			"password_reset_required": {
@@ -55,9 +61,8 @@ func resourceAwsIamUserLoginProfile() *schema.Resource {
 				Optional:     true,
 				Default:      20,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(5, 128),
+				ValidateFunc: validation.IntBetween(8, 128),
 			},
-
 			"key_fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -127,27 +132,38 @@ func checkIAMPwdPolicy(pass []byte) bool {
 func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
 	username := d.Get("user").(string)
-
-	encryptionKey, err := encryption.RetrieveGPGKey(strings.TrimSpace(d.Get("pgp_key").(string)))
-	if err != nil {
-		return fmt.Errorf("error retrieving GPG Key during IAM User Login Profile (%s) creation: %s", username, err)
-	}
-
+	pgpKey := d.Get("pgp_key").(string)
+	password := d.Get("password").(string)
 	passwordResetRequired := d.Get("password_reset_required").(bool)
 	passwordLength := d.Get("password_length").(int)
-	initialPassword, err := generateIAMPassword(passwordLength)
-	if err != nil {
-		return err
+
+	if password != "" {
+		if pgpKey != "" {
+			return fmt.Errorf("Cannot provide password and PGP key")
+		}
 	}
 
-	fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, initialPassword, "Password")
-	if err != nil {
-		return fmt.Errorf("error encrypting password during IAM User Login Profile (%s) creation: %s", username, err)
+	if pgpKey != "" {
+		encryptionKey, err := encryption.RetrieveGPGKey(strings.TrimSpace(pgpKey))
+		if err != nil {
+			return fmt.Errorf("error retrieving GPG Key during IAM User Login Profile (%s) creation: %s", username, err)
+		}
+		password, err = generateIAMPassword(passwordLength)
+		if err != nil {
+			return err
+		}
+
+		fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, password, "Password")
+		if err != nil {
+			return fmt.Errorf("error encrypting password during IAM User Login Profile (%s) creation: %s", username, err)
+		}
+		d.Set("key_fingerprint", fingerprint)
+		d.Set("encrypted_password", encrypted)
 	}
 
 	request := &iam.CreateLoginProfileInput{
 		UserName:              aws.String(username),
-		Password:              aws.String(initialPassword),
+		Password:              aws.String(password),
 		PasswordResetRequired: aws.Bool(passwordResetRequired),
 	}
 
@@ -158,8 +174,6 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(aws.StringValue(createResp.LoginProfile.UserName))
-	d.Set("key_fingerprint", fingerprint)
-	d.Set("encrypted_password", encrypted)
 	return nil
 }
 

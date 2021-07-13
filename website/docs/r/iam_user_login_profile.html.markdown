@@ -31,13 +31,29 @@ output "password" {
 }
 ```
 
+```terraform
+resource "aws_iam_user" "example" {
+  name          = "example"
+  path          = "/"
+  force_destroy = true
+}
+
+resource "aws_iam_user_login_profile" "example" {
+  user                    = aws_iam_user.example.name
+  password                = "TestPassword!"
+  password_reset_required = false
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `user` - (Required) The IAM user's name.
-* `pgp_key` - (Required) Either a base-64 encoded PGP public key, or a keybase username in the form `keybase:username`. Only applies on resource creation. Drift detection is not possible with this argument.
-* `password_length` - (Optional, default 20) The length of the generated password on resource creation. Only applies on resource creation. Drift detection is not possible with this argument.
+* `password` (Optional) A string value to use as the password. Must be a minimum of 8 characters in length, contain one uppercase, one lowercase, a special character and a number.
+Using this field **does not** use any encryption and is not recommended for production use. Cannot be used with `pgp_key`.
+* `pgp_key` - (Optional) Either a base-64 encoded PGP public key, or a keybase username in the form `keybase:username`. Only applies on resource creation. Drift detection is not possible with this argument.
+* `password_length` - (Optional, default 20) The length of the generated password on resource creation. Only applies on resource creation. Drift detection is not possible with this argument. Value is ignored if provided with `password` field.
 * `password_reset_required` - (Optional, default "true") Whether the user should be forced to reset the generated password on resource creation. Only applies on resource creation. Drift detection is not possible with this argument.
 
 ## Attributes Reference
