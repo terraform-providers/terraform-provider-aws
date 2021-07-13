@@ -281,6 +281,38 @@ func TestAccAWSElasticacheGlobalReplicationGroup_ReplaceSecondary_DifferentRegio
 	})
 }
 
+func TestAccAWSElasticacheGlobalReplicationGroup_ClusterMode(t *testing.T) {
+	var globalReplicationGroup elasticache.GlobalReplicationGroup
+	var primaryReplicationGroup elasticache.ReplicationGroup
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resourceName := "aws_elasticache_global_replication_group.test"
+	primaryReplicationGroupResourceName := "aws_elasticache_replication_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticacheGlobalReplicationGroup(t) },
+		ErrorCheck:   testAccErrorCheck(t, elasticache.EndpointsID),
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSElasticacheGlobalReplicationGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSElasticacheGlobalReplicationGroupConfig_ClusterMode(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheGlobalReplicationGroupExists(resourceName, &globalReplicationGroup),
+					testAccCheckAWSElasticacheReplicationGroupExists(primaryReplicationGroupResourceName, &primaryReplicationGroup),
+					resource.TestCheckResourceAttr(resourceName, "cluster_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSElasticacheGlobalReplicationGroupExists(resourceName string, v *elasticache.GlobalReplicationGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -388,9 +420,9 @@ resource "aws_elasticache_replication_group" "test" {
 func testAccAWSElasticacheGlobalReplicationGroupConfig_MultipleSecondaries(rName string) string {
 	return composeConfig(
 		testAccMultipleRegionProviderConfig(3),
-		testAccElasticacheVpcBaseWithProvider(rName, "primary", ProviderNameAws),
-		testAccElasticacheVpcBaseWithProvider(rName, "alternate", ProviderNameAwsAlternate),
-		testAccElasticacheVpcBaseWithProvider(rName, "third", ProviderNameAwsThird),
+		testAccElasticacheVpcBaseWithProvider(rName, "primary", ProviderNameAws, 1),
+		testAccElasticacheVpcBaseWithProvider(rName, "alternate", ProviderNameAwsAlternate, 1),
+		testAccElasticacheVpcBaseWithProvider(rName, "third", ProviderNameAwsThird, 1),
 		fmt.Sprintf(`
 resource "aws_elasticache_global_replication_group" "test" {
   provider = aws
@@ -443,9 +475,9 @@ resource "aws_elasticache_replication_group" "third" {
 func testAccAWSElasticacheReplicationGroupConfig_ReplaceSecondary_DifferentRegion_Setup(rName string) string {
 	return composeConfig(
 		testAccMultipleRegionProviderConfig(3),
-		testAccElasticacheVpcBaseWithProvider(rName, "primary", ProviderNameAws),
-		testAccElasticacheVpcBaseWithProvider(rName, "secondary", ProviderNameAwsAlternate),
-		testAccElasticacheVpcBaseWithProvider(rName, "third", ProviderNameAwsThird),
+		testAccElasticacheVpcBaseWithProvider(rName, "primary", ProviderNameAws, 1),
+		testAccElasticacheVpcBaseWithProvider(rName, "secondary", ProviderNameAwsAlternate, 1),
+		testAccElasticacheVpcBaseWithProvider(rName, "third", ProviderNameAwsThird, 1),
 		fmt.Sprintf(`
 resource "aws_elasticache_global_replication_group" "test" {
   provider = aws
@@ -486,9 +518,9 @@ resource "aws_elasticache_replication_group" "secondary" {
 func testAccAWSElasticacheReplicationGroupConfig_ReplaceSecondary_DifferentRegion_Move(rName string) string {
 	return composeConfig(
 		testAccMultipleRegionProviderConfig(3),
-		testAccElasticacheVpcBaseWithProvider(rName, "primary", ProviderNameAws),
-		testAccElasticacheVpcBaseWithProvider(rName, "secondary", ProviderNameAwsAlternate),
-		testAccElasticacheVpcBaseWithProvider(rName, "third", ProviderNameAwsThird),
+		testAccElasticacheVpcBaseWithProvider(rName, "primary", ProviderNameAws, 1),
+		testAccElasticacheVpcBaseWithProvider(rName, "secondary", ProviderNameAwsAlternate, 1),
+		testAccElasticacheVpcBaseWithProvider(rName, "third", ProviderNameAwsThird, 1),
 		fmt.Sprintf(`
 resource "aws_elasticache_global_replication_group" "test" {
   provider = aws
@@ -526,7 +558,32 @@ resource "aws_elasticache_replication_group" "third" {
 `, rName))
 }
 
-func testAccElasticacheVpcBaseWithProvider(rName, name, provider string) string {
+func testAccAWSElasticacheGlobalReplicationGroupConfig_ClusterMode(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_elasticache_global_replication_group" "test" {
+  global_replication_group_id_suffix = %[1]q
+  primary_replication_group_id       = aws_elasticache_replication_group.test.id
+}
+
+resource "aws_elasticache_replication_group" "test" {
+  replication_group_id          = %[1]q
+  replication_group_description = "test"
+
+  engine         = "redis"
+  engine_version = "6.x"
+  node_type      = "cache.m5.large"
+
+  parameter_group_name       = "default.redis6.x.cluster.on"
+  automatic_failover_enabled = true
+  cluster_mode {
+    num_node_groups         = 2
+    replicas_per_node_group = 1
+  }
+}
+`, rName)
+}
+
+func testAccElasticacheVpcBaseWithProvider(rName, name, provider string, subnetCount int) string {
 	return composeConfig(
 		testAccAvailableAZsNoOptInConfigWithProvider(name, provider),
 		fmt.Sprintf(`
@@ -538,27 +595,21 @@ resource "aws_vpc" "%[1]s" {
 
 resource "aws_subnet" "%[1]s" {
   provider = %[2]s
+
+  count = %[4]d
 	
   vpc_id            = aws_vpc.%[1]s.id
-  cidr_block        = "192.168.0.0/20"
-  availability_zone = data.aws_availability_zones.%[1]s.names[0]
-
-  tags = {
-    Name = "tf-acc-elasticache-replication-group-at-rest-encryption"
-  }
+  cidr_block        = "192.168.${count.index}.0/24"
+  availability_zone = data.aws_availability_zones.%[1]s.names[count.index]
 }
 
 resource "aws_elasticache_subnet_group" "%[1]s" {
   provider = %[2]s
 	
-  name        = %[3]q
-  description = "tf-test-cache-subnet-group-descr"
-
-  subnet_ids = [
-    aws_subnet.%[1]s.id,
-  ]
+  name       = %[3]q
+  subnet_ids = aws_subnet.%[1]s[*].id
 }
-`, name, provider, rName),
+`, name, provider, rName, subnetCount),
 	)
 }
 

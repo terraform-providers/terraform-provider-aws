@@ -81,18 +81,19 @@ func resourceAwsElasticacheReplicationGroup() *schema.Resource {
 				Computed: true,
 			},
 			"cluster_mode": {
-				Type:         schema.TypeList,
-				Optional:     true,
-				Computed:     true,
-				MaxItems:     1,
-				ExactlyOneOf: []string{"cluster_mode", "number_cache_clusters"},
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"replicas_per_node_group": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
 						"num_node_groups": {
+							Type:          schema.TypeInt,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"number_cache_clusters", "global_replication_group_id"},
+						},
+						"replicas_per_node_group": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
@@ -126,8 +127,7 @@ func resourceAwsElasticacheReplicationGroup() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 				ConflictsWith: []string{
-					"automatic_failover_enabled",
-					"cluster_mode", // should/will be "num_node_groups"
+					"cluster_mode.0.num_node_groups", // should/will be top-level "num_node_groups"
 					"parameter_group_name",
 					"engine",
 					"engine_version",
@@ -171,15 +171,18 @@ func resourceAwsElasticacheReplicationGroup() *schema.Resource {
 				ValidateFunc: validateArn,
 			},
 			"number_cache_clusters": {
-				Type:         schema.TypeInt,
-				Computed:     true,
-				Optional:     true,
-				ExactlyOneOf: []string{"cluster_mode", "number_cache_clusters"},
+				Type:          schema.TypeInt,
+				Computed:      true,
+				Optional:      true,
+				ConflictsWith: []string{"cluster_mode.0.num_node_groups"},
 			},
 			"parameter_group_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return strings.HasPrefix(old, "global-datastore-")
+				},
 			},
 			"port": {
 				Type:     schema.TypeInt,
@@ -412,7 +415,7 @@ func resourceAwsElasticacheReplicationGroupCreate(d *schema.ResourceData, meta i
 		clusterModeList := clusterMode.([]interface{})
 		attributes := clusterModeList[0].(map[string]interface{})
 
-		if v, ok := attributes["num_node_groups"]; ok {
+		if v, ok := attributes["num_node_groups"]; ok && v != 0 {
 			params.NumNodeGroups = aws.Int64(int64(v.(int)))
 		}
 
