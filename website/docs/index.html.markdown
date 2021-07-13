@@ -359,6 +359,13 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_waf_size_constraint_set` resource](/docs/providers/aws/r/waf_size_constraint_set.html)
     - [`aws_waf_web_acl` resource](/docs/providers/aws/r/waf_web_acl.html)
     - [`aws_waf_xss_match_set` resource](/docs/providers/aws/r/waf_xss_match_set.html)
+    - [`aws_workspaces_directory` resource](/docs/providers/aws/r/workspaces_directory.html)
+    - [`aws_workspaces_ip_group` resource](/docs/providers/aws/r/workspaces_ip_group.html)
+    - [`aws_workspaces_workspace` resource](/docs/providers/aws/r/workspaces_workspace.html)
+    - [`aws_workspaces_bundle` data source](/docs/providers/aws/d/workspaces_bundle.html)
+    - [`aws_workspaces_directory` data source](/docs/providers/aws/d/workspaces_directory.html)
+    - [`aws_workspaces_image` data source](/docs/providers/aws/d/workspaces_image.html)
+    - [`aws_workspaces_workspace` data source](/docs/providers/aws/d/workspaces_workspace.html)
 
 * `skip_metadata_api_check` - (Optional) Skip the AWS Metadata API
   check.  Useful for AWS API implementations that do not have a metadata
