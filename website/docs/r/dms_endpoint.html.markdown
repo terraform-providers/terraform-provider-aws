@@ -98,6 +98,12 @@ The `kinesis_settings` configuration block supports the following arguments:
 * `message_format` - (Optional) Output format for the records created. Defaults to `json`. Valid values are `json` and `json_unformatted` (a single line with no tab).
 * `service_access_role_arn` - (Optional) Amazon Resource Name (ARN) of the IAM Role with permissions to write to the Kinesis data stream.
 * `stream_arn` - (Optional) Amazon Resource Name (ARN) of the Kinesis data stream.
+* `include_transaction_details` - (Optional) Provides detailed transaction information from the source database. The default is `false`.
+* `include_partition_value` - (Optional) Shows the partition value within the Kinesis message output, unless the partition type is schema-table-type. The default is `false`.
+* `partition_include_schema_table` - (Optional) Prefixes schema and table names to partition values, when the partition type is primary-key-type. The default is `false`.
+* `include_table_alter_operations` - (Optional) Includes any data definition language (DDL) operations that change the table in the control data. The default is `false`.
+* `include_control_details` - (Optional) Shows detailed control information for table definition, column definition, and table and column changes in the Kinesis message output. The default is `false`.
+* `include_null_and_empty` - (Optional) Include NULL and empty columns in the target. The default is `false`.
 
 ### mongodb_settings Arguments
 
