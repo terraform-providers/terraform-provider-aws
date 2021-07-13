@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"context"
 	"crypto/sha256"
 	"fmt"
 	"log"
@@ -15,11 +14,6 @@ import (
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
-var snsPlatformRequiresPlatformPrincipal = map[string]bool{
-	"APNS":         true,
-	"APNS_SANDBOX": true,
-}
-
 func resourceAwsSnsPlatformApplication() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsSnsPlatformApplicationCreate,
@@ -29,11 +23,6 @@ func resourceAwsSnsPlatformApplication() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
-		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
-			return validateAwsSnsPlatformApplication(diff)
-		},
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -321,19 +310,4 @@ func isChangeSha256Removal(oldRaw, newRaw interface{}) bool {
 	}
 
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(new))) == old
-}
-
-func validateAwsSnsPlatformApplication(d *schema.ResourceDiff) error {
-	platform := d.Get("platform").(string)
-	if snsPlatformRequiresPlatformPrincipal[platform] {
-		if v, ok := d.GetOk("platform_principal"); ok {
-			value := v.(string)
-			if len(value) == 0 {
-				return fmt.Errorf("platform_principal must be non-empty when platform = %s", platform)
-			}
-			return nil
-		}
-		return fmt.Errorf("platform_principal is required when platform = %s", platform)
-	}
-	return nil
 }

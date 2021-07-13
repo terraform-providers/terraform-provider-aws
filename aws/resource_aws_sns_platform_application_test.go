@@ -216,22 +216,6 @@ func TestAccAWSSnsPlatformApplication_basic(t *testing.T) {
 				CheckDestroy: testAccCheckAWSSNSPlatformApplicationDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: testAccAwsSnsPlatformApplicationConfig_basic(name, &testAccAwsSnsPlatformApplicationPlatform{
-							Name:       "APNS",
-							Credential: strconv.Quote("NOTEMPTY"),
-							Principal:  strconv.Quote(""),
-						}),
-						ExpectError: regexp.MustCompile(`platform_principal is required when platform =`),
-					},
-					{
-						Config: testAccAwsSnsPlatformApplicationConfig_basic(name, &testAccAwsSnsPlatformApplicationPlatform{
-							Name:       "APNS_SANDBOX",
-							Credential: strconv.Quote("NOTEMPTY"),
-							Principal:  strconv.Quote(""),
-						}),
-						ExpectError: regexp.MustCompile(`platform_principal is required when platform =`),
-					},
-					{
 						Config: testAccAwsSnsPlatformApplicationConfig_basic(name, platform),
 						Check: resource.ComposeTestCheckFunc(
 							testAccCheckAwsSnsPlatformApplicationExists(resourceName),
