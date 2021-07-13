@@ -10,10 +10,19 @@ description: |-
 
 Provides a Public Elastic Container Registry Repository.
 
+~> **NOTE:** This resource can only be used with `us-east-1` region.
+
 ## Example Usage
 
 ```terraform
+provider "aws" {
+  alias = "us_east_1"
+  region  = "us-east-1"
+}
+
 resource "aws_ecrpublic_repository" "foo" {
+  provider = aws.us_east_1
+  
   repository_name = "bar"
 
   catalog_data {
