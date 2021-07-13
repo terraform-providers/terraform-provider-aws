@@ -316,14 +316,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("vpc_security_groups", vpcSecurityGroups); err != nil {
 		return fmt.Errorf("Error setting vpc_security_groups attribute: %#v, error: %w", vpcSecurityGroups, err)
 	}
-
-	tags, err := keyvaluetags.RdsListTags(conn, d.Get("db_instance_arn").(string))
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for RDS DB Instance (%s): %w", d.Get("db_instance_arn").(string), err)
-	}
-
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.RdsKeyValueTags(dbInstance.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
 	}
 

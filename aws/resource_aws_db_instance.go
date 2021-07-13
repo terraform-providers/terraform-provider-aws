@@ -1420,13 +1420,7 @@ func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	arn := aws.StringValue(v.DBInstanceArn)
 	d.Set("arn", arn)
 
-	tags, err := keyvaluetags.RdsListTags(conn, d.Get("arn").(string))
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for RDS DB Instance (%s): %s", d.Get("arn").(string), err)
-	}
-
-	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+	tags := keyvaluetags.RdsKeyValueTags(v.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 
 	//lintignore:AWSR002
 	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {

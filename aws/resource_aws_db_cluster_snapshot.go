@@ -202,13 +202,7 @@ func resourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("storage_encrypted", snapshot.StorageEncrypted)
 	d.Set("vpc_id", snapshot.VpcId)
 
-	tags, err := keyvaluetags.RdsListTags(conn, d.Get("db_cluster_snapshot_arn").(string))
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for RDS DB Cluster Snapshot (%s): %s", d.Get("db_cluster_snapshot_arn").(string), err)
-	}
-
-	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+	tags := keyvaluetags.RdsKeyValueTags(snapshot.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 
 	//lintignore:AWSR002
 	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {

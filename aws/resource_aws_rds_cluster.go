@@ -1089,11 +1089,7 @@ func resourceAwsRDSClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting vpc_security_group_ids: %s", err)
 	}
 
-	tags, err := keyvaluetags.RdsListTags(conn, aws.StringValue(dbc.DBClusterArn))
-	if err != nil {
-		return fmt.Errorf("error listing tags for RDS Cluster (%s): %s", aws.StringValue(dbc.DBClusterArn), err)
-	}
-	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+	tags := keyvaluetags.RdsKeyValueTags(dbc.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 
 	//lintignore:AWSR002
 	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {

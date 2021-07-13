@@ -264,13 +264,7 @@ func dataSourceAwsRdsClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting vpc_security_group_ids: %w", err)
 	}
 
-	tags, err := keyvaluetags.RdsListTags(conn, *arn)
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for RDS Cluster (%s): %w", *arn, err)
-	}
-
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.RdsKeyValueTags(dbc.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
 	}
 

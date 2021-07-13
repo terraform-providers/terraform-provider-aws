@@ -192,13 +192,7 @@ func resourceAwsDbSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("status", snapshot.Status)
 	d.Set("vpc_id", snapshot.VpcId)
 
-	tags, err := keyvaluetags.RdsListTags(conn, arn)
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for RDS DB Snapshot (%s): %s", arn, err)
-	}
-
-	tags = tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig)
+	tags := keyvaluetags.RdsKeyValueTags(snapshot.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
 
 	//lintignore:AWSR002
 	if err := d.Set("tags", tags.RemoveDefaultConfig(defaultTagsConfig).Map()); err != nil {
