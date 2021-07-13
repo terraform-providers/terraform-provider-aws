@@ -10,11 +10,12 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func TestIpPermissionIDHash(t *testing.T) {
@@ -663,14 +664,11 @@ func TestAccAWSSecurityGroupRule_PrefixListEgress(t *testing.T) {
 		prefixListsOutput, err := conn.DescribePrefixLists(prefixListInput)
 
 		if err != nil {
-			_, ok := err.(awserr.Error)
-			if !ok {
-				return fmt.Errorf("Error reading VPC Endpoint prefix list: %s", err.Error())
-			}
+			return fmt.Errorf("error reading VPC Endpoint prefix list: %w", err)
 		}
 
 		if len(prefixListsOutput.PrefixLists) != 1 {
-			return fmt.Errorf("There are multiple prefix lists associated with the service name '%s'. Unexpected", prefixListsOutput)
+			return fmt.Errorf("unexpected multiple prefix lists associated with the service: %s", prefixListsOutput)
 		}
 
 		p = ec2.IpPermission{
@@ -1066,14 +1064,11 @@ func TestAccAWSSecurityGroupRule_MultiDescription(t *testing.T) {
 		prefixListsOutput, err := conn.DescribePrefixLists(prefixListInput)
 
 		if err != nil {
-			_, ok := err.(awserr.Error)
-			if !ok {
-				return fmt.Errorf("Error reading VPC Endpoint prefix list: %s", err.Error())
-			}
+			return fmt.Errorf("error reading VPC Endpoint prefix list: %w", err)
 		}
 
 		if len(prefixListsOutput.PrefixLists) != 1 {
-			return fmt.Errorf("There are multiple prefix lists associated with the service name '%s'. Unexpected", prefixListsOutput)
+			return fmt.Errorf("unexpected multiple prefix lists associated with the service: %s", prefixListsOutput)
 		}
 
 		rule4 = ec2.IpPermission{
@@ -1188,27 +1183,15 @@ func testAccCheckAWSSecurityGroupRuleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Retrieve our group
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
+		_, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
+			continue
 		}
-		resp, err := conn.DescribeSecurityGroups(req)
-		if err == nil {
-			if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == rs.Primary.ID {
-				return fmt.Errorf("Security Group (%s) still exists.", rs.Primary.ID)
-			}
-
-			return nil
-		}
-
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
+		if err != nil {
 			return err
 		}
-		// Confirm error code is what we want
-		if ec2err.Code() != "InvalidGroup.NotFound" {
-			return err
-		}
+
+		return fmt.Errorf("Security Group (%s) still exists.", rs.Primary.ID)
 	}
 
 	return nil
@@ -1226,20 +1209,15 @@ func testAccCheckAWSSecurityGroupRuleExists(n string, group *ec2.SecurityGroup) 
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
-		}
-		resp, err := conn.DescribeSecurityGroups(req)
+
+		sg, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == rs.Primary.ID {
-			*group = *resp.SecurityGroups[0]
-			return nil
-		}
+		*group = *sg
 
-		return fmt.Errorf("Security Group not found")
+		return nil
 	}
 }
 

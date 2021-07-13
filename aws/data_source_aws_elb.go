@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func dataSourceAwsElb() *schema.Resource {
@@ -261,11 +262,11 @@ func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 		var elbVpc string
 		if lb.VPCId != nil {
 			elbVpc = aws.StringValue(lb.VPCId)
-			sgId, err := sourceSGIdByName(ec2conn, aws.StringValue(lb.SourceSecurityGroup.GroupName), elbVpc)
+			sg, err := finder.SecurityGroupByNameAndVpcID(ec2conn, aws.StringValue(lb.SourceSecurityGroup.GroupName), elbVpc)
 			if err != nil {
 				return fmt.Errorf("error looking up ELB Security Group ID: %w", err)
 			} else {
-				d.Set("source_security_group_id", sgId)
+				d.Set("source_security_group_id", sg.GroupId)
 			}
 		}
 	}

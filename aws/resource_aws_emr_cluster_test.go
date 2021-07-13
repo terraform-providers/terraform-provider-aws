@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func init() {
@@ -26,7 +26,7 @@ func init() {
 func testSweepEmrClusters(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).emrconn
 
@@ -71,7 +71,7 @@ func testSweepEmrClusters(region string) error {
 			log.Printf("[WARN] Skipping EMR Cluster sweep for %s: %s", region, err)
 			return nil
 		}
-		return fmt.Errorf("error retrieving EMR Clusters: %s", err)
+		return fmt.Errorf("error retrieving EMR Clusters: %w", err)
 	}
 
 	return nil
@@ -1495,25 +1495,24 @@ func testAccCheckAWSEmrDestroy(s *terraform.State) error {
 			continue
 		}
 
-		params := &emr.DescribeClusterInput{
+		input := &emr.DescribeClusterInput{
 			ClusterId: aws.String(rs.Primary.ID),
 		}
 
-		describe, err := conn.DescribeCluster(params)
-
-		if err == nil {
-			if describe.Cluster != nil &&
-				*describe.Cluster.Status.State == "WAITING" {
-				return fmt.Errorf("EMR Cluster still exists")
-			}
-		}
-
-		providerErr, ok := err.(awserr.Error)
-		if !ok {
+		output, err := conn.DescribeCluster(input)
+		if err != nil {
 			return err
 		}
 
-		log.Printf("[ERROR] %v", providerErr)
+		// if output.Cluster != nil &&
+		// 	*output.Cluster.Status.State == "WAITING" {
+		// 	return fmt.Errorf("EMR Cluster still exists")
+		// }
+		if output.Cluster == nil || output.Cluster.Status == nil || aws.StringValue(output.Cluster.Status.State) == emr.ClusterStateTerminated {
+			continue
+		}
+
+		return fmt.Errorf("EMR Cluster still exists")
 	}
 
 	return nil
@@ -1533,7 +1532,7 @@ func testAccCheckAWSEmrClusterExists(n string, v *emr.Cluster) resource.TestChec
 			ClusterId: aws.String(rs.Primary.ID),
 		})
 		if err != nil {
-			return fmt.Errorf("EMR error: %v", err)
+			return fmt.Errorf("EMR error: %w", err)
 		}
 
 		if describe.Cluster == nil || *describe.Cluster.Id != rs.Primary.ID {
@@ -1604,7 +1603,7 @@ func testAccCheckAWSEmrClusterDisappears(cluster *emr.Cluster) resource.TestChec
 		}
 
 		if err != nil {
-			return fmt.Errorf("error waiting for EMR Cluster (%s) Instances to drain: %s", id, err)
+			return fmt.Errorf("error waiting for EMR Cluster (%s) Instances to drain: %w", id, err)
 		}
 
 		return nil
@@ -1639,10 +1638,10 @@ func testAccEmrDeleteManagedSecurityGroups(conn *ec2.EC2, vpc *ec2.Vpc) error {
 	}
 
 	for groupName := range managedSecurityGroups {
-		securityGroup, err := testAccEmrDescribeManagedSecurityGroup(conn, vpc, groupName)
+		securityGroup, err := finder.SecurityGroupByNameAndVpcID(conn, groupName, aws.StringValue(vpc.VpcId))
 
 		if err != nil {
-			return fmt.Errorf("error describing EMR Managed Security Group (%s): %s", groupName, err)
+			return fmt.Errorf("error describing EMR Managed Security Group (%s): %w", groupName, err)
 		}
 
 		managedSecurityGroups[groupName] = securityGroup
@@ -1658,7 +1657,7 @@ func testAccEmrDeleteManagedSecurityGroups(conn *ec2.EC2, vpc *ec2.Vpc) error {
 		err := testAccEmrRevokeManagedSecurityGroup(conn, securityGroup)
 
 		if err != nil {
-			return fmt.Errorf("error revoking EMR Managed Security Group (%s): %s", groupName, err)
+			return fmt.Errorf("error revoking EMR Managed Security Group (%s): %w", groupName, err)
 		}
 	}
 
@@ -1670,38 +1669,11 @@ func testAccEmrDeleteManagedSecurityGroups(conn *ec2.EC2, vpc *ec2.Vpc) error {
 		err := testAccEmrDeleteManagedSecurityGroup(conn, securityGroup)
 
 		if err != nil {
-			return fmt.Errorf("error deleting EMR Managed Security Group (%s): %s", groupName, err)
+			return fmt.Errorf("error deleting EMR Managed Security Group (%s): %w", groupName, err)
 		}
 	}
 
 	return nil
-}
-
-func testAccEmrDescribeManagedSecurityGroup(conn *ec2.EC2, vpc *ec2.Vpc, securityGroupName string) (*ec2.SecurityGroup, error) {
-	input := &ec2.DescribeSecurityGroupsInput{
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("group-name"),
-				Values: aws.StringSlice([]string{securityGroupName}),
-			},
-			{
-				Name:   aws.String("vpc-id"),
-				Values: []*string{vpc.VpcId},
-			},
-		},
-	}
-
-	output, err := conn.DescribeSecurityGroups(input)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if output == nil || len(output.SecurityGroups) != 1 {
-		return nil, nil
-	}
-
-	return output.SecurityGroups[0], nil
 }
 
 func testAccEmrRevokeManagedSecurityGroup(conn *ec2.EC2, securityGroup *ec2.SecurityGroup) error {

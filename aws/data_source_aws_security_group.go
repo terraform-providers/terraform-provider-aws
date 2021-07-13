@@ -1,14 +1,17 @@
 package aws
 
 import (
+	"errors"
 	"fmt"
-	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func dataSourceAwsSecurityGroup() *schema.Resource {
@@ -76,19 +79,19 @@ func dataSourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) er
 		req.Filters = nil
 	}
 
-	log.Printf("[DEBUG] Reading Security Group: %s", req)
-	resp, err := conn.DescribeSecurityGroups(req)
+	sg, err := finder.SecurityGroup(conn, req)
+	var nfe *resource.NotFoundError
+	if errors.As(err, &nfe) {
+		if nfe.Message == "empty result" {
+			return fmt.Errorf("no matching SecurityGroup found")
+		}
+		if strings.HasPrefix(nfe.Message, "too many results:") {
+			return fmt.Errorf("multiple Security Groups matched; use additional constraints to reduce matches to a single Security Group")
+		}
+	}
 	if err != nil {
 		return err
 	}
-	if resp == nil || len(resp.SecurityGroups) == 0 {
-		return fmt.Errorf("no matching SecurityGroup found")
-	}
-	if len(resp.SecurityGroups) > 1 {
-		return fmt.Errorf("multiple Security Groups matched; use additional constraints to reduce matches to a single Security Group")
-	}
-
-	sg := resp.SecurityGroups[0]
 
 	d.SetId(aws.StringValue(sg.GroupId))
 	d.Set("name", sg.GroupName)

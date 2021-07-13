@@ -2,6 +2,7 @@ package aws
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -20,6 +20,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 )
 
 func resourceAwsSecurityGroup() *schema.Resource {
@@ -262,11 +264,10 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 	securityGroupOpts.GroupName = aws.String(groupName)
 
 	var err error
-	log.Printf(
-		"[DEBUG] Security Group create configuration: %#v", securityGroupOpts)
+	log.Printf("[DEBUG] Security Group create configuration: %s", securityGroupOpts)
 	createResp, err := conn.CreateSecurityGroup(securityGroupOpts)
 	if err != nil {
-		return fmt.Errorf("Error creating Security Group: %s", err)
+		return fmt.Errorf("Error creating Security Group: %w", err)
 	}
 
 	d.SetId(aws.StringValue(createResp.GroupId))
@@ -274,16 +275,15 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[INFO] Security Group ID: %s", d.Id())
 
 	// Wait for the security group to truly exist
-	resp, err := waitForSgToExist(conn, d.Id(), d.Timeout(schema.TimeoutCreate))
+	group, err := waiter.SecurityGroupCreated(conn, d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf(
-			"Error waiting for Security Group (%s) to become available: %s",
+			"Error waiting for Security Group (%s) to become available: %w",
 			d.Id(), err)
 	}
 
 	// AWS defaults all Security Groups to have an ALLOW ALL egress rule. Here we
 	// revoke that rule, so users don't unknowingly have/use it.
-	group := resp.(*ec2.SecurityGroup)
 	if group.VpcId != nil && *group.VpcId != "" {
 		log.Printf("[DEBUG] Revoking default egress rule for Security Group for %s", d.Id())
 
@@ -304,9 +304,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		}
 
 		if _, err = conn.RevokeSecurityGroupEgress(req); err != nil {
-			return fmt.Errorf(
-				"Error revoking default egress rule for Security Group (%s): %s",
-				d.Id(), err)
+			return fmt.Errorf("Error revoking default egress rule for Security Group (%s): %w", d.Id(), err)
 		}
 
 		log.Printf("[DEBUG] Revoking default IPv6 egress rule for Security Group for %s", d.Id())
@@ -330,10 +328,8 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			//If we have a NotFound or InvalidParameterValue, then we are trying to remove the default IPv6 egress of a non-IPv6
 			//enabled SG
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() != "InvalidPermission.NotFound" && !isAWSErr(err, "InvalidParameterValue", "remote-ipv6-range") {
-				return fmt.Errorf(
-					"Error revoking default IPv6 egress rule for Security Group (%s): %s",
-					d.Id(), err)
+			if !tfawserr.ErrCodeEquals(err, "InvalidPermission.NotFound") && !tfawserr.ErrMessageContains(err, "InvalidParameterValue", "remote-ipv6-range") {
+				return fmt.Errorf("Error revoking default IPv6 egress rule for Security Group (%s): %w", d.Id(), err)
 			}
 		}
 
@@ -347,25 +343,16 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 	defaultTagsConfig := meta.(*AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	var sgRaw interface{}
-	var err error
-	if d.IsNewResource() {
-		sgRaw, err = waitForSgToExist(conn, d.Id(), d.Timeout(schema.TimeoutRead))
-	} else {
-		sgRaw, _, err = SGStateRefreshFunc(conn, d.Id())()
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if sgRaw == nil {
+	sg, err := finder.SecurityGroupByID(conn, d.Id())
+	var nfe *resource.NotFoundError
+	if errors.As(err, &nfe) {
 		log.Printf("[WARN] Security group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
-
-	sg := sgRaw.(*ec2.SecurityGroup)
+	if err != nil {
+		return fmt.Errorf("error reading Security Group (%s): %w", d.Id(), err)
+	}
 
 	remoteIngressRules := resourceAwsSecurityGroupIPPermGather(d.Id(), sg.IpPermissions, sg.OwnerId)
 	remoteEgressRules := resourceAwsSecurityGroupIPPermGather(d.Id(), sg.IpPermissionsEgress, sg.OwnerId)
@@ -394,11 +381,11 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("vpc_id", sg.VpcId)
 
 	if err := d.Set("ingress", ingressRules); err != nil {
-		log.Printf("[WARN] Error setting Ingress rule set for (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting ingress: %w", err)
 	}
 
 	if err := d.Set("egress", egressRules); err != nil {
-		log.Printf("[WARN] Error setting Egress rule set for (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting egress: %w", err)
 	}
 
 	tags := keyvaluetags.Ec2KeyValueTags(sg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig)
@@ -418,24 +405,10 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	var sgRaw interface{}
-	var err error
-	if d.IsNewResource() {
-		sgRaw, err = waitForSgToExist(conn, d.Id(), d.Timeout(schema.TimeoutRead))
-	} else {
-		sgRaw, _, err = SGStateRefreshFunc(conn, d.Id())()
-	}
-
+	group, err := finder.SecurityGroupByID(conn, d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating Security Group (%s): %w", d.Id(), err)
 	}
-	if sgRaw == nil {
-		log.Printf("[WARN] Security group (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
-	group := sgRaw.(*ec2.SecurityGroup)
 
 	err = resourceAwsSecurityGroupUpdateRules(d, "ingress", meta, group)
 	if err != nil {
@@ -453,7 +426,7 @@ func resourceAwsSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) er
 		o, n := d.GetChange("tags_all")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating EC2 Security Group (%s) tags: %s", d.Id(), err)
+			return fmt.Errorf("error updating EC2 Security Group (%s) tags: %w", d.Id(), err)
 		}
 	}
 
@@ -466,7 +439,7 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[DEBUG] Security Group destroy: %v", d.Id())
 
 	if err := deleteLingeringLambdaENIs(conn, "group-id", d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return fmt.Errorf("error deleting Lambda ENIs using Security Group (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting Lambda ENIs using Security Group (%s): %w", d.Id(), err)
 	}
 
 	// conditionally revoke rules first before attempting to delete the group
@@ -509,37 +482,31 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 	if err != nil {
-		return fmt.Errorf("Error deleting security group: %s", err)
+		return fmt.Errorf("Error deleting security group: %w", err)
 	}
 	return nil
 }
 
 // Revoke all ingress/egress rules that a Security Group has
 func forceRevokeSecurityGroupRules(conn *ec2.EC2, d *schema.ResourceData) error {
-	sgRaw, _, err := SGStateRefreshFunc(conn, d.Id())()
+	group, err := finder.SecurityGroupByID(conn, d.Id())
 	if err != nil {
 		return err
 	}
-	if sgRaw == nil {
-		return nil
-	}
 
-	group := sgRaw.(*ec2.SecurityGroup)
 	if len(group.IpPermissions) > 0 {
 		req := &ec2.RevokeSecurityGroupIngressInput{
 			GroupId:       group.GroupId,
 			IpPermissions: group.IpPermissions,
 		}
-		if group.VpcId == nil || *group.VpcId == "" {
+		if aws.StringValue(group.VpcId) == "" {
 			req.GroupId = nil
 			req.GroupName = group.GroupName
 		}
 		_, err = conn.RevokeSecurityGroupIngress(req)
 
 		if err != nil {
-			return fmt.Errorf(
-				"Error revoking security group %s rules: %s",
-				*group.GroupId, err)
+			return fmt.Errorf("error revoking Security Group (%s) rules: %w", aws.StringValue(group.GroupId), err)
 		}
 	}
 
@@ -551,9 +518,7 @@ func forceRevokeSecurityGroupRules(conn *ec2.EC2, d *schema.ResourceData) error 
 		_, err = conn.RevokeSecurityGroupEgress(req)
 
 		if err != nil {
-			return fmt.Errorf(
-				"Error revoking security group %s rules: %s",
-				*group.GroupId, err)
+			return fmt.Errorf("error revoking Security Group (%s) rules: %w", aws.StringValue(group.GroupId), err)
 		}
 	}
 
@@ -775,9 +740,7 @@ func resourceAwsSecurityGroupUpdateRules(
 				}
 
 				if err != nil {
-					return fmt.Errorf(
-						"Error revoking security group %s rules: %s",
-						ruleset, err)
+					return fmt.Errorf("error revoking Security Group (%s) rules: %w", ruleset, err)
 				}
 			}
 
@@ -805,58 +768,12 @@ func resourceAwsSecurityGroupUpdateRules(
 				}
 
 				if err != nil {
-					return fmt.Errorf(
-						"Error authorizing security group %s rules: %s",
-						ruleset, err)
+					return fmt.Errorf("error authorizing Security Group (%s) rules: %w", ruleset, err)
 				}
 			}
 		}
 	}
 	return nil
-}
-
-// SGStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
-// a security group.
-func SGStateRefreshFunc(conn *ec2.EC2, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(id)},
-		}
-		resp, err := conn.DescribeSecurityGroups(req)
-		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok {
-				if ec2err.Code() == "InvalidSecurityGroupID.NotFound" ||
-					ec2err.Code() == "InvalidGroup.NotFound" {
-					resp = nil
-					err = nil
-				}
-			}
-
-			if err != nil {
-				log.Printf("Error on SGStateRefresh: %s", err)
-				return nil, "", err
-			}
-		}
-
-		if resp == nil {
-			return nil, "", nil
-		}
-
-		group := resp.SecurityGroups[0]
-		return group, "exists", nil
-	}
-}
-
-func waitForSgToExist(conn *ec2.EC2, id string, timeout time.Duration) (interface{}, error) {
-	log.Printf("[DEBUG] Waiting for Security Group (%s) to exist", id)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{""},
-		Target:  []string{"exists"},
-		Refresh: SGStateRefreshFunc(conn, id),
-		Timeout: timeout,
-	}
-
-	return stateConf.WaitForState()
 }
 
 // matchRules receives the group id, type of rules, and the local / remote maps
@@ -1443,7 +1360,7 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, tim
 	})
 
 	if err != nil {
-		return fmt.Errorf("error describing ENIs: %s", err)
+		return fmt.Errorf("error describing ENIs: %w", err)
 	}
 
 	for _, eni := range resp.NetworkInterfaces {
@@ -1475,7 +1392,7 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, tim
 			}
 
 			if err != nil {
-				return fmt.Errorf("error waiting for Lambda V2N ENI (%s) to become available for detachment: %s", eniId, err)
+				return fmt.Errorf("error waiting for Lambda V2N ENI (%s) to become available for detachment: %w", eniId, err)
 			}
 
 			eni = eniRaw.(*ec2.NetworkInterface)
@@ -1484,13 +1401,13 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, tim
 		err = detachNetworkInterface(conn, eni, timeout)
 
 		if err != nil {
-			return fmt.Errorf("error detaching Lambda ENI (%s): %s", eniId, err)
+			return fmt.Errorf("error detaching Lambda ENI (%s): %w", eniId, err)
 		}
 
 		err = deleteNetworkInterface(conn, eniId)
 
 		if err != nil {
-			return fmt.Errorf("error deleting Lambda ENI (%s): %s", eniId, err)
+			return fmt.Errorf("error deleting Lambda ENI (%s): %w", eniId, err)
 		}
 	}
 

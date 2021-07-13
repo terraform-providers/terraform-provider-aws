@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func TestAccAWSDefaultSecurityGroup_Vpc_basic(t *testing.T) {
@@ -179,24 +180,19 @@ func testAccCheckAWSDefaultSecurityGroupExists(n string, group *ec2.SecurityGrou
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Security Group is set")
+			return fmt.Errorf("No EC2 Default Security Group ID is set")
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
-		}
-		resp, err := conn.DescribeSecurityGroups(req)
+
+		sg, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == rs.Primary.ID {
-			*group = *resp.SecurityGroups[0]
-			return nil
-		}
+		*group = *sg
 
-		return fmt.Errorf("Security Group not found")
+		return nil
 	}
 }
 
@@ -213,21 +209,12 @@ func testAccCheckAWSDefaultSecurityGroupEc2ClassicExists(n string, group *ec2.Se
 
 		conn := testAccProviderEc2Classic.Meta().(*AWSClient).ec2conn
 
-		input := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
-		}
-
-		resp, err := conn.DescribeSecurityGroups(input)
-
+		sg, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("error describing EC2 Default Security Group (%s): %w", rs.Primary.ID, err)
+			return err
 		}
 
-		if len(resp.SecurityGroups) == 0 || aws.StringValue(resp.SecurityGroups[0].GroupId) != rs.Primary.ID {
-			return fmt.Errorf("EC2 Default Security Group (%s) not found", rs.Primary.ID)
-		}
-
-		*group = *resp.SecurityGroups[0]
+		*group = *sg
 
 		return nil
 	}

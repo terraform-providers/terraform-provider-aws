@@ -12,14 +12,14 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 // add sweeper to delete known test sgs
@@ -36,7 +36,7 @@ func init() {
 func testSweepSecurityGroups(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).ec2conn
 
@@ -82,7 +82,7 @@ func testSweepSecurityGroups(region string) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving EC2 Security Groups: %s", err)
+		return fmt.Errorf("Error retrieving EC2 Security Groups: %w", err)
 	}
 
 	err = conn.DescribeSecurityGroupsPages(input, func(page *ec2.DescribeSecurityGroupsOutput, lastPage bool) bool {
@@ -118,7 +118,7 @@ func testSweepSecurityGroups(region string) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving EC2 Security Groups: %s", err)
+		return fmt.Errorf("Error retrieving EC2 Security Groups: %w", err)
 	}
 
 	return nil
@@ -2098,15 +2098,11 @@ func testAddRuleCycle(primary, secondary *ec2.SecurityGroup) resource.TestCheckF
 		var err error
 		_, err = conn.AuthorizeSecurityGroupEgress(req1)
 		if err != nil {
-			return fmt.Errorf(
-				"Error authorizing primary security group %s rules: %s", *primary.GroupId,
-				err)
+			return fmt.Errorf("Error authorizing primary security group %s rules: %w", aws.StringValue(primary.GroupId), err)
 		}
 		_, err = conn.AuthorizeSecurityGroupEgress(req2)
 		if err != nil {
-			return fmt.Errorf(
-				"Error authorizing secondary security group %s rules: %s", *secondary.GroupId,
-				err)
+			return fmt.Errorf("Error authorizing secondary security group %s rules: %w", aws.StringValue(secondary.GroupId), err)
 		}
 		return nil
 	}
@@ -2133,9 +2129,7 @@ func testRemoveRuleCycle(primary, secondary *ec2.SecurityGroup) resource.TestChe
 				}
 
 				if _, err = conn.RevokeSecurityGroupIngress(req); err != nil {
-					return fmt.Errorf(
-						"Error revoking default ingress rule for Security Group in testRemoveCycle (%s): %s",
-						*primary.GroupId, err)
+					return fmt.Errorf("Error revoking default ingress rule for Security Group in testRemoveCycle (%s): %w", aws.StringValue(primary.GroupId), err)
 				}
 			}
 
@@ -2146,9 +2140,7 @@ func testRemoveRuleCycle(primary, secondary *ec2.SecurityGroup) resource.TestChe
 				}
 
 				if _, err = conn.RevokeSecurityGroupEgress(req); err != nil {
-					return fmt.Errorf(
-						"Error revoking default egress rule for Security Group in testRemoveCycle (%s): %s",
-						*sg.GroupId, err)
+					return fmt.Errorf("Error revoking default egress rule for Security Group in testRemoveCycle (%s): %w", aws.StringValue(sg.GroupId), err)
 				}
 			}
 		}
@@ -2164,27 +2156,15 @@ func testAccCheckAWSSecurityGroupDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Retrieve our group
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
+		_, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
+			continue
 		}
-		resp, err := conn.DescribeSecurityGroups(req)
-		if err == nil {
-			if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == rs.Primary.ID {
-				return fmt.Errorf("Security Group (%s) still exists.", rs.Primary.ID)
-			}
-
-			return nil
-		}
-
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
+		if err != nil {
 			return err
 		}
-		// Confirm error code is what we want
-		if ec2err.Code() != "InvalidGroup.NotFound" {
-			return err
-		}
+
+		return fmt.Errorf("Security Group (%s) still exists.", rs.Primary.ID)
 	}
 
 	return nil
@@ -2198,25 +2178,15 @@ func testAccCheckAWSSecurityGroupEc2ClassicDestroy(s *terraform.State) error {
 			continue
 		}
 
-		input := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
-		}
-
-		output, err := conn.DescribeSecurityGroups(input)
-
-		if tfawserr.ErrCodeEquals(err, "InvalidGroup.NotFound") {
+		_, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
 			continue
 		}
-
 		if err != nil {
-			return fmt.Errorf("error describing EC2 Security Group (%s): %w", rs.Primary.ID, err)
+			return err
 		}
 
-		for _, sg := range output.SecurityGroups {
-			if aws.StringValue(sg.GroupId) == rs.Primary.ID {
-				return fmt.Errorf("EC2 Security Group (%s) still exists", rs.Primary.ID)
-			}
-		}
+		return fmt.Errorf("Security Group (%s) still exists.", rs.Primary.ID)
 	}
 
 	return nil
@@ -2234,20 +2204,18 @@ func testAccCheckAWSSecurityGroupExists(n string, group *ec2.SecurityGroup) reso
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
+
+		sg, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
+			return fmt.Errorf("Security Group (%s) not found: %w", rs.Primary.ID, err)
 		}
-		resp, err := conn.DescribeSecurityGroups(req)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == rs.Primary.ID {
-			*group = *resp.SecurityGroups[0]
-			return nil
-		}
+		*group = *sg
 
-		return fmt.Errorf("Security Group not found")
+		return nil
 	}
 }
 
@@ -2264,24 +2232,17 @@ func testAccCheckAWSSecurityGroupEc2ClassicExists(n string, group *ec2.SecurityG
 
 		conn := testAccProviderEc2Classic.Meta().(*AWSClient).ec2conn
 
-		input := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
+		sg, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
+			return fmt.Errorf("Security Group (%s) not found: %w", rs.Primary.ID, err)
 		}
-
-		output, err := conn.DescribeSecurityGroups(input)
-
 		if err != nil {
-			return fmt.Errorf("error describing EC2 Security Group (%s): %w", rs.Primary.ID, err)
+			return err
 		}
 
-		for _, sg := range output.SecurityGroups {
-			if aws.StringValue(sg.GroupId) == rs.Primary.ID {
-				*group = *sg
-				return nil
-			}
-		}
+		*group = *sg
 
-		return fmt.Errorf("EC2 Security Group (%s) not found", rs.Primary.ID)
+		return nil
 	}
 }
 
@@ -2533,20 +2494,17 @@ func testAccCheckAWSSecurityGroupExistsWithoutDefault(n string) resource.TestChe
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(rs.Primary.ID)},
+
+		group, err := finder.SecurityGroupByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
+			return fmt.Errorf("Security Group (%s) not found: %w", rs.Primary.ID, err)
 		}
-		resp, err := conn.DescribeSecurityGroups(req)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == rs.Primary.ID {
-			group := *resp.SecurityGroups[0]
-
-			if len(group.IpPermissionsEgress) != 1 {
-				return fmt.Errorf("Security Group should have only 1 egress rule, got %d", len(group.IpPermissionsEgress))
-			}
+		if len(group.IpPermissionsEgress) != 1 {
+			return fmt.Errorf("Security Group should have only 1 egress rule, got %d", len(group.IpPermissionsEgress))
 		}
 
 		return nil
@@ -2657,24 +2615,16 @@ func TestAccAWSSecurityGroup_ruleLimitCidrBlockExceededAppend(t *testing.T) {
 						t.Fatalf("PreConfig check failed: %s", err)
 					}
 
-					id := *group.GroupId
+					id := aws.StringValue(group.GroupId)
 
 					conn := testAccProvider.Meta().(*AWSClient).ec2conn
-					req := &ec2.DescribeSecurityGroupsInput{
-						GroupIds: []*string{aws.String(id)},
+
+					match, err := finder.SecurityGroupByID(conn, id)
+					if tfresource.NotFound(err) {
+						t.Fatalf("PreConfig check failed: Security Group (%s) not found: %s", id, err)
 					}
-					resp, err := conn.DescribeSecurityGroups(req)
 					if err != nil {
 						t.Fatalf("PreConfig check failed: %s", err)
-					}
-
-					var match *ec2.SecurityGroup
-					if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == id {
-						match = resp.SecurityGroups[0]
-					}
-
-					if match == nil {
-						t.Fatalf("PreConfig check failed: security group %s not found", id)
 					}
 
 					if cidrCount := len(match.IpPermissionsEgress[0].IpRanges); cidrCount != ruleLimit {
@@ -2803,7 +2753,7 @@ func TestAccAWSSecurityGroup_rulesDropOnError(t *testing.T) {
 			// Add a bad rule to trigger API error
 			{
 				Config:      testAccAWSSecurityGroupConfig_rulesDropOnError_AddBadRule,
-				ExpectError: regexp.MustCompile("InvalidGroupId.Malformed"),
+				ExpectError: regexp.MustCompile("InvalidGroup.NotFound"),
 			},
 			// All originally added rules must survive. This will return non-empty plan if anything changed.
 			{
@@ -2823,21 +2773,13 @@ func testAccCheckAWSSecurityGroupRuleCount(group *ec2.SecurityGroup, expectedIng
 
 func testSecurityGroupRuleCount(id string, expectedIngressCount, expectedEgressCount int) error {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
-	req := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{aws.String(id)},
+
+	group, err := finder.SecurityGroupByID(conn, id)
+	if tfresource.NotFound(err) {
+		return fmt.Errorf("Security Group (%s) not found: %w", id, err)
 	}
-	resp, err := conn.DescribeSecurityGroups(req)
 	if err != nil {
 		return err
-	}
-
-	var group *ec2.SecurityGroup
-	if len(resp.SecurityGroups) > 0 && *resp.SecurityGroups[0].GroupId == id {
-		group = resp.SecurityGroups[0]
-	}
-
-	if group == nil {
-		return fmt.Errorf("Security group %s not found", id)
 	}
 
 	if actual := len(group.IpPermissions); actual != expectedIngressCount {
