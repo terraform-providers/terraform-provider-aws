@@ -344,6 +344,7 @@ func Provider() *schema.Provider {
 			"aws_lex_slot_type":                              dataSourceAwsLexSlotType(),
 			"aws_mq_broker":                                  dataSourceAwsMqBroker(),
 			"aws_msk_cluster":                                dataSourceAwsMskCluster(),
+			"aws_msk_node":                                   dataSourceAwsMskNode(),
 			"aws_msk_configuration":                          dataSourceAwsMskConfiguration(),
 			"aws_nat_gateway":                                dataSourceAwsNatGateway(),
 			"aws_neptune_orderable_db_instance":              dataSourceAwsNeptuneOrderableDbInstance(),
