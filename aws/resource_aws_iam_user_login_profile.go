@@ -41,7 +41,7 @@ func resourceAwsIamUserLoginProfile() *schema.Resource {
 			},
 			"pgp_key": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"password_reset_required": {
@@ -125,41 +125,45 @@ func checkIAMPwdPolicy(pass []byte) bool {
 }
 
 func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 	username := d.Get("user").(string)
 
-	encryptionKey, err := encryption.RetrieveGPGKey(strings.TrimSpace(d.Get("pgp_key").(string)))
-	if err != nil {
-		return fmt.Errorf("error retrieving GPG Key during IAM User Login Profile (%s) creation: %s", username, err)
-	}
-
-	passwordResetRequired := d.Get("password_reset_required").(bool)
 	passwordLength := d.Get("password_length").(int)
 	initialPassword, err := generateIAMPassword(passwordLength)
 	if err != nil {
 		return err
 	}
 
-	fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, initialPassword, "Password")
-	if err != nil {
-		return fmt.Errorf("error encrypting password during IAM User Login Profile (%s) creation: %s", username, err)
-	}
-
 	request := &iam.CreateLoginProfileInput{
 		UserName:              aws.String(username),
 		Password:              aws.String(initialPassword),
-		PasswordResetRequired: aws.Bool(passwordResetRequired),
+		PasswordResetRequired: aws.Bool(d.Get("password_reset_required").(bool)),
 	}
 
 	log.Println("[DEBUG] Create IAM User Login Profile request:", request)
-	createResp, err := iamconn.CreateLoginProfile(request)
+	createResp, err := conn.CreateLoginProfile(request)
 	if err != nil {
-		return fmt.Errorf("Error creating IAM User Login Profile for %q: %s", username, err)
+		return fmt.Errorf("Error creating IAM User Login Profile for %q: %w", username, err)
 	}
 
 	d.SetId(aws.StringValue(createResp.LoginProfile.UserName))
-	d.Set("key_fingerprint", fingerprint)
-	d.Set("encrypted_password", encrypted)
+
+	if v, ok := d.GetOk("pgp_key"); ok {
+		pgpKey := v.(string)
+		pgpKey = strings.TrimSuffix(pgpKey, "\n")
+		encryptionKey, err := encryption.RetrieveGPGKey(pgpKey)
+		if err != nil {
+			return err
+		}
+		fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, initialPassword, "Password")
+		if err != nil {
+			return err
+		}
+
+		d.Set("key_fingerprint", fingerprint)
+		d.Set("encrypted_password", encrypted)
+	}
+
 	return nil
 }
 
@@ -206,7 +210,8 @@ func resourceAwsIamUserLoginProfileRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error reading IAM User Login Profile (%s): empty response", d.Id())
 	}
 
-	d.Set("user", output.LoginProfile.UserName)
+	loginProfile := output.LoginProfile
+	d.Set("user", loginProfile.UserName)
 
 	return nil
 }
@@ -249,7 +254,7 @@ func resourceAwsIamUserLoginProfileDelete(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting IAM User Login Profile (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting IAM User Login Profile (%s): %w", d.Id(), err)
 	}
 
 	return nil
