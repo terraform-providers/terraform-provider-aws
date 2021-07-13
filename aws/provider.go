@@ -873,6 +873,7 @@ func Provider() *schema.Provider {
 			"aws_lex_slot_type":                                       resourceAwsLexSlotType(),
 			"aws_licensemanager_association":                          resourceAwsLicenseManagerAssociation(),
 			"aws_licensemanager_license_configuration":                resourceAwsLicenseManagerLicenseConfiguration(),
+			"aws_lightsail_database":                                  resourceAwsLightsailDatabase(),
 			"aws_lightsail_domain":                                    resourceAwsLightsailDomain(),
 			"aws_lightsail_instance":                                  resourceAwsLightsailInstance(),
 			"aws_lightsail_instance_public_ports":                     resourceAwsLightsailInstancePublicPorts(),
